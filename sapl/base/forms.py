@@ -1,4 +1,3 @@
-import django_filters
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
@@ -13,8 +12,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.forms import ModelForm
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -27,6 +27,7 @@ from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
                         autor_label, autor_modal, models_with_gr_for_model)
 
 from .models import AppConfig, CasaLegislativa
+
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('C', _('Criar novo Usuário')),
@@ -336,8 +337,11 @@ class AutorForm(ModelForm):
                     _('O Registro definido (%s-%s) não está na base de %s.'
                       ) % (cd['autor_related'], cd['q'], tipo.descricao))
 
-            if qs_autor.filter(object_id=cd['autor_related']).exists():
-                autor = qs_autor.filter(object_id=cd['autor_related']).first()
+            qs_autor_selected = qs_autor.filter(
+                object_id=cd['autor_related'],
+                content_type_id=cd['tipo'].content_type_id)
+            if qs_autor_selected.exists():
+                autor = qs_autor_selected.first()
                 raise ValidationError(
                     _('Já existe um autor Cadastrado para %s'
                       ) % autor.autor_related)
@@ -714,6 +718,7 @@ class ConfiguracoesAppForm(ModelForm):
 
 
 class RecuperarSenhaForm(PasswordResetForm):
+
     def __init__(self, *args, **kwargs):
         row1 = to_row(
             [('email', 12)])
@@ -728,7 +733,7 @@ class RecuperarSenhaForm(PasswordResetForm):
 
     def clean(self):
         super(RecuperarSenhaForm, self).clean()
-        
+
         email_existente = User.objects.filter(
             email=self.data['email']).exists()
 
@@ -740,6 +745,7 @@ class RecuperarSenhaForm(PasswordResetForm):
 
 
 class NovaSenhaForm(SetPasswordForm):
+
     def __init__(self, user, *args, **kwargs):
         self.user = user
         super(NovaSenhaForm, self).__init__(user, *args, **kwargs)
@@ -750,5 +756,5 @@ class NovaSenhaForm(SetPasswordForm):
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
-                     row1,
-                     form_actions(save_label='Enviar'))
+            row1,
+            form_actions(save_label='Enviar'))

@@ -327,6 +327,9 @@ def obj_desnecessario(obj):
         if (f.one_to_many or f.one_to_one) and f.auto_created]
     sem_referencia = not any(rr.related_model.objects.filter(
         **{rr.field.name: obj}).exists() for rr in relacoes)
+    if type(obj).__name__ == 'Parlamentar' and sem_referencia and \
+            obj.autor.all():
+        sem_referencia = False
     return sem_referencia
 
 
@@ -655,12 +658,32 @@ def adjust_acompanhamentomateria(new, old):
 
 def adjust_documentoadministrativo(new, old):
     if new.numero_protocolo:
-        protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
-                                          ano=new.ano)
-        new.protocolo = protocolo
+        try:
+            protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
+                                              ano=new.ano)
+            new.protocolo = protocolo
+        except Exception:
+            try:
+                protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
+                                                  ano=new.ano+1)
+                new.protocolo = protocolo
+            except Exception:
+                protocolo = mommy.make(Protocolo, numero=new.numero_protocolo,
+                                       ano=new.ano)
+                with reversion.create_revision():
+                    problema = 'Protocolo Vinculado [numero_protocolo=%s, '\
+                            'ano=%s] não existe' % (new.numero_protocolo,
+                                                    new.ano)
+                    descricao = 'O protocolo inexistente foi criado'
+                    warn(problema + ' => ' + descricao)
+                    save_relation(obj=protocolo, problema=problema,
+                                  descricao=descricao, eh_stub=True)
+                    reversion.set_comment('Protocolo não existia.')
 
 
 def adjust_mandato(new, old):
+    if old.dat_fim_mandato:
+        new.data_fim_mandato = old.dat_fim_mandato
     if not new.data_fim_mandato:
         legislatura = Legislatura.objects.latest('data_fim')
         new.data_fim_mandato = legislatura.data_fim
@@ -727,8 +750,8 @@ def adjust_proposicao_antes_salvar(new, old):
 
 def adjust_proposicao_depois_salvar(new, old):
     if not hasattr(old.dat_envio, 'year') or old.dat_envio.year == 1800:
-        msg = "O valor do campo data_envio (DateField) da model Proposicao"
-        "era inválido"
+        msg = "O valor do campo data_envio (DateField) da model Proposicao"\
+                " era inválido"
         descricao = 'A data 1111-11-11 foi colocada no lugar'
         problema = 'O valor da data era nulo ou inválido'
         warn(msg + ' => ' + descricao)
@@ -745,17 +768,22 @@ def adjust_normarelacionada(new, old):
     new.tipo_vinculo = tipo[0]
 
 
-def adjust_protocolo(new, old):
-    if new.numero is None and not primeira_vez:
-        p = ProtocoloLegado.objects.filter(
-            ano_protocolo=new.ano).aggregate(Max('num_protocolo'))
-        numero_maximo = p['num_protocolo__max']
-        new.numero = 1 if numero_maximo is None else numero_maximo + 1
-        primeira_vez.append(True)
-    if new.numero is None and primeira_vez:
-        p = Protocolo.objects.filter(
-            ano=new.ano).aggregate(Max('numero'))
-        new.numero = p['numero__max'] + 1
+def adjust_protocolo_antes_salvar(new, old):
+    data_ajuste = date(2014, 11, 13)
+
+    if old.num_protocolo is None and data_ajuste >= old.dat_protocolo:
+        new.numero = old.pk
+
+
+def adjust_protocolo_depois_salvar(new, old):
+    if old.num_protocolo is None:
+        with reversion.create_revision():
+            problema = 'Número do protocolo de PK %s é nulo' % new.pk
+            descricao = 'Número do protocolo alterado para %s!' % new.numero
+            warn(problema + ' => ' + descricao)
+            save_relation(obj=new, problema=problema,
+                          descricao=descricao, eh_stub=False)
+            reversion.set_comment('Número de protocolo teve que ser alterado')
 
 
 def adjust_registrovotacao_antes_salvar(new, old):
@@ -835,21 +863,23 @@ def adjust_normajuridica_depois_salvar(new, old):
         new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
 
 
-def adjust_protocolo_depois_salvar(new, old):
-    if old.num_protocolo is None:
-        with reversion.create_revision():
-            problema = 'Número do protocolo de PK %s é nulo' % new.pk
-            descricao = 'Número do protocolo alterado para %s!' % new.numero
-            warn(problema + ' => ' + descricao)
-            save_relation(obj=new, problema=problema,
-                          descricao=descricao, eh_stub=False)
-            reversion.set_comment('Numero de protocolo teve que ser alterado')
-
-
 def adjust_autor(new, old):
     if old.cod_parlamentar:
-        new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
+        try:
+            new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
+        except Exception:
+            with reversion.create_revision():
+                msg = 'Um parlamentar relacionado de PK [%s] não existia' \
+                        % old.cod_parlamentar
+                reversion.set_comment('Stub criado pela migração')
+                value = make_stub(Parlamentar, old.cod_parlamentar)
+                descricao = 'stub criado para entrada orfã!'
+                warn(msg + ' => ' + descricao)
+                save_relation(value, [], msg, descricao,
+                              eh_stub=True)
+                new.autor_related = value
         new.nome = new.autor_related.nome_parlamentar
+
     elif old.cod_comissao:
         new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
         new.nome = new.autor_related.nome
@@ -857,22 +887,14 @@ def adjust_autor(new, old):
     if old.col_username:
         if not get_user_model().objects.filter(
                 username=old.col_username).exists():
-            user = get_user_model()(
-                username=old.col_username, password=12345)
+            user = get_user_model()(username=old.col_username)
+            user.set_password(12345)
             with reversion.create_revision():
                 user.save()
                 reversion.set_comment('Objeto criado pela migração')
 
             grupo_autor = Group.objects.get(name="Autor")
             user.groups.add(grupo_autor)
-            if old.cod_parlamentar:
-                grupo_parlamentar = Group.objects.get(name="Parlamentar")
-                user.groups.add(grupo_parlamentar)
-
-            new.user = user
-        else:
-            new.user = get_user_model().objects.filter(
-                username=old.col_username)[0]
 
 
 def adjust_comissao(new, old):
@@ -897,7 +919,7 @@ AJUSTE_ANTES_SALVAR = {
     Parlamentar: adjust_parlamentar,
     Participacao: adjust_participacao,
     Proposicao: adjust_proposicao_antes_salvar,
-    Protocolo: adjust_protocolo,
+    Protocolo: adjust_protocolo_antes_salvar,
     RegistroVotacao: adjust_registrovotacao_antes_salvar,
     TipoAfastamento: adjust_tipoafastamento,
     TipoProposicao: adjust_tipoproposicao,

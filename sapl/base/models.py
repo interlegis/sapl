@@ -1,10 +1,11 @@
-import reversion
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+import reversion
 
 from sapl.utils import UF, YES_NO_CHOICES, get_settings_auth_user_model
+
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -18,7 +19,9 @@ class CasaLegislativa(models.Model):
     # TODO ajustar todos os max_length !!!!
     # cod_casa => id (pk)
 
-    codigo = models.CharField(max_length=100, verbose_name=_('Codigo'))
+    codigo = models.CharField(max_length=100,
+                              blank=True,
+                              verbose_name=_('Codigo'))
     nome = models.CharField(max_length=100, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=100, verbose_name=_('Sigla'))
     endereco = models.CharField(max_length=100, verbose_name=_('Endereço'))
@@ -219,6 +222,7 @@ class Autor(models.Model):
         verbose_name = _('Autor')
         verbose_name_plural = _('Autores')
         unique_together = (('content_type', 'object_id'), )
+        ordering = ('nome',)
 
     def __str__(self):
 

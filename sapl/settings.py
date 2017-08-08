@@ -22,6 +22,7 @@ from unipath import Path
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
+
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
 
@@ -101,7 +102,7 @@ if SOLR_URL:
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': SEARCH_BACKEND,
-        SEARCH_URL[0] : SEARCH_URL[1]
+        SEARCH_URL[0]: SEARCH_URL[1]
     },
 }
 
@@ -200,12 +201,12 @@ MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 LANGUAGE_CODE = 'pt-br'
 LANGUAGES = (
-    ('pt-br','Português'),
+    ('pt-br', 'Português'),
 )
 
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
-USE_L10N = False
+USE_L10N = True
 USE_TZ = False
 # DATE_FORMAT = 'N j, Y'
 DATE_FORMAT = 'd/m/Y'

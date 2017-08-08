@@ -1400,9 +1400,8 @@ class VotacaoEditView(SessaoPermissionMixin):
         ordem_id = kwargs['oid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            RegistroVotacao.objects.filter(
-                materia_id=materia_id,
-                ordem_id=ordem_id).last().delete()
+            for r in RegistroVotacao.objects.filter(ordem_id=ordem_id):
+                r.delete()
 
             ordem = OrdemDia.objects.get(
                 sessao_plenaria_id=self.object.id,
@@ -2165,14 +2164,8 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         expediente_id = kwargs['oid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            try:
-                RegistroVotacao.objects.get(
-                    materia_id=materia_id,
-                    expediente_id=expediente_id).delete()
-            except MultipleObjectsReturned:
-                RegistroVotacao.objects.filter(
-                    materia_id=materia_id,
-                    expediente_id=expediente_id).last().delete()
+            for r in RegistroVotacao.objects.filter(expediente_id=expediente_id):
+                r.delete()
 
             expediente = ExpedienteMateria.objects.get(
                 sessao_plenaria_id=self.object.id,
@@ -2296,11 +2289,13 @@ class PautaSessaoDetailView(DetailView):
             ementa = o.observacao
             titulo = o.materia
             numero = o.numero_ordem
-
+            situacao = o.materia.tramitacao_set.last().status
+            if situacao is None:
+                situacao = _("Não informada")
             # Verificar resultado
-            resultado = o.registrovotacao_set.all()
-            if resultado:
-                resultado = resultado[0].tipo_resultado_votacao.nome
+            rv = o.registrovotacao_set.all()
+            if rv:
+                resultado = rv[0].tipo_resultado_votacao.nome
             else:
                 resultado = _('Matéria não votada')
 
@@ -2313,6 +2308,8 @@ class PautaSessaoDetailView(DetailView):
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
+                   'resultado_observacao': resultado_observacao,
+                   'situacao': situacao,
                    'autor': autor
                    }
             materias_ordem.append(mat)

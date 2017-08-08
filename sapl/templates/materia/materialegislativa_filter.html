@@ -60,10 +60,12 @@
 
                 {% endif %}
                 {% if m.autoria_set.all %}
-                <strong>Autor:</strong>
-                {% for a in m.autoria_set.all %}
-                    {% if a.primeiro_autor %}
-                        &nbsp;{{a.autor.nome}}
+		<strong>Autor:</strong>
+		{% for a in m.autoria_set.all %}
+                    {% if not forloop.first %}
+                         </br> {{a.autor}}
+                    {% else %}
+                         &nbsp;{{a.autor}}
                     {% endif %}
                 {% endfor %}
                 </br>
@@ -76,17 +78,19 @@
                   <strong>Data Fim Prazo (Tramitação):</strong>&nbsp;{{m.tramitacao_set.last.data_fim_prazo|default_if_none:""}}</br>
                 {% endif %}
                 {% if m.registrovotacao_set.exists %}
-                    <strong>Data da última Votação:</strong>
-                    {% if m.registrovotacao_set.last.ordem %}
-                      <a href="{% url 'sapl.sessao:ordemdia_list' m.registrovotacao_set.last.ordem.sessao_plenaria_id %}">
-                        {{ m.registrovotacao_set.last.ordem.data_ordem }}
-                      </a>
-                    {% elif m.registrovotacao_set.last.expediente %}
-                      <a href="{% url 'sapl.sessao:expedientemateria_list' m.registrovotacao_set.last.expediente.sessao_plenaria_id %}">
-                        {{ m.registrovotacao_set.last.expediente.data_ordem }}
-                      </a>
-                    {% endif %}
-                    </br>
+                    <strong>Data Votação:</strong>
+                    {% for rv in m.registrovotacao_set.all %}
+                        {% if rv.ordem %}
+                          <a href="{% url 'sapl.sessao:ordemdia_list' rv.ordem.sessao_plenaria_id %}">
+                            {{ rv.ordem.data_ordem }}
+                          </a>
+                        {% elif rv.expediente %}
+                          <a href="{% url 'sapl.sessao:expedientemateria_list' rv.expediente.sessao_plenaria_id %}">
+                            {{ rv.expediente.data_ordem }}
+                          </a>
+                        {% endif %}
+                        </br>
+                    {% endfor %}
                 {% endif %}
                 {% if m.tramitacao_set.last.data_tramitacao %}
                 <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao}}</br>

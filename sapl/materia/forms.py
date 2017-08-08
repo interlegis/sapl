@@ -13,17 +13,21 @@ from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.db.models import Max
-from django.forms import ModelForm, widgets
+from django.forms import ModelForm, ModelChoiceField, widgets
+from django.forms.fields import BooleanField
 from django.forms.forms import Form
-from django.forms.widgets import Select
+from django.forms.widgets import Select, HiddenInput
+from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django_filters.filterset import STRICTNESS
 import django_filters
 
-from sapl.base.models import Autor
+from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
+from sapl.compilacao.forms import error_messages
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -586,6 +590,45 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      form_actions(save_label='Pesquisar'))
         )
 
+    @property
+    def qs(self):
+        if not hasattr(self, '_qs'):
+            valid = self.is_bound and self.form.is_valid()
+
+            if self.is_bound and not valid:
+                if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                    raise forms.ValidationError(self.form.errors)
+                elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                    self._qs = self.queryset.none()
+                    return self._qs
+                    # else STRICTNESS.IGNORE...  ignoring
+
+            # start with all the results and filter from there
+            qs = self.queryset.all()
+            for name, filter_ in six.iteritems(self.filters):
+                value = None
+                if valid:
+                    value = self.form.cleaned_data[name]
+                else:
+                    raw_value = self.form[name].value()
+                    try:
+                        value = self.form.fields[name].clean(raw_value)
+                    except forms.ValidationError:
+                        if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                            raise
+                        elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                            self._qs = self.queryset.none()
+                            return self._qs
+                            # else STRICTNESS.IGNORE...  ignoring
+
+                if value is not None:  # valid & clean data
+                    qs = qs._next_is_sticky()
+                    qs = filter_.filter(qs, value)
+
+            self._qs = qs
+
+        return self._qs
+
 
 def pega_ultima_tramitacao():
     ultimas_tramitacoes = Tramitacao.objects.values(
@@ -648,24 +691,45 @@ class DespachoInicialForm(ModelForm):
 
 class AutoriaForm(ModelForm):
 
+    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
+                                  required=False,
+                                  queryset=TipoAutor.objects.all(),
+                                  empty_label=_('Selecione'),)
+
+    data_relativa = forms.DateField(
+        widget=forms.HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        super(AutoriaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('tipo_autor', 4),
+                       ('autor', 4),
+                       ('primeiro_autor', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Autoria'),
+                     row1, 'data_relativa', form_actions(save_label='Salvar')))
+
+        if not kwargs['instance']:
+            self.fields['autor'].choices = []
+
     class Meta:
         model = Autoria
-        fields = ['autor', 'primeiro_autor']
+        fields = ['tipo_autor', 'autor', 'primeiro_autor', 'data_relativa']
 
     def clean(self):
-        super(AutoriaForm, self).clean()
+        cd = super(AutoriaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        autorias = Autoria.objects.filter(
+            materia=self.instance.materia, autor=cd['autor'])
+        pk = self.instance.pk
 
-        if Autoria.objects.filter(
-            materia=self.instance.materia,
-            autor=self.cleaned_data['autor'],
-        ).exists():
-            msg = _('Esse Autor já foi cadastrado.')
-            raise ValidationError(msg)
+        if ((not pk and autorias.exists())
+                or (pk and autorias.exclude(pk=pk).exists())):
+            raise ValidationError(_('Esse Autor já foi cadastrado.'))
 
-        return self.cleaned_data
+        return cd
 
 
 class AcessorioEmLoteFilterSet(django_filters.FilterSet):

@@ -93,9 +93,13 @@
 
             {% if page.has_previous or page.has_next %}
                 <div>
-                    {% if page.has_previous %}<a href="?q={{ query }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %}
+                    {% if page.has_previous %}
+                      <a href="?q={{ query }}&amp;page={{ page.previous_page_number }}{{ models }}">
+                    {% endif %}&laquo; Anterior{% if page.has_previous %}</a>{% endif %}
                     |
-                    {% if page.has_next %}<a href="?q={{ query }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
+                    {% if page.has_next %}
+                      <a href="?q={{ query }}&amp;page={{ page.next_page_number }}{{ models }}">
+                    {% endif %}Próxima &raquo;{% if page.has_next %}</a>{% endif %}
                 </div>
             {% endif %}
         {% else %}

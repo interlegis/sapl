@@ -1,8 +1,10 @@
 from datetime import date, datetime
 
+
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
@@ -15,6 +17,7 @@ from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
 import sapl
+from sapl.base.models import Autor
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import create_barcode, get_client_ip
@@ -27,6 +30,10 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+from sapl.parlamentares.models import Parlamentar
+from sapl.protocoloadm.models import Protocolo
+from sapl.comissoes.models import Comissao
+from django.contrib.contenttypes.models import ContentType
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -419,12 +426,10 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.numero = (
             numero['numero__max'] + 1) if numero['numero__max'] else 1
         protocolo.ano = datetime.now().year
-        protocolo.data = datetime.strptime(datetime.now().strftime("%Y-%m-%d"),
-                                           '%Y-%m-%d')
-        protocolo.hora = datetime.strptime(datetime.now().strftime("%H:%M"),
-                                           '%H:%M')
-        protocolo.timestamp = datetime.strptime(
-            datetime.now().strftime("%Y-%m-%d %H:%M"), "%Y-%m-%d %H:%M")
+        protocolo.data = datetime.now().date()
+        protocolo.hora = datetime.now().time()
+        protocolo.timestamp = datetime.now()
+
         protocolo.tipo_protocolo = 0
         protocolo.tipo_processo = '1'  # TODO validar o significado
         protocolo.anulado = False
@@ -439,6 +444,30 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         protocolo.save()
         return redirect(self.get_success_url(protocolo))
+
+    def get_context_data(self, **kwargs):
+            context = super(CreateView, self).get_context_data(**kwargs)
+            autores_ativos = self.autores_ativos()
+
+            autores = []
+            autores.append(['0', '------'])
+            for a in autores_ativos:
+                autores.append([a.id, a.__str__()])
+
+            context['form'].fields['autor'].choices = autores
+            return context
+
+    def autores_ativos(self):
+            lista_parlamentares = Parlamentar.objects.filter(ativo=True).values_list('id', flat=True)
+            model_parlamentar = ContentType.objects.get_for_model(Parlamentar)
+            autor_parlamentar = Autor.objects.filter(content_type=model_parlamentar, object_id__in=lista_parlamentares)
+
+            lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True)|Q(data_extincao__gt=date.today())).values_list('id', flat=True)
+            model_comissao = ContentType.objects.get_for_model(Comissao)
+            autor_comissoes = Autor.objects.filter(content_type=model_comissao, object_id__in=lista_comissoes)
+            autores_outros = Autor.objects.exclude(content_type__in=[model_parlamentar, model_comissao])
+            q = autor_parlamentar | autor_comissoes | autores_outros
+            return q
 
 
 class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):

@@ -36,6 +36,8 @@
     - title: {% trans 'Proposições' %}
       url: sapl.materia:proposicao_list
       check_permission: materia.add_proposicao
+    - title: {% trans 'Relatórios' %}
+      url: sapl.base:relatorios_list
     - title: {% trans 'Sessões Plenárias' %}
       url: sapl.sessao:pesquisar_sessao
     - title: {% trans 'Tramitação em Lote' %}

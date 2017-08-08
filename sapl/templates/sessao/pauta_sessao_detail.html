@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block base_content %}
-<div align=right><a href="{% url 'sapl.relatorios:relatorio_sessao_plenaria' object.id %}">> PDF</a></li></div>
+<div align=right><a href="{% url 'sapl.relatorios:relatorio_sessao_plenaria' object.id %}"> Impressão PDF</a></li></div>
 <fieldset>
 	<legend>Identificação Básica</legend>
 	<table class="table">
@@ -25,7 +25,7 @@
 				<tr>
 			    <td>
 						<b>{{e.tipo}}: </b> <br />
-						<p style="text-indent: 50px;">{{e.conteudo}}</p>
+						<p style="text-indent: 50px;">{{e.conteudo|safe}}</p>
 					</td>
 				</tr>
 		  {% endfor %}
@@ -36,7 +36,7 @@
 <fieldset>
 	<legend>Matérias do Expediente</legend>
 	<table class="table table-striped">
-		<thead class="thead-default">
+		<thead>
 			<tr>
 	      <th>Matéria</th>
 	      <th>Ementa</th>
@@ -45,13 +45,13 @@
 		</thead>
     {% for m in materia_expediente %}
       <tr>
-				<td>
+				<td style="width:20%;">
 	        {{m.numero}} - <a href="{% url 'sapl.sessao:pauta_expediente_detail' m.id %}">{{m.titulo}}</a>
 	        <br />
 	        <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 				</td>
-	      <td>{{m.ementa|safe}}</td>
-	      <td>{{m.situacao}}</td>
+	      <td style="width:70%;">{{m.ementa|safe}}</td>
+	      <td style="width:10%;">{{m.situacao}}</td>
 			</tr>
     {% endfor %}
   </table>
@@ -78,7 +78,7 @@
 <fieldset>
 	<legend>Matérias da Ordem do Dia</legend>
 	<table class="table table-striped">
-		<thead class="thead-default">
+		<thead>
 			<tr>
 				<th>Matéria</th>
 				<th>Ementa</th>
@@ -87,13 +87,13 @@
 		</thead>
     {% for m in materias_ordem %}
       <tr>
-        <td>
+        <td style="width:20%;">
 					{{m.numero}} - <a href="{% url 'sapl.sessao:pauta_ordem_detail' m.id %}">{{m.titulo}}</a>
         	<br />
         	<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 				</td>
-      	<td>{{m.ementa|safe}}</td>
-      	<td>{{m.situacao}}</td>
+				<td style="width:70%;">{{m.ementa|safe}}</td>
+				<td style="width:10%;">{{m.situacao}}</td>
 			</tr>
     {% endfor %}
   </table>
