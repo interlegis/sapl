@@ -898,13 +898,13 @@ def adjust_autor(new, old):
 
 
 def adjust_comissao(new, old):
-    if old.dat_extincao:
-        if date.today() < new.data_extincao:
-            new.ativa = True
-        else:
-            new.ativa = False
-    if not old.dat_extincao:
+    if not old.dat_extincao and not old.dat_fim_comissao:
         new.ativa = True
+    elif old.dat_extincao and date.today() < new.data_extincao or \
+            old.dat_fim_comissao and date.today() < new.data_fim_comissao:
+        new.ativa = True
+    else:
+        new.ativa = False
 
 
 AJUSTE_ANTES_SALVAR = {
