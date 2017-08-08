@@ -50,6 +50,20 @@ relatorio_materia_por_ano_autor_tipo = (
 historico_tramitacoes = (app_relatorios + ':historico_tramitacoes')
 
 
+
+def has_iframe(url, request):
+
+    iframe = request.GET.get(
+        'iframe',
+        EMPTY_STRING)
+    if iframe:
+        iframe_qs= ("iframe=" + iframe)
+        url += ("&" if "?" in url else "?")
+        url += iframe_qs
+
+    return url
+
+
 class RedirecionaSAPLIndex(RedirectView):
     permanent = True
 
@@ -59,6 +73,9 @@ class RedirecionaSAPLIndex(RedirectView):
             url = reverse(url_pattern)
         except NoReverseMatch:
             raise UnknownUrlNameError(url_pattern)
+
+        url = has_iframe(url, self.request)
+
         return url
 
 
@@ -90,6 +107,8 @@ class RedirecionaParlamentar(RedirectView):
                 args = '?pk=' + numero_legislatura
                 url = "%s%s" % (url, args)
 
+        url = has_iframe(url, self.request)
+
         return url
 
 
@@ -112,6 +131,9 @@ class RedirecionaComissao(RedirectView):
                 url = reverse(comissao_list)
             except NoReverseMatch:
                 raise UnknownUrlNameError(comissao_list)
+
+        url = has_iframe(url, self.request)
+
         return url
 
 
@@ -150,6 +172,8 @@ class RedirecionaPautaSessao(RedirectView):
                 args += "&data_inicio__day=%s" % (dia_s_p)
                 args += "&tipo=&salvar=Pesquisar"
                 url = "%s%s" % (url, args)
+
+        url = has_iframe(url, self.request)
 
         return url
 
@@ -198,6 +222,8 @@ class RedirecionaSessaoPlenaria(RedirectView):
             args += "&tipo=%s&salvar=Pesquisar" % (tipo_sessao)
             url = "%s%s" % (url, args)
 
+        url = has_iframe(url, self.request)
+
         return url
 
 
@@ -210,6 +236,9 @@ class RedirecionaRelatoriosList(RedirectView):
             url = reverse(relatorios_list)
         except NoReverseMatch:
             raise UnknownUrlNameError(relatorios_list)
+
+        url = has_iframe(url, self.request)
+
         return url
 
 
@@ -253,6 +282,8 @@ class RedirecionaRelatoriosMateriasEmTramitacaoList(RedirectView):
             args += "&salvar=%s" % (salvar)
             url = "%s%s" % (url, args)
 
+        url = has_iframe(url, self.request)
+
         return url
 
 
@@ -260,13 +291,18 @@ class RedirecionaMateriaLegislativaDetail(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        url = EMPTY_STRING
         pk = self.request.GET.get('cod_materia', EMPTY_STRING)
 
         if pk:
             kwargs = {'pk': pk}
-            return reverse(materialegislativa_detail, kwargs=kwargs)
+            url = reverse(materialegislativa_detail, kwargs=kwargs)
         else:
-            return reverse(materialegislativa_list)
+            url = reverse(materialegislativa_list)
+
+        url = has_iframe(url, self.request)
+
+        return url
 
 
 class RedirecionaMateriaLegislativaList(RedirectView):
@@ -339,6 +375,8 @@ class RedirecionaMateriaLegislativaList(RedirectView):
 
         url = "%s%s" % (url, args)
 
+        url = has_iframe(url, self.request)
+
         return url
 
 
@@ -346,10 +384,13 @@ class RedirecionaMesaDiretoraView(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        url = EMPTY_STRING
         try:
             url = reverse(parlamentar_mesa_diretora)
         except NoReverseMatch:
             raise UnknownUrlNameError(parlamentar_mesa_diretora)
+
+        url = has_iframe(url, self.request)
 
         return url
 
@@ -358,13 +399,18 @@ class RedirecionaNormasJuridicasDetail(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        url = EMPTY_STRING
         pk_norma = self.request.GET.get('cod_norma', EMPTY_STRING)
 
         if pk_norma:
             kwargs = {'pk': pk_norma}
-            return reverse(norma_juridica_detail, kwargs=kwargs)
+            url = reverse(norma_juridica_detail, kwargs=kwargs)
         else:
-            return reverse(norma_juridica_pesquisa)
+            url = reverse(norma_juridica_pesquisa)
+
+        url = has_iframe(url, self.request)
+
+        return url
 
 
 class RedirecionaNormasJuridicasList(RedirectView):
@@ -419,6 +465,8 @@ class RedirecionaNormasJuridicasList(RedirectView):
         args += "&salvar=%s" % ('Pesquisar')  # Default in both SAPL version
 
         url = "%s%s" % (url, args)
+
+        url = has_iframe(url, self.request)
 
         return url
 
@@ -475,6 +523,8 @@ class RedirecionaHistoricoTramitacoesList(RedirectView):
 
             url = "%s%s" % (url, args)
 
+        url = has_iframe(url, self.request)
+
         return url
 
 
@@ -506,6 +556,8 @@ class RedirecionaAtasList(RedirectView):
         args += "&salvar=%s" % ('Pesquisar')
 
         url = "%s%s" % (url, args)
+
+        url = has_iframe(url, self.request)
 
         return url
 
@@ -539,6 +591,8 @@ class RedirecionaPresencaParlamentares(RedirectView):
 
         url = "%s%s" % (url, args)
 
+        url = has_iframe(url, self.request)
+
         return url
 
 
@@ -552,6 +606,8 @@ class RedirecionaMateriasPorAutor(RedirectView):
             url = reverse(relatorio_materia_por_autor)
         except NoReverseMatch:
             raise UnknownUrlNameError(relatorio_materia_por_autor)
+
+        url = has_iframe(url, self.request)
 
         return url
 
@@ -573,5 +629,7 @@ class RedirecionaMateriasPorAnoAutorTipo(RedirectView):
             args = "?ano=%s" % (ano)
             args += "&salvar=%s" % ('Pesquisar')
             url = "%s%s" % (url, args)
+
+        url = has_iframe(url, self.request)
 
         return url
