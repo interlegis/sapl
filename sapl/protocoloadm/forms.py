@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor
 from sapl.crispy_layout_mixin import form_actions, to_row
-from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
@@ -233,7 +233,20 @@ class AnularProcoloAdmForm(ModelForm):
         except ObjectDoesNotExist:
             raise forms.ValidationError(
                 _("Protocolo %s/%s não existe" % (numero, ano)))
+        exists = False
+        documentos_vinculados = []
+        if protocolo.tipo_materia:
+            documentos_vinculados = MateriaLegislativa.objects.filter(
+                numero_protocolo=protocolo.numero, ano=protocolo.ano)
+        elif protocolo.tipo_documento:
+            documentos_vinculados = protocolo.documentoadministrativo_set.all(
+                ).order_by('-ano', '-numero')
 
+        exists = documentos_vinculados.exists()
+        if exists:
+            raise forms.ValidationError(
+                _("Protocolo %s/%s não pode ser removido pois existem"
+                    "documentos vinculados a ele." % (numero, ano)))
     class Meta:
         model = Protocolo
         fields = ['numero',
