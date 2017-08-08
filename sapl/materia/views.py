@@ -1110,12 +1110,9 @@ class AutoriaCrud(MasterDetailCrud):
 
         def get_initial(self):
             initial = super().get_initial()
-            autoria = Autoria.objects.get(id=self.kwargs['pk'])
             initial.update({
-                'data_relativa': autoria.materia.data_apresentacao,
+                'data_relativa': self.object.materia.data_apresentacao,
                 'tipo_autor': self.object.autor.tipo.id,
-                'autor': self.object.autor.id,
-                'primeiro_autor': self.object.primeiro_autor
             })
             return initial
 

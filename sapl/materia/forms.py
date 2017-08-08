@@ -27,6 +27,7 @@ import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
+from sapl.compilacao.forms import error_messages
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -692,9 +693,8 @@ class AutoriaForm(ModelForm):
 
     tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
                                   required=False,
-                                  queryset=TipoAutor.objects.all().order_by(
-                                      'descricao'),
-                                  empty_label='Selecione',)
+                                  queryset=TipoAutor.objects.all(),
+                                  empty_label=_('Selecione'),)
 
     data_relativa = forms.DateField(
         widget=forms.HiddenInput())
@@ -719,19 +719,17 @@ class AutoriaForm(ModelForm):
         fields = ['tipo_autor', 'autor', 'primeiro_autor', 'data_relativa']
 
     def clean(self):
-        super(AutoriaForm, self).clean()
+        cd = super(AutoriaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        autorias = Autoria.objects.filter(
+            materia=self.instance.materia, autor=cd['autor'])
+        pk = self.instance.pk
 
-        if Autoria.objects.filter(
-            materia=self.instance.materia,
-            autor=self.cleaned_data['autor'],
-        ).exists():
-            msg = _('Esse Autor já foi cadastrado.')
-            raise ValidationError(msg)
+        if ((not pk and autorias.exists())
+                or (pk and autorias.exclude(pk=pk).exists())):
+            raise ValidationError(_('Esse Autor já foi cadastrado.'))
 
-        return self.cleaned_data
+        return cd
 
 
 class AcessorioEmLoteFilterSet(django_filters.FilterSet):
