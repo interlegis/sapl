@@ -1,4 +1,5 @@
 from datetime import datetime, date
+from django.utils import timezone
 from random import choice
 from string import ascii_letters, digits
 
@@ -1064,6 +1065,10 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
 
         def __init__(self, **kwargs):
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
+
+        def get_initial(self):
+            self.initial['data'] = timezone.now()
+            return self.initial  
 
         def get_context_data(self, **kwargs):
             context = super(
