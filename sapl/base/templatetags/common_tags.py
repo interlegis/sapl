@@ -4,7 +4,7 @@ from django import template
 from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import Filiacao
+from sapl.utils import filiacao_data
 
 register = template.Library()
 
@@ -180,3 +180,7 @@ def urldetail_content_type(obj, value):
 def urldetail(obj):
     return '%s:%s_detail' % (
         obj._meta.app_config.name, obj._meta.model_name)
+
+@register.filter
+def filiacao_epoca_filter(parlamentar, sessao):
+    return filiacao_data(parlamentar, sessao.data_inicio)

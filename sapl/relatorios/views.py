@@ -19,7 +19,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
                                 TipoExpediente)
 from sapl.settings import STATIC_ROOT
-from sapl.utils import UF
+from sapl.utils import filiacao_data, UF
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
@@ -510,12 +510,8 @@ def get_sessao_plenaria(sessao, casa):
     for parlamentar in [p.parlamentar for p in presenca]:
             dic_presenca = {}
             dic_presenca["nom_parlamentar"] = parlamentar.nome_parlamentar
-            partido = Filiacao.objects.filter(
-                parlamentar=parlamentar).first()
-            if partido:
-                partido_sigla = partido.partido.sigla
-            else:
-                partido_sigla = ''
+            partido_sigla = filiacao_data(parlamentar, sessao.data_inicio)
+
             dic_presenca['sgl_partido'] = partido_sigla
             lst_presenca_sessao.append(dic_presenca)
 
@@ -651,12 +647,8 @@ def get_sessao_plenaria(sessao, casa):
             dic_presenca_ordem_dia = {}
             dic_presenca_ordem_dia['nom_parlamentar'] = (
                 parlamentar.nome_parlamentar)
-            partido_sigla = Filiacao.objects.filter(
-                parlamentar=parlamentar).first()
-            if not partido_sigla:
-                sigla = ''
-            else:
-                sigla = partido_sigla.partido.sigla
+            sigla = filiacao_data(parlamentar, sessao.data_inicio)
+
             dic_presenca_ordem_dia['sgl_partido'] = sigla
             lst_presenca_ordem_dia.append(dic_presenca_ordem_dia)
 

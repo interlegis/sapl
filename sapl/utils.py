@@ -14,6 +14,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
 from django.apps import apps
+from django.db.models import Q
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
@@ -25,6 +26,7 @@ from reversion.admin import VersionAdmin
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR, PROJECT_DIR
+
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -553,3 +555,21 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
         }
 
     return path
+
+
+def filiacao_data(parlamentar, data):
+    from sapl.parlamentares.models import Filiacao
+
+    filiacoes_parlamentar = Filiacao.objects.filter(
+        parlamentar=parlamentar)
+
+    filiacoes = filiacoes_parlamentar.filter(Q(
+        data__lte=data,
+        data_desfiliacao__isnull=True) | Q(
+        data__lte=data,
+        data_desfiliacao__gte=data))
+
+    if filiacoes:
+        return filiacoes.last().partido.sigla
+    else:
+        return ''
