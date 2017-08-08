@@ -300,6 +300,7 @@ class Autoria(models.Model):
         verbose_name = _('Autoria')
         verbose_name_plural = _('Autorias')
         unique_together = (('autor', 'materia'), )
+        ordering = ('-primeiro_autor', 'autor__nome')
 
     def __str__(self):
         return _('%(autor)s - %(materia)s') % {
