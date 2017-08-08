@@ -1116,13 +1116,6 @@ class AutoriaCrud(MasterDetailCrud):
             })
             return initial
 
-    class ListView(MasterDetailCrud.ListView):
-
-        def get_queryset(self):
-            qs = super().get_queryset()
-
-            return qs.order_by('-primeiro_autor', 'autor__nome')
-
 
 class DespachoInicialCrud(MasterDetailCrud):
     model = DespachoInicial
