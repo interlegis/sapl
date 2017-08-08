@@ -234,15 +234,13 @@ class AnularProcoloAdmForm(ModelForm):
             raise forms.ValidationError(
                 _("Protocolo %s/%s não existe" % (numero, ano)))
         exists = False
-        documentos_vinculados = []
         if protocolo.tipo_materia:
-            documentos_vinculados = MateriaLegislativa.objects.filter(
-                numero_protocolo=protocolo.numero, ano=protocolo.ano)
+            exists = MateriaLegislativa.objects.filter(
+                numero_protocolo=protocolo.numero, ano=protocolo.ano).exists()
         elif protocolo.tipo_documento:
-            documentos_vinculados = protocolo.documentoadministrativo_set.all(
-                ).order_by('-ano', '-numero')
+            exists = protocolo.documentoadministrativo_set.all(
+                ).order_by('-ano', '-numero').exists()
 
-        exists = documentos_vinculados.exists()
         if exists:
             raise forms.ValidationError(
                 _("Protocolo %s/%s não pode ser removido pois existem"
