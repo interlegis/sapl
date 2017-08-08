@@ -90,6 +90,14 @@ class RedirecionaParlamentar(RedirectView):
                 args = '?pk=' + numero_legislatura
                 url = "%s%s" % (url, args)
 
+        iframe = self.request.GET.get(
+            'iframe',
+            EMPTY_STRING)
+        if iframe:
+            iframe_qs= ("iframe=" + iframe)
+            url += ("&" if "?" in url else "?")
+            url += iframe_qs
+
         return url
 
 
