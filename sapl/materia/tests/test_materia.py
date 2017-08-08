@@ -138,9 +138,7 @@ def test_autoria_submit(admin_client):
                 kwargs={'pk': materia_principal.pk}),
         {'autor': autor.pk,
          'primeiro_autor': True,
-         'materia_id': materia_principal.pk,
-         'data_relativa': '',
-         'salvar': 'salvar'},
+         'materia_id': materia_principal.pk, },
         follow=True)
     assert response.status_code == 200
 
@@ -324,8 +322,7 @@ def test_form_errors_autoria(admin_client):
     response = admin_client.post(reverse('sapl.materia:autoria_create',
                                          kwargs={'pk': materia_principal.pk}),
                                  {'materia_id': materia_principal.pk,
-                                  'autor_id': '',
-                                  'salvar': 'salvar'},
+                                  'autor_id': '', },
                                  follow=True)
 
     assert (response.context_data['form'].errors['autor'] ==
