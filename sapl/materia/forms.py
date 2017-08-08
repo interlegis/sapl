@@ -165,9 +165,6 @@ class AcompanhamentoMateriaForm(ModelForm):
 
 
 class DocumentoAcessorioForm(ModelForm):
-    data = forms.DateField(required=True)
-    arquivo = forms.FileField(required=True)
-
 
     class Meta:
         model = DocumentoAcessorio
