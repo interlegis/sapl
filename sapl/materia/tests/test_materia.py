@@ -217,6 +217,9 @@ def test_documento_acessorio_submit(admin_client):
     tipo = mommy.make(TipoDocumento,
                       descricao='Teste')
 
+    file_content = 'file_content'
+    arquivo = SimpleUploadedFile("file.txt", file_content.encode('UTF-8'))
+
     # Testa POST
     response = admin_client.post(reverse(
         'sapl.materia:documentoacessorio_create',
@@ -226,6 +229,8 @@ def test_documento_acessorio_submit(admin_client):
          'data_materia': '2016-03-21',
          'autor': autor,
          'ementa': 'teste_ementa',
+         'data': '2016-03-21',
+         'arquivo': arquivo,
          'salvar': 'salvar'},
         follow=True)
 

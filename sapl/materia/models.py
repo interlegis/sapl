@@ -413,14 +413,12 @@ class DocumentoAcessorio(models.Model):
                              on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
-    data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
+    data = models.DateField(verbose_name=_('Data'))
     autor = models.CharField(
         max_length=50, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(
-        blank=True,
-        null=True,
         upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
         validators=[restringe_tipos_de_arquivo_txt])
