@@ -21,7 +21,7 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
-from sapl.sessao.models import OrdemDia, SessaoPlenaria
+from sapl.sessao.models import PresencaOrdemDia, SessaoPlenaria
 from sapl.utils import sapl_logger
 
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
@@ -253,9 +253,9 @@ class RelatorioPresencaSessaoView(FilterView):
                 sessao_count=0,
                 ordemdia_count=0)
 
-            total_ordemdia = OrdemDia.objects.order_by(
-                'sessao_plenaria').filter(**param0).distinct(
-                'sessao_plenaria').count()
+            total_ordemdia = PresencaOrdemDia.objects.filter(
+                **param0).distinct('sessao_plenaria__id').order_by(
+                'sessao_plenaria__id').count()
 
             self.calcular_porcentagem_presenca(
                 pls,

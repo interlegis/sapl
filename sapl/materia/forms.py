@@ -697,7 +697,7 @@ class AutoriaForm(ModelForm):
                                   empty_label=_('Selecione'),)
 
     data_relativa = forms.DateField(
-        widget=forms.HiddenInput())
+        widget=forms.HiddenInput(), required=False)
 
     def __init__(self, *args, **kwargs):
         super(AutoriaForm, self).__init__(*args, **kwargs)
@@ -721,12 +721,15 @@ class AutoriaForm(ModelForm):
     def clean(self):
         cd = super(AutoriaForm, self).clean()
 
+        if self.errors:
+            return self.errors
+
         autorias = Autoria.objects.filter(
             materia=self.instance.materia, autor=cd['autor'])
         pk = self.instance.pk
 
-        if ((not pk and autorias.exists())
-                or (pk and autorias.exclude(pk=pk).exists())):
+        if ((not pk and autorias.exists()) or
+                (pk and autorias.exclude(pk=pk).exists())):
             raise ValidationError(_('Esse Autor já foi cadastrado.'))
 
         return cd
