@@ -16,7 +16,7 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.utils import formats, deprecation
+from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
@@ -24,7 +24,6 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 from sapl.base.models import Autor, CasaLegislativa
-from sapl.comissoes.models import Comissao
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
@@ -38,9 +37,8 @@ from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 LegislacaoCitadaForm, AutoriaForm, ProposicaoForm,
                                 TipoProposicaoForm, TramitacaoForm,
                                 TramitacaoUpdateForm, AutoriaMultiCreateForm)
-from sapl.materia.models import Autor
+
 from sapl.norma.models import LegislacaoCitada
-from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,

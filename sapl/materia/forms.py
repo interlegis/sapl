@@ -23,7 +23,6 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django_filters.filterset import STRICTNESS
-from jedi.evaluate import instance
 import django_filters
 
 from sapl.base.models import Autor, TipoAutor
