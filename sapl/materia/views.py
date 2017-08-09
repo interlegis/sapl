@@ -1065,6 +1065,11 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         def __init__(self, **kwargs):
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
+        def get_initial(self):
+            self.initial['data'] = datetime.now().date()
+
+            return self.initial  
+
         def get_context_data(self, **kwargs):
             context = super(
                 MasterDetailCrud.CreateView, self).get_context_data(**kwargs)
