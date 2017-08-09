@@ -2,8 +2,7 @@ from django.conf.urls import include, url
 
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
-                                AcompanhamentoMateriaView,
-                                AdicionarVariasAutorias, AnexadaCrud,
+                                AcompanhamentoMateriaView, AnexadaCrud,
                                 AssuntoMateriaCrud, AutoriaCrud,
                                 ConfirmarProposicao, CriarProtocoloMateriaView,
                                 DespachoInicialCrud, DocumentoAcessorioCrud,
@@ -21,11 +20,12 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoFimRelatoriaCrud, TipoMateriaCrud,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
-                                proposicao_texto, recuperar_materia)
-
-from .apps import AppConfig
+                                proposicao_texto, recuperar_materia,
+                                AutoriaMultiCreateView)
 
 from . import receivers
+from .apps import AppConfig
+
 
 app_name = AppConfig.name
 
@@ -60,9 +60,9 @@ urlpatterns_materia = [
         AcompanhamentoExcluirView.as_view(),
         name='acompanhar_excluir'),
 
-    url(r'^materia/(?P<pk>\d+)/adicionar-varias-autorias/',
-        AdicionarVariasAutorias.as_view(),
-        name='adicionar_varias_autorias'),
+    url(r'^materia/(?P<pk>\d+)/autoria/multicreate',
+        AutoriaMultiCreateView.as_view(),
+        name='autoria_multicreate'),
 
     url(r'^materia/acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
         name='acessorio_em_lote'),

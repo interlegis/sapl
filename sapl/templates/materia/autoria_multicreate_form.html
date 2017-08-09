@@ -1,0 +1,51 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block extra_js %}
+   <script language="Javascript">
+      $(document).ready(function() {
+          var autores_pre_cadastrados = $.parseJSON($("#id_autores").val());
+
+          $("#id_tipo_autor").change(function() {
+              var tipo_selecionado = $("#id_tipo_autor").val();
+              $("#id_autor option").remove()
+              if (tipo_selecionado !== '') {
+                var json_data = {
+                   tipo : tipo_selecionado,
+                   data_relativa : $("#id_data_relativa").val()
+                }
+                $.getJSON("/api/autor/possiveis", json_data, function(data){
+                  $("#div_id_autor .controls").html('');
+                    if (data) {
+                      var results = data;
+
+                      $.each(results, function(idx, obj) {
+
+                        if (autores_pre_cadastrados.indexOf(obj.value) !== -1)
+                          return ;
+
+                        $('<input/>')
+                          .attr('type', 'checkbox')
+                          .attr('name','autor')
+                          .attr('id', 'id_autor_'+idx)
+                          .attr('value', obj.value)
+                          .appendTo(
+                            $('<label/>').text(obj.text)
+                              .appendTo(
+                                $('<div class="checkbox">')
+                                  .appendTo($("#div_id_autor .controls")
+                                )
+                              )
+                            )
+                      });
+                      $('[type=checkbox]').checkbox();
+                    }
+                });
+            }
+          });
+          $("#id_tipo_autor").trigger('change');
+      });
+   </script>
+{% endblock %}

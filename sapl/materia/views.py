@@ -16,7 +16,7 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.utils import formats
+from django.utils import formats, deprecation
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
@@ -37,7 +37,7 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
 from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 LegislacaoCitadaForm, AutoriaForm, ProposicaoForm,
                                 TipoProposicaoForm, TramitacaoForm,
-                                TramitacaoUpdateForm)
+                                TramitacaoUpdateForm, AutoriaMultiCreateForm)
 from sapl.materia.models import Autor
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Parlamentar
@@ -1086,13 +1086,16 @@ class AutoriaCrud(MasterDetailCrud):
     parent_field = 'materia'
     help_path = ''
     public = [RP_LIST, RP_DETAIL]
+    list_field_names = ['autor', 'autor__tipo__descricao', 'primeiro_autor']
 
-    class CreateView(MasterDetailCrud.CreateView):
+    class LocalBaseMixin():
         form_class = AutoriaForm
 
         @property
         def layout_key(self):
-            return 'AutoriaCreate'
+            return None
+
+    class CreateView(LocalBaseMixin, MasterDetailCrud.CreateView):
 
         def get_initial(self):
             initial = super().get_initial()
@@ -1101,12 +1104,7 @@ class AutoriaCrud(MasterDetailCrud):
             initial['autor'] = []
             return initial
 
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = AutoriaForm
-
-        @property
-        def layout_key(self):
-            return 'AutoriaUpdate'
+    class UpdateView(LocalBaseMixin, MasterDetailCrud.UpdateView):
 
         def get_initial(self):
             initial = super().get_initial()
@@ -1115,6 +1113,46 @@ class AutoriaCrud(MasterDetailCrud):
                 'tipo_autor': self.object.autor.tipo.id,
             })
             return initial
+
+
+class AutoriaMultiCreateView(FormView):
+    form_class = AutoriaMultiCreateForm
+    template_name = 'materia/autoria_multicreate_form.html'
+
+    @classmethod
+    def get_url_regex(cls):
+        return r'^(?P<pk>\d+)/%s/multicreate' % cls.model._meta.model_name
+
+    @property
+    def layout_key(self):
+        return None
+
+    def get_initial(self):
+        initial = super().get_initial()
+        self.materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
+        initial['data_relativa'] = self.materia.data_apresentacao
+        initial['autores'] = self.materia.autores.all()
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Adicionar Várias Autorias'), self.materia)
+        return context
+
+    def get_success_url(self):
+        messages.add_message(
+            self.request, messages.SUCCESS,
+            _('Autorias adicionadas com sucesso.'))
+        return reverse(
+            'sapl.materia:autoria_list', kwargs={'pk': self.materia.pk})
+
+    def form_valid(self, form):
+        autores_selecionados = form.cleaned_data['autor']
+        for autor in autores_selecionados:
+            Autoria.objects.create(materia=self.materia, autor=autor)
+
+        return FormView.form_valid(self, form)
 
 
 class DespachoInicialCrud(MasterDetailCrud):
@@ -1694,10 +1732,10 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
         context['primeira_tramitacao'] = False
 
         if ('tramitacao__status' in qr and
-            'tramitacao__unidade_tramitacao_destino' in qr and
-                qr['tramitacao__status'] and
-                qr['tramitacao__unidade_tramitacao_destino']
-            ):
+                'tramitacao__unidade_tramitacao_destino' in qr and
+                    qr['tramitacao__status'] and
+                    qr['tramitacao__unidade_tramitacao_destino']
+                ):
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],
                 qr['tramitacao__unidade_tramitacao_destino'])

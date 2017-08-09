@@ -14,20 +14,20 @@ from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm, ModelChoiceField, widgets
-from django.forms.fields import BooleanField
 from django.forms.forms import Form
-from django.forms.widgets import Select, HiddenInput
+from django.forms.models import ModelMultipleChoiceField
+from django.forms.widgets import Select, CheckboxSelectMultiple, HiddenInput
 from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django_filters.filterset import STRICTNESS
+from jedi.evaluate import instance
 import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
-from sapl.compilacao.forms import error_messages
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -731,6 +731,55 @@ class AutoriaForm(ModelForm):
         if ((not pk and autorias.exists()) or
                 (pk and autorias.exclude(pk=pk).exists())):
             raise ValidationError(_('Esse Autor já foi cadastrado.'))
+
+        return cd
+
+
+class AutoriaMultiCreateForm(Form):
+
+    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
+                                  required=False,
+                                  queryset=TipoAutor.objects.all(),
+                                  empty_label=_('Selecione'),)
+
+    data_relativa = forms.DateField(
+        widget=forms.HiddenInput(), required=False)
+
+    autor = ModelMultipleChoiceField(
+        queryset=Autor.objects.all(),
+        label=_('Possiveis Autores'),
+        required=False,
+        widget=CheckboxSelectMultiple)
+
+    autores = ModelMultipleChoiceField(
+        queryset=Autor.objects.all(),
+        required=False,
+        widget=HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row([('tipo_autor', 12), ])
+
+        row2 = to_row([('autor', 12), ])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Autorias'), row1, row2, 'data_relativa', 'autores',
+                form_actions(save_label='Incluir Autores Selecionados')))
+
+        self.fields['autor'].choices = []
+
+    def clean(self):
+        cd = super().clean()
+
+        if 'autores' in self.errors:
+            del self.errors['autores']
+
+        if 'autor' not in cd or not cd['autor'].exists():
+            raise ValidationError(
+                _('Ao menos um autor deve ser selecionado para inclusão'))
 
         return cd
 
