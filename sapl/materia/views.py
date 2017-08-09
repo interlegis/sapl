@@ -37,7 +37,6 @@ from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 LegislacaoCitadaForm, AutoriaForm, ProposicaoForm,
                                 TipoProposicaoForm, TramitacaoForm,
                                 TramitacaoUpdateForm, AutoriaMultiCreateForm)
-
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
@@ -1113,7 +1112,8 @@ class AutoriaCrud(MasterDetailCrud):
             return initial
 
 
-class AutoriaMultiCreateView(FormView):
+class AutoriaMultiCreateView(PermissionRequiredForAppCrudMixin, FormView):
+    app_label = sapl.materia.apps.AppConfig.label
     form_class = AutoriaMultiCreateForm
     template_name = 'materia/autoria_multicreate_form.html'
 
