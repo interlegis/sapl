@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db.models import Count, Q
@@ -21,8 +22,8 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
-from sapl.sessao.models import PresencaOrdemDia, SessaoPlenaria
-from sapl.utils import sapl_logger
+from sapl.sessao.models import PresencaOrdemDia, SessaoPlenaria, SessaoPlenariaPresenca
+from sapl.utils import parlamentares_ativos, sapl_logger
 
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioAtasFilterSet,
@@ -237,28 +238,49 @@ class RelatorioPresencaSessaoView(FilterView):
             param1 = {'presencaordemdia__%s' % sufixo: _range}
             param2 = {'sessaoplenariapresenca__%s' % sufixo: _range}
 
-            pls = Parlamentar.objects.filter(
-                (Q(**param1) | Q(presencaordemdia__isnull=True)) &
-                (Q(**param2) | Q(sessaoplenariapresenca__isnull=True))
-            ).annotate(
-                sessao_count=Count(
-                    'sessaoplenariapresenca__sessao_plenaria',
-                    distinct=True),
-                ordemdia_count=Count(
-                    'presencaordemdia__sessao_plenaria',
-                    distinct=True),
-                sessao_porc=Count(0),
-                ordemdia_porc=Count(0)
-            ).exclude(
-                sessao_count=0,
-                ordemdia_count=0)
+            # Parlamentares com Mandato no intervalo de tempo (Ativos)
+            parlamentares_qs = parlamentares_ativos(
+                _range[0], _range[1]).order_by('nome_parlamentar')
+            parlamentares_id = [p.id for p in parlamentares_qs]
+
+            # Presenças de cada Parlamentar em Sessões
+            presenca_sessao = SessaoPlenariaPresenca.objects.filter(
+                parlamentar_id__in=parlamentares_id,
+                sessao_plenaria__data_inicio__range=_range).values_list(
+                'parlamentar_id').annotate(
+                sessao_count=Count('id'))
+
+            # Presenças de cada Ordem do Dia
+            presenca_ordem = PresencaOrdemDia.objects.filter(
+                parlamentar_id__in=parlamentares_id,
+                sessao_plenaria__data_inicio__range=_range).values_list(
+                'parlamentar_id').annotate(
+                sessao_count=Count('id'))
+
+            # Completa o dicionario as informacoes parlamentar/sessao/ordem
+            parlamentares_presencas = []
+            for i, p in enumerate(parlamentares_qs):
+                parlamentares_presencas.append({
+                    'parlamentar': p,
+                    'sessao_count': 0,
+                    'ordemdia_count': 0,
+                    'sessao_porc': 0,
+                    'ordemdia_porc': 0
+                })
+                try:
+                    parlamentares_presencas[i].update({
+                        'sessao_count': presenca_sessao.get(parlamentar_id=p.id)[1],
+                        'ordemdia_count': presenca_ordem.get(parlamentar_id=p.id)[1]
+                    })
+                except ObjectDoesNotExist:
+                    pass
 
             total_ordemdia = PresencaOrdemDia.objects.filter(
                 **param0).distinct('sessao_plenaria__id').order_by(
                 'sessao_plenaria__id').count()
 
             self.calcular_porcentagem_presenca(
-                pls,
+                parlamentares_presencas,
                 context['object_list'].count(),
                 total_ordemdia)
 
