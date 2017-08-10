@@ -210,15 +210,6 @@ class RelatorioPresencaSessaoView(FilterView):
     filterset_class = RelatorioPresencaSessaoFilterSet
     template_name = 'base/RelatorioPresencaSessao_filter.html'
 
-    def calcular_porcentagem_presenca(self,
-                                      parlamentares,
-                                      total_sessao,
-                                      total_ordemdia):
-        for p in parlamentares:
-            p.sessao_porc = round(p.sessao_count * 100 / total_sessao, 1)
-            p.ordemdia_porc = round(p.ordemdia_count * 100 / total_ordemdia, 1)
-        return parlamentares
-
     def get_context_data(self, **kwargs):
         context = super(RelatorioPresencaSessaoView,
                         self).get_context_data(**kwargs)
@@ -235,8 +226,6 @@ class RelatorioPresencaSessaoView(FilterView):
 
             sufixo = 'sessao_plenaria__data_inicio__range'
             param0 = {'%s' % sufixo: _range}
-            param1 = {'presencaordemdia__%s' % sufixo: _range}
-            param2 = {'sessaoplenariapresenca__%s' % sufixo: _range}
 
             # Parlamentares com Mandato no intervalo de tempo (Ativos)
             parlamentares_qs = parlamentares_ativos(
@@ -257,36 +246,46 @@ class RelatorioPresencaSessaoView(FilterView):
                 'parlamentar_id').annotate(
                 sessao_count=Count('id'))
 
+            total_ordemdia = PresencaOrdemDia.objects.filter(
+                **param0).distinct('sessao_plenaria__id').order_by(
+                'sessao_plenaria__id').count()
+
+            total_sessao = context['object_list'].count()
+
             # Completa o dicionario as informacoes parlamentar/sessao/ordem
             parlamentares_presencas = []
             for i, p in enumerate(parlamentares_qs):
                 parlamentares_presencas.append({
                     'parlamentar': p,
-                    'sessao_count': 0,
-                    'ordemdia_count': 0,
                     'sessao_porc': 0,
                     'ordemdia_porc': 0
                 })
                 try:
-                    parlamentares_presencas[i].update({
-                        'sessao_count': presenca_sessao.get(parlamentar_id=p.id)[1],
-                        'ordemdia_count': presenca_ordem.get(parlamentar_id=p.id)[1]
-                    })
+                    sessao_count = presenca_sessao.get(parlamentar_id=p.id)[1]
                 except ObjectDoesNotExist:
-                    pass
+                    sessao_count = 0
+                try:
+                    ordemdia_count = presenca_ordem.get(parlamentar_id=p.id)[1]
+                except ObjectDoesNotExist:
+                    ordemdia_count = 0
 
-            total_ordemdia = PresencaOrdemDia.objects.filter(
-                **param0).distinct('sessao_plenaria__id').order_by(
-                'sessao_plenaria__id').count()
+                parlamentares_presencas[i].update({
+                    'sessao_count': sessao_count,
+                    'ordemdia_count': ordemdia_count
+                })
 
-            self.calcular_porcentagem_presenca(
-                parlamentares_presencas,
-                context['object_list'].count(),
-                total_ordemdia)
+                if total_sessao != 0:
+                    parlamentares_presencas[i].update(
+                        {'sessao_porc': round(
+                            sessao_count * 100 / total_sessao, 1)})
+                if total_ordemdia != 0:
+                    parlamentares_presencas[i].update(
+                        {'ordemdia_porc': round(
+                            ordemdia_count * 100 / total_ordemdia, 1)})
 
             context['total_ordemdia'] = total_ordemdia
             context['total_sessao'] = context['object_list'].count()
-            context['parlamentares'] = pls
+            context['parlamentares'] = parlamentares_presencas
             context['periodo'] = (
                 self.request.GET['data_inicio_0'] +
                 ' - ' + self.request.GET['data_inicio_1'])

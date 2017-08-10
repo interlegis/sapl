@@ -37,7 +37,7 @@
       <tbody>
         {% for p in parlamentares %}
           <tr>
-            <td><b>{{p}}</b> / {{p.filiacao_atual|default:"Sem Partido"}}</td>
+            <td><b>{{p.parlamentar}}</b> / {{p.filiacao_atual|default:"Sem Partido"}}</td>
             <td>{{p.sessao_count}}</td>
             <td>{{p.sessao_porc}}</td>
             <td>{{p.ordemdia_count}}</td>
