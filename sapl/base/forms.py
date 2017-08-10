@@ -24,7 +24,8 @@ from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
                         ImageThumbnailFileInput, RangeWidgetOverride,
-                        autor_label, autor_modal, models_with_gr_for_model)
+                        autor_label, autor_modal, models_with_gr_for_model,
+                        qs_override_django_filter)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -500,6 +501,10 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
             Fieldset(_('Presença dos parlamentares nas sessões plenárias'),
                      row1, form_actions(save_label='Pesquisar'))
         )
+
+    @property
+    def qs(self):
+        return qs_override_django_filter(self)
 
 
 class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):

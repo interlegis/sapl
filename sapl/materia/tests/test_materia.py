@@ -1,9 +1,9 @@
-import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
+import pytest
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, TipoComissao
@@ -133,14 +133,13 @@ def test_autoria_submit(admin_client):
         nome='Autor Teste')
 
     # Testa POST
-    response = admin_client.post(reverse('sapl.materia:autoria_create',
-                                         kwargs={'pk': materia_principal.pk}),
-                                 {'autor': autor.pk,
-                                  'primeiro_autor': True,
-                                  'materia_id': materia_principal.pk,
-                                  'partido': '',
-                                  'salvar': 'salvar'},
-                                 follow=True)
+    response = admin_client.post(
+        reverse('sapl.materia:autoria_create',
+                kwargs={'pk': materia_principal.pk}),
+        {'autor': autor.pk,
+         'primeiro_autor': True,
+         'materia_id': materia_principal.pk, },
+        follow=True)
     assert response.status_code == 200
 
     # Verifica se o autor foi realmente criado
@@ -227,6 +226,7 @@ def test_documento_acessorio_submit(admin_client):
          'data_materia': '2016-03-21',
          'autor': autor,
          'ementa': 'teste_ementa',
+         'data': '2016-03-21',
          'salvar': 'salvar'},
         follow=True)
 
@@ -323,9 +323,7 @@ def test_form_errors_autoria(admin_client):
     response = admin_client.post(reverse('sapl.materia:autoria_create',
                                          kwargs={'pk': materia_principal.pk}),
                                  {'materia_id': materia_principal.pk,
-                                  'partido': '',
-                                  'autor': '',
-                                  'salvar': 'salvar'},
+                                  'autor_id': '', },
                                  follow=True)
 
     assert (response.context_data['form'].errors['autor'] ==

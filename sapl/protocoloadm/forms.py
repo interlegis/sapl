@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout, Submit
@@ -9,16 +8,18 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
-from sapl.base.models import Autor
+from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
-from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
+
 
 TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('', 'Ambos')]
 TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado')]
@@ -233,6 +234,18 @@ class AnularProcoloAdmForm(ModelForm):
         except ObjectDoesNotExist:
             raise forms.ValidationError(
                 _("Protocolo %s/%s não existe" % (numero, ano)))
+        exists = False
+        if protocolo.tipo_materia:
+            exists = MateriaLegislativa.objects.filter(
+                numero_protocolo=protocolo.numero, ano=protocolo.ano).exists()
+        elif protocolo.tipo_documento:
+            exists = protocolo.documentoadministrativo_set.all(
+            ).order_by('-ano', '-numero').exists()
+
+        if exists:
+            raise forms.ValidationError(
+                _("Protocolo %s/%s não pode ser removido pois existem"
+                    "documentos vinculados a ele." % (numero, ano)))
 
     class Meta:
         model = Protocolo
@@ -334,9 +347,14 @@ class ProtocoloDocumentForm(ModelForm):
 
 class ProtocoloMateriaForm(ModelForm):
     autor = forms.ModelChoiceField(required=True,
-                                    empty_label='------',
-                                    queryset=Autor.objects.all()
-                                    )
+                                   empty_label='------',
+                                   queryset=Autor.objects.all()
+                                   )
+
+    tipo_autor = forms.ModelChoiceField(required=True,
+                                        empty_label='------',
+                                        queryset=TipoAutor.objects.all()
+                                        )
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Tipo de Matéria'),
@@ -353,12 +371,12 @@ class ProtocoloMateriaForm(ModelForm):
     assunto_ementa = forms.CharField(required=True,
                                      widget=forms.Textarea, label='Ementa')
 
-
     class Meta:
         model = Protocolo
         fields = ['tipo_materia',
                   'numero_paginas',
                   'autor',
+                  'tipo_autor',
                   'assunto_ementa',
                   'observacao']
 
@@ -376,9 +394,9 @@ class ProtocoloMateriaForm(ModelForm):
 
         row1 = to_row(
             [('tipo_materia', 4),
-             ('numero_paginas', 4)])
-        row2 = to_row(
-            [('autor', 4)])
+             ('numero_paginas', 2),
+             ('tipo_autor', 3),
+             ('autor', 3)])
         row3 = to_row(
             [('assunto_ementa', 12)])
         row4 = to_row(
@@ -387,7 +405,7 @@ class ProtocoloMateriaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
-                     row1, row2, row3,
+                     row1, row3,
                      row4, form_actions(save_label='Protocolar Matéria')))
 
         super(ProtocoloMateriaForm, self).__init__(

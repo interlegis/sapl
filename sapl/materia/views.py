@@ -2,23 +2,6 @@ from datetime import datetime, date
 from random import choice
 from string import ascii_letters, digits
 
-from .email_utils import do_envia_email_confirmacao
-from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
-                    DocumentoAcessorioForm, MateriaAssuntoForm,
-                    MateriaLegislativaFilterSet, MateriaSimplificadaForm,
-                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
-                    RelatoriaForm, TramitacaoEmLoteFilterSet,
-                    filtra_tramitacao_destino,
-                    filtra_tramitacao_destino_and_status,
-                    filtra_tramitacao_status)
-from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
-                     DespachoInicial, DocumentoAcessorio, MateriaAssunto,
-                     MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
-                     RegimeTramitacao, Relatoria, StatusTramitacao,
-                     TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
-                     TipoProposicao, Tramitacao, UnidadeTramitacao)
-from .signals import tramitacao_signal
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django import forms
@@ -39,9 +22,8 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
-import sapl
+
 from sapl.base.models import Autor, CasaLegislativa
-from sapl.comissoes.models import Comissao
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
@@ -54,15 +36,31 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
 from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
                                 LegislacaoCitadaForm, AutoriaForm, ProposicaoForm,
                                 TipoProposicaoForm, TramitacaoForm,
-                                TramitacaoUpdateForm)
-from sapl.materia.models import Autor
+                                TramitacaoUpdateForm, AutoriaMultiCreateForm)
 from sapl.norma.models import LegislacaoCitada
-from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
+import sapl
 
+from .email_utils import do_envia_email_confirmacao
+from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
+                    AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
+                    DocumentoAcessorioForm, MateriaAssuntoForm,
+                    MateriaLegislativaFilterSet, MateriaSimplificadaForm,
+                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
+                    RelatoriaForm, TramitacaoEmLoteFilterSet,
+                    filtra_tramitacao_destino,
+                    filtra_tramitacao_destino_and_status,
+                    filtra_tramitacao_status)
+from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
+                     DespachoInicial, DocumentoAcessorio, MateriaAssunto,
+                     MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
+                     RegimeTramitacao, Relatoria, StatusTramitacao,
+                     TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
+                     TipoProposicao, Tramitacao, UnidadeTramitacao)
+from .signals import tramitacao_signal
 
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
@@ -93,8 +91,8 @@ def proposicao_texto(request, pk):
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
-            proposicao.autor.user_id != request.user.id):
-                raise Http404
+                proposicao.autor.user_id != request.user.id):
+            raise Http404
 
         arquivo = proposicao.texto_original
 
@@ -1063,6 +1061,11 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
 
         def __init__(self, **kwargs):
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
+        
+        def get_initial(self):
+            self.initial['data'] = datetime.now().date()
+
+            return self.initial 
 
         def get_context_data(self, **kwargs):
             context = super(
@@ -1085,41 +1088,74 @@ class AutoriaCrud(MasterDetailCrud):
     parent_field = 'materia'
     help_path = ''
     public = [RP_LIST, RP_DETAIL]
+    list_field_names = ['autor', 'autor__tipo__descricao', 'primeiro_autor']
 
-    class CreateView(MasterDetailCrud.CreateView):
+    class LocalBaseMixin():
         form_class = AutoriaForm
 
         @property
         def layout_key(self):
-            return 'AutoriaCreate'
+            return None
 
-        def get_context_data(self, **kwargs):
-            context = super(CreateView, self).get_context_data(**kwargs)
-            autores_ativos = self.autores_ativos()
+    class CreateView(LocalBaseMixin, MasterDetailCrud.CreateView):
 
-            autores = []
+        def get_initial(self):
+            initial = super().get_initial()
+            materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
+            initial['data_relativa'] = materia.data_apresentacao
+            initial['autor'] = []
+            return initial
 
-            context['form'].fields['autor'].choices = autores
-            return context
+    class UpdateView(LocalBaseMixin, MasterDetailCrud.UpdateView):
 
-        def autores_ativos(self):
-            lista_parlamentares = Parlamentar.objects.filter(ativo=True).values_list('id', flat=True)
-            model_parlamentar = ContentType.objects.get_for_model(Parlamentar)
-            autor_parlamentar = Autor.objects.filter(content_type=model_parlamentar, object_id__in=lista_parlamentares)
+        def get_initial(self):
+            initial = super().get_initial()
+            initial.update({
+                'data_relativa': self.object.materia.data_apresentacao,
+                'tipo_autor': self.object.autor.tipo.id,
+            })
+            return initial
 
-            lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True)|Q(data_extincao__gt=date.today())).values_list('id', flat=True)
-            model_comissao = ContentType.objects.get_for_model(Comissao)
-            autor_comissoes = Autor.objects.filter(content_type=model_comissao, object_id__in=lista_comissoes)
-            autores_outros = Autor.objects.exclude(content_type__in=[model_parlamentar, model_comissao])
-            q = autor_parlamentar | autor_comissoes | autores_outros
-            return q
 
-    class ListView(MasterDetailCrud.ListView):
+class AutoriaMultiCreateView(PermissionRequiredForAppCrudMixin, FormView):
+    app_label = sapl.materia.apps.AppConfig.label
+    form_class = AutoriaMultiCreateForm
+    template_name = 'materia/autoria_multicreate_form.html'
 
-        def get_queryset(self):
-            qs = super().get_queryset()
+    @classmethod
+    def get_url_regex(cls):
+        return r'^(?P<pk>\d+)/%s/multicreate' % cls.model._meta.model_name
 
-            return qs.order_by('-primeiro_autor', 'autor__nome')
+    @property
+    def layout_key(self):
+        return None
+
+    def get_initial(self):
+        initial = super().get_initial()
+        self.materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
+        initial['data_relativa'] = self.materia.data_apresentacao
+        initial['autores'] = self.materia.autores.all()
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Adicionar Várias Autorias'), self.materia)
+        return context
+
+    def get_success_url(self):
+        messages.add_message(
+            self.request, messages.SUCCESS,
+            _('Autorias adicionadas com sucesso.'))
+        return reverse(
+            'sapl.materia:autoria_list', kwargs={'pk': self.materia.pk})
+
+    def form_valid(self, form):
+        autores_selecionados = form.cleaned_data['autor']
+        for autor in autores_selecionados:
+            Autoria.objects.create(materia=self.materia, autor=autor)
+
+        return FormView.form_valid(self, form)
 
 
 class DespachoInicialCrud(MasterDetailCrud):
@@ -1516,9 +1552,9 @@ class AcompanhamentoMateriaView(CreateView):
                 base_url = get_base_url(request)
 
                 destinatario = AcompanhamentoMateria.objects.get(
-                                                     materia=materia,
-                                                     email=email,
-                                                     confirmado=False)
+                    materia=materia,
+                    email=email,
+                    confirmado=False)
                 casa = CasaLegislativa.objects.first()
 
                 do_envia_email_confirmacao(base_url,
@@ -1699,10 +1735,10 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
         context['primeira_tramitacao'] = False
 
         if ('tramitacao__status' in qr and
-           'tramitacao__unidade_tramitacao_destino' in qr and
-           qr['tramitacao__status'] and
-           qr['tramitacao__unidade_tramitacao_destino']
-           ):
+                'tramitacao__unidade_tramitacao_destino' in qr and
+                    qr['tramitacao__status'] and
+                    qr['tramitacao__unidade_tramitacao_destino']
+                ):
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],
                 qr['tramitacao__unidade_tramitacao_destino'])

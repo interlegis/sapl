@@ -58,7 +58,7 @@ function autorModal() {
       autoOpen: false,
       modal: true,
       width: 500,
-      height: 300,
+      height: 340,
       show: {
         effect: "blind",
         duration: 500},
@@ -90,11 +90,11 @@ function autorModal() {
 
     $("#pesquisar").click(function() {
         var name_in_query = $("#q").val()
-        var q_0 = "q_0=nome__icontains"
-        var q_1 = "q_1=" + name_in_query
-        query = q_0 + "&" + q_1
+        //var q_0 = "q_0=nome__icontains"
+        //var q_1 = name_in_query
+        //query = q_1
 
-        $.get("/api/autor?" + query, function(data, status) {
+        $.get("/api/autor?q=" + name_in_query, function(data, status) {
             $("#div-resultado").children().remove();
             if (data.pagination.total_entries == 0) {
                 $("#selecionar").attr("hidden", "hidden");
@@ -111,10 +111,11 @@ function autorModal() {
                 select.append($("<option>").attr('value', item.value).text(item.text));
             });
 
-
-
           $("#div-resultado").append("<br/>").append(select);
           $("#selecionar").removeAttr("hidden", "hidden");
+
+          if (data.pagination.total_pages > 1)
+              $("#div-resultado").prepend('<span><br/>Mostrando 10 primeiros autores relativos a sua busca.<br/></span>');
 
           $("#selecionar").click(function() {
               res = $("#resultados option:selected");

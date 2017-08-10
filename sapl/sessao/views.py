@@ -2267,7 +2267,7 @@ class PautaSessaoDetailView(DetailView):
             tipo = TipoExpediente.objects.get(
                 id=e.tipo_id)
             conteudo = sub(
-                '&nbsp;', ' ', strip_tags(e.conteudo))
+                '&nbsp;', ' ', strip_tags(e.conteudo.replace('<br/>', '\n')))
 
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
