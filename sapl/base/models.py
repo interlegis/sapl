@@ -11,6 +11,7 @@ TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
 
 SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano')),
+                       ('L', _('Sequencial por legislatura')),
                        ('U', _('Sequencial único')))
 
 
