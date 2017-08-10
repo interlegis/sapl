@@ -226,6 +226,7 @@ def test_documento_acessorio_submit(admin_client):
          'data_materia': '2016-03-21',
          'autor': autor,
          'ementa': 'teste_ementa',
+         'data': '2016-03-21',
          'salvar': 'salvar'},
         follow=True)
 

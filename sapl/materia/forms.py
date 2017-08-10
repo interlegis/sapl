@@ -164,6 +164,7 @@ class AcompanhamentoMateriaForm(ModelForm):
 
 
 class DocumentoAcessorioForm(ModelForm):
+    data = forms.DateField(required=True)
 
     class Meta:
         model = DocumentoAcessorio
