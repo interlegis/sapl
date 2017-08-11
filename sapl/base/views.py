@@ -230,7 +230,8 @@ class RelatorioPresencaSessaoView(FilterView):
             # Parlamentares com Mandato no intervalo de tempo (Ativos)
             parlamentares_qs = parlamentares_ativos(
                 _range[0], _range[1]).order_by('nome_parlamentar')
-            parlamentares_id = [p.id for p in parlamentares_qs]
+            parlamentares_id = parlamentares_qs.values_list(
+                'id', flat=True)
 
             # Presenças de cada Parlamentar em Sessões
             presenca_sessao = SessaoPlenariaPresenca.objects.filter(
@@ -277,11 +278,11 @@ class RelatorioPresencaSessaoView(FilterView):
                 if total_sessao != 0:
                     parlamentares_presencas[i].update(
                         {'sessao_porc': round(
-                            sessao_count * 100 / total_sessao, 1)})
+                            sessao_count * 100 / total_sessao, 2)})
                 if total_ordemdia != 0:
                     parlamentares_presencas[i].update(
                         {'ordemdia_porc': round(
-                            ordemdia_count * 100 / total_ordemdia, 1)})
+                            ordemdia_count * 100 / total_ordemdia, 2)})
 
             context['date_range'] = _range
             context['total_ordemdia'] = total_ordemdia
