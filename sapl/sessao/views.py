@@ -34,7 +34,6 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Parlamentar,
                                        SessaoLegislativa, Mandato)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, OradorExpedienteForm,
                     OradorForm, PautaSessaoFilterSet, PresencaForm,
@@ -1458,9 +1457,9 @@ class VotacaoEditView(SessaoPermissionMixin):
 
 class VotacaoView(SessaoPermissionMixin):
 
-    '''
+    """
         Votação Simbólica e Secreta
-    '''
+    """
 
     template_name = 'sessao/votacao/votacao.html'
     form_class = VotacaoForm

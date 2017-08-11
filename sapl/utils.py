@@ -29,6 +29,7 @@ from reversion.admin import VersionAdmin
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR, PROJECT_DIR
 
+
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
 
@@ -595,6 +596,24 @@ def qs_override_django_filter(self):
         self._qs = qs
 
     return self._qs
+
+
+def filiacao_data(parlamentar, data):
+    from sapl.parlamentares.models import Filiacao
+
+    filiacoes_parlamentar = Filiacao.objects.filter(
+        parlamentar=parlamentar)
+
+    filiacoes = filiacoes_parlamentar.filter(Q(
+        data__lte=data,
+        data_desfiliacao__isnull=True) | Q(
+        data__lte=data,
+        data_desfiliacao__gte=data))
+
+    if filiacoes:
+        return filiacoes.last().partido.sigla
+    else:
+        return ''
 
 
 def parlamentares_ativos(data_inicio, data_fim=None):

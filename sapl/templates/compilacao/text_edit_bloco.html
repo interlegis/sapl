@@ -49,7 +49,7 @@
             {% if node.da and node.dpt.texto_atualizador and node in node.da.alts%}{{ node.dpt.texto_atualizador|safe }}{% else %}{{ node.dpt.texto|safe }}{% endif %}
           {%endif%}
           {% if node.na %}
-            <a class="dpt-link nota-alteracao" href="{% url 'compilacao:ta_text_edit' node.da.dpt.ta_id %}#{{node.da.dpt.pk}}" title="{% trans 'Abrir Edição do Dispositivo Alterador'%}">
+            <a class="dpt-link nota-alteracao" href="{% url 'sapl.compilacao:ta_text_edit' node.da.dpt.ta_id %}#{{node.da.dpt.pk}}" title="{% trans 'Abrir Edição do Dispositivo Alterador'%}">
               <small>
                 {{ node.td.nota_automatica_prefixo_html|safe }}
                 {{ node.na }}
