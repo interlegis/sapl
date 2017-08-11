@@ -51,6 +51,38 @@ ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
                     ('oradores_exped', 'Oradores do Expediente'),
                     ('oradores_expli', 'Oradores das Explicações Pessoais')]
 
+class SessaoPlenariaForm(ModelForm):
+
+    class Meta:
+        model = SessaoPlenaria
+        exclude = ['cod_andamento_sessao']
+
+    def clean(self):
+        super(SessaoPlenariaForm, self).clean()
+
+        instance = self.instance
+
+        num = self.cleaned_data['numero']
+        sl = self.cleaned_data['sessao_legislativa']
+        leg = self.cleaned_data['legislatura']
+
+        sessoes = SessaoPlenaria.objects.filter(numero=num,
+                                                sessao_legislativa=sl,
+                                                legislatura=leg).\
+                                                values_list('id', flat=True)
+
+        qtd_sessoes = len(sessoes)
+
+        error = ValidationError('Número de Sessão Plenária Existente')
+
+        if qtd_sessoes > 0:
+            if instance.pk: # update
+                if not instance.pk in sessoes or qtd_sessoes > 1:
+                    raise error
+            else: # create
+                raise error
+
+        return self.cleaned_data
 
 class BancadaForm(ModelForm):
 
