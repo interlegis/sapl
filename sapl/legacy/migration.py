@@ -12,7 +12,7 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
-from django.db.models import CharField, Max, ProtectedError, TextField, Count
+from django.db.models import CharField, Count, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
 from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
@@ -26,11 +26,11 @@ from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.norma.models import (AssuntoNorma, NormaJuridica,
-                               TipoVinculoNormaJuridica, NormaRelacionada)
-from sapl.parlamentares.models import (Legislatura,Mandato, Parlamentar,
+from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+                               TipoVinculoNormaJuridica)
+from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
                                        TipoAfastamento)
-from sapl.protocoloadm.models import (DocumentoAdministrativo,Protocolo,
+from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
 from sapl.settings import PROJECT_DIR
@@ -119,63 +119,22 @@ def erro(msg):
     print('ERRO: ' + msg)
 
 
+class ForeignKeyFaltando(ObjectDoesNotExist):
+    'Uma FK aponta para um registro inexistente'
+    pass
+
+
 def get_fk_related(field, value, label=None):
-    if value is None and field.null is False:
-        value = 0
-    if value is not None:
+    if value is None:
+        return value
+    else:
         try:
-            value = field.related_model.objects.get(id=value)
-        except ObjectDoesNotExist:
-            msg = 'FK [%s] não encontrada para valor %s ' \
-                '(em %s %s)' % (
-                    field.name, value,
-                    field.model.__name__, label or '---')
-            if value == 0:
-                if not field.null:
-                    fields_dict = get_fields_dict(field.related_model)
-                    # Cria stub ao final da tabela para evitar erros
-                    pk = get_last_value(field.related_model)
-                    with reversion.create_revision():
-                        reversion.set_comment('Stub criado pela migração')
-                        value = mommy.make(
-                            field.related_model, **fields_dict,
-                            pk=(pk + 1 or 1))
-                        descricao = 'stub criado para campos não nuláveis!'
-                        save_relation(value, [field.name], msg, descricao,
-                                      eh_stub=True)
-                        warn(msg + ' => ' + descricao)
-                else:
-                    value = None
-            else:
-                if field.model._meta.label == 'sessao.RegistroVotacao' and \
-                        field.name == 'ordem':
-                    return value
-                # Caso TipoProposicao não exista, um objeto será criado então
-                # com content_type=13 (ProblemaMigracao)
-                if field.related_model.__name__ == 'TipoProposicao':
-                    tipo = TipoProposicao.objects.filter(descricao='Erro')
-                    if not tipo:
-                        with reversion.create_revision():
-                            reversion.set_comment(
-                                'TipoProposicao "Erro" criado')
-                            ct = ContentType.objects.get(pk=13)
-                            value = TipoProposicao.objects.create(
-                                id=value, descricao='Erro', content_type=ct)
-                        ultimo_valor = get_last_value(type(value))
-                        alter_sequence(type(value), ultimo_valor+1)
-                    else:
-                        value = tipo[0]
-                else:
-                    with reversion.create_revision():
-                        reversion.set_comment('Stub criado pela migração')
-                        value = make_stub(field.related_model, value)
-                        descricao = 'stub criado para entrada orfã!'
-                        warn(msg + ' => ' + descricao)
-                        save_relation(value, [field.name], msg, descricao,
-                                      eh_stub=True)
-        else:
-            assert value
-    return value
+            return field.related_model.objects.get(id=value)
+        except ObjectDoesNotExist as ex:
+            msg = 'FK [%s] não encontrada para o valor %s (em %s %s)' % (
+                field.name, value, field.model.__name__, label or '---')
+            warn(msg)
+            raise ForeignKeyFaltando(msg)
 
 
 def get_field(model, fieldname):
@@ -252,7 +211,7 @@ def problema_duplicatas(model, lista_duplicatas, argumentos):
         string_pks = ""
         problema = "%s de PK %s não é único." % (model.__name__, obj.pk)
         args_dict = {k: obj.__dict__[k]
-                    for k in set(argumentos) & set(obj.__dict__.keys())}
+                     for k in set(argumentos) & set(obj.__dict__.keys())}
         for dup in model.objects.filter(**args_dict):
             pks.append(dup.pk)
         string_pks = "(" + ", ".join(map(str, pks)) + ")"
@@ -321,6 +280,7 @@ def recria_constraints():
                          (problema[0], problema[1]))
 
 
+# TODO o que é isso?   ####################################################
 def obj_desnecessario(obj):
     relacoes = [
         f for f in obj._meta.get_fields()
@@ -335,7 +295,7 @@ def obj_desnecessario(obj):
 
 def get_last_value(model):
     last_value = model.objects.all().aggregate(Max('pk'))
-    return last_value['pk__max'] if last_value['pk__max'] else 0
+    return last_value['pk__max'] or 0
 
 
 def alter_sequence(model, id):
@@ -360,11 +320,11 @@ def save_relation(obj, nome_campo='', problema='', descricao='',
     link.save()
 
 
+# TODO NECESSÁRIO AINDA???????????
 def make_stub(model, id):
     fields_dict = get_fields_dict(model)
     new = mommy.prepare(model, **fields_dict, pk=id)
     save_with_id(new, id)
-
     return new
 
 
@@ -407,7 +367,7 @@ def fill_vinculo_norma_juridica():
               'Julgada parcialmente inconstitucional')]
     lista_objs = [TipoVinculoNormaJuridica(
         sigla=item[0], descricao_ativa=item[1], descricao_passiva=item[2])
-                  for item in lista]
+        for item in lista]
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
 
@@ -452,8 +412,6 @@ class DataMigrator:
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
             field_type = field.get_internal_type()
-            msg = ("O valor do campo %s (%s) da model %s era inválido" %
-                   (field.name, field_type, field.model.__name__))
             if old_field_name:
                 old_value = getattr(old, old_field_name)
                 if isinstance(field, models.ForeignKey):
@@ -466,38 +424,36 @@ class DataMigrator:
                     value = get_fk_related(field, old_value, label)
                 else:
                     value = getattr(old, old_field_name)
+                # TODO rever esse DateField após as mudança para datas com
+                # timezone
                 if field_type == 'DateField' and \
                         not field.null and value is None:
+                    # TODO REVER ISSO
                     descricao = 'A data 1111-11-11 foi colocada no lugar'
                     problema = 'O valor da data era nulo ou inválido'
-                    warn(msg +
-                         ' => ' + descricao)
+                    warn("O valor do campo %s (%s) do model %s "
+                         "era inválido => %s" % (
+                             field.name, field_type,
+                             field.model.__name__, descricao))
                     value = date(1111, 11, 11)
                     self.data_mudada['obj'] = new
                     self.data_mudada['descricao'] = descricao
                     self.data_mudada['problema'] = problema
                     self.data_mudada.setdefault('nome_campo', []).\
                         append(field.name)
-                if field_type == 'CharField' or field_type == 'TextField':
-                    if value is None or value == 'None':
-                        value = ''
-                setattr(new, field.name, value)
-            elif field.model.__name__ == 'TipoAutor' and \
-                    field.name == 'content_type':
-
-                model = normalize(new.descricao.lower()).replace(' ', '')
-                content_types = field.related_model.objects.filter(
-                    model=model).exclude(app_label='legacy')
-                assert len(content_types) <= 1
-
-                value = content_types[0] if content_types else None
+                if field_type in ['CharField', 'TextField'] \
+                        and value in [None, 'None']:
+                    if value == 'None':
+                        # TODO quero saber como é que pode ser 'None' !!!!
+                        import ipdb
+                        ipdb.set_trace()
+                    value = ''
                 setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs, interativo=True):
         # warning: model/app migration order is of utmost importance
         exec_sql_file(PROJECT_DIR.child(
             'sapl', 'legacy', 'scripts', 'fix_tables.sql'), 'legacy')
-        self.to_delete = []
 
         # excluindo database antigo.
         if interativo:
@@ -593,8 +549,17 @@ class DataMigrator:
 
         # convert old records to new ones
         for old in old_records:
+            if getattr(old, 'ind_excluido', False):
+                # não migramos registros marcados como excluídos
+                continue
             new = model()
-            self.populate_renamed_fields(new, old)
+            try:
+                self.populate_renamed_fields(new, old)
+            except ForeignKeyFaltando:
+                # tentamos preencher uma FK e o ojeto relacionado não existe
+                # então este é um objeo órfão: simplesmente ignoramos
+                continue
+
             if ajuste_antes_salvar:
                 ajuste_antes_salvar(new, old)
             save(new, old)
@@ -605,26 +570,10 @@ class DataMigrator:
                     save_relation(**self.data_mudada)
                     self.data_mudada.clear()
                     reversion.set_comment('Ajuste de data pela migração')
-            if getattr(old, 'ind_excluido', False):
-                self.to_delete.append(new)
 
         # necessário para ajustar sequence da tabela para o ultimo valor de id
         ultimo_valor = get_last_value(model)
-        alter_sequence(model, ultimo_valor+1)
-
-    def delete_ind_excluido(self):
-        excluidos = 0
-        for obj in self.to_delete:
-            if obj_desnecessario(obj):
-                try:
-                    obj.delete()
-                except ProtectedError:
-                    pass
-                else:
-                    self.to_delete.remove(obj)
-                    excluidos += 1
-
-        return excluidos
+        alter_sequence(model, ultimo_valor + 1)
 
     def delete_stubs(self):
         excluidos = 0
@@ -665,15 +614,15 @@ def adjust_documentoadministrativo(new, old):
         except Exception:
             try:
                 protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
-                                                  ano=new.ano+1)
+                                                  ano=new.ano + 1)
                 new.protocolo = protocolo
             except Exception:
                 protocolo = mommy.make(Protocolo, numero=new.numero_protocolo,
                                        ano=new.ano)
                 with reversion.create_revision():
                     problema = 'Protocolo Vinculado [numero_protocolo=%s, '\
-                            'ano=%s] não existe' % (new.numero_protocolo,
-                                                    new.ano)
+                        'ano=%s] não existe' % (new.numero_protocolo,
+                                                new.ano)
                     descricao = 'O protocolo inexistente foi criado'
                     warn(problema + ' => ' + descricao)
                     save_relation(obj=protocolo, problema=problema,
@@ -751,7 +700,7 @@ def adjust_proposicao_antes_salvar(new, old):
 def adjust_proposicao_depois_salvar(new, old):
     if not hasattr(old.dat_envio, 'year') or old.dat_envio.year == 1800:
         msg = "O valor do campo data_envio (DateField) da model Proposicao"\
-                " era inválido"
+            " era inválido"
         descricao = 'A data 1111-11-11 foi colocada no lugar'
         problema = 'O valor da data era nulo ou inválido'
         warn(msg + ' => ' + descricao)
@@ -816,7 +765,6 @@ def adjust_tipoafastamento(new, old):
         new.indicador = 'A'
 
 
-
 def adjust_tipoproposicao(new, old):
     if old.ind_mat_ou_doc == 'M':
         new.tipo_conteudo_related = TipoMateriaLegislativa.objects.get(
@@ -842,6 +790,14 @@ def adjust_statustramitacaoadm(new, old):
 def adjust_tramitacao(new, old):
     if old.sgl_turno == 'Ú':
         new.turno = 'U'
+
+
+def adjust_tipo_autor(new, old):
+    model_apontado = normalize(new.descricao.lower()).replace(' ', '')
+    content_types = ContentType.objects.filter(
+        model=model_apontado).exclude(app_label='legacy')
+    assert len(content_types) <= 1
+    new.content_type = content_types[0] if content_types else None
 
 
 def adjust_normajuridica_antes_salvar(new, old):
@@ -870,7 +826,7 @@ def adjust_autor(new, old):
         except Exception:
             with reversion.create_revision():
                 msg = 'Um parlamentar relacionado de PK [%s] não existia' \
-                        % old.cod_parlamentar
+                    % old.cod_parlamentar
                 reversion.set_comment('Stub criado pela migração')
                 value = make_stub(Parlamentar, old.cod_parlamentar)
                 descricao = 'stub criado para entrada orfã!'
@@ -909,6 +865,7 @@ def adjust_comissao(new, old):
 
 AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
+    TipoAutor: adjust_tipo_autor,
     AcompanhamentoMateria: adjust_acompanhamentomateria,
     Comissao: adjust_comissao,
     DocumentoAdministrativo: adjust_documentoadministrativo,
@@ -939,15 +896,15 @@ AJUSTE_DEPOIS_SALVAR = {
 # CHECKS ####################################################################
 
 
-def get_ind_excluido(obj):
-    legacy_model = legacy_app.get_model(type(obj).__name__)
-    return getattr(legacy_model.objects.get(
-        **{legacy_model._meta.pk.name: obj.id}), 'ind_excluido', False)
+def get_ind_excluido(new):
+    legacy_model = legacy_app.get_model(type(new).__name__)
+    old = legacy_model.objects.get(**{legacy_model._meta.pk.name: new.id})
+    return getattr(old, 'ind_excluido', False)
 
 
 def check_app_no_ind_excluido(app):
     for model in app.models.values():
-        assert not any(get_ind_excluido(obj) for obj in model.objects.all())
+        assert not any(get_ind_excluido(new) for new in model.objects.all())
     print('OK!')
 
 # MOMMY MAKE WITH LOG  ######################################################
