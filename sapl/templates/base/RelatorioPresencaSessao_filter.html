@@ -1,6 +1,7 @@
 {% extends "crud/list.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load common_tags %}
 
 {% block base_content %}
   {% if not filter_url %}
@@ -37,7 +38,7 @@
       <tbody>
         {% for p in parlamentares %}
           <tr>
-            <td><b>{{p.parlamentar}}</b> / {{p.filiacao_atual|default:"Sem Partido"}}</td>
+            <td><b>{{p.parlamentar}}</b> / {{p.parlamentar|filiacao_intervalo_filter:date_range|default:"Sem Partido"}}</td>
             <td>{{p.sessao_count}}</td>
             <td>{{p.sessao_porc}}</td>
             <td>{{p.ordemdia_count}}</td>

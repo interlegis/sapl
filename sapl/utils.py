@@ -598,22 +598,32 @@ def qs_override_django_filter(self):
     return self._qs
 
 
-def filiacao_data(parlamentar, data):
+def filiacao_data(parlamentar, data_inicio, data_fim=None):
     from sapl.parlamentares.models import Filiacao
 
     filiacoes_parlamentar = Filiacao.objects.filter(
         parlamentar=parlamentar)
 
     filiacoes = filiacoes_parlamentar.filter(Q(
-        data__lte=data,
+        data__lte=data_inicio,
         data_desfiliacao__isnull=True) | Q(
-        data__lte=data,
-        data_desfiliacao__gte=data))
+        data__lte=data_inicio,
+        data_desfiliacao__gte=data_inicio))
 
-    if filiacoes:
-        return filiacoes.last().partido.sigla
-    else:
-        return ''
+    if data_fim:
+        filiacoes = filiacoes | filiacoes_parlamentar.filter(
+            data__gte=data_inicio,
+            data__lte=data_fim)
+
+    siglas = ''
+
+    for f in filiacoes:
+        if not siglas:
+            siglas = f.partido.sigla
+        else:
+            siglas = siglas + ' | ' + f.partido.sigla
+
+    return siglas
 
 
 def parlamentares_ativos(data_inicio, data_fim=None):

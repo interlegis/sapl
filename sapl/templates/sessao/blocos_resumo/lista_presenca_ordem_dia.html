@@ -4,7 +4,7 @@
 	<legend>Lista de Presença na Ordem do Dia</legend>
 		<div class="row">
 		  {% for p in presenca_ordem %}
-		  <div class="col-md-12">{{p.nome_parlamentar}} / {{ p|filiacao_epoca_filter:object }}</div>
+		  <div class="col-md-12">{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }}</div>
 		  {% endfor %}
 		</div>
 </fieldset>

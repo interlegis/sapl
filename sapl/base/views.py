@@ -283,6 +283,7 @@ class RelatorioPresencaSessaoView(FilterView):
                         {'ordemdia_porc': round(
                             ordemdia_count * 100 / total_ordemdia, 1)})
 
+            context['date_range'] = _range
             context['total_ordemdia'] = total_ordemdia
             context['total_sessao'] = context['object_list'].count()
             context['parlamentares'] = parlamentares_presencas
