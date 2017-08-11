@@ -48,7 +48,7 @@
   </div>
   <br>
   {%if object.ta_publicado_id %}
-    <a class="text-warning" href="{%url 'compilacao:ta_text' object.ta_publicado.pk %}#{{object.dispositivo_atualizador_id}}">
+    <a class="text-warning" href="{%url 'sapl.compilacao:ta_text' object.ta_publicado.pk %}#{{object.dispositivo_atualizador_id}}">
       <small>{{ object.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
       {% nota_automatica object None %}
       {{ object.tipo_dispositivo.nota_automatica_sufixo_html|safe }}</small></a>

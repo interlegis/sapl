@@ -15,7 +15,7 @@
   </div>
   {% if filter_url %}
     <div class="actions btn-group pull-right" role="group">
-      <a href="{% url 'protocoloadm:pesq_doc_adm' %}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
+      <a href="{% url 'sapl.protocoloadm:pesq_doc_adm' %}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
     </div>
   {% endif %}
 {% endblock actions %}
@@ -36,7 +36,7 @@
         {% for d in page_obj %}
           <tr>
             <td>
-              <strong><a href="{% url 'protocoloadm:documentoadministrativo_detail' d.id %}">{{d.tipo.sigla}} {{d.numero}}/{{d.ano}} - {{d.tipo}}</strong></a></br>
+              <strong><a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' d.id %}">{{d.tipo.sigla}} {{d.numero}}/{{d.ano}} - {{d.tipo}}</strong></a></br>
               <strong>Interessado:</strong>&nbsp;{{ d.interessado|default_if_none:"Não informado"}}</br>
               <strong>Assunto:</strong>&nbsp;{{ d.assunto|safe }}</br>
 
