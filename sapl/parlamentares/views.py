@@ -1,7 +1,12 @@
+import datetime
+import json
+
 from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import F, Q
+from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.templatetags.static import static
@@ -9,11 +14,14 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
+from django.views.generic.edit import UpdateView
 
+from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             CrudBaseForListAndDetailExternalAppView,
                             MasterDetailCrud)
+from sapl.materia.models import Autoria
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 
@@ -24,14 +32,6 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
-
-from sapl.base.models import Autor
-from sapl.materia.models import Autoria
-from django.contrib.contenttypes.models import ContentType
-from django.db.models.aggregates import Count
-
-import datetime
-import json
 
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
@@ -189,7 +189,8 @@ class ColigacaoCrud(CrudAux):
         ordering = ('-numero_votos', 'nome')
 
         def get_context_data(self, **kwargs):
-            context = super(ColigacaoCrud.ListView, self).get_context_data(kwargs=kwargs)
+            context = super(ColigacaoCrud.ListView, self).get_context_data(
+                kwargs=kwargs)
             rows = context['rows']
             coluna_votos_recebidos = 2
             for row in rows:
@@ -201,15 +202,25 @@ class ColigacaoCrud(CrudAux):
     class DetailView(CrudAux.DetailView):
 
         def get_context_data(self, **kwargs):
-            context = super(ColigacaoCrud.DetailView, self).get_context_data(kwargs=kwargs)
+            context = super().get_context_data(kwargs=kwargs)
             coligacao = context['coligacao']
             if not coligacao.numero_votos:
                 coligacao.numero_votos = '0'
 
+            context['subnav_template_name'] = \
+                'parlamentares/subnav_coligacao.yaml'
+
             return context
 
-    class BaseMixin(CrudAux.BaseMixin):
-        subnav_template_name = 'parlamentares/subnav_coligacao.yaml'
+    class UpdateView(CrudAux.UpdateView):
+
+        def get_context_data(self, **kwargs):
+            context = super(UpdateView, self).get_context_data(kwargs=kwargs)
+
+            context['subnav_template_name'] = \
+                'parlamentares/subnav_coligacao.yaml'
+
+            return context
 
 
 def json_date_convert(date):
@@ -295,6 +306,7 @@ class FrenteCrud(CrudAux):
     list_field_names = ['nome', 'data_criacao', 'parlamentares']
 
     class CreateView(CrudAux.CreateView):
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
@@ -305,6 +317,7 @@ class FrenteCrud(CrudAux):
             return context
 
     class UpdateView(CrudAux.UpdateView):
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
@@ -342,7 +355,6 @@ class MandatoCrud(MasterDetailCrud):
                     row[coluna_votos_recebidos] = (' ', None)
 
             return context
-
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = MandatoForm
@@ -388,6 +400,7 @@ class LegislaturaCrud(CrudAux):
         form_class = LegislaturaUpdateForm
 
     class DetailView(CrudAux.DetailView):
+
         def has_permission(self):
             return True
 
@@ -396,6 +409,7 @@ class LegislaturaCrud(CrudAux):
             return super().get(request, *args, **kwargs)
 
     class ListView(CrudAux.ListView):
+
         def has_permission(self):
             return True
 
@@ -621,7 +635,7 @@ class ParlamentarMateriasView(FormView):
                 'materia__tipo__sigla',
                 'materia__tipo__descricao').annotate(
                     total=Count('materia__tipo__pk')).order_by(
-                                '-materia__ano', 'materia__tipo')
+            '-materia__ano', 'materia__tipo')
 
         autor_list = self.get_autoria(autoria)
         coautor_list = self.get_autoria(coautoria)
@@ -823,24 +837,24 @@ def remove_parlamentar_composicao(request):
         '%s.delete_%s' % (
             AppConfig.label, ComposicaoMesa._meta.model_name)):
 
-            if 'composicao_mesa' in request.POST:
-                try:
-                    composicao = ComposicaoMesa.objects.get(
-                        id=request.POST['composicao_mesa'])
-                except ObjectDoesNotExist:
-                    return JsonResponse(
-                        {'msg': (
-                            'Composição da Mesa não pôde ser removida!', 0)})
-
-                composicao.delete()
-
+        if 'composicao_mesa' in request.POST:
+            try:
+                composicao = ComposicaoMesa.objects.get(
+                    id=request.POST['composicao_mesa'])
+            except ObjectDoesNotExist:
                 return JsonResponse(
                     {'msg': (
-                        'Parlamentar excluido com sucesso!', 1)})
-            else:
-                return JsonResponse(
-                    {'msg': (
-                        'Selecione algum parlamentar para ser excluido!', 0)})
+                        'Composição da Mesa não pôde ser removida!', 0)})
+
+            composicao.delete()
+
+            return JsonResponse(
+                {'msg': (
+                    'Parlamentar excluido com sucesso!', 1)})
+        else:
+            return JsonResponse(
+                {'msg': (
+                    'Selecione algum parlamentar para ser excluido!', 0)})
 
 
 def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
