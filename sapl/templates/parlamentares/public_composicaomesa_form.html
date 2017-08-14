@@ -46,7 +46,7 @@
       	{% for p in composicao_mesa %}
 					<tr>
 						{% if p.parlamentar.fotografia %}
-							<td><img class="img-responsive"  height="84" width="84" src="{{ p.parlamentar.fotografia.url }}"></td>
+							<td><img class="avatar-parlamentar" src="{{ p.parlamentar.fotografia.url }}"></td>
 						{% else %}
 							<td></td>
 						{% endif %}
@@ -119,8 +119,8 @@ function altera_field(id_legislatura, id_sessao=null){
           // Garante que a Sessão atual será a selecionada previamente e, no caso em que
           // o campo modificado seja o de Legislatura, que a Sessão seja a última daquela
           // legislatura
-          $("#id_sessao_legislativa").val(data['sessao_selecionada'])     
-          
+          $("#id_sessao_legislativa").val(data['sessao_selecionada'])
+
       });
     }
 

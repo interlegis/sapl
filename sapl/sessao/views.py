@@ -37,7 +37,7 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, OradorExpedienteForm,
                     OradorForm, PautaSessaoFilterSet, PresencaForm,
-                    ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
+                    ResumoOrdenacaoForm, SessaoPlenariaFilterSet, SessaoPlenariaForm,
                     VotacaoEditForm, VotacaoForm, VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
@@ -542,10 +542,14 @@ class SessaoCrud(Crud):
 
     class UpdateView(Crud.UpdateView):
 
+        form_class = SessaoPlenariaForm
+
         def get_initial(self):
             return {'sessao_legislativa': self.object.sessao_legislativa}
 
     class CreateView(Crud.CreateView):
+
+        form_class = SessaoPlenariaForm
 
         @property
         def cancel_url(self):

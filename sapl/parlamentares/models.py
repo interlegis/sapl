@@ -554,8 +554,8 @@ class Frente(models.Model):
         ))
 
     class Meta:
-        verbose_name = _('Frente')
-        verbose_name_plural = _('Frentes')
+        verbose_name = _('Frente Parlamentar')
+        verbose_name_plural = _('Frentes Parlamentares')
 
     def get_parlamentares(self):
         return Parlamentar.objects.filter(ativo=True)
