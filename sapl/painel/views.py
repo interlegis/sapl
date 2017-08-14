@@ -425,6 +425,7 @@ def get_votos(response, materia):
             'total_votos': total,
             'tipo_votacao': tipo_votacao,
             'tipo_resultado': registro.tipo_resultado_votacao.nome,
+            'natureza_resultado': registro.tipo_resultado_votacao.natureza,
         })
     else:
         response.update({
@@ -434,6 +435,7 @@ def get_votos(response, materia):
             'total_votos': 0,
             'tipo_votacao': tipo_votacao,
             'tipo_resultado': 'Ainda não foi votada.',
+            'natureza_resultado': None,
         })
     return response
 
@@ -463,6 +465,7 @@ def get_votos_nominal(response, materia):
             'total_votos': 0,
             'tipo_votacao': tipo_votacao,
             'tipo_resultado': 'Não foi votado ainda',
+            'natureza_resultado': None,
             'votos': None
         })
 
@@ -505,6 +508,7 @@ def get_votos_nominal(response, materia):
             'total_votos': total,
             'tipo_votacao': tipo_votacao,
             'tipo_resultado': registro.tipo_resultado_votacao.nome,
+            'natureza_resultado': registro.tipo_resultado_votacao.natureza,
             'votos': votos
         })
 
