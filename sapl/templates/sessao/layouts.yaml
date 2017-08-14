@@ -14,6 +14,7 @@ SessaoPlenaria:
 TipoResultadoVotacao:
   {% trans 'Tipo de Resultado da Votação' %}:
   - nome
+  - natureza
 
 TipoExpediente:
   {% trans 'Tipo de Expediente' %}:

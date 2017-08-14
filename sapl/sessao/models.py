@@ -368,7 +368,12 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
 
 @reversion.register()
 class TipoResultadoVotacao(models.Model):
-    nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
+    nome = models.CharField(max_length=100, verbose_name=_('Nome do Tipo'))
+    natureza = models.CharField(max_length=100,
+                                null=True,
+                                choices=(('A', 'Aprovado'),
+                                          ('R', 'Rejeitado')),
+                                verbose_name=_('Natureza do Tipo'))
 
     class Meta:
         verbose_name = _('Tipo de Resultado de Votação')
