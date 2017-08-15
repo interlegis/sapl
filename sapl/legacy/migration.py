@@ -602,27 +602,22 @@ def adjust_acompanhamentomateria(new, old):
 
 def adjust_documentoadministrativo(new, old):
     if new.numero_protocolo:
-        try:
-            protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
-                                              ano=new.ano)
-            new.protocolo = protocolo
-        except Exception:
-            try:
-                protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
-                                                  ano=new.ano + 1)
-                new.protocolo = protocolo
-            except Exception:
-                protocolo = mommy.make(Protocolo, numero=new.numero_protocolo,
-                                       ano=new.ano)
-                with reversion.create_revision():
-                    problema = 'Protocolo Vinculado [numero_protocolo=%s, '\
-                        'ano=%s] não existe' % (new.numero_protocolo,
-                                                new.ano)
-                    descricao = 'O protocolo inexistente foi criado'
-                    warn(problema + ' => ' + descricao)
-                    save_relation(obj=protocolo, problema=problema,
-                                  descricao=descricao, eh_stub=True)
-                    reversion.set_comment('Protocolo não existia.')
+        protocolo = Protocolo.objects.filter(
+            numero=new.numero_protocolo, ano=new.ano)
+        if not protocolo:
+            protocolo = Protocolo.objects.filter(
+                numero=new.numero_protocolo, ano=new.ano + 1)
+            print('PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '
+                  'DocumentoAdministrativo: {}, numero_protocolo: {}, '
+                  'ano doc adm: {}'.format(
+                      old.cod_documento, new.numero_protocolo, new.ano))
+        if not protocolo:
+            raise ForeignKeyFaltando(
+                'Protocolo {} faltando '
+                '(referenciado no documento administrativo {}'.format(
+                    new.numero_protocolo, old.cod_documento))
+        assert len(protocolo) == 1
+        new.protocolo = protocolo[0]
 
 
 def adjust_mandato(new, old):
