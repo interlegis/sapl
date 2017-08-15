@@ -552,16 +552,16 @@ class DataMigrator:
             new = model()
             try:
                 self.populate_renamed_fields(new, old)
+                if ajuste_antes_salvar:
+                    ajuste_antes_salvar(new, old)
+                save(new, old)
             except ForeignKeyFaltando:
                 # tentamos preencher uma FK e o ojeto relacionado não existe
                 # então este é um objeo órfão: simplesmente ignoramos
                 continue
-
-            if ajuste_antes_salvar:
-                ajuste_antes_salvar(new, old)
-            save(new, old)
             if ajuste_depois_salvar:
                 ajuste_depois_salvar(new, old)
+
             if self.data_mudada:
                 with reversion.create_revision():
                     save_relation(**self.data_mudada)
@@ -820,32 +820,32 @@ def adjust_autor(new, old):
     if old.cod_parlamentar:
         try:
             new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
-        except Exception:
-            with reversion.create_revision():
-                msg = 'Um parlamentar relacionado de PK [%s] não existia' \
-                    % old.cod_parlamentar
-                reversion.set_comment('Stub criado pela migração')
-                value = make_stub(Parlamentar, old.cod_parlamentar)
-                descricao = 'stub criado para entrada orfã!'
-                warn(msg + ' => ' + descricao)
-                save_relation(value, [], msg, descricao,
-                              eh_stub=True)
-                new.autor_related = value
-        new.nome = new.autor_related.nome_parlamentar
+        except ObjectDoesNotExist:
+            # ignoramos o autor órfão
+            raise ForeignKeyFaltando('Parlamentar inexiste para autor')
+        else:
+            new.nome = new.autor_related.nome_parlamentar
 
     elif old.cod_comissao:
-        new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
-        new.nome = new.autor_related.nome
+        try:
+            new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
+        except ObjectDoesNotExist:
+            # ignoramos o autor órfão
+            raise ForeignKeyFaltando('Comissao inexiste para autor')
+        else:
+            new.nome = new.autor_related.nome
 
     if old.col_username:
-        if not get_user_model().objects.filter(
-                username=old.col_username).exists():
-            user = get_user_model()(username=old.col_username)
+        user_model = get_user_model()
+        if not user_model.objects.filter(username=old.col_username).exists():
+            # cria um novo ususaŕio para o autor
+            user = user_model(username=old.col_username)
             user.set_password(12345)
             with reversion.create_revision():
                 user.save()
-                reversion.set_comment('Objeto criado pela migração')
-
+                reversion.set_comment(
+                    'Usuário criado pela migração para o autor {}'.format(
+                        old.cod_autor))
             grupo_autor = Group.objects.get(name="Autor")
             user.groups.add(grupo_autor)
 
