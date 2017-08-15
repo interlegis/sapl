@@ -143,12 +143,10 @@ def get_field(model, fieldname):
 
 
 def exec_sql_file(path, db='default'):
-    cursor = connections[db].cursor()
-    for line in open(path):
-        try:
-            cursor.execute(line)
-        except (OperationalError, ProgrammingError) as e:
-            print("Args: '%s'" % (str(e.args)))
+    with open(path) as arq:
+        sql = arq.read()
+    with connections[db].cursor() as cursor:
+        cursor.execute(sql)
 
 
 def exec_sql(sql, db='default'):
