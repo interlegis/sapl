@@ -807,11 +807,15 @@ def adjust_normajuridica_antes_salvar(new, old):
 
 def adjust_normajuridica_depois_salvar(new, old):
     # Ajusta relação M2M
-    lista_pks_assunto = old.cod_assunto.split(',')
 
-    # list(filter(..)) usado para retirar strings vazias da lista
-    for pk_assunto in list(filter(None, lista_pks_assunto)):
-        new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
+    # lista de pks separadas por vírgulas (ignorando strings vazias)
+    lista_pks_assunto = [int(pk) for pk in old.cod_assunto.split(',') if pk]
+
+    for pk_assunto in lista_pks_assunto:
+        try:
+            new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
+        except ObjectDoesNotExist:
+            pass  # ignora assuntos inexistentes
 
 
 def adjust_autor(new, old):
