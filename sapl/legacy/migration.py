@@ -256,7 +256,7 @@ def recria_constraints():
             args_string = ''
             args_string += "(" + ', '.join(map(str, args)) + ")"
 
-            distintos = model.objects.distinct(*args)
+            distintos = model.objects.order_by(*args).distinct(*args)
             todos = model.objects.all()
             if hasattr(model, "content_type"):
                 distintos = distintos.exclude(content_type_id=None,
