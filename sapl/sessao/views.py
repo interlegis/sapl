@@ -25,7 +25,7 @@ from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
-from sapl.materia.forms import pega_ultima_tramitacao
+from sapl.materia.forms import filtra_tramitacao_status
 from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
@@ -2434,14 +2434,6 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
         return context
 
 
-def filtra_tramitacao_ordem_dia():
-    lista = pega_ultima_tramitacao()
-    return Tramitacao.objects.filter(
-        id__in=lista,
-        status__descricao='Ordem do Dia').distinct().values_list(
-        'materia_id', flat=True)
-
-
 def retira_materias_ja_adicionadas(id_sessao, model):
     lista = model.objects.filter(
         sessao_plenaria_id=id_sessao)
@@ -2463,17 +2455,21 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
 
         qs = self.get_queryset()
 
-        lista_ordem_dia = filtra_tramitacao_ordem_dia()
+        if 'tramitacao__status' in self.request.GET:
+            if self.request.GET['tramitacao__status']:
+                lista_status = filtra_tramitacao_status(
+                    self.request.GET['tramitacao__status'])
 
-        lista_materias_adicionadas = retira_materias_ja_adicionadas(
-            self.kwargs['pk'], ExpedienteMateria)
+                lista_materias_adicionadas = retira_materias_ja_adicionadas(
+                    self.kwargs['pk'], ExpedienteMateria)
 
-        qs = qs.filter(id__in=lista_ordem_dia).exclude(
-            id__in=lista_materias_adicionadas).distinct()
+                qs = qs.filter(id__in=lista_status).exclude(
+                    id__in=lista_materias_adicionadas).distinct()
 
-        kwargs.update({
-            'queryset': qs,
-        })
+                kwargs.update({
+                    'queryset': qs,
+                })
+
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -2543,17 +2539,20 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
 
         qs = self.get_queryset()
 
-        lista_ordem_dia = filtra_tramitacao_ordem_dia()
+        if 'tramitacao__status' in self.request.GET:
+            if self.request.GET['tramitacao__status']:
+                lista_status = filtra_tramitacao_status(
+                    self.request.GET['tramitacao__status'])
 
-        lista_materias_adicionadas = retira_materias_ja_adicionadas(
-            self.kwargs['pk'], OrdemDia)
+                lista_materias_adicionadas = retira_materias_ja_adicionadas(
+                    self.kwargs['pk'], OrdemDia)
 
-        qs = qs.filter(id__in=lista_ordem_dia).exclude(
-            id__in=lista_materias_adicionadas).distinct()
+                qs = qs.filter(id__in=lista_status).exclude(
+                    id__in=lista_materias_adicionadas).distinct()
 
-        kwargs.update({
-            'queryset': qs,
-        })
+                kwargs.update({
+                    'queryset': qs,
+                })
         return kwargs
 
     def post(self, request, *args, **kwargs):
