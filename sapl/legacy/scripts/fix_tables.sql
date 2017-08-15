@@ -121,3 +121,5 @@ CALL cria_lexml_registro_provedor_e_publicador;
 CALL cria_tipo_situacao_militar;
 CALL muda_vinculo_norma_juridica_ind_excluido;
 
+-- Corrige cod_parlamentar zero em unidade de tramitação
+update unidade_tramitacao set cod_parlamentar = NULL where cod_parlamentar = 0;
