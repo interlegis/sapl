@@ -244,7 +244,7 @@ class AnularProcoloAdmForm(ModelForm):
 
         if exists:
             raise forms.ValidationError(
-                _("Protocolo %s/%s não pode ser removido pois existem"
+                _("Protocolo %s/%s não pode ser removido pois existem "
                     "documentos vinculados a ele." % (numero, ano)))
 
     class Meta:
