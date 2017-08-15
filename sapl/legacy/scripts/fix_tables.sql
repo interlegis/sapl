@@ -8,6 +8,7 @@ DROP PROCEDURE IF EXISTS verifica_campos_sessao_plenaria_presenca;
 DROP PROCEDURE IF EXISTS cria_lexml_registro_provedor_e_publicador;
 DROP PROCEDURE IF EXISTS cria_tipo_situacao_militar;
 DROP PROCEDURE IF EXISTS muda_vinculo_norma_juridica_ind_excluido;
+DROP PROCEDURE IF EXISTS muda_unidade_tramitacao_cod_parlamentar;
 
 -- Procedure para criar campo num_proposicao em proposicao
 CREATE PROCEDURE verifica_campos_proposicao() BEGIN IF NOT EXISTS
@@ -113,6 +114,13 @@ SET ind_excluido = ''
 WHERE trim(ind_excluido) = '0';
 END;
 
+-- Procedure para mudar valor do campo cod_parlamentar da tabela unidade_tramitacao de 0 para string vazia NULL
+CREATE PROCEDURE muda_unidade_tramitacao_cod_parlamentar() BEGIN
+UPDATE unidade_tramitacao
+SET cod_parlamentar = NULL
+WHERE cod_parlamentar = 0;
+END;
+
 -- Executa as procedures criadas acima
 CALL verifica_campos_proposicao;
 CALL verifica_campos_tipo_materia_legislativa;
@@ -120,6 +128,7 @@ CALL verifica_campos_sessao_plenaria_presenca;
 CALL cria_lexml_registro_provedor_e_publicador;
 CALL cria_tipo_situacao_militar;
 CALL muda_vinculo_norma_juridica_ind_excluido;
+CALL muda_unidade_tramitacao_cod_parlamentar;
 
 -- Corrige cod_parlamentar zero em unidade de tramitação
 update unidade_tramitacao set cod_parlamentar = NULL where cod_parlamentar = 0;
