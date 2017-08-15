@@ -846,6 +846,10 @@ class Tramitacao(models.Model):
     )
 
     status = models.ForeignKey(StatusTramitacao, on_delete=models.PROTECT,
+                               # TODO PÓS MIGRACAO INICIAL (vide #1381)
+                               # não nulo quando todas as
+                               # bases tiverem sido corrigidas
+                               null=True,
                                verbose_name=_('Status'))
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
     data_tramitacao = models.DateField(verbose_name=_('Data Tramitação'))
