@@ -18,7 +18,8 @@ from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
-from sapl.base.models import Argumento, Autor, Constraint, ProblemaMigracao
+from sapl.base.models import (Argumento, Autor, Constraint, ProblemaMigracao,
+                              TipoAutor)
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import Protocolo as ProtocoloLegado
 from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
@@ -441,12 +442,8 @@ class DataMigrator:
                     self.data_mudada['problema'] = problema
                     self.data_mudada.setdefault('nome_campo', []).\
                         append(field.name)
-                if field_type in ['CharField', 'TextField'] \
-                        and value in [None, 'None']:
-                    if value == 'None':
-                        # TODO quero saber como é que pode ser 'None' !!!!
-                        import ipdb
-                        ipdb.set_trace()
+                if (field_type in ['CharField', 'TextField']
+                        and value in [None, 'None']):
                     value = ''
                 setattr(new, field.name, value)
 
