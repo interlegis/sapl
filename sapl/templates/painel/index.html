@@ -182,7 +182,7 @@
                   presentes_ordem_dia = data["presentes_expediente"]
                 }
                 presentes.append('<table id="parlamentares_list">');
-                if( (data["tipo_resultado"] == "Aprovado por Unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")) {
+                if( data["natureza_resultado"] == "A" || data["natureza_resultado"] == "R" ) {
                     if (data["tipo_votacao"] == "Nominal") {
                         jQuery.each(data["votos"], function (index, parlamentar) {
                             $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
