@@ -132,3 +132,5 @@ CALL muda_unidade_tramitacao_cod_parlamentar;
 
 -- Corrige cod_parlamentar zero em unidade de tramitação
 update unidade_tramitacao set cod_parlamentar = NULL where cod_parlamentar = 0;
+update parlamentar set cod_nivel_instrucao = NULL where cod_nivel_instrucao = 0;
+update parlamentar set tip_situacao_militar = NULL where tip_situacao_militar = 0;
