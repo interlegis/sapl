@@ -467,19 +467,6 @@ class DataMigrator:
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 
-        # Itera várias vezes na lista excluindo o que for possível
-        info('Deletando models com ind_excluido...')
-        while self.delete_ind_excluido():
-            pass
-        # Salva o que não pôde ser excluido da lista no problema da migração
-        for obj in self.to_delete:
-            msg = 'A entrada de PK %s da model %s não pode ser ' \
-                'excluida' % (obj.pk, obj._meta.model_name)
-            descricao = 'Um ou mais objetos protegidos'
-            warn(msg + ' => ' + descricao)
-            save_relation(obj=obj, problema=msg,
-                          descricao=descricao, eh_stub=False)
-
         info('Excluindo possíveis duplicações em RegistroVotacao...')
         excluir_registrovotacao_duplicados()
 
