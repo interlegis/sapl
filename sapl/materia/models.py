@@ -862,6 +862,10 @@ class Tramitacao(models.Model):
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
         UnidadeTramitacao,
+        # TODO PÓS MIGRACAO INICIAL (vide #1381)
+        # não nulo quando todas as
+        # bases tiverem sido corrigidas
+        null=True,
         related_name='tramitacoes_destino',
         on_delete=models.PROTECT,
         verbose_name=_('Unidade Destino'))
