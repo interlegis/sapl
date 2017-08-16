@@ -161,7 +161,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['numero_ordem', 'materia', 'observacao',
+        list_field_names = ['numero_ordem', 'materia', 'materia__ementa',
                             'resultado']
 
     class CreateView(MasterDetailCrud.CreateView):
@@ -312,7 +312,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['numero_ordem', 'materia',
-                            'observacao', 'resultado']
+                            'materia__ementa', 'resultado']
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'materia', 'resultado']
@@ -772,7 +772,7 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
 
         materias_ordem = []
         for o in ordem:
-            ementa = o.observacao
+            ementa = o.materia.ementa
             titulo = o.materia
             numero = o.numero_ordem
 
@@ -832,7 +832,7 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
 
                 materias_ordem = []
                 for o in ordem:
-                    ementa = o.observacao
+                    ementa = o.materia.ementa
                     titulo = o.materia
                     numero = o.numero_ordem
 
@@ -1162,7 +1162,7 @@ class ResumoView(DetailView):
         materias_expediente = []
         for m in materias:
 
-            ementa = m.observacao
+            ementa = m.materia.ementa
             titulo = m.materia
             numero = m.numero_ordem
 
@@ -1222,7 +1222,7 @@ class ResumoView(DetailView):
             sessao_plenaria_id=self.object.id)
         materias_ordem = []
         for o in ordem:
-            ementa = o.observacao
+            ementa = o.materia.ementa
             titulo = o.materia
             numero = o.numero_ordem
 
@@ -1432,7 +1432,7 @@ class VotacaoEditView(SessaoPermissionMixin):
 
         ordem = OrdemDia.objects.get(id=ordem_id)
 
-        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        materia = {'materia': ordem.materia, 'ementa': ordem.materia.ementa}
         context.update({'materia': materia})
 
         votacao = RegistroVotacao.objects.filter(
@@ -1486,7 +1486,7 @@ class VotacaoView(SessaoPermissionMixin):
         qtde_presentes = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id).count()
 
-        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        materia = {'materia': ordem.materia, 'ementa': ordem.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -1512,7 +1512,7 @@ class VotacaoView(SessaoPermissionMixin):
         qtde_presentes = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id).count()
 
-        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        materia = {'materia': ordem.materia, 'ementa': ordem.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -1649,7 +1649,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
         materia = {'materia': materia_votacao.materia,
                    'ementa': sub(
                        '&nbsp;', ' ', strip_tags(
-                           materia_votacao.observacao))}
+                           materia_votacao.materia.ementa))}
         context = {'materia': materia, 'object': self.get_object(),
                    'parlamentares': self.get_parlamentares(presentes),
                    'tipos': self.get_tipos_votacao(),
@@ -1833,7 +1833,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                 raise Http404()
 
             materia = ordem.materia
-            observacao = ordem.observacao
+            ementa = ordem.materia.ementa
 
         elif self.expediente:
             expediente_id = kwargs['oid']
@@ -1846,7 +1846,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                 raise Http404()
 
             materia = expediente.materia
-            observacao = expediente.observacao
+            ementa = expediente.materia.ementa
 
         votos = VotoParlamentar.objects.filter(votacao_id=votacao.id)
 
@@ -1859,7 +1859,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
 
         materia = {'materia': materia,
                    'ementa': sub(
-                       '&nbsp;', ' ', strip_tags(observacao))}
+                       '&nbsp;', ' ', strip_tags(ementa))}
         context.update({'materia': materia})
 
         votacao_existente = {'observacao': sub(
@@ -1956,7 +1956,7 @@ class VotacaoNominalExpedienteDetailView(DetailView):
 
         materia = {'materia': expediente.materia,
                    'ementa': sub(
-                       '&nbsp;', ' ', strip_tags(expediente.observacao))}
+                       '&nbsp;', ' ', strip_tags(expediente.materia.ementa))}
         context.update({'materia': materia})
 
         votacao_existente = {'observacao': sub(
@@ -2007,7 +2007,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             sessao_plenaria_id=self.object.id).count()
 
         materia = {'materia': expediente.materia,
-                   'ementa': expediente.observacao}
+                   'ementa': expediente.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -2034,7 +2034,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             sessao_plenaria_id=self.object.id).count()
 
         materia = {'materia': expediente.materia,
-                   'ementa': expediente.observacao}
+                   'ementa': expediente.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -2137,7 +2137,7 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
 
         materia = {'materia': expediente.materia,
-                   'ementa': expediente.observacao}
+                   'ementa': expediente.materia.ementa}
         context.update({'materia': materia})
 
         try:
@@ -2232,7 +2232,7 @@ class PautaSessaoDetailView(DetailView):
 
         materias_expediente = []
         for m in materias:
-            ementa = m.observacao
+            ementa = m.materia.ementa
             titulo = m.materia
             numero = m.numero_ordem
             situacao = m.materia.tramitacao_set.last().status
@@ -2289,7 +2289,7 @@ class PautaSessaoDetailView(DetailView):
 
         materias_ordem = []
         for o in ordem:
-            ementa = o.observacao
+            ementa = o.materia.ementa
             titulo = o.materia
             numero = o.numero_ordem
             situacao = o.materia.tramitacao_set.last().status
