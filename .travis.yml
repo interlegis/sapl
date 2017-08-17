@@ -16,6 +16,7 @@ before_script:
   - psql -c "CREATE DATABASE sapl OWNER sapl;" -U postgres
 
 script:
+  - ./check_migrations.sh
   - ./manage.py migrate
   - ./manage.py bower install
   - py.test --create-db
