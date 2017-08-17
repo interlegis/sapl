@@ -6,6 +6,7 @@ EMPTY_STRING = ''
 
 
 class RedirecionaURLsTests(TestCase):
+
     def test_redireciona_index_SAPL(self):
         response = self.client.get(reverse(
             'sapl.redireciona_urls:redireciona_sapl_index')
@@ -34,7 +35,7 @@ class RedirecionaParlamentarTests(TestCase):
         url = "%s%s" % (
             url,
             "?hdn_num_legislatura=%s" % (numero_legislatura)
-            )
+        )
         url_e = "%s%s" % (url_e, "?pk=%s" % numero_legislatura)
 
         response = self.client.get(url)
@@ -49,7 +50,7 @@ class RedirecionaParlamentarTests(TestCase):
         url_e = reverse(
             'sapl.parlamentares:parlamentar_detail',
             kwargs={'pk': pk_parlamentar}
-            )
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
         self.assertEqual(response.url, url_e)
@@ -65,7 +66,7 @@ class RedirecionaComissaoTests(TestCase):
         url_e = reverse(
             'sapl.comissoes:comissao_detail',
             kwargs={'pk': pk_comissao}
-            )
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
         self.assertEqual(response.url, url_e)
@@ -89,7 +90,7 @@ class RedirecionaPautaSessaoTests(TestCase):
         url_e = reverse(
             'sapl.sessao:pauta_sessao_detail',
             kwargs={'pk': pk_pauta_sessao}
-            )
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
         self.assertEqual(response.url, url_e)
@@ -153,7 +154,7 @@ class RedirecionaMesaDiretoraParlamentarTests(TestCase):
         url_e = reverse(
             'sapl.parlamentares:parlamentar_detail',
             kwargs={'pk': pk_parlamentar}
-            )
+        )
 
         response = self.client.get(url)
 
@@ -313,7 +314,7 @@ class RedirecionaNormasJuridicasDetailTests(TestCase):
             'sapl.norma:normajuridica_detail',
             kwargs={
                 'pk': pk_norma}
-            )
+        )
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
@@ -345,7 +346,7 @@ class RedirecionaSessaoPlenariaTests(TestCase):
         url_e = reverse(
             'sapl.sessao:sessaoplenaria_detail',
             kwargs={'pk': pk_sessao_plenaria}
-            )
+        )
 
         response = self.client.get(url)
 
@@ -532,18 +533,18 @@ class RedirecionaHistoricoTramitacoesListTests(TestCase):
         status_tramitacao = status_tramitacao.lstrip("0")
 
         if (
-          (inicio_dt_tramitacao != EMPTY_STRING) or
-          (fim_dt_tramitacao != EMPTY_STRING) or
-          (tipo_materia != EMPTY_STRING) or
-          (unidade_local_tramitacao != EMPTY_STRING) or
-          (status_tramitacao != EMPTY_STRING)):
+            (inicio_dt_tramitacao != EMPTY_STRING) or
+            (fim_dt_tramitacao != EMPTY_STRING) or
+            (tipo_materia != EMPTY_STRING) or
+            (unidade_local_tramitacao != EMPTY_STRING) or
+                (status_tramitacao != EMPTY_STRING)):
             args_e += "?tramitacao__data_tramitacao_0=%s" % (
-                    inicio_dt_tramitacao)
+                inicio_dt_tramitacao)
             args_e += "&tramitacao__data_tramitacao_1=%s" % (
-                    fim_dt_tramitacao)
+                fim_dt_tramitacao)
             args_e += "&tipo=%s" % (tipo_materia)
             args_e += "&tramitacao__unidade_tramitacao_local=%s" % (
-                    unidade_local_tramitacao)
+                unidade_local_tramitacao)
             args_e += "&tramitacao__status=%s" % (status_tramitacao)
             args_e += "&salvar=%s" % ('Pesquisar')
 
@@ -581,18 +582,18 @@ class RedirecionaHistoricoTramitacoesListTests(TestCase):
         status_tramitacao = status_tramitacao.lstrip("0")
 
         if (
-          (inicio_dt_tramitacao != EMPTY_STRING) or
-          (fim_dt_tramitacao != EMPTY_STRING) or
-          (tipo_materia != EMPTY_STRING) or
-          (unidade_local_tramitacao != EMPTY_STRING) or
-          (status_tramitacao != EMPTY_STRING)):
+            (inicio_dt_tramitacao != EMPTY_STRING) or
+            (fim_dt_tramitacao != EMPTY_STRING) or
+            (tipo_materia != EMPTY_STRING) or
+            (unidade_local_tramitacao != EMPTY_STRING) or
+                (status_tramitacao != EMPTY_STRING)):
             args_e += "?tramitacao__data_tramitacao_0=%s" % (
-                    inicio_dt_tramitacao)
+                inicio_dt_tramitacao)
             args_e += "&tramitacao__data_tramitacao_1=%s" % (
-                    fim_dt_tramitacao)
+                fim_dt_tramitacao)
             args_e += "&tipo=%s" % (tipo_materia)
             args_e += "&tramitacao__unidade_tramitacao_local=%s" % (
-                    unidade_local_tramitacao)
+                unidade_local_tramitacao)
             args_e += "&tramitacao__status=%s" % (status_tramitacao)
             args_e += "&salvar=%s" % ('Pesquisar')
 

@@ -126,4 +126,4 @@ class NormaJuridicaIndex(DocumentoAcessorioIndex):
     template_name = 'norma/normajuridica_text.txt'
 
     def get_updated_field(self):
-        return 'data_ultima_atualizacao'    
+        return 'data_ultima_atualizacao'

@@ -162,7 +162,7 @@ def get_fk_related(field, value, label=None):
                             value = TipoProposicao.objects.create(
                                 id=value, descricao='Erro', content_type=ct)
                         ultimo_valor = get_last_value(type(value))
-                        alter_sequence(type(value), ultimo_valor+1)
+                        alter_sequence(type(value), ultimo_valor + 1)
                     else:
                         value = tipo[0]
                 else:
@@ -252,7 +252,7 @@ def problema_duplicatas(model, lista_duplicatas, argumentos):
         string_pks = ""
         problema = "%s de PK %s não é único." % (model.__name__, obj.pk)
         args_dict = {k: obj.__dict__[k]
-                    for k in set(argumentos) & set(obj.__dict__.keys())}
+                     for k in set(argumentos) & set(obj.__dict__.keys())}
         for dup in model.objects.filter(**args_dict):
             pks.append(dup.pk)
         string_pks = "(" + ", ".join(map(str, pks)) + ")"
@@ -407,7 +407,7 @@ def fill_vinculo_norma_juridica():
               'Julgada parcialmente inconstitucional')]
     lista_objs = [TipoVinculoNormaJuridica(
         sigla=item[0], descricao_ativa=item[1], descricao_passiva=item[2])
-                  for item in lista]
+        for item in lista]
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
 
@@ -610,7 +610,7 @@ class DataMigrator:
 
         # necessário para ajustar sequence da tabela para o ultimo valor de id
         ultimo_valor = get_last_value(model)
-        alter_sequence(model, ultimo_valor+1)
+        alter_sequence(model, ultimo_valor + 1)
 
     def delete_ind_excluido(self):
         excluidos = 0
@@ -665,15 +665,15 @@ def adjust_documentoadministrativo(new, old):
         except Exception:
             try:
                 protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
-                                                  ano=new.ano+1)
+                                                  ano=new.ano + 1)
                 new.protocolo = protocolo
             except Exception:
                 protocolo = mommy.make(Protocolo, numero=new.numero_protocolo,
                                        ano=new.ano)
                 with reversion.create_revision():
                     problema = 'Protocolo Vinculado [numero_protocolo=%s, '\
-                            'ano=%s] não existe' % (new.numero_protocolo,
-                                                    new.ano)
+                        'ano=%s] não existe' % (new.numero_protocolo,
+                                                new.ano)
                     descricao = 'O protocolo inexistente foi criado'
                     warn(problema + ' => ' + descricao)
                     save_relation(obj=protocolo, problema=problema,
@@ -751,7 +751,7 @@ def adjust_proposicao_antes_salvar(new, old):
 def adjust_proposicao_depois_salvar(new, old):
     if not hasattr(old.dat_envio, 'year') or old.dat_envio.year == 1800:
         msg = "O valor do campo data_envio (DateField) da model Proposicao"\
-                " era inválido"
+            " era inválido"
         descricao = 'A data 1111-11-11 foi colocada no lugar'
         problema = 'O valor da data era nulo ou inválido'
         warn(msg + ' => ' + descricao)
@@ -816,7 +816,6 @@ def adjust_tipoafastamento(new, old):
         new.indicador = 'A'
 
 
-
 def adjust_tipoproposicao(new, old):
     if old.ind_mat_ou_doc == 'M':
         new.tipo_conteudo_related = TipoMateriaLegislativa.objects.get(
@@ -870,7 +869,7 @@ def adjust_autor(new, old):
         except Exception:
             with reversion.create_revision():
                 msg = 'Um parlamentar relacionado de PK [%s] não existia' \
-                        % old.cod_parlamentar
+                    % old.cod_parlamentar
                 reversion.set_comment('Stub criado pela migração')
                 value = make_stub(Parlamentar, old.cod_parlamentar)
                 descricao = 'stub criado para entrada orfã!'

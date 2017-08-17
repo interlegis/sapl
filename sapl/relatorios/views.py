@@ -505,20 +505,20 @@ def get_sessao_plenaria(sessao, casa):
     # Lista de presença na sessão
     lst_presenca_sessao = []
     presenca = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
+        sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
 
     for parlamentar in [p.parlamentar for p in presenca]:
-            dic_presenca = {}
-            dic_presenca["nom_parlamentar"] = parlamentar.nome_parlamentar
-            partido_sigla = filiacao_data(parlamentar, sessao.data_inicio)
+        dic_presenca = {}
+        dic_presenca["nom_parlamentar"] = parlamentar.nome_parlamentar
+        partido_sigla = filiacao_data(parlamentar, sessao.data_inicio)
 
-            dic_presenca['sgl_partido'] = partido_sigla
-            lst_presenca_sessao.append(dic_presenca)
+        dic_presenca['sgl_partido'] = partido_sigla
+        lst_presenca_sessao.append(dic_presenca)
 
     # Exibe os Expedientes
     lst_expedientes = []
     expedientes = ExpedienteSessao.objects.filter(
-                sessao_plenaria=sessao).order_by('tipo__nome')
+        sessao_plenaria=sessao).order_by('tipo__nome')
 
     for e in expedientes:
 
@@ -642,15 +642,15 @@ def get_sessao_plenaria(sessao, casa):
     # Lista presença na ordem do dia
     lst_presenca_ordem_dia = []
     presenca_ordem_dia = PresencaOrdemDia.objects.filter(
-            sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
+        sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
     for parlamentar in [p.parlamentar for p in presenca_ordem_dia]:
-            dic_presenca_ordem_dia = {}
-            dic_presenca_ordem_dia['nom_parlamentar'] = (
-                parlamentar.nome_parlamentar)
-            sigla = filiacao_data(parlamentar, sessao.data_inicio)
+        dic_presenca_ordem_dia = {}
+        dic_presenca_ordem_dia['nom_parlamentar'] = (
+            parlamentar.nome_parlamentar)
+        sigla = filiacao_data(parlamentar, sessao.data_inicio)
 
-            dic_presenca_ordem_dia['sgl_partido'] = sigla
-            lst_presenca_ordem_dia.append(dic_presenca_ordem_dia)
+        dic_presenca_ordem_dia['sgl_partido'] = sigla
+        lst_presenca_ordem_dia.append(dic_presenca_ordem_dia)
 
     # Lista das matérias da Ordem do Dia, incluindo o resultado das votacoes
     lst_votacao = []

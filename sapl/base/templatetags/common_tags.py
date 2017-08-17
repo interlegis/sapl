@@ -117,6 +117,7 @@ def str2intabs(value):
     except:
         return ''
 
+
 @register.filter
 def has_iframe(request):
 
@@ -180,6 +181,7 @@ def urldetail_content_type(obj, value):
 def urldetail(obj):
     return '%s:%s_detail' % (
         obj._meta.app_config.name, obj._meta.model_name)
+
 
 @register.filter
 def filiacao_data_filter(parlamentar, data_inicio):

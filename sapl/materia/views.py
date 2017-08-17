@@ -1060,11 +1060,11 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
 
         def __init__(self, **kwargs):
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
-        
+
         def get_initial(self):
             self.initial['data'] = datetime.now().date()
 
-            return self.initial 
+            return self.initial
 
         def get_context_data(self, **kwargs):
             context = super(
@@ -1735,9 +1735,9 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
 
         if ('tramitacao__status' in qr and
                 'tramitacao__unidade_tramitacao_destino' in qr and
-                    qr['tramitacao__status'] and
-                    qr['tramitacao__unidade_tramitacao_destino']
-                ):
+            qr['tramitacao__status'] and
+            qr['tramitacao__unidade_tramitacao_destino']
+            ):
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],
                 qr['tramitacao__unidade_tramitacao_destino'])

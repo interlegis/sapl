@@ -19,7 +19,7 @@ EXCLUI_REGISTRO = "DELETE FROM %s WHERE ind_excluido=1"
 NORMA_DEP = "DELETE FROM vinculo_norma_juridica WHERE cod_norma_referente in (%s) OR \
                cod_norma_referida in (%s) AND ind_excluido = 0 "
 
-mapa = {} # mapa com tabela principal -> tabelas dependentes
+mapa = {}  # mapa com tabela principal -> tabelas dependentes
 
 mapa['tipo_autor'] = ['autor']
 mapa['materia_legislativa'] = ['acomp_materia', 'autoria', 'despacho_inicial',
@@ -43,6 +43,7 @@ mapa['parlamentar'] = ['autor', 'autoria', 'composicao_comissao',
                        'sessao_plenaria_presenca', 'unidade_tramitacao']
 """
 
+
 def get_ids_excluidos(cursor, query):
     """
         recupera as PKs de registros com ind_excluido = 1 da tabela principal
@@ -58,7 +59,8 @@ def remove_tabelas(cursor, tabela_principal, pk, query_dependentes=None):
 
     QUERY = SELECT_EXCLUIDOS % (pk, tabela_principal, pk)
     ids_excluidos = get_ids_excluidos(cursor, QUERY)
-    print("\nRegistros da tabela '%s' com ind_excluido = 1: %s" % (tabela_principal.upper(), len(ids_excluidos)))
+    print("\nRegistros da tabela '%s' com ind_excluido = 1: %s" %
+          (tabela_principal.upper(), len(ids_excluidos)))
 
     """
         Remove registros de tabelas que dependem da tabela principal,
@@ -69,12 +71,13 @@ def remove_tabelas(cursor, tabela_principal, pk, query_dependentes=None):
         print("Dependencias inconsistentes")
         for tabela in mapa[tabela_principal]:
 
-            QUERY_DEP = REGISTROS_INCONSISTENTES %  (tabela, pk, ','.join(ids_excluidos))
+            QUERY_DEP = REGISTROS_INCONSISTENTES % (
+                tabela, pk, ','.join(ids_excluidos))
 
             # Trata caso especifico de norma_juridica
             if query_dependentes:
                 QUERY_DEP = query_dependentes % (','.join(ids_excluidos),
-                                                  ','.join(ids_excluidos))
+                                                 ','.join(ids_excluidos))
 
             print(tabela.upper(), cursor.execute(QUERY_DEP))
 

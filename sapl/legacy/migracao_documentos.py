@@ -205,7 +205,7 @@ def migrar_documentos():
         SessaoPlenaria,
         Proposicao,
         DocumentoAdministrativo,
-      	DocumentoAcessorioAdministrativo,
+        DocumentoAcessorioAdministrativo,
     ]:
         migrar_docs_por_ids(tipo)
 

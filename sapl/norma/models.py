@@ -59,8 +59,10 @@ class TipoNormaJuridica(models.Model):
     def __str__(self):
         return self.descricao
 
+
 def norma_upload_path(instance, filename):
-        return texto_upload_path(instance, filename, subpath=instance.ano)
+    return texto_upload_path(instance, filename, subpath=instance.ano)
+
 
 @reversion.register()
 class NormaJuridica(models.Model):
@@ -133,9 +135,9 @@ class NormaJuridica(models.Model):
 
     def get_normas_relacionadas(self):
         principais = NormaRelacionada.objects.filter(
-                norma_principal=self.id)
+            norma_principal=self.id)
         relacionadas = NormaRelacionada.objects.filter(
-                norma_relacionada=self.id)
+            norma_relacionada=self.id)
         return (principais, relacionadas)
 
     def __str__(self):

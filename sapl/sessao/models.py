@@ -406,15 +406,14 @@ class RegistroVotacao(models.Model):
         blank=True, verbose_name=_('Observações'))
 
     data_hora_criacao = models.DateTimeField(
-                            blank=True, null=True,
-                            auto_now_add=True,
-                            verbose_name=_('Data Criação'))
+        blank=True, null=True,
+        auto_now_add=True,
+        verbose_name=_('Data Criação'))
 
     data_hora_atualizacao = models.DateTimeField(
-                            blank=True, null=True,
-                            auto_now=True,
-                            verbose_name=_('Data'))
-
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Votação')

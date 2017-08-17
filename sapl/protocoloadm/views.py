@@ -118,6 +118,7 @@ class DocumentoAdministrativoCrud(Crud):
                         'numero_protocolo': p.numero}
 
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             self.layout_display[0]['rows'][-1][0]['text'] = (
@@ -127,6 +128,7 @@ class DocumentoAdministrativoCrud(Crud):
             return context
 
     class DeleteView(DocumentoAdministrativoMixin, Crud.DeleteView):
+
         def get_success_url(self):
             return reverse('sapl.protocoloadm:pesq_doc_adm', kwargs={})
 
@@ -451,28 +453,33 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         return redirect(self.get_success_url(protocolo))
 
     def get_context_data(self, **kwargs):
-            context = super(CreateView, self).get_context_data(**kwargs)
-            autores_ativos = self.autores_ativos()
+        context = super(CreateView, self).get_context_data(**kwargs)
+        autores_ativos = self.autores_ativos()
 
-            autores = []
-            autores.append(['0', '------'])
-            for a in autores_ativos:
-                autores.append([a.id, a.__str__()])
+        autores = []
+        autores.append(['0', '------'])
+        for a in autores_ativos:
+            autores.append([a.id, a.__str__()])
 
-            context['form'].fields['autor'].choices = autores
-            return context
+        context['form'].fields['autor'].choices = autores
+        return context
 
     def autores_ativos(self):
-            lista_parlamentares = Parlamentar.objects.filter(ativo=True).values_list('id', flat=True)
-            model_parlamentar = ContentType.objects.get_for_model(Parlamentar)
-            autor_parlamentar = Autor.objects.filter(content_type=model_parlamentar, object_id__in=lista_parlamentares)
+        lista_parlamentares = Parlamentar.objects.filter(
+            ativo=True).values_list('id', flat=True)
+        model_parlamentar = ContentType.objects.get_for_model(Parlamentar)
+        autor_parlamentar = Autor.objects.filter(
+            content_type=model_parlamentar, object_id__in=lista_parlamentares)
 
-            lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True)|Q(data_extincao__gt=date.today())).values_list('id', flat=True)
-            model_comissao = ContentType.objects.get_for_model(Comissao)
-            autor_comissoes = Autor.objects.filter(content_type=model_comissao, object_id__in=lista_comissoes)
-            autores_outros = Autor.objects.exclude(content_type__in=[model_parlamentar, model_comissao])
-            q = autor_parlamentar | autor_comissoes | autores_outros
-            return q
+        lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True) | Q(
+            data_extincao__gt=date.today())).values_list('id', flat=True)
+        model_comissao = ContentType.objects.get_for_model(Comissao)
+        autor_comissoes = Autor.objects.filter(
+            content_type=model_comissao, object_id__in=lista_comissoes)
+        autores_outros = Autor.objects.exclude(
+            content_type__in=[model_parlamentar, model_comissao])
+        q = autor_parlamentar | autor_comissoes | autores_outros
+        return q
 
 
 class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
