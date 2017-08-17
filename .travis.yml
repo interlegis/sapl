@@ -14,9 +14,9 @@ before_script:
   - cp sapl/.env_test sapl/.env
   - psql -c "CREATE USER sapl WITH PASSWORD 'sapl'" -U postgres;
   - psql -c "CREATE DATABASE sapl OWNER sapl;" -U postgres
+  - ./check_migrations.sh
 
 script:
-  - ./check_migrations.sh
   - ./manage.py migrate
   - ./manage.py bower install
   - py.test --create-db
