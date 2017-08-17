@@ -598,19 +598,48 @@ def qs_override_django_filter(self):
     return self._qs
 
 
-def filiacao_data(parlamentar, data):
+def filiacao_data(parlamentar, data_inicio, data_fim=None):
     from sapl.parlamentares.models import Filiacao
 
     filiacoes_parlamentar = Filiacao.objects.filter(
         parlamentar=parlamentar)
 
     filiacoes = filiacoes_parlamentar.filter(Q(
-        data__lte=data,
+        data__lte=data_inicio,
         data_desfiliacao__isnull=True) | Q(
-        data__lte=data,
-        data_desfiliacao__gte=data))
+        data__lte=data_inicio,
+        data_desfiliacao__gte=data_inicio))
 
-    if filiacoes:
-        return filiacoes.last().partido.sigla
+    if data_fim:
+        filiacoes = filiacoes | filiacoes_parlamentar.filter(
+            data__gte=data_inicio,
+            data__lte=data_fim)
+
+    return ' | '.join([f.partido.sigla for f in filiacoes])
+
+
+def parlamentares_ativos(data_inicio, data_fim=None):
+    from sapl.parlamentares.models import Mandato, Parlamentar
+    '''
+    :param data_inicio: define a data de inicial do período desejado
+    :param data_fim: define a data final do período desejado
+    :return: queryset dos parlamentares ativos naquele período
+    '''
+    mandatos_ativos = Mandato.objects.filter(Q(
+        data_inicio_mandato__lte=data_inicio,
+        data_fim_mandato__isnull=True) | Q(
+        data_inicio_mandato__lte=data_inicio,
+        data_fim_mandato__gte=data_inicio))
+    if data_fim:
+        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
+            data_inicio_mandato__gte=data_inicio,
+            data_inicio_mandato__lte=data_fim)
     else:
-        return ''
+        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
+            data_inicio_mandato__gte=data_inicio)
+
+    parlamentares_id = mandatos_ativos.values_list(
+        'parlamentar_id',
+        flat=True).distinct('parlamentar_id')
+
+    return Parlamentar.objects.filter(id__in=parlamentares_id)

@@ -24,6 +24,7 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
 from sapl.materia.models import Autoria
 from sapl.materia.models import Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
+from sapl.utils import parlamentares_ativos
 
 from .forms import (FiliacaoForm, LegislaturaCreateForm, LegislaturaUpdateForm,
                     MandatoForm, ParlamentarCreateForm, ParlamentarForm,
@@ -233,32 +234,6 @@ def json_date_convert(date):
     return datetime.date(day=int(dia),
                          month=int(mes),
                          year=int(ano))
-
-
-def parlamentares_ativos(data_inicio, data_fim=None):
-    '''
-    :param data_inicio: define a data de inicial do período desejado
-    :param data_fim: define a data final do período desejado
-    :return: queryset dos parlamentares ativos naquele período
-    '''
-    mandatos_ativos = Mandato.objects.filter(Q(
-        data_inicio_mandato__lte=data_inicio,
-        data_fim_mandato__isnull=True) | Q(
-        data_inicio_mandato__lte=data_inicio,
-        data_fim_mandato__gte=data_inicio))
-    if data_fim:
-        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
-            data_inicio_mandato__gte=data_inicio,
-            data_inicio_mandato__lte=data_fim)
-    else:
-        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
-            data_inicio_mandato__gte=data_inicio)
-
-    parlamentares_id = mandatos_ativos.values_list(
-        'parlamentar_id',
-        flat=True).distinct('parlamentar_id')
-
-    return Parlamentar.objects.filter(id__in=parlamentares_id)
 
 
 def frente_atualiza_lista_parlamentares(request):

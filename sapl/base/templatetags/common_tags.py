@@ -182,5 +182,10 @@ def urldetail(obj):
         obj._meta.app_config.name, obj._meta.model_name)
 
 @register.filter
-def filiacao_epoca_filter(parlamentar, sessao):
-    return filiacao_data(parlamentar, sessao.data_inicio)
+def filiacao_data_filter(parlamentar, data_inicio):
+    return filiacao_data(parlamentar, data_inicio)
+
+
+@register.filter
+def filiacao_intervalo_filter(parlamentar, date_range):
+    return filiacao_data(parlamentar, date_range[0], date_range[1])
