@@ -1253,7 +1253,7 @@ class ResumoView(DetailView):
         # =====================================================================
         # Oradores nas Explicações Pessoais
         oradores_explicacoes = []
-        for orador in Orador.objects.filter(sessao_plenaria_id=self.object.id):
+        for orador in Orador.objects.filter(sessao_plenaria_id=self.object.id).order_by('numero_ordem'):
                 for parlamentar in Parlamentar.objects.filter(
                         id=orador.parlamentar.id):
                     partido_sigla = Filiacao.objects.filter(
