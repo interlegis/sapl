@@ -44,7 +44,9 @@ class SessaoLegislativa(models.Model):
         ('O', 'ordinaria', _('Ordinária')),
         ('E', 'extraordinaria', _('Extraordinária')),
     )
-
+    campo_de_teste = models.CharField(max_length=5, default='', verbose_name=_('Campo de Teste de migração'))
+    outro_campo_de_teste = models.CharField(max_length=5, default='', verbose_name=_('Campo de Teste de migração'))
+    mais_um_campo_de_teste = models.CharField(max_length=5, default='', verbose_name=_('Campo de Teste de migração'))
     legislatura = models.ForeignKey(
         Legislatura,
         on_delete=models.PROTECT,
