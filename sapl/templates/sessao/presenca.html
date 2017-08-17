@@ -35,14 +35,14 @@
           <div class="checkbox">
             <label for="id_presenca_{{forloop.counter}}">
               <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
-              {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}                        
+              {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}
             </label>
           </div>
           {% else %}
           <div class="checkbox inativos" style="display:none;">
             <label for="id_presenca_{{forloop.counter}}">
               <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_inativos" value="{{ parlamentar.id }}" {% if check %} checked {% endif %}/>
-              {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}      
+              {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}
             </label>
           </div>
           {% endif %}
