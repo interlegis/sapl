@@ -1,16 +1,18 @@
-from .exceptions import UnknownUrlNameError
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.views.generic import RedirectView
+
 from sapl.base.apps import AppConfig as atasConfig
-from sapl.base.apps import AppConfig as presenca_sessaoConfig
-from sapl.base.apps import AppConfig as relatoriosConfig
 from sapl.comissoes.apps import AppConfig as comissoesConfig
 from sapl.materia.apps import AppConfig as materiaConfig
 from sapl.norma.apps import AppConfig as normaConfig
 from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
 from sapl.sessao.apps import AppConfig as sessaoConfig
 
+from .exceptions import UnknownUrlNameError
+
 EMPTY_STRING = ''
+
+presenca_sessaoConfig = relatoriosConfig = atasConfig
 
 app_parlamentares = parlamentaresConfig.name
 app_atas = atasConfig.name
@@ -50,14 +52,13 @@ relatorio_materia_por_ano_autor_tipo = (
 historico_tramitacoes = (app_relatorios + ':historico_tramitacoes')
 
 
-
 def has_iframe(url, request):
 
     iframe = request.GET.get(
         'iframe',
         EMPTY_STRING)
     if iframe:
-        iframe_qs= ("iframe=" + iframe)
+        iframe_qs = ("iframe=" + iframe)
         url += ("&" if "?" in url else "?")
         url += iframe_qs
 
@@ -486,30 +487,30 @@ class RedirecionaHistoricoTramitacoesList(RedirectView):
         inicio_intervalo_data_tramitacao = self.request.GET.get(
             'txt_dat_inicio_periodo',
             EMPTY_STRING
-            ).lstrip("0")
+        ).lstrip("0")
         fim_intervalo_data_tramitacao = self.request.GET.get(
             'txt_dat_fim_periodo',
             EMPTY_STRING
-            ).lstrip("0")
+        ).lstrip("0")
         tipo_materia = self.request.GET.get(
             'lst_tip_materia',
             EMPTY_STRING
-            ).lstrip("0")
+        ).lstrip("0")
         unidade_local_tramitacao = self.request.GET.get(
             'lst_cod_unid_tram_dest',
             EMPTY_STRING
-            ).lstrip("0")
+        ).lstrip("0")
         status_tramitacao = self.request.GET.get(
             'lst_status',
             EMPTY_STRING
-            ).lstrip("0")
+        ).lstrip("0")
 
         if (
-          (inicio_intervalo_data_tramitacao != EMPTY_STRING) or
-          (fim_intervalo_data_tramitacao != EMPTY_STRING) or
-          (tipo_materia != EMPTY_STRING) or
-          (unidade_local_tramitacao != EMPTY_STRING) or
-          (status_tramitacao != EMPTY_STRING)):
+            (inicio_intervalo_data_tramitacao != EMPTY_STRING) or
+            (fim_intervalo_data_tramitacao != EMPTY_STRING) or
+            (tipo_materia != EMPTY_STRING) or
+            (unidade_local_tramitacao != EMPTY_STRING) or
+                (status_tramitacao != EMPTY_STRING)):
 
             args += "?tramitacao__data_tramitacao_0=%s" % (
                 inicio_intervalo_data_tramitacao)
@@ -543,11 +544,11 @@ class RedirecionaAtasList(RedirectView):
         inicio_intervalo_data_ata = self.request.GET.get(
             'txt_dat_inicio',
             EMPTY_STRING
-            ).lstrip("0")
+        ).lstrip("0")
         fim_intervalo_data_ata = self.request.GET.get(
             'txt_dat_fim',
             EMPTY_STRING
-            ).lstrip("0")
+        ).lstrip("0")
 
         args += "?data_inicio_0=%s" % (
             inicio_intervalo_data_ata)
@@ -577,11 +578,11 @@ class RedirecionaPresencaParlamentares(RedirectView):
         inicio_intervalo_data_presenca_parlamentar = self.request.GET.get(
             'txt_dat_inicio',
             EMPTY_STRING
-            ).lstrip("0")
+        ).lstrip("0")
         fim_intervalo_data_presenca_parlamentar = self.request.GET.get(
             'txt_dat_fim',
             EMPTY_STRING
-            ).lstrip("0")
+        ).lstrip("0")
 
         args += "?data_inicio_0=%s" % (
             inicio_intervalo_data_presenca_parlamentar)
