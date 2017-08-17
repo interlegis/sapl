@@ -74,7 +74,7 @@ Clonar o projeto do github, ou fazer um fork e depois clonar
 * Para apenas clonar do repositório do Interlegis::
 
     cd /var/interlegis
-    git clone git://github.com/interlegis/sapl
+    git clone git://github.com/interlegis/sapl --branch master
 
 * Para fazer um fork e depois clonar, siga as instruções em https://help.github.com/articles/fork-a-repo que basicamente são:
 
