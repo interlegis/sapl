@@ -1,6 +1,8 @@
 import os
 import sys
+
 import django
+
 from sapl import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sapl.settings")

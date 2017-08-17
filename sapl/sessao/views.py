@@ -30,22 +30,23 @@ from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import (Filiacao, Legislatura, Parlamentar,
-                                       SessaoLegislativa, Mandato)
+from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
+                                       Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
+
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, OradorExpedienteForm,
                     OradorForm, PautaSessaoFilterSet, PresencaForm,
-                    ResumoOrdenacaoForm, SessaoPlenariaFilterSet, SessaoPlenariaForm,
-                    VotacaoEditForm, VotacaoForm, VotacaoNominalForm)
+                    ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
+                    SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
+                    VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
-                     TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar)
+                     TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')

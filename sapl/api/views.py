@@ -9,8 +9,8 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from sapl.api.forms import AutorChoiceFilterSet, AutorSearchForFieldFilterSet,\
-    AutoresPossiveisFilterSet
+from sapl.api.forms import (AutorChoiceFilterSet, AutoresPossiveisFilterSet,
+                            AutorSearchForFieldFilterSet)
 from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
                                   ChoiceSerializer,
                                   MateriaLegislativaSerializer,

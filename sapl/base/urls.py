@@ -16,8 +16,7 @@ from .views import (AppConfigCrud, CasaLegislativaCrud, HelpView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,
-                    RelatorioPresencaSessaoView,
-                    SaplSearchView)
+                    RelatorioPresencaSessaoView, SaplSearchView)
 
 app_name = AppConfig.name
 

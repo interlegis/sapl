@@ -3,7 +3,6 @@ import logging
 import os
 import re
 from datetime import date
-from django_filters.filterset import STRICTNESS
 from functools import wraps
 from subprocess import PIPE, call
 from threading import Thread
@@ -15,20 +14,20 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
 from django.apps import apps
-from django.db.models import Q
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
+from django_filters.filterset import STRICTNESS
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR, PROJECT_DIR
-
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 

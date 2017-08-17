@@ -14,7 +14,6 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
-
 from haystack.views import SearchView
 
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
@@ -22,7 +21,8 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
-from sapl.sessao.models import PresencaOrdemDia, SessaoPlenaria, SessaoPlenariaPresenca
+from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
+                                SessaoPlenariaPresenca)
 from sapl.utils import parlamentares_ativos, sapl_logger
 
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,

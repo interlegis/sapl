@@ -1,24 +1,18 @@
-from .apps import AppConfig
-from .views import (
-    RedirecionaAtasList,
-    RedirecionaComissao,
-    RedirecionaHistoricoTramitacoesList,
-    RedirecionaMateriaLegislativaDetail,
-    RedirecionaMateriaLegislativaList,
-    RedirecionaMateriasPorAnoAutorTipo,
-    RedirecionaMateriasPorAutor,
-    RedirecionaMesaDiretoraView,
-    RedirecionaNormasJuridicasDetail,
-    RedirecionaNormasJuridicasList,
-    RedirecionaParlamentar,
-    RedirecionaPautaSessao,
-    RedirecionaPresencaParlamentares,
-    RedirecionaRelatoriosList,
-    RedirecionaRelatoriosMateriasEmTramitacaoList,
-    RedirecionaSessaoPlenaria,
-    RedirecionaSAPLIndex)
 from django.conf.urls import url
 
+from .apps import AppConfig
+from .views import (RedirecionaAtasList, RedirecionaComissao,
+                    RedirecionaHistoricoTramitacoesList,
+                    RedirecionaMateriaLegislativaDetail,
+                    RedirecionaMateriaLegislativaList,
+                    RedirecionaMateriasPorAnoAutorTipo,
+                    RedirecionaMateriasPorAutor, RedirecionaMesaDiretoraView,
+                    RedirecionaNormasJuridicasDetail,
+                    RedirecionaNormasJuridicasList, RedirecionaParlamentar,
+                    RedirecionaPautaSessao, RedirecionaPresencaParlamentares,
+                    RedirecionaRelatoriosList,
+                    RedirecionaRelatoriosMateriasEmTramitacaoList,
+                    RedirecionaSAPLIndex, RedirecionaSessaoPlenaria)
 
 app_name = AppConfig.name
 

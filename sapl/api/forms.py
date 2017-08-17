@@ -1,9 +1,9 @@
-from django.db.models import Q, F
+from django.db.models import F, Q
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django_filters.filters import MethodFilter, ModelChoiceFilter, DateFilter
+from django_filters.filters import DateFilter, MethodFilter, ModelChoiceFilter
 from rest_framework import serializers
 from rest_framework.compat import django_filters
 from rest_framework.filters import FilterSet

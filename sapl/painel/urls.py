@@ -2,8 +2,8 @@ from django.conf.urls import url
 
 from .apps import AppConfig
 from .views import (cronometro_painel, get_dados_painel, painel_mensagem_view,
-                    painel_parlamentar_view, painel_view,
-                    painel_votacao_view, votante_view)
+                    painel_parlamentar_view, painel_view, painel_votacao_view,
+                    votante_view)
 
 app_name = AppConfig.name
 

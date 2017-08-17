@@ -19,7 +19,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
                                 TipoExpediente)
 from sapl.settings import STATIC_ROOT
-from sapl.utils import filiacao_data, UF
+from sapl.utils import UF, filiacao_data
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,

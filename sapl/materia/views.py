@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date, datetime
 from random import choice
 from string import ascii_letters, digits
 
@@ -9,8 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import (ObjectDoesNotExist,
-                                    MultipleObjectsReturned)
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -23,6 +22,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -33,16 +33,16 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
                             Crud, CrudAux, MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
-from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
-                                LegislacaoCitadaForm, AutoriaForm, ProposicaoForm,
-                                TipoProposicaoForm, TramitacaoForm,
-                                TramitacaoUpdateForm, AutoriaMultiCreateForm)
+from sapl.materia.forms import (AnexadaForm, AutoriaForm,
+                                AutoriaMultiCreateForm,
+                                ConfirmarProposicaoForm, LegislacaoCitadaForm,
+                                ProposicaoForm, TipoProposicaoForm,
+                                TramitacaoForm, TramitacaoUpdateForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
-import sapl
 
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
@@ -61,7 +61,6 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
-
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 

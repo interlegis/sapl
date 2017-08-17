@@ -1,6 +1,6 @@
-from .exceptions import UnknownUrlNameError
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.views.generic import RedirectView
+
 from sapl.base.apps import AppConfig as atasConfig
 from sapl.base.apps import AppConfig as presenca_sessaoConfig
 from sapl.base.apps import AppConfig as relatoriosConfig
@@ -9,6 +9,8 @@ from sapl.materia.apps import AppConfig as materiaConfig
 from sapl.norma.apps import AppConfig as normaConfig
 from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
 from sapl.sessao.apps import AppConfig as sessaoConfig
+
+from .exceptions import UnknownUrlNameError
 
 EMPTY_STRING = ''
 

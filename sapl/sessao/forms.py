@@ -10,8 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import MateriaLegislativaFilterSet
-from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
-                                 StatusTramitacao)
+from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
+                                 TipoMateriaLegislativa)
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,

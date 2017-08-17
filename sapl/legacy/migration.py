@@ -12,7 +12,7 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
-from django.db.models import CharField, Max, ProtectedError, TextField, Count
+from django.db.models import CharField, Count, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
 from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
@@ -26,11 +26,11 @@ from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.norma.models import (AssuntoNorma, NormaJuridica,
-                               TipoVinculoNormaJuridica, NormaRelacionada)
-from sapl.parlamentares.models import (Legislatura,Mandato, Parlamentar,
+from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+                               TipoVinculoNormaJuridica)
+from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
                                        TipoAfastamento)
-from sapl.protocoloadm.models import (DocumentoAdministrativo,Protocolo,
+from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
 from sapl.settings import PROJECT_DIR
