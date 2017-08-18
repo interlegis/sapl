@@ -33,7 +33,7 @@ INSERT INTO compilacao_tipodispositivo (id, nome, class_css, rotulo_prefixo_html
 SELECT pg_catalog.setval('compilacao_tipodispositivo_id_seq', 126, true);
 
 
-delete from compilacao_tipodispositivorelationship;
+#delete from compilacao_tipodispositivorelationship;
 SELECT pg_catalog.setval('compilacao_tipodispositivorelationship_id_seq', 1, false);
 INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (112, 1, false, 2, -1, true);
 INSERT INTO compilacao_tipodispositivorelationship (filho_permitido_id, pai_id, filho_de_insercao_automatica, perfil_id, quantidade_permitida, permitir_variacao) VALUES (114, 1, false, 2, -1, true);
