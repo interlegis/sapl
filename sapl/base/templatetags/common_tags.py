@@ -4,6 +4,7 @@ from django import template
 from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
+from sapl.parlamentares import Filiacao
 from sapl.utils import filiacao_data
 
 register = template.Library()

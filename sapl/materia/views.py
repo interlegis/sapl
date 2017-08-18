@@ -4,14 +4,11 @@ from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
-from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -1735,9 +1732,8 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
 
         if ('tramitacao__status' in qr and
                 'tramitacao__unidade_tramitacao_destino' in qr and
-            qr['tramitacao__status'] and
-            qr['tramitacao__unidade_tramitacao_destino']
-            ):
+                qr['tramitacao__status'] and
+                qr['tramitacao__unidade_tramitacao_destino']):
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],
                 qr['tramitacao__unidade_tramitacao_destino'])

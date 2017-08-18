@@ -493,9 +493,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
-    autoria__primeiro_autor = django_filters.BooleanFilter(required=False,
-                                                           label='Primeiro Autor',
-                                                           widget=forms.HiddenInput())
+    autoria__primeiro_autor = django_filters.BooleanFilter(
+        required=False,
+        label='Primeiro Autor',
+        widget=forms.HiddenInput())
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 

@@ -23,7 +23,6 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
                                 proposicao_texto, recuperar_materia)
 
-from . import receivers
 from .apps import AppConfig
 
 app_name = AppConfig.name

@@ -14,15 +14,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
 from django.db.models import CharField, Count, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
-from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
 from sapl.base.models import Argumento, Autor, Constraint, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
-from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
-                                 MateriaLegislativa, Proposicao,
+from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)

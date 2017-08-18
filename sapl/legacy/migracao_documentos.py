@@ -3,7 +3,6 @@ import os
 import re
 
 import magic
-from django.db.models.signals import post_delete, post_save
 
 from sapl.base.models import CasaLegislativa
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
@@ -86,7 +85,8 @@ DOCS = {
     DocumentoAcessorioAdministrativo: [(
         'arquivo',
         'administrativo/{}',
-        'private/documentoacessorioadministrativo/{0}/{0}_acessorio_administrativo{1}')
+        'private/documentoacessorioadministrativo/{0}/'
+        '{0}_acessorio_administrativo{1}')
     ],
 }
 

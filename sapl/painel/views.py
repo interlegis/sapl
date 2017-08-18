@@ -1,8 +1,8 @@
-from datetime import date
+
 
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -12,7 +12,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
-from sapl.painel.models import Painel
 from sapl.parlamentares.models import Filiacao, Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,

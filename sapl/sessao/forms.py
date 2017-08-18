@@ -79,7 +79,7 @@ class SessaoPlenariaForm(ModelForm):
 
         if qtd_sessoes > 0:
             if instance.pk:  # update
-                if not instance.pk in sessoes or qtd_sessoes > 1:
+                if instance.pk not in sessoes or qtd_sessoes > 1:
                     raise error
             else:  # create
                 raise error

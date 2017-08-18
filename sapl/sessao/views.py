@@ -173,7 +173,8 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             self.initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = OrdemDia.objects.filter(
-                sessao_plenaria=self.kwargs['pk']).aggregate(Max('numero_ordem'))['numero_ordem__max']
+                sessao_plenaria=(self.kwargs['pk']).
+                aggregate(Max('numero_ordem'))['numero_ordem__max'])
             self.initial['numero_ordem'] = (
                 max_numero_ordem if max_numero_ordem else 0) + 1
             return self.initial
@@ -424,7 +425,8 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             self.initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = ExpedienteMateria.objects.filter(
-                sessao_plenaria=self.kwargs['pk']).aggregate(Max('numero_ordem'))['numero_ordem__max']
+                sessao_plenaria=(self.kwargs['pk']).
+                aggregate(Max('numero_ordem'))['numero_ordem__max'])
             self.initial['numero_ordem'] = (
                 max_numero_ordem if max_numero_ordem else 0) + 1
             return self.initial
@@ -1257,7 +1259,8 @@ class ResumoView(DetailView):
         # =====================================================================
         # Oradores nas Explicações Pessoais
         oradores_explicacoes = []
-        for orador in Orador.objects.filter(sessao_plenaria_id=self.object.id).order_by('numero_ordem'):
+        for orador in Orador.objects.filter(
+                sessao_plenaria_id=self.object.id).order_by('numero_ordem'):
             for parlamentar in Parlamentar.objects.filter(
                     id=orador.parlamentar.id):
                 partido_sigla = Filiacao.objects.filter(
@@ -2171,7 +2174,8 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         expediente_id = kwargs['oid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            for r in RegistroVotacao.objects.filter(expediente_id=expediente_id):
+            for r in RegistroVotacao.objects.filter(
+                    expediente_id=expediente_id):
                 r.delete()
 
             expediente = ExpedienteMateria.objects.get(

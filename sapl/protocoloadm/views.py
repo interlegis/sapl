@@ -7,11 +7,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
-from django.http import (Http404, HttpResponse, HttpResponseRedirect,
-                         JsonResponse)
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, DetailView, FormView, ListView
+from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
@@ -20,7 +19,7 @@ from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.parlamentares.models import Parlamentar
+from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import create_barcode, get_client_ip
 

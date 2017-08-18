@@ -1,4 +1,4 @@
-from django.db.models import F, Q
+from django.db.models import Q
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
 from django.utils import timezone

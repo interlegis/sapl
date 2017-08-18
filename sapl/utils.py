@@ -4,8 +4,6 @@ import os
 import re
 from datetime import date
 from functools import wraps
-from subprocess import PIPE, call
-from threading import Thread
 from unicodedata import normalize as unicodedata_normalize
 
 import django_filters
@@ -27,7 +25,7 @@ from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-from sapl.settings import BASE_DIR, PROJECT_DIR
+from sapl.settings import BASE_DIR
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -541,10 +539,12 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
     if isinstance(instance, (DocumentoAdministrativo, Proposicao)):
         prefix = 'private'
 
-    str_path = './sapl/%(prefix)s/%(model_name)s/%(subpath)s/%(pk)s/%(filename)s'
+    str_path = ('./sapl/%(prefix)s/%(model_name)s/'
+                '%(subpath)s/%(pk)s/%(filename)s')
 
     if pk_first:
-        str_path = './sapl/%(prefix)s/%(model_name)s/%(pk)s/%(subpath)s/%(filename)s'
+        str_path = ('./sapl/%(prefix)s/%(model_name)s/'
+                    '%(pk)s/%(subpath)s/%(filename)s')
 
     path = str_path %\
         {

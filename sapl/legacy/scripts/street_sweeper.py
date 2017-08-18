@@ -12,7 +12,8 @@ DB = ''
 
 SELECT_EXCLUIDOS = "SELECT %s FROM %s WHERE ind_excluido = 1 ORDER BY %s"
 
-REGISTROS_INCONSISTENTES = "DELETE FROM %s WHERE %s in (%s) AND ind_excluido = 0 "
+REGISTROS_INCONSISTENTES = "DELETE FROM %s WHERE %s "
+"in (%s) AND ind_excluido = 0 "
 
 EXCLUI_REGISTRO = "DELETE FROM %s WHERE ind_excluido=1"
 

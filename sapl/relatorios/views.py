@@ -15,9 +15,8 @@ from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       TramitacaoAdministrativo)
 from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 IntegranteMesa, Orador, OradorExpediente,
-                                OrdemDia, PresencaOrdemDia, RegistroVotacao,
-                                SessaoPlenaria, SessaoPlenariaPresenca,
-                                TipoExpediente)
+                                OrdemDia, PresencaOrdemDia, SessaoPlenaria,
+                                SessaoPlenariaPresenca)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import UF, filiacao_data
 
