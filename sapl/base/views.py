@@ -410,7 +410,7 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        if 'ano' in self.request.GET:
+        if 'ano' in self.request.GET and self.request.GET['ano']:
             ano = int(self.request.GET['ano'])
             context['relatorio'] = self.get_materias_autor_ano(ano)
         else:
