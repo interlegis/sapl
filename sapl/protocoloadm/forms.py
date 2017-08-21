@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout, Submit
@@ -8,18 +9,17 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
-from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
+from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
+                                 UnidadeTramitacao)
 from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
-
 
 TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('', 'Ambos')]
 TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado')]

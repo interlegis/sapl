@@ -8,4 +8,5 @@
 # Uma forma simples de fazer isso é adicionando antes suas mudanças à
 # "staging area" do git, com `git add .` e após usar o script `git diff`.
 
-isort --recursive --skip='migrations' --skip='templates' --skip='ipython_log.py' .
+isort --recursive --skip='migrations' --skip='templates' --skip='ipython_log.py*' .
+autopep8 --in-place --recursive . --exclude='migrations,ipython_log.py*'

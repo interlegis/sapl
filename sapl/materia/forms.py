@@ -1,7 +1,8 @@
 
-from datetime import date, datetime
 import os
+from datetime import date, datetime
 
+import django_filters
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
@@ -13,16 +14,16 @@ from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.db.models import Max
-from django.forms import ModelForm, ModelChoiceField, widgets
+from django.forms import ModelChoiceField, ModelForm, widgets
 from django.forms.forms import Form
 from django.forms.models import ModelMultipleChoiceField
-from django.forms.widgets import Select, CheckboxSelectMultiple, HiddenInput
+from django.forms.widgets import CheckboxSelectMultiple, HiddenInput, Select
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
+import sapl
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -41,7 +42,6 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model,
                         qs_override_django_filter)
-import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -493,9 +493,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
-    autoria__primeiro_autor = django_filters.BooleanFilter(required=False,
-                                                           label='Primeiro Autor',
-                                                           widget=forms.HiddenInput())
+    autoria__primeiro_autor = django_filters.BooleanFilter(
+        required=False,
+        label='Primeiro Autor',
+        widget=forms.HiddenInput())
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 

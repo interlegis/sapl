@@ -2,9 +2,9 @@ from django.conf import settings
 from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
-from sapl.api.views import (AutorListView, MateriaLegislativaViewSet,
-                            ModelChoiceView, SessaoPlenariaViewSet,
-                            AutoresPossiveisListView, AutoresProvaveisListView)
+from sapl.api.views import (AutoresPossiveisListView, AutoresProvaveisListView,
+                            AutorListView, MateriaLegislativaViewSet,
+                            ModelChoiceView, SessaoPlenariaViewSet)
 
 from .apps import AppConfig
 

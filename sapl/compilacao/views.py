@@ -143,7 +143,6 @@ class IntegracaoTaView(TemplateView):
                 implemente, ou passe `None` para as chaves que são fixas.
             """)
 
-        map_fields = self.map_fields
         ta_values = getattr(self, 'ta_values', {})
 
         item = get_object_or_404(self.model, pk=kwargs['pk'])

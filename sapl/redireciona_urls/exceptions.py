@@ -8,6 +8,6 @@ class UnknownUrlNameError(Exception):
 
     def __str__(self):
         return repr(
-                _("Funcionalidade")
-                + " '%s' " % (self.url_name)
-                + _("pode ter sido removida ou movida para outra url."))
+            _("Funcionalidade")
+            + " '%s' " % (self.url_name)
+            + _("pode ter sido removida ou movida para outra url."))

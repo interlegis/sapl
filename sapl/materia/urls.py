@@ -4,8 +4,9 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView, AnexadaCrud,
                                 AssuntoMateriaCrud, AutoriaCrud,
-                                ConfirmarProposicao, CriarProtocoloMateriaView,
-                                DespachoInicialCrud, DocumentoAcessorioCrud,
+                                AutoriaMultiCreateView, ConfirmarProposicao,
+                                CriarProtocoloMateriaView, DespachoInicialCrud,
+                                DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
                                 LegislacaoCitadaCrud, MateriaAssuntoCrud,
                                 MateriaLegislativaCrud,
@@ -20,12 +21,9 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoFimRelatoriaCrud, TipoMateriaCrud,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
-                                proposicao_texto, recuperar_materia,
-                                AutoriaMultiCreateView)
+                                proposicao_texto, recuperar_materia)
 
-from . import receivers
 from .apps import AppConfig
-
 
 app_name = AppConfig.name
 

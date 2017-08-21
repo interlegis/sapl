@@ -4,6 +4,7 @@ from .models import SessaoPlenaria
 
 
 class SessaoPlenariaSerializer(serializers.Serializer):
+
     class Meta:
         model = SessaoPlenaria
         fields = ('tipo',

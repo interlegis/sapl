@@ -64,14 +64,18 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
     txtSiglaOrgao = serializers.SerializerMethodField('get_sigla_orgao')
     txtApelido = serializers.SerializerMethodField('get_name')
     txtNomeOrgao = serializers.SerializerMethodField('get_nome_orgao')
-    codEstadoReuniao = serializers.SerializerMethodField('get_estadoSessaoPlenaria')
+    codEstadoReuniao = serializers.SerializerMethodField(
+        'get_estadoSessaoPlenaria')
     txtTipoReuniao = serializers.SerializerMethodField('get_tipo_sessao')
     txtObjeto = serializers.SerializerMethodField('get_assunto_sessao')
     txtLocal = serializers.SerializerMethodField('get_endereco_orgao')
-    bolReuniaoConjunta = serializers.SerializerMethodField('get_reuniao_conjunta')
-    bolHabilitarEventoInterativo = serializers.SerializerMethodField('get_iterativo')
+    bolReuniaoConjunta = serializers.SerializerMethodField(
+        'get_reuniao_conjunta')
+    bolHabilitarEventoInterativo = serializers.SerializerMethodField(
+        'get_iterativo')
     idYoutube = serializers.SerializerMethodField('get_url')
-    codEstadoTransmissaoYoutube = serializers.SerializerMethodField('get_estadoTransmissaoYoutube')
+    codEstadoTransmissaoYoutube = serializers.SerializerMethodField(
+        'get_estadoTransmissaoYoutube')
     datReuniaoString = serializers.SerializerMethodField('get_date')
 
     # Constantes SessaoPlenaria (de 1-9) (apenas 3 serão usados)
@@ -80,9 +84,9 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
     SESSAO_CONVOCADA = 2
 
     # Constantes EstadoTranmissaoYoutube (de 0 a 2)
-    TRANSMISSAO_ENCERRADA =  2
-    TRANSMISSAO_EM_ANDAMENTO =  1
-    SEM_TRANSMISSAO =  0
+    TRANSMISSAO_ENCERRADA = 2
+    TRANSMISSAO_EM_ANDAMENTO = 1
+    SEM_TRANSMISSAO = 0
 
     class Meta:
         model = SessaoPlenaria
@@ -102,11 +106,10 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
             'idYoutube',
             'codEstadoTransmissaoYoutube',
             'datReuniaoString'
-            )
+        )
 
     def __init__(self, *args, **kwargs):
         super(SessaoPlenariaSerializer, self).__init__(args, kwargs)
-        casa = CasaLegislativa.objects.first()
 
     def get_pk_sessao(self, obj):
         return obj.pk
@@ -136,7 +139,7 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
             obj.data_inicio.strftime("%d/%m/%Y"),
             obj.hora_inicio,
             ":00"
-            )
+        )
 
     def get_estadoTransmissaoYoutube(self, obj):
         if obj.url_video:
@@ -146,6 +149,7 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
                 return self.TRANSMISSAO_EM_ANDAMENTO
         else:
             return self.SEM_TRANSMISSAO
+
     def get_assunto_sessao(self, obj):
         pauta_sessao = ''
         ordem_dia = OrdemDia.objects.filter(sessao_plenaria=obj.pk)

@@ -206,6 +206,7 @@ def do_envia_email_tramitacao(base_url, materia, status, unidade_destino):
         # a conexão será fechada
         except Exception:
             connection.close()
-            raise Exception('Erro ao enviar e-mail de acompanhamento de matéria.')
+            raise Exception(
+                'Erro ao enviar e-mail de acompanhamento de matéria.')
 
     connection.close()

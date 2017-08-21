@@ -286,7 +286,6 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
     return result
 
 
-
 @register.filter
 def list(obj):
     return [obj, ]

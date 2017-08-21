@@ -10,8 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import MateriaLegislativaFilterSet
-from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
-                                 StatusTramitacao)
+from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
+                                 TipoMateriaLegislativa)
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
@@ -52,6 +52,7 @@ ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
                     ('oradores_exped', 'Oradores do Expediente'),
                     ('oradores_expli', 'Oradores das Explicações Pessoais')]
 
+
 class SessaoPlenariaForm(ModelForm):
 
     class Meta:
@@ -70,20 +71,21 @@ class SessaoPlenariaForm(ModelForm):
         sessoes = SessaoPlenaria.objects.filter(numero=num,
                                                 sessao_legislativa=sl,
                                                 legislatura=leg).\
-                                                values_list('id', flat=True)
+            values_list('id', flat=True)
 
         qtd_sessoes = len(sessoes)
 
         error = ValidationError('Número de Sessão Plenária Existente')
 
         if qtd_sessoes > 0:
-            if instance.pk: # update
-                if not instance.pk in sessoes or qtd_sessoes > 1:
+            if instance.pk:  # update
+                if instance.pk not in sessoes or qtd_sessoes > 1:
                     raise error
-            else: # create
+            else:  # create
                 raise error
 
         return self.cleaned_data
+
 
 class BancadaForm(ModelForm):
 
