@@ -62,7 +62,7 @@
     {% for parlamentar, check in view.get_presencas %}
       {% if check %}
         <div class="row">
-          <div class="col-md-6"><label for="parlamentar"> - {{ parlamentar.nome_parlamentar }} / {{ parlamentar.filiacao_atual }}</label></div>
+          <div class="col-md-6"><label for="parlamentar"> - {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}</label></div>
         </div>
       {% endif %}
     {% endfor %}
