@@ -1,7 +1,7 @@
-import logging
-import sys
 from collections import OrderedDict
 from datetime import timedelta
+import logging
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -19,8 +19,8 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -49,6 +49,7 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    get_integrations_view_names)
 from sapl.crud.base import Crud, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -2302,7 +2303,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             dispositivos_do_bloco = \
                 bloco_alteracao.dispositivos_alterados_set.order_by(
                     'ordem_bloco_atualizador')
-            if dispositivos_do_bloco.exists:
+            if dispositivos_do_bloco.exists():
                 ndp.ordem_bloco_atualizador = dispositivos_do_bloco.last(
                 ).ordem_bloco_atualizador + Dispositivo.INTERVALO_ORDEM
 
