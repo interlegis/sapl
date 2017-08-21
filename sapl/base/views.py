@@ -19,7 +19,8 @@ from haystack.views import SearchView
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
-from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.materia.models import (Autoria, MateriaLegislativa,
+                                 TipoMateriaLegislativa)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.utils import parlamentares_ativos, sapl_logger
@@ -344,6 +345,47 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
     filterset_class = RelatorioMateriasPorAnoAutorTipoFilterSet
     template_name = 'base/RelatorioMateriasPorAnoAutorTipo_filter.html'
 
+    def get_materias_autor_ano(self, ano):
+
+        autorias = Autoria.objects.filter(materia__ano=ano).values(
+            'autor',
+            'materia__tipo__sigla',
+            'materia__tipo__descricao').annotate(
+                total=Count('materia__tipo')).order_by(
+                    'autor',
+                    'materia__tipo')
+
+        autores_ids = set([i['autor'] for i in autorias])
+
+        autores = dict((a.id, a) for a in Autor.objects.filter(
+            id__in=autores_ids))
+
+        relatorio = []
+        visitados = set()
+        curr = None
+
+        for a in autorias:
+            # se mudou autor, salva atual, caso existente, e reinicia `curr`
+            if a['autor'] not in visitados:
+               if curr:
+                  relatorio.append(curr)
+
+               curr = {}
+               curr['autor'] = autores[a['autor']]
+               curr['materia'] = []
+               curr['total'] = 0
+
+               visitados.add(a['autor'])
+
+            # atualiza valores
+            curr['materia'].append((a['materia__tipo__descricao'], a['total']))
+            curr['total'] += a['total']
+        # adiciona o ultimo
+        relatorio.append(curr)
+
+        return relatorio
+
+
     def get_filterset_kwargs(self, filterset_class):
         super(RelatorioMateriasPorAnoAutorTipoView,
               self).get_filterset_kwargs(filterset_class)
@@ -367,6 +409,12 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        if 'ano' in self.request.GET and self.request.GET['ano']:
+            ano = int(self.request.GET['ano'])
+            context['relatorio'] = self.get_materias_autor_ano(ano)
+        else:
+            context['relatorio'] = []
 
         return context
 
