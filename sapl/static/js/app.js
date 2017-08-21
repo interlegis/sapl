@@ -8,8 +8,6 @@ function initTinymce(elements, readonly=false) {
         menubar: "edit format table tools",
         toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent",
         tools: "inserttable",
-        border_css: "/static/styles/style_tinymce.css",
-        content_css: "/static/styles/style_tinymce.css",
     }
 
     if (readonly) {
