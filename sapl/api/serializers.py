@@ -110,7 +110,6 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(SessaoPlenariaSerializer, self).__init__(args, kwargs)
-        casa = CasaLegislativa.objects.first()
 
     def get_pk_sessao(self, obj):
         return obj.pk

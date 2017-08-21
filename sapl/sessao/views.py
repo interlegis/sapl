@@ -728,8 +728,6 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
         self.object = self.get_object()
         form = self.get_form()
 
-        pk = kwargs['pk']
-
         if form.is_valid():
             # Pegar os presentes salvos no banco
             presentes_banco = PresencaOrdemDia.objects.filter(

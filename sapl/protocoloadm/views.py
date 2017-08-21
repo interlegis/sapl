@@ -10,7 +10,7 @@ from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, ListView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 
@@ -29,7 +29,7 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
                     TramitacaoAdmEditForm, TramitacaoAdmForm)
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
-                     Protocolo, StatusTramitacaoAdministrativo,
+                     StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
@@ -470,7 +470,8 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         autor_parlamentar = Autor.objects.filter(
             content_type=model_parlamentar, object_id__in=lista_parlamentares)
 
-        lista_comissoes = Comissao.objects.filter(Q(data_extincao__isnull=True) | Q(
+        lista_comissoes = Comissao.objects.filter(Q(
+            data_extincao__isnull=True) | Q(
             data_extincao__gt=date.today())).values_list('id', flat=True)
         model_comissao = ContentType.objects.get_for_model(Comissao)
         autor_comissoes = Autor.objects.filter(

@@ -173,8 +173,6 @@ class AutoresProvaveisListView(ListAPIView):
     serializer_class = ChoiceSerializer
 
     def get_queryset(self):
-        queryset = ListAPIView.get_queryset(self)
-
         params = {'content_type__isnull': False}
 
         tipo = ''
