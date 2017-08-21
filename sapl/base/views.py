@@ -365,16 +365,22 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
         curr = None
 
         for a in autorias:
+            # se mudou autor, salva atual, caso existente, e reinicia `curr`
             if a['autor'] not in visitados:
                if curr:
                   relatorio.append(curr)
+
                curr = {}
+               curr['autor'] = autores[a['autor']]
                curr['materia'] = []
                curr['total'] = 0
+
                visitados.add(a['autor'])
-            curr['autor'] = autores[a['autor']]
+
+            # atualiza valores
             curr['materia'].append((a['materia__tipo__descricao'], a['total']))
             curr['total'] += a['total']
+        # adiciona o ultimo
         relatorio.append(curr)
 
         return relatorio
@@ -404,9 +410,11 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        ano = int(self.request.GET['ano'])
-
-        context['relatorio'] = self.get_materias_autor_ano(ano)
+        if 'ano' in self.request.GET:
+            ano = int(self.request.GET['ano'])
+            context['relatorio'] = self.get_materias_autor_ano(ano)
+        else:
+            context['relatorio'] = []
 
         return context
 
