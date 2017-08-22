@@ -123,7 +123,7 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
 
 
 def get_fk_related(field, value, label=None):
-    if value is None:
+    if value is None and field.null:
         return value
     else:
         try:
