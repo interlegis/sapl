@@ -1,0 +1,33 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+
+{% block actions %}
+{% endblock %}
+
+
+{% block detail_content %}
+
+<h1 class="page-header">Impressos</h1>
+
+<h2 class="legend">Etiqueta</h2>
+    <ul>
+        <li><a href="{% url 'sapl.materia:impressos_etiqueta' %}">Pesquisar</a></li>
+    </ul>
+
+{#<h2 class="legend">Ficha</h2>#}
+{#    <ul>#}
+{#        <li><a href="{% url 'sapl.materia:impressos_ficha' %}">Pesquisar</a></li>#}
+{#    </ul>#}
+{##}
+{#<h2 class="legend">Guia de Remessa</h2>#}
+{#    <ul>#}
+{#        <li><a href="{% url 'sapl.materia:impressos_guiaremessa' %}">Pesquisar</a></li>#}
+{#    </ul>#}
+{##}
+{#<h2 class="legend">Espelho</h2>#}
+{#    <ul>#}
+{#        <li><a href="{% url 'sapl.materia:impressos_espelho' %}">Pesquisar</a></li>#}
+{#    </ul>#}
+
+{% endblock %}
