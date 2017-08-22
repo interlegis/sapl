@@ -95,11 +95,7 @@ $(document).ready(function(){
 
     $('#div_id_username input').prop('readonly', '');
 
-    if (event.target.value == 'C') {
-      $('.new_user_fields, #div_id_username').removeClass('hidden');
-      $('input[name=username]').val('');
-    }
-    else if (event.target.value == 'N') {
+    if (event.target.value == 'N') {
       $('.new_user_fields').addClass('hidden');
       if ($('input[name=username]').attr('data') != '')
         $('.radiogroup-status').removeClass('hidden');

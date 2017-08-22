@@ -66,8 +66,7 @@ class VotanteView(MasterDetailCrud):
 
         def delete(self, *args, **kwargs):
             obj = self.get_object()
-            if obj.user:
-                obj.user.delete()
+            obj.delete()
             return HttpResponseRedirect(
                 reverse('sapl.parlamentares:votante_list',
                         kwargs={'pk': obj.parlamentar.pk}))

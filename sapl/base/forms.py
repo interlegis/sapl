@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
                                        SetPasswordForm)
 from django.contrib.auth.models import Group, User
-from django.contrib.auth.password_validation import validate_password
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -29,15 +28,8 @@ from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
 
 from .models import AppConfig, CasaLegislativa
 
-ACTION_CREATE_USERS_AUTOR_CHOICE = [
-    ('C', _('Criar novo Usuário')),
-    ('A', _('Associar um usuário existente')),
-    ('N', _('Autor sem Usuário de Acesso ao Sapl')),
-]
-
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
-    ('C', _('Criar novo Usuário')),
     ('A', _('Associar um usuário existente')),
     ('N', _('Autor sem Usuário de Acesso ao Sapl')),
 ]
@@ -256,42 +248,7 @@ class AutorForm(ModelForm):
             if self.instance.user:
                 qs_user = qs_user.exclude(pk=self.instance.user.pk)
 
-        if cd['action_user'] == 'C':
-            param_username = {get_user_model().USERNAME_FIELD: cd['username']}
-            if User.objects.filter(**param_username).exists():
-                raise ValidationError(
-                    _('Já existe usuário com o username "%s". '
-                      'Para utilizar esse username você deve selecionar '
-                      '"Associar um usuário existente".') % cd['username'])
-
-            if ('senha' not in cd or 'senha_confirma' not in cd or
-                    not cd['senha'] or not cd['senha_confirma']):
-                raise ValidationError(_(
-                    'A senha e sua confirmação devem ser informadas.'))
-            msg = _('As senhas não conferem.')
-            self.valida_igualdade(cd['senha'], cd['senha_confirma'], msg)
-
-            try:
-                validate_password(self.cleaned_data['senha'])
-            except ValidationError as error:
-                raise ValidationError(error)
-
-            if ('email' not in cd or 'confirma_email' not in cd or
-                    not cd['email'] or not cd['confirma_email']):
-                raise ValidationError(_(
-                    'O email e sua confirmação devem ser informados.'))
-            msg = _('Os emails não conferem.')
-            self.valida_igualdade(cd['email'], cd['confirma_email'], msg)
-
-            if not settings.DEBUG:
-                if qs_user.filter(email=cd['email']).exists():
-                    raise ValidationError(_('Este email já foi cadastrado.'))
-
-                if qs_autor.filter(user__email=cd['email']).exists():
-                    raise ValidationError(
-                        _('Já existe um Autor com este email.'))
-
-        elif cd['action_user'] == 'A':
+        if cd['action_user'] == 'A':
             param_username = {get_user_model().USERNAME_FIELD: cd['username']}
             if not User.objects.filter(**param_username).exists():
                 raise ValidationError(
@@ -362,22 +319,7 @@ class AutorForm(ModelForm):
             if not u.is_active:
                 u.is_active = settings.DEBUG
                 u.save()
-        elif self.cleaned_data['action_user'] == 'C':
 
-            param_username = {
-                get_user_model().USERNAME_FIELD: self.cleaned_data['username']}
-
-            if get_user_model().USERNAME_FIELD != 'email':
-                param_username['email'] = self.cleaned_data['email']
-
-            u = get_user_model().objects.create(**param_username)
-
-            u.set_password(self.cleaned_data['senha'])
-            # Define usuário como ativo em ambiente de desenvolvimento
-            # pode logar sem a necessidade de passar pela validação de email
-            # troque par False para testar o envio de email em desenvolvimento
-            u.is_active = settings.DEBUG
-            u.save()
         autor.user = u
 
         if not autor.tipo.content_type:
