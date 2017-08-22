@@ -8,6 +8,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 CriarProtocoloMateriaView, DespachoInicialCrud,
                                 DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
+                                ImpressosView, EtiquetaPesquisaView,
                                 LegislacaoCitadaCrud, MateriaAssuntoCrud,
                                 MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
@@ -26,6 +27,15 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
 from .apps import AppConfig
 
 app_name = AppConfig.name
+
+urlpatterns_impressos = [
+    url(r'^materia/impressos/$',
+        ImpressosView.as_view(),
+        name='impressos'),
+    url(r'^materia/impressos/etiqueta-pesquisa/$',
+        EtiquetaPesquisaView.as_view(),
+        name='impressos_etiqueta'),
+]
 
 urlpatterns_materia = [
     url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
@@ -118,5 +128,5 @@ urlpatterns_sistema = [
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
 ]
 
-urlpatterns = urlpatterns_materia + \
+urlpatterns = urlpatterns_impressos + urlpatterns_materia + \
     urlpatterns_proposicao + urlpatterns_sistema
