@@ -199,6 +199,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             return 'OrdemDiaDetail'
 
     class ListView(MasterDetailCrud.ListView):
+        paginated_by = None
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
@@ -319,6 +320,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                             'materia__ementa', 'resultado']
 
     class ListView(MasterDetailCrud.ListView):
+        paginated_by = None
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
