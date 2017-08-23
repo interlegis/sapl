@@ -63,7 +63,7 @@ class SessaoPlenariaForm(ModelForm):
         super(SessaoPlenariaForm, self).clean()
 
         if not self.is_valid():
-            return self.cleaned_data        
+            return self.cleaned_data
 
         instance = self.instance
 
@@ -72,18 +72,18 @@ class SessaoPlenariaForm(ModelForm):
         leg = self.cleaned_data['legislatura']
         tipo = self.cleaned_data['tipo']
 
+        error = ValidationError(
+            "Número de Sessão Plenária já existente "
+            "para a Legislatura, Sessão Legislativa e Tipo informados. "
+            "Favor escolher um número distinto.")
+
         sessoes = SessaoPlenaria.objects.filter(numero=num,
                                                 sessao_legislativa=sl,
                                                 legislatura=leg,
                                                 tipo=tipo).\
                                                 values_list('id', flat=True)
 
-        qtd_sessoes = len(sessoes)
-
-        error = ValidationError(
-            "Número de Sessão Plenária já existente "
-            "para a Legislatura, Sessão Legislativa e Tipo informados. "
-            "Favor escolher um número distinto.")
+        qtd_sessoes = len(sessoes)            
 
         if qtd_sessoes > 0:
             if instance.pk:  # update
