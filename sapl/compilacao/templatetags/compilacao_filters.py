@@ -93,8 +93,12 @@ def nota_automatica(dispositivo, ta_pub_list):
             return _('Inclusão feita pelo %s - %s.') % (
                 d, ta_publicado)
         else:
-            return _('Alteração feita pelo %s - %s.') % (
-                d, ta_publicado)
+            if dispositivo.tipo_dispositivo.dispositivo_de_articulacao:
+                return _('Alteração de rótulo feita pelo %s - %s.') % (
+                    d, ta_publicado)
+            else:
+                return _('Alteração feita pelo %s - %s.') % (
+                    d, ta_publicado)
 
     return ''
 

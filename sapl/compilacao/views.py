@@ -2412,6 +2412,15 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                   'Alterador!'), time=10000)
             return data
 
+        if dispositivo_a_alterar.tipo_dispositivo.dispositivo_de_articulacao\
+                and not revogacao:
+            self.set_message(
+                data, 'warning',
+                _('Registrar alteração de um dispositivo de articulação '
+                      'só é relevante para o caso de alterações de rótulo. '
+                      'Se não é este o caso, a alteração deve ser específica '
+                      'para o dispositivo que se quer alterar.'), modal=True)
+
         ndp = Dispositivo.new_instance_based_on(
             dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
         ndp.auto_inserido = dispositivo_a_alterar.auto_inserido
@@ -2481,9 +2490,10 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             bloco_alteracao.ordenar_bloco_alteracao()
 
             if not revogacao:
-                self.set_message(
-                    data, 'success',
-                    _('Dispositivo de Alteração adicionado com sucesso.'))
+                if 'message' not in data:
+                    self.set_message(
+                        data, 'success',
+                        _('Dispositivo de Alteração adicionado com sucesso.'))
             else:
                 self.set_message(
                     data, 'success',

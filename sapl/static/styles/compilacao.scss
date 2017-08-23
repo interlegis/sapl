@@ -165,6 +165,7 @@ a:link:after, a:visited:after {
 
 .cp {
   .desativado {
+    
     .dtxt, .dtxt *, .dpt-link, .dpt-link * {
       text-decoration: line-through;
       color: #999 !important;
@@ -390,7 +391,7 @@ a:link:after, a:visited:after {
     }
 
     .dptt {
-
+      clear: left;
       & > a {
         color: #444444;
         &.nota-alteracao {
