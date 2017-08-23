@@ -62,6 +62,9 @@ class SessaoPlenariaForm(ModelForm):
     def clean(self):
         super(SessaoPlenariaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data        
+
         instance = self.instance
 
         num = self.cleaned_data['numero']
