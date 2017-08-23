@@ -75,7 +75,10 @@ class SessaoPlenariaForm(ModelForm):
 
         qtd_sessoes = len(sessoes)
 
-        error = ValidationError('Número de Sessão Plenária Existente')
+        error = ValidationError(
+            "Número de Sessão Plenária já existente "
+            "para a Legislatura e Sessão Legislativa informadas. "
+            "Favor escolher um número distinto.")
 
         if qtd_sessoes > 0:
             if instance.pk:  # update
