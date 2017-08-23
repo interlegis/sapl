@@ -6,6 +6,8 @@ from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
                                        TipoDependente)
 
+from sapl.parlamentares.forms import MandatoForm
+
 
 @pytest.mark.django_db(transaction=False)
 def test_cadastro_parlamentar(admin_client):
@@ -149,3 +151,33 @@ def test_form_errors_mandato(admin_client):
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['data_expedicao_diploma'] ==
             ['Este campo é obrigatório.'])
+
+def test_mandato_form_invalido():
+
+    form = MandatoForm(data = {})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+    assert errors['legislatura'] == ['Este campo é obrigatório.']
+    assert errors['parlamentar'] == ['Este campo é obrigatório.']
+    assert errors['data_expedicao_diploma'] == ['Este campo é obrigatório.']
+
+@pytest.mark.django_db(transaction=False)
+def test_mandato_form_duplicado():
+    parlamentar = mommy.make(Parlamentar, pk=1)
+    legislatura = mommy.make(Legislatura, pk=1)
+
+    Mandato.objects.create(parlamentar=parlamentar,
+                           legislatura=legislatura,
+                           data_expedicao_diploma='2017-07-25')
+
+    form = MandatoForm(data={
+                        'parlamentar': str(parlamentar.pk),
+                        'legislatura': str(legislatura.pk),
+                        'data_expedicao_diploma': '01/07/2015'
+                       })
+
+    assert not form.is_valid()
+
+    assert form.errors['__all__'] == ['Mandato nesta legislatura já existe.']

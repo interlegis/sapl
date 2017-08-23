@@ -62,17 +62,18 @@ class MandatoForm(ModelForm):
     def clean(self):
         super(MandatoForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         data = self.cleaned_data
-        try:
-            if 'legislatura' in data and 'parlamentar' in data:
-                Mandato.objects.get(
-                    parlamentar__pk=self.initial['parlamentar'].pk,
-                    legislatura__pk=data['legislatura'].pk)
-        except ObjectDoesNotExist:
-            pass
-        else:
-            raise ValidationError('Mandato nesta legislatura já existe.')
-        return data
+
+        existe_mandato = Mandato.objects.filter(
+                            parlamentar=data['parlamentar'],
+                            legislatura=data['legislatura']).exists()
+        if existe_mandato:
+            raise ValidationError(_('Mandato nesta legislatura já existe.'))
+
+        return self.cleaned_data
 
 
 class LegislaturaForm(ModelForm):
