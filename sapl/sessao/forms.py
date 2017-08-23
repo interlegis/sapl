@@ -67,17 +67,19 @@ class SessaoPlenariaForm(ModelForm):
         num = self.cleaned_data['numero']
         sl = self.cleaned_data['sessao_legislativa']
         leg = self.cleaned_data['legislatura']
+        tipo = self.cleaned_data['tipo']
 
         sessoes = SessaoPlenaria.objects.filter(numero=num,
                                                 sessao_legislativa=sl,
-                                                legislatura=leg).\
-            values_list('id', flat=True)
+                                                legislatura=leg,
+                                                tipo=tipo).\
+                                                values_list('id', flat=True)
 
         qtd_sessoes = len(sessoes)
 
         error = ValidationError(
             "Número de Sessão Plenária já existente "
-            "para a Legislatura e Sessão Legislativa informadas. "
+            "para a Legislatura, Sessão Legislativa e Tipo informados. "
             "Favor escolher um número distinto.")
 
         if qtd_sessoes > 0:
