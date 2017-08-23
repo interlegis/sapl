@@ -28,7 +28,6 @@ from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
 
 from .models import AppConfig, CasaLegislativa
 
-
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('A', _('Associar um usuário existente')),
     ('N', _('Autor sem Usuário de Acesso ao Sapl')),

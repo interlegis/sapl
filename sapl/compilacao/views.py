@@ -2371,14 +2371,14 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         if not bloco_alteracao.dispositivo_vigencia:
             """
-            essa restrição não é necessária pois os lançamentos podem ser 
-            aleatórios, desde que se no fim do lançamento, datas de vigência
+            Essa restrição não é necessária pois os lançamentos podem ser
+            aleatórios, desde que no fim do lançamento, datas de vigência
             e eficácia, bem como o dispositivo de vigência da norma seja
-            configurado. Como nos primeiros testes com usuários ficou 
+            configurado. Como nos primeiros testes com usuários ficou
             demonstrado o esquecimento/desconhecimento dessa tarefa,
             principalmente em documentos que possuem datas de vigência e/ou
-            eficácia diferentes da data de publicação. Apesar de já aparecer
-            na rotina de notificações, achei por bem colocr essa restrição.
+            eficácia diferentes da data de publicação, apesar de já aparecer
+            na rotina de notificações, achei por bem colocar essa restrição.
             """
             self.set_message(
                 data, 'danger',
@@ -3070,10 +3070,14 @@ class TextNotificacoesView(CompMixin, ListView, FormView):
         self.object = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
         return super(TextNotificacoesView, self).get(request, *args, **kwargs)
 
+    def post(self, request, *args, **kwargs):
+        self.object = TextoArticulado.objects.get(pk=self.kwargs['ta_id'])
+        return FormView.post(self, request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         if 'object' not in kwargs:
             kwargs['object'] = self.object
-        return super(TextNotificacoesView, self).get_context_data(**kwargs)
+        return ListView.get_context_data(self, **kwargs)
 
     def get_success_url(self):
         return reverse_lazy('sapl.compilacao:ta_text_notificacoes',

@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 from crispy_forms.bootstrap import (Alert, FieldWithButtons, FormActions,
-                                    InlineRadios, StrictButton)
+                                    InlineCheckboxes, InlineRadios,
+                                    StrictButton)
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row, Submit)
@@ -1249,20 +1250,20 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
 
 class TextNotificacoesForm(Form):
 
-    type_notificacoes = forms.ChoiceField(
+    type_notificacoes = forms.MultipleChoiceField(
         label=_('Níveis de Notificações'),
         choices=[('default', _('Dispositivos sem Notificações!')),
                  ('success', _('Informações!')),
                  ('info', _('Boas Práticas!')),
                  ('warning', _('Alertas!')),
                  ('danger', _('Erros!'))],
-        required=False)
+        required=False,
+        widget=widgets.CheckboxSelectMultiple())
 
     def __init__(self, *args, **kwargs):
 
-        field_type_notificacoes = to_row([(Field(
-            'type_notificacoes',
-            template="compilacao/layout/bootstrap_btn_checkbox.html"), 10),
+        field_type_notificacoes = to_row([(InlineCheckboxes(
+            'type_notificacoes'), 10),
             (Submit('submit-form', _('Filtrar'),
                     css_class='btn btn-primary pull-right'), 2)])
 

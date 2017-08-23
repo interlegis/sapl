@@ -367,15 +367,15 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
         for a in autorias:
             # se mudou autor, salva atual, caso existente, e reinicia `curr`
             if a['autor'] not in visitados:
-               if curr:
-                  relatorio.append(curr)
+                if curr:
+                    relatorio.append(curr)
 
-               curr = {}
-               curr['autor'] = autores[a['autor']]
-               curr['materia'] = []
-               curr['total'] = 0
+                curr = {}
+                curr['autor'] = autores[a['autor']]
+                curr['materia'] = []
+                curr['total'] = 0
 
-               visitados.add(a['autor'])
+                visitados.add(a['autor'])
 
             # atualiza valores
             curr['materia'].append((a['materia__tipo__descricao'], a['total']))
@@ -384,7 +384,6 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
         relatorio.append(curr)
 
         return relatorio
-
 
     def get_filterset_kwargs(self, filterset_class):
         super(RelatorioMateriasPorAnoAutorTipoView,
