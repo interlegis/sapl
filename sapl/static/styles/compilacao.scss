@@ -1355,6 +1355,11 @@ a:link:after, a:visited:after {
     display: inline;
   }
 }
+.lista-dispositivo {
+  &.controls-radio-checkbox {
+      border: 0px;
+  }
+}
 .cp-nav-parents {
   & > .dropdown-menu {
     left: 0;

@@ -1881,27 +1881,30 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
         try:
             Dispositivo.objects.filter(
-                (Q(ta=dvt.ta) & Q(ta_publicado__isnull=True)) |
-                Q(ta_publicado=dvt.ta)
+                ta=dvt.ta, ta_publicado__isnull=True
             ).update(
                 dispositivo_vigencia=dvt,
                 inicio_vigencia=dvt.inicio_vigencia,
                 inicio_eficacia=dvt.inicio_eficacia)
 
-            dps = Dispositivo.objects.filter(dispositivo_vigencia_id=dvt.pk,
-                                             ta_publicado_id=dvt.ta_id)
-            with transaction.atomic():
-                for d in dps:
-                    if d.dispositivo_substituido:
-                        ds = d.dispositivo_substituido
-                        ds.fim_vigencia = d.inicio_vigencia - timedelta(days=1)
-                        ds.fim_eficacia = d.inicio_eficacia - timedelta(days=1)
-                        d.save()
+            Dispositivo.objects.filter(ta_publicado=dvt.ta
+                                       ).update(
+                dispositivo_vigencia=dvt,
+                inicio_vigencia=dvt.inicio_eficacia,
+                inicio_eficacia=dvt.inicio_eficacia)
 
-                    if d.dispositivo_subsequente:
-                        ds = d.dispositivo_subsequente
-                        d.fim_vigencia = ds.inicio_vigencia - timedelta(days=1)
-                        d.fim_eficacia = ds.inicio_eficacia - timedelta(days=1)
+            dps = Dispositivo.objects.filter(dispositivo_vigencia=dvt)
+            for d in dps:
+                if d.dispositivo_substituido:
+                    ds = d.dispositivo_substituido
+                    ds.fim_vigencia = d.inicio_vigencia - timedelta(days=1)
+                    ds.fim_eficacia = d.inicio_eficacia - timedelta(days=1)
+                    ds.save()
+
+                if d.dispositivo_subsequente:
+                    ds = d.dispositivo_subsequente
+                    d.fim_vigencia = ds.inicio_vigencia - timedelta(days=1)
+                    d.fim_eficacia = ds.inicio_eficacia - timedelta(days=1)
                     d.save()
 
             data = {'pk': dvt.pk,
@@ -1947,6 +1950,19 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                     context['perfil_pk'] = perfil_padrao.pk
                 else:
                     raise Exception('Não existe perfil padrão!')
+
+            if not base.dispositivo_vigencia and tipo.dispositivo_de_alteracao:
+                data = {'pk': base.pk,
+                        'pai': [base.dispositivo_pai.pk, ]}
+                self.set_message(
+                    data, 'danger',
+                    _('Registros de Compilação só podem ser realizados '
+                          'após a conclusão do lançamento deste '
+                          'Texto Articulado.\nConclua o Lançamento, defina '
+                          'o dispositivo de vigência e as datas de vigência e '
+                          'eficácia. Só depois retorne '
+                          'realizando Registros de Compilação.'), modal=True)
+                return data
 
             dp_irmao = None
             dp_pai = None
@@ -2353,6 +2369,27 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
         data.update({'pk': bloco_alteracao.pk,
                      'pai': [bloco_alteracao.pk, ]})
 
+        if not bloco_alteracao.dispositivo_vigencia:
+            """
+            essa restrição não é necessária pois os lançamentos podem ser 
+            aleatórios, desde que se no fim do lançamento, datas de vigência
+            e eficácia, bem como o dispositivo de vigência da norma seja
+            configurado. Como nos primeiros testes com usuários ficou 
+            demonstrado o esquecimento/desconhecimento dessa tarefa,
+            principalmente em documentos que possuem datas de vigência e/ou
+            eficácia diferentes da data de publicação. Apesar de já aparecer
+            na rotina de notificações, achei por bem colocr essa restrição.
+            """
+            self.set_message(
+                data, 'danger',
+                _('Registros de Compilação só podem ser realizados '
+                      'após a conclusão do lançamento deste '
+                      'Texto Articulado.\r\nConclua o Lançamento, defina '
+                      'o dispositivo de vigência e as datas de vigência e '
+                      'eficácia. Só depois retorne '
+                      'realizando Registros de Compilação.'), modal=True)
+            return data
+
         history = dispositivo_a_alterar.history()
 
         for d in history:
@@ -2377,11 +2414,10 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         ndp = Dispositivo.new_instance_based_on(
             dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
-
         ndp.auto_inserido = dispositivo_a_alterar.auto_inserido
-
         ndp.rotulo = dispositivo_a_alterar.rotulo
         ndp.publicacao = bloco_alteracao.publicacao
+
         if not revogacao:
             ndp.texto = dispositivo_a_alterar.texto
         else:
@@ -2389,12 +2425,8 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             ndp.dispositivo_de_revogacao = True
 
         ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
-        if ndp.dispositivo_vigencia:
-            ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
-            ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_vigencia
-        else:
-            ndp.inicio_eficacia = bloco_alteracao.inicio_eficacia
-            ndp.inicio_vigencia = bloco_alteracao.inicio_vigencia
+        ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
+        ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_eficacia
 
         try:
             ordem = dispositivo_a_alterar.criar_espaco(
@@ -2420,6 +2452,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             dispositivos_do_bloco = \
                 bloco_alteracao.dispositivos_alterados_set.order_by(
                     'ordem_bloco_atualizador')
+
             if dispositivos_do_bloco.exists():
                 ndp.ordem_bloco_atualizador = dispositivos_do_bloco.last(
                 ).ordem_bloco_atualizador + Dispositivo.INTERVALO_ORDEM
