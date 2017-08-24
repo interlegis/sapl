@@ -15,7 +15,7 @@
 - title: {% trans 'Protocolo' %}
   check_permission: protocoloadm.list_protocolo
   children:
-    - title: {% trans 'Pesquisar Protocolo' %}
+    - title: {% trans 'Protocolo Geral' %}
       url: sapl.protocoloadm:protocolo
     - title: {% trans 'Receber Proposições' %}
       url: sapl.materia:receber-proposicao
