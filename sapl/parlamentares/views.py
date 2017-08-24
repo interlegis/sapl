@@ -661,7 +661,6 @@ class MesaDiretoraView(FormView):
         sessoes = SessaoLegislativa.objects.filter(
             legislatura=legislatura).order_by("data_inicio")
 
-
         today = datetime.now()
         sessao_atual = sessoes.filter(data_inicio__year=today.year).first()
 
@@ -702,7 +701,6 @@ def altera_field_mesa(request):
         operação (Legislatura/Sessão/Inclusão/Remoção),
         atualizando os campos após cada alteração
     """
-
     legislatura = request.GET['legislatura']
     sessoes = SessaoLegislativa.objects.filter(
         legislatura=legislatura).order_by('-data_inicio')
@@ -718,9 +716,11 @@ def altera_field_mesa(request):
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
-        sessao_selecionada = SessaoLegislativa.objects.filter(
-            legislatura=legislatura).order_by(
-            '-data_inicio').first().id
+        today = datetime.now()
+        try:
+            sessao_selecionada = sessoes.get(data_inicio__year=today.year).id
+        except ObjectDoesNotExist:
+            sessao_selecionada = sessoes.first().id
 
     # Atualiza os componentes da view após a mudança
     composicao_mesa = ComposicaoMesa.objects.filter(
@@ -883,7 +883,11 @@ def altera_field_mesa_public_view(request):
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
-        sessao_selecionada = sessoes.first().id
+        try:
+            today = datetime.now()
+            sessao_selecionada = sessoes.get(data_inicio__year=today.year).id
+        except ObjectDoesNotExist as e:
+            sessao_selecionada = sessoes.first().id
 
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
