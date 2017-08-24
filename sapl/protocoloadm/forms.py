@@ -116,7 +116,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset('',
+            Fieldset(_('Pesquisar Protocolo'),
                      row1, row2,
                      row3,
                      HTML(autor_label),

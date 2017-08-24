@@ -177,7 +177,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
 
-        context['title'] = _('Pesquisa de Protocolos')
+        context['title'] = _('Protocolo')
 
         return context
 
