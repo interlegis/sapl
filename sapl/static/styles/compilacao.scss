@@ -165,7 +165,7 @@ a:link:after, a:visited:after {
 
 .cp {
   .desativado {
-    
+
     .dtxt, .dtxt *, .dpt-link, .dpt-link * {
       text-decoration: line-through;
       color: #999 !important;
@@ -1306,9 +1306,6 @@ a:link:after, a:visited:after {
         border-radius: 4px 4px 0 0;
         width: 100%;
 
-        span {
-          padding: 0.5em;
-        }
       }
       &:last-child .itemlabel {
         border-radius: 0 0 4px 0px;
@@ -1338,16 +1335,11 @@ a:link:after, a:visited:after {
         padding: 0.5em;
         vertical-align: middle;
         width: 100%;
-        label {
-          line-height: 1;
-          font-family: "SourceSansPro", Helvetica, Arial, sans-serif;
-          display: block;
-          margin: 0px;
-        }
         .artigo {
           float: none;
         }
       }
+
     }
   }
   .nomenclatura_heranca {
@@ -1359,6 +1351,14 @@ a:link:after, a:visited:after {
 .lista-dispositivo {
   &.controls-radio-checkbox {
       border: 0px;
+  }
+}
+.label_vigencia {
+  border-top: 1px solid white;
+  display: inline-block;
+  color: #555;
+  span {
+    color: gray;
   }
 }
 .cp-nav-parents {

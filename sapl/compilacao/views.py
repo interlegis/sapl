@@ -286,6 +286,204 @@ class CompMixin(PermissionRequiredMixin):
             context['NO_ENTRIES_MSG'] = CrudListView.no_entries_msg
         return context
 
+    def get_notificacoes(self, object_list=None, type_notificacoes=None):
+
+        p = []
+
+        def padd(r, type_notificacao, reverse_url=None, test=True, msg='',
+                 kwargs=None, to_position=None):
+
+            if not test:
+                return
+
+            r.contextual_class = type_notificacao
+            if not kwargs:
+                kwargs = {'ta_id': r.ta_id, 'pk': r.pk}
+            if reverse_url:
+                p.append((type_notificacao, msg,
+                          reverse_lazy(reverse_url, kwargs=kwargs),
+                          to_position))
+            else:
+                p.append((type_notificacao, msg, None, to_position))
+
+        def success(r):
+            type_notificacao = 'success'
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 r.inconstitucionalidade,
+                 _('Declarado Inconstitucional.'))
+
+            padd(r, type_notificacao, 'sapl.compilacao:ta_text_edit',
+                 r.ta_publicado and r.dispositivo_atualizador,
+                 _('Dispositivo alterado em %s' % r.ta_publicado),
+                 {'ta_id': r.ta_publicado_id}, r.dispositivo_atualizador_id)
+
+        def info(r):
+            type_notificacao = 'info'
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 r.publicacao and
+                 r.dispositivo_vigencia and
+                 r.publicacao.data != r.dispositivo_vigencia.inicio_vigencia,
+                 _('Data da publicação associada ao Dispositivo difere da data'
+                   ' de inicio de vigência do Dispositivo de vigência.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 r.publicacao and r.publicacao.data != r.inicio_vigencia,
+                 _('Data da publicação associada ao Dispositivo difere '
+                   'da data de inicio de vigência.'))
+
+            padd(r, type_notificacao, 'sapl.compilacao:dispositivo_edit',
+                 r.rotulo != r.rotulo_padrao(local_insert=1),
+                 _('Rótulo Diferente do Padrão'))
+
+            padd(r, type_notificacao, 'sapl.compilacao:dispositivo_edit',
+                 r.texto_atualizador and r.texto_atualizador != r.texto,
+                 _('Texto do Dispositivo para o Documento '
+                   'está diferente do texto para o Documento Alterador.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 r.texto_atualizador and r.texto_atualizador == r.texto,
+                 _('Texto do Dispositivo no Documento Alterador '
+                   'está igual ao Texto no Documento Original. '
+                   'Não é necessário manter armazenado o texto no Documento '
+                   'Alterador.'))
+
+        def warning(r):
+            type_notificacao = 'warning'
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 r.dispositivo_vigencia and r.inicio_vigencia !=
+                 r.dispositivo_vigencia.inicio_vigencia,
+                 _('Data de início de Vigência difere da data início de '
+                   'Vigência do Dispositivo de Vigência'))
+
+            padd(r, type_notificacao, 'sapl.compilacao:ta_text',
+                 r.inconstitucionalidade and not r.notas.exists(),
+                 _('Dispositivo está definido como inconstitucional. É '
+                   'aconcelhavel inserir uma Nota informando esta condição.'),
+                 kwargs={'ta_id': r.ta_id},
+                 to_position=r.pk)
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 r.inconstitucionalidade and not (
+                     r.inicio_vigencia == r.fim_vigencia and
+                     r.fim_vigencia == r.inicio_eficacia and
+                     r.inicio_eficacia == r.fim_eficacia),
+                 _('Dispositivo está definido como inconstitucional porém '
+                   'existe diferença entre as datas início e fim de '
+                   'vigência e eficácia.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 r.publicacao and
+                 r.ta_publicado and r.ta_publicado != r.publicacao.ta,
+                 _('A Publicação associada a este Dispositivo não é '
+                   'uma publicação do Texto Articulado Alterador.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 not r.publicacao,
+                 _('Dispositivo sem registro de publicação.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 r.texto and r.tipo_dispositivo.dispositivo_de_articulacao,
+                 _('Dispositivos de Articulação não '
+                   'deveriam armazenar texto.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 not r.texto and
+                 not r.tipo_dispositivo.dispositivo_de_articulacao,
+                 _('Dispositivo está sem texto.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 r.texto_atualizador and not r.ta_publicado,
+                 _('Existe Texto Atualizador, porém este Dispositivo não '
+                   'está associado a nenhum Documento Atualizador.'))
+
+        def danger(r):
+            type_notificacao = 'danger'
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 not r.dispositivo_vigencia,
+                 _('Dispositivo sem definição de Dispositivo de Vigência.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_vigencia',
+                 r.inconstitucionalidade and
+                 r.inicio_vigencia != r.fim_vigencia,
+                 _('Dispositivo está definido como inconstitucional porém '
+                   'existe período de vigência.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 r.ta_publicado and not r.dispositivo_atualizador,
+                 _('Dispositivo está associado a um Texto Articulado '
+                   'Atualizador mas, a nenhum Dispositivo Atualizador.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 not r.dispositivo_atualizador and
+                 r.dispositivo_substituido,
+                 _('Dispositivo está substituindo outro mas não foi informado '
+                   'o Dispositivo Atualizador.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_substituido and
+                 r.dispositivo_substituido.tipo_dispositivo !=
+                 r.tipo_dispositivo,
+                 _('Dispositivo está substituindo um Dispositivo '
+                   'de outro tipo.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_substituido and
+                 r.dispositivo_substituido.ta != r.ta,
+                 _('Dispositivo está substituindo um Dispositivo de outro '
+                   'Texto Articulado.'))
+
+            padd(r, type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_substituido and
+                 r.dispositivo_substituido.dispositivo_subsequente != r,
+                 _('Dispositivo está substituindo um Dispositivo que não '
+                   'possui este como seu Dispositivo Subsequente.'))
+
+            padd(r,
+                 type_notificacao,
+                 'sapl.compilacao:dispositivo_edit_alteracao',
+                 r.dispositivo_subsequente and
+                 r.dispositivo_subsequente.dispositivo_substituido != r,
+                 _('Dispositivo foi substituído por outro que não '
+                   'possui este como seu Dispositivo Substituído.'))
+
+        rr = []
+        for r in object_list:
+            p = []
+            r.contextual_class = ""
+
+            for f in type_notificacoes:
+                if f != 'default':
+                    locals()[f](r)
+
+            r.notificacoes = p
+
+            if p or 'default' in type_notificacoes:
+                rr.append(r)
+
+            if r.dispositivos_alterados_set.exists():
+                rr += self.get_notificacoes(
+                    r.dispositivos_alterados_set.all(), type_notificacoes)
+
+        return rr
+
 
 class TipoTaListView(CompMixin, ListView):
     model = TipoTextoArticulado
@@ -963,6 +1161,23 @@ class TextEditView(CompMixin, TemplateView):
         else:
             if 'lock' in request.GET:
                 # TODO - implementar logging de ação de usuário
+
+                notificacoes = self.get_notificacoes(
+                    object_list=self.object.dispositivos_set.all(),
+                    type_notificacoes=['danger', ])
+
+                if notificacoes:
+                    messages.error(
+                        request,
+                        _('Existem erros a serem corrigidos que impedem a '
+                          'publicação deste Texto Articulado. '
+                          'Corrija os erros apontados nas notificações.'))
+                    self.request.session[
+                        'type_notificacoes'] = ['danger', ]
+                    return redirect(to=reverse_lazy(
+                        'sapl.compilacao:ta_text_notificacoes', kwargs={
+                            'ta_id': self.object.id}))
+
                 self.object.editing_locked = True
                 self.object.privacidade = STATUS_TA_PUBLIC
                 self.object.save()
@@ -1563,9 +1778,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                         ordem__gt=base_ordem,
                         nivel__lte=base.nivel).first()
 
-                if not pbi:
-                    base.delete()
-                else:
+                if pbi:
                     dcc_a_excluir = Dispositivo.objects.order_by(
                         'ordem').filter(
                         ta_id=base.ta_id,
@@ -1604,10 +1817,16 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                                 dr.dispositivo0 -
                                 primeiro_a_religar + d.dispositivo0)
                             dr.rotulo = dr.rotulo_padrao()
-
                             dr.save(clean=base != dr)
-                    if base.pk:
-                        base.delete()
+
+                if base.tipo_dispositivo.dispositivo_de_alteracao:
+                    dpts = base.dispositivos_alterados_set.all().order_by(
+                        '-ordem_bloco_atualizador')
+                    for dpt in dpts:
+                        self.remover_dispositivo(dpt, False)
+
+                if base.pk:
+                    base.delete()
 
         return ''
 
@@ -1950,19 +2169,6 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                     context['perfil_pk'] = perfil_padrao.pk
                 else:
                     raise Exception('Não existe perfil padrão!')
-
-            if not base.dispositivo_vigencia and tipo.dispositivo_de_alteracao:
-                data = {'pk': base.pk,
-                        'pai': [base.dispositivo_pai.pk, ]}
-                self.set_message(
-                    data, 'danger',
-                    _('Registros de Compilação só podem ser realizados '
-                          'após a conclusão do lançamento deste '
-                          'Texto Articulado.\nConclua o Lançamento, defina '
-                          'o dispositivo de vigência e as datas de vigência e '
-                          'eficácia. Só depois retorne '
-                          'realizando Registros de Compilação.'), modal=True)
-                return data
 
             dp_irmao = None
             dp_pai = None
@@ -2369,27 +2575,6 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
         data.update({'pk': bloco_alteracao.pk,
                      'pai': [bloco_alteracao.pk, ]})
 
-        if not bloco_alteracao.dispositivo_vigencia:
-            """
-            Essa restrição não é necessária pois os lançamentos podem ser
-            aleatórios, desde que no fim do lançamento, datas de vigência
-            e eficácia, bem como o dispositivo de vigência da norma seja
-            configurado. Como nos primeiros testes com usuários ficou
-            demonstrado o esquecimento/desconhecimento dessa tarefa,
-            principalmente em documentos que possuem datas de vigência e/ou
-            eficácia diferentes da data de publicação, apesar de já aparecer
-            na rotina de notificações, achei por bem colocar essa restrição.
-            """
-            self.set_message(
-                data, 'danger',
-                _('Registros de Compilação só podem ser realizados '
-                      'após a conclusão do lançamento deste '
-                      'Texto Articulado.\r\nConclua o Lançamento, defina '
-                      'o dispositivo de vigência e as datas de vigência e '
-                      'eficácia. Só depois retorne '
-                      'realizando Registros de Compilação.'), modal=True)
-            return data
-
         history = dispositivo_a_alterar.history()
 
         for d in history:
@@ -2434,8 +2619,13 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             ndp.dispositivo_de_revogacao = True
 
         ndp.dispositivo_vigencia = bloco_alteracao.dispositivo_vigencia
-        ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
-        ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_eficacia
+
+        if ndp.dispositivo_vigencia:
+            ndp.inicio_eficacia = ndp.dispositivo_vigencia.inicio_eficacia
+            ndp.inicio_vigencia = ndp.dispositivo_vigencia.inicio_eficacia
+        else:
+            ndp.inicio_eficacia = bloco_alteracao.inicio_eficacia
+            ndp.inicio_vigencia = bloco_alteracao.inicio_eficacia
 
         try:
             ordem = dispositivo_a_alterar.criar_espaco(
@@ -3117,199 +3307,11 @@ class TextNotificacoesView(CompMixin, ListView, FormView):
             ta_id=self.kwargs['ta_id']
         ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
-        p = []
+        type_notificacoes = []
+        if 'type_notificacoes' in self.request.session:
+            type_notificacoes = self.request.session['type_notificacoes']
 
-        def padd(r, type_notificacao, reverse_url=None, test=True, msg='',
-                 kwargs=None, to_position=None):
+        if type_notificacoes and not isinstance(type_notificacoes, list):
+            type_notificacoes = [type_notificacoes, ]
 
-            if not test:
-                return
-
-            r.contextual_class = type_notificacao
-            if not kwargs:
-                kwargs = {'ta_id': r.ta_id, 'pk': r.pk}
-            if reverse_url:
-                p.append((type_notificacao, msg,
-                          reverse_lazy(reverse_url, kwargs=kwargs),
-                          to_position))
-            else:
-                p.append((type_notificacao, msg, None, to_position))
-
-        def success(r):
-            type_notificacao = 'success'
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 r.inconstitucionalidade,
-                 _('Declarado Inconstitucional.'))
-
-            padd(r, type_notificacao, 'sapl.compilacao:ta_text_edit',
-                 r.ta_publicado and r.dispositivo_atualizador,
-                 _('Dispositivo alterado em %s' % r.ta_publicado),
-                 {'ta_id': r.ta_publicado_id}, r.dispositivo_atualizador_id)
-
-        def info(r):
-            type_notificacao = 'info'
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 r.publicacao and
-                 r.dispositivo_vigencia and
-                 r.publicacao.data != r.dispositivo_vigencia.inicio_vigencia,
-                 _('Data da publicação associada ao Dispositivo difere da data'
-                   ' de inicio de vigência do Dispositivo de vigência.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 r.publicacao and r.publicacao.data != r.inicio_vigencia,
-                 _('Data da publicação associada ao Dispositivo difere '
-                   'da data de inicio de vigência.'))
-
-            padd(r, type_notificacao, 'sapl.compilacao:dispositivo_edit',
-                 r.rotulo != r.rotulo_padrao(local_insert=1),
-                 _('Rótulo Diferente do Padrão'))
-
-            padd(r, type_notificacao, 'sapl.compilacao:dispositivo_edit',
-                 r.texto_atualizador and r.texto_atualizador != r.texto,
-                 _('Texto do Dispositivo para o Documento '
-                   'está diferente do texto para o Documento Alterador.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_alteracao',
-                 r.texto_atualizador and r.texto_atualizador == r.texto,
-                 _('Texto do Dispositivo no Documento Alterador '
-                   'está igual ao Texto no Documento Original. '
-                   'Não é necessário manter armazenado o texto no Documento '
-                   'Alterador.'))
-
-        def warning(r):
-            type_notificacao = 'warning'
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 r.dispositivo_vigencia and r.inicio_vigencia !=
-                 r.dispositivo_vigencia.inicio_vigencia,
-                 _('Data de início de Vigência difere da data início de '
-                   'Vigência do Dispositivo de Vigência'))
-
-            padd(r, type_notificacao, 'sapl.compilacao:ta_text',
-                 r.inconstitucionalidade and not r.notas.exists(),
-                 _('Dispositivo está definido como inconstitucional. É '
-                   'aconcelhavel inserir uma Nota informando esta condição.'),
-                 kwargs={'ta_id': r.ta_id},
-                 to_position=r.pk)
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 r.inconstitucionalidade and not (
-                     r.inicio_vigencia == r.fim_vigencia and
-                     r.fim_vigencia == r.inicio_eficacia and
-                     r.inicio_eficacia == r.fim_eficacia),
-                 _('Dispositivo está definido como inconstitucional porém '
-                   'existe diferença entre as datas início e fim de '
-                   'vigência e eficácia.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 r.publicacao and
-                 r.ta_publicado and r.ta_publicado != r.publicacao.ta,
-                 _('A Publicação associada a este Dispositivo não é '
-                   'uma publicação do Texto Articulado Alterador.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 not r.publicacao,
-                 _('Dispositivo sem registro de publicação.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 r.texto and r.tipo_dispositivo.dispositivo_de_articulacao,
-                 _('Dispositivos de Articulação não '
-                   'deveriam armazenar texto.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 not r.texto and
-                 not r.tipo_dispositivo.dispositivo_de_articulacao,
-                 _('Dispositivo está sem texto.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_alteracao',
-                 r.texto_atualizador and not r.ta_publicado,
-                 _('Existe Texto Atualizador, porém este Dispositivo não '
-                   'está associado a nenhum Documento Atualizador.'))
-
-        def danger(r):
-            type_notificacao = 'danger'
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 not r.dispositivo_vigencia,
-                 _('Dispositivo sem definição de Dispositivo de Vigência.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_vigencia',
-                 r.inconstitucionalidade and
-                 r.inicio_vigencia != r.fim_vigencia,
-                 _('Dispositivo está definido como inconstitucional porém '
-                   'existe período de vigência.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_alteracao',
-                 r.ta_publicado and not r.dispositivo_atualizador,
-                 _('Dispositivo está associado a um Texto Articulado '
-                   'Atualizador mas, a nenhum Dispositivo Atualizador.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_alteracao',
-                 not r.dispositivo_atualizador and
-                 r.dispositivo_substituido,
-                 _('Dispositivo está substituindo outro mas não foi informado '
-                   'o Dispositivo Atualizador.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_alteracao',
-                 r.dispositivo_substituido and
-                 r.dispositivo_substituido.tipo_dispositivo !=
-                 r.tipo_dispositivo,
-                 _('Dispositivo está substituindo um Dispositivo '
-                   'de outro tipo.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_alteracao',
-                 r.dispositivo_substituido and
-                 r.dispositivo_substituido.ta != r.ta,
-                 _('Dispositivo está substituindo um Dispositivo de outro '
-                   'Texto Articulado.'))
-
-            padd(r, type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_alteracao',
-                 r.dispositivo_substituido and
-                 r.dispositivo_substituido.dispositivo_subsequente != r,
-                 _('Dispositivo está substituindo um Dispositivo que não '
-                   'possui este como seu Dispositivo Subsequente.'))
-
-            padd(r,
-                 type_notificacao,
-                 'sapl.compilacao:dispositivo_edit_alteracao',
-                 r.dispositivo_subsequente and
-                 r.dispositivo_subsequente.dispositivo_substituido != r,
-                 _('Dispositivo foi substituído por outro que não '
-                   'possui este como seu Dispositivo Substituído.'))
-
-        rr = []
-        for r in result:
-            p = []
-            r.contextual_class = ""
-
-            type_notificacoes = []
-            if 'type_notificacoes' in self.request.session:
-                type_notificacoes = self.request.session['type_notificacoes']
-
-            if isinstance(type_notificacoes, list):
-                for f in type_notificacoes:
-                    if f != 'default':
-                        locals()[f](r)
-
-            r.notificacoes = p
-
-            if p or 'default' in type_notificacoes:
-                rr.append(r)
-
-        return rr
+        return self.get_notificacoes(result, type_notificacoes)
