@@ -81,9 +81,9 @@ class SessaoPlenariaForm(ModelForm):
                                                 sessao_legislativa=sl,
                                                 legislatura=leg,
                                                 tipo=tipo).\
-                                                values_list('id', flat=True)
+            values_list('id', flat=True)
 
-        qtd_sessoes = len(sessoes)            
+        qtd_sessoes = len(sessoes)
 
         if qtd_sessoes > 0:
             if instance.pk:  # update

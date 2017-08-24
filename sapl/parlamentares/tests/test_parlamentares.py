@@ -2,11 +2,10 @@ import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
 
+from sapl.parlamentares.forms import MandatoForm
 from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
                                        TipoDependente)
-
-from sapl.parlamentares.forms import MandatoForm
 
 
 @pytest.mark.django_db(transaction=False)
@@ -152,9 +151,10 @@ def test_form_errors_mandato(admin_client):
     assert (response.context_data['form'].errors['data_expedicao_diploma'] ==
             ['Este campo é obrigatório.'])
 
+
 def test_mandato_form_invalido():
 
-    form = MandatoForm(data = {})
+    form = MandatoForm(data={})
 
     assert not form.is_valid()
 
@@ -162,6 +162,7 @@ def test_mandato_form_invalido():
     assert errors['legislatura'] == ['Este campo é obrigatório.']
     assert errors['parlamentar'] == ['Este campo é obrigatório.']
     assert errors['data_expedicao_diploma'] == ['Este campo é obrigatório.']
+
 
 @pytest.mark.django_db(transaction=False)
 def test_mandato_form_duplicado():
@@ -173,10 +174,10 @@ def test_mandato_form_duplicado():
                            data_expedicao_diploma='2017-07-25')
 
     form = MandatoForm(data={
-                        'parlamentar': str(parlamentar.pk),
-                        'legislatura': str(legislatura.pk),
-                        'data_expedicao_diploma': '01/07/2015'
-                       })
+        'parlamentar': str(parlamentar.pk),
+        'legislatura': str(legislatura.pk),
+        'data_expedicao_diploma': '01/07/2015'
+    })
 
     assert not form.is_valid()
 

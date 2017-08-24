@@ -1,11 +1,10 @@
 import pytest
+from django.utils.translation import ugettext_lazy as _
+from model_mommy import mommy
 
 from sapl.parlamentares.models import Legislatura, SessaoLegislativa
 from sapl.sessao import forms
 from sapl.sessao.models import SessaoPlenaria, TipoSessaoPlenaria
-
-from django.utils.translation import ugettext_lazy as _
-from model_mommy import mommy
 
 
 def test_valida_campos_obrigatorios_sessao_plenaria_form():
@@ -24,6 +23,7 @@ def test_valida_campos_obrigatorios_sessao_plenaria_form():
 
     assert len(errors) == 6
 
+
 @pytest.mark.django_db(transaction=False)
 def test_sessao_plenaria_form_valido():
     legislatura = mommy.make(Legislatura)
@@ -40,6 +40,7 @@ def test_sessao_plenaria_form_valido():
 
     assert form.is_valid()
 
+
 @pytest.mark.django_db(transaction=False)
 def test_numero_duplicado_sessao_plenaria_form():
     legislatura = mommy.make(Legislatura)
@@ -49,7 +50,7 @@ def test_numero_duplicado_sessao_plenaria_form():
                                  legislatura=legislatura,
                                  sessao_legislativa=sessao,
                                  tipo=tipo,
-                                 numero = 1)
+                                 numero=1)
 
     form = forms.SessaoPlenariaForm(data={'legislatura': str(legislatura.pk),
                                           'numero': '1',

@@ -11,6 +11,7 @@ from django.db.models.deletion import PROTECT
 from django.http.response import Http404
 from django.template import defaultfilters
 from django.utils.decorators import classonlymethod
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
@@ -843,7 +844,7 @@ class Publicacao(TimestampedMixin):
 
 @reversion.register()
 class Dispositivo(BaseModel, TimestampedMixin):
-    TEXTO_PADRAO_DISPOSITIVO_REVOGADO = _('(Revogado)')
+    TEXTO_PADRAO_DISPOSITIVO_REVOGADO = force_text(_('(Revogado)'))
     INTERVALO_ORDEM = 1000
     ordem = models.PositiveIntegerField(
         default=0,

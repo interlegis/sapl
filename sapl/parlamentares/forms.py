@@ -68,8 +68,8 @@ class MandatoForm(ModelForm):
         data = self.cleaned_data
 
         existe_mandato = Mandato.objects.filter(
-                            parlamentar=data['parlamentar'],
-                            legislatura=data['legislatura']).exists()
+            parlamentar=data['parlamentar'],
+            legislatura=data['legislatura']).exists()
         if existe_mandato:
             raise ValidationError(_('Mandato nesta legislatura já existe.'))
 
