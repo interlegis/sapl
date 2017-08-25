@@ -1,5 +1,6 @@
 import pytest
 from django.core.urlresolvers import reverse
+from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
 from sapl.parlamentares.forms import MandatoForm
@@ -95,11 +96,11 @@ def test_form_errors_dependente(admin_client):
         follow=True)
 
     assert (response.context_data['form'].errors['nome'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['tipo'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['sexo'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
 
 
 @pytest.mark.django_db(transaction=False)
@@ -113,9 +114,9 @@ def test_form_errors_filiacao(admin_client):
                                  follow=True)
 
     assert (response.context_data['form'].errors['partido'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['data'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
 
 
 @pytest.mark.django_db(transaction=False)
@@ -146,9 +147,9 @@ def test_form_errors_mandato(admin_client):
                                  follow=True)
 
     assert (response.context_data['form'].errors['legislatura'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['data_expedicao_diploma'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
 
 
 def test_mandato_form_invalido():
@@ -158,9 +159,9 @@ def test_mandato_form_invalido():
     assert not form.is_valid()
 
     errors = form.errors
-    assert errors['legislatura'] == ['Este campo é obrigatório.']
-    assert errors['parlamentar'] == ['Este campo é obrigatório.']
-    assert errors['data_expedicao_diploma'] == ['Este campo é obrigatório.']
+    assert errors['legislatura'] == [_('Este campo é obrigatório.')]
+    assert errors['parlamentar'] == [_('Este campo é obrigatório.')]
+    assert errors['data_expedicao_diploma'] == [_('Este campo é obrigatório.')]
 
 
 @pytest.mark.django_db(transaction=False)
@@ -180,7 +181,7 @@ def test_mandato_form_duplicado():
 
     assert not form.is_valid()
 
-    assert form.errors['__all__'] == ['Mandato nesta legislatura já existe.']
+    assert form.errors['__all__'] == [_('Mandato nesta legislatura já existe.')]
 
 @pytest.mark.django_db(transaction=False)
 def test_mandato_form_datas_invalidas():
@@ -198,7 +199,8 @@ def test_mandato_form_datas_invalidas():
     })
 
     assert not form.is_valid()
-    assert form.errors['__all__'] == ['Data início mandato fora do intervalo de legislatura informada']
+    assert form.errors['__all__'] == \
+        ["Data início mandato fora do intervalo de legislatura informada"]
 
     form = MandatoForm(data={
         'parlamentar': str(parlamentar.pk),
@@ -209,4 +211,5 @@ def test_mandato_form_datas_invalidas():
     })
 
     assert not form.is_valid()
-    assert form.errors['__all__'] == ['Data fim mandato fora do intervalo de legislatura informada']
+    assert form.errors['__all__'] == \
+        ["Data fim mandato fora do intervalo de legislatura informada"]
