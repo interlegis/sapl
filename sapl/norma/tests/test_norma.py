@@ -1,7 +1,10 @@
 import pytest
 from django.core.urlresolvers import reverse
+from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.norma.forms import (NormaJuridicaForm,)
 from sapl.norma.models import NormaJuridica, TipoNormaJuridica
 
 
@@ -38,14 +41,77 @@ def test_incluir_norma_errors(admin_client):
                                  follow=True)
 
     assert (response.context_data['form'].errors['tipo'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['numero'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['ano'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['data'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['esfera_federacao'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['ementa'] ==
-            ['Este campo é obrigatório.'])
+            [_('Este campo é obrigatório.')])
+
+
+# TODO esse teste repete o teste acima (test_incluir_norma_errors)
+# mas a granularidade certa para testar campos obrigatórios seria
+# no nível de form ou então de model, não de client...
+def test_norma_form_invalida():
+    form = NormaJuridicaForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['tipo'] == [_('Este campo é obrigatório.')]
+    assert errors['numero'] == [_('Este campo é obrigatório.')]
+    assert errors['ano'] == [_('Este campo é obrigatório.')]
+    assert errors['data'] == [_('Este campo é obrigatório.')]
+    assert errors['esfera_federacao'] == [_('Este campo é obrigatório.')]
+    assert errors['ementa'] == [_('Este campo é obrigatório.')]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_norma_juridica_materia_inexistente():
+
+    tipo = mommy.make(TipoNormaJuridica)
+    tipo_materia = mommy.make(TipoMateriaLegislativa)
+
+    form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
+                                   'numero': '1',
+                                   'ano': '2017',
+                                   'data': '2017-12-12',
+                                   'esfera_federacao': 'F',
+                                   'ementa': 'teste norma',
+                                   'tipo_materia': str(tipo_materia.pk),
+                                   'numero_materia': '2',
+                                   'ano_materia': '2017'
+                                   })
+
+    assert not form.is_valid()
+
+    assert form.errors['__all__'] == [_("Matéria 2/2017 é inexistente.")]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_norma_juridica_materia_existente():
+
+    tipo = mommy.make(TipoNormaJuridica)
+    tipo_materia = mommy.make(TipoMateriaLegislativa)
+    materia = mommy.make(MateriaLegislativa,
+                         numero=2,
+                         ano=2017,
+                         tipo=tipo_materia)
+
+    form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
+                                   'numero': '1',
+                                   'ano': '2017',
+                                   'data': '2017-12-12',
+                                   'esfera_federacao': 'F',
+                                   'ementa': 'teste norma',
+                                   'tipo_materia': str(tipo_materia.pk),
+                                   'numero_materia': '2',
+                                   'ano_materia': '2017'
+                                   })
+    assert form.is_valid()
