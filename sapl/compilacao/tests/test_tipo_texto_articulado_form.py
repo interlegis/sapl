@@ -1,8 +1,10 @@
-import pytest
+from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+import pytest
 
 from sapl.compilacao import forms
 from sapl.compilacao.models import PerfilEstruturalTextoArticulado
+from sapl.compilacao.views import choice_models_in_extenal_views
 
 
 def test_valida_campos_obrigatorios_tipo_texto_articulado_form():
@@ -12,26 +14,29 @@ def test_valida_campos_obrigatorios_tipo_texto_articulado_form():
 
     errors = form.errors
 
-    assert errors['sigla'] == ['Este campo é obrigatório.']
-    assert errors['descricao'] == ['Este campo é obrigatório.']
-    assert errors['content_type'] == ['Este campo é obrigatório.']
-    assert errors['participacao_social'] == ['Este campo é obrigatório.']
-    assert errors['publicacao_func'] == ['Este campo é obrigatório.']
+    assert errors['sigla'] == [_('Este campo é obrigatório.')]
+    assert errors['descricao'] == [_('Este campo é obrigatório.')]
+    assert errors['content_type'] == [_('Este campo é obrigatório.')]
+    assert errors['participacao_social'] == [_('Este campo é obrigatório.')]
+    assert errors['publicacao_func'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 5
 
 
+_content_types = choice_models_in_extenal_views()[1:]
+
+
+@pytest.mark.parametrize('content_type', _content_types)
 @pytest.mark.django_db(transaction=False)
-@pytest.mark.skip(reason="teste falhando")
-def test_tipo_texto_articulado_form_valid():
+def test_tipo_texto_articulado_form_valid(content_type):
     perfil = mommy.make(PerfilEstruturalTextoArticulado)
 
     form = forms.TipoTaForm(data={'sigla': 'si',
                                   'descricao': 'teste',
-                                  'content_type': 'content',
-                                  'participacao_social': 'social',
-                                  'publicacao_func': 'func',
-                                  'perfis': str(perfil.pk)
+                                  'content_type': content_type[0],
+                                  'participacao_social': True,
+                                  'publicacao_func': True,
+                                  'perfis': [perfil.pk, ]
                                   })
 
-    assert form.is_valid()
+    assert form.is_valid(), form.errors
