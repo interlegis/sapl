@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.parlamentares.forms import MandatoForm
+from sapl.parlamentares.forms import (LegislaturaForm, MandatoForm)
 from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
                                        TipoDependente)
@@ -134,7 +134,7 @@ def test_mandato_submit(admin_client):
                       follow=True)
 
     mandato = Mandato.objects.first()
-    assert 'Observação do mandato' == mandato.observacao
+    assert str(_('Observação do mandato')) == str(_(mandato.observacao))
 
 
 @pytest.mark.django_db(transaction=False)
@@ -213,3 +213,44 @@ def test_mandato_form_datas_invalidas():
     assert not form.is_valid()
     assert form.errors['__all__'] == \
         ["Data fim mandato fora do intervalo de legislatura informada"]
+
+
+def test_legislatura_form_invalido():
+
+    legislatura_form = LegislaturaForm(data={})
+
+    assert not legislatura_form.is_valid()
+
+    errors = legislatura_form.errors
+
+    errors['numero'] == [_('Este campo é obrigatório.')]
+    errors['data_inicio'] == [_('Este campo é obrigatório.')]
+    errors['data_fim'] == [_('Este campo é obrigatório.')]
+    errors['data_eleicao'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 4
+
+def test_legislatura_form_datas_invalidas():
+
+    legislatura_form = LegislaturaForm(data={'numero': '1',
+                                             'data_inicio': '2017-02-01',
+                                             'data_fim': '2021-12-31',
+                                             'data_eleicao': '2017-02-01'
+                                        })
+
+    assert not legislatura_form.is_valid()
+
+    expected = \
+        _("Data eleição não pode ser inferior a data início da legislatura")
+    assert legislatura_form.errors['__all__'] == [expected]
+
+    legislatura_form = LegislaturaForm(data={'numero': '1',
+                                             'data_inicio': '2017-02-01',
+                                             'data_fim': '2017-01-01',
+                                             'data_eleicao': '2016-11-01'
+                                        })
+
+    assert not legislatura_form.is_valid()
+
+    assert legislatura_form.errors['__all__'] == \
+        [_("Intervalo de início e fim inválido para legislatura.")]

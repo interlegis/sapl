@@ -98,6 +98,26 @@ class LegislaturaForm(ModelForm):
         model = Legislatura
         exclude = []
 
+    def clean(self):
+        data = super(LegislaturaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data_inicio = data['data_inicio']
+        data_fim = data['data_fim']
+        data_eleicao = data['data_eleicao']
+
+        if data_eleicao.year >= data_inicio.year:
+            raise ValidationError(_("Data eleição não pode ser inferior a "
+                                    "data início da legislatura"))
+
+        if data_inicio > data_fim or (data_fim.year - data_inicio.year != 4):
+            raise ValidationError(_("Intervalo de início e fim inválido para "
+                                    "legislatura."))
+
+        return data
+
 
 class LegislaturaCreateForm(LegislaturaForm):
 
@@ -105,6 +125,10 @@ class LegislaturaCreateForm(LegislaturaForm):
         super(LegislaturaCreateForm, self).clean()
 
         cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
         eleicao = cleaned_data['data_eleicao']
         inicio = cleaned_data['data_inicio']
         fim = cleaned_data['data_fim']
