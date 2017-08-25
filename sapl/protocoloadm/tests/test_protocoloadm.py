@@ -6,11 +6,15 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.materia.models import UnidadeTramitacao
-from sapl.protocoloadm.forms import AnularProcoloAdmForm
+from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao)
+from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
+                                     DocumentoAdministrativoForm,
+                                     ProtocoloDocumentForm,
+                                     ProtocoloMateriaForm,)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo,
                                       TipoDocumentoAdministrativo,
+                                      TipoMateriaLegislativa,
                                       TramitacaoAdministrativo)
 
 
@@ -267,3 +271,144 @@ def test_anular_protocolo_dados_invalidos():
     assert errors['justificativa_anulacao'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 3
+
+
+@pytest.mark.django_db(transaction=False)
+def test_anular_protocolo_form_anula_protocolo_inexistente():
+    form = AnularProcoloAdmForm(data={'numero': '1',
+                                      'ano': '2017',
+                                      'justificativa_anulacao': 'teste'
+                                      })
+
+    assert not form.is_valid()
+
+    assert form.errors['__all__'] == [_(
+        'Protocolo 1/2017 não existe')]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_anular_protocolo_form_anula_protocolo_anulado():
+    protocolo = mommy.make(Protocolo, numero=1, ano=2017, anulado=True)
+
+    form = AnularProcoloAdmForm(data={'numero': '1',
+                                      'ano': '2017',
+                                      'justificativa_anulacao': 'teste'
+                                      })
+
+    assert not form.is_valid()
+
+    assert form.errors['__all__'] == [_(
+        'Protocolo 1/2017 já encontra-se anulado')]
+
+@pytest.mark.django_db(transaction=False)
+def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
+    tipo_materia = mommy.make(TipoMateriaLegislativa)
+
+    protocolo_materia = mommy.make(Protocolo,
+                                   numero=1,
+                                   ano=2017,
+                                   tipo_materia=tipo_materia,
+                                   anulado=False)
+
+    materia_legislativa = mommy.make(MateriaLegislativa,
+                                     ano=2017,
+                                     numero_protocolo=1)
+
+    form = AnularProcoloAdmForm(data={'numero': '1',
+                                      'ano': '2017',
+                                      'justificativa_anulacao': 'teste'
+                                      })
+
+    assert not form.is_valid()
+
+    assert form.errors['__all__'] == \
+        [_("Protocolo 1/2017 não pode ser removido pois existem "
+          "documentos vinculados a ele.")]
+
+    tipo_documento = mommy.make(TipoDocumentoAdministrativo)
+    protocolo_documento = mommy.make(Protocolo,
+                                   numero=2,
+                                   ano=2017,
+                                   tipo_documento=tipo_documento,
+                                   anulado=False)
+
+    documento_administrativo = mommy.make(DocumentoAdministrativo,
+                                          protocolo=protocolo_documento)
+
+    form = AnularProcoloAdmForm(data={'numero': '2',
+                                      'ano': '2017',
+                                      'justificativa_anulacao': 'teste'
+                                      })
+
+    assert not form.is_valid()
+
+    assert form.errors['__all__'] == \
+        [_("Protocolo 2/2017 não pode ser removido pois existem "
+          "documentos vinculados a ele.")]
+
+
+def test_documento_administrativo_invalido():
+    form = DocumentoAdministrativoForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+    assert errors['ano'] == [_('Este campo é obrigatório.')]
+    assert errors['tipo'] == [_('Este campo é obrigatório.')]
+    assert errors['assunto'] == [_('Este campo é obrigatório.')]
+    assert errors['numero'] == [_('Este campo é obrigatório.')]
+    assert errors['data'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 5
+
+
+@pytest.mark.django_db(transaction=False)
+def test_documento_administrativo_protocolo_inexistente():
+
+    tipo = mommy.make(TipoDocumentoAdministrativo)
+
+    form = DocumentoAdministrativoForm(data={'ano': '2017',
+                                             'tipo': str(tipo.pk),
+                                             'assunto': 'teste',
+                                             'numero': '1',
+                                             'data': '2017-10-10',
+                                             'numero_protocolo': '11',
+                                             'ano_protocolo': '2017'
+                                             })
+
+    assert not form.is_valid()
+
+    assert form.errors['__all__'] == [_('Protocolo 11/2017 inexistente.')]
+
+
+def test_protocolo_documento_form_invalido():
+
+    form = ProtocoloDocumentForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['tipo_protocolo'] == [_('Este campo é obrigatório.')]
+    assert errors['interessado'] == [_('Este campo é obrigatório.')]
+    assert errors['tipo_documento'] == [_('Este campo é obrigatório.')]
+    assert errors['numero_paginas'] == [_('Este campo é obrigatório.')]
+    assert errors['assunto'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 5
+
+def test_protocolo_materia_invalido():
+
+    form = ProtocoloMateriaForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['assunto_ementa'] == [_('Este campo é obrigatório.')]
+    assert errors['tipo_autor'] == [_('Este campo é obrigatório.')]
+    assert errors['tipo_materia'] == [_('Este campo é obrigatório.')]
+    assert errors['numero_paginas'] == [_('Este campo é obrigatório.')]
+    assert errors['autor'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 5

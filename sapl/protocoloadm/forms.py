@@ -566,18 +566,24 @@ class DocumentoAdministrativoForm(ModelForm):
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
 
-        numero_protocolo = self.data['numero_protocolo']
-        ano_protocolo = self.data['ano_protocolo']
+        cleaned_data = self.cleaned_data
 
+        if not self.is_valid():
+            return cleaned_data
+
+        numero_protocolo = cleaned_data['numero_protocolo']
+        ano_protocolo = cleaned_data['ano_protocolo']
+
+        # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
             try:
                 self.fields['protocolo'].initial = Protocolo.objects.get(
                     numero=numero_protocolo,
                     ano=ano_protocolo).pk
             except ObjectDoesNotExist:
-                msg = _('Protocolo %s/%s inexistente' % (
+                msg = _('Protocolo %s/%s inexistente.' % (
                     numero_protocolo, ano_protocolo))
-                raise ValidationError(str(msg))
+                raise ValidationError(msg)
 
         return self.cleaned_data
 
