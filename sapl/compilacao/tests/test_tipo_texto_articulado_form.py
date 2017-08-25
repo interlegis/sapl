@@ -16,14 +16,13 @@ def test_valida_campos_obrigatorios_tipo_texto_articulado_form():
 
     assert errors['sigla'] == [_('Este campo é obrigatório.')]
     assert errors['descricao'] == [_('Este campo é obrigatório.')]
-    assert errors['content_type'] == [_('Este campo é obrigatório.')]
     assert errors['participacao_social'] == [_('Este campo é obrigatório.')]
     assert errors['publicacao_func'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 5
+    assert len(errors) == 4
 
 
-_content_types = choice_models_in_extenal_views()[1:]
+_content_types = choice_models_in_extenal_views()
 
 
 @pytest.mark.parametrize('content_type', _content_types)
