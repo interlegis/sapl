@@ -218,13 +218,12 @@ class AnularProcoloAdmForm(ModelForm):
 
         cleaned_data = super(AnularProcoloAdmForm, self).clean()
 
-        numero = cleaned_data.get("numero")
-        ano = cleaned_data.get("ano")
+        if not self.is_valid():
+            return cleaned_data
 
-        # se não inserido numero ou ano não prosseguir
-        # (e ele vai falhar pq numero e ano são obrigatórios)
-        if not numero or not ano:
-            return
+        numero = cleaned_data['numero']
+        ano = cleaned_data['ano']
+
         try:
             protocolo = Protocolo.objects.get(numero=numero, ano=ano)
             if protocolo.anulado:
@@ -234,6 +233,7 @@ class AnularProcoloAdmForm(ModelForm):
         except ObjectDoesNotExist:
             raise forms.ValidationError(
                 _("Protocolo %s/%s não existe" % (numero, ano)))
+
         exists = False
         if protocolo.tipo_materia:
             exists = MateriaLegislativa.objects.filter(

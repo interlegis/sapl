@@ -250,3 +250,20 @@ def test_create_tramitacao(admin_client):
     tramitacao = TramitacaoAdministrativo.objects.last()
     # Verifica se a tramitacao que obedece as regras de negócios é criada
     assert tramitacao.data_tramitacao == datetime.date(2016, 8, 21)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_anular_protocolo_dados_invalidos():
+    protocolo = mommy.make(Protocolo, pk=1, numero=1, ano=2017)
+
+    form = AnularProcoloAdmForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['numero'] == [_('Este campo é obrigatório.')]
+    assert errors['ano'] == [_('Este campo é obrigatório.')]
+    assert errors['justificativa_anulacao'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 3
