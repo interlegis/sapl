@@ -96,3 +96,20 @@ def test_bancada_form_valido():
                                           })
 
     assert form.is_valid()
+
+@pytest.mark.django_db(transaction=False)
+def test_bancada_form_datas_invalidas():
+    legislatura = mommy.make(Legislatura)
+    partido = mommy.make(Partido)
+
+
+    form = forms.BancadaForm(data={'legislatura': str(legislatura.pk),
+                                          'nome': 'Nome da Bancada',
+                                          'partido': str(partido.pk),
+                                          'data_criacao': '2016-11-01',
+                                          'data_extincao': '2016-10-01',
+                                          'descricao': 'teste'
+                                          })
+    assert not form.is_valid()
+    assert form.errors['__all__'] == [_('Data de extinção não pode ser menor '
+                                        'que a de criação')]
