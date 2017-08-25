@@ -1,7 +1,7 @@
-import logging
-import sys
 from collections import OrderedDict
 from datetime import timedelta
+import logging
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -19,8 +19,8 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -49,6 +49,7 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    get_integrations_view_names)
 from sapl.crud.base import Crud, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -449,15 +450,14 @@ class CompMixin(PermissionRequiredMixin):
                  _('Dispositivo está substituindo um Dispositivo de outro '
                    'Texto Articulado.'))
 
-            padd(r, type_notificacao,
+            padd(r.dispositivo_substituido, type_notificacao,
                  'sapl.compilacao:dispositivo_edit_alteracao',
                  r.dispositivo_substituido and
                  r.dispositivo_substituido.dispositivo_subsequente != r,
                  _('Dispositivo está substituindo um Dispositivo que não '
                    'possui este como seu Dispositivo Subsequente.'))
 
-            padd(r,
-                 type_notificacao,
+            padd(r.dispositivo_subsequente, type_notificacao,
                  'sapl.compilacao:dispositivo_edit_alteracao',
                  r.dispositivo_subsequente and
                  r.dispositivo_subsequente.dispositivo_substituido != r,

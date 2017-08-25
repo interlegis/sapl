@@ -22,7 +22,7 @@
           <td class="cp" width="63%" {% if not dpt.contextual_class %}colspan=2{% endif %} >
             <div class="dpt">
               <div class="{{ dpt.tipo_dispositivo.class_css }}">
-                <div class="dptt {% dispositivo_desativado dpt None None %} {{dpt.dispositivo_atualizador.tipo_dispositivo.class_css}}"  id="dptt{{dpt.pk}}" >
+                <div class="dptt {% dispositivo_desativado dpt None None %} {% if dpt.ta != object%}{{dpt.dispositivo_atualizador.tipo_dispositivo.class_css}}{% endif %}"  id="dptt{{dpt.pk}}" >
                   {{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
                   <a href="{% url 'sapl.compilacao:ta_text_edit' dpt.ta_id %}#{{dpt.pk}}">{% if dpt.rotulo or dpt.nivel = 1 %}{{ dpt.rotulo }}{%else%}[{{ dpt|nomenclatura}}{% if dpt.dispositivo_pai_id %} {% trans "de" %} {{ dpt.dispositivo_pai.rotulo }}{% endif %}] - {% endif %}</a>
                   {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
