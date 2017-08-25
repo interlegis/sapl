@@ -127,7 +127,6 @@ def test_mandato_submit(admin_client):
                               kwargs={'pk': 14}),
                       {'parlamentar': 14,  # hidden field
                        'legislatura': 5,
-                       'data_fim_mandato': '2016-01-01',
                        'data_expedicao_diploma': '2016-03-22',
                        'observacao': 'Observação do mandato',
                        'salvar': 'salvar'},
@@ -182,3 +181,32 @@ def test_mandato_form_duplicado():
     assert not form.is_valid()
 
     assert form.errors['__all__'] == ['Mandato nesta legislatura já existe.']
+
+@pytest.mark.django_db(transaction=False)
+def test_mandato_form_datas_invalidas():
+    parlamentar = mommy.make(Parlamentar, pk=1)
+    legislatura = mommy.make(Legislatura, pk=1,
+                             data_inicio='2017-01-01',
+                             data_fim='2021-12-31')
+
+    form = MandatoForm(data={
+        'parlamentar': str(parlamentar.pk),
+        'legislatura': str(legislatura.pk),
+        'data_expedicao_diploma': '2016-11-01',
+        'data_inicio_mandato': '2016-12-12',
+        'data_fim_mandato': '2019-10-09'
+    })
+
+    assert not form.is_valid()
+    assert form.errors['__all__'] == ['Data início mandato fora do intervalo de legislatura informada']
+
+    form = MandatoForm(data={
+        'parlamentar': str(parlamentar.pk),
+        'legislatura': str(legislatura.pk),
+        'data_expedicao_diploma': '2016-11-01',
+        'data_inicio_mandato': '2017-02-02',
+        'data_fim_mandato': '2022-01-01'
+    })
+
+    assert not form.is_valid()
+    assert form.errors['__all__'] == ['Data fim mandato fora do intervalo de legislatura informada']
