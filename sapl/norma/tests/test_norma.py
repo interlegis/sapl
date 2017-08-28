@@ -4,9 +4,9 @@ from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.norma.forms import (NormaJuridicaForm, NormaRelacionadaForm)
-from sapl.norma.models import (NormaJuridica, NormaRelacionada,
-                                TipoNormaJuridica, TipoVinculoNormaJuridica)
+from sapl.norma.forms import NormaJuridicaForm, NormaRelacionadaForm
+from sapl.norma.models import (NormaJuridica, TipoNormaJuridica,
+                               TipoVinculoNormaJuridica)
 
 
 @pytest.mark.django_db(transaction=False)
@@ -97,7 +97,6 @@ def test_norma_juridica_materia_inexistente():
 
 @pytest.mark.django_db(transaction=False)
 def test_norma_juridica_materia_existente():
-
     tipo = mommy.make(TipoNormaJuridica)
     tipo_materia = mommy.make(TipoMateriaLegislativa)
     materia = mommy.make(MateriaLegislativa,
@@ -117,6 +116,7 @@ def test_norma_juridica_materia_existente():
                                    })
     assert form.is_valid()
 
+
 @pytest.mark.django_db(transaction=False)
 def test_norma_relacionada_form_campos_obrigatorios():
     form = NormaRelacionadaForm(data={})
@@ -126,21 +126,22 @@ def test_norma_relacionada_form_campos_obrigatorios():
     errors = form.errors
 
     assert errors['tipo'] == [_('Este campo é obrigatório.')]
-    assert errors['numero'] ==[_('Este campo é obrigatório.')]
+    assert errors['numero'] == [_('Este campo é obrigatório.')]
     assert errors['ano'] == [_('Este campo é obrigatório.')]
     assert errors['tipo_vinculo'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 4
+
 
 @pytest.mark.django_db(transaction=False)
 def test_norma_relacionada_form_valido():
     tipo = mommy.make(TipoNormaJuridica)
     tipo_vinculo = mommy.make(TipoVinculoNormaJuridica)
 
-    form = forms.NormaRelacionadaForm(data={'tipo': str(tipo.pk),
-                                          'numero': '1',
-                                          'ano': '2017',
-                                          'tipo_vinculo': str(tipo_vinculo.pk)
-                                          })
+    form = NormaRelacionadaForm(data={'tipo': str(tipo.pk),
+                                      'numero': '1',
+                                      'ano': '2017',
+                                      'tipo_vinculo': str(tipo_vinculo.pk)
+                                      })
 
     assert form.is_valid()

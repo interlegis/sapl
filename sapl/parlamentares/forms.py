@@ -72,14 +72,14 @@ class MandatoForm(ModelForm):
         data_inicio_mandato = data['data_inicio_mandato']
         if data_inicio_mandato:
             if (data_inicio_mandato < legislatura.data_inicio or
-                data_inicio_mandato > legislatura.data_fim):
+                    data_inicio_mandato > legislatura.data_fim):
                 raise ValidationError(_("Data início mandato fora do intervalo "
                                         "de legislatura informada"))
 
         data_fim_mandato = data['data_fim_mandato']
         if data_fim_mandato:
             if (data_fim_mandato < legislatura.data_inicio or
-                data_fim_mandato > legislatura.data_fim):
+                    data_fim_mandato > legislatura.data_fim):
                 raise ValidationError(_("Data fim mandato fora do intervalo de "
                                         "legislatura informada"))
 

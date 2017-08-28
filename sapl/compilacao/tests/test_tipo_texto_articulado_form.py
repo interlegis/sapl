@@ -1,6 +1,6 @@
+import pytest
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
-import pytest
 
 from sapl.compilacao import forms
 from sapl.compilacao.models import PerfilEstruturalTextoArticulado

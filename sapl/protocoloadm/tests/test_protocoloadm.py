@@ -6,11 +6,11 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao)
+from sapl.materia.models import MateriaLegislativa, UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
                                      DocumentoAdministrativoForm,
                                      ProtocoloDocumentForm,
-                                     ProtocoloMateriaForm,)
+                                     ProtocoloMateriaForm)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo,
                                       TipoDocumentoAdministrativo,
@@ -300,6 +300,7 @@ def test_anular_protocolo_form_anula_protocolo_anulado():
     assert form.errors['__all__'] == [_(
         'Protocolo 1/2017 já encontra-se anulado')]
 
+
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
     tipo_materia = mommy.make(TipoMateriaLegislativa)
@@ -323,14 +324,14 @@ def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
 
     assert form.errors['__all__'] == \
         [_("Protocolo 1/2017 não pode ser removido pois existem "
-          "documentos vinculados a ele.")]
+           "documentos vinculados a ele.")]
 
     tipo_documento = mommy.make(TipoDocumentoAdministrativo)
     protocolo_documento = mommy.make(Protocolo,
-                                   numero=2,
-                                   ano=2017,
-                                   tipo_documento=tipo_documento,
-                                   anulado=False)
+                                     numero=2,
+                                     ano=2017,
+                                     tipo_documento=tipo_documento,
+                                     anulado=False)
 
     documento_administrativo = mommy.make(DocumentoAdministrativo,
                                           protocolo=protocolo_documento)
@@ -344,7 +345,7 @@ def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
 
     assert form.errors['__all__'] == \
         [_("Protocolo 2/2017 não pode ser removido pois existem "
-          "documentos vinculados a ele.")]
+           "documentos vinculados a ele.")]
 
 
 def test_documento_administrativo_invalido():
@@ -396,6 +397,7 @@ def test_protocolo_documento_form_invalido():
     assert errors['assunto'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 5
+
 
 def test_protocolo_materia_invalido():
 

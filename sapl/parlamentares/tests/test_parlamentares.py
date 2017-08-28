@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.parlamentares.forms import (LegislaturaForm, MandatoForm)
+from sapl.parlamentares.forms import LegislaturaForm, MandatoForm
 from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
                                        TipoDependente)
@@ -181,7 +181,9 @@ def test_mandato_form_duplicado():
 
     assert not form.is_valid()
 
-    assert form.errors['__all__'] == [_('Mandato nesta legislatura já existe.')]
+    assert form.errors['__all__'] == [
+        _('Mandato nesta legislatura já existe.')]
+
 
 @pytest.mark.django_db(transaction=False)
 def test_mandato_form_datas_invalidas():
@@ -230,13 +232,14 @@ def test_legislatura_form_invalido():
 
     assert len(errors) == 4
 
+
 def test_legislatura_form_datas_invalidas():
 
     legislatura_form = LegislaturaForm(data={'numero': '1',
                                              'data_inicio': '2017-02-01',
                                              'data_fim': '2021-12-31',
                                              'data_eleicao': '2017-02-01'
-                                        })
+                                             })
 
     assert not legislatura_form.is_valid()
 
@@ -248,7 +251,7 @@ def test_legislatura_form_datas_invalidas():
                                              'data_inicio': '2017-02-01',
                                              'data_fim': '2017-01-01',
                                              'data_eleicao': '2016-11-01'
-                                        })
+                                             })
 
     assert not legislatura_form.is_valid()
 

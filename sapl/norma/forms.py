@@ -133,9 +133,9 @@ class NormaJuridicaForm(ModelForm):
                     ano=cleaned_data['ano_materia'])
             except ObjectDoesNotExist:
                 raise forms.ValidationError(
-                _("Matéria %s/%s é inexistente." % (
-                    self.cleaned_data['numero_materia'],
-                    self.cleaned_data['ano_materia'])))
+                    _("Matéria %s/%s é inexistente." % (
+                        self.cleaned_data['numero_materia'],
+                        self.cleaned_data['ano_materia'])))
             else:
                 cleaned_data['materia'] = materia
 
