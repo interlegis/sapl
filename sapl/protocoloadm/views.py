@@ -11,10 +11,9 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, RedirectView
 from django_filters.views import FilterView
 
-import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
@@ -22,6 +21,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import create_barcode, get_client_ip
+import sapl
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -31,6 +31,7 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -99,14 +100,21 @@ class DocumentoAdministrativoCrud(Crud):
         def list_url(self):
             return ''
 
-    class ListView(DocumentoAdministrativoMixin, Crud.ListView):
-        pass
+    class ListView(RedirectView, DocumentoAdministrativoMixin, Crud.ListView):
 
-    class CreateView(DocumentoAdministrativoMixin, Crud.CreateView):
+        def get_redirect_url(self, *args, **kwargs):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesq_doc_adm'))
+
+    class CreateView(Crud.CreateView):
         form_class = DocumentoAdministrativoForm
         layout_key = None
 
-    class UpdateView(DocumentoAdministrativoMixin, Crud.UpdateView):
+        @property
+        def cancel_url(self):
+            return self.search_url
+
+    class UpdateView(Crud.UpdateView):
         form_class = DocumentoAdministrativoForm
         layout_key = None
 
@@ -126,10 +134,10 @@ class DocumentoAdministrativoCrud(Crud):
                     kwargs={'pk': self.object.pk}))
             return context
 
-    class DeleteView(DocumentoAdministrativoMixin, Crud.DeleteView):
+    class DeleteView(Crud.DeleteView):
 
         def get_success_url(self):
-            return reverse('sapl.protocoloadm:pesq_doc_adm', kwargs={})
+            return self.search_url
 
 
 class StatusTramitacaoAdministrativoCrud(CrudAux):
