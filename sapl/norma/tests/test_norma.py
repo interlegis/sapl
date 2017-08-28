@@ -4,8 +4,9 @@ from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.norma.forms import (NormaJuridicaForm,)
-from sapl.norma.models import NormaJuridica, TipoNormaJuridica
+from sapl.norma.forms import (NormaJuridicaForm, NormaRelacionadaForm)
+from sapl.norma.models import (NormaJuridica, NormaRelacionada,
+                                TipoNormaJuridica, TipoVinculoNormaJuridica)
 
 
 @pytest.mark.django_db(transaction=False)
@@ -114,4 +115,32 @@ def test_norma_juridica_materia_existente():
                                    'numero_materia': '2',
                                    'ano_materia': '2017'
                                    })
+    assert form.is_valid()
+
+@pytest.mark.django_db(transaction=False)
+def test_norma_relacionada_form_campos_obrigatorios():
+    form = NormaRelacionadaForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['tipo'] == [_('Este campo é obrigatório.')]
+    assert errors['numero'] ==[_('Este campo é obrigatório.')]
+    assert errors['ano'] == [_('Este campo é obrigatório.')]
+    assert errors['tipo_vinculo'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 4
+
+@pytest.mark.django_db(transaction=False)
+def test_norma_relacionada_form_valido():
+    tipo = mommy.make(TipoNormaJuridica)
+    tipo_vinculo = mommy.make(TipoVinculoNormaJuridica)
+
+    form = forms.NormaRelacionadaForm(data={'tipo': str(tipo.pk),
+                                          'numero': '1',
+                                          'ano': '2017',
+                                          'tipo_vinculo': str(tipo_vinculo.pk)
+                                          })
+
     assert form.is_valid()
