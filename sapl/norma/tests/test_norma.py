@@ -5,8 +5,7 @@ from model_mommy import mommy
 
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.norma.forms import NormaJuridicaForm, NormaRelacionadaForm
-from sapl.norma.models import (NormaJuridica, TipoNormaJuridica,
-                               TipoVinculoNormaJuridica)
+from sapl.norma.models import (NormaJuridica, TipoNormaJuridica)
 
 
 @pytest.mark.django_db(transaction=False)
@@ -131,17 +130,3 @@ def test_norma_relacionada_form_campos_obrigatorios():
     assert errors['tipo_vinculo'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 4
-
-
-@pytest.mark.django_db(transaction=False)
-def test_norma_relacionada_form_valido():
-    tipo = mommy.make(TipoNormaJuridica)
-    tipo_vinculo = mommy.make(TipoVinculoNormaJuridica)
-
-    form = NormaRelacionadaForm(data={'tipo': str(tipo.pk),
-                                      'numero': '1',
-                                      'ano': '2017',
-                                      'tipo_vinculo': str(tipo_vinculo.pk)
-                                      })
-
-    assert form.is_valid()
