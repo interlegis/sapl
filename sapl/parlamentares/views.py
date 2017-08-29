@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import json
 
 from django.contrib import messages
@@ -657,17 +657,20 @@ class MesaDiretoraView(FormView):
                 not SessaoLegislativa.objects.exists()):
             return self.validation(request)
 
-        sessao = SessaoLegislativa.objects.filter(
-            legislatura=Legislatura.objects.first()).first(
-        )
+        legislatura = Legislatura.objects.first()
+        sessoes = SessaoLegislativa.objects.filter(
+            legislatura=legislatura).order_by("data_inicio")
 
-        mesa = sessao.composicaomesa_set.all() if sessao else []
+        today = datetime.now()
+        sessao_atual = sessoes.filter(data_inicio__year=today.year).first()
+
+        mesa = sessao_atual.composicaomesa_set.all() if sessao_atual else []
 
         cargos_ocupados = [m.cargo for m in mesa]
         cargos = CargoMesa.objects.all()
         cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
-        parlamentares = Legislatura.objects.first().mandato_set.all()
+        parlamentares = legislatura.mandato_set.all()
         parlamentares_ocupados = [m.parlamentar for m in mesa]
         parlamentares_vagos = list(
             set(
@@ -682,11 +685,9 @@ class MesaDiretoraView(FormView):
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
-                'legislatura_selecionada': Legislatura.objects.first(),
-                'sessoes': SessaoLegislativa.objects.filter(
-                legislatura=Legislatura.objects.first()),
-                'sessao_selecionada': SessaoLegislativa.objects.filter(
-                legislatura=Legislatura.objects.first()).first(),
+                'legislatura_selecionada': legislatura,
+                'sessoes': sessoes,
+                'sessao_selecionada': sessao_atual,
                 'composicao_mesa': mesa,
                 'parlamentares': parlamentares_vagos,
                 'cargos_vagos': cargos_vagos
@@ -700,7 +701,6 @@ def altera_field_mesa(request):
         operação (Legislatura/Sessão/Inclusão/Remoção),
         atualizando os campos após cada alteração
     """
-
     legislatura = request.GET['legislatura']
     sessoes = SessaoLegislativa.objects.filter(
         legislatura=legislatura).order_by('-data_inicio')
@@ -716,9 +716,11 @@ def altera_field_mesa(request):
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
-        sessao_selecionada = SessaoLegislativa.objects.filter(
-            legislatura=legislatura).order_by(
-            '-data_inicio').first().id
+        today = datetime.now()
+        try:
+            sessao_selecionada = sessoes.get(data_inicio__year=today.year).id
+        except ObjectDoesNotExist:
+            sessao_selecionada = sessoes.first().id
 
     # Atualiza os componentes da view após a mudança
     composicao_mesa = ComposicaoMesa.objects.filter(
@@ -881,7 +883,11 @@ def altera_field_mesa_public_view(request):
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
-        sessao_selecionada = sessoes.first().id
+        try:
+            today = datetime.now()
+            sessao_selecionada = sessoes.get(data_inicio__year=today.year).id
+        except ObjectDoesNotExist as e:
+            sessao_selecionada = sessoes.first().id
 
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]

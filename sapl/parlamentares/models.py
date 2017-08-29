@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from sapl.base.models import Autor
+from sapl.decorators import vigencia_atual
 from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
                         SaplGenericRelation, get_settings_auth_user_model,
                         intervalos_tem_intersecao,
@@ -28,14 +29,12 @@ class Legislatura(models.Model):
         current_year = datetime.now().year
         return self.data_inicio.year <= current_year <= self.data_fim.year
 
+    @vigencia_atual
     def __str__(self):
-        current = ' (%s)' % _('Atual') if self.atual() else ''
-
-        return _('%(numero)sª (%(start)s - %(end)s)%(current)s') % {
+        return _('%(numero)sª (%(start)s - %(end)s)') % {
             'numero': self.numero,
             'start': self.data_inicio.year,
-            'end': self.data_fim.year,
-            'current': current}
+            'end': self.data_fim.year}
 
 
 @reversion.register()
@@ -64,6 +63,7 @@ class SessaoLegislativa(models.Model):
         verbose_name_plural = _('Sessões Legislativas')
         ordering = ['-data_inicio', '-data_fim']
 
+    @vigencia_atual
     def __str__(self):
         return _('%(numero)sº (%(inicio)s - %(fim)s)') % {
             'numero': self.numero,
