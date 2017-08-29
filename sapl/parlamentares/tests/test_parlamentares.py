@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.parlamentares.forms import LegislaturaForm, MandatoForm
+from sapl.parlamentares.forms import (FrenteForm, LegislaturaForm, MandatoForm)
 from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
                                        TipoDependente)
@@ -257,3 +257,45 @@ def test_legislatura_form_datas_invalidas():
 
     assert legislatura_form.errors['__all__'] == \
         [_("Intervalo de início e fim inválido para legislatura.")]
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_frente_form():
+    form = FrenteForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['nome'] == [_('Este campo é obrigatório.')]
+    assert errors['data_criacao'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 2
+
+
+@pytest.mark.django_db(transaction=False)
+def test_frente_form_valido():
+    parlamentares = mommy.make(Parlamentar)
+
+    form = FrenteForm(data={'nome': 'Nome da Frente',
+                            'parlamentar': str(parlamentares.pk),
+                            'data_criacao': '10/11/2017',
+                            'data_extincao': '10/12/2017',
+                            'descricao': 'teste'
+                            })
+
+    assert form.is_valid()
+
+@pytest.mark.django_db(transaction=False)
+def test_frente_form_datas_invalidas():
+    parlamentares = mommy.make(Parlamentar)
+
+    form = FrenteForm(data={'nome': 'Nome da Frente',
+                            'parlamentar': str(parlamentares.pk),
+                            'data_criacao': '10/11/2017',
+                            'data_extincao': '10/10/2017',
+                            'descricao': 'teste'
+                            })
+
+    assert form.is_valid()
+    assert form.errors['__all__'] == [_('Data de extinção não pode ser menor '
+                                        'que a de criação')]
