@@ -284,18 +284,3 @@ def test_frente_form_valido():
                             })
 
     assert form.is_valid()
-
-@pytest.mark.django_db(transaction=False)
-def test_frente_form_datas_invalidas():
-    parlamentares = mommy.make(Parlamentar)
-
-    form = FrenteForm(data={'nome': 'Nome da Frente',
-                            'parlamentar': str(parlamentares.pk),
-                            'data_criacao': '10/11/2017',
-                            'data_extincao': '10/10/2017',
-                            'descricao': 'teste'
-                            })
-
-    assert form.is_valid()
-    assert form.errors['__all__'] == [_('Data de extinção não pode ser menor '
-                                        'que a de criação')]
