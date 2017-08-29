@@ -12,6 +12,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
+from django.template import Context, loader, RequestContext
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
@@ -44,7 +45,8 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
-                    DocumentoAcessorioForm, MateriaAssuntoForm,
+                    DocumentoAcessorioForm, EtiquetaPesquisaForm,
+                    MateriaAssuntoForm,
                     MateriaLegislativaFilterSet, MateriaSimplificadaForm,
                     PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
                     RelatoriaForm, TramitacaoEmLoteFilterSet,
@@ -58,6 +60,8 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
+
+import weasyprint
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -1741,3 +1745,57 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
                 id__in=lista).distinct()
 
         return context
+
+
+class ImpressosView(PermissionRequiredMixin, TemplateView):
+    template_name = 'materia/impressos/impressos.html'
+    permission_required = ('materia.can_access_impressos', )
+
+def gerar_pdf_impressos(request, context):
+    template = loader.get_template('materia/impressos/pdf.html')
+    html = template.render(RequestContext(request, context))
+    response = HttpResponse(content_type="application/pdf")
+    weasyprint.HTML(
+        string=html,
+        base_url=request.build_absolute_uri()).write_pdf(
+        response)
+
+    return response
+
+
+class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
+    form_class = EtiquetaPesquisaForm
+    template_name = 'materia/impressos/etiqueta.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def form_valid(self, form):
+        context = {}
+
+        materias = MateriaLegislativa.objects.all().order_by(
+            '-data_apresentacao')
+
+        if form.cleaned_data['tipo_materia']:
+            materias = materias.filter(tipo=form.cleaned_data['tipo_materia'])
+
+        if form.cleaned_data['data_inicial']:
+            materias = materias.filter(
+                data_apresentacao__gte=form.cleaned_data['data_inicial'],
+                data_apresentacao__lte=form.cleaned_data['data_final'])
+
+        if form.cleaned_data['processo_inicial']:
+            materias = materias.filter(
+                numeracao__numero_materia__gte=form.cleaned_data[
+                    'processo_inicial'],
+                numeracao__numero_materia__lte=form.cleaned_data[
+                    'processo_final'])
+
+        context['quantidade'] = len(materias)
+
+        if context['quantidade'] > 20:
+            materias = materias[:20]
+
+        context['materias'] = materias
+
+        return gerar_pdf_impressos(self.request, context)
+
+

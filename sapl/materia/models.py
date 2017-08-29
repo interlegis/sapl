@@ -234,6 +234,8 @@ class MateriaLegislativa(models.Model):
         verbose_name_plural = _('Matérias Legislativas')
         unique_together = (("tipo", "numero", "ano"),)
 
+        permissions = (("can_access_impressos", "Can access impressos"),)
+
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
