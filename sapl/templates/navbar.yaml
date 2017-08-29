@@ -33,6 +33,9 @@
     - title: {% trans 'Acessório em Lote' %}
       url: sapl.materia:acessorio_em_lote
       check_permission: materia.list_documentoacessorio {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
+    - title: {% trans 'Impressos' %}
+      url: sapl.materia:impressos
+      check_permission: materia.can_access_impressos {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
     - title: {% trans 'Matérias Legislativas' %}
       url: sapl.materia:pesquisar_materia
     - title: {% trans 'Pautas das Sessões' %}

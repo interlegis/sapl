@@ -1747,9 +1747,9 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
         return context
 
 
-class ImpressosView(TemplateView):
+class ImpressosView(PermissionRequiredMixin, TemplateView):
     template_name = 'materia/impressos/impressos.html'
-
+    permission_required = ('materia.can_access_impressos', )
 
 def gerar_pdf_impressos(request, context):
     template = loader.get_template('materia/impressos/pdf.html')
@@ -1763,9 +1763,10 @@ def gerar_pdf_impressos(request, context):
     return response
 
 
-class EtiquetaPesquisaView(FormView):
+class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
     form_class = EtiquetaPesquisaForm
     template_name = 'materia/impressos/etiqueta.html'
+    permission_required = ('materia.can_access_impressos', )
 
     def form_valid(self, form):
         context = {}
