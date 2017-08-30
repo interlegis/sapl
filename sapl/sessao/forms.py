@@ -10,7 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import MateriaLegislativaFilterSet
-from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
+                                 TipoMateriaLegislativa)
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
@@ -50,6 +51,48 @@ ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
                     ('mesa_d', 'Mesa Diretora'),
                     ('oradores_exped', 'Oradores do Expediente'),
                     ('oradores_expli', 'Oradores das Explicações Pessoais')]
+
+
+class SessaoPlenariaForm(ModelForm):
+
+    class Meta:
+        model = SessaoPlenaria
+        exclude = ['cod_andamento_sessao']
+
+    def clean(self):
+        super(SessaoPlenariaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        instance = self.instance
+
+        num = self.cleaned_data['numero']
+        sl = self.cleaned_data['sessao_legislativa']
+        leg = self.cleaned_data['legislatura']
+        tipo = self.cleaned_data['tipo']
+
+        error = ValidationError(
+            "Número de Sessão Plenária já existente "
+            "para a Legislatura, Sessão Legislativa e Tipo informados. "
+            "Favor escolher um número distinto.")
+
+        sessoes = SessaoPlenaria.objects.filter(numero=num,
+                                                sessao_legislativa=sl,
+                                                legislatura=leg,
+                                                tipo=tipo).\
+            values_list('id', flat=True)
+
+        qtd_sessoes = len(sessoes)
+
+        if qtd_sessoes > 0:
+            if instance.pk:  # update
+                if instance.pk not in sessoes or qtd_sessoes > 1:
+                    raise error
+            else:  # create
+                raise error
+
+        return self.cleaned_data
 
 
 class BancadaForm(ModelForm):
@@ -255,10 +298,15 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
 class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
 
     o = MateriaPesquisaOrderingFilter()
+    tramitacao__status = django_filters.ModelChoiceFilter(
+        required=True,
+        queryset=StatusTramitacao.objects.all(),
+        label=_('Status da Matéria'))
 
     class Meta:
         model = MateriaLegislativa
-        fields = ['numero',
+        fields = ['tramitacao__status',
+                  'numero',
                   'numero_protocolo',
                   'ano',
                   'tipo',
@@ -280,15 +328,17 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
         self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
 
         row1 = to_row(
-            [('tipo', 12)])
+            [('tramitacao__status', 12)])
         row2 = to_row(
+            [('tipo', 12)])
+        row3 = to_row(
             [('numero', 4),
              ('ano', 4),
              ('numero_protocolo', 4)])
-        row3 = to_row(
+        row4 = to_row(
             [('data_apresentacao', 6),
              ('data_publicacao', 6)])
-        row4 = to_row(
+        row5 = to_row(
             [('autoria__autor', 0),
              (Button('pesquisar',
                      'Pesquisar Autor',
@@ -296,17 +346,17 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
              (Button('limpar',
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
-        row5 = to_row(
+        row6 = to_row(
             [('autoria__autor__tipo', 6),
              # ('autoria__autor__partido', 6)
              ])
-        row6 = to_row(
+        row7 = to_row(
             [('relatoria__parlamentar_id', 6),
              ('local_origem_externa', 6)])
-        row7 = to_row(
+        row8 = to_row(
             [('em_tramitacao', 6),
              ('o', 6)])
-        row8 = to_row(
+        row9 = to_row(
             [('ementa', 12)])
 
         self.form.helper = FormHelper()
@@ -316,7 +366,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                      row1, row2, row3,
                      HTML(autor_label),
                      HTML(autor_modal),
-                     row4, row5, row6, row7, row8,
+                     row4, row5, row6, row7, row8, row9,
                      form_actions(save_label='Pesquisar'))
         )
 

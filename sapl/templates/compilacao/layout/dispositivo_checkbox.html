@@ -3,18 +3,18 @@
 
 <div class="controls cp lista-dispositivo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
   {% include 'bootstrap/layout/field_errors_block.html' %}
-
   {% for choice in  field.field.choices %}
-
     {% ifchanged choice.1.ta%}
       {% if not forloop.first %}</ul>{% endif %}
         <ul id="ta{{choice.1.ta.pk}}">
           <li class="ta_title">
-            <div class="iteminput">
-                <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="ta_select_all"  id="ta_title{{choice.1.ta.pk}}" value="{{choice.1.ta.pk}}"/>
-            </div>
-            <div class="itemlabel">
-                <label for="ta_title{{choice.1.ta.pk}}">{{choice.1.ta}}</label>
+            <div class="itemlabel controls controls-radio-checkbox">
+              <div class="checkbox">
+                <label for="ta_title{{choice.1.ta.pk}}">
+                  <input type="{{field.field.widget.attrs|lookup:"data-type-selection"}}" name="ta_select_all"  id="ta_title{{choice.1.ta.pk}}" value="{{choice.1.ta.pk}}"/>
+                  {{choice.1.ta}}
+                </label>
+              </div>
             </div>
           </li>
     {% endifchanged %}
@@ -40,8 +40,15 @@
                 {{ choice.1.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
               </a>
             {% endif %}
+
           </div>
         </div>
+          <div class="label_vigencia">
+            {% if choice.1.inicio_vigencia %}{% trans "Início de Vigência:" %}<span> {{choice.1.inicio_vigencia|default:''}}.</span>{% endif %}
+            {% if choice.1.fim_vigencia %}{% trans "Fim de Vigência:" %}<span> {{choice.1.fim_vigencia|default:''}}.</span>{% endif %}<br>
+            {% if choice.1.inicio_eficacia %}{% trans "Início de Eficácia:" %}<span> {{choice.1.inicio_eficacia|default:''}}.</span>{% endif %}
+            {% if choice.1.fim_eficacia %}{% trans "Fim de Eficácia:" %}<span> {{choice.1.fim_eficacia|default:''}}.</span>{% endif %}
+          </div>
       </div>
     </li>
 

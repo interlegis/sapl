@@ -2,12 +2,13 @@ from django.conf.urls import include, url
 
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
-                                AcompanhamentoMateriaView,
-                                AdicionarVariasAutorias, AnexadaCrud,
+                                AcompanhamentoMateriaView, AnexadaCrud,
                                 AssuntoMateriaCrud, AutoriaCrud,
-                                ConfirmarProposicao, CriarProtocoloMateriaView,
-                                DespachoInicialCrud, DocumentoAcessorioCrud,
+                                AutoriaMultiCreateView, ConfirmarProposicao,
+                                CriarProtocoloMateriaView, DespachoInicialCrud,
+                                DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
+                                ImpressosView, EtiquetaPesquisaView,
                                 LegislacaoCitadaCrud, MateriaAssuntoCrud,
                                 MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
@@ -25,9 +26,16 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
 
 from .apps import AppConfig
 
-from . import receivers
-
 app_name = AppConfig.name
+
+urlpatterns_impressos = [
+    url(r'^materia/impressos/$',
+        ImpressosView.as_view(),
+        name='impressos'),
+    url(r'^materia/impressos/etiqueta-pesquisa/$',
+        EtiquetaPesquisaView.as_view(),
+        name='impressos_etiqueta'),
+]
 
 urlpatterns_materia = [
     url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
@@ -60,9 +68,9 @@ urlpatterns_materia = [
         AcompanhamentoExcluirView.as_view(),
         name='acompanhar_excluir'),
 
-    url(r'^materia/(?P<pk>\d+)/adicionar-varias-autorias/',
-        AdicionarVariasAutorias.as_view(),
-        name='adicionar_varias_autorias'),
+    url(r'^materia/(?P<pk>\d+)/autoria/multicreate',
+        AutoriaMultiCreateView.as_view(),
+        name='autoria_multicreate'),
 
     url(r'^materia/acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
         name='acessorio_em_lote'),
@@ -120,5 +128,5 @@ urlpatterns_sistema = [
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
 ]
 
-urlpatterns = urlpatterns_materia + \
+urlpatterns = urlpatterns_impressos + urlpatterns_materia + \
     urlpatterns_proposicao + urlpatterns_sistema

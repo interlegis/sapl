@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import reversion
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -8,7 +9,6 @@ from django.db import models
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-import reversion
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
@@ -18,7 +18,6 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
-
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
@@ -234,6 +233,8 @@ class MateriaLegislativa(models.Model):
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
         unique_together = (("tipo", "numero", "ano"),)
+
+        permissions = (("can_access_impressos", "Can access impressos"),)
 
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {

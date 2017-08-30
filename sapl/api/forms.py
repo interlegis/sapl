@@ -1,9 +1,9 @@
-from django.db.models import Q, F
+from django.db.models import Q
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django_filters.filters import MethodFilter, ModelChoiceFilter, DateFilter
+from django_filters.filters import DateFilter, MethodFilter, ModelChoiceFilter
 from rest_framework import serializers
 from rest_framework.compat import django_filters
 from rest_framework.filters import FilterSet
@@ -168,13 +168,13 @@ class AutoresPossiveisFilterSet(FilterSet):
         if not hasattr(self, filter_for_model):
             return qs
 
-        return getattr(self, filter_for_model)(qs, data_relativa)
-
-    def filter_parlamentar(self, queryset, data_relativa):
-        # não leva em conta afastamentos
         if not data_relativa:
             data_relativa = timezone.now()
 
+        return getattr(self, filter_for_model)(qs, data_relativa).distinct()
+
+    def filter_parlamentar(self, queryset, data_relativa):
+        # não leva em conta afastamentos
         legislatura_relativa = Legislatura.objects.filter(
             data_inicio__lte=data_relativa,
             data_fim__gte=data_relativa).first()
@@ -188,26 +188,42 @@ class AutoresPossiveisFilterSet(FilterSet):
         if legislatura_relativa.atual():
             params['parlamentar_set__ativo'] = True
 
-        qs = queryset.filter(**params).distinct()
+        qs = queryset.filter(**params)
 
         return qs
 
-    def filter_frente(self, queryset, data_relativa):
-        # implementar regras específicas para frente
-        return queryset
-
     def filter_comissao(self, queryset, data_relativa):
-        # implementar regras específicas para comissao
-        return queryset
+        return queryset.filter(
+            Q(comissao_set__data_extincao__isnull=True,
+              comissao_set__data_fim_comissao__isnull=True) |
+            Q(comissao_set__data_extincao__gte=data_relativa,
+              comissao_set__data_fim_comissao__isnull=True) |
+            Q(comissao_set__data_extincao__gte=data_relativa,
+              comissao_set__data_fim_comissao__isnull=True) |
+            Q(comissao_set__data_extincao__isnull=True,
+              comissao_set__data_fim_comissao__gte=data_relativa) |
+            Q(comissao_set__data_extincao__gte=data_relativa,
+              comissao_set__data_fim_comissao__gte=data_relativa),
+            comissao_set__data_criacao__lte=data_relativa)
 
-    def filter_orgao(self, queryset, data_relativa):
-        # implementar regras específicas para orgao
-        return queryset
+    def filter_frente(self, queryset, data_relativa):
+        return queryset.filter(
+            Q(frente_set__data_extincao__isnull=True) |
+            Q(frente_set__data_extincao__gte=data_relativa),
+            frente_set__data_criacao__lte=data_relativa)
 
     def filter_bancada(self, queryset, data_relativa):
-        # implementar regras específicas para bancada
-        return queryset
+        return queryset.filter(
+            Q(bancada_set__data_extincao__isnull=True) |
+            Q(bancada_set__data_extincao__gte=data_relativa),
+            bancada_set__data_criacao__lte=data_relativa)
 
     def filter_bloco(self, queryset, data_relativa):
-        # implementar regras específicas para bloco
+        return queryset.filter(
+            Q(bloco_set__data_extincao__isnull=True) |
+            Q(bloco_set__data_extincao__gte=data_relativa),
+            bloco_set__data_criacao__lte=data_relativa)
+
+    def filter_orgao(self, queryset, data_relativa):
+        # na implementação, não havia regras a implementar para orgao
         return queryset

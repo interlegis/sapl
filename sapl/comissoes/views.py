@@ -72,7 +72,7 @@ class ComposicaoCrud(MasterDetailCrud):
 
             context['participacao_set'] = Participacao.objects.filter(
                 composicao__pk=context['composicao_pk']
-                ).order_by('parlamentar')
+            ).order_by('parlamentar')
             return context
 
 
@@ -82,19 +82,21 @@ class ComissaoCrud(Crud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['nome', 'sigla', 'tipo', 'data_criacao', 'data_extincao', 'ativa']
+        list_field_names = ['nome', 'sigla', 'tipo',
+                            'data_criacao', 'data_extincao', 'ativa']
         ordering = '-ativa', 'sigla'
 
     class ListView(Crud.ListView):
+
         @xframe_options_exempt
         def get(self, request, *args, **kwargs):
             return super().get(request, *args, **kwargs)
 
     class DetailView(Crud.DetailView):
+
         @xframe_options_exempt
         def get(self, request, *args, **kwargs):
             return super().get(request, *args, **kwargs)
-
 
 
 class MateriasTramitacaoListView(ListView):

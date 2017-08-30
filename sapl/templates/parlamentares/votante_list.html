@@ -7,7 +7,7 @@
     <div class="actions btn-group pull-right btn-group-lg" role="group">
       {% if view.create_url %}
       <a href="{{ view.create_url }}" class="btn btn-default">
-        {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+        {% blocktrans with verbose_name=view.verbose_name %} Vincular {{ verbose_name }} {% endblocktrans %}
       </a>
       {% endif %}
       {% block more_buttons %}{% endblock more_buttons %}

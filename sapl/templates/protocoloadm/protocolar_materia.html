@@ -6,10 +6,51 @@
 
   {{ block.super }}
   <div class="actions btn-group pull-right grid-gutter-width-right " role="group">
-    <a href="{% url 'protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+    <a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
   </div>
 {% endblock %}
 
 {% block detail_content %}
 	{% crispy form %}
 {% endblock detail_content %}
+
+{% block extra_js %}
+   <script language="Javascript">
+
+     function compare(a, b) {
+       if (a.text < b.text)
+         return -1;
+       if (a.text > b.text)
+         return 1;
+       return 0;
+     }
+
+      $(document).ready(function() {
+          $("#id_tipo_autor").change(function() {
+              var tipo_selecionado = $("#id_tipo_autor").val();
+              var autor_selecionado = $("#id_autor").val();
+              $("#id_autor option").remove()
+              if (tipo_selecionado !== undefined && tipo_selecionado !== null) {
+                var json_data = {
+                   tipo : tipo_selecionado
+                }
+                $.getJSON("/api/autor/possiveis", json_data, function(data){
+                    if (data) {
+                      var results = data.sort(compare);
+                      if (results.length > 1) {
+                        $("#id_autor").append("<option>-----</option>");
+                      }
+                      $.each(results, function(idx, obj) {
+                          $("#id_autor")
+                            .append($("<option></option>")
+                            .attr("value", obj.value)
+                            .text(obj.text));
+                      });
+                      $("#id_autor").prop("selectedIndex", 0);
+                    }
+                });
+            }
+          });
+      });
+   </script>
+{% endblock %}

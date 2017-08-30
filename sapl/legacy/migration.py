@@ -12,25 +12,22 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import OperationalError, ProgrammingError, connections, models
-from django.db.models import CharField, Max, ProtectedError, TextField, Count
+from django.db.models import CharField, Count, Max, ProtectedError, TextField
 from django.db.models.base import ModelBase
-from django.db.models.signals import post_delete, post_save
 from model_mommy import mommy
 from model_mommy.mommy import foreign_key_required, make
 
 from sapl.base.models import Argumento, Autor, Constraint, ProblemaMigracao
 from sapl.comissoes.models import Comissao, Composicao, Participacao
-from sapl.legacy.models import Protocolo as ProtocoloLegado
-from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
-                                 MateriaLegislativa, Proposicao,
+from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.norma.models import (AssuntoNorma, NormaJuridica,
-                               TipoVinculoNormaJuridica, NormaRelacionada)
-from sapl.parlamentares.models import (Legislatura,Mandato, Parlamentar,
+from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+                               TipoVinculoNormaJuridica)
+from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
                                        TipoAfastamento)
-from sapl.protocoloadm.models import (DocumentoAdministrativo,Protocolo,
+from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
 from sapl.settings import PROJECT_DIR
@@ -162,7 +159,7 @@ def get_fk_related(field, value, label=None):
                             value = TipoProposicao.objects.create(
                                 id=value, descricao='Erro', content_type=ct)
                         ultimo_valor = get_last_value(type(value))
-                        alter_sequence(type(value), ultimo_valor+1)
+                        alter_sequence(type(value), ultimo_valor + 1)
                     else:
                         value = tipo[0]
                 else:
@@ -252,7 +249,7 @@ def problema_duplicatas(model, lista_duplicatas, argumentos):
         string_pks = ""
         problema = "%s de PK %s não é único." % (model.__name__, obj.pk)
         args_dict = {k: obj.__dict__[k]
-                    for k in set(argumentos) & set(obj.__dict__.keys())}
+                     for k in set(argumentos) & set(obj.__dict__.keys())}
         for dup in model.objects.filter(**args_dict):
             pks.append(dup.pk)
         string_pks = "(" + ", ".join(map(str, pks)) + ")"
@@ -407,7 +404,7 @@ def fill_vinculo_norma_juridica():
               'Julgada parcialmente inconstitucional')]
     lista_objs = [TipoVinculoNormaJuridica(
         sigla=item[0], descricao_ativa=item[1], descricao_passiva=item[2])
-                  for item in lista]
+        for item in lista]
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
 
@@ -610,7 +607,7 @@ class DataMigrator:
 
         # necessário para ajustar sequence da tabela para o ultimo valor de id
         ultimo_valor = get_last_value(model)
-        alter_sequence(model, ultimo_valor+1)
+        alter_sequence(model, ultimo_valor + 1)
 
     def delete_ind_excluido(self):
         excluidos = 0
@@ -665,15 +662,15 @@ def adjust_documentoadministrativo(new, old):
         except Exception:
             try:
                 protocolo = Protocolo.objects.get(numero=new.numero_protocolo,
-                                                  ano=new.ano+1)
+                                                  ano=new.ano + 1)
                 new.protocolo = protocolo
             except Exception:
                 protocolo = mommy.make(Protocolo, numero=new.numero_protocolo,
                                        ano=new.ano)
                 with reversion.create_revision():
                     problema = 'Protocolo Vinculado [numero_protocolo=%s, '\
-                            'ano=%s] não existe' % (new.numero_protocolo,
-                                                    new.ano)
+                        'ano=%s] não existe' % (new.numero_protocolo,
+                                                new.ano)
                     descricao = 'O protocolo inexistente foi criado'
                     warn(problema + ' => ' + descricao)
                     save_relation(obj=protocolo, problema=problema,
@@ -751,7 +748,7 @@ def adjust_proposicao_antes_salvar(new, old):
 def adjust_proposicao_depois_salvar(new, old):
     if not hasattr(old.dat_envio, 'year') or old.dat_envio.year == 1800:
         msg = "O valor do campo data_envio (DateField) da model Proposicao"\
-                " era inválido"
+            " era inválido"
         descricao = 'A data 1111-11-11 foi colocada no lugar'
         problema = 'O valor da data era nulo ou inválido'
         warn(msg + ' => ' + descricao)
@@ -816,7 +813,6 @@ def adjust_tipoafastamento(new, old):
         new.indicador = 'A'
 
 
-
 def adjust_tipoproposicao(new, old):
     if old.ind_mat_ou_doc == 'M':
         new.tipo_conteudo_related = TipoMateriaLegislativa.objects.get(
@@ -870,7 +866,7 @@ def adjust_autor(new, old):
         except Exception:
             with reversion.create_revision():
                 msg = 'Um parlamentar relacionado de PK [%s] não existia' \
-                        % old.cod_parlamentar
+                    % old.cod_parlamentar
                 reversion.set_comment('Stub criado pela migração')
                 value = make_stub(Parlamentar, old.cod_parlamentar)
                 descricao = 'stub criado para entrada orfã!'
@@ -898,13 +894,13 @@ def adjust_autor(new, old):
 
 
 def adjust_comissao(new, old):
-    if old.dat_extincao:
-        if date.today() < new.data_extincao:
-            new.ativa = True
-        else:
-            new.ativa = False
-    if not old.dat_extincao:
+    if not old.dat_extincao and not old.dat_fim_comissao:
         new.ativa = True
+    elif old.dat_extincao and date.today() < new.data_extincao or \
+            old.dat_fim_comissao and date.today() < new.data_fim_comissao:
+        new.ativa = True
+    else:
+        new.ativa = False
 
 
 AJUSTE_ANTES_SALVAR = {

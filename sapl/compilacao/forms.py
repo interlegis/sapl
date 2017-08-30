@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 from crispy_forms.bootstrap import (Alert, FieldWithButtons, FormActions,
-                                    InlineRadios, StrictButton)
+                                    InlineCheckboxes, InlineRadios,
+                                    StrictButton)
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row, Submit)
@@ -859,6 +860,21 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
             ('fim_vigencia', 3),
             ('inicio_eficacia', 3),
             ('fim_eficacia', 3), ])
+
+        inst = kwargs['instance']
+        while inst.auto_inserido and inst.dispositivo_pai:
+            inst = inst.dispositivo_pai
+
+        if (inst.dispositivos_vigencias_set.exists()):
+            row_datas.fields.append(
+                Alert(
+                    css_class='alert-info col-md-12',
+                    content='<strong>%s</strong> %s' % (
+                        _('Atenção!'),
+                        _('O Dispositivo em edição define vigência de outros '
+                          'dispositivos. Alterar as datas de vigência '
+                          'alterará as datas de vigência dos dispositivos '
+                          'vigêntes por este em edição.'))))
         layout.append(
             Fieldset(_('Datas de Controle de Vigência'),
                      row_datas,
@@ -909,17 +925,26 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
         super(DispositivoEdicaoVigenciaForm, self).save()
 
         data = self.cleaned_data
+        instance = self.instance
+        inst = instance
+
+        while instance.auto_inserido and instance.dispositivo_pai:
+            dp = instance.dispositivo_pai
+            dp.inicio_vigencia = instance.inicio_vigencia
+            dp.inicio_eficacia = instance.inicio_eficacia
+            dp.fim_vigencia = instance.fim_vigencia
+            dp.fim_eficacia = instance.fim_vigencia
+            dp.save()
+
+            instance = dp
+
+        dv = data['dispositivo_vigencia']
+        if dv and dv.auto_inserido:
+            dv = dv.dispositivo_pai
 
         extensao = 'extensao' in data and data['extensao'] == 'True'
-
         if extensao:
-            dv = data['dispositivo_vigencia']
-
-            if dv and dv.auto_inserido:
-                dv = dv.dispositivo_pai
-
             dv_pk = dv.pk if dv else None
-            instance = self.instance
 
             def extenderPara(dpt_pk):
 
@@ -935,6 +960,26 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
                     extenderPara(d)
 
             extenderPara(instance.pk)
+
+        inst = instance
+        while instance.auto_inserido and instance.dispositivo_pai:
+            instance = instance.dispositivo_pai
+
+        inst.dispositivos_vigencias_set.filter(
+            ta_publicado__isnull=True).update(
+                inicio_vigencia=inst.inicio_vigencia,
+                inicio_eficacia=inst.inicio_eficacia,
+                fim_vigencia=inst.fim_vigencia,
+                fim_eficacia=inst.fim_eficacia)
+
+        inst.dispositivos_vigencias_set.filter(
+            ta_publicado__isnull=False).update(
+                inicio_vigencia=inst.inicio_eficacia,
+                inicio_eficacia=inst.inicio_eficacia,
+                fim_vigencia=inst.fim_eficacia,
+                fim_eficacia=inst.fim_eficacia)
+
+        return inst
 
 
 class MultipleChoiceWithoutValidationField(forms.MultipleChoiceField):
@@ -1249,20 +1294,20 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
 
 class TextNotificacoesForm(Form):
 
-    type_notificacoes = forms.ChoiceField(
+    type_notificacoes = forms.MultipleChoiceField(
         label=_('Níveis de Notificações'),
         choices=[('default', _('Dispositivos sem Notificações!')),
                  ('success', _('Informações!')),
                  ('info', _('Boas Práticas!')),
                  ('warning', _('Alertas!')),
                  ('danger', _('Erros!'))],
-        required=False)
+        required=False,
+        widget=widgets.CheckboxSelectMultiple())
 
     def __init__(self, *args, **kwargs):
 
-        field_type_notificacoes = to_row([(Field(
-            'type_notificacoes',
-            template="compilacao/layout/bootstrap_btn_checkbox.html"), 10),
+        field_type_notificacoes = to_row([(InlineCheckboxes(
+            'type_notificacoes'), 10),
             (Submit('submit-form', _('Filtrar'),
                     css_class='btn btn-primary pull-right'), 2)])
 

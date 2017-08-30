@@ -25,13 +25,13 @@ from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
-from sapl.materia.forms import pega_ultima_tramitacao
+from sapl.materia.forms import filtra_tramitacao_status
 from sapl.materia.models import (Autoria, DocumentoAcessorio,
                                  TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import (Filiacao, Legislatura, Parlamentar,
-                                       SessaoLegislativa, Mandato)
+from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
+                                       Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 
@@ -39,14 +39,14 @@ from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, OradorExpedienteForm,
                     OradorForm, PautaSessaoFilterSet, PresencaForm,
                     ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
-                    VotacaoEditForm, VotacaoForm, VotacaoNominalForm)
+                    SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
+                    VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
-                     TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar)
+                     TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
@@ -80,6 +80,7 @@ def reordernar_materias_ordem(request, pk):
 
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
+
 
 def verifica_presenca(request, model, spk):
     if not model.objects.filter(sessao_plenaria_id=spk).exists():
@@ -118,7 +119,7 @@ def abrir_votacao_expediente_view(request, pk, spk):
     if verifica_presenca(request, SessaoPlenariaPresenca, spk):
         verifica_votacoes_abertas(request, ExpedienteMateria, pk)
     return HttpResponseRedirect(
-            reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': spk}))
+        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': spk}))
 
 
 @permission_required('sessao.change_ordemdia')
@@ -126,7 +127,7 @@ def abrir_votacao_ordem_view(request, pk, spk):
     if verifica_presenca(request, PresencaOrdemDia, spk):
         verifica_votacoes_abertas(request, OrdemDia, pk)
     return HttpResponseRedirect(
-            reverse('sapl.sessao:ordemdia_list', kwargs={'pk': spk}))
+        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': spk}))
 
 
 def put_link_materia(context):
@@ -162,7 +163,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['numero_ordem', 'materia', 'observacao',
+        list_field_names = ['numero_ordem', 'materia', 'materia__ementa',
                             'resultado']
 
     class CreateView(MasterDetailCrud.CreateView):
@@ -172,8 +173,10 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             self.initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = OrdemDia.objects.filter(
-              sessao_plenaria=self.kwargs['pk']).aggregate(Max('numero_ordem'))['numero_ordem__max']
-            self.initial['numero_ordem'] = (max_numero_ordem if max_numero_ordem else 0) + 1
+                sessao_plenaria=self.kwargs['pk']).aggregate(
+                    Max('numero_ordem'))['numero_ordem__max']
+            self.initial['numero_ordem'] = (
+                max_numero_ordem if max_numero_ordem else 0) + 1
             return self.initial
 
         def get_success_url(self):
@@ -196,6 +199,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             return 'OrdemDiaDetail'
 
     class ListView(MasterDetailCrud.ListView):
+        paginate_by = None
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
@@ -313,9 +317,10 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['numero_ordem', 'materia',
-                            'observacao', 'resultado']
+                            'materia__ementa', 'resultado']
 
     class ListView(MasterDetailCrud.ListView):
+        paginate_by = None
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
@@ -370,7 +375,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                 else:
                     url = ''
                     resultado = obj.registrovotacao_set.get(
-                                    materia_id=obj.materia_id)
+                        materia_id=obj.materia_id)
                     resultado_descricao = resultado.tipo_resultado_votacao.nome
                     resultado_observacao = resultado.observacao
                     if self.request.user.has_module_perms(AppConfig.label):
@@ -422,8 +427,10 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             self.initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = ExpedienteMateria.objects.filter(
-              sessao_plenaria=self.kwargs['pk']).aggregate(Max('numero_ordem'))['numero_ordem__max']
-            self.initial['numero_ordem'] = (max_numero_ordem if max_numero_ordem else 0) + 1
+                sessao_plenaria=self.kwargs['pk']).aggregate(
+                    Max('numero_ordem'))['numero_ordem__max']
+            self.initial['numero_ordem'] = (
+                max_numero_ordem if max_numero_ordem else 0) + 1
             return self.initial
 
         def get_success_url(self):
@@ -543,10 +550,14 @@ class SessaoCrud(Crud):
 
     class UpdateView(Crud.UpdateView):
 
+        form_class = SessaoPlenariaForm
+
         def get_initial(self):
             return {'sessao_legislativa': self.object.sessao_legislativa}
 
     class CreateView(Crud.CreateView):
+
+        form_class = SessaoPlenariaForm
 
         @property
         def cancel_url(self):
@@ -614,12 +625,12 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
         if form.is_valid():
             # Pegar os presentes salvos no banco
             presentes_banco = SessaoPlenariaPresenca.objects.filter(
-                                sessao_plenaria_id=self.object.id).values_list(
-                                'parlamentar_id', flat=True).distinct()
+                sessao_plenaria_id=self.object.id).values_list(
+                'parlamentar_id', flat=True).distinct()
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                     + request.POST.getlist('presenca_inativos')
+                + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -719,17 +730,15 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
         self.object = self.get_object()
         form = self.get_form()
 
-        pk = kwargs['pk']
-
         if form.is_valid():
             # Pegar os presentes salvos no banco
             presentes_banco = PresencaOrdemDia.objects.filter(
-                                sessao_plenaria_id=self.object.id).values_list(
-                                'parlamentar_id', flat=True).distinct()
+                sessao_plenaria_id=self.object.id).values_list(
+                'parlamentar_id', flat=True).distinct()
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                     + request.POST.getlist('presenca_inativos')
+                + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -769,7 +778,7 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
 
         materias_ordem = []
         for o in ordem:
-            ementa = o.observacao
+            ementa = o.materia.ementa
             titulo = o.materia
             numero = o.numero_ordem
 
@@ -829,7 +838,7 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
 
                 materias_ordem = []
                 for o in ordem:
-                    ementa = o.observacao
+                    ementa = o.materia.ementa
                     titulo = o.materia
                     numero = o.numero_ordem
 
@@ -1013,24 +1022,24 @@ def remove_parlamentar_composicao(request):
         '%s.delete_%s' % (
             AppConfig.label, IntegranteMesa._meta.model_name)):
 
-            if 'composicao_mesa' in request.POST:
-                try:
-                    composicao = IntegranteMesa.objects.get(
-                        id=int(request.POST['composicao_mesa']))
-                except ObjectDoesNotExist:
-                    return JsonResponse(
-                        {'msg': (
-                            'Composição da Mesa não pôde ser removida!', 0)})
-
-                composicao.delete()
-
+        if 'composicao_mesa' in request.POST:
+            try:
+                composicao = IntegranteMesa.objects.get(
+                    id=int(request.POST['composicao_mesa']))
+            except ObjectDoesNotExist:
                 return JsonResponse(
                     {'msg': (
-                        'Parlamentar excluido com sucesso!', 1)})
-            else:
-                return JsonResponse(
-                    {'msg': (
-                        'Selecione algum parlamentar para ser excluido!', 0)})
+                        'Composição da Mesa não pôde ser removida!', 0)})
+
+            composicao.delete()
+
+            return JsonResponse(
+                {'msg': (
+                    'Parlamentar excluido com sucesso!', 1)})
+        else:
+            return JsonResponse(
+                {'msg': (
+                    'Selecione algum parlamentar para ser excluido!', 0)})
 
 
 class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
@@ -1159,7 +1168,7 @@ class ResumoView(DetailView):
         materias_expediente = []
         for m in materias:
 
-            ementa = m.observacao
+            ementa = m.materia.ementa
             titulo = m.materia
             numero = m.numero_ordem
 
@@ -1219,7 +1228,7 @@ class ResumoView(DetailView):
             sessao_plenaria_id=self.object.id)
         materias_ordem = []
         for o in ordem:
-            ementa = o.observacao
+            ementa = o.materia.ementa
             titulo = o.materia
             numero = o.numero_ordem
 
@@ -1250,21 +1259,22 @@ class ResumoView(DetailView):
         # =====================================================================
         # Oradores nas Explicações Pessoais
         oradores_explicacoes = []
-        for orador in Orador.objects.filter(sessao_plenaria_id=self.object.id):
-                for parlamentar in Parlamentar.objects.filter(
-                        id=orador.parlamentar.id):
-                    partido_sigla = Filiacao.objects.filter(
-                        parlamentar=parlamentar).last()
-                    if not partido_sigla:
-                        sigla = ''
-                    else:
-                        sigla = partido_sigla.partido.sigla
-                    oradores = {
-                        'numero_ordem': orador.numero_ordem,
-                        'parlamentar': parlamentar,
-                        'sgl_partido': sigla
-                    }
-                    oradores_explicacoes.append(oradores)
+        for orador in Orador.objects.filter(
+                sessao_plenaria_id=self.object.id).order_by('numero_ordem'):
+            for parlamentar in Parlamentar.objects.filter(
+                    id=orador.parlamentar.id):
+                partido_sigla = Filiacao.objects.filter(
+                    parlamentar=parlamentar).last()
+                if not partido_sigla:
+                    sigla = ''
+                else:
+                    sigla = partido_sigla.partido.sigla
+                oradores = {
+                    'numero_ordem': orador.numero_ordem,
+                    'parlamentar': parlamentar,
+                    'sgl_partido': sigla
+                }
+                oradores_explicacoes.append(oradores)
         context.update({'oradores_explicacoes': oradores_explicacoes})
 
         # =====================================================================
@@ -1429,7 +1439,7 @@ class VotacaoEditView(SessaoPermissionMixin):
 
         ordem = OrdemDia.objects.get(id=ordem_id)
 
-        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        materia = {'materia': ordem.materia, 'ementa': ordem.materia.ementa}
         context.update({'materia': materia})
 
         votacao = RegistroVotacao.objects.filter(
@@ -1458,9 +1468,9 @@ class VotacaoEditView(SessaoPermissionMixin):
 
 class VotacaoView(SessaoPermissionMixin):
 
-    '''
+    """
         Votação Simbólica e Secreta
-    '''
+    """
 
     template_name = 'sessao/votacao/votacao.html'
     form_class = VotacaoForm
@@ -1483,7 +1493,7 @@ class VotacaoView(SessaoPermissionMixin):
         qtde_presentes = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id).count()
 
-        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        materia = {'materia': ordem.materia, 'ementa': ordem.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -1509,7 +1519,7 @@ class VotacaoView(SessaoPermissionMixin):
         qtde_presentes = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id).count()
 
-        materia = {'materia': ordem.materia, 'ementa': ordem.observacao}
+        materia = {'materia': ordem.materia, 'ementa': ordem.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -1646,7 +1656,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
         materia = {'materia': materia_votacao.materia,
                    'ementa': sub(
                        '&nbsp;', ' ', strip_tags(
-                           materia_votacao.observacao))}
+                           materia_votacao.materia.ementa))}
         context = {'materia': materia, 'object': self.get_object(),
                    'parlamentares': self.get_parlamentares(presentes),
                    'tipos': self.get_tipos_votacao(),
@@ -1830,7 +1840,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                 raise Http404()
 
             materia = ordem.materia
-            observacao = ordem.observacao
+            ementa = ordem.materia.ementa
 
         elif self.expediente:
             expediente_id = kwargs['oid']
@@ -1843,7 +1853,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                 raise Http404()
 
             materia = expediente.materia
-            observacao = expediente.observacao
+            ementa = expediente.materia.ementa
 
         votos = VotoParlamentar.objects.filter(votacao_id=votacao.id)
 
@@ -1856,7 +1866,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
 
         materia = {'materia': materia,
                    'ementa': sub(
-                       '&nbsp;', ' ', strip_tags(observacao))}
+                       '&nbsp;', ' ', strip_tags(ementa))}
         context.update({'materia': materia})
 
         votacao_existente = {'observacao': sub(
@@ -1953,7 +1963,7 @@ class VotacaoNominalExpedienteDetailView(DetailView):
 
         materia = {'materia': expediente.materia,
                    'ementa': sub(
-                       '&nbsp;', ' ', strip_tags(expediente.observacao))}
+                       '&nbsp;', ' ', strip_tags(expediente.materia.ementa))}
         context.update({'materia': materia})
 
         votacao_existente = {'observacao': sub(
@@ -2004,7 +2014,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             sessao_plenaria_id=self.object.id).count()
 
         materia = {'materia': expediente.materia,
-                   'ementa': expediente.observacao}
+                   'ementa': expediente.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -2031,7 +2041,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             sessao_plenaria_id=self.object.id).count()
 
         materia = {'materia': expediente.materia,
-                   'ementa': expediente.observacao}
+                   'ementa': expediente.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
                         'total_presentes': qtde_presentes})
@@ -2134,7 +2144,7 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
 
         materia = {'materia': expediente.materia,
-                   'ementa': expediente.observacao}
+                   'ementa': expediente.materia.ementa}
         context.update({'materia': materia})
 
         try:
@@ -2164,7 +2174,8 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         expediente_id = kwargs['oid']
 
         if(int(request.POST['anular_votacao']) == 1):
-            for r in RegistroVotacao.objects.filter(expediente_id=expediente_id):
+            for r in RegistroVotacao.objects.filter(
+                    expediente_id=expediente_id):
                 r.delete()
 
             expediente = ExpedienteMateria.objects.get(
@@ -2229,7 +2240,7 @@ class PautaSessaoDetailView(DetailView):
 
         materias_expediente = []
         for m in materias:
-            ementa = m.observacao
+            ementa = m.materia.ementa
             titulo = m.materia
             numero = m.numero_ordem
             situacao = m.materia.tramitacao_set.last().status
@@ -2286,7 +2297,7 @@ class PautaSessaoDetailView(DetailView):
 
         materias_ordem = []
         for o in ordem:
-            ementa = o.observacao
+            ementa = o.materia.ementa
             titulo = o.materia
             numero = o.numero_ordem
             situacao = o.materia.tramitacao_set.last().status
@@ -2431,14 +2442,6 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
         return context
 
 
-def filtra_tramitacao_ordem_dia():
-    lista = pega_ultima_tramitacao()
-    return Tramitacao.objects.filter(
-        id__in=lista,
-        status__descricao='Ordem do Dia').distinct().values_list(
-        'materia_id', flat=True)
-
-
 def retira_materias_ja_adicionadas(id_sessao, model):
     lista = model.objects.filter(
         sessao_plenaria_id=id_sessao)
@@ -2460,17 +2463,21 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
 
         qs = self.get_queryset()
 
-        lista_ordem_dia = filtra_tramitacao_ordem_dia()
+        if 'tramitacao__status' in self.request.GET:
+            if self.request.GET['tramitacao__status']:
+                lista_status = filtra_tramitacao_status(
+                    self.request.GET['tramitacao__status'])
 
-        lista_materias_adicionadas = retira_materias_ja_adicionadas(
-            self.kwargs['pk'], ExpedienteMateria)
+                lista_materias_adicionadas = retira_materias_ja_adicionadas(
+                    self.kwargs['pk'], ExpedienteMateria)
 
-        qs = qs.filter(id__in=lista_ordem_dia).exclude(
-            id__in=lista_materias_adicionadas).distinct()
+                qs = qs.filter(id__in=lista_status).exclude(
+                    id__in=lista_materias_adicionadas).distinct()
 
-        kwargs.update({
-            'queryset': qs,
-        })
+                kwargs.update({
+                    'queryset': qs,
+                })
+
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -2511,6 +2518,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
                 expediente = ExpedienteMateria()
                 expediente.sessao_plenaria_id = self.kwargs['pk']
                 expediente.materia_id = materia.id
+                # TODO: o campo observacao deve ser uma copia de ML.ementa?
                 expediente.observacao = MateriaLegislativa.objects.get(
                     pk=materia.id).ementa
                 if lista_materias_expediente:
@@ -2540,17 +2548,20 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
 
         qs = self.get_queryset()
 
-        lista_ordem_dia = filtra_tramitacao_ordem_dia()
+        if 'tramitacao__status' in self.request.GET:
+            if self.request.GET['tramitacao__status']:
+                lista_status = filtra_tramitacao_status(
+                    self.request.GET['tramitacao__status'])
 
-        lista_materias_adicionadas = retira_materias_ja_adicionadas(
-            self.kwargs['pk'], OrdemDia)
+                lista_materias_adicionadas = retira_materias_ja_adicionadas(
+                    self.kwargs['pk'], OrdemDia)
 
-        qs = qs.filter(id__in=lista_ordem_dia).exclude(
-            id__in=lista_materias_adicionadas).distinct()
+                qs = qs.filter(id__in=lista_status).exclude(
+                    id__in=lista_materias_adicionadas).distinct()
 
-        kwargs.update({
-            'queryset': qs,
-        })
+                kwargs.update({
+                    'queryset': qs,
+                })
         return kwargs
 
     def post(self, request, *args, **kwargs):
@@ -2576,6 +2587,7 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                 ordem_dia = OrdemDia()
                 ordem_dia.sessao_plenaria_id = self.kwargs['pk']
                 ordem_dia.materia_id = materia.id
+                # TODO: o campo observacao deve ser uma copia de ML.ementa?
                 ordem_dia.observacao = MateriaLegislativa.objects.get(
                     pk=materia.id).ementa
                 if lista_materias_ordem_dia:

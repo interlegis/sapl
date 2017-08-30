@@ -1,8 +1,10 @@
+{% load common_tags %}
+
 <fieldset>
   <legend>Lista de Presença na Sessão</legend>
     <div class="row">
       {% for p in presenca_sessao %}
-        <div class="col-md-12">{{p.nome_parlamentar}} / {{ p.filiacao_atual }}</div>
+        <div class="col-md-12">{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }}</div>
       {% endfor %}
     </div>
 </fieldset>

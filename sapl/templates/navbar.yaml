@@ -15,8 +15,12 @@
 - title: {% trans 'Protocolo' %}
   check_permission: protocoloadm.list_protocolo
   children:
-    - title: {% trans 'Pesquisar Protocolo' %}
+    - title: {% trans 'Protocolo Geral' %}
       url: sapl.protocoloadm:protocolo
+    - title: {% trans 'Protocolo de Matéria' %}
+      url: sapl.protocoloadm:protocolar_mat
+    - title: {% trans 'Protocolo de Documento' %}
+      url: sapl.protocoloadm:protocolar_doc
     - title: {% trans 'Receber Proposições' %}
       url: sapl.materia:receber-proposicao
 
@@ -29,6 +33,9 @@
     - title: {% trans 'Acessório em Lote' %}
       url: sapl.materia:acessorio_em_lote
       check_permission: materia.list_documentoacessorio {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
+    - title: {% trans 'Impressos' %}
+      url: sapl.materia:impressos
+      check_permission: materia.can_access_impressos {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
     - title: {% trans 'Matérias Legislativas' %}
       url: sapl.materia:pesquisar_materia
     - title: {% trans 'Pautas das Sessões' %}
@@ -48,6 +55,9 @@
   children:
     - title: {% trans 'Pesquisar Normas Jurídicas' %}
       url: sapl.norma:norma_pesquisa
+    - title: {% trans 'Adicionar Norma Jurídica' %}
+      url: 'sapl.norma:normajuridica_create'
+      check_permission: norma.add_normajuridica
 
 - title: {% trans 'Sistema' %}
   check_permission: base.menu_sistemas

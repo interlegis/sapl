@@ -1,7 +1,8 @@
 
-from datetime import date, datetime
 import os
+from datetime import date, datetime
 
+import django_filters
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
@@ -13,21 +14,18 @@ from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.db.models import Max
-from django.forms import ModelForm, ModelChoiceField, widgets
-from django.forms.fields import BooleanField
+from django.forms import ModelChoiceField, ModelForm, widgets
 from django.forms.forms import Form
-from django.forms.widgets import Select, HiddenInput
-from django.utils import six
+from django.forms.models import ModelMultipleChoiceField
+from django.forms.widgets import CheckboxSelectMultiple, HiddenInput, Select
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django_filters.filterset import STRICTNESS
-import django_filters
 
+import sapl
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
-from sapl.compilacao.forms import error_messages
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -42,8 +40,8 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
-                        autor_label, autor_modal, models_with_gr_for_model)
-import sapl
+                        autor_label, autor_modal, models_with_gr_for_model,
+                        qs_override_django_filter)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -166,6 +164,7 @@ class AcompanhamentoMateriaForm(ModelForm):
 
 
 class DocumentoAcessorioForm(ModelForm):
+    data = forms.DateField(required=True)
 
     class Meta:
         model = DocumentoAcessorio
@@ -494,9 +493,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
-    autoria__primeiro_autor = django_filters.BooleanFilter(required=False,
-                                                           label='Primeiro Autor',
-                                                           widget=forms.HiddenInput())
+    autoria__primeiro_autor = django_filters.BooleanFilter(
+        required=False,
+        label='Primeiro Autor',
+        widget=forms.HiddenInput())
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
@@ -592,42 +592,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     @property
     def qs(self):
-        if not hasattr(self, '_qs'):
-            valid = self.is_bound and self.form.is_valid()
-
-            if self.is_bound and not valid:
-                if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
-                    raise forms.ValidationError(self.form.errors)
-                elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
-                    self._qs = self.queryset.none()
-                    return self._qs
-                    # else STRICTNESS.IGNORE...  ignoring
-
-            # start with all the results and filter from there
-            qs = self.queryset.all()
-            for name, filter_ in six.iteritems(self.filters):
-                value = None
-                if valid:
-                    value = self.form.cleaned_data[name]
-                else:
-                    raw_value = self.form[name].value()
-                    try:
-                        value = self.form.fields[name].clean(raw_value)
-                    except forms.ValidationError:
-                        if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
-                            raise
-                        elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
-                            self._qs = self.queryset.none()
-                            return self._qs
-                            # else STRICTNESS.IGNORE...  ignoring
-
-                if value is not None:  # valid & clean data
-                    qs = qs._next_is_sticky()
-                    qs = filter_.filter(qs, value)
-
-            self._qs = qs
-
-        return self._qs
+        return qs_override_django_filter(self)
 
 
 def pega_ultima_tramitacao():
@@ -731,6 +696,55 @@ class AutoriaForm(ModelForm):
         if ((not pk and autorias.exists()) or
                 (pk and autorias.exclude(pk=pk).exists())):
             raise ValidationError(_('Esse Autor já foi cadastrado.'))
+
+        return cd
+
+
+class AutoriaMultiCreateForm(Form):
+
+    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
+                                  required=False,
+                                  queryset=TipoAutor.objects.all(),
+                                  empty_label=_('Selecione'),)
+
+    data_relativa = forms.DateField(
+        widget=forms.HiddenInput(), required=False)
+
+    autor = ModelMultipleChoiceField(
+        queryset=Autor.objects.all(),
+        label=_('Possiveis Autores'),
+        required=False,
+        widget=CheckboxSelectMultiple)
+
+    autores = ModelMultipleChoiceField(
+        queryset=Autor.objects.all(),
+        required=False,
+        widget=HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row([('tipo_autor', 12), ])
+
+        row2 = to_row([('autor', 12), ])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Autorias'), row1, row2, 'data_relativa', 'autores',
+                form_actions(save_label='Incluir Autores Selecionados')))
+
+        self.fields['autor'].choices = []
+
+    def clean(self):
+        cd = super().clean()
+
+        if 'autores' in self.errors:
+            del self.errors['autores']
+
+        if 'autor' not in cd or not cd['autor'].exists():
+            raise ValidationError(
+                _('Ao menos um autor deve ser selecionado para inclusão'))
 
         return cd
 
@@ -1581,3 +1595,87 @@ class MateriaAssuntoForm(ModelForm):
         fields = ['materia', 'assunto']
 
         widgets = {'materia': forms.HiddenInput()}
+
+
+class EtiquetaPesquisaForm(forms.Form):
+    tipo_materia = forms.ModelChoiceField(
+        label=TipoMateriaLegislativa._meta.verbose_name,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        required=False,
+        empty_label='Selecione')
+
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    data_final = forms.DateField(
+        label='Data Final',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    processo_inicial = forms.IntegerField(
+        label='Processo Inicial',
+        required=False)
+
+    processo_final = forms.IntegerField(
+        label='Processo Final',
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(EtiquetaPesquisaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('tipo_materia', 6),
+             ('data_inicial', 3),
+             ('data_final', 3)])
+
+        row2 = to_row(
+            [('processo_inicial', 6),
+             ('processo_final', 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Formulário de Etiqueta'),
+                row1, row2,
+                form_actions(save_label='Pesquisar')
+            )
+        )
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        # Verifica se algum campo de data foi preenchido
+        if cleaned_data['data_inicial'] or cleaned_data['data_final']:
+            # Então verifica se o usuário preencheu o Incial e mas não
+            # preencheu o Final, ou vice-versa
+            if (not cleaned_data['data_inicial'] or
+               not cleaned_data['data_final']):
+                raise ValidationError(_(
+                    'Caso pesquise por data, os campos de Data Incial e ' +
+                    'Data Final devem ser preenchidos obrigatoriamente'))
+            # Caso tenha preenchido, verifica se a data final é maior que
+            # a inicial
+            elif cleaned_data['data_final'] < cleaned_data['data_inicial']:
+                raise ValidationError(_(
+                    'A Data Final não pode ser menor que a Data Inicial'))
+
+        # O mesmo processo anterior é feito com o processo
+        if (cleaned_data['processo_inicial'] or
+           cleaned_data['processo_final']):
+            if (not cleaned_data['processo_inicial'] or
+               not cleaned_data['processo_final']):
+                raise ValidationError(_(
+                    'Caso pesquise por número de processo, os campos de ' +
+                    'Processo Inicial e Processo Final ' +
+                    'devem ser preenchidos obrigatoriamente'))
+            elif (cleaned_data['processo_final'] <
+                  cleaned_data['processo_inicial']):
+                    raise ValidationError(_(
+                        'O processo final não pode ser menor que o inicial'))
+
+        return cleaned_data
+

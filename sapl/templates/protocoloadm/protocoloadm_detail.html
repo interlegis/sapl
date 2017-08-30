@@ -2,8 +2,8 @@
 {% load i18n %}
 {% block editions %}
   <div class="actions btn-group pull-right" role="group">
-    <a href="{% url 'protocoloadm:protocolar_doc' %}" class="btn btn-default">{% trans 'Protocolar Documento' %}</a>
-    <a href="{% url 'protocoloadm:protocolar_mat' %}" class="btn btn-default">{% trans 'Protocolar Matéria' %}</a>
-    <a href="{% url 'protocoloadm:anular_protocolo' %}" class="btn btn-default btn-excluir">{% trans 'Anular Protocolo' %}</a>
+    <a href="{% url 'sapl.protocoloadm:protocolar_mat' %}" class="btn btn-default">{% trans 'Protocolar Matéria' %}</a>
+    <a href="{% url 'sapl.protocoloadm:protocolar_doc' %}" class="btn btn-default">{% trans 'Protocolar Documento' %}</a>
+    <a href="{% url 'sapl.protocoloadm:anular_protocolo' %}" class="btn btn-default btn-excluir">{% trans 'Anular Protocolo' %}</a>
   </div>
 {% endblock editions %}

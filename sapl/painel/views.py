@@ -1,10 +1,10 @@
-from datetime import date
+
 
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
@@ -12,7 +12,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
-from sapl.painel.models import Painel
 from sapl.parlamentares.models import Filiacao, Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
@@ -425,6 +424,7 @@ def get_votos(response, materia):
             'total_votos': total,
             'tipo_votacao': tipo_votacao,
             'tipo_resultado': registro.tipo_resultado_votacao.nome,
+            'natureza_resultado': registro.tipo_resultado_votacao.natureza,
         })
     else:
         response.update({
@@ -434,6 +434,7 @@ def get_votos(response, materia):
             'total_votos': 0,
             'tipo_votacao': tipo_votacao,
             'tipo_resultado': 'Ainda não foi votada.',
+            'natureza_resultado': None,
         })
     return response
 
@@ -463,6 +464,7 @@ def get_votos_nominal(response, materia):
             'total_votos': 0,
             'tipo_votacao': tipo_votacao,
             'tipo_resultado': 'Não foi votado ainda',
+            'natureza_resultado': None,
             'votos': None
         })
 
@@ -505,6 +507,7 @@ def get_votos_nominal(response, materia):
             'total_votos': total,
             'tipo_votacao': tipo_votacao,
             'tipo_resultado': registro.tipo_resultado_votacao.nome,
+            'natureza_resultado': registro.tipo_resultado_votacao.natureza,
             'votos': votos
         })
 

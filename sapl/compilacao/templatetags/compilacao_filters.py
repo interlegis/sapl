@@ -93,8 +93,12 @@ def nota_automatica(dispositivo, ta_pub_list):
             return _('Inclusão feita pelo %s - %s.') % (
                 d, ta_publicado)
         else:
-            return _('Alteração feita pelo %s - %s.') % (
-                d, ta_publicado)
+            if dispositivo.tipo_dispositivo.dispositivo_de_articulacao:
+                return _('Alteração de rótulo feita pelo %s - %s.') % (
+                    d, ta_publicado)
+            else:
+                return _('Alteração feita pelo %s - %s.') % (
+                    d, ta_publicado)
 
     return ''
 
@@ -284,7 +288,6 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
         d = d.dispositivo_pai
 
     return result
-
 
 
 @register.filter

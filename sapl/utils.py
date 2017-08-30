@@ -4,8 +4,6 @@ import os
 import re
 from datetime import date
 from functools import wraps
-from subprocess import PIPE, call
-from threading import Thread
 from unicodedata import normalize as unicodedata_normalize
 
 import django_filters
@@ -19,12 +17,15 @@ from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
+from django_filters.filterset import STRICTNESS
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-from sapl.settings import BASE_DIR, PROJECT_DIR
+from sapl.settings import BASE_DIR
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -538,10 +539,12 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
     if isinstance(instance, (DocumentoAdministrativo, Proposicao)):
         prefix = 'private'
 
-    str_path = './sapl/%(prefix)s/%(model_name)s/%(subpath)s/%(pk)s/%(filename)s'
+    str_path = ('./sapl/%(prefix)s/%(model_name)s/'
+                '%(subpath)s/%(pk)s/%(filename)s')
 
     if pk_first:
-        str_path = './sapl/%(prefix)s/%(model_name)s/%(pk)s/%(subpath)s/%(filename)s'
+        str_path = ('./sapl/%(prefix)s/%(model_name)s/'
+                    '%(pk)s/%(subpath)s/%(filename)s')
 
     path = str_path %\
         {
@@ -553,3 +556,89 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
         }
 
     return path
+
+
+def qs_override_django_filter(self):
+    if not hasattr(self, '_qs'):
+        valid = self.is_bound and self.form.is_valid()
+
+        if self.is_bound and not valid:
+            if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                raise forms.ValidationError(self.form.errors)
+            elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                self._qs = self.queryset.none()
+                return self._qs
+                # else STRICTNESS.IGNORE...  ignoring
+
+        # start with all the results and filter from there
+        qs = self.queryset.all()
+        for name, filter_ in six.iteritems(self.filters):
+            value = None
+            if valid:
+                value = self.form.cleaned_data[name]
+            else:
+                raw_value = self.form[name].value()
+                try:
+                    value = self.form.fields[name].clean(raw_value)
+                except forms.ValidationError:
+                    if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                        raise
+                    elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
+                        self._qs = self.queryset.none()
+                        return self._qs
+                        # else STRICTNESS.IGNORE...  ignoring
+
+            if value is not None:  # valid & clean data
+                qs = qs._next_is_sticky()
+                qs = filter_.filter(qs, value)
+
+        self._qs = qs
+
+    return self._qs
+
+
+def filiacao_data(parlamentar, data_inicio, data_fim=None):
+    from sapl.parlamentares.models import Filiacao
+
+    filiacoes_parlamentar = Filiacao.objects.filter(
+        parlamentar=parlamentar)
+
+    filiacoes = filiacoes_parlamentar.filter(Q(
+        data__lte=data_inicio,
+        data_desfiliacao__isnull=True) | Q(
+        data__lte=data_inicio,
+        data_desfiliacao__gte=data_inicio))
+
+    if data_fim:
+        filiacoes = filiacoes | filiacoes_parlamentar.filter(
+            data__gte=data_inicio,
+            data__lte=data_fim)
+
+    return ' | '.join([f.partido.sigla for f in filiacoes])
+
+
+def parlamentares_ativos(data_inicio, data_fim=None):
+    from sapl.parlamentares.models import Mandato, Parlamentar
+    '''
+    :param data_inicio: define a data de inicial do período desejado
+    :param data_fim: define a data final do período desejado
+    :return: queryset dos parlamentares ativos naquele período
+    '''
+    mandatos_ativos = Mandato.objects.filter(Q(
+        data_inicio_mandato__lte=data_inicio,
+        data_fim_mandato__isnull=True) | Q(
+        data_inicio_mandato__lte=data_inicio,
+        data_fim_mandato__gte=data_inicio))
+    if data_fim:
+        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
+            data_inicio_mandato__gte=data_inicio,
+            data_inicio_mandato__lte=data_fim)
+    else:
+        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
+            data_inicio_mandato__gte=data_inicio)
+
+    parlamentares_id = mandatos_ativos.values_list(
+        'parlamentar_id',
+        flat=True).distinct('parlamentar_id')
+
+    return Parlamentar.objects.filter(id__in=parlamentares_id)

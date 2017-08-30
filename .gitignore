@@ -91,9 +91,12 @@ whoosh_index
 collected_static
 bower
 bower_components
-media
 whoosh/
 solr-4.10.2/
 postgres-data/
 data/
 solr-*/
+
+# ignora tudo dentro de media, mas cria a pasta no checkout
+media/*
+!media/.gitkeep

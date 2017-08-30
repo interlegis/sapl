@@ -1,21 +1,18 @@
-from datetime import datetime, date
+from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
-from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import (ObjectDoesNotExist,
-                                    MultipleObjectsReturned)
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
+from django.template import Context, loader, RequestContext
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
@@ -23,8 +20,8 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.base.models import Autor, CasaLegislativa
-from sapl.comissoes.models import Comissao
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
@@ -34,23 +31,22 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
                             Crud, CrudAux, MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
-from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
-                                LegislacaoCitadaForm, AutoriaForm, ProposicaoForm,
-                                TipoProposicaoForm, TramitacaoForm,
-                                TramitacaoUpdateForm)
-from sapl.materia.models import Autor
+from sapl.materia.forms import (AnexadaForm, AutoriaForm,
+                                AutoriaMultiCreateForm,
+                                ConfirmarProposicaoForm, LegislacaoCitadaForm,
+                                ProposicaoForm, TipoProposicaoForm,
+                                TramitacaoForm, TramitacaoUpdateForm)
 from sapl.norma.models import LegislacaoCitada
-from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
-import sapl
 
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
-                    DocumentoAcessorioForm, MateriaAssuntoForm,
+                    DocumentoAcessorioForm, EtiquetaPesquisaForm,
+                    MateriaAssuntoForm,
                     MateriaLegislativaFilterSet, MateriaSimplificadaForm,
                     PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
                     RelatoriaForm, TramitacaoEmLoteFilterSet,
@@ -65,6 +61,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
 
+import weasyprint
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -1065,6 +1062,11 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         def __init__(self, **kwargs):
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
+        def get_initial(self):
+            self.initial['data'] = datetime.now().date()
+
+            return self.initial
+
         def get_context_data(self, **kwargs):
             context = super(
                 MasterDetailCrud.CreateView, self).get_context_data(**kwargs)
@@ -1086,13 +1088,16 @@ class AutoriaCrud(MasterDetailCrud):
     parent_field = 'materia'
     help_path = ''
     public = [RP_LIST, RP_DETAIL]
+    list_field_names = ['autor', 'autor__tipo__descricao', 'primeiro_autor']
 
-    class CreateView(MasterDetailCrud.CreateView):
+    class LocalBaseMixin():
         form_class = AutoriaForm
 
         @property
         def layout_key(self):
-            return 'AutoriaCreate'
+            return None
+
+    class CreateView(LocalBaseMixin, MasterDetailCrud.CreateView):
 
         def get_initial(self):
             initial = super().get_initial()
@@ -1101,12 +1106,7 @@ class AutoriaCrud(MasterDetailCrud):
             initial['autor'] = []
             return initial
 
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = AutoriaForm
-
-        @property
-        def layout_key(self):
-            return 'AutoriaUpdate'
+    class UpdateView(LocalBaseMixin, MasterDetailCrud.UpdateView):
 
         def get_initial(self):
             initial = super().get_initial()
@@ -1115,6 +1115,47 @@ class AutoriaCrud(MasterDetailCrud):
                 'tipo_autor': self.object.autor.tipo.id,
             })
             return initial
+
+
+class AutoriaMultiCreateView(PermissionRequiredForAppCrudMixin, FormView):
+    app_label = sapl.materia.apps.AppConfig.label
+    form_class = AutoriaMultiCreateForm
+    template_name = 'materia/autoria_multicreate_form.html'
+
+    @classmethod
+    def get_url_regex(cls):
+        return r'^(?P<pk>\d+)/%s/multicreate' % cls.model._meta.model_name
+
+    @property
+    def layout_key(self):
+        return None
+
+    def get_initial(self):
+        initial = super().get_initial()
+        self.materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
+        initial['data_relativa'] = self.materia.data_apresentacao
+        initial['autores'] = self.materia.autores.all()
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Adicionar Várias Autorias'), self.materia)
+        return context
+
+    def get_success_url(self):
+        messages.add_message(
+            self.request, messages.SUCCESS,
+            _('Autorias adicionadas com sucesso.'))
+        return reverse(
+            'sapl.materia:autoria_list', kwargs={'pk': self.materia.pk})
+
+    def form_valid(self, form):
+        autores_selecionados = form.cleaned_data['autor']
+        for autor in autores_selecionados:
+            Autoria.objects.create(materia=self.materia, autor=autor)
+
+        return FormView.form_valid(self, form)
 
 
 class DespachoInicialCrud(MasterDetailCrud):
@@ -1694,10 +1735,9 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
         context['primeira_tramitacao'] = False
 
         if ('tramitacao__status' in qr and
-            'tramitacao__unidade_tramitacao_destino' in qr and
+                'tramitacao__unidade_tramitacao_destino' in qr and
                 qr['tramitacao__status'] and
-                qr['tramitacao__unidade_tramitacao_destino']
-            ):
+                qr['tramitacao__unidade_tramitacao_destino']):
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],
                 qr['tramitacao__unidade_tramitacao_destino'])
@@ -1705,3 +1745,57 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
                 id__in=lista).distinct()
 
         return context
+
+
+class ImpressosView(PermissionRequiredMixin, TemplateView):
+    template_name = 'materia/impressos/impressos.html'
+    permission_required = ('materia.can_access_impressos', )
+
+def gerar_pdf_impressos(request, context):
+    template = loader.get_template('materia/impressos/pdf.html')
+    html = template.render(RequestContext(request, context))
+    response = HttpResponse(content_type="application/pdf")
+    weasyprint.HTML(
+        string=html,
+        base_url=request.build_absolute_uri()).write_pdf(
+        response)
+
+    return response
+
+
+class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
+    form_class = EtiquetaPesquisaForm
+    template_name = 'materia/impressos/etiqueta.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def form_valid(self, form):
+        context = {}
+
+        materias = MateriaLegislativa.objects.all().order_by(
+            '-data_apresentacao')
+
+        if form.cleaned_data['tipo_materia']:
+            materias = materias.filter(tipo=form.cleaned_data['tipo_materia'])
+
+        if form.cleaned_data['data_inicial']:
+            materias = materias.filter(
+                data_apresentacao__gte=form.cleaned_data['data_inicial'],
+                data_apresentacao__lte=form.cleaned_data['data_final'])
+
+        if form.cleaned_data['processo_inicial']:
+            materias = materias.filter(
+                numeracao__numero_materia__gte=form.cleaned_data[
+                    'processo_inicial'],
+                numeracao__numero_materia__lte=form.cleaned_data[
+                    'processo_final'])
+
+        context['quantidade'] = len(materias)
+
+        if context['quantidade'] > 20:
+            materias = materias[:20]
+
+        context['materias'] = materias
+
+        return gerar_pdf_impressos(self.request, context)
+
+

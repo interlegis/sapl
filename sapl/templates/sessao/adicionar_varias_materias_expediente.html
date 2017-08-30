@@ -9,7 +9,7 @@
 {% block detail_content %}
     {% block buttons %}
 
-      {% if filter_url %}
+      {% if filter_url and not filter.form.errors %}
             <div class="actions btn-group pull-right" role="group">
               <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
             </div>
@@ -22,12 +22,16 @@
 
     {% endblock %}
 
-  {% if not filter_url %}
+  {% if filter.form.errors %}
     {% crispy filter.form %}
-  {% endif %}
+  {% else %}
+    {% if not filter_url %}
+      {% crispy filter.form %}
+    {% endif %}
+  {%  endif %}
 
   <p></p>
-  {% if filter_url %}
+  {% if filter_url and not filter.form.errors %}
   <table class="table table-striped table-bordered">
         <thead class="thead-default">
             <tr>

@@ -7,10 +7,10 @@ from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
-from sapl.api.forms import AutorChoiceFilterSet, AutorSearchForFieldFilterSet,\
-    AutoresPossiveisFilterSet
+from sapl.api.forms import (AutorChoiceFilterSet, AutoresPossiveisFilterSet,
+                            AutorSearchForFieldFilterSet)
 from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
                                   ChoiceSerializer,
                                   MateriaLegislativaSerializer,
@@ -173,8 +173,6 @@ class AutoresProvaveisListView(ListAPIView):
     serializer_class = ChoiceSerializer
 
     def get_queryset(self):
-        queryset = ListAPIView.get_queryset(self)
-
         params = {'content_type__isnull': False}
 
         tipo = ''

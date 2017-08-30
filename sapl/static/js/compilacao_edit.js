@@ -42,19 +42,7 @@ function DispositivoEdit() {
         $.get(url, form_data).done(function(data) {
             instance.clearEditSelected();
             if (data.pk != null) {
-                if (data.message !== undefined) {
-                    if (data.message.modal) {
-                        instance.modalMessage(data.message.value, 'alert-'+data.message.type, function() {
-                            instance.waitShow();
-                            instance.refreshScreenFocusPk(data);
-                        });
-                        return;
-                    }
-                    else {
-                        instance.message(data)
-                    }
-                }
-                instance.refreshScreenFocusPk(data);
+                instance.message(data);
             }
         }).fail(instance.waitHide).always(instance.waitHide);
     }
@@ -275,16 +263,31 @@ function DispositivoEdit() {
     }
 
     instance.message = function(data) {
-        if (!('message' in data))
-            return;
-        var cp_notify = $(".cp-notify")
-        cp_notify.removeClass('hide')
-        var msg = cp_notify.find('.message');
-        msg.text(data.message.value);
-        msg.removeClass('bg-primary bg-success bg-info bg-warning bg-danger').addClass('bg-'+data.message.type);
-        setTimeout(function() {
-            cp_notify.addClass('hide');
-        }, (data.message.time?data.message.time: 3000));
+        if (data.message !== undefined) {
+            if (data.message.modal) {
+                instance.modalMessage(data.message.value, 'alert-'+data.message.type, function() {
+                    instance.waitShow();
+                    instance.refreshScreenFocusPk(data);
+                });
+                return;
+            }
+            else {
+                instance.refreshScreenFocusPk(data);
+                if (!('message' in data))
+                    return;
+                var cp_notify = $(".cp-notify")
+                cp_notify.removeClass('hide')
+                var msg = cp_notify.find('.message');
+                msg.text(data.message.value);
+                msg.removeClass('bg-primary bg-success bg-info bg-warning bg-danger').addClass('bg-'+data.message.type);
+                setTimeout(function() {
+                    cp_notify.addClass('hide');
+                }, (data.message.time?data.message.time: 3000));
+            }
+        }
+        else {
+            instance.refreshScreenFocusPk(data);
+        }
     }
     instance.offClicks = function() {
         $('.btn-dpt-edit').off()
@@ -315,7 +318,6 @@ function DispositivoEdit() {
             instance.clearEditSelected();
 
             if (data.pk != null) {
-                instance.refreshScreenFocusPk(data);
                 instance.message(data);
             }
             else {
@@ -346,7 +348,6 @@ function DispositivoEdit() {
             instance.clearEditSelected();
 
             if (data.pk != null) {
-                instance.refreshScreenFocusPk(data);
                 instance.message(data);
             }
             else {
@@ -377,7 +378,6 @@ function DispositivoEdit() {
             instance.clearEditSelected();
 
             if (data.pk != null) {
-                instance.refreshScreenFocusPk(data);
                 instance.message(data);
             }
             else {
@@ -437,7 +437,6 @@ function DispositivoEdit() {
             instance.clearEditSelected();
 
             if (data.pk != null) {
-                instance.refreshScreenFocusPk(data);
                 instance.message(data);
             }
             else {

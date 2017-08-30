@@ -5,6 +5,7 @@ from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
+from sapl.utils import filiacao_data
 
 register = template.Library()
 
@@ -117,6 +118,7 @@ def str2intabs(value):
     except:
         return ''
 
+
 @register.filter
 def has_iframe(request):
 
@@ -180,3 +182,13 @@ def urldetail_content_type(obj, value):
 def urldetail(obj):
     return '%s:%s_detail' % (
         obj._meta.app_config.name, obj._meta.model_name)
+
+
+@register.filter
+def filiacao_data_filter(parlamentar, data_inicio):
+    return filiacao_data(parlamentar, data_inicio)
+
+
+@register.filter
+def filiacao_intervalo_filter(parlamentar, date_range):
+    return filiacao_data(parlamentar, date_range[0], date_range[1])
