@@ -3,7 +3,7 @@ from django.utils.translation import ugettext as _
 from model_mommy import mommy
 
 from sapl.compilacao import forms
-from sapl.compilacao.models import (Nota, PerfilEstruturalTextoArticulado,
+from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TipoNota)
 from sapl.compilacao.views import choice_models_in_extenal_views
 
@@ -41,6 +41,7 @@ def test_tipo_texto_articulado_form_valid(content_type):
 
     assert form.is_valid(), form.errors
 
+
 def test_valida_campos_obrigatorios_nota_form():
     form = forms.NotaForm(data={})
 
@@ -59,7 +60,7 @@ def test_valida_campos_obrigatorios_nota_form():
 
 
 @pytest.mark.django_db(transaction=False)
-def test_nota_form_valid():
+def test_nota_form_invalido():
     tipo = mommy.make(TipoNota)
 
     form = forms.NotaForm(data={'titulo': 'titulo',
@@ -73,4 +74,4 @@ def test_nota_form_valid():
                                 'pk': 'pk'
                                 })
 
-    assert form.is_valid()
+    assert not form.is_valid()

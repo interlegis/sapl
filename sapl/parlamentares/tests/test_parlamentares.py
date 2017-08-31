@@ -258,6 +258,7 @@ def test_legislatura_form_datas_invalidas():
     assert legislatura_form.errors['__all__'] == \
         [_("Intervalo de início e fim inválido para legislatura.")]
 
+
 @pytest.mark.django_db(transaction=False)
 def test_valida_campos_obrigatorios_frente_form():
     form = FrenteForm(data={})

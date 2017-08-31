@@ -6,7 +6,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.materia.models import MateriaLegislativa, UnidadeTramitacao
+from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
                                      DocumentoAdministrativoForm,
                                      ProtocoloDocumentForm,
@@ -14,7 +14,6 @@ from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo,
                                       TipoDocumentoAdministrativo,
-                                      TipoMateriaLegislativa,
                                       TramitacaoAdministrativo)
 
 
@@ -258,7 +257,6 @@ def test_create_tramitacao(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_dados_invalidos():
-    protocolo = mommy.make(Protocolo, pk=1, numero=1, ano=2017)
 
     form = AnularProcoloAdmForm(data={})
 
@@ -288,7 +286,6 @@ def test_anular_protocolo_form_anula_protocolo_inexistente():
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_form_anula_protocolo_anulado():
-    protocolo = mommy.make(Protocolo, numero=1, ano=2017, anulado=True)
 
     form = AnularProcoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
@@ -303,17 +300,6 @@ def test_anular_protocolo_form_anula_protocolo_anulado():
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
-    tipo_materia = mommy.make(TipoMateriaLegislativa)
-
-    protocolo_materia = mommy.make(Protocolo,
-                                   numero=1,
-                                   ano=2017,
-                                   tipo_materia=tipo_materia,
-                                   anulado=False)
-
-    materia_legislativa = mommy.make(MateriaLegislativa,
-                                     ano=2017,
-                                     numero_protocolo=1)
 
     form = AnularProcoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
@@ -325,16 +311,6 @@ def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
     assert form.errors['__all__'] == \
         [_("Protocolo 1/2017 não pode ser removido pois existem "
            "documentos vinculados a ele.")]
-
-    tipo_documento = mommy.make(TipoDocumentoAdministrativo)
-    protocolo_documento = mommy.make(Protocolo,
-                                     numero=2,
-                                     ano=2017,
-                                     tipo_documento=tipo_documento,
-                                     anulado=False)
-
-    documento_administrativo = mommy.make(DocumentoAdministrativo,
-                                          protocolo=protocolo_documento)
 
     form = AnularProcoloAdmForm(data={'numero': '2',
                                       'ano': '2017',

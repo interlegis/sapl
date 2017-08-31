@@ -1,9 +1,6 @@
-import pytest
 from django.utils.translation import ugettext_lazy as _
-from model_mommy import mommy
 
 from sapl.base.forms import CasaLegislativaForm
-from sapl.base.models import CasaLegislativa
 
 
 def test_valida_campos_obrigatorios_casa_legislativa_form():

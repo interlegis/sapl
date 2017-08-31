@@ -4,7 +4,7 @@ from model_mommy import mommy
 
 from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
 from sapl.sessao import forms
-from sapl.sessao.models import Bancada, SessaoPlenaria, TipoSessaoPlenaria
+from sapl.sessao.models import TipoSessaoPlenaria
 
 
 def test_valida_campos_obrigatorios_sessao_plenaria_form():
@@ -46,11 +46,6 @@ def test_numero_duplicado_sessao_plenaria_form():
     legislatura = mommy.make(Legislatura)
     sessao = mommy.make(SessaoLegislativa)
     tipo = mommy.make(TipoSessaoPlenaria)
-    sessao_plenaria = mommy.make(SessaoPlenaria,
-                                 legislatura=legislatura,
-                                 sessao_legislativa=sessao,
-                                 tipo=tipo,
-                                 numero=1)
 
     form = forms.SessaoPlenariaForm(data={'legislatura': str(legislatura.pk),
                                           'numero': '1',
