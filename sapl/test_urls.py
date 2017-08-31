@@ -173,7 +173,7 @@ apps_url_patterns_prefixs_and_users = {
             '/ta',
         ]},
     'redireciona_urls': {
-        'prefixs': [
+       'prefixs': [
            '/default_index_html',
            '/consultas/parlamentar/parlamentar_',
            '/consultas/comissao/comissao_',
@@ -192,7 +192,7 @@ apps_url_patterns_prefixs_and_users = {
            '/presencaSessao',
            '/resumoPropositurasAutor',
            '/propositurasAnoAutorTipo',
-        ]},
+       ]},
     'lexml': {
         'prefixs': [
             '/lexml',
