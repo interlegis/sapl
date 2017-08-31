@@ -367,17 +367,14 @@ def get_votos(response, materia):
 @user_passes_test(check_permission)
 def get_dados_painel(request, pk):
     sessao = SessaoPlenaria.objects.get(id=pk)
-    cronometro_discurso = get_cronometro_status(request, 'discurso')
-    cronometro_aparte = get_cronometro_status(request, 'aparte')
-    cronometro_ordem = get_cronometro_status(request, 'ordem')
 
     response = {
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
         'sessao_plenaria_hora_inicio': sessao.hora_inicio,
-        'cronometro_aparte': cronometro_aparte,
-        'cronometro_discurso': cronometro_discurso,
-        'cronometro_ordem': cronometro_ordem,
+        'cronometro_aparte': get_cronometro_status(request, 'aparte'),
+        'cronometro_discurso': get_cronometro_status(request, 'discurso'),
+        'cronometro_ordem': get_cronometro_status(request, 'ordem'),
     }
 
     ordem_dia = get_materia_aberta(pk)
@@ -409,13 +406,9 @@ def get_dados_painel(request, pk):
     if last_ordem_voto or last_expediente_voto:
         # Se alguma ordem E algum expediente já tiver sido votado...
         if last_ordem_voto and last_expediente_voto:
-            # Verifica se o último resultado é um uma ordem do dia
-            if last_ordem_voto.pk >= last_expediente_voto.pk:
-                materia = ultima_ordem_votada
-
-            # Caso não seja, então é um expediente
-            else:
-                materia = ultimo_expediente_votado
+            materia = ultima_ordem_votada\
+                       if last_ordem_voto.pk >= last_expediente_voto.pk\
+                       else ultimo_expediente_votado
 
         # Caso somente um deles tenha resultado, prioriza a Ordem do Dia
         elif last_ordem_voto:
