@@ -2,11 +2,11 @@ import pytest
 
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+
 from model_mommy import mommy
 
-from sapl.materia.models import TipoMateriaLegislativa
-
-from sapl.norma.forms import (NormaJuridicaForm, NormaRelacionadaForm)
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.norma.forms import NormaJuridicaForm, NormaRelacionadaForm
 from sapl.norma.models import (NormaJuridica, TipoNormaJuridica)
 
 
@@ -100,6 +100,10 @@ def test_norma_juridica_materia_inexistente():
 def test_norma_juridica_materia_existente():
     tipo = mommy.make(TipoNormaJuridica)
     tipo_materia = mommy.make(TipoMateriaLegislativa)
+    materia = mommy.make(MateriaLegislativa,
+                         numero=2,
+                         ano=2017,
+                         tipo=tipo_materia)
 
     form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
                                    'numero': '1',
