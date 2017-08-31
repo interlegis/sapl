@@ -2,7 +2,8 @@ from django.conf.urls import include, url
 
 from sapl.norma.views import (AssuntoNormaCrud, NormaCrud, NormaPesquisaView,
                               NormaRelacionadaCrud, NormaTaView, TipoNormaCrud,
-                              TipoVinculoNormaJuridicaCrud, recuperar_norma)
+                              TipoVinculoNormaJuridicaCrud, recuperar_norma,
+                              recuperar_numero_norma)
 
 from .apps import AppConfig
 
@@ -25,5 +26,10 @@ urlpatterns = [
         NormaPesquisaView.as_view(), name='norma_pesquisa'),
 
     url(r'^norma/recuperar-norma$', recuperar_norma, name="recuperar_norma"),
+    url(
+        r'^norma/recuperar-numero-norma$',
+        recuperar_numero_norma,
+        name="recuperar_numero_norma"
+        ),
 
 ]
