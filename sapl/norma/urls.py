@@ -26,10 +26,7 @@ urlpatterns = [
         NormaPesquisaView.as_view(), name='norma_pesquisa'),
 
     url(r'^norma/recuperar-norma$', recuperar_norma, name="recuperar_norma"),
-    url(
-        r'^norma/recuperar-numero-norma$',
-        recuperar_numero_norma,
-        name="recuperar_numero_norma"
-        ),
+    url(r'^norma/recuperar-numero-norma$', recuperar_numero_norma,
+        name="recuperar_numero_norma"),
 
 ]
