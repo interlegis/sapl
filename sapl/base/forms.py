@@ -646,6 +646,7 @@ class ConfiguracoesAppForm(ModelForm):
         model = AppConfig
         fields = ['documentos_administrativos',
                   'sequencia_numeracao',
+                  'num_inicial_sequencia',
                   'painel_aberto',
                   'texto_articulado_proposicao',
                   'texto_articulado_materia',

@@ -281,10 +281,9 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
     def form_valid(self, form):
         f = form.save(commit=False)
-
+        app_config = sapl.base.models.AppConfig.objects.last()
         try:
-            numeracao = sapl.base.models.AppConfig.objects.last(
-            ).sequencia_numeracao
+            numeracao = app_config.sequencia_numeracao
         except AttributeError:
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')
@@ -304,9 +303,21 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
+        # inicializa numeracao a partir de determinado valor
+        num_inicial = app_config.num_inicial_sequencia
+        if not num_inicial or num_inicial < 0:
+            num_inicial = 0
+
         f.tipo_processo = '0'  # TODO validar o significado
         f.anulado = False
-        f.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+
+        if numero['numero__max']:
+            f.numero = (numero['numero__max'] + 1)
+        elif num_inicial > 0:
+            f.numero = num_inicial
+        else:
+            f.numero = 1
+
         f.ano = datetime.now().year
         f.data = datetime.now().date()
         f.hora = datetime.now().time()
