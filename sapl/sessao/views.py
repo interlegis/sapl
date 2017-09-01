@@ -1098,13 +1098,13 @@ class ResumoView(DetailView):
         abertura = data_inicio.strftime('%d/%m/%Y') if data_inicio else ''
 
         data_fim = self.object.data_fim
-        encerramento = data_fim.strftime('%d/%m/%Y') if data_fim else ''
+        encerramento = data_fim.strftime('%d/%m/%Y') + ' - ' if data_fim else ''
 
         context.update({'basica': [
             _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
             _('Abertura: %(abertura)s - %(hora_inicio)s') % {
                 'abertura': abertura, 'hora_inicio': self.object.hora_inicio},
-            _('Encerramento: %(encerramento)s - %(hora_fim)s') % {
+            _('Encerramento: %(encerramento)s%(hora_fim)s') % {
                 'encerramento': encerramento, 'hora_fim': self.object.hora_fim}
         ]})
         # =====================================================================
