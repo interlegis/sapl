@@ -8,7 +8,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 CriarProtocoloMateriaView, DespachoInicialCrud,
                                 DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
-                                EtiquetaPesquisaView, ImpressosView,
+                                ImpressosView, EtiquetaPesquisaView,
+                                FichaPesquisaView,
                                 LegislacaoCitadaCrud, MateriaAssuntoCrud,
                                 MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
@@ -35,6 +36,9 @@ urlpatterns_impressos = [
     url(r'^materia/impressos/etiqueta-pesquisa/$',
         EtiquetaPesquisaView.as_view(),
         name='impressos_etiqueta'),
+    url(r'^materia/impressos/ficha-pesquisa/$',
+        FichaPesquisaView.as_view(),
+        name='impressos_ficha'),
 ]
 
 urlpatterns_materia = [

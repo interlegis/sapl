@@ -47,10 +47,11 @@ from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
-                    MateriaAssuntoForm, MateriaLegislativaFilterSet,
-                    MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
-                    ReceberProposicaoForm, RelatoriaForm,
-                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
+                    FichaPesquisaForm, MateriaAssuntoForm,
+                    MateriaLegislativaFilterSet, MateriaSimplificadaForm,
+                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
+                    RelatoriaForm, TramitacaoEmLoteFilterSet,
+                    filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
@@ -1751,7 +1752,8 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 
 
 def gerar_pdf_impressos(request, context):
-    template = loader.get_template('materia/impressos/pdf.html')
+    template = loader.get_template('materia/impressos/pdf.html',
+                                'materia/impressos/ficha_pdf.html')
     html = template.render(RequestContext(request, context))
     response = HttpResponse(content_type="application/pdf")
     weasyprint.HTML(
@@ -1787,6 +1789,34 @@ class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
                     'processo_inicial'],
                 numeracao__numero_materia__lte=form.cleaned_data[
                     'processo_final'])
+
+        context['quantidade'] = len(materias)
+
+        if context['quantidade'] > 20:
+            materias = materias[:20]
+
+        context['materias'] = materias
+
+        return gerar_pdf_impressos(self.request, context)
+
+class FichaPesquisaView(PermissionRequiredMixin, FormView):
+    form_class = FichaPesquisaForm
+    template_name = 'materia/impressos/ficha.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def form_valid(self, form):
+        context = {}
+
+        materias = MateriaLegislativa.objects.all().order_by(
+            '-data_apresentacao')
+
+        if form.cleaned_data['tipo_materia']:
+            materias = materias.filter(tipo=form.cleaned_data['tipo_materia'])
+
+        if form.cleaned_data['data_inicial']:
+            materias = materias.filter(
+                data_apresentacao__gte=form.cleaned_data['data_inicial'],
+                data_apresentacao__lte=form.cleaned_data['data_final'])
 
         context['quantidade'] = len(materias)
 
