@@ -693,8 +693,9 @@ def get_sessao_plenaria(sessao, casa):
                     if tramitacao.turno == turno[0]:
                         dic_votacao["des_turno"] = turno[1]
 
-        dic_votacao["txt_ementa"] = materia.ementa
-        dic_votacao["ordem_observacao"] = votacao.observacao
+        # https://github.com/interlegis/sapl/issues/1009
+        dic_votacao["txt_ementa"] = html.unescape(materia.ementa)
+        dic_votacao["ordem_observacao"] = html.unescape(votacao.observacao)
 
         dic_votacao["nom_autor"] = ' '
         autoria = Autoria.objects.filter(
