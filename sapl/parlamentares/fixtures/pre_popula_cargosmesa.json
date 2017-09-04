@@ -1,0 +1,37 @@
+[
+  {
+    "model": "parlamentares.CargoMesa",
+    "pk": 1,
+    "fields": {
+      "descricao": "Presidente",
+      "unico": true
+    }
+  },
+  {
+    "model": "parlamentares.CargoMesa",
+    "pk": 2,
+    "fields": {
+      "descricao": "Vice-Presidente",
+      "unico": true
+    }
+  },
+  {
+    "model": "parlamentares.CargoMesa",
+    "pk": 3,
+    "fields": {
+      "descricao": "Primeiro-Secretário",
+      "unico": true
+    }
+  },
+  {
+    "model": "parlamentares.CargoMesa",
+    "pk": 4,
+    "fields": {
+      "descricao": "Segundo-Secretário",
+      "unico": true
+    }
+  }
+]
+
+
+
