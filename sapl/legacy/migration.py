@@ -787,6 +787,9 @@ def adjust_normajuridica_antes_salvar(new, old):
 def adjust_normajuridica_depois_salvar(new, old):
     # Ajusta relação M2M
 
+    if not old.cod_assunto:  # it can be null or empty
+        return
+
     # lista de pks separadas por vírgulas (ignorando strings vazias)
     lista_pks_assunto = [int(pk) for pk in old.cod_assunto.split(',') if pk]
 
