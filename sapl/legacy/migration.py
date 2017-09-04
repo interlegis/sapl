@@ -395,6 +395,21 @@ def excluir_registrovotacao_duplicados():
                     assert 0
 
 
+def delete_old(legacy_model, cols_values):
+
+    def eq_clause(col, value):
+        if value is None:
+            return '{} IS NULL'.format(col)
+        else:
+            return '{}="{}"'.format(col, value)
+
+    delete_sql = 'delete from {} where {}'.format(
+        legacy_model._meta.db_table,
+        ' and '.join([eq_clause(col, value)
+                      for col, value in cols_values.items()]))
+    exec_sql(delete_sql, 'legacy')
+
+
 class DataMigrator:
 
     def __init__(self):
@@ -513,13 +528,21 @@ class DataMigrator:
                 with reversion.create_revision():
                     new.save()
                     reversion.set_comment('Objeto criado pela migração')
+
+                # apaga registro do legado
+                delete_old(legacy_model, old.__dict__)
+
             old_records = iter_sql_records(
                 'select * from ' + legacy_model._meta.db_table, 'legacy')
         else:
             def save(new, old):
                 with reversion.create_revision():
-                    save_with_id(new, getattr(old, legacy_pk_name))
+                    pk_value = getattr(old, legacy_pk_name)
+                    save_with_id(new, pk_value)
                     reversion.set_comment('Objeto criado pela migração')
+
+                # apaga registro do legado
+                delete_old(legacy_model, {legacy_pk_name: pk_value})
 
             old_records = legacy_model.objects.all().order_by(legacy_pk_name)
 
