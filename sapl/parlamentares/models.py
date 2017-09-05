@@ -576,8 +576,8 @@ class Votante(models.Model):
         max_length=30, null=True, blank=True)
 
     class Meta:
-        verbose_name = _('Usuário')
-        verbose_name_plural = _('Usuários')
+        verbose_name = _('Usuário Votante')
+        verbose_name_plural = _('Usuários Votantes')
         permissions = (
             ('can_vote', _('Can Vote')),
         )

@@ -205,9 +205,8 @@ a:link:after, a:visited:after {
 
     .titulo_generico {
       text-align: center;
-      font-weight: bold;
       margin-bottom: 1em;
-      font-size: 1.5em;
+      font-size: 1.15em;
       margin-top: 3em;
     }
 
@@ -229,14 +228,15 @@ a:link:after, a:visited:after {
     .capitulo {
       @extend .titulo_generico;
       margin-top: 1.5em;
-      font-size: 1.3em;
+      font-size: 1.15em;
     }
 
     .secao {
       @extend .titulo_generico;
       margin-top: 1.2em;
       margin-bottom: 0.7em;
-      font-size: 1.2em;
+      font-weight: bold;
+      font-size: 1.15em;
     }
 
     .subsecao,
@@ -244,8 +244,8 @@ a:link:after, a:visited:after {
       @extend .titulo_generico;
       margin-top: 1em;
       margin-bottom: 0.6em;
-      font-size: 1.2em;
-      font-style: italic;
+      font-weight: bold;
+      font-size: 1.15em;
     }
 
     .artigo {
@@ -280,6 +280,16 @@ a:link:after, a:visited:after {
       font-size: 1.0em;
       margin-top: 2px;
     }
+    
+    .assinatura {
+      margin-top: 0.6em;
+      font-size: 1.15em;
+    }
+    
+    .fecho_lei {
+      margin-top: 0.6em;
+      font-size: 1.15em;
+    }    
 
     .bloco_alteracao {
       padding-left: 10%;
@@ -393,7 +403,7 @@ a:link:after, a:visited:after {
     .dptt {
       clear: left;
       & > a {
-        color: #444444;
+        color: #000000;
         &.nota-alteracao {
           color: #02baf2;
           font-size: 0.75em;
