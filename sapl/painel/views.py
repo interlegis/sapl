@@ -16,7 +16,7 @@ from sapl.parlamentares.models import Filiacao, Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoParlamentar)
-from sapl.utils import get_client_ip
+from sapl.utils import filiacao_data, get_client_ip, parlamentares_ativos
 
 from .models import Cronometro
 
@@ -252,8 +252,6 @@ def get_cronometro_status(request, name):
         cronometro = ''
     return cronometro
 
-# ##############################ORDEM DO DIA##################################
-
 
 def get_materia_aberta(pk):
     return OrdemDia.objects.filter(
@@ -261,56 +259,43 @@ def get_materia_aberta(pk):
 
 
 def get_presentes(pk, response, materia):
-    filiacao = Filiacao.objects.filter(
-        data_desfiliacao__isnull=True, parlamentar__ativo=True)
-    parlamentar_partido = {}
-    for f in filiacao:
-        parlamentar_partido[
-            f.parlamentar.nome_parlamentar] = f.partido.sigla
-
-    sessao_plenaria_presenca = SessaoPlenariaPresenca.objects.filter(
+    if type(materia) == OrdemDia:
+        presentes = PresencaOrdemDia.objects.filter(
         sessao_plenaria_id=pk)
-    presentes_sessao_plenaria = [
-        p.parlamentar.nome_parlamentar for p in sessao_plenaria_presenca]
-    num_presentes_sessao_plen = len(presentes_sessao_plenaria)
+    elif type(materia) == ExpedienteMateria:
+        presentes = SessaoPlenariaPresenca.objects.filter(
+            sessao_plenaria_id=pk)
 
-    presenca_ordem_dia = PresencaOrdemDia.objects.filter(
-        sessao_plenaria_id=pk)
-    presentes_ordem_dia = []
-    for p in presenca_ordem_dia:
-        nome_parlamentar = p.parlamentar.nome_parlamentar
+    num_presentes = len(presentes)
+    data_sessao = materia.sessao_plenaria.data_inicio
 
-        try:
-            parlamentar_partido[nome_parlamentar]
-        except KeyError:
-            presentes_ordem_dia.append(
-                {'id': p.id,
-                 'nome': nome_parlamentar,
-                 'partido': str(_('Sem Registro')),
-                 })
+    presentes_list = []
+    for p in presentes:
+        filiacao = filiacao_data(p.parlamentar, data_sessao, data_sessao)
+
+        if not filiacao:
+            partido = _('Sem Registro')
         else:
-            presentes_ordem_dia.append(
-                {'id': p.id,
-                 'nome': nome_parlamentar,
-                 'partido': parlamentar_partido[nome_parlamentar],
-                 })
-    num_presentes_ordem_dia = len(presentes_ordem_dia)
+            partido = filiacao
+
+        presentes_list.append(
+            {'id': p.id,
+             'parlamentar_id': p.parlamentar.id,
+             'nome': p.parlamentar.nome_parlamentar,
+             'partido': partido,
+             'voto': ''
+             })
 
     if materia.tipo_votacao == 1:
-        tipo_votacao = str(_('Simbólica'))
-        response = get_votos(response, materia)
+        tipo_votacao = 'Simbólica'
     elif materia.tipo_votacao == 2:
         tipo_votacao = 'Nominal'
-        response = get_votos_nominal(response, materia)
     elif materia.tipo_votacao == 3:
         tipo_votacao = 'Secreta'
-        response = get_votos(response, materia)
 
     response.update({
-        'presentes_ordem_dia': presentes_ordem_dia,
-        'num_presentes_ordem_dia': num_presentes_ordem_dia,
-        'presentes_sessao_plenaria': presentes_sessao_plenaria,
-        'num_presentes_sessao_plenaria': num_presentes_sessao_plen,
+        'presentes': presentes_list,
+        'num_presentes': num_presentes,
         'status_painel': 'ABERTO',
         'msg_painel': str(_('Votação aberta!')),
         'tipo_resultado': materia.resultado,
@@ -321,75 +306,10 @@ def get_presentes(pk, response, materia):
     return response
 
 
-# ########################EXPEDIENTE############################################
-
-
 def get_materia_expediente_aberta(pk):
     return ExpedienteMateria.objects.filter(
         sessao_plenaria_id=pk, votacao_aberta=True).last()
 
-
-def get_presentes_expediente(pk, response, materia):
-    filiacao = Filiacao.objects.filter(
-        data_desfiliacao__isnull=True, parlamentar__ativo=True)
-    parlamentar_partido = {}
-    for f in filiacao:
-        parlamentar_partido[
-            f.parlamentar.nome_parlamentar] = f.partido.sigla
-
-    sessao_plenaria_presenca = SessaoPlenariaPresenca.objects.filter(
-        sessao_plenaria_id=pk)
-    presentes_sessao_plenaria = [
-        p.parlamentar.nome_parlamentar for p in sessao_plenaria_presenca]
-    num_presentes_sessao_plen = len(presentes_sessao_plenaria)
-
-    presenca_expediente = SessaoPlenariaPresenca.objects.filter(
-        sessao_plenaria_id=pk)
-    presentes_expediente = []
-    for p in presenca_expediente:
-        nome_parlamentar = p.parlamentar.nome_parlamentar
-
-        try:
-            parlamentar_partido[nome_parlamentar]
-        except KeyError:
-            presentes_expediente.append(
-                {'id': p.id,
-                 'nome': nome_parlamentar,
-                 'partido': str(_('Sem Registro')),
-                 })
-        else:
-            presentes_expediente.append(
-                {'id': p.id,
-                 'nome': nome_parlamentar,
-                 'partido': parlamentar_partido[nome_parlamentar],
-                 })
-    num_presentes_expediente = len(presentes_expediente)
-
-    if materia.tipo_votacao == 1:
-        tipo_votacao = 'Simbólica'
-        response = get_votos(response, materia)
-    elif materia.tipo_votacao == 2:
-        tipo_votacao = 'Nominal'
-        response = get_votos_nominal(response, materia)
-    elif materia.tipo_votacao == 3:
-        tipo_votacao = 'Secreta'
-        response = get_votos(response, materia)
-
-    response.update({
-        'presentes_expediente': presentes_expediente,
-        'num_presentes_expediente': num_presentes_expediente,
-        'presentes_sessao_plenaria': presentes_sessao_plenaria,
-        'num_presentes_sessao_plenaria': num_presentes_sessao_plen,
-        'status_painel': str(_('ABERTO')),
-        'msg_painel': str(_('Votação aberta!')),
-        'tipo_resultado': tipo_votacao,
-        'observacao_materia': materia.observacao,
-        'materia_legislativa_texto': str(materia.materia)})
-
-    return response
-
-
-# ##########################GENERAL FUNCTIONS#############################
 
 def response_nenhuma_materia(response):
     response.update({
@@ -399,60 +319,10 @@ def response_nenhuma_materia(response):
 
 
 def get_votos(response, materia):
-    if materia.tipo_votacao == 1:
-        tipo_votacao = 'Simbólica'
-    elif materia.tipo_votacao == 2:
-        tipo_votacao = 'Nominal'
-    elif materia.tipo_votacao == 3:
-        tipo_votacao = 'Secreta'
-
     if type(materia) == OrdemDia:
         registro = RegistroVotacao.objects.filter(
             ordem=materia, materia=materia.materia).last()
-    else:
-        registro = RegistroVotacao.objects.filter(
-            expediente=materia, materia=materia.materia).last()
-
-    if registro:
-        total = (registro.numero_votos_sim +
-                 registro.numero_votos_nao +
-                 registro.numero_abstencoes)
-        response.update({
-            'numero_votos_sim': registro.numero_votos_sim,
-            'numero_votos_nao': registro.numero_votos_nao,
-            'numero_abstencoes': registro.numero_abstencoes,
-            'total_votos': total,
-            'tipo_votacao': tipo_votacao,
-            'tipo_resultado': registro.tipo_resultado_votacao.nome,
-            'natureza_resultado': registro.tipo_resultado_votacao.natureza,
-        })
-    else:
-        response.update({
-            'numero_votos_sim': 0,
-            'numero_votos_nao': 0,
-            'numero_abstencoes': 0,
-            'total_votos': 0,
-            'tipo_votacao': tipo_votacao,
-            'tipo_resultado': 'Ainda não foi votada.',
-            'natureza_resultado': None,
-        })
-    return response
-
-
-def get_votos_nominal(response, materia):
-    votos = []
-
-    if materia.tipo_votacao == 1:
-        tipo_votacao = 'Simbólica'
-    elif materia.tipo_votacao == 2:
-        tipo_votacao = 'Nominal'
-    elif materia.tipo_votacao == 3:
-        tipo_votacao = 'Secreta'
-
-    if type(materia) == OrdemDia:
-        registro = RegistroVotacao.objects.filter(
-            ordem=materia, materia=materia.materia).last()
-    else:
+    elif type(materia) == ExpedienteMateria:
         registro = RegistroVotacao.objects.filter(
             expediente=materia, materia=materia.materia).last()
 
@@ -461,54 +331,34 @@ def get_votos_nominal(response, materia):
             'numero_votos_sim': 0,
             'numero_votos_nao': 0,
             'numero_abstencoes': 0,
+            'registro': None,
             'total_votos': 0,
-            'tipo_votacao': tipo_votacao,
-            'tipo_resultado': 'Não foi votado ainda',
-            'natureza_resultado': None,
-            'votos': None
+            'tipo_resultado': 'Ainda não foi votada.',
         })
 
     else:
-        votos_parlamentares = VotoParlamentar.objects.filter(
-            votacao_id=registro.id).order_by('parlamentar__nome_parlamentar')
-
-        filiacao = Filiacao.objects.filter(
-            data_desfiliacao__isnull=True, parlamentar__ativo=True)
-        parlamentar_partido = {}
-        for f in filiacao:
-            parlamentar_partido[
-                f.parlamentar.nome_parlamentar] = f.partido.sigla
-
-        for v in votos_parlamentares:
-            try:
-                parlamentar_partido[v.parlamentar.nome_parlamentar]
-            except KeyError:
-                votos.append({
-                    'parlamentar': v.parlamentar.nome_parlamentar,
-                    'voto': str(v.voto),
-                    'partido': str(_('Sem Registro'))
-                })
-            else:
-                votos.append({
-                    'parlamentar': v.parlamentar.nome_parlamentar,
-                    'voto': str(v.voto),
-                    'partido': parlamentar_partido[
-                        v.parlamentar.nome_parlamentar]
-                })
-
         total = (registro.numero_votos_sim +
                  registro.numero_votos_nao +
                  registro.numero_abstencoes)
+
+        if materia.tipo_votacao == 2:
+            votos_parlamentares = VotoParlamentar.objects.filter(
+                votacao_id=registro.id).order_by('parlamentar__nome_parlamentar')
+
+            for i, p in enumerate(response['presentes']):
+                try:
+                    response['presentes'][i]['voto'] = votos_parlamentares.get(
+                        parlamentar_id=p['parlamentar_id']).voto
+                except ObjectDoesNotExist:
+                    response['presentes'][i]['voto'] = None
 
         response.update({
             'numero_votos_sim': registro.numero_votos_sim,
             'numero_votos_nao': registro.numero_votos_nao,
             'numero_abstencoes': registro.numero_abstencoes,
+            'registro': True,
             'total_votos': total,
-            'tipo_votacao': tipo_votacao,
             'tipo_resultado': registro.tipo_resultado_votacao.nome,
-            'natureza_resultado': registro.tipo_resultado_votacao.natureza,
-            'votos': votos
         })
 
     return response
@@ -517,79 +367,60 @@ def get_votos_nominal(response, materia):
 @user_passes_test(check_permission)
 def get_dados_painel(request, pk):
     sessao = SessaoPlenaria.objects.get(id=pk)
-    cronometro_discurso = get_cronometro_status(request, 'discurso')
-    cronometro_aparte = get_cronometro_status(request, 'aparte')
-    cronometro_ordem = get_cronometro_status(request, 'ordem')
 
     response = {
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
         'sessao_plenaria_hora_inicio': sessao.hora_inicio,
-        "cronometro_aparte": cronometro_aparte,
-        "cronometro_discurso": cronometro_discurso,
-        "cronometro_ordem": cronometro_ordem,
+        'cronometro_aparte': get_cronometro_status(request, 'aparte'),
+        'cronometro_discurso': get_cronometro_status(request, 'discurso'),
+        'cronometro_ordem': get_cronometro_status(request, 'ordem'),
     }
 
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
 
+    # Caso tenha alguma matéria com votação aberta, ela é mostrada no painel
+    # com prioridade para Ordem do Dia.
     if ordem_dia:
-        return JsonResponse(get_presentes(pk, response, ordem_dia))
+        return JsonResponse(get_votos(
+                                get_presentes(pk, response, ordem_dia),
+                                ordem_dia))
     elif expediente:
-        return JsonResponse(get_presentes_expediente(pk, response, expediente))
+        return JsonResponse(get_votos(
+                                get_presentes(pk, response, expediente),
+                                expediente))
 
-    # Ultimo voto em ordem e ultimo voto em expediente
+    # Caso não tenha nenhuma aberta, a matéria a ser mostrada no Painel deve ser
+    # a última votada
     last_ordem_voto = RegistroVotacao.objects.filter(
         ordem__sessao_plenaria=sessao).last()
     last_expediente_voto = RegistroVotacao.objects.filter(
         expediente__sessao_plenaria=sessao).last()
 
-    # Ultimas materias votadas
     if last_ordem_voto:
         ultima_ordem_votada = last_ordem_voto.ordem
     if last_expediente_voto:
         ultimo_expediente_votado = last_expediente_voto.expediente
 
-    # Caso não tenha nenhuma votação aberta
     if last_ordem_voto or last_expediente_voto:
-
         # Se alguma ordem E algum expediente já tiver sido votado...
         if last_ordem_voto and last_expediente_voto:
-            # Verifica se o último resultado é um uma ordem do dia
-            if last_ordem_voto.pk >= last_expediente_voto.pk:
-                if ultima_ordem_votada.tipo_votacao in [1, 3]:
-                    return JsonResponse(
-                        get_votos(get_presentes(
-                            pk, response, ultima_ordem_votada),
-                            ultima_ordem_votada))
-                elif ultima_ordem_votada.tipo_votacao == 2:
-                    return JsonResponse(
-                        get_votos_nominal(get_presentes(
-                            pk, response, ultima_ordem_votada),
-                            ultima_ordem_votada))
-            # Caso não seja, verifica se é um expediente
-            else:
-                if ultimo_expediente_votado.tipo_votacao in [1, 3]:
-                    return JsonResponse(
-                        get_votos(get_presentes_expediente(
-                                  pk, response, ultimo_expediente_votado),
-                                  ultimo_expediente_votado))
-                elif ultimo_expediente_votado.tipo_votacao == 2:
-                    return JsonResponse(
-                        get_votos_nominal(get_presentes_expediente(
-                                          pk, response,
-                                          ultimo_expediente_votado),
-                                          ultimo_expediente_votado))
+            materia = ultima_ordem_votada\
+                       if last_ordem_voto.pk >= last_expediente_voto.pk\
+                       else ultimo_expediente_votado
 
         # Caso somente um deles tenha resultado, prioriza a Ordem do Dia
-        if last_ordem_voto:
-            return JsonResponse(get_presentes(
-                pk, response, ultima_ordem_votada))
+        elif last_ordem_voto:
+            materia = ultima_ordem_votada
+
         # Caso a Ordem do dia não tenha resultado, mostra o último expediente
-        if last_expediente_voto:
-            return JsonResponse(get_presentes_expediente(
-                pk, response,
-                ultimo_expediente_votado))
+        elif last_expediente_voto:
+            materia = ultimo_expediente_votado
+
+        return JsonResponse(get_votos(
+                            get_presentes(pk, response, materia),
+                            materia))
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(response)
