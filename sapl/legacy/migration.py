@@ -536,19 +536,20 @@ class DataMigrator:
                 self.populate_renamed_fields(new, old)
                 if ajuste_antes_salvar:
                     ajuste_antes_salvar(new, old)
-                save(new, old)
             except ForeignKeyFaltando:
                 # tentamos preencher uma FK e o ojeto relacionado não existe
                 # então este é um objeo órfão: simplesmente ignoramos
                 continue
-            if ajuste_depois_salvar:
-                ajuste_depois_salvar(new, old)
+            else:
+                save(new, old)
+                if ajuste_depois_salvar:
+                    ajuste_depois_salvar(new, old)
 
-            if self.data_mudada:
-                with reversion.create_revision():
-                    save_relation(**self.data_mudada)
-                    self.data_mudada.clear()
-                    reversion.set_comment('Ajuste de data pela migração')
+                if self.data_mudada:
+                    with reversion.create_revision():
+                        save_relation(**self.data_mudada)
+                        self.data_mudada.clear()
+                        reversion.set_comment('Ajuste de data pela migração')
 
         # necessário para ajustar sequence da tabela para o ultimo valor de id
         ultimo_valor = get_last_value(model)
