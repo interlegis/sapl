@@ -803,6 +803,7 @@ class UnidadeTramitacao(models.Model):
     class Meta:
         verbose_name = _('Unidade de Tramitação')
         verbose_name_plural = _('Unidades de Tramitação')
+        ordering = ['orgao','comissao','parlamentar']
 
     def __str__(self):
         if self.orgao and self.comissao and self.parlamentar:

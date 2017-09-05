@@ -190,6 +190,7 @@ class SituacaoMilitar(models.Model):
     class Meta:
         verbose_name = _('Tipo Situação Militar')
         verbose_name_plural = _('Tipos Situações Militares')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
@@ -360,6 +361,7 @@ class TipoDependente(models.Model):
     class Meta:
         verbose_name = _('Tipo de Dependente')
         verbose_name_plural = _('Tipos de Dependente')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
@@ -432,6 +434,7 @@ class TipoAfastamento(models.Model):
     class Meta:
         verbose_name = _('Tipo de Afastamento')
         verbose_name_plural = _('Tipos de Afastamento')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao

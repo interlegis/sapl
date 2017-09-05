@@ -76,6 +76,7 @@ class TipoSessaoPlenaria(models.Model):
     class Meta:
         verbose_name = _('Tipo de Sessão Plenária')
         verbose_name_plural = _('Tipos de Sessão Plenária')
+        ordering = ['nome']
 
     def __str__(self):
         return self.nome
@@ -264,6 +265,7 @@ class TipoExpediente(models.Model):
     class Meta:
         verbose_name = _('Tipo de Expediente')
         verbose_name_plural = _('Tipos de Expediente')
+        ordering = ['nome']
 
     def __str__(self):
         return self.nome
