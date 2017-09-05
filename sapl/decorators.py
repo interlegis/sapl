@@ -1,6 +1,8 @@
 from datetime import date
 from functools import wraps
 
+from django.utils.translation import ugettext_lazy as _
+
 
 def vigencia_atual(decorated_method):
     """
@@ -13,10 +15,7 @@ def vigencia_atual(decorated_method):
     """
     @wraps(decorated_method)
     def display_atual(self):
-        try:
-            string_displayed = decorated_method(self)
-        except TypeError:
-            string_displayed = ""
+        string_displayed = decorated_method(self)
 
         if hasattr(self, 'data_inicio') and hasattr(self, 'data_fim'):
             today = date.today()
@@ -24,15 +23,19 @@ def vigencia_atual(decorated_method):
             string_displayed = "{} {}".format(
                 string_displayed, "(Atual)" if e_atual else "")
         else:
-            print('{} {}'.format(
-                "Instance does not have the attributes [{}, {}].".format(
-                    'data_inicio',
-                    'data_fim'
-                ),
-                "Decorator @{} has been disabled.".format(
-                    vigencia_atual.__name__()
-                    )
+            instancia_sem_atributo = "{} [{}, {}].".format(
+                'Instância não possui os atributos',
+                'data_inicio',
+                'data_fim')
+
+            mensagem_decorator = "Decorator @{} foi desabilitado.".format(
+                vigencia_atual.__name__()
+            )
+            print(_('{} {}'.format(
+                _(instancia_sem_atributo),
+                _(mensagem_decorator)
                 )
+            )
             )
 
         return string_displayed

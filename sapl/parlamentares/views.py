@@ -661,8 +661,8 @@ class MesaDiretoraView(FormView):
         sessoes = SessaoLegislativa.objects.filter(
             legislatura=legislatura).order_by("data_inicio")
 
-        today = datetime.now()
-        sessao_atual = sessoes.filter(data_inicio__year=today.year).first()
+        year = datetime.now().year
+        sessao_atual = sessoes.filter(data_inicio__year=year).first()
 
         mesa = sessao_atual.composicaomesa_set.all() if sessao_atual else []
 
@@ -716,9 +716,9 @@ def altera_field_mesa(request):
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
-        today = datetime.now()
+        year = datetime.now().year
         try:
-            sessao_selecionada = sessoes.get(data_inicio__year=today.year).id
+            sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist:
             sessao_selecionada = sessoes.first().id
 
@@ -884,8 +884,8 @@ def altera_field_mesa_public_view(request):
     # atual deve ser a primeira daquela legislatura
     else:
         try:
-            today = datetime.now()
-            sessao_selecionada = sessoes.get(data_inicio__year=today.year).id
+            year = datetime.now().year
+            sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist as e:
             sessao_selecionada = sessoes.first().id
 
