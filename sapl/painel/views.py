@@ -343,7 +343,8 @@ def get_votos(response, materia):
 
         if materia.tipo_votacao == 2:
             votos_parlamentares = VotoParlamentar.objects.filter(
-                votacao_id=registro.id).order_by('parlamentar__nome_parlamentar')
+                votacao_id=registro.id).order_by(
+                    'parlamentar__nome_parlamentar')
 
             for i, p in enumerate(response['presentes']):
                 try:
@@ -391,8 +392,8 @@ def get_dados_painel(request, pk):
             get_presentes(pk, response, expediente),
             expediente))
 
-    # Caso não tenha nenhuma aberta, a matéria a ser mostrada no Painel deve ser
-    # a última votada
+    # Caso não tenha nenhuma aberta,
+    # a matéria a ser mostrada no Painel deve ser a última votada
     last_ordem_voto = RegistroVotacao.objects.filter(
         ordem__sessao_plenaria=sessao).last()
     last_expediente_voto = RegistroVotacao.objects.filter(
