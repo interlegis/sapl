@@ -98,10 +98,10 @@ def test_norma_juridica_materia_inexistente():
 def test_norma_juridica_materia_existente():
     tipo = mommy.make(TipoNormaJuridica)
     tipo_materia = mommy.make(TipoMateriaLegislativa)
-    materia = mommy.make(MateriaLegislativa,
-                         numero=2,
-                         ano=2017,
-                         tipo=tipo_materia)
+    mommy.make(MateriaLegislativa,
+               numero=2,
+               ano=2017,
+               tipo=tipo_materia)
 
     form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
                                    'numero': '1',

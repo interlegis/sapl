@@ -12,11 +12,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
-from sapl.parlamentares.models import Filiacao, Votante
+from sapl.parlamentares.models import Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoParlamentar)
-from sapl.utils import filiacao_data, get_client_ip, parlamentares_ativos
+from sapl.utils import filiacao_data, get_client_ip
 
 from .models import Cronometro
 

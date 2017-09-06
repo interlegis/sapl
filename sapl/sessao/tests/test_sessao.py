@@ -46,11 +46,11 @@ def test_numero_duplicado_sessao_plenaria_form():
     legislatura = mommy.make(Legislatura)
     sessao = mommy.make(SessaoLegislativa)
     tipo = mommy.make(TipoSessaoPlenaria)
-    sessao_plenaria = mommy.make(SessaoPlenaria,
-                                 legislatura=legislatura,
-                                 sessao_legislativa=sessao,
-                                 tipo=tipo,
-                                 numero=1)
+    mommy.make(SessaoPlenaria,
+               legislatura=legislatura,
+               sessao_legislativa=sessao,
+               tipo=tipo,
+               numero=1)
 
     form = forms.SessaoPlenariaForm(data={'legislatura': str(legislatura.pk),
                                           'numero': '1',

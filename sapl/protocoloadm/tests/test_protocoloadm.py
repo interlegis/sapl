@@ -287,7 +287,7 @@ def test_anular_protocolo_form_anula_protocolo_inexistente():
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_form_anula_protocolo_anulado():
-    protocolo = mommy.make(Protocolo, numero=1, ano=2017, anulado=True)
+    mommy.make(Protocolo, numero=1, ano=2017, anulado=True)
 
     form = AnularProcoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
@@ -304,15 +304,15 @@ def test_anular_protocolo_form_anula_protocolo_anulado():
 def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
     tipo_materia = mommy.make(TipoMateriaLegislativa)
 
-    protocolo_materia = mommy.make(Protocolo,
-                                   numero=1,
-                                   ano=2017,
-                                   tipo_materia=tipo_materia,
-                                   anulado=False)
+    mommy.make(Protocolo,
+               numero=1,
+               ano=2017,
+               tipo_materia=tipo_materia,
+               anulado=False)
 
-    materia_legislativa = mommy.make(MateriaLegislativa,
-                                     ano=2017,
-                                     numero_protocolo=1)
+    mommy.make(MateriaLegislativa,
+               ano=2017,
+               numero_protocolo=1)
 
     form = AnularProcoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
@@ -333,8 +333,8 @@ def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
                                      tipo_documento=tipo_documento,
                                      anulado=False)
 
-    documento_administrativo = mommy.make(DocumentoAdministrativo,
-                                          protocolo=protocolo_documento)
+    mommy.make(DocumentoAdministrativo,
+               protocolo=protocolo_documento)
 
     form = AnularProcoloAdmForm(data={'numero': '2',
                                       'ano': '2017',

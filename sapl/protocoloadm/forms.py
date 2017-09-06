@@ -3,7 +3,7 @@ from datetime import datetime
 import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models

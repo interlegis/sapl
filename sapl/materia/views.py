@@ -2,6 +2,7 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
+import weasyprint
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
@@ -12,7 +13,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.template import Context, RequestContext, loader
+from django.template import RequestContext, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
@@ -21,7 +22,6 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 import sapl
-import weasyprint
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
