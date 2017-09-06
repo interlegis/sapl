@@ -1,5 +1,6 @@
 import re
 from datetime import date
+from functools import lru_cache
 from subprocess import PIPE, call
 
 import pkg_resources
@@ -11,7 +12,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import ProgrammingError, connections, models
+from django.db import ProgrammingError, connections, models, transaction
 from django.db.models import CharField, Count, Max, TextField
 from django.db.models.base import ModelBase
 from model_mommy import mommy
@@ -122,17 +123,24 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
     pass
 
 
+@lru_cache()
+def _get_all_ids_from_model(model):
+    # esta função para uso apenas em get_fk_related
+    return set(model.objects.values_list('id', flat=True))
+
+
 def get_fk_related(field, value, label=None):
     if value is None and field.null:
+        return None
+
+    # if field.related_model.objects.filter(id=value).exists():
+    if value in _get_all_ids_from_model(field.related_model):
         return value
     else:
-        try:
-            return field.related_model.objects.get(id=value)
-        except ObjectDoesNotExist as ex:
-            msg = 'FK [%s] não encontrada para o valor %s (em %s %s)' % (
-                field.name, value, field.model.__name__, label or '---')
-            warn(msg)
-            raise ForeignKeyFaltando(msg)
+        msg = 'FK [%s] não encontrada para o valor %s (em %s %s)' % (
+            field.name, value, field.model.__name__, label or '---')
+        warn(msg)
+        raise ForeignKeyFaltando(msg)
 
 
 def get_field(model, fieldname):
@@ -410,37 +418,39 @@ class DataMigrator:
             field_type = field.get_internal_type()
             if old_field_name:
                 old_value = getattr(old, old_field_name)
-                if isinstance(field, models.ForeignKey):
-                    old_type = type(old)  # not necessarily a model
-                    if hasattr(old_type, '_meta') and \
-                            old_type._meta.pk.name != 'id':
+
+                if field_type == 'ForeignKey':
+                    # not necessarily a model
+                    if hasattr(old, '_meta') and old._meta.pk.name != 'id':
                         label = old.pk
                     else:
                         label = '-- SEM PK --'
+                    fk_field_name = '{}_id'.format(field.name)
                     value = get_fk_related(field, old_value, label)
+                    setattr(new, fk_field_name, value)
                 else:
                     value = getattr(old, old_field_name)
-                # TODO rever esse DateField após as mudança para datas com
-                # timezone
-                if field_type == 'DateField' and \
-                        not field.null and value is None:
-                    # TODO REVER ISSO
-                    descricao = 'A data 1111-11-11 foi colocada no lugar'
-                    problema = 'O valor da data era nulo ou inválido'
-                    warn("O valor do campo %s (%s) do model %s "
-                         "era inválido => %s" % (
-                             field.name, field_type,
-                             field.model.__name__, descricao))
-                    value = date(1111, 11, 11)
-                    self.data_mudada['obj'] = new
-                    self.data_mudada['descricao'] = descricao
-                    self.data_mudada['problema'] = problema
-                    self.data_mudada.setdefault('nome_campo', []).\
-                        append(field.name)
-                if (field_type in ['CharField', 'TextField']
-                        and value in [None, 'None']):
-                    value = ''
-                setattr(new, field.name, value)
+                    # TODO rever esse DateField após as mudança para datas com
+                    # timezone
+                    if field_type == 'DateField' and \
+                            not field.null and value is None:
+                        # TODO REVER ISSO
+                        descricao = 'A data 1111-11-11 foi colocada no lugar'
+                        problema = 'O valor da data era nulo ou inválido'
+                        warn("O valor do campo %s (%s) do model %s "
+                             "era inválido => %s" % (
+                                 field.name, field_type,
+                                 field.model.__name__, descricao))
+                        value = date(1111, 11, 11)
+                        self.data_mudada['obj'] = new
+                        self.data_mudada['descricao'] = descricao
+                        self.data_mudada['problema'] = problema
+                        self.data_mudada.setdefault('nome_campo', []).\
+                            append(field.name)
+                    if (field_type in ['CharField', 'TextField']
+                            and value in [None, 'None']):
+                        value = ''
+                    setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs, interativo=True):
         # warning: model/app migration order is of utmost importance
@@ -527,29 +537,32 @@ class DataMigrator:
         ajuste_depois_salvar = AJUSTE_DEPOIS_SALVAR.get(model)
 
         # convert old records to new ones
-        for old in old_records:
-            if getattr(old, 'ind_excluido', False):
-                # não migramos registros marcados como excluídos
-                continue
-            new = model()
-            try:
-                self.populate_renamed_fields(new, old)
-                if ajuste_antes_salvar:
-                    ajuste_antes_salvar(new, old)
-            except ForeignKeyFaltando:
-                # tentamos preencher uma FK e o ojeto relacionado não existe
-                # então este é um objeo órfão: simplesmente ignoramos
-                continue
-            else:
-                save(new, old)
-                if ajuste_depois_salvar:
-                    ajuste_depois_salvar(new, old)
+        with transaction.atomic():
+            for old in old_records:
+                if getattr(old, 'ind_excluido', False):
+                    # não migramos registros marcados como excluídos
+                    continue
+                new = model()
+                try:
+                    self.populate_renamed_fields(new, old)
+                    if ajuste_antes_salvar:
+                        ajuste_antes_salvar(new, old)
+                except ForeignKeyFaltando:
+                    # tentamos preencher uma FK e o ojeto relacionado
+                    # não existe
+                    # então este é um objeo órfão: simplesmente ignoramos
+                    continue
+                else:
+                    save(new, old)
+                    if ajuste_depois_salvar:
+                        ajuste_depois_salvar(new, old)
 
-                if self.data_mudada:
-                    with reversion.create_revision():
-                        save_relation(**self.data_mudada)
-                        self.data_mudada.clear()
-                        reversion.set_comment('Ajuste de data pela migração')
+                    if self.data_mudada:
+                        with reversion.create_revision():
+                            save_relation(**self.data_mudada)
+                            self.data_mudada.clear()
+                            reversion.set_comment(
+                                'Ajuste de data pela migração')
 
         # necessário para ajustar sequence da tabela para o ultimo valor de id
         ultimo_valor = get_last_value(model)
@@ -650,7 +663,7 @@ def adjust_parlamentar(new, old):
 
 def adjust_participacao(new, old):
     composicao = Composicao()
-    composicao.comissao, composicao.periodo = [
+    composicao.comissao_id, composicao.periodo_id = [
         get_fk_related(Composicao._meta.get_field(name), value)
         for name, value in (('comissao', old.cod_comissao),
                             ('periodo', old.cod_periodo_comp))]
