@@ -1653,7 +1653,7 @@ class EtiquetaPesquisaForm(forms.Form):
             # Então verifica se o usuário preencheu o Incial e mas não
             # preencheu o Final, ou vice-versa
             if (not cleaned_data['data_inicial'] or
-               not cleaned_data['data_final']):
+                    not cleaned_data['data_final']):
                 raise ValidationError(_(
                     'Caso pesquise por data, os campos de Data Incial e ' +
                     'Data Final devem ser preenchidos obrigatoriamente'))
@@ -1665,17 +1665,16 @@ class EtiquetaPesquisaForm(forms.Form):
 
         # O mesmo processo anterior é feito com o processo
         if (cleaned_data['processo_inicial'] or
-           cleaned_data['processo_final']):
+                cleaned_data['processo_final']):
             if (not cleaned_data['processo_inicial'] or
-               not cleaned_data['processo_final']):
+                    not cleaned_data['processo_final']):
                 raise ValidationError(_(
                     'Caso pesquise por número de processo, os campos de ' +
                     'Processo Inicial e Processo Final ' +
                     'devem ser preenchidos obrigatoriamente'))
             elif (cleaned_data['processo_final'] <
                   cleaned_data['processo_inicial']):
-                    raise ValidationError(_(
-                        'O processo final não pode ser menor que o inicial'))
+                raise ValidationError(_(
+                    'O processo final não pode ser menor que o inicial'))
 
         return cleaned_data
-

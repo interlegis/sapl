@@ -1,13 +1,11 @@
 import pytest
-
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-
 from model_mommy import mommy
 
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.norma.forms import NormaJuridicaForm, NormaRelacionadaForm
-from sapl.norma.models import (NormaJuridica, TipoNormaJuridica)
+from sapl.norma.models import NormaJuridica, TipoNormaJuridica
 
 
 @pytest.mark.django_db(transaction=False)

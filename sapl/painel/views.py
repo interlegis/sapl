@@ -261,7 +261,7 @@ def get_materia_aberta(pk):
 def get_presentes(pk, response, materia):
     if type(materia) == OrdemDia:
         presentes = PresencaOrdemDia.objects.filter(
-        sessao_plenaria_id=pk)
+            sessao_plenaria_id=pk)
     elif type(materia) == ExpedienteMateria:
         presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=pk)
@@ -384,12 +384,12 @@ def get_dados_painel(request, pk):
     # com prioridade para Ordem do Dia.
     if ordem_dia:
         return JsonResponse(get_votos(
-                                get_presentes(pk, response, ordem_dia),
-                                ordem_dia))
+            get_presentes(pk, response, ordem_dia),
+            ordem_dia))
     elif expediente:
         return JsonResponse(get_votos(
-                                get_presentes(pk, response, expediente),
-                                expediente))
+            get_presentes(pk, response, expediente),
+            expediente))
 
     # Caso não tenha nenhuma aberta, a matéria a ser mostrada no Painel deve ser
     # a última votada
@@ -407,8 +407,8 @@ def get_dados_painel(request, pk):
         # Se alguma ordem E algum expediente já tiver sido votado...
         if last_ordem_voto and last_expediente_voto:
             materia = ultima_ordem_votada\
-                       if last_ordem_voto.pk >= last_expediente_voto.pk\
-                       else ultimo_expediente_votado
+                if last_ordem_voto.pk >= last_expediente_voto.pk\
+                else ultimo_expediente_votado
 
         # Caso somente um deles tenha resultado, prioriza a Ordem do Dia
         elif last_ordem_voto:

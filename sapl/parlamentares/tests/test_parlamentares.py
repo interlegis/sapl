@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.parlamentares.forms import (FrenteForm, LegislaturaForm, MandatoForm)
+from sapl.parlamentares.forms import FrenteForm, LegislaturaForm, MandatoForm
 from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
                                        TipoDependente)

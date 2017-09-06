@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
@@ -145,7 +146,6 @@ class NormaCrud(Crud):
         @property
         def layout_key(self):
             return 'NormaJuridicaCreate'
-
 
     class ListView(Crud.ListView, RedirectView):
 

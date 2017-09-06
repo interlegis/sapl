@@ -12,7 +12,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.template import Context, loader, RequestContext
+from django.template import Context, RequestContext, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
@@ -21,6 +21,7 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 import sapl
+import weasyprint
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -46,11 +47,10 @@ from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
-                    MateriaAssuntoForm,
-                    MateriaLegislativaFilterSet, MateriaSimplificadaForm,
-                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
-                    RelatoriaForm, TramitacaoEmLoteFilterSet,
-                    filtra_tramitacao_destino,
+                    MateriaAssuntoForm, MateriaLegislativaFilterSet,
+                    MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
+                    ReceberProposicaoForm, RelatoriaForm,
+                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
@@ -60,8 +60,6 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
-
-import weasyprint
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -1751,6 +1749,7 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
     template_name = 'materia/impressos/impressos.html'
     permission_required = ('materia.can_access_impressos', )
 
+
 def gerar_pdf_impressos(request, context):
     template = loader.get_template('materia/impressos/pdf.html')
     html = template.render(RequestContext(request, context))
@@ -1797,5 +1796,3 @@ class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
         context['materias'] = materias
 
         return gerar_pdf_impressos(self.request, context)
-
-

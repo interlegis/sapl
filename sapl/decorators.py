@@ -34,7 +34,7 @@ def vigencia_atual(decorated_method):
             print(_('{} {}'.format(
                 _(instancia_sem_atributo),
                 _(mensagem_decorator)
-                )
+            )
             )
             )
 

@@ -9,8 +9,7 @@ from model_mommy import mommy
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
                                      DocumentoAdministrativoForm,
-                                     MateriaLegislativa,
-                                     ProtocoloDocumentForm,
+                                     MateriaLegislativa, ProtocoloDocumentForm,
                                      ProtocoloMateriaForm)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo,

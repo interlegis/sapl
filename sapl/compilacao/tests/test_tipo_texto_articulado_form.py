@@ -3,8 +3,7 @@ from django.utils.translation import ugettext as _
 from model_mommy import mommy
 
 from sapl.compilacao import forms
-from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
-                                    TipoNota)
+from sapl.compilacao.models import PerfilEstruturalTextoArticulado, TipoNota
 from sapl.compilacao.views import choice_models_in_extenal_views
 
 
