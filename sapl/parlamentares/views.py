@@ -25,7 +25,7 @@ from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 from sapl.utils import parlamentares_ativos
 
-from .forms import (FiliacaoForm, LegislaturaCreateForm, LegislaturaUpdateForm,
+from .forms import (FiliacaoForm, LegislaturaForm,
                     MandatoForm, ParlamentarCreateForm, ParlamentarForm,
                     VotanteForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
@@ -358,7 +358,7 @@ class LegislaturaCrud(CrudAux):
     help_path = 'tabelas_auxiliares#legislatura'
 
     class CreateView(CrudAux.CreateView):
-        form_class = LegislaturaCreateForm
+        form_class = LegislaturaForm
 
         def get_initial(self):
             try:
@@ -369,7 +369,7 @@ class LegislaturaCrud(CrudAux):
             return {'numero': numero}
 
     class UpdateView(CrudAux.UpdateView):
-        form_class = LegislaturaUpdateForm
+        form_class = LegislaturaForm
 
     class DetailView(CrudAux.DetailView):
 
