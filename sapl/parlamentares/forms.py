@@ -26,7 +26,7 @@ class ImageThumbnailFileInput(ClearableFileInput):
 def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
 
     # Verifica se data de eleição < inicio < fim
-    if inicio > fim or eleicao > inicio:
+    if inicio >= fim or eleicao >= inicio:
         msg_error = _('A data início deve ser menor que a ' +
                       'data fim, e a data eleição deve ser ' +
                       'menor que a data início')
