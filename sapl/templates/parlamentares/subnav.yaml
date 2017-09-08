@@ -21,3 +21,4 @@
   url: frente_parlamentar_list
 - title: {% trans 'Usuário' %}
   url: votante_list
+  check_permission: parlamentares.add_parlamentar
