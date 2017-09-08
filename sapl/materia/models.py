@@ -66,7 +66,6 @@ class TipoProposicao(models.Model):
     class Meta:
         verbose_name = _('Tipo de Proposição')
         verbose_name_plural = _('Tipos de Proposições')
-        unique_together = (('content_type', 'object_id'), )
 
     def __str__(self):
         return self.descricao
