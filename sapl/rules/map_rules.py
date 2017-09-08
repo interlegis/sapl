@@ -53,6 +53,7 @@ __listdetailchange__ = [RP_LIST, RP_DETAIL, RP_CHANGE]
 rules_group_administrativo = {
     'group': SAPL_GROUP_ADMINISTRATIVO,
     'rules': [
+        (materia.MateriaLegislativa, ['can_access_impressos']),
         (protocoloadm.DocumentoAdministrativo, __base__),
         (protocoloadm.DocumentoAcessorioAdministrativo, __base__),
         (protocoloadm.TramitacaoAdministrativo, __base__),
@@ -69,6 +70,7 @@ rules_group_protocolo = {
         (protocoloadm.DocumentoAcessorioAdministrativo, __listdetailchange__),
 
         (materia.MateriaLegislativa, __listdetailchange__),
+        (materia.MateriaLegislativa, ['can_access_impressos']),
         (materia.DocumentoAcessorio, __listdetailchange__),
         (materia.Anexada, __base__),
         (materia.Autoria, __base__),
@@ -98,7 +100,7 @@ rules_group_materia = {
         (materia.DespachoInicial, __base__),
         (materia.DocumentoAcessorio, __base__),
 
-        (materia.MateriaLegislativa, __base__),
+        (materia.MateriaLegislativa, __base__ + ['can_access_impressos']),
         (materia.Numeracao, __base__),
         (materia.Tramitacao, __base__),
         (norma.LegislacaoCitada, __base__),
@@ -209,6 +211,7 @@ rules_group_geral = {
 
         (materia.AssuntoMateria, __base__),  # não há implementação
         (materia.MateriaAssunto, __base__),  # não há implementação
+        (materia.MateriaLegislativa, ['can_access_impressos']),
         (materia.TipoProposicao, __base__),
         (materia.TipoMateriaLegislativa, __base__),
         (materia.RegimeTramitacao, __base__),

@@ -20,7 +20,7 @@
       <div class="actions btn-toolbar pull-right" role="toolbar">
         <div class="actions btn-group" role="group">
           {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
-                <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-default btn-excluir">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Bloquear Edição' %}{% endif %}</a>
+                <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-default {% if object.editing_locked %}btn-excluir{%else%}btn-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
           {% endif %}
 
           <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>

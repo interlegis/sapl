@@ -955,7 +955,8 @@ class CrudAux(Crud):
             Se o valor de subnav_template_name é nulo faz o filter subnav
             não abrir o padrão e nem um outro arquivo.
             """
-            context['subnav_template_name'] = self.subnav_template_name
+            if 'subnav_template_name' not in context:
+                context['subnav_template_name'] = self.subnav_template_name
             return context
 
     @classonlymethod

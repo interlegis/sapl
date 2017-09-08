@@ -34,14 +34,14 @@
     <div class="clearfix hidden-print">
 
       <div class="actions btn-group pull-right" role="group">
-        {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
-              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-default btn-excluir">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Bloquear Edição' %}{% endif %}</a>
-        {% endif %}
         {% if perms.compilacao.change_textoarticulado and object|can_use_dynamic_editing:user %}
           <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
         {% endif %}
         {% if object|can_use_dynamic_editing:user %}
               <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Texto' %}</a>
+        {% endif %}
+        {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
+              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-default {% if object.editing_locked %}btn-excluir{%else%}btn-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
         {% endif %}
 
 	     </div>

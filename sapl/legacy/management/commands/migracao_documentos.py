@@ -5,7 +5,7 @@ from sapl.legacy.migracao_documentos import migrar_documentos
 
 class Command(BaseCommand):
 
-    help ='Migração documentos do SAPL 2.5 para o SAPL 3.1'
+    help = 'Migração documentos do SAPL 2.5 para o SAPL 3.1'
 
     def handle(self, *args, **options):
         migrar_documentos()

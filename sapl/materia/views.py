@@ -1,21 +1,19 @@
-from datetime import datetime, date
+from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
+import weasyprint
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
-from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import (ObjectDoesNotExist,
-                                    MultipleObjectsReturned)
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
+from django.template import RequestContext, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
@@ -23,6 +21,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -33,25 +32,25 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
                             Crud, CrudAux, MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
-from sapl.materia.forms import (AnexadaForm, ConfirmarProposicaoForm,
-                                LegislacaoCitadaForm, AutoriaForm, ProposicaoForm,
-                                TipoProposicaoForm, TramitacaoForm,
-                                TramitacaoUpdateForm, AutoriaMultiCreateForm)
+from sapl.materia.forms import (AnexadaForm, AutoriaForm,
+                                AutoriaMultiCreateForm,
+                                ConfirmarProposicaoForm, LegislacaoCitadaForm,
+                                ProposicaoForm, TipoProposicaoForm,
+                                TramitacaoForm, TramitacaoUpdateForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor)
-import sapl
 
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
-                    DocumentoAcessorioForm, MateriaAssuntoForm,
-                    MateriaLegislativaFilterSet, MateriaSimplificadaForm,
-                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
-                    RelatoriaForm, TramitacaoEmLoteFilterSet,
-                    filtra_tramitacao_destino,
+                    DocumentoAcessorioForm, EtiquetaPesquisaForm,
+                    MateriaAssuntoForm, MateriaLegislativaFilterSet,
+                    MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
+                    ReceberProposicaoForm, RelatoriaForm,
+                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
@@ -61,7 +60,6 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
-
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -1062,6 +1060,11 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         def __init__(self, **kwargs):
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
+        def get_initial(self):
+            self.initial['data'] = datetime.now().date()
+
+            return self.initial
+
         def get_context_data(self, **kwargs):
             context = super(
                 MasterDetailCrud.CreateView, self).get_context_data(**kwargs)
@@ -1731,9 +1734,8 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
 
         if ('tramitacao__status' in qr and
                 'tramitacao__unidade_tramitacao_destino' in qr and
-                    qr['tramitacao__status'] and
-                    qr['tramitacao__unidade_tramitacao_destino']
-                ):
+                qr['tramitacao__status'] and
+                qr['tramitacao__unidade_tramitacao_destino']):
             lista = filtra_tramitacao_destino_and_status(
                 qr['tramitacao__status'],
                 qr['tramitacao__unidade_tramitacao_destino'])
@@ -1741,3 +1743,56 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
                 id__in=lista).distinct()
 
         return context
+
+
+class ImpressosView(PermissionRequiredMixin, TemplateView):
+    template_name = 'materia/impressos/impressos.html'
+    permission_required = ('materia.can_access_impressos', )
+
+
+def gerar_pdf_impressos(request, context):
+    template = loader.get_template('materia/impressos/pdf.html')
+    html = template.render(RequestContext(request, context))
+    response = HttpResponse(content_type="application/pdf")
+    weasyprint.HTML(
+        string=html,
+        base_url=request.build_absolute_uri()).write_pdf(
+        response)
+
+    return response
+
+
+class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
+    form_class = EtiquetaPesquisaForm
+    template_name = 'materia/impressos/etiqueta.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def form_valid(self, form):
+        context = {}
+
+        materias = MateriaLegislativa.objects.all().order_by(
+            '-data_apresentacao')
+
+        if form.cleaned_data['tipo_materia']:
+            materias = materias.filter(tipo=form.cleaned_data['tipo_materia'])
+
+        if form.cleaned_data['data_inicial']:
+            materias = materias.filter(
+                data_apresentacao__gte=form.cleaned_data['data_inicial'],
+                data_apresentacao__lte=form.cleaned_data['data_final'])
+
+        if form.cleaned_data['processo_inicial']:
+            materias = materias.filter(
+                numeracao__numero_materia__gte=form.cleaned_data[
+                    'processo_inicial'],
+                numeracao__numero_materia__lte=form.cleaned_data[
+                    'processo_final'])
+
+        context['quantidade'] = len(materias)
+
+        if context['quantidade'] > 20:
+            materias = materias[:20]
+
+        context['materias'] = materias
+
+        return gerar_pdf_impressos(self.request, context)

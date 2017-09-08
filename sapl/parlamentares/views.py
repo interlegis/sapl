@@ -1,7 +1,12 @@
+import json
+from datetime import datetime
+
 from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import F, Q
+from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.templatetags.static import static
@@ -9,13 +14,16 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
+from django.views.generic.edit import UpdateView
 
+from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             CrudBaseForListAndDetailExternalAppView,
                             MasterDetailCrud)
-from sapl.materia.models import Proposicao, Relatoria
+from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
+from sapl.utils import parlamentares_ativos
 
 from .forms import (FiliacaoForm, LegislaturaCreateForm, LegislaturaUpdateForm,
                     MandatoForm, ParlamentarCreateForm, ParlamentarForm,
@@ -24,15 +32,6 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
-
-from sapl.base.models import Autor
-from sapl.materia.models import Autoria
-from django.contrib.contenttypes.models import ContentType
-from django.db.models.aggregates import Count
-
-import datetime
-import json
-
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
@@ -67,8 +66,7 @@ class VotanteView(MasterDetailCrud):
 
         def delete(self, *args, **kwargs):
             obj = self.get_object()
-            if obj.user:
-                obj.user.delete()
+            obj.delete()
             return HttpResponseRedirect(
                 reverse('sapl.parlamentares:votante_list',
                         kwargs={'pk': obj.parlamentar.pk}))
@@ -189,7 +187,8 @@ class ColigacaoCrud(CrudAux):
         ordering = ('-numero_votos', 'nome')
 
         def get_context_data(self, **kwargs):
-            context = super(ColigacaoCrud.ListView, self).get_context_data(kwargs=kwargs)
+            context = super(ColigacaoCrud.ListView, self).get_context_data(
+                kwargs=kwargs)
             rows = context['rows']
             coluna_votos_recebidos = 2
             for row in rows:
@@ -201,15 +200,25 @@ class ColigacaoCrud(CrudAux):
     class DetailView(CrudAux.DetailView):
 
         def get_context_data(self, **kwargs):
-            context = super(ColigacaoCrud.DetailView, self).get_context_data(kwargs=kwargs)
+            context = super().get_context_data(kwargs=kwargs)
             coligacao = context['coligacao']
             if not coligacao.numero_votos:
                 coligacao.numero_votos = '0'
 
+            context['subnav_template_name'] = \
+                'parlamentares/subnav_coligacao.yaml'
+
             return context
 
-    class BaseMixin(CrudAux.BaseMixin):
-        subnav_template_name = 'parlamentares/subnav_coligacao.yaml'
+    class UpdateView(CrudAux.UpdateView):
+
+        def get_context_data(self, **kwargs):
+            context = super(UpdateView, self).get_context_data(kwargs=kwargs)
+
+            context['subnav_template_name'] = \
+                'parlamentares/subnav_coligacao.yaml'
+
+            return context
 
 
 def json_date_convert(date):
@@ -222,32 +231,6 @@ def json_date_convert(date):
     return datetime.date(day=int(dia),
                          month=int(mes),
                          year=int(ano))
-
-
-def parlamentares_ativos(data_inicio, data_fim=None):
-    '''
-    :param data_inicio: define a data de inicial do período desejado
-    :param data_fim: define a data final do período desejado
-    :return: queryset dos parlamentares ativos naquele período
-    '''
-    mandatos_ativos = Mandato.objects.filter(Q(
-        data_inicio_mandato__lte=data_inicio,
-        data_fim_mandato__isnull=True) | Q(
-        data_inicio_mandato__lte=data_inicio,
-        data_fim_mandato__gte=data_inicio))
-    if data_fim:
-        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
-            data_inicio_mandato__gte=data_inicio,
-            data_inicio_mandato__lte=data_fim)
-    else:
-        mandatos_ativos = mandatos_ativos | Mandato.objects.filter(
-            data_inicio_mandato__gte=data_inicio)
-
-    parlamentares_id = mandatos_ativos.values_list(
-        'parlamentar_id',
-        flat=True).distinct('parlamentar_id')
-
-    return Parlamentar.objects.filter(id__in=parlamentares_id)
 
 
 def frente_atualiza_lista_parlamentares(request):
@@ -295,6 +278,7 @@ class FrenteCrud(CrudAux):
     list_field_names = ['nome', 'data_criacao', 'parlamentares']
 
     class CreateView(CrudAux.CreateView):
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
@@ -305,6 +289,7 @@ class FrenteCrud(CrudAux):
             return context
 
     class UpdateView(CrudAux.UpdateView):
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
@@ -342,7 +327,6 @@ class MandatoCrud(MasterDetailCrud):
                     row[coluna_votos_recebidos] = (' ', None)
 
             return context
-
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = MandatoForm
@@ -388,6 +372,7 @@ class LegislaturaCrud(CrudAux):
         form_class = LegislaturaUpdateForm
 
     class DetailView(CrudAux.DetailView):
+
         def has_permission(self):
             return True
 
@@ -396,6 +381,7 @@ class LegislaturaCrud(CrudAux):
             return super().get(request, *args, **kwargs)
 
     class ListView(CrudAux.ListView):
+
         def has_permission(self):
             return True
 
@@ -621,7 +607,7 @@ class ParlamentarMateriasView(FormView):
                 'materia__tipo__sigla',
                 'materia__tipo__descricao').annotate(
                     total=Count('materia__tipo__pk')).order_by(
-                                '-materia__ano', 'materia__tipo')
+            '-materia__ano', 'materia__tipo')
 
         autor_list = self.get_autoria(autoria)
         coautor_list = self.get_autoria(coautoria)
@@ -671,17 +657,20 @@ class MesaDiretoraView(FormView):
                 not SessaoLegislativa.objects.exists()):
             return self.validation(request)
 
-        sessao = SessaoLegislativa.objects.filter(
-            legislatura=Legislatura.objects.first()).first(
-        )
+        legislatura = Legislatura.objects.first()
+        sessoes = SessaoLegislativa.objects.filter(
+            legislatura=legislatura).order_by("data_inicio")
 
-        mesa = sessao.composicaomesa_set.all() if sessao else []
+        year = datetime.now().year
+        sessao_atual = sessoes.filter(data_inicio__year=year).first()
+
+        mesa = sessao_atual.composicaomesa_set.all() if sessao_atual else []
 
         cargos_ocupados = [m.cargo for m in mesa]
         cargos = CargoMesa.objects.all()
         cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
-        parlamentares = Legislatura.objects.first().mandato_set.all()
+        parlamentares = legislatura.mandato_set.all()
         parlamentares_ocupados = [m.parlamentar for m in mesa]
         parlamentares_vagos = list(
             set(
@@ -696,11 +685,9 @@ class MesaDiretoraView(FormView):
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
-                'legislatura_selecionada': Legislatura.objects.first(),
-                'sessoes': SessaoLegislativa.objects.filter(
-                legislatura=Legislatura.objects.first()),
-                'sessao_selecionada': SessaoLegislativa.objects.filter(
-                legislatura=Legislatura.objects.first()).first(),
+                'legislatura_selecionada': legislatura,
+                'sessoes': sessoes,
+                'sessao_selecionada': sessao_atual,
                 'composicao_mesa': mesa,
                 'parlamentares': parlamentares_vagos,
                 'cargos_vagos': cargos_vagos
@@ -714,7 +701,6 @@ def altera_field_mesa(request):
         operação (Legislatura/Sessão/Inclusão/Remoção),
         atualizando os campos após cada alteração
     """
-
     legislatura = request.GET['legislatura']
     sessoes = SessaoLegislativa.objects.filter(
         legislatura=legislatura).order_by('-data_inicio')
@@ -730,9 +716,11 @@ def altera_field_mesa(request):
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
-        sessao_selecionada = SessaoLegislativa.objects.filter(
-            legislatura=legislatura).order_by(
-            '-data_inicio').first().id
+        year = datetime.now().year
+        try:
+            sessao_selecionada = sessoes.get(data_inicio__year=year).id
+        except ObjectDoesNotExist:
+            sessao_selecionada = sessoes.first().id
 
     # Atualiza os componentes da view após a mudança
     composicao_mesa = ComposicaoMesa.objects.filter(
@@ -823,24 +811,24 @@ def remove_parlamentar_composicao(request):
         '%s.delete_%s' % (
             AppConfig.label, ComposicaoMesa._meta.model_name)):
 
-            if 'composicao_mesa' in request.POST:
-                try:
-                    composicao = ComposicaoMesa.objects.get(
-                        id=request.POST['composicao_mesa'])
-                except ObjectDoesNotExist:
-                    return JsonResponse(
-                        {'msg': (
-                            'Composição da Mesa não pôde ser removida!', 0)})
-
-                composicao.delete()
-
+        if 'composicao_mesa' in request.POST:
+            try:
+                composicao = ComposicaoMesa.objects.get(
+                    id=request.POST['composicao_mesa'])
+            except ObjectDoesNotExist:
                 return JsonResponse(
                     {'msg': (
-                        'Parlamentar excluido com sucesso!', 1)})
-            else:
-                return JsonResponse(
-                    {'msg': (
-                        'Selecione algum parlamentar para ser excluido!', 0)})
+                        'Composição da Mesa não pôde ser removida!', 0)})
+
+            composicao.delete()
+
+            return JsonResponse(
+                {'msg': (
+                    'Parlamentar excluido com sucesso!', 1)})
+        else:
+            return JsonResponse(
+                {'msg': (
+                    'Selecione algum parlamentar para ser excluido!', 0)})
 
 
 def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
@@ -895,7 +883,11 @@ def altera_field_mesa_public_view(request):
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
-        sessao_selecionada = sessoes.first().id
+        try:
+            year = datetime.now().year
+            sessao_selecionada = sessoes.get(data_inicio__year=year).id
+        except ObjectDoesNotExist as e:
+            sessao_selecionada = sessoes.first().id
 
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]

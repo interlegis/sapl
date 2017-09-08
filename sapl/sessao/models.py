@@ -59,8 +59,8 @@ class Bancada(models.Model):
                                 ))
 
     class Meta:
-        verbose_name = _('Bancada')
-        verbose_name_plural = _('Bancadas')
+        verbose_name = _('Bancada Parlamentar')
+        verbose_name_plural = _('Bancadas Parlamentares')
         ordering = ('-legislatura__numero', )
 
     def __str__(self):
@@ -76,6 +76,7 @@ class TipoSessaoPlenaria(models.Model):
     class Meta:
         verbose_name = _('Tipo de Sessão Plenária')
         verbose_name_plural = _('Tipos de Sessão Plenária')
+        ordering = ['nome']
 
     def __str__(self):
         return self.nome
@@ -264,6 +265,7 @@ class TipoExpediente(models.Model):
     class Meta:
         verbose_name = _('Tipo de Expediente')
         verbose_name_plural = _('Tipos de Expediente')
+        ordering = ['nome']
 
     def __str__(self):
         return self.nome
@@ -368,7 +370,12 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
 
 @reversion.register()
 class TipoResultadoVotacao(models.Model):
-    nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
+    nome = models.CharField(max_length=100, verbose_name=_('Nome do Tipo'))
+    natureza = models.CharField(max_length=100,
+                                blank=True,
+                                choices=(('A', 'Aprovado'),
+                                         ('R', 'Rejeitado')),
+                                verbose_name=_('Natureza do Tipo'))
 
     class Meta:
         verbose_name = _('Tipo de Resultado de Votação')
@@ -399,6 +406,16 @@ class RegistroVotacao(models.Model):
         verbose_name=_('Abstenções'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observações'))
+
+    data_hora_criacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now_add=True,
+        verbose_name=_('Data Criação'))
+
+    data_hora_atualizacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Votação')
@@ -477,7 +494,7 @@ class Bloco(models.Model):
     nome = models.CharField(
         max_length=80, verbose_name=_('Nome do Bloco'))
     partidos = models.ManyToManyField(
-        Partido, blank=True, verbose_name=_('Bancadas'))
+        Partido, blank=True, verbose_name=_('Partidos'))
     data_criacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Criação'))
     data_extincao = models.DateField(
@@ -496,8 +513,8 @@ class Bloco(models.Model):
                                 ))
 
     class Meta:
-        verbose_name = _('Bloco')
-        verbose_name_plural = _('Blocos')
+        verbose_name = _('Bloco Parlamentar')
+        verbose_name_plural = _('Blocos Parlamentares')
 
     def __str__(self):
         return self.nome

@@ -20,6 +20,7 @@ class AssuntoNorma(models.Model):
     class Meta:
         verbose_name = _('Assunto de Norma Jurídica')
         verbose_name_plural = _('Assuntos de Normas Jurídicas')
+        ordering = ['assunto']
 
     def __str__(self):
         return self.assunto
@@ -59,15 +60,17 @@ class TipoNormaJuridica(models.Model):
     def __str__(self):
         return self.descricao
 
+
 def norma_upload_path(instance, filename):
-        return texto_upload_path(instance, filename, subpath=instance.ano)
+    return texto_upload_path(instance, filename, subpath=instance.ano)
+
 
 @reversion.register()
 class NormaJuridica(models.Model):
     ESFERA_FEDERACAO_CHOICES = Choices(
+        ('M', 'municipal', _('Municipal')),
         ('E', 'estadual', _('Estadual')),
         ('F', 'federal', _('Federal')),
-        ('M', 'municipal', _('Municipal')),
     )
 
     texto_integral = models.FileField(
@@ -133,9 +136,9 @@ class NormaJuridica(models.Model):
 
     def get_normas_relacionadas(self):
         principais = NormaRelacionada.objects.filter(
-                norma_principal=self.id)
+            norma_principal=self.id)
         relacionadas = NormaRelacionada.objects.filter(
-                norma_relacionada=self.id)
+            norma_relacionada=self.id)
         return (principais, relacionadas)
 
     def __str__(self):

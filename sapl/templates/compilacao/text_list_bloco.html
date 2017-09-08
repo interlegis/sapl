@@ -13,11 +13,11 @@
 
     {% if forloop.first and not view|isinst:'TextView' %}
     {% else %}
-      <div class="dpt {%if dpt.tipo_dispositivo.dispositivo_de_articulacao and dpt.tipo_dispositivo.dispositivo_de_alteracao%}{{dpt.tipo_dispositivo.class_css}}{% endif %}{% if 'indent' in dpt.tipo_dispositivo.class_css%}indent{% endif %}" nivel="{{dpt.nivel}}">
+      <div class="dpt {%if dpt.tipo_dispositivo.dispositivo_de_articulacao and dpt.tipo_dispositivo.dispositivo_de_alteracao%}{{dpt.tipo_dispositivo.class_css}}{% endif %}{% if 'indent' in dpt.tipo_dispositivo.class_css%}indent{% endif %} " nivel="{{dpt.nivel}}">
     {% endif%}
 
     {% spaceless %}
-      <div class="{{ dpt.tipo_dispositivo.class_css }}">
+      <div class="{{ dpt.tipo_dispositivo.class_css }} {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} ">
         <div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{dpt.pk}}" >
 
 
@@ -43,6 +43,7 @@
                 &nbsp;
               {% endif %}
             </a>
+
           {% endif %}
             {% if user.is_authenticated and not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
               {% if perms.compilacao.add_nota or perms.compilacao.add_vide or perms.compilacao.change_dispositivo%}
@@ -178,6 +179,9 @@
           </div>
         {% endif%}
       </div>
+      {% if dpt.ta_publicado_id %}
+        <div class="clearfix"></div>
+      {% endif%}
     {% endspaceless %}
     {% if dpt.tipo_dispositivo.dispositivo_de_alteracao%}
       {%with node=dpt template_name='compilacao/text_list_blocoalteracao.html' %}

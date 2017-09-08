@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
@@ -183,5 +185,24 @@ def recuperar_norma(request):
                                  'id': norma.id})
     except ObjectDoesNotExist:
         response = JsonResponse({'ementa': '', 'id': 0})
+
+    return response
+
+
+def recuperar_numero_norma(request):
+    tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
+    ano = request.GET.get('ano', '')
+
+    param = {'tipo': tipo}
+    param['ano'] = ano if ano else datetime.now().year
+
+    norma = NormaJuridica.objects.filter(**param).order_by(
+        'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
+    if norma:
+        response = JsonResponse({'numero': int(norma[0]) + 1,
+                                 'ano': norma[1]})
+    else:
+        response = JsonResponse(
+            {'numero': 1, 'ano': ano})
 
     return response

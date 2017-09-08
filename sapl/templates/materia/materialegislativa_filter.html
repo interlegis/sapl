@@ -39,7 +39,7 @@
           {% for m in page_obj %}
             <tr>
               <td>
-                <strong><a href="{% url 'materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a>
+                <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a>
                 </br>
                 <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}
                 </br>
@@ -99,7 +99,7 @@
                 {% if m.anexo_de.exists %}
                   {% for a in m.materia_anexada_set.all %}
                   <strong>Matéria Anexadora: </strong>&nbsp;
-                  <a href="{% url 'materia:materialegislativa_detail' a.materia_principal.id %}">
+                  <a href="{% url 'sapl.materia:materialegislativa_detail' a.materia_principal.id %}">
                       {{ a.materia_principal }}&nbsp;
                   </a>
                   <strong>Data Anexação:</strong> {{a.data_anexacao}}
@@ -109,7 +109,7 @@
                 {% if m.anexadas.all.exists %}
                   {% for anexada in m.materia_principal_set.all %}
                   <strong>Matéria Anexada: </strong>&nbsp;
-                  <a href="{% url 'materia:materialegislativa_detail' anexada.materia_anexada.id %}">
+                  <a href="{% url 'sapl.materia:materialegislativa_detail' anexada.materia_anexada.id %}">
                       {{ anexada.materia_anexada }}&nbsp;
                   </a>
                   <strong>Data Anexação:</strong> {{anexada.data_anexacao}}

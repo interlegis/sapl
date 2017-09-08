@@ -26,7 +26,9 @@ def cabecalho(inf_basicas_dic, imagem):
     tmp += '\t\t\t\t<setFont name="Helvetica-Bold" size="12"/>\n'
     tmp += '\t\t\t\t<drawString x="4.2cm" y="25cm">Resumo da ' + str(inf_basicas_dic['num_sessao_plen']) + 'ª Reunião ' + str(inf_basicas_dic['nom_sessao']) + ' da ' + str(
         inf_basicas_dic['num_sessao_leg']) + 'ª Sessão Legislativa da </drawString>\n'
-    tmp += '\t\t\t\t<drawString x="6.7cm" y="24.5cm">' + str(inf_basicas_dic['num_legislatura']) + ' Legislatura </drawString>\n'
+    tmp += '\t\t\t\t<drawString x="6.7cm" y="24.5cm">' + \
+        str(inf_basicas_dic['num_legislatura']) + \
+        ' Legislatura </drawString>\n'
     return tmp
 
 
@@ -109,8 +111,11 @@ def inf_basicas(inf_basicas_dic):
         nom_sessao + '</para>\n'
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Abertura: </b> ' + \
         dat_inicio_sessao + ' <b>- </b> ' + hr_inicio_sessao + '</para>\n'
+
+    data_fim_sessao = dat_fim_sessao + ' <b>- </b> ' if dat_fim_sessao else ''
+
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Encerramento: </b> ' + \
-        dat_fim_sessao + ' <b>- </b> ' + hr_fim_sessao + '</para>\n'
+        dat_fim_sessao + hr_fim_sessao + '</para>\n'
 
     return tmp
 
@@ -159,7 +164,7 @@ def expedientes(lst_expedientes):
     for idx, expediente in enumerate(lst_expedientes):
         tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
             expediente['nom_expediente'] + ': </b></para>\n' + \
-             '<para style="P2">' + \
+            '<para style="P2">' + \
             expediente['txt_expediente'] + '</para>\n'
         tmp += '\t\t<para style="P2">\n'
         tmp += '\t\t\t<font color="white"> </font>\n'
@@ -183,11 +188,12 @@ def expediente_materia(lst_expediente_materia):
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
-            str(expediente_materia['nom_resultado']) + '</b></para>\n' + '<para style="P3">'
+            str(expediente_materia['nom_resultado']) + \
+            '</b></para>\n' + '<para style="P3">'
         if expediente_materia['votacao_observacao'] != txt_ementa:
-                tmp += str(expediente_materia['votacao_observacao'])
+            tmp += str(expediente_materia['votacao_observacao'])
         else:
-                tmp += ' '
+            tmp += ' '
         tmp += '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'
@@ -242,11 +248,12 @@ def votacao(lst_votacao):
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
-            str(votacao['nom_resultado']) + '</b></para>\n' + '<para style="P3">'
+            str(votacao['nom_resultado']) + \
+            '</b></para>\n' + '<para style="P3">'
         if votacao['votacao_observacao'] != txt_ementa:
-                tmp += str(votacao['votacao_observacao'])
+            tmp += str(votacao['votacao_observacao'])
         else:
-                tmp += ' '
+            tmp += ' '
         tmp += '</para></td></tr>\n'
 
     tmp += '\t\t</blockTable>\n'

@@ -17,7 +17,7 @@
         {% if not node.dpt.rotulo and not node.dpt.texto and node.td.dispositivo_de_articulacao%}
         {% endif %}
       </div>
-      <div class="dpt-text {{node.td.class_css}} {%if node.dpt.fim_vigencia %}desativado{%endif%} {%if not node.filhos and node.td.dispositivo_de_articulacao %}hover-fixed{%endif%}">
+      <div class="dpt-text {{node.td.class_css}} {%if node.dpt.fim_vigencia %}desativado{%endif%} {%if not node.filhos and node.td.dispositivo_de_alteracao or node.td.dispositivo_de_articulacao and node.dpt.nivel == 0 %}hover-fixed{%endif%}">
           {% if node.dpt.auto_inserido and node.da%}
             {{ node.dpt.dispositivo_pai.tipo_dispositivo.rotulo_prefixo_html|safe }}
             {% if node.da and node in node.da.alts %}
@@ -49,7 +49,7 @@
             {% if node.da and node.dpt.texto_atualizador and node in node.da.alts%}{{ node.dpt.texto_atualizador|safe }}{% else %}{{ node.dpt.texto|safe }}{% endif %}
           {%endif%}
           {% if node.na %}
-            <a class="dpt-link nota-alteracao" href="{% url 'compilacao:ta_text_edit' node.da.dpt.ta_id %}#{{node.da.dpt.pk}}" title="{% trans 'Abrir Edição do Dispositivo Alterador'%}">
+            <a class="dpt-link nota-alteracao" href="{% url 'sapl.compilacao:ta_text_edit' node.da.dpt.ta_id %}#{{node.da.dpt.pk}}" title="{% trans 'Abrir Edição do Dispositivo Alterador'%}">
               <small>
                 {{ node.td.nota_automatica_prefixo_html|safe }}
                 {{ node.na }}

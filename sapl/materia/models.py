@@ -66,7 +66,6 @@ class TipoProposicao(models.Model):
     class Meta:
         verbose_name = _('Tipo de Proposição')
         verbose_name_plural = _('Tipos de Proposições')
-        unique_together = (('content_type', 'object_id'), )
 
     def __str__(self):
         return self.descricao
@@ -233,6 +232,8 @@ class MateriaLegislativa(models.Model):
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
         unique_together = (("tipo", "numero", "ano"),)
+
+        permissions = (("can_access_impressos", "Can access impressos"),)
 
     def __str__(self):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
@@ -805,6 +806,7 @@ class UnidadeTramitacao(models.Model):
     class Meta:
         verbose_name = _('Unidade de Tramitação')
         verbose_name_plural = _('Unidades de Tramitação')
+        ordering = ['orgao', 'comissao', 'parlamentar']
 
     def __str__(self):
         if self.orgao and self.comissao and self.parlamentar:

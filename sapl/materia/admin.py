@@ -11,6 +11,7 @@ if not DEBUG:
     admin.site.unregister(Proposicao)
 
     class ProposicaoAdmin(admin.ModelAdmin):
+
         def has_add_permission(self, request, obj=None):
             return False
 

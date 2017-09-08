@@ -1,0 +1,361 @@
+[{
+    "model": "materia.StatusTramitacao",
+    "pk": 1,
+    "fields": {
+      "sigla": "ADIAVOTAC",
+      "indicador": "R",
+      "descricao": "Adiada discussão e votação."
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 2,
+    "fields": {
+      "sigla": "AGAUTOGR",
+      "indicador": "R",
+      "descricao": "Aguardando assinatura do autógrafo"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 3,
+    "fields": {
+      "sigla": "AGMENSVET",
+      "indicador": "R",
+      "descricao": "Aguardando assinatura da mensagem sobre o veto"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 4,
+    "fields": {
+      "sigla": "AGORDIA",
+      "indicador": "R",
+      "descricao": "Aguardando a inclusão na ordem do dia"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 5,
+    "fields": {
+      "sigla": "AGPARECER",
+      "indicador": "R",
+      "descricao": "Aguardando emissão de parecer da comissão"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 6,
+    "fields": {
+      "sigla": "AGPROMLEI",
+      "indicador": "F",
+      "descricao": "Aguardando promulgação da lei"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 7,
+    "fields": {
+      "sigla": "AGPROMNOR",
+      "indicador": "F",
+      "descricao": "Aguardando promulgação da norma jurídica"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 8,
+    "fields": {
+      "sigla": "AGPROMVET",
+      "indicador": "R",
+      "descricao": "Aguardando promulgação de lei com veto rejeitado"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 9,
+    "fields": {
+      "sigla": "AGSANCAO",
+      "indicador": "F",
+      "descricao": "Aguardando sanção governamental"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 10,
+    "fields": {
+      "sigla": "ANEXADA",
+      "indicador": "R",
+      "descricao": "Proposição anexada à outra análoga ou conexa mais antiga"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 11,
+    "fields": {
+      "sigla": "APRESENT",
+      "indicador": "R",
+      "descricao": "Proposição apresentada em Plenário"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 12,
+    "fields": {
+      "sigla": "APROV1TUR",
+      "indicador": "R",
+      "descricao": "Proposição aprovada em 1º turno"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 13,
+    "fields": {
+      "sigla": "APROVADA",
+      "indicador": "F",
+      "descricao": "Proposição aprovada"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 14,
+    "fields": {
+      "sigla": "ARQUIVADA",
+      "indicador": "F",
+      "descricao": "Proposição arquivada"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 15,
+    "fields": {
+      "sigla": "AUTUAPAUTA",
+      "indicador": "R",
+      "descricao": "Proposição autuada e cumprindo prazo de pauta"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 16,
+    "fields": {
+      "sigla": "DESARQUIV",
+      "indicador": "R",
+      "descricao": "Proposição desarquivada pelo Autor"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 17,
+    "fields": {
+      "sigla": "DISTRCOMIS",
+      "indicador": "R",
+      "descricao": "Proposição distribuída às comissões"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 18,
+    "fields": {
+      "sigla": "INCLORDIA",
+      "indicador": "R",
+      "descricao": "Proposição inclusa na Ordem do Dia"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 19,
+    "fields": {
+      "sigla": "LEIPROMUL",
+      "indicador": "F",
+      "descricao": "Proposição transformada em lei por promulgação"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 20,
+    "fields": {
+      "sigla": "LEIVETPAR",
+      "indicador": "R",
+      "descricao": "Transformada em lei com veto parcial"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 21,
+    "fields": {
+      "sigla": "MANUTVETO",
+      "indicador": "R",
+      "descricao": "Parecer pela manutenção do veto"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 22,
+    "fields": {
+      "sigla": "NORMPROMUL",
+      "indicador": "F",
+      "descricao": "Norma promulgada"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 23,
+    "fields": {
+      "sigla": "PARECCONTR",
+      "indicador": "R",
+      "descricao": "Parecer contrário da comissão de mérito"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 24,
+    "fields": {
+      "sigla": "PARECERFAV",
+      "indicador": "R",
+      "descricao": "Parecer favorável da comissão"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 25,
+    "fields": {
+      "sigla": "PARECPLEN",
+      "indicador": "F",
+      "descricao": "Parecer em Plenário pelas comissões pertinentes"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 26,
+    "fields": {
+      "sigla": "PAREUCONJ",
+      "indicador": "R",
+      "descricao": "Parecer em reunião conjunta das Comissões pertinentes"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 27,
+    "fields": {
+      "sigla": "PREJUD",
+      "indicador": "F",
+      "descricao": "Proposição prejudicada"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 28,
+    "fields": {
+      "sigla": "PROMULVETO",
+      "indicador": "F",
+      "descricao": "Veto total ou parcial promulgado"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 29,
+    "fields": {
+      "sigla": "REJEITADA",
+      "indicador": "F",
+      "descricao": "Proposição rejeitada pelo Plenário"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 30,
+    "fields": {
+      "sigla": "REJEIVETO",
+      "indicador": "R",
+      "descricao": "Parecer pela rejeição do veto"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 31,
+    "fields": {
+      "sigla": "RETAUTOR",
+      "indicador": "F",
+      "descricao": "Proposição retirada pelo autor"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 32,
+    "fields": {
+      "sigla": "RETORDIA",
+      "indicador": "R",
+      "descricao": "Proposição retirada da Ordem do Dia"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 33,
+    "fields": {
+      "sigla": "TRANSFLEI",
+      "indicador": "F",
+      "descricao": "Proposição transformada em lei"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 34,
+    "fields": {
+      "sigla": "VETODISTR",
+      "indicador": "R",
+      "descricao": "Veto distribuído para emissão de parecer"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 35,
+    "fields": {
+      "sigla": "VETOLIDO",
+      "indicador": "R",
+      "descricao": "Veto sobre a proposição lido em sessão plenária"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 36,
+    "fields": {
+      "sigla": "VETOMANT",
+      "indicador": "F",
+      "descricao": "Veto sobre a proposição mantido"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 37,
+    "fields": {
+      "sigla": "VETOORDIA",
+      "indicador": "F",
+      "descricao": "Veto incluso na ordem do dia"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 38,
+    "fields": {
+      "sigla": "VETOPAUTA",
+      "indicador": "F",
+      "descricao": "Veto autuado e incluso em pauta"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 39,
+    "fields": {
+      "sigla": "VETOREJEI",
+      "indicador": "F",
+      "descricao": "Veto sobre a proposição rejeitado"
+    }
+  },
+  {
+    "model": "materia.StatusTramitacao",
+    "pk": 40,
+    "fields": {
+      "sigla": "VETOTOTAL",
+      "indicador": "R",
+      "descricao": "Proposição com veto tota"
+    }
+  }
+]

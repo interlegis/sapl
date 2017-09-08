@@ -118,21 +118,24 @@ class NormaJuridicaForm(ModelForm):
         widgets = {'assuntos': widgets.CheckboxSelectMultiple}
 
     def clean(self):
-        super(NormaJuridicaForm, self).clean()
+        cleaned_data = super(NormaJuridicaForm, self).clean()
 
-        cleaned_data = self.cleaned_data
+        if not self.is_valid():
+            return cleaned_data
 
         if (cleaned_data['tipo_materia'] and
             cleaned_data['numero_materia'] and
                 cleaned_data['ano_materia']):
-
             try:
                 materia = MateriaLegislativa.objects.get(
                     tipo_id=cleaned_data['tipo_materia'],
                     numero=cleaned_data['numero_materia'],
                     ano=cleaned_data['ano_materia'])
             except ObjectDoesNotExist:
-                raise forms.ValidationError("Matéria escolhida não existe!")
+                raise forms.ValidationError(
+                    _("Matéria %s/%s é inexistente." % (
+                        self.cleaned_data['numero_materia'],
+                        self.cleaned_data['ano_materia'])))
             else:
                 cleaned_data['materia'] = materia
 

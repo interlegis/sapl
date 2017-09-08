@@ -1,25 +1,25 @@
 from datetime import datetime
 
+import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import form_actions, to_row
-from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
+from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
+from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
+                                 UnidadeTramitacao)
 from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
-
 
 TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('', 'Ambos')]
 TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado')]
@@ -116,7 +116,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset('',
+            Fieldset(_('Pesquisar Protocolo'),
                      row1, row2,
                      row3,
                      HTML(autor_label),
@@ -218,13 +218,12 @@ class AnularProcoloAdmForm(ModelForm):
 
         cleaned_data = super(AnularProcoloAdmForm, self).clean()
 
-        numero = cleaned_data.get("numero")
-        ano = cleaned_data.get("ano")
+        if not self.is_valid():
+            return cleaned_data
 
-        # se não inserido numero ou ano não prosseguir
-        # (e ele vai falhar pq numero e ano são obrigatórios)
-        if not numero or not ano:
-            return
+        numero = cleaned_data['numero']
+        ano = cleaned_data['ano']
+
         try:
             protocolo = Protocolo.objects.get(numero=numero, ano=ano)
             if protocolo.anulado:
@@ -234,6 +233,7 @@ class AnularProcoloAdmForm(ModelForm):
         except ObjectDoesNotExist:
             raise forms.ValidationError(
                 _("Protocolo %s/%s não existe" % (numero, ano)))
+
         exists = False
         if protocolo.tipo_materia:
             exists = MateriaLegislativa.objects.filter(
@@ -244,7 +244,7 @@ class AnularProcoloAdmForm(ModelForm):
 
         if exists:
             raise forms.ValidationError(
-                _("Protocolo %s/%s não pode ser removido pois existem"
+                _("Protocolo %s/%s não pode ser removido pois existem "
                     "documentos vinculados a ele." % (numero, ano)))
 
     class Meta:
@@ -566,18 +566,24 @@ class DocumentoAdministrativoForm(ModelForm):
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
 
-        numero_protocolo = self.data['numero_protocolo']
-        ano_protocolo = self.data['ano_protocolo']
+        cleaned_data = self.cleaned_data
 
+        if not self.is_valid():
+            return cleaned_data
+
+        numero_protocolo = cleaned_data['numero_protocolo']
+        ano_protocolo = cleaned_data['ano_protocolo']
+
+        # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
             try:
                 self.fields['protocolo'].initial = Protocolo.objects.get(
                     numero=numero_protocolo,
                     ano=ano_protocolo).pk
             except ObjectDoesNotExist:
-                msg = _('Protocolo %s/%s inexistente' % (
+                msg = _('Protocolo %s/%s inexistente.' % (
                     numero_protocolo, ano_protocolo))
-                raise ValidationError(str(msg))
+                raise ValidationError(msg)
 
         return self.cleaned_data
 
@@ -615,12 +621,10 @@ class DocumentoAdministrativoForm(ModelForm):
             [('observacao', 12)])
 
         self.helper = FormHelper()
-        self.helper.layout = Layout(
+        self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'),
                      row1, row2, row3, row4, row5),
             Fieldset(_('Outras Informações'),
-                     row6, row7),
-            form_actions(more=[Submit('Excluir', 'Excluir')]),
-        )
+                     row6, row7))
         super(DocumentoAdministrativoForm, self).__init__(
             *args, **kwargs)

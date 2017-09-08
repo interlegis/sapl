@@ -11,6 +11,7 @@ from django.db.models.deletion import PROTECT
 from django.http.response import Http404
 from django.template import defaultfilters
 from django.utils.decorators import classonlymethod
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
@@ -110,18 +111,17 @@ class TipoTextoArticulado(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
     content_type = models.OneToOneField(
         ContentType,
-        null=True, default=None,
-        verbose_name=_('Modelo Integrado'))
-    participacao_social = models.NullBooleanField(
-        default=False,
         blank=True, null=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_('Modelo Integrado'))
+    participacao_social = models.BooleanField(
+        blank=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Participação Social'))
 
-    publicacao_func = models.NullBooleanField(
-        default=False,
-        blank=True, null=True,
+    publicacao_func = models.BooleanField(
         choices=YES_NO_CHOICES,
+        blank=False,
         verbose_name=_('Histórico de Publicação'))
 
     perfis = models.ManyToManyField(
@@ -843,7 +843,7 @@ class Publicacao(TimestampedMixin):
 
 @reversion.register()
 class Dispositivo(BaseModel, TimestampedMixin):
-    TEXTO_PADRAO_DISPOSITIVO_REVOGADO = _('(Revogado)')
+    TEXTO_PADRAO_DISPOSITIVO_REVOGADO = force_text(_('(Revogado)'))
     INTERVALO_ORDEM = 1000
     ordem = models.PositiveIntegerField(
         default=0,

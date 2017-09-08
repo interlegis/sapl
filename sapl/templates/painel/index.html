@@ -174,58 +174,37 @@
               presentes.children().remove();
               votacao.children().remove()
 
+              var presentes_list = data["presentes"];
+
+              if (presentes_list) {
+                  presentes.append('<table id="parlamentares_list">');
+                  jQuery.each(presentes_list, function (index, parlamentar) {
+                      $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
+                          parlamentar.nome +
+                          '</td> <td style="padding-right:20px">' +
+                          parlamentar.partido + '</td> <td style="padding-right:20px">'
+                          + show_voto(parlamentar.voto) + '</td> </tr>')
+                  });
+                  presentes.append('</table>');
+              }
+              else{
+                  presentes.append('<span id="parlamentares_list">');
+                  $('#parlamentares_list').append(
+                      '<center>A listagem de parlamentares só aparecerá quando alguma matéria estiver em votação ou já tiver sido votada.</center>')
+                  presentes.append('</span>');
+              }
+
               if (data['materia_legislativa_texto']){
-                if (data["presentes_ordem_dia"] != null) {
-                  presentes_ordem_dia = data["presentes_ordem_dia"];
-                }
-                else if (data["presentes_expediente"] != null){
-                  presentes_ordem_dia = data["presentes_expediente"]
-                }
-                presentes.append('<table id="parlamentares_list">');
-                if( (data["tipo_resultado"] == "Aprovado por Unanimidade") || (data["tipo_resultado"] == "Aprovado por maioria") || (data["tipo_resultado"] == "Rejeitado")) {
-                    if (data["tipo_votacao"] == "Nominal") {
-                        jQuery.each(data["votos"], function (index, parlamentar) {
-                            $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
-                                parlamentar.parlamentar +
-                                '</td> <td style="padding-right:20px">' +
-                                parlamentar.partido + '</td> <td style="padding-right:20px">'
-                                + show_voto(parlamentar.voto) + '</td> </tr>')
-                        });
-                    }
-                    else {
-                        jQuery.each(data["votos"], function (index, parlamentar) {
-                            $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
-                                parlamentar.parlamentar +
-                                '</td> <td style="padding-right:20px">' +
-                                parlamentar.partido + '</td> </tr>')
-                        });
-                    }
-                }
-
-                else{
-                    jQuery.each(presentes_ordem_dia, function (index, parlamentar) {
-                            $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
-                                parlamentar.nome +
-                                '</td> <td style="padding-right:20px">' +
-                                parlamentar.partido + '</td> </tr>')
-                        });
-                }
-
-                presentes.append('</table>');
 
                 //console.debug(presentes_ordem_dia)
                 var votacao = $("#votacao")
-                if (data["num_presentes_ordem_dia"] != null) {
-                  num_presentes_ordem_dia = data["num_presentes_ordem_dia"];
-                }
-                else if (data["num_presentes_expediente"] != null){
-                  num_presentes_ordem_dia = data["num_presentes_expediente"]
-                }
+
+                var num_presentes = data["num_presentes"];
 
                 votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
                 votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
                 votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
-                votacao.append("<li>Presentes: " + num_presentes_ordem_dia + "</li>")
+                votacao.append("<li>Presentes: " + num_presentes + "</li>")
                 votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
               }
 

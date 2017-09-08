@@ -179,7 +179,10 @@ apps_url_patterns_prefixs_and_users = {
             '/consultas/comissao/comissao_',
             '/consultas/pauta_sessao/pauta_sessao_',
             '/consultas/sessao_plenaria/',
-            '/relatorios_administrativos/relatorios_administrativos_index_html',
+
+            '/relatorios_administrativos/'
+            'relatorios_administrativos_index_html',
+
             '/tramitacaoMaterias/tramitacaoMaterias',
             '/tramitacaoMaterias/materia_mostrar_proc',
             '/generico/materia_pesquisar_',

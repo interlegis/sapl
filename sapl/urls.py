@@ -35,7 +35,8 @@ import sapl.relatorios.urls
 import sapl.sessao.urls
 
 urlpatterns = [
-    url(r'^$', TemplateView.as_view(template_name='index.html'), name='sapl_index'),
+    url(r'^$', TemplateView.as_view(template_name='index.html'),
+        name='sapl_index'),
     url(r'^message$', TemplateView.as_view(template_name='base.html')),
     url(r'^admin/', include(admin.site.urls)),
 

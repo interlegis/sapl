@@ -5,7 +5,7 @@ from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.forms import ModelForm
@@ -62,17 +62,34 @@ class MandatoForm(ModelForm):
     def clean(self):
         super(MandatoForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         data = self.cleaned_data
-        try:
-            if 'legislatura' in data and 'parlamentar' in data:
-                    Mandato.objects.get(
-                        parlamentar__pk=self.initial['parlamentar'].pk,
-                        legislatura__pk=data['legislatura'].pk)
-        except ObjectDoesNotExist:
-            pass
-        else:
-            raise ValidationError('Mandato nesta legislatura já existe.')
-        return data
+
+        legislatura = data['legislatura']
+
+        data_inicio_mandato = data['data_inicio_mandato']
+        if data_inicio_mandato:
+            if (data_inicio_mandato < legislatura.data_inicio or
+                    data_inicio_mandato > legislatura.data_fim):
+                raise ValidationError(_("Data início mandato fora do intervalo"
+                                        " de legislatura informada"))
+
+        data_fim_mandato = data['data_fim_mandato']
+        if data_fim_mandato:
+            if (data_fim_mandato < legislatura.data_inicio or
+                    data_fim_mandato > legislatura.data_fim):
+                raise ValidationError(_("Data fim mandato fora do intervalo de"
+                                        " legislatura informada"))
+
+        existe_mandato = Mandato.objects.filter(
+            parlamentar=data['parlamentar'],
+            legislatura=data['legislatura']).exists()
+        if existe_mandato:
+            raise ValidationError(_('Mandato nesta legislatura já existe.'))
+
+        return self.cleaned_data
 
 
 class LegislaturaForm(ModelForm):
@@ -81,6 +98,26 @@ class LegislaturaForm(ModelForm):
         model = Legislatura
         exclude = []
 
+    def clean(self):
+        data = super(LegislaturaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data_inicio = data['data_inicio']
+        data_fim = data['data_fim']
+        data_eleicao = data['data_eleicao']
+
+        if data_eleicao.year >= data_inicio.year:
+            raise ValidationError(_("Data eleição não pode ser inferior a "
+                                    "data início da legislatura"))
+
+        if data_inicio > data_fim or (data_fim.year - data_inicio.year != 4):
+            raise ValidationError(_("Intervalo de início e fim inválido para "
+                                    "legislatura."))
+
+        return data
+
 
 class LegislaturaCreateForm(LegislaturaForm):
 
@@ -88,6 +125,10 @@ class LegislaturaCreateForm(LegislaturaForm):
         super(LegislaturaCreateForm, self).clean()
 
         cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
         eleicao = cleaned_data['data_eleicao']
         inicio = cleaned_data['data_inicio']
         fim = cleaned_data['data_fim']
@@ -275,44 +316,23 @@ class FrenteForm(ModelForm):
 
 
 class VotanteForm(ModelForm):
-    senha = forms.CharField(
-        max_length=20,
-        label=_('Senha'),
-        required=True,
-        widget=forms.PasswordInput())
-
-    senha_confirma = forms.CharField(
-        max_length=20,
-        label=_('Confirmar Senha'),
-        required=True,
-        widget=forms.PasswordInput())
 
     username = forms.CharField(
         label=_('Usuário'),
         required=True,
         max_length=30)
 
-    email = forms.EmailField(
-        required=True,
-        label=_('Email'))
-
-    email_confirma = forms.EmailField(
-        required=True,
-        label=_('Confirmar Email'))
-
     class Meta:
         model = Votante
-        fields = ['username', 'senha', 'senha_confirma', 'email',
-                  'email_confirma']
+        fields = ['username']
 
     def __init__(self, *args, **kwargs):
-        row1 = to_row([('username', 4), ('senha', 4), ('senha_confirma', 4)])
-        row2 = to_row([('email', 6), ('email_confirma', 6)])
+        row1 = to_row([('username', 4)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Votante'),
-                     row1, row2, form_actions(save_label='Salvar'))
+                     row1, form_actions(save_label='Salvar'))
         )
         super(VotanteForm, self).__init__(*args, **kwargs)
 
@@ -323,27 +343,23 @@ class VotanteForm(ModelForm):
 
     def clean(self):
         super(VotanteForm, self).clean()
-        
+
         cd = self.cleaned_data
 
         username = cd['username']
-        if get_user_model().objects.filter(username=username).exists():
-            raise ValidationError(_('Não foi possível salvar registro,\
-                                     pois usuário existente'))
-
-        if ('senha' not in cd or 'senha_confirma' not in cd or
-                not cd['senha'] or not cd['senha_confirma']):
+        user = get_user_model().objects.filter(username=username)
+        if not user.exists():
             raise ValidationError(_(
-                'A senha e sua confirmação devem ser informadas.'))
-        msg = _('As senhas não conferem.')
-        self.valida_igualdade(cd['senha'], cd['senha_confirma'], msg)
-
-        if ('email' not in cd or 'email_confirma' not in cd or
-                not cd['email'] or not cd['email_confirma']):
+                "{} [{}] {}".format(
+                    'Não foi possível vincular usuário. Usuário',
+                    username,
+                    'não existe')))
+        if Votante.objects.filter(user=user[0].pk).exists():
             raise ValidationError(_(
-                'O email e sua confirmação devem ser informados.'))
-        msg = _('Os emails não conferem.')
-        self.valida_igualdade(cd['email'], cd['email_confirma'], msg)
+                "{} [{}] {}".format(
+                    'Não foi possível vincular usuário. Usuário',
+                    username,
+                    'já esta vinculado à outro parlamentar')))
 
         return self.cleaned_data
 
@@ -352,12 +368,7 @@ class VotanteForm(ModelForm):
         votante = super(VotanteForm, self).save(commit)
 
         # Cria user
-        u = User.objects.create(
-            username=self.cleaned_data['username'],
-            email=self.cleaned_data['email'])
-        u.set_password(self.cleaned_data['senha'])
-        u.save()
-
+        u = User.objects.get(username=self.cleaned_data['username'])
         # Adiciona user ao grupo
         g = Group.objects.filter(name=SAPL_GROUP_VOTANTE)[0]
         u.groups.add(g)
