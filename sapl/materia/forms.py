@@ -1679,22 +1679,20 @@ class EtiquetaPesquisaForm(forms.Form):
 
         return cleaned_data
 
+
 class FichaPesquisaForm(forms.Form):
     tipo_materia = forms.ModelChoiceField(
         label=TipoMateriaLegislativa._meta.verbose_name,
         queryset=TipoMateriaLegislativa.objects.all(),
-        required=False,
         empty_label='Selecione')
 
     data_inicial = forms.DateField(
         label='Data Inicial',
-        required=False,
         widget=forms.DateInput(format='%d/%m/%Y')
     )
 
     data_final = forms.DateField(
         label='Data Final',
-        required=False,
         widget=forms.DateInput(format='%d/%m/%Y')
     )
 
@@ -1734,3 +1732,25 @@ class FichaPesquisaForm(forms.Form):
                     'A Data Final não pode ser menor que a Data Inicial'))
 
             return cleaned_data
+
+
+class FichaSelecionaForm(forms.Form):
+    materia = forms.ChoiceField(
+        widget=forms.RadioSelect,
+        choices=[(m.id, m.__str__()) for m in MateriaLegislativa.objects.all()],
+        label='')
+
+    def __init__(self, *args, **kwargs):
+        super(FichaSelecionaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('materia', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Selecione a ficha que deseja imprimir'),
+                row1,
+                form_actions(save_label='Gerar Impresso')
+            )
+        )

@@ -1,3 +1,4 @@
+import datetime as dt_generator
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
@@ -13,7 +14,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.template import RequestContext, loader
+from django.template import loader, RequestContext
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
@@ -47,7 +48,7 @@ from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
-                    FichaPesquisaForm, MateriaAssuntoForm,
+                    FichaPesquisaForm, FichaSelecionaForm, MateriaAssuntoForm,
                     MateriaLegislativaFilterSet, MateriaSimplificadaForm,
                     PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
                     RelatoriaForm, TramitacaoEmLoteFilterSet,
@@ -1751,9 +1752,8 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
     permission_required = ('materia.can_access_impressos', )
 
 
-def gerar_pdf_impressos(request, context):
-    template = loader.get_template('materia/impressos/pdf.html',
-                                'materia/impressos/ficha_pdf.html')
+def gerar_pdf_impressos(request, context, template_name):
+    template = loader.get_template(template_name)
     html = template.render(RequestContext(request, context))
     response = HttpResponse(content_type="application/pdf")
     weasyprint.HTML(
@@ -1797,7 +1797,9 @@ class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
 
         context['materias'] = materias
 
-        return gerar_pdf_impressos(self.request, context)
+        return gerar_pdf_impressos(self.request, context,
+                                   'materia/impressos/etiqueta_pdf.html')
+
 
 class FichaPesquisaView(PermissionRequiredMixin, FormView):
     form_class = FichaPesquisaForm
@@ -1805,24 +1807,73 @@ class FichaPesquisaView(PermissionRequiredMixin, FormView):
     permission_required = ('materia.can_access_impressos', )
 
     def form_valid(self, form):
-        context = {}
+        tipo_materia = form.data['tipo_materia']
+        data_inicial = form.data['data_inicial']
+        data_final = form.data['data_final']
 
-        materias = MateriaLegislativa.objects.all().order_by(
-            '-data_apresentacao')
+        url = reverse('sapl.materia:impressos_ficha_seleciona')
+        url = url + '?tipo=%s&data_inicial=%s&data_final=%s' % (
+            tipo_materia, data_inicial, data_final)
 
-        if form.cleaned_data['tipo_materia']:
-            materias = materias.filter(tipo=form.cleaned_data['tipo_materia'])
+        return HttpResponseRedirect(url)
 
-        if form.cleaned_data['data_inicial']:
-            materias = materias.filter(
-                data_apresentacao__gte=form.cleaned_data['data_inicial'],
-                data_apresentacao__lte=form.cleaned_data['data_final'])
+class FichaSelecionaView(PermissionRequiredMixin, FormView):
+    form_class = FichaSelecionaForm
+    template_name = 'materia/impressos/ficha_seleciona.html'
+    permission_required = ('materia.can_access_impressos', )
 
-        context['quantidade'] = len(materias)
+    def string_to_datetime(self, date):
+        return dt_generator.date(
+            day=int(date[0]),
+            month=int(date[1]),
+            year=int(date[2]))
+
+    def get_context_data(self, **kwargs):
+        if ('tipo' not in self.request.GET or
+            'data_inicial' not in self.request.GET or
+            'data_final' not in self.request.GET):
+            return HttpResponseRedirect(reverse(
+                'sapl.materia:impressos_ficha_pesquisa'))
+
+        context = super(FichaSelecionaView, self).get_context_data(
+            **kwargs)
+
+        tipo = self.request.GET['tipo']
+        data_inicial = self.request.GET['data_inicial']
+        data_final = self.request.GET['data_final']
+
+        data_inicial = self.string_to_datetime(
+            data_inicial.split('/'))
+        data_final = self.string_to_datetime(
+            data_final.split('/'))
+
+        materia_list = MateriaLegislativa.objects.filter(
+            tipo=tipo,
+            data_apresentacao__range=(data_inicial, data_final))
+        context['quantidade'] = len(materia_list)
+        materia_list = materia_list[:20]
+
+        context['form'].fields['materia'].choices = [(m.id, m.__str__()) for m in materia_list]
 
         if context['quantidade'] > 20:
-            materias = materias[:20]
+            messages.info(self.request, _('Sua pesquisa retornou mais do que '
+            '20 impressos. Por questões de performance, foram retornados '
+            'apenas os 20 primeiros. Caso queira outros, tente fazer uma '
+            'pesquisa mais específica'))
 
-        context['materias'] = materias
+        return context
 
-        return gerar_pdf_impressos(self.request, context)
+    def form_valid(self, form):
+        context = {}
+
+        try:
+            materia = MateriaLegislativa.objects.get(
+                id=form.data['materia'])
+        except ObjectDoesNotExist:
+            pass
+
+        context['materia'] = materia
+        context['despachos'] = materia.despachoinicial_set.all().values_list(
+                            'comissao__nome', flat=True)
+
+        return gerar_pdf_impressos(self.request, context, 'materia/impressos/ficha_pdf.html')

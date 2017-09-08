@@ -9,7 +9,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
                                 ImpressosView, EtiquetaPesquisaView,
-                                FichaPesquisaView,
+                                FichaPesquisaView, FichaSelecionaView,
                                 LegislacaoCitadaCrud, MateriaAssuntoCrud,
                                 MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
@@ -38,7 +38,10 @@ urlpatterns_impressos = [
         name='impressos_etiqueta'),
     url(r'^materia/impressos/ficha-pesquisa/$',
         FichaPesquisaView.as_view(),
-        name='impressos_ficha'),
+        name='impressos_ficha_pesquisa'),
+    url(r'^materia/impressos/ficha-seleciona/$',
+        FichaSelecionaView.as_view(),
+        name='impressos_ficha_seleciona'),
 ]
 
 urlpatterns_materia = [
