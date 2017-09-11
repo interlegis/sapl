@@ -1735,9 +1735,9 @@ class FichaPesquisaForm(forms.Form):
 
 
 class FichaSelecionaForm(forms.Form):
-    materia = forms.ChoiceField(
+    materia = forms.ModelChoiceField(
         widget=forms.RadioSelect,
-        choices=[(m.id, m.__str__()) for m in MateriaLegislativa.objects.all()],
+        queryset=MateriaLegislativa.objects.all(),
         label='')
 
     def __init__(self, *args, **kwargs):

@@ -17,7 +17,7 @@ from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.utils import models_with_gr_for_model
 
-
+@pytest.mark.django_db(transaction=False)
 def make_unidade_tramitacao(descricao):
     # Cria uma comissão para ser a unidade de tramitação
     tipo_comissao = mommy.make(TipoComissao)
