@@ -165,20 +165,6 @@ def get_last_value(model):
     return last_value['pk__max'] or 0
 
 
-def alter_sequence(model, id):
-    sequence_name = '%s_id_seq' % model._meta.db_table
-    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
-        sequence_name, id))
-
-
-def save_with_id(new, id):
-    last_value = get_last_value(type(new))
-    alter_sequence(type(new), id)
-    new.save()
-    alter_sequence(type(new), last_value + 1)
-    assert new.id == id, 'New id is different from provided!'
-
-
 def save_relation(obj, nome_campo='', problema='', descricao='',
                   eh_stub=False, critico=False):
     link = ProblemaMigracao(
@@ -364,7 +350,9 @@ class DataMigrator:
         else:
             def save(new, old):
                 with reversion.create_revision():
-                    save_with_id(new, getattr(old, legacy_pk_name))
+                    # salva new com id de old
+                    new.id = getattr(old, legacy_pk_name)
+                    new.save()
                     reversion.set_comment('Objeto criado pela migração')
 
             old_records = legacy_model.objects.all().order_by(legacy_pk_name)
@@ -399,10 +387,6 @@ class DataMigrator:
                             self.data_mudada.clear()
                             reversion.set_comment(
                                 'Ajuste de data pela migração')
-
-        # necessário para ajustar sequence da tabela para o ultimo valor de id
-        ultimo_valor = get_last_value(model)
-        alter_sequence(model, ultimo_valor + 1)
 
 
 def migrate(obj=appconfs, interativo=True):
