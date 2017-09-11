@@ -13,10 +13,8 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
-from django.db.models import CharField, Count, Max, TextField
+from django.db.models import Count, Max
 from django.db.models.base import ModelBase
-from model_mommy import mommy
-from model_mommy.mommy import foreign_key_required, make
 
 from sapl.base.models import Autor, ProblemaMigracao, TipoAutor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
@@ -113,10 +111,6 @@ def warn(msg):
     print('CUIDADO! ' + msg)
 
 
-def erro(msg):
-    print('ERRO: ' + msg)
-
-
 class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
     pass
@@ -142,10 +136,6 @@ def get_fk_related(field, value, label=None):
         raise ForeignKeyFaltando(msg)
 
 
-def get_field(model, fieldname):
-    return model._meta.get_field(fieldname)
-
-
 def exec_sql_file(path, db='default'):
     with open(path) as arq:
         sql = arq.read()
@@ -168,38 +158,6 @@ def iter_sql_records(sql, db):
         record = Record()
         record.__dict__.update(zip(fieldnames, row))
         yield record
-
-
-def problema_duplicatas(model, lista_duplicatas, argumentos):
-    for obj in lista_duplicatas:
-        pks = []
-        string_pks = ""
-        problema = "%s de PK %s não é único." % (model.__name__, obj.pk)
-        args_dict = {k: obj.__dict__[k]
-                     for k in set(argumentos) & set(obj.__dict__.keys())}
-        for dup in model.objects.filter(**args_dict):
-            pks.append(dup.pk)
-        string_pks = "(" + ", ".join(map(str, pks)) + ")"
-        descricao = "As entradas de PK %s são idênticas, mas " \
-            "apenas uma deve existir" % string_pks
-        with reversion.create_revision():
-            warn(problema + ' => ' + descricao)
-            save_relation(obj=obj, problema=problema,
-                          descricao=descricao, eh_stub=False, critico=True)
-            reversion.set_comment('%s não é único.' % model.__name__)
-
-
-# TODO o que é isso?   ####################################################
-def obj_desnecessario(obj):
-    relacoes = [
-        f for f in obj._meta.get_fields()
-        if (f.one_to_many or f.one_to_one) and f.auto_created]
-    sem_referencia = not any(rr.related_model.objects.filter(
-        **{rr.field.name: obj}).exists() for rr in relacoes)
-    if type(obj).__name__ == 'Parlamentar' and sem_referencia and \
-            obj.autor.all():
-        sem_referencia = False
-    return sem_referencia
 
 
 def get_last_value(model):
@@ -227,24 +185,6 @@ def save_relation(obj, nome_campo='', problema='', descricao='',
         content_object=obj, nome_campo=nome_campo, problema=problema,
         descricao=descricao, eh_stub=eh_stub, critico=critico)
     link.save()
-
-
-# TODO NECESSÁRIO AINDA???????????
-def make_stub(model, id):
-    fields_dict = get_fields_dict(model)
-    new = mommy.prepare(model, **fields_dict, pk=id)
-    save_with_id(new, id)
-    return new
-
-
-def get_fields_dict(model):
-    all_fields = model._meta.get_fields()
-    fields_dict = {}
-    fields_dict = {f.name: '????????????'[:f.max_length]
-                   for f in all_fields
-                   if isinstance(f, (CharField, TextField)) and
-                   not f.choices and not f.blank}
-    return fields_dict
 
 
 def fill_vinculo_norma_juridica():
@@ -385,10 +325,6 @@ class DataMigrator:
         info('Excluindo possíveis duplicações em RegistroVotacao...')
         excluir_registrovotacao_duplicados()
 
-        info('Deletando stubs desnecessários...')
-        while self.delete_stubs():
-            pass
-
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
             models_to_migrate = (model for model in obj.models.values()
@@ -468,24 +404,6 @@ class DataMigrator:
         ultimo_valor = get_last_value(model)
         alter_sequence(model, ultimo_valor + 1)
 
-    def delete_stubs(self):
-        excluidos = 0
-        for obj in ProblemaMigracao.objects.all():
-            if obj.content_object and obj.eh_stub:
-                original = obj.content_type.get_all_objects_for_this_type(
-                    id=obj.object_id)
-                if obj_desnecessario(original[0]):
-                    qtd_exclusoes, *_ = original.delete()
-                    assert qtd_exclusoes == 1
-                    qtd_exclusoes, *_ = obj.delete()
-                    assert qtd_exclusoes == 1
-                    excluidos = excluidos + 1
-            elif not obj.content_object and not obj.eh_stub:
-                qtd_exclusoes, *_ = obj.delete()
-                assert qtd_exclusoes == 1
-                excluidos = excluidos + 1
-        return excluidos
-
 
 def migrate(obj=appconfs, interativo=True):
     dm = DataMigrator()
@@ -547,7 +465,6 @@ def adjust_ordemdia_depois_salvar(new, old):
             save_relation(obj=new, problema=problema,
                           descricao=descricao, eh_stub=False)
             reversion.set_comment('OrdemDia sem número da ordem.')
-    pass
 
 
 def adjust_parlamentar(new, old):
@@ -801,21 +718,3 @@ def check_app_no_ind_excluido(app):
     for model in app.models.values():
         assert not any(get_ind_excluido(new) for new in model.objects.all())
     print('OK!')
-
-# MOMMY MAKE WITH LOG  ######################################################
-
-
-def make_with_log(model, _quantity=None, make_m2m=False, **attrs):
-    last_value = get_last_value(model)
-    alter_sequence(model, last_value + 1)
-    fields_dict = get_fields_dict(model)
-    stub = make(model, _quantity, make_m2m, **fields_dict)
-    problema = 'Um stub foi necessário durante a criação de um outro stub'
-    descricao = 'Essa entrada é necessária para um dos stubs criados'
-    ' anteriormente'
-    warn(problema)
-    save_relation(obj=stub, problema=problema,
-                  descricao=descricao, eh_stub=True)
-    return stub
-
-make_with_log.required = foreign_key_required
