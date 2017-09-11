@@ -1,4 +1,5 @@
 [run]
+source = sapl
 omit =
     sapl/wsgi.py
     manage.py
