@@ -620,6 +620,10 @@ class Proposicao(models.Model):
                               blank=True,
                               on_delete=models.PROTECT)
     tipo = models.ForeignKey(TipoProposicao, on_delete=models.PROTECT,
+                             # TODO PÓS MIGRACAO INICIAL (vide #1381)
+                             # não nulo quando todas as
+                             # bases tiverem sido corrigidas
+                             null=True,
                              verbose_name=_('Tipo'))
 
     # XXX data_envio was not null, but actual data said otherwise!!!
@@ -844,6 +848,10 @@ class Tramitacao(models.Model):
     )
 
     status = models.ForeignKey(StatusTramitacao, on_delete=models.PROTECT,
+                               # TODO PÓS MIGRACAO INICIAL (vide #1381)
+                               # não nulo quando todas as
+                               # bases tiverem sido corrigidas
+                               null=True,
                                verbose_name=_('Status'))
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
     data_tramitacao = models.DateField(verbose_name=_('Data Tramitação'))
@@ -856,6 +864,10 @@ class Tramitacao(models.Model):
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
         UnidadeTramitacao,
+        # TODO PÓS MIGRACAO INICIAL (vide #1381)
+        # não nulo quando todas as
+        # bases tiverem sido corrigidas
+        null=True,
         related_name='tramitacoes_destino',
         on_delete=models.PROTECT,
         verbose_name=_('Unidade Destino'))
