@@ -1678,3 +1678,71 @@ class EtiquetaPesquisaForm(forms.Form):
                     'O processo final não pode ser menor que o inicial'))
 
         return cleaned_data
+
+
+class FichaPesquisaForm(forms.Form):
+    tipo_materia = forms.ModelChoiceField(
+        label=TipoMateriaLegislativa._meta.verbose_name,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione')
+
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    data_final = forms.DateField(
+        label='Data Final',
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(FichaPesquisaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('tipo_materia', 6),
+             ('data_inicial', 3),
+             ('data_final', 3)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Formulário de Ficha'),
+                row1,
+                form_actions(save_label='Pesquisar')
+            )
+        )
+
+    def clean(self):
+        cleaned_data = super(FichaPesquisaForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
+        if cleaned_data['data_final'] < cleaned_data['data_inicial']:
+            raise ValidationError(_(
+                'A Data Final não pode ser menor que a Data Inicial'))
+
+        return cleaned_data
+
+
+class FichaSelecionaForm(forms.Form):
+    materia = forms.ModelChoiceField(
+        widget=forms.RadioSelect,
+        queryset=MateriaLegislativa.objects.all(),
+        label='')
+
+    def __init__(self, *args, **kwargs):
+        super(FichaSelecionaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('materia', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Selecione a ficha que deseja imprimir'),
+                row1,
+                form_actions(save_label='Gerar Impresso')
+            )
+        )

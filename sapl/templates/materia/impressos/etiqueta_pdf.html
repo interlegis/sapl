@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Impressos</title>
+	<meta charset="utf-8">
+</head>
+
+<style type="text/css">
+	.text_pdf{
+		font-family: verdana;
+		font-size: 77%;
+	}
+	.alert_message{
+		font-family: verdana;
+		font-size: 77%;
+		color: red;
+
+    @media print {
+    p {page-break-inside: avoid;}
+}
+	}
+</style>
+
+<body style="margin-left:80px;margin-right:80px; margin-top: -50px">
+
+{% if quantidade > 30 %}
+	<b><p class="alert_message">Sua pesquisa retornou mais do que 20 impressos.</p><p class="alert_message">Por questões de performance, foram retornados apenas os 20 primeiros. Caso queira outros, tente fazer uma pesquisa mais específica</p></b>
+	</br></br></br>
+{% endif %}
+
+{% for m in materias %}
+<div style="page-break-inside: avoid;">
+<justify>
+	<!-- Informa o processo -->
+	{% if m.numeracao_set.first %}
+	  <strong class="text_pdf">PROCESSO: {{ m.numeracao_set.first.numero_materia }}</strong>
+	  &nbsp;
+	{% else %}
+	  <strong class="text_pdf">PROCESSO: {{ m.numero }}</strong>
+		&nbsp;
+	{% endif %}
+
+	<!-- Informa o tipo da matéria -->
+	<strong class="text_pdf">{{m.tipo.sigla}}:</strong> <span class="text_pdf"> {{m.numero}}/{{m.ano}} </span> &nbsp;
+
+	<!-- Informa o campo Pref ??? #TODO -->
+	<strong class="text_pdf">Pref:</strong>
+		{% if m.numeracao_set.first %}
+	   <span class="text_pdf">{{ m.numeracao_set.first.numero_materia }}</span>
+		{% endif %} </br
+
+	<!-- Informa a Data de Entrada -->
+	<strong class="text_pdf">DATA DE ENTRADA:</strong> <span class="text_pdf"> {{m.data_apresentacao}}</span></br>
+
+	<!-- Lista os autores -->
+	{% if m.autoria_set.all %}
+		<strong class="text_pdf">Autores:</strong>
+		{% for a in m.autoria_set.all %}
+		  {% if not forloop.first %}
+			, &nbsp;&nbsp; <span class="text_pdf">{{a.autor}}</span>
+		  {% else %}
+			&nbsp;<span class="text_pdf">{{a.autor}}</span>
+		  {% endif %}
+		{% endfor %}
+		</br>
+	{% endif %}
+
+	<!-- Ementa -->
+		<strong class="text_pdf">EMENTA:</strong> <span class="text_pdf">{{m.ementa}}</span>
+
+</div>
+</justify>
+	</br>
+	</br>
+	</br>
+	</br>
+	</br>
+
+{% endfor %}
+
+</body>

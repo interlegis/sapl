@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html><head>
+
+<link rel="stylesheet" href="basicsstyles.css" type="text/css" media="screen">
+<link rel="stylesheet" href="printstyles.css" type="text/css" media="print">
+
+<style type="text/css" media="all">
+
+body
+	{
+	font-size: small;
+	font-family: Arial;
+	line-height: 175%;
+	background-color: transparent;
+	margin: 5pt 5pt 0pt 0pt;
+	}
+
+#voltar
+        {
+        position: absolute;
+        top: 50pt;
+        left: 500pt;
+        }
+
+#ementa_texto
+	{
+	font-family: Arial;
+	line-height: 175%;
+	border-style: none;
+	text-align: justify;
+	padding: 0pt 5pt 0pt 0pt;
+	line-height: 140%;
+	font-size: small;
+	}
+
+#ficha_menor
+	{
+	background-color: transparent;
+	margin: -2pt 20pt 0pt 0pt;
+	position: relative;
+	width: 285pt;
+	height: 370pt;
+	}
+
+#titulo
+    {
+    font-size: medium;
+    text-align: center;
+    }
+
+#ficha_maior
+	{
+	background-color: #9eddee;
+	margin:0pt;
+	position: relative;
+	width: 285pt;
+	height: 370pt;
+	}
+
+#despacho_inicial
+	{
+     font-family: Arial;
+     border-style: none;
+     text-align: justify;
+     font-size: small;
+    }
+
+@media print {
+	          #voltar { display: none; }
+             }
+
+</style>
+
+<body style="margin-left:80px;margin-right:80px; margin-top: -50px">
+
+<div style="page-break-inside: avoid;">
+<justify>
+    <div id="titulo">
+      <!-- Informa o processo -->
+      {% if materia.numeracao_set.first %}
+        <strong class="text_pdf">PROCESSO Nº: {{ materia.numeracao_set.first.numero_materia }}</strong><br><br>
+    	 &nbsp;
+      {% else %}
+    	<strong class="text_pdf">PROCESSO Nº: {{ materia.numero }}</strong><br><br>
+    	 &nbsp;
+      {% endif %}
+    </div>
+
+    <!-- Informa o tipo da matéria -->
+    <strong class="text_pdf">{{materia.tipo}}:</strong> <span class="text_pdf"> {{materia.numero}}/{{materia.ano}} </span><br>
+
+    <!-- Informa a Data de Entrada -->
+    <strong class="text_pdf">Data de entrada:</strong> <span class="text_pdf"> {{materia.data_apresentacao}}</span></br>
+
+    <table border=0>
+      <td height="60pt" valign=top>
+        <div id="ementa_texto">
+        <!-- Lista os autores -->
+           {% if materia.autoria_set.all %}
+        	  <strong class="text_pdf">Autor:</strong>
+        	  {% for a in materia.autoria_set.all %}
+        		{% if not forloop.first %}
+        	      <span class="text_pdf">{{a.autor}}</span><br>
+        		{% else %}
+        		  <span class="text_pdf">{{a.autor}}</span><br>
+        		{% endif %}
+        	   {% endfor %}
+        	   </br>
+            {% endif %}
+        </div>
+       </td>
+    </table>
+
+
+    <br><br><br>
+    <!-- Ementa -->
+    <table border=0>
+	  <td height="160pt">
+	    <div id="ementa_texto">
+  	     <strong class="text_pdf">Ementa:</strong> <span class="text_pdf">{{materia.ementa}}</span>
+	    </div>
+	  </td>
+    </table>
+
+    <br><br><br>
+    <table border=0>
+       <td height="100pt">
+	     <div id="despacho_inicial">
+         <strong class="text_pdf">Despacho Inicial:</strong>
+          {% for despacho in despachos %}
+	         <br> <span class="text_pdf">{{despacho}}</span>
+          {% endfor %}
+	     </div>
+       </td>
+    </table>
+    <br>
+    <strong></strong><br>
+    <strong>________________NORMA JURIDICA_________________</strong><br><br>
+    <strong>_________________________________________________</strong>
+
+</div>
+</justify>
+
+</body>
