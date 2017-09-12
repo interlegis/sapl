@@ -620,9 +620,7 @@ class Proposicao(models.Model):
                               blank=True,
                               on_delete=models.PROTECT)
     tipo = models.ForeignKey(TipoProposicao, on_delete=models.PROTECT,
-                             # TODO PÓS MIGRACAO INICIAL (vide #1381)
-                             # não nulo quando todas as
-                             # bases tiverem sido corrigidas
+                             blank=False,
                              null=True,
                              verbose_name=_('Tipo'))
 
