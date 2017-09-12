@@ -1822,12 +1822,6 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
     template_name = 'materia/impressos/ficha_seleciona.html'
     permission_required = ('materia.can_access_impressos', )
 
-    def string_to_datetime(self, date):
-        return dt_generator.date(
-            day=int(date[0]),
-            month=int(date[1]),
-            year=int(date[2]))
-
     def get_context_data(self, **kwargs):
         if ('tipo' not in self.request.GET or
             'data_inicial' not in self.request.GET or
@@ -1839,13 +1833,10 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
             **kwargs)
 
         tipo = self.request.GET['tipo']
-        data_inicial = self.request.GET['data_inicial']
-        data_final = self.request.GET['data_final']
-
-        data_inicial = self.string_to_datetime(
-            data_inicial.split('/'))
-        data_final = self.string_to_datetime(
-            data_final.split('/'))
+        data_inicial = datetime.strptime(
+            self.request.GET['data_inicial'], "%d/%m/%Y").date()
+        data_final = datetime.strptime(
+            self.request.GET['data_final'], "%d/%m/%Y").date()
 
         materia_list = MateriaLegislativa.objects.filter(
             tipo=tipo,
@@ -1853,7 +1844,7 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
         context['quantidade'] = len(materia_list)
         materia_list = materia_list[:20]
 
-        context['form'].fields['materia'].choices = [(m.id, m.__str__()) for m in materia_list]
+        context['form'].fields['materia'].choices = [(m.id, str(m)) for m in materia_list]
 
         if context['quantidade'] > 20:
             messages.info(self.request, _('Sua pesquisa retornou mais do que '
@@ -1870,7 +1861,10 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
             materia = MateriaLegislativa.objects.get(
                 id=form.data['materia'])
         except ObjectDoesNotExist:
-            pass
+            mensagem = _('Esta Máteria não existe!')
+            self.messages.add_message(request, messages.INFO, mensagem)
+
+            return self.render_to_response(context)
 
         context['materia'] = materia
         context['despachos'] = materia.despachoinicial_set.all().values_list(
