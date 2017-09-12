@@ -90,7 +90,7 @@ def verifica_presenca(request, model, spk):
     return True
 
 
-def verifica_votacoes_abertas(request, model, pk):
+def verifica_votacoes_abertas(request):
     votacoes_abertas = SessaoPlenaria.objects.filter(
         Q(ordemdia__votacao_aberta=True) |
         Q(expedientemateria__votacao_aberta=True)).distinct()
@@ -108,26 +108,36 @@ def verifica_votacoes_abertas(request, model, pk):
                 'outra, termine ou feche as votações abertas.')
         messages.add_message(request, messages.INFO, msg)
 
-    else:
+        return False
+
+    return True
+
+
+@permission_required('sessao.change_expedientemateria',
+                     'sessao.change_ordemdia')
+def abrir_votacao(request, pk, spk):
+    model = None
+
+    if 'tipo_materia' in request.GET:
+        if request.GET['tipo_materia'] == 'ordem':
+            model = OrdemDia
+            presenca_model = PresencaOrdemDia
+            redirect_url = 'ordemdia_list'
+        elif request.GET['tipo_materia'] == 'expediente':
+            model = ExpedienteMateria
+            presenca_model = SessaoPlenariaPresenca
+            redirect_url = 'expedientemateria_list'
+    if not model:
+        raise Http404
+
+    if (verifica_presenca(request, presenca_model, spk) and
+       verifica_votacoes_abertas(request)):
         materia_votacao = model.objects.get(id=pk)
         materia_votacao.votacao_aberta = True
         materia_votacao.save()
 
-
-@permission_required('sessao.change_expedientemateria')
-def abrir_votacao_expediente_view(request, pk, spk):
-    if verifica_presenca(request, SessaoPlenariaPresenca, spk):
-        verifica_votacoes_abertas(request, ExpedienteMateria, pk)
     return HttpResponseRedirect(
-        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': spk}))
-
-
-@permission_required('sessao.change_ordemdia')
-def abrir_votacao_ordem_view(request, pk, spk):
-    if verifica_presenca(request, PresencaOrdemDia, spk):
-        verifica_votacoes_abertas(request, OrdemDia, pk)
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': spk}))
+        reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk}))
 
 
 def put_link_materia(context):
@@ -243,7 +253,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                             obj.resultado = '''Não há resultado'''
                     else:
                         url = reverse('sapl.sessao:abrir_votacao', kwargs={
-                            'pk': obj.pk, 'spk': obj.sessao_plenaria_id})
+                            'pk': obj.pk, 'spk': obj.sessao_plenaria_id}) + '?tipo_materia=ordem'
 
                         if self.request.user.has_module_perms(AppConfig.label):
                             btn_abrir = '''
@@ -361,8 +371,8 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                    Registrar Votação</a>''' % (url)
                             obj.resultado = btn_registrar
                     else:
-                        url = reverse('sapl.sessao:abrir_votacao_exp', kwargs={
-                            'pk': obj.pk, 'spk': obj.sessao_plenaria_id})
+                        url = reverse('sapl.sessao:abrir_votacao', kwargs={
+                            'pk': obj.pk, 'spk': obj.sessao_plenaria_id}) + '?tipo_materia=expediente'
                         btn_abrir = '''Matéria não votada<br />'''
 
                         if self.request.user.has_module_perms(AppConfig.label):
