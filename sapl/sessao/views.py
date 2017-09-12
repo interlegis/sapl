@@ -113,6 +113,18 @@ def verifica_votacoes_abertas(request):
     return True
 
 
+def verifica_sessao_iniciada(request, spk):
+    sessao = SessaoPlenaria.objects.get(id=spk)
+
+    if not sessao.iniciada or sessao.finalizada:
+        msg = _('Não é possível abrir matérias para votação. '\
+                'Esta Sessão Plenária não foi iniciada ou está finalizada.')
+        messages.add_message(request, messages.INFO, msg)
+        return False
+
+    return True
+
+
 @permission_required('sessao.change_expedientemateria',
                      'sessao.change_ordemdia')
 def abrir_votacao(request, pk, spk):
@@ -131,7 +143,8 @@ def abrir_votacao(request, pk, spk):
         raise Http404
 
     if (verifica_presenca(request, presenca_model, spk) and
-       verifica_votacoes_abertas(request)):
+       verifica_votacoes_abertas(request) and
+       verifica_sessao_iniciada(request, spk)):
         materia_votacao = model.objects.get(id=pk)
         materia_votacao.votacao_aberta = True
         materia_votacao.save()
@@ -253,7 +266,9 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                             obj.resultado = '''Não há resultado'''
                     else:
                         url = reverse('sapl.sessao:abrir_votacao', kwargs={
-                            'pk': obj.pk, 'spk': obj.sessao_plenaria_id}) + '?tipo_materia=ordem'
+                            'pk': obj.pk,
+                            'spk': obj.sessao_plenaria_id
+                        }) + '?tipo_materia=ordem'
 
                         if self.request.user.has_module_perms(AppConfig.label):
                             btn_abrir = '''
@@ -372,7 +387,9 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                             obj.resultado = btn_registrar
                     else:
                         url = reverse('sapl.sessao:abrir_votacao', kwargs={
-                            'pk': obj.pk, 'spk': obj.sessao_plenaria_id}) + '?tipo_materia=expediente'
+                            'pk': obj.pk,
+                            'spk': obj.sessao_plenaria_id
+                        }) + '?tipo_materia=expediente'
                         btn_abrir = '''Matéria não votada<br />'''
 
                         if self.request.user.has_module_perms(AppConfig.label):
