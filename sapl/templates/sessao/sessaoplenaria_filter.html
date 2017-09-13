@@ -15,7 +15,7 @@
 {% block detail_content %}
   {% crispy filter.form %}
 
-  {% if filter_url %}
+  {% if show_results %}
     <p></p>
     <table class="table table-striped table-hover">
       <thead class="thead-default"><tr><td><h3>Resultados</h3></td></tr></thead>

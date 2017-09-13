@@ -3,11 +3,11 @@
 {% block actions %}{% endblock %}
 {% block detail_content %}
 
-  {% if not filter_url %}
+  {% if not show_results %}
     {% crispy filter.form %}
   {% endif %}
 
-  {% if filter_url %}
+  {% if show_results %}
     {% if object_list.count > 0 %}
       {% if object_list.count == 1 %}
         <h3 style="text-align: right;">{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>

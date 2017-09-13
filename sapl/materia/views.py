@@ -138,6 +138,14 @@ class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
         context['title'] = _('Pesquisar Autores')
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         context['pk_materia'] = self.kwargs['pk']
         return context
 
@@ -1507,6 +1515,13 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+           len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         return context
 
 
@@ -1608,6 +1623,14 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         context['object_list'] = context['object_list'].order_by(
             'ano', 'numero')
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -1675,6 +1698,14 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             'ano', 'numero')
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         return context
 
     def post(self, request, *args, **kwargs):

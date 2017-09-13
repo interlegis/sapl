@@ -2455,6 +2455,14 @@ class PesquisarSessaoPlenariaView(FilterView):
                                         numero_res=len(self.object_list)
                                         )
 
+        qr = self.request.GET.copy()
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         return self.render_to_response(context)
 
 

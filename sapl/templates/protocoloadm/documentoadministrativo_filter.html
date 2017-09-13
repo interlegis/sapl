@@ -13,7 +13,7 @@
       </a>
     {% endif %}
   </div>
-  {% if filter_url %}
+  {% if show_results %}
     <div class="actions btn-group pull-right" role="group">
       <a href="{% url 'sapl.protocoloadm:pesq_doc_adm' %}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
     </div>
@@ -21,9 +21,9 @@
 {% endblock actions %}
 
 {% block detail_content %}
-  {% if not filter_url %} {% crispy filter.form %} {% endif %}
+  {% if not show_results %} {% crispy filter.form %} {% endif %}
 
-  {% if filter_url %}
+  {% if show_results %}
     <table class="table table-striped table-bordered">
       <thead class="thead-default"><tr><td><h3>Resultados</h3></td></tr></thead>
       {% if page_obj|length %}

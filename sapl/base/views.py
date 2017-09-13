@@ -202,6 +202,14 @@ class RelatorioAtasView(FilterView):
         context['object_list'] = context['object_list'].exclude(upload_ata='')
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         return context
 
 
@@ -294,6 +302,14 @@ class RelatorioPresencaSessaoView(FilterView):
         # =====================================================================
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         return context
 
 
@@ -308,6 +324,14 @@ class RelatorioHistoricoTramitacaoView(FilterView):
         context['title'] = _('Histórico de Tramitações')
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         return context
 
 
@@ -336,6 +360,13 @@ class RelatorioMateriasTramitacaoView(FilterView):
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
 
         return context
 
@@ -409,6 +440,13 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         if 'ano' in self.request.GET and self.request.GET['ano']:
             ano = int(self.request.GET['ano'])
             context['relatorio'] = self.get_materias_autor_ano(ano)
@@ -446,6 +484,13 @@ class RelatorioMateriasPorAutorView(FilterView):
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
 
         return context
 

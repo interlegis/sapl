@@ -81,6 +81,13 @@ class NormaPesquisaView(FilterView):
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
+        query_params = set(qr.keys())
+        if ((len(query_params) == 1 and 'iframe' in query_params) or
+                    len(query_params) == 0):
+            context['show_results'] = False
+        else:
+            context['show_results'] = True
+
         return context
 
 
