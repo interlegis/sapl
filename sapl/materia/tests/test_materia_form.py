@@ -3,7 +3,8 @@ from django.utils.translation import ugettext as _
 from model_mommy import mommy
 
 from sapl.materia import forms
-from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa)
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+
 
 @pytest.mark.django_db(transaction=False)
 def test_valida_campos_obrigatorios_ficha_pesquisa_form():
@@ -19,6 +20,7 @@ def test_valida_campos_obrigatorios_ficha_pesquisa_form():
 
     assert len(errors) == 3
 
+
 @pytest.mark.django_db(transaction=False)
 def test_ficha_pesquisa_form_datas_invalidas():
     tipo = mommy.make(TipoMateriaLegislativa)
@@ -29,7 +31,7 @@ def test_ficha_pesquisa_form_datas_invalidas():
                                          })
     assert not form.is_valid()
     assert form.errors['__all__'] == [_('A Data Final não pode ser menor que '
-                                                            'a Data Inicial')]
+                                        'a Data Inicial')]
 
 
 @pytest.mark.django_db(transaction=False)

@@ -13,18 +13,18 @@
           {% blocktrans with verbose_name=view.verbose_name %} Adicionar Matéria Legislativa {% endblocktrans %}
       </a>
       {% endif %}
-    {% if filter_url %}
+    {% if show_results %}
         <a href="{% url 'sapl.materia:pesquisar_materia' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
     {% endif %}
     </div>
   {% endblock %}
 
   {% block detail_content %}
-    {% if not filter_url %}
+    {% if not show_results %}
       {% crispy filter.form %}
     {% endif %}
 
-    {% if filter_url %}
+    {% if show_results %}
       <table class="table table-striped table-bordered">
         <thead class="thead-default">
           <tr><td><h3>{% trans "Resultados" %}</h3></td></tr>

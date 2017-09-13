@@ -642,3 +642,12 @@ def parlamentares_ativos(data_inicio, data_fim=None):
         flat=True).distinct('parlamentar_id')
 
     return Parlamentar.objects.filter(id__in=parlamentares_id)
+
+
+def show_results_filter_set(qr):
+    query_params = set(qr.keys())
+    if ((len(query_params) == 1 and 'iframe' in query_params) or
+       len(query_params) == 0):
+        return False
+
+    return True

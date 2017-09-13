@@ -21,7 +21,7 @@ from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
-from sapl.utils import create_barcode, get_client_ip
+from sapl.utils import create_barcode, get_client_ip, show_results_filter_set
 
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -211,6 +211,9 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
                                         filter_url=url,
                                         numero_res=len(self.object_list)
                                         )
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
 
         return self.render_to_response(context)
 
@@ -563,6 +566,9 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
                                         filter_url=url,
                                         numero_res=len(self.object_list)
                                         )
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
 
         return self.render_to_response(context)
 

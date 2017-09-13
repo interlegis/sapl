@@ -34,6 +34,7 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
+from sapl.utils import show_results_filter_set
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, OradorExpedienteForm,
@@ -117,7 +118,7 @@ def verifica_sessao_iniciada(request, spk):
     sessao = SessaoPlenaria.objects.get(id=spk)
 
     if not sessao.iniciada or sessao.finalizada:
-        msg = _('Não é possível abrir matérias para votação. '\
+        msg = _('Não é possível abrir matérias para votação. '
                 'Esta Sessão Plenária não foi iniciada ou está finalizada.')
         messages.add_message(request, messages.INFO, msg)
         return False
@@ -143,8 +144,8 @@ def abrir_votacao(request, pk, spk):
         raise Http404
 
     if (verifica_presenca(request, presenca_model, spk) and
-       verifica_votacoes_abertas(request) and
-       verifica_sessao_iniciada(request, spk)):
+        verifica_votacoes_abertas(request) and
+            verifica_sessao_iniciada(request, spk)):
         materia_votacao = model.objects.get(id=pk)
         materia_votacao.votacao_aberta = True
         materia_votacao.save()
@@ -2454,6 +2455,8 @@ class PesquisarSessaoPlenariaView(FilterView):
                                         filter_url=url,
                                         numero_res=len(self.object_list)
                                         )
+
+        context['show_results'] = show_results_filter_set(self.request.GET.copy())
 
         return self.render_to_response(context)
 

@@ -8,7 +8,7 @@
 
       {{ block.super }}
 
-    {% if filter_url %}
+    {% if show_results %}
       <div class="actions btn-group pull-right grid-gutter-width-right " role="group">
         <a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
       </div>
@@ -19,15 +19,15 @@
 
   {% block detail_content %}
     <br>
-    {% if not filter_url %}
+    {% if not show_results %}
       {% crispy filter.form %}
     {% endif %}
 
-  {% if filter_url %}
+  {% if show_results %}
     <table class="table table-striped table-bordered">
       <thead class="thead-default"><tr><td><h3>Resultados</h3></td></tr></thead>
       {% if page_obj|length %}
-        {% if filter_url %}
+        {% if show_results %}
           {% if numero_res > 1 %}
             <h3>Pesquisa concluída com sucesso! Foram encontrados {{numero_res}} protocolos.</h3>
           {% elif numero_res == 1 %}

@@ -11,6 +11,7 @@ from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
+from sapl.utils import show_results_filter_set
 
 from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm
 from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
@@ -80,6 +81,8 @@ class NormaPesquisaView(FilterView):
             page_obj.number, paginator.num_pages)
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 

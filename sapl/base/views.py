@@ -23,7 +23,8 @@ from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
-from sapl.utils import parlamentares_ativos, sapl_logger
+from sapl.utils import (parlamentares_ativos, sapl_logger,\
+                        show_results_filter_set)
 
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioAtasFilterSet,
@@ -202,6 +203,9 @@ class RelatorioAtasView(FilterView):
         context['object_list'] = context['object_list'].exclude(upload_ata='')
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
         return context
 
 
@@ -294,6 +298,9 @@ class RelatorioPresencaSessaoView(FilterView):
         # =====================================================================
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
         return context
 
 
@@ -308,6 +315,9 @@ class RelatorioHistoricoTramitacaoView(FilterView):
         context['title'] = _('Histórico de Tramitações')
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
         return context
 
 
@@ -336,6 +346,8 @@ class RelatorioMateriasTramitacaoView(FilterView):
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 
@@ -409,6 +421,8 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
+        context['show_results'] = show_results_filter_set(qr)
+
         if 'ano' in self.request.GET and self.request.GET['ano']:
             ano = int(self.request.GET['ano'])
             context['relatorio'] = self.get_materias_autor_ano(ano)
@@ -446,6 +460,8 @@ class RelatorioMateriasPorAutorView(FilterView):
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 

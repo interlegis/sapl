@@ -14,7 +14,7 @@
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Norma Jurídica {% endblocktrans %}
       </a>
     {% endif %}
-  {% if filter_url %}
+  {% if show_results %}
       <a href="{% url 'sapl.norma:norma_pesquisa' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
   {% endif %}
   </div>
@@ -22,11 +22,11 @@
 {% endblock %}
 
 {% block detail_content %}
-  {% if not filter_url %}
+  {% if not show_results %}
     {% crispy filter.form %}
   {% endif %}
 
-  {% if filter_url %}
+  {% if show_results %}
     {% if page_obj|length %}
       <br />
       {% if page_obj|length > 1 %}

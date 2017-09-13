@@ -14,7 +14,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.template import loader, RequestContext
+from django.template import RequestContext, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
@@ -42,7 +42,7 @@ from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
-                        montar_row_autor)
+                        montar_row_autor, show_results_filter_set)
 
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
@@ -138,6 +138,9 @@ class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
         context['title'] = _('Pesquisar Autores')
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
         context['pk_materia'] = self.kwargs['pk']
         return context
 
@@ -1509,6 +1512,8 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
+        context['show_results'] = show_results_filter_set(qr)
+
         return context
 
 
@@ -1610,6 +1615,9 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         context['object_list'] = context['object_list'].order_by(
             'ano', 'numero')
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -1677,6 +1685,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             'ano', 'numero')
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -1819,6 +1830,7 @@ class FichaPesquisaView(PermissionRequiredMixin, FormView):
 
         return HttpResponseRedirect(url)
 
+
 class FichaSelecionaView(PermissionRequiredMixin, FormView):
     form_class = FichaSelecionaForm
     template_name = 'materia/impressos/ficha_seleciona.html'
@@ -1827,7 +1839,7 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         if ('tipo' not in self.request.GET or
             'data_inicial' not in self.request.GET or
-            'data_final' not in self.request.GET):
+                'data_final' not in self.request.GET):
             return HttpResponseRedirect(reverse(
                 'sapl.materia:impressos_ficha_pesquisa'))
 
@@ -1846,13 +1858,14 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
         context['quantidade'] = len(materia_list)
         materia_list = materia_list[:20]
 
-        context['form'].fields['materia'].choices = [(m.id, str(m)) for m in materia_list]
+        context['form'].fields['materia'].choices = [
+            (m.id, str(m)) for m in materia_list]
 
         if context['quantidade'] > 20:
             messages.info(self.request, _('Sua pesquisa retornou mais do que '
-            '20 impressos. Por questões de performance, foram retornados '
-            'apenas os 20 primeiros. Caso queira outros, tente fazer uma '
-            'pesquisa mais específica'))
+                                          '20 impressos. Por questões de performance, foram retornados '
+                                          'apenas os 20 primeiros. Caso queira outros, tente fazer uma '
+                                          'pesquisa mais específica'))
 
         return context
 
@@ -1870,6 +1883,6 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
 
         context['materia'] = materia
         context['despachos'] = materia.despachoinicial_set.all().values_list(
-                            'comissao__nome', flat=True)
+            'comissao__nome', flat=True)
 
         return gerar_pdf_impressos(self.request, context, 'materia/impressos/ficha_pdf.html')
