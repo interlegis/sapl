@@ -928,7 +928,8 @@ class TramitacaoCrud(MasterDetailCrud):
         def get_initial(self):
             local = MateriaLegislativa.objects.get(
                 pk=self.kwargs['pk']).tramitacao_set.order_by(
-                '-data_tramitacao').first()
+                '-data_tramitacao',
+                '-id').first()
 
             if local:
                 self.initial['unidade_tramitacao_local'
@@ -1007,7 +1008,8 @@ class TramitacaoCrud(MasterDetailCrud):
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
+            return qs.filter(**kwargs).order_by('-data_tramitacao',
+                                                '-id')
 
     class DeleteView(MasterDetailCrud.DeleteView):
 

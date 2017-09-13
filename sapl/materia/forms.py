@@ -215,24 +215,26 @@ class TramitacaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
-        self.fields['data_tramitacao'].initial = datetime.now()
+        self.fields['data_tramitacao'].initial = datetime.now().date()
 
     def clean(self):
-        super(TramitacaoForm, self).clean()
+        cleaned_data = super(TramitacaoForm, self).clean()
 
-        if 'data_encaminhamento' in self.data:
-            data_enc_form = self.cleaned_data['data_encaminhamento']
-        if 'data_fim_prazo' in self.data:
-            data_prazo_form = self.cleaned_data['data_fim_prazo']
-        if 'data_tramitacao' in self.data:
-            data_tram_form = self.cleaned_data['data_tramitacao']
+        if 'data_encaminhamento' in cleaned_data:
+            data_enc_form = cleaned_data['data_encaminhamento']
+        if 'data_fim_prazo' in cleaned_data:
+            data_prazo_form = cleaned_data['data_fim_prazo']
+        if 'data_tramitacao' in cleaned_data:
+            data_tram_form = cleaned_data['data_tramitacao']
 
         if self.errors:
             return self.errors
 
         ultima_tramitacao = Tramitacao.objects.filter(
             materia_id=self.instance.materia_id).exclude(
-            id=self.instance.id).last()
+            id=self.instance.id).order_by(
+            '-data_tramitacao',
+            '-id').first()
 
         if not self.instance.data_tramitacao:
 
@@ -243,7 +245,7 @@ class TramitacaoForm(ModelForm):
                             'destino  da última adicionada!')
                     raise ValidationError(msg)
 
-            if self.cleaned_data['data_tramitacao'] > datetime.now().date():
+            if cleaned_data['data_tramitacao'] > datetime.now().date():
                 msg = _(
                     'A data de tramitação deve ser ' +
                     'menor ou igual a data de hoje!')
@@ -267,7 +269,7 @@ class TramitacaoForm(ModelForm):
                         'maior que a data de tramitação!')
                 raise ValidationError(msg)
 
-        return self.cleaned_data
+        return cleaned_data
 
 
 class TramitacaoUpdateForm(TramitacaoForm):
@@ -296,13 +298,26 @@ class TramitacaoUpdateForm(TramitacaoForm):
         }
 
     def clean(self):
-        super(TramitacaoUpdateForm, self).clean()
+        ultima_tramitacao = Tramitacao.objects.filter(
+            materia_id=self.instance.materia_id).order_by(
+            '-data_tramitacao',
+            '-id').first()
 
-        local = self.instance.unidade_tramitacao_local
-        data_tram = self.instance.data_tramitacao
+        # Se a Tramitação que está sendo editada não for a mais recente,
+        # ela não pode ter seu destino alterado.
+        if ultima_tramitacao != self.instance:
+            if self.cleaned_data['unidade_tramitacao_destino'] != \
+                    self.instance.unidade_tramitacao_destino:
+                raise ValidationError(
+                    'Você não pode mudar a Unidade de Destino desta '\
+                    'tramitação, pois irá conflitar com a Unidade ' \
+                    'Local da tramitação seguinte')
 
-        self.cleaned_data['data_tramitacao'] = data_tram
-        self.cleaned_data['unidade_tramitacao_local'] = local
+        self.cleaned_data['data_tramitacao'] = \
+            self.instance.data_tramitacao
+        self.cleaned_data['unidade_tramitacao_local'] = \
+            self.instance.unidade_tramitacao_local
+
         return super(TramitacaoUpdateForm, self).clean()
 
 
