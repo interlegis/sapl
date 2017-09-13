@@ -14,7 +14,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.template import loader, RequestContext
+from django.template import RequestContext, loader
 from django.utils import formats
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
@@ -141,7 +141,7 @@ class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True
@@ -1517,7 +1517,7 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-           len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True
@@ -1626,7 +1626,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True
@@ -1701,7 +1701,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True
@@ -1848,6 +1848,7 @@ class FichaPesquisaView(PermissionRequiredMixin, FormView):
 
         return HttpResponseRedirect(url)
 
+
 class FichaSelecionaView(PermissionRequiredMixin, FormView):
     form_class = FichaSelecionaForm
     template_name = 'materia/impressos/ficha_seleciona.html'
@@ -1856,7 +1857,7 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         if ('tipo' not in self.request.GET or
             'data_inicial' not in self.request.GET or
-            'data_final' not in self.request.GET):
+                'data_final' not in self.request.GET):
             return HttpResponseRedirect(reverse(
                 'sapl.materia:impressos_ficha_pesquisa'))
 
@@ -1875,13 +1876,14 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
         context['quantidade'] = len(materia_list)
         materia_list = materia_list[:20]
 
-        context['form'].fields['materia'].choices = [(m.id, str(m)) for m in materia_list]
+        context['form'].fields['materia'].choices = [
+            (m.id, str(m)) for m in materia_list]
 
         if context['quantidade'] > 20:
             messages.info(self.request, _('Sua pesquisa retornou mais do que '
-            '20 impressos. Por questões de performance, foram retornados '
-            'apenas os 20 primeiros. Caso queira outros, tente fazer uma '
-            'pesquisa mais específica'))
+                                          '20 impressos. Por questões de performance, foram retornados '
+                                          'apenas os 20 primeiros. Caso queira outros, tente fazer uma '
+                                          'pesquisa mais específica'))
 
         return context
 
@@ -1899,6 +1901,6 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
 
         context['materia'] = materia
         context['despachos'] = materia.despachoinicial_set.all().values_list(
-                            'comissao__nome', flat=True)
+            'comissao__nome', flat=True)
 
         return gerar_pdf_impressos(self.request, context, 'materia/impressos/ficha_pdf.html')

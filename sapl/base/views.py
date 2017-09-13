@@ -205,7 +205,7 @@ class RelatorioAtasView(FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True
@@ -305,7 +305,7 @@ class RelatorioPresencaSessaoView(FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True
@@ -327,7 +327,7 @@ class RelatorioHistoricoTramitacaoView(FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True
@@ -363,7 +363,7 @@ class RelatorioMateriasTramitacaoView(FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True
@@ -442,7 +442,7 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True
@@ -487,7 +487,7 @@ class RelatorioMateriasPorAutorView(FilterView):
 
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True

@@ -117,7 +117,7 @@ def verifica_sessao_iniciada(request, spk):
     sessao = SessaoPlenaria.objects.get(id=spk)
 
     if not sessao.iniciada or sessao.finalizada:
-        msg = _('Não é possível abrir matérias para votação. '\
+        msg = _('Não é possível abrir matérias para votação. '
                 'Esta Sessão Plenária não foi iniciada ou está finalizada.')
         messages.add_message(request, messages.INFO, msg)
         return False
@@ -143,8 +143,8 @@ def abrir_votacao(request, pk, spk):
         raise Http404
 
     if (verifica_presenca(request, presenca_model, spk) and
-       verifica_votacoes_abertas(request) and
-       verifica_sessao_iniciada(request, spk)):
+        verifica_votacoes_abertas(request) and
+            verifica_sessao_iniciada(request, spk)):
         materia_votacao = model.objects.get(id=pk)
         materia_votacao.votacao_aberta = True
         materia_votacao.save()
@@ -2458,7 +2458,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         qr = self.request.GET.copy()
         query_params = set(qr.keys())
         if ((len(query_params) == 1 and 'iframe' in query_params) or
-                    len(query_params) == 0):
+                len(query_params) == 0):
             context['show_results'] = False
         else:
             context['show_results'] = True

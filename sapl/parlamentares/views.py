@@ -25,9 +25,8 @@ from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 from sapl.utils import parlamentares_ativos
 
-from .forms import (FiliacaoForm, LegislaturaForm,
-                    MandatoForm, ParlamentarCreateForm, ParlamentarForm,
-                    VotanteForm)
+from .forms import (FiliacaoForm, LegislaturaForm, MandatoForm,
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
