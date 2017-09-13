@@ -34,6 +34,7 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
+from sapl.utils import show_results_filter_set
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     ListMateriaForm, MesaForm, OradorExpedienteForm,
@@ -2455,13 +2456,7 @@ class PesquisarSessaoPlenariaView(FilterView):
                                         numero_res=len(self.object_list)
                                         )
 
-        qr = self.request.GET.copy()
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(self.request.GET.copy())
 
         return self.render_to_response(context)
 

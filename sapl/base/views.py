@@ -23,7 +23,8 @@ from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
-from sapl.utils import parlamentares_ativos, sapl_logger
+from sapl.utils import (parlamentares_ativos, sapl_logger,\
+                        show_results_filter_set)
 
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioAtasFilterSet,
@@ -203,12 +204,7 @@ class RelatorioAtasView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 
@@ -303,12 +299,7 @@ class RelatorioPresencaSessaoView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 
@@ -325,12 +316,7 @@ class RelatorioHistoricoTramitacaoView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 
@@ -361,12 +347,7 @@ class RelatorioMateriasTramitacaoView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 
@@ -440,12 +421,7 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         if 'ano' in self.request.GET and self.request.GET['ano']:
             ano = int(self.request.GET['ano'])
@@ -485,12 +461,7 @@ class RelatorioMateriasPorAutorView(FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 

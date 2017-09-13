@@ -11,6 +11,7 @@ from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
+from sapl.utils import show_results_filter_set
 
 from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm
 from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
@@ -81,12 +82,7 @@ class NormaPesquisaView(FilterView):
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 

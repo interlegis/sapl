@@ -42,7 +42,7 @@ from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
-                        montar_row_autor)
+                        montar_row_autor, show_results_filter_set)
 
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
@@ -139,12 +139,7 @@ class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         context['pk_materia'] = self.kwargs['pk']
         return context
@@ -1515,12 +1510,7 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 
@@ -1624,12 +1614,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             'ano', 'numero')
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 
@@ -1699,12 +1684,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
-        query_params = set(qr.keys())
-        if ((len(query_params) == 1 and 'iframe' in query_params) or
-                len(query_params) == 0):
-            context['show_results'] = False
-        else:
-            context['show_results'] = True
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 
