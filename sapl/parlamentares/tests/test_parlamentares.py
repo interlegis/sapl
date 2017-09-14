@@ -225,10 +225,10 @@ def test_legislatura_form_invalido():
 
     errors = legislatura_form.errors
 
-    errors['numero'] == [_('Este campo é obrigatório.')]
-    errors['data_inicio'] == [_('Este campo é obrigatório.')]
-    errors['data_fim'] == [_('Este campo é obrigatório.')]
-    errors['data_eleicao'] == [_('Este campo é obrigatório.')]
+    assert errors['numero'] == [_('Este campo é obrigatório.')]
+    assert errors['data_inicio'] == [_('Este campo é obrigatório.')]
+    assert errors['data_fim'] == [_('Este campo é obrigatório.')]
+    assert errors['data_eleicao'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 4
 
