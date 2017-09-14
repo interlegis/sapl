@@ -309,8 +309,8 @@ class TramitacaoUpdateForm(TramitacaoForm):
             if self.cleaned_data['unidade_tramitacao_destino'] != \
                     self.instance.unidade_tramitacao_destino:
                 raise ValidationError(
-                    'Você não pode mudar a Unidade de Destino desta '\
-                    'tramitação, pois irá conflitar com a Unidade ' \
+                    'Você não pode mudar a Unidade de Destino desta '
+                    'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
 
         self.cleaned_data['data_tramitacao'] = \

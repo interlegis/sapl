@@ -2456,7 +2456,8 @@ class PesquisarSessaoPlenariaView(FilterView):
                                         numero_res=len(self.object_list)
                                         )
 
-        context['show_results'] = show_results_filter_set(self.request.GET.copy())
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
 
         return self.render_to_response(context)
 

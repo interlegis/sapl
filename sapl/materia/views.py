@@ -1,4 +1,3 @@
-import datetime as dt_generator
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
@@ -1863,8 +1862,10 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
 
         if context['quantidade'] > 20:
             messages.info(self.request, _('Sua pesquisa retornou mais do que '
-                                          '20 impressos. Por questões de performance, foram retornados '
-                                          'apenas os 20 primeiros. Caso queira outros, tente fazer uma '
+                                          '20 impressos. Por questões de '
+                                          'performance, foram retornados '
+                                          'apenas os 20 primeiros. Caso '
+                                          'queira outros, tente fazer uma '
                                           'pesquisa mais específica'))
 
         return context
@@ -1877,7 +1878,7 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
                 id=form.data['materia'])
         except ObjectDoesNotExist:
             mensagem = _('Esta Máteria não existe!')
-            self.messages.add_message(request, messages.INFO, mensagem)
+            self.messages.add_message(self.request, messages.INFO, mensagem)
 
             return self.render_to_response(context)
 
@@ -1885,4 +1886,5 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
         context['despachos'] = materia.despachoinicial_set.all().values_list(
             'comissao__nome', flat=True)
 
-        return gerar_pdf_impressos(self.request, context, 'materia/impressos/ficha_pdf.html')
+        return gerar_pdf_impressos(self.request, context,
+                                   'materia/impressos/ficha_pdf.html')

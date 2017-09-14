@@ -1,4 +1,3 @@
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -23,9 +22,8 @@ from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
-from sapl.utils import (parlamentares_ativos, sapl_logger,\
+from sapl.utils import (parlamentares_ativos, sapl_logger,
                         show_results_filter_set)
-
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioAtasFilterSet,
                     RelatorioHistoricoTramitacaoFilterSet,
