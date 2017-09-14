@@ -159,9 +159,6 @@ class ExpedienteMateriaForm(ModelForm):
     def clean(self):
         super(ExpedienteMateriaForm, self).clean()
 
-        if self.errors:
-            return self.errors
-
         cleaned_data = self.cleaned_data
         sessao = self.instance.sessao_plenaria
 
