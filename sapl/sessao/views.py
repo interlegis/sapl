@@ -154,13 +154,31 @@ def abrir_votacao(request, pk, spk):
         reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk}))
 
 
-def put_link_materia(context):
+def customize_link_materia(context):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
         url_materia = reverse('sapl.materia:materialegislativa_detail',
                               kwargs={'pk': materia.id})
+        numeracao = materia.numeracao_set.first()
+        autoria = materia.autoria_set.filter(
+            primeiro_autor=True).first()
+        if autoria:
+            autor = autoria.autor
+        num_protocolo = materia.numero_protocolo
 
-        context['rows'][i][1] = (row[1][0], url_materia)
+        title_materia = '''<a href=%s>%s</a> </br>
+                           <b>Número de Processo:</b> %s </br>
+                           <b>Autor:</b> %s </br>
+                           <b>Número de Protocolo:</b> %s </br>
+                        ''' % (url_materia,
+                               row[1][0],
+                               numeracao if numeracao else '',
+                               autor if autor else '',
+                               num_protocolo if num_protocolo else '')
+
+        # Na linha abaixo, o segundo argumento é None para não colocar
+        # url em toda a string de title_materia
+        context['rows'][i][1] = (title_materia, None)
     return context
 
 
@@ -229,7 +247,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            return put_link_materia(context)
+            return customize_link_materia(context)
 
         def get_rows(self, object_list):
             for obj in object_list:
@@ -352,7 +370,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            return put_link_materia(context)
+            return customize_link_materia(context)
 
         def get_rows(self, object_list):
             for obj in object_list:
