@@ -157,12 +157,11 @@ class ExpedienteMateriaForm(ModelForm):
         return self.instance.sessao_plenaria.data_inicio
 
     def clean(self):
-        super(ExpedienteMateriaForm, self).clean()
+        cleaned_data = super(ExpedienteMateriaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return cleaned_data
 
-        cleaned_data = self.cleaned_data
         sessao = self.instance.sessao_plenaria
 
         try:
@@ -220,7 +219,9 @@ class OrdemDiaForm(ExpedienteMateriaForm):
         return self.cleaned_data['numero_ordem']
 
     def clean(self):
-        super(OrdemDiaForm, self).clean()
+        cleaned_data = super(OrdemDiaForm, self).clean()
+        if not self.is_valid():
+            return cleaned_data
         return self.cleaned_data
 
     def save(self, commit=False):
