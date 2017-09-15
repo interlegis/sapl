@@ -429,7 +429,7 @@ def adjust_mandato(new, old):
         new.data_expedicao_diploma = legislatura.data_inicio
     if not new.data_inicio_mandato:
         new.data_inicio_mandato = new.legislatura.data_inicio
-
+        new.data_fim_mandato = new.legislatura.data_fim
 
 
 def adjust_ordemdia_antes_salvar(new, old):
