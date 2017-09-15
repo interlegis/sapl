@@ -158,7 +158,6 @@ class ExpedienteMateriaForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(ExpedienteMateriaForm, self).clean()
-
         if not self.is_valid():
             return cleaned_data
 
