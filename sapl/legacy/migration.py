@@ -424,9 +424,9 @@ def adjust_mandato(new, old):
     if old.dat_fim_mandato:
         new.data_fim_mandato = old.dat_fim_mandato
     if not new.data_fim_mandato:
-        legislatura = Legislatura.objects.latest('data_fim')
-        new.data_fim_mandato = legislatura.data_fim
-        new.data_expedicao_diploma = legislatura.data_inicio
+        new.data_fim_mandato = new.legislatura.data_fim
+    if not new.data_inicio_mandato:
+        new.data_inicio_mandato = new.legislatura.data_inicio
 
 
 def adjust_ordemdia_antes_salvar(new, old):
