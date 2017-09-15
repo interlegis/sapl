@@ -24,6 +24,7 @@ from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.utils import (parlamentares_ativos, sapl_logger,
                         show_results_filter_set)
+
 from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioAtasFilterSet,
                     RelatorioHistoricoTramitacaoFilterSet,

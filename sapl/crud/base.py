@@ -938,16 +938,6 @@ class CrudAux(Crud):
     class BaseMixin(Crud.BaseMixin):
         subnav_template_name = None
 
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            """
-            Mantem as permissões individuais geradas pelo Crud através do
-            Modelo e adiciona a obrigatoriedade de permissão para view
-            tabelas auxiliares.
-            """
-            self.permission_required = self.permission_required + \
-                self.crud.permission_required
-
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             """Força o template filter subnav em base/templatetags/menus.py
