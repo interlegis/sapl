@@ -424,9 +424,12 @@ def adjust_mandato(new, old):
     if old.dat_fim_mandato:
         new.data_fim_mandato = old.dat_fim_mandato
     if not new.data_fim_mandato:
-        new.data_fim_mandato = new.legislatura.data_fim
+        legislatura = Legislatura.objects.latest('data_fim')
+        new.data_fim_mandato = legislatura.data_fim
+        new.data_expedicao_diploma = legislatura.data_inicio
     if not new.data_inicio_mandato:
         new.data_inicio_mandato = new.legislatura.data_inicio
+        new.data_fim_mandato = new.legislatura.data_fim
 
 
 def adjust_ordemdia_antes_salvar(new, old):
@@ -556,11 +559,18 @@ def adjust_tipoafastamento(new, old):
 
 def adjust_tipoproposicao(new, old):
     if old.ind_mat_ou_doc == 'M':
-        new.tipo_conteudo_related = TipoMateriaLegislativa.objects.get(
+        tipo_materia = TipoMateriaLegislativa.objects.filter(
             pk=old.tip_mat_ou_doc)
+        if tipo_materia:
+            new.tipo_conteudo_related = tipo_materia[0]
+        else:
+            raise ForeignKeyFaltando
     elif old.ind_mat_ou_doc == 'D':
-        new.tipo_conteudo_related = TipoDocumento.objects.get(
-            pk=old.tip_mat_ou_doc)
+        tipo_documento = TipoDocumento.objects.filter(pk=old.tip_mat_ou_doc)
+        if tipo_documento:
+            new.tipo_conteudo_related = tipo_documento[0]
+        else:
+            raise ForeignKeyFaltando
 
 
 def adjust_statustramitacao(new, old):
