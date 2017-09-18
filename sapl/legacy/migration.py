@@ -510,10 +510,8 @@ def adjust_normarelacionada(new, old):
 
 
 def adjust_protocolo_antes_salvar(new, old):
-    data_ajuste = date(2014, 11, 13)
-
-    if old.num_protocolo is None and data_ajuste >= old.dat_protocolo:
-        new.numero = old.pk
+    if old.num_protocolo is None:
+        new.numero = old.cod_protocolo
 
 
 def adjust_protocolo_depois_salvar(new, old):
