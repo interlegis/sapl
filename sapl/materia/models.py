@@ -626,7 +626,7 @@ class Proposicao(models.Model):
 
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de Envio'))
+        blank=False, null=True, verbose_name=_('Data de Envio'))
     data_recebimento = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de Recebimento'))
     data_devolucao = models.DateTimeField(

@@ -17,9 +17,12 @@ CREATE PROCEDURE verifica_campos_proposicao() BEGIN IF NOT EXISTS
    WHERE table_schema=database()
      AND TABLE_NAME='proposicao'
      AND COLUMN_NAME='num_proposicao') THEN
-UPDATE proposicao
-SET dat_envio = '1800-01-01'
-WHERE cast(dat_envio AS char(20)) = '0000-00-00 00:00:00';
+
+  -- ajusta data zero para poder alterar a tabela
+  UPDATE proposicao SET dat_envio = '1800-01-01' WHERE dat_envio = 0;
+  alter table proposicao modify dat_envio datetime;
+  UPDATE proposicao SET dat_envio = NULL where dat_envio = '1800-01-01';
+
   ALTER TABLE proposicao ADD COLUMN num_proposicao int(11) NULL AFTER txt_justif_devolucao;
 END IF; END;
 
