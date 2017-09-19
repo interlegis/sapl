@@ -20,6 +20,7 @@ def test_valida_campos_obrigatorios_casa_legislativa_form():
 
     assert len(errors) == 6
 
+
 @pytest.mark.django_db(transaction=False)
 def test_casa_legislativa_form_invalido():
     form = CasaLegislativaForm(data={'codigo': 'codigo',
