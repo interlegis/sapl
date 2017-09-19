@@ -87,7 +87,7 @@ class DocumentoAdministrativoCrud(Crud):
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data',
-                            'numero_protocolo', 'assunto',
+                            'protocolo__numero', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
 
         @property
@@ -121,7 +121,7 @@ class DocumentoAdministrativoCrud(Crud):
             if self.object.protocolo:
                 p = self.object.protocolo
                 return {'ano_protocolo': p.ano,
-                        'numero_protocolo': p.numero}
+                        'protocolo__numero': p.numero}
 
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
 
@@ -344,7 +344,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc['tipo'] = protocolo.tipo_documento
         doc['ano'] = curr_year
         doc['data'] = datetime.today()
-        doc['numero_protocolo'] = protocolo.numero
+        doc['protocolo__numero'] = protocolo.numero
         doc['ano_protocolo'] = protocolo.ano
         doc['protocolo'] = protocolo.id
         doc['assunto'] = protocolo.assunto_ementa

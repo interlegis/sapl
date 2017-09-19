@@ -153,7 +153,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         model = DocumentoAdministrativo
         fields = ['tipo',
                   'numero',
-                  'numero_protocolo',
+                  'protocolo__numero',
                   'data',
                   'tramitacaoadministrativo__unidade_tramitacao_destino',
                   'tramitacaoadministrativo__status']
@@ -172,7 +172,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
         row2 = to_row(
             [('ano', 4),
-             ('numero_protocolo', 4),
+             ('protocolo__numero', 4),
              ('data', 4)])
 
         row3 = to_row(
@@ -542,6 +542,10 @@ class DocumentoAdministrativoForm(ModelForm):
                                       choices=RANGE_ANOS,
                                       widget=forms.Select(
                                           attrs={'class': 'selector'}))
+
+    numero_protocolo = forms.IntegerField(required=False,
+                                          label=Protocolo._meta.
+                                          get_field('numero').verbose_name)
 
     class Meta:
         model = DocumentoAdministrativo
