@@ -3,12 +3,11 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
-from sapl.sessao import forms
+from sapl.parlamentares.models import Legislatura, SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria, TipoSessaoPlenaria
 
 
-pytest.mark.django_db(transaction=False)
+@pytest.mark.django_db(transaction=False)
 def test_incluir_sessao_plenaria_submit(admin_client):
     legislatura = mommy.make(Legislatura)
     sessao = mommy.make(SessaoLegislativa)
