@@ -5,6 +5,7 @@ import re
 import magic
 
 from sapl.base.models import CasaLegislativa
+from sapl.legacy.migration import warn
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
 from sapl.norma.models import NormaJuridica
@@ -21,6 +22,7 @@ EXTENSOES = {
     'application/vnd.oasis.opendocument.text': '.odt',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',  # noqa
     'application/xml': '.xml',
+    'text/xml': '.xml',
     'application/zip': '.zip',
     'image/jpeg': '.jpeg',
     'image/png': '.png',
@@ -90,11 +92,11 @@ DOCS = {
     ],
 }
 
-DOCS = {tipo: [(campo,
-                os.path.join('sapl_documentos', origem),
-                os.path.join('sapl', destino))
-               for campo, origem, destino in campos]
-        for tipo, campos in DOCS.items()}
+DOCS = {model: [(campo,
+                 os.path.join('sapl_documentos', origem),
+                 os.path.join('sapl', destino))
+                for campo, origem, destino in campos]
+        for model, campos in DOCS.items()}
 
 
 def em_media(caminho):
@@ -125,9 +127,13 @@ def migrar_docs_logo():
     # a pasta props_sapl deve conter apenas o origem e metadatas!
     # Edit: Aparentemente há diretório que contém properties ao invés de
     # metadata. O assert foi modificado para essa situação.
-    assert set(os.listdir(em_media(props_sapl))) < {
+    sobrando = set(os.listdir(em_media(props_sapl))) - {
         'logo_casa.gif', '.metadata', 'logo_casa.gif.metadata',
         '.properties', 'logo_casa.gif.properties', '.objects'}
+
+    if sobrando:
+        warn('Os seguintes arquivos da pasta props_sapl foram ignorados: ' +
+             ', '.join(sobrando))
 
     mover_documento(origem, destino)
     casa = get_casa_legislativa()
@@ -152,9 +158,9 @@ def get_extensao(caminho):
         )) from e
 
 
-def migrar_docs_por_ids(tipo):
-    for campo, base_origem, base_destino in DOCS[tipo]:
-        print('#### Migrando {} de {} ####'.format(campo, tipo.__name__))
+def migrar_docs_por_ids(model):
+    for campo, base_origem, base_destino in DOCS[model]:
+        print('#### Migrando {} de {} ####'.format(campo, model.__name__))
 
         dir_origem, nome_origem = os.path.split(em_media(base_origem))
         pat = re.compile('^{}$'.format(nome_origem.format('(\d+)')))
@@ -168,11 +174,15 @@ def migrar_docs_por_ids(tipo):
             match = pat.match(arq)
             if match:
                 # associa documento ao objeto
+                origem = os.path.join(dir_origem, match.group(0))
+                id = match.group(1)
                 try:
-                    origem = os.path.join(dir_origem, match.group(0))
-                    id = match.group(1)
-                    obj = tipo.objects.get(pk=id)
-
+                    obj = model.objects.get(pk=id)
+                except model.DoesNotExist:
+                    msg = '  {} (pk={}) não encontrado para documento em [{}]'
+                    print(msg.format(
+                        model.__name__, id, origem))
+                else:
                     extensao = get_extensao(origem)
                     if hasattr(obj, "ano"):
                         destino = base_destino.format(id, extensao, obj.ano)
@@ -185,19 +195,19 @@ def migrar_docs_por_ids(tipo):
 
                     setattr(obj, campo, destino)
                     obj.save()
-                except tipo.DoesNotExist:
-                    msg = '  {} (pk={}) não encontrado para documento em [{}]'
-                    print(msg.format(
-                        tipo.__name__, id, destino))
 
 
 def migrar_documentos():
     # aqui supomos que uma pasta chamada sapl_documentos está em MEDIA_ROOT
     # com o conteúdo da pasta de mesmo nome do zope
-    # Os arquivos da pasta serão movidos para a nova estrutura e a pasta será
+    # Os arquivos da pasta serão MOVIDOS para a nova estrutura e a pasta será
     # apagada
+    #
+    # Isto significa que para rodar novamente esta função é preciso
+    # restaurar a pasta sapl_documentos ao estado inicial
+
     migrar_docs_logo()
-    for tipo in [
+    for model in [
         Parlamentar,
         MateriaLegislativa,
         DocumentoAcessorio,
@@ -207,7 +217,7 @@ def migrar_documentos():
         DocumentoAdministrativo,
         DocumentoAcessorioAdministrativo,
     ]:
-        migrar_docs_por_ids(tipo)
+        migrar_docs_por_ids(model)
 
     sobrando = [os.path.join(dir, file)
                 for (dir, _, files) in os.walk(em_media('sapl_documentos'))
