@@ -7,6 +7,7 @@ from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
 from sapl.sessao import forms
 from sapl.sessao.models import SessaoPlenaria, TipoSessaoPlenaria
 
+
 pytest.mark.django_db(transaction=False)
 def test_incluir_sessao_plenaria_submit(admin_client):
     legislatura = mommy.make(Legislatura)
