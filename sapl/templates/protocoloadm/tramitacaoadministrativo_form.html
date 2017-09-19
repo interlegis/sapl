@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% block extra_js %}
+<script language="Javascript">
+    // Caso o campo esteja desabilitado (quando não é a primeira tramitação),
+    // habilita ele no momento do submit para que o valor de unidade local
+    // não seja enviado como vazio
+    $('form').submit(function(){
+      $('#id_unidade_tramitacao_local').prop('disabled', false);
+    });
+</script>
+{% endblock extra_js %}

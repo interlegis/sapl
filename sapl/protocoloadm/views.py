@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView
@@ -585,6 +586,33 @@ class TramitacaoAdmCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoAdmForm
 
+        def get_initial(self):
+            local = DocumentoAdministrativo.objects.get(
+                pk=self.kwargs['pk']).tramitacaoadministrativo_set.order_by(
+                '-data_tramitacao',
+                '-id').first()
+
+            if local:
+                self.initial['unidade_tramitacao_local'
+                             ] = local.unidade_tramitacao_destino.pk
+            else:
+                self.initial['unidade_tramitacao_local'] = ''
+            self.initial['data_tramitacao'] = datetime.now()
+            return self.initial
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            primeira_tramitacao = not(TramitacaoAdministrativo.objects.filter(
+                documento_id=int(kwargs['root_pk'])).exists())
+
+            # Se não for a primeira tramitação daquela matéria, o campo
+            # não pode ser modificado
+            if not primeira_tramitacao:
+                context['form'].fields[
+                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
+            return context
+
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
 
@@ -593,11 +621,36 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
+            return qs.filter(**kwargs).order_by('-data_tramitacao',
+                                                '-id')
 
     class DetailView(DocumentoAdministrativoMixin,
                      MasterDetailCrud.DetailView):
         pass
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def delete(self, request, *args, **kwargs):
+            tramitacao = TramitacaoAdministrativo.objects.get(
+                id=self.kwargs['pk'])
+            documento = DocumentoAdministrativo.objects.get(
+                id=tramitacao.documento.id)
+            url = reverse(
+                'sapl.protocoloadm:tramitacaoadministrativo_list',
+                kwargs={'pk': tramitacao.documento.id})
+
+            ultima_tramitacao = \
+                documento.tramitacaoadministrativo_set.order_by(
+                    '-data_tramitacao',
+                    '-id').first()
+
+            if tramitacao.pk != ultima_tramitacao.pk:
+                msg = _('Somente a última tramitação pode ser deletada!')
+                messages.add_message(request, messages.ERROR, msg)
+                return HttpResponseRedirect(url)
+            else:
+                tramitacao.delete()
+                return HttpResponseRedirect(url)
 
 
 class DocumentoAcessorioAdministrativoCrud(MasterDetailCrud):

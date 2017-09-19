@@ -1023,7 +1023,11 @@ class TramitacaoCrud(MasterDetailCrud):
             url = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': tramitacao.materia.id})
 
-            if tramitacao.pk != materia.tramitacao_set.last().pk:
+            ultima_tramitacao = materia.tramitacao_set.order_by(
+                '-data_tramitacao',
+                '-id').first()
+
+            if tramitacao.pk != ultima_tramitacao.pk:
                 msg = _('Somente a última tramitação pode ser deletada!')
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
