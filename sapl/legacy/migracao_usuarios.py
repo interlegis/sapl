@@ -22,19 +22,35 @@ PERFIL_LEGADO_PARA_NOVO = [
 
 ADMINISTRADORES = ['Administrador', 'Manager']
 
-# XXX Esses não tem perfil novo e estão sendo ignorados
-# TODO que fazer????
-#
-# Operador Mesa Diretora
-# Operador Ordem Dia
-# Operador Tabela Auxiliar
-# Owner
-
-
 VOTANTE = Group.objects.get(name='Votante')
 
 
 def migra_usuarios(caminho_yaml):
+    """
+    Existe um método em nosso projeto interno de **consulta a todos os sapls**
+    que exporta os dados de usuários (e nome da casa e url interna)
+    como um yaml.
+
+    Esse yaml é lido por essa rotina e os usuários são criados se necessário
+    e seus perfis ajustados.
+
+    Os seguintes perfis no legado não correspondem a nenhum no código atual
+    e estão sendo **ignorados**:
+
+    * Operador Mesa Diretora
+      Contei apenas **8 usuários**, em todas as bases, que tem esse perfil
+      e não tem nem "Operador" nem "Operador Sessao Plenaria"
+
+    * Operador Ordem Dia
+      Contei apenas **16 usuários**, em todas as bases, que tem esse perfil
+      e não tem nem "Operador" nem "Operador Sessao Plenaria"
+
+    * Operador Tabela Auxiliar
+      A edição das tabelas auxiliares deve ser feita por um administrador
+
+    * Operador Lexml
+      Também podemos assumir que essa é uma tarefa de um administrador
+    """
     dados = le_yaml_dados_zope(caminho_yaml)
     db = settings.DATABASES['legacy']['NAME']
     nome, url, usuarios_perfis = dados[db]
