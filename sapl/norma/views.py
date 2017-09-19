@@ -64,6 +64,13 @@ class NormaPesquisaView(FilterView):
     filterset_class = NormaFilterSet
     paginate_by = 10
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        qs.select_related('tipo', 'materia')
+
+        return qs
+
     def get_context_data(self, **kwargs):
         context = super(NormaPesquisaView, self).get_context_data(**kwargs)
 

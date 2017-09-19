@@ -2429,7 +2429,8 @@ class PesquisarSessaoPlenariaView(FilterView):
 
         kwargs = {'data': self.request.GET or None}
 
-        qs = self.get_queryset()
+        qs = self.get_queryset().select_related(
+            'tipo', 'sessao_legislativa', 'legislatura')
 
         qs = qs.distinct().order_by(
             '-legislatura__numero', '-data_inicio', '-numero')
