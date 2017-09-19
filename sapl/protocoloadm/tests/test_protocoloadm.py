@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 import pytest
 from django.core.urlresolvers import reverse
@@ -191,7 +191,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date.today() + datetime.timedelta(
+         'data_tramitacao': date.today() + timedelta(
              days=1)},
         follow=True)
 
