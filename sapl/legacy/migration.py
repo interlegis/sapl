@@ -16,12 +16,14 @@ from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
 
+from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, ProblemaMigracao, TipoAutor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
+from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
                                TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
@@ -206,6 +208,22 @@ def fill_vinculo_norma_juridica():
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
 
+def fill_tipo_numeracao_protocolo():
+    letra = 'A'
+    try:
+        tipo = TipoNumeracaoProtocolo.objects.latest('dat_inicial_protocolo')
+        if 'POR ANO' in tipo.des_numeracao_protocolo:
+            letra = 'A'
+        elif 'POR LEGISLATURA' in tipo.des_numeracao_protocolo:
+            letra = 'L'
+        elif 'CONSECUTIVO' in tipo.des_numeracao_protocolo:
+            letra = 'U'
+    except Exception as e:
+        pass
+    appconf = AppConf(sequencia_numeracao=letra)
+    appconf.save()
+
+
 # Uma anomalia no sapl 2.5 causa a duplicação de registros de votação.
 # Essa duplicação deve ser eliminada para que não haja erro no sapl 3.1
 def excluir_registrovotacao_duplicados():
@@ -305,6 +323,7 @@ class DataMigrator:
               '--database=default', '--no-input'], stdout=PIPE)
 
         fill_vinculo_norma_juridica()
+        fill_tipo_numeracao_protocolo()
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 
