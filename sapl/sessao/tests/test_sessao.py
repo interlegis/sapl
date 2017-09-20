@@ -2,9 +2,11 @@ import pytest
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
+from sapl.materia.models import TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
 from sapl.sessao import forms
-from sapl.sessao.models import SessaoPlenaria, TipoSessaoPlenaria
+from sapl.sessao.models import (SessaoPlenaria,
+                                TipoSessaoPlenaria)
 
 
 def test_valida_campos_obrigatorios_sessao_plenaria_form():
@@ -113,3 +115,20 @@ def test_bancada_form_datas_invalidas():
     assert not form.is_valid()
     assert form.errors['__all__'] == [_('Data de extinção não pode ser menor '
                                         'que a de criação')]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_expediente_materia_form_valido():
+    materia = mommy.make(TipoMateriaLegislativa)
+    sessao = mommy.make(SessaoPlenaria)
+
+    form = forms.ExpedienteMateriaForm(data={'data_ordem': '28/12/2009',
+                                             'numero_ordem': 1,
+                                             'tipo_materia': int(materia.pk),
+                                             'numero_materia': 20,
+                                             'ano_materia': 2009,
+                                             'tipo_votacao': 1,
+                                             'sessao_plenaria': int(sessao.pk)
+                                             })
+    import ipdb; ipdb.set_trace()
+    assert form.is_valid()
