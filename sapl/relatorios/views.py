@@ -1,9 +1,10 @@
 import html
 import re
-from datetime import datetime
+from datetime import datetime as dt
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, CasaLegislativa
@@ -88,7 +89,7 @@ def get_rodape(casa):
             linha2 = linha2 + " - "
         linha2 = linha2 + str(_("E-mail: ")) + casa.email
 
-    data_emissao = datetime.today().strftime("%d/%m/%Y")
+    data_emissao = dt.strftime(timezone.now(), "%d/%m/%Y")
 
     return [linha1, linha2, data_emissao]
 
@@ -932,8 +933,11 @@ def get_etiqueta_protocolos(prots):
         dic = {}
 
         dic['titulo'] = str(p.numero) + '/' + str(p.ano)
+
+        tz_hora = timezone.localtime(p.timestamp)
+
         dic['data'] = '<b>Data: </b>' + p.data.strftime(
-            "%d/%m/%Y") + ' - <b>Horário: </b>' + p.hora.strftime("%H:%M")
+            "%d/%m/%Y") + ' - <b>Horário: </b>' + tz_hora.strftime("%H:%M")
         dic['txt_assunto'] = p.assunto_ementa
         dic['txt_interessado'] = p.interessado
 

@@ -14,7 +14,7 @@ from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import RequestContext, loader
-from django.utils import formats
+from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
@@ -284,7 +284,7 @@ def recuperar_materia(request):
     ano = request.GET.get('ano', '')
 
     param = {'tipo': tipo}
-    param['data_apresentacao__year'] = ano if ano else datetime.now().year
+    param['data_apresentacao__year'] = ano if ano else timezone.now().year
 
     materia = MateriaLegislativa.objects.filter(**param).order_by(
         'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
@@ -293,7 +293,7 @@ def recuperar_materia(request):
                                  'ano': materia[1]})
     else:
         response = JsonResponse(
-            {'numero': 1, 'ano': ano if ano else datetime.now().year})
+            {'numero': 1, 'ano': ano if ano else timezone.now().year})
 
     return response
 
@@ -323,14 +323,14 @@ def criar_materia_proposicao(proposicao):
     tipo_materia = TipoMateriaLegislativa.objects.get(
         descricao=proposicao.tipo.descricao)
     numero = MateriaLegislativa.objects.filter(
-        ano=datetime.now().year).order_by('numero').last().numero + 1
+        ano=timezone.now().year).order_by('numero').last().numero + 1
     regime = RegimeTramitacao.objects.get(descricao='Normal')
 
     return MateriaLegislativa.objects.create(
         tipo=tipo_materia,
-        ano=datetime.now().year,
+        ano=timezone.now().year,
         numero=numero,
-        data_apresentacao=datetime.now(),
+        data_apresentacao=timezone.now(),
         regime_tramitacao=regime,
         em_tramitacao=True,
         ementa=proposicao.descricao,
@@ -616,7 +616,7 @@ class ProposicaoCrud(Crud):
                                       'Texto associado.')
                     else:
                         p.data_devolucao = None
-                        p.data_envio = datetime.now()
+                        p.data_envio = timezone.now()
                         p.save()
 
                         if p.texto_articulado.exists():
@@ -940,7 +940,7 @@ class TramitacaoCrud(MasterDetailCrud):
                              ] = local.unidade_tramitacao_destino.pk
             else:
                 self.initial['unidade_tramitacao_local'] = ''
-            self.initial['data_tramitacao'] = datetime.now()
+            self.initial['data_tramitacao'] = timezone.now()
             return self.initial
 
         def get_context_data(self, **kwargs):
@@ -1071,7 +1071,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
         def get_initial(self):
-            self.initial['data'] = datetime.now().date()
+            self.initial['data'] = timezone.now().date()
 
             return self.initial
 
@@ -1633,13 +1633,16 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
 
+        tz = timezone.get_current_timezone()
+
         for materia_id in marcadas:
             doc = DocumentoAcessorio()
             doc.materia_id = materia_id
             doc.tipo = tipo
             doc.arquivo = request.FILES['arquivo']
             doc.nome = request.POST['nome']
-            doc.data = datetime.strptime(request.POST['data'], "%d/%m/%Y")
+            doc.data = tz.localize(datetime.strptime(
+                                    request.POST['data'], "%d/%m/%Y"))
             doc.autor = request.POST['autor']
             doc.ementa = request.POST['ementa']
             doc.save()
@@ -1696,20 +1699,22 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
 
+        tz = timezone.get_current_timezone()
+
         if len(marcadas) == 0:
             msg = _('Nenhuma máteria foi selecionada.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
         if request.POST['data_encaminhamento']:
-            data_encaminhamento = datetime.strptime(
-                request.POST['data_encaminhamento'], "%d/%m/%Y")
+            data_encaminhamento = tz.localize(datetime.strptime(
+                request.POST['data_encaminhamento'], "%d/%m/%Y"))
         else:
             data_encaminhamento = None
 
         if request.POST['data_fim_prazo']:
-            data_fim_prazo = datetime.strptime(
-                request.POST['data_fim_prazo'], "%d/%m/%Y")
+            data_fim_prazo = tz.localize(datetime.strptime(
+                request.POST['data_fim_prazo'], "%d/%m/%Y"))
         else:
             data_fim_prazo = None
 
@@ -1720,8 +1725,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         for materia_id in marcadas:
             t = Tramitacao(
                 materia_id=materia_id,
-                data_tramitacao=datetime.strptime(
-                    request.POST['data_tramitacao'], "%d/%m/%Y"),
+                data_tramitacao=tz.localize(datetime.strptime(
+                    request.POST['data_tramitacao'], "%d/%m/%Y")),
                 data_encaminhamento=data_encaminhamento,
                 data_fim_prazo=data_fim_prazo,
                 unidade_tramitacao_local_id=request.POST[

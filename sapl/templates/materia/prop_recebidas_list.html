@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load tz %}
 {% block base_content %}
   <fieldset>
   <legend>Proposições Incorporadas</legend>
@@ -19,7 +20,7 @@
         <tbody>
           {% for prop in object_list %}
             <tr>
-              <td><a href="{% url 'sapl.materia:proposicao_detail' prop.pk %}">{{ prop.data_recebimento|date:"d/m/Y H:i:s" }}</a></td>
+              <td><a href="{% url 'sapl.materia:proposicao_detail' prop.pk %}">{{ prop.data_recebimento|localtime|date:"d/m/Y H:i:s" }}</a></td>
               <td>{{ prop.tipo.descricao }}</td>
               <td>{{ prop.descricao }}</td>
               <td>{{ prop.autor }}</td>

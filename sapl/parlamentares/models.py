@@ -1,7 +1,7 @@
-from datetime import datetime
 
 import reversion
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
@@ -26,7 +26,7 @@ class Legislatura(models.Model):
         verbose_name_plural = _('Legislaturas')
 
     def atual(self):
-        current_year = datetime.now().year
+        current_year = timezone.now().year
         return self.data_inicio.year <= current_year <= self.data_fim.year
 
     @vigencia_atual
@@ -489,7 +489,7 @@ class Mandato(models.Model):
                     self.legislatura.data_inicio,
                     self.legislatura.data_fim,
                     f.data,
-                    f.data_desfiliacao or datetime.max.date())]
+                    f.data_desfiliacao or timezone.datetime.max.date())]
 
 
 @reversion.register()

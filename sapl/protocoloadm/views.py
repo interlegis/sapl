@@ -1,4 +1,3 @@
-from datetime import date, datetime
 
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
@@ -10,6 +9,7 @@ from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView
 from django.views.generic.base import RedirectView, TemplateView
@@ -296,7 +296,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=date.today().year).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
             legislatura = Legislatura.objects.last()
             data_inicio = legislatura.data_inicio
@@ -310,10 +310,10 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         f.tipo_processo = '0'  # TODO validar o significado
         f.anulado = False
         f.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
-        f.ano = datetime.now().year
-        f.data = datetime.now().date()
-        f.hora = datetime.now().time()
-        f.timestamp = datetime.now()
+        f.ano = timezone.now().year
+        f.data = timezone.now()
+        f.hora = timezone.now().time()
+        f.timestamp = timezone.now()
         f.assunto_ementa = self.request.POST['assunto']
 
         f.save()
@@ -335,7 +335,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
                        kwargs={'pk': self.kwargs['pk']})
 
     def criar_documento(self, protocolo):
-        curr_year = datetime.now().date().year
+        curr_year = timezone.now().year
 
         numero_max = DocumentoAdministrativo.objects.filter(
             tipo=protocolo.tipo_documento, ano=curr_year
@@ -344,7 +344,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc = {}
         doc['tipo'] = protocolo.tipo_documento
         doc['ano'] = curr_year
-        doc['data'] = datetime.today()
+        doc['data'] = timezone.now()
         doc['numero_protocolo'] = protocolo.numero
         doc['ano_protocolo'] = protocolo.ano
         doc['protocolo'] = protocolo.id
@@ -431,7 +431,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=date.today().year).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
@@ -442,10 +442,10 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         protocolo.numero = (
             numero['numero__max'] + 1) if numero['numero__max'] else 1
-        protocolo.ano = datetime.now().year
-        protocolo.data = datetime.now().date()
-        protocolo.hora = datetime.now().time()
-        protocolo.timestamp = datetime.now()
+        protocolo.ano = timezone.now().year
+        protocolo.data = timezone.now().date()
+        protocolo.hora = timezone.now().time()
+        protocolo.timestamp = timezone.now()
 
         protocolo.tipo_protocolo = 0
         protocolo.tipo_processo = '1'  # TODO validar o significado
@@ -483,7 +483,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         lista_comissoes = Comissao.objects.filter(Q(
             data_extincao__isnull=True) | Q(
-            data_extincao__gt=date.today())).values_list('id', flat=True)
+            data_extincao__gt=timezone.now())).values_list('id', flat=True)
         model_comissao = ContentType.objects.get_for_model(Comissao)
         autor_comissoes = Autor.objects.filter(
             content_type=model_comissao, object_id__in=lista_comissoes)
@@ -597,7 +597,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                              ] = local.unidade_tramitacao_destino.pk
             else:
                 self.initial['unidade_tramitacao_local'] = ''
-            self.initial['data_tramitacao'] = datetime.now()
+            self.initial['data_tramitacao'] = timezone.now().date()
             return self.initial
 
         def get_context_data(self, **kwargs):

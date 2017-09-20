@@ -1,11 +1,12 @@
 {% extends "protocoloadm/protocoloadm_detail.html" %}
 {% load i18n %}
+{% load tz %}
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
 	<strong>Protocolo: </strong>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }}</br>
 	<strong>Assunto: </strong> {{ protocolo.assunto_ementa|default:"Não informado" }}</br>
-	<strong>Data Protocolo: </strong> {{ protocolo.data|date:"d/m/Y" }} - Horário: {{ protocolo.hora|date:"H:i" }}</br>
+	<strong>Data Protocolo: </strong> {{ protocolo.data|date:"d/m/Y" }} - Horário: {{ protocolo.timestamp|localtime|date:"H:i" }}</br>
 
 	{% if protocolo.tipo_processo == 0 %}
 		<strong>Interessado:</strong> {{ protocolo.interessado|default_if_none:"Não informado" }}</br>
