@@ -2,10 +2,10 @@ import pytest
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.materia.models import TipoMateriaLegislativa
+from sapl.materia.models import TipoMateriaLegislativa, MateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
 from sapl.sessao import forms
-from sapl.sessao.models import (SessaoPlenaria,
+from sapl.sessao.models import (ExpedienteMateria, SessaoPlenaria,
                                 TipoSessaoPlenaria)
 
 
@@ -119,16 +119,21 @@ def test_bancada_form_datas_invalidas():
 
 @pytest.mark.django_db(transaction=False)
 def test_expediente_materia_form_valido():
-    materia = mommy.make(TipoMateriaLegislativa)
+    tipo_materia = mommy.make(TipoMateriaLegislativa)
+    materia = mommy.make(MateriaLegislativa, tipo=tipo_materia)
+
     sessao = mommy.make(SessaoPlenaria)
+
+    instance = mommy.make(ExpedienteMateria, sessao_plenaria=sessao,
+                          materia=materia)
 
     form = forms.ExpedienteMateriaForm(data={'data_ordem': '28/12/2009',
                                              'numero_ordem': 1,
-                                             'tipo_materia': int(materia.pk),
-                                             'numero_materia': 20,
-                                             'ano_materia': 2009,
+                                             'tipo_materia': tipo_materia.pk,
+                                             'numero_materia': materia.numero,
+                                             'ano_materia': materia.ano,
                                              'tipo_votacao': 1,
-                                             'sessao_plenaria': int(sessao.pk)
-                                             })
-    import ipdb; ipdb.set_trace()
+                                             'sessao_plenaria': sessao.pk
+                                             },
+                                       instance=instance)
     assert form.is_valid()
