@@ -1,0 +1,34 @@
+Créditos do SAPL - até versão 2.5
+=================================
+
+Obrigado aos colaboradores:
+
+- Adriano Gomes
+- Angelo Marcondes Neto
+- Claudio Morale
+- Daniel C. Azevedo
+- Davi Lima de Medeiros
+- Edson Ma
+- Fernando Ciciliati Júnior
+- Gustavo Lepri
+- Halison Casimiro
+- Helder Vieira
+- Jean Rodrigo Ferri
+- João Lima
+- José Borges
+- Leandro Roberto
+- Leonardo Caballero
+- Luciano Di Fázio
+- Luis Fernando Pires Machado
+- Marcio Mazza
+- Marcos Fragomeni
+- Maria Cristina André de Mello
+- Marta Maria Pincowsca Cardoso Maia
+- Paulo Fernandes de Souza Júnior
+- Petronio Barbosa Carvalho
+- Ricardo Esperandio
+- Rodrigo Barbosa Luz
+- Sesóstris Vieira
+- Sérgio Damiati
+- Wilton Souza Alencar
+- Wu Man Qi
