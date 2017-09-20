@@ -19,11 +19,11 @@ from django.db.models.base import ModelBase
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, ProblemaMigracao, TipoAutor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
                                TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
@@ -252,6 +252,21 @@ def excluir_registrovotacao_duplicados():
                     assert 0
 
 
+def delete_old(legacy_model, cols_values):
+
+    def eq_clause(col, value):
+        if value is None:
+            return '{} IS NULL'.format(col)
+        else:
+            return '{}="{}"'.format(col, value)
+
+    delete_sql = 'delete from {} where {}'.format(
+        legacy_model._meta.db_table,
+        ' and '.join([eq_clause(col, value)
+                      for col, value in cols_values.items()]))
+    exec_sql(delete_sql, 'legacy')
+
+
 class DataMigrator:
 
     def __init__(self):
@@ -364,6 +379,10 @@ class DataMigrator:
                 with reversion.create_revision():
                     new.save()
                     reversion.set_comment('Objeto criado pela migração')
+
+                # apaga registro do legado
+                delete_old(legacy_model, old.__dict__)
+
             old_records = iter_sql_records(
                 'select * from ' + legacy_model._meta.db_table, 'legacy')
         else:
@@ -373,6 +392,9 @@ class DataMigrator:
                     new.id = getattr(old, legacy_pk_name)
                     new.save()
                     reversion.set_comment('Objeto criado pela migração')
+
+                # apaga registro do legado
+                delete_old(legacy_model, {legacy_pk_name: new.id})
 
             old_records = legacy_model.objects.all().order_by(legacy_pk_name)
 
