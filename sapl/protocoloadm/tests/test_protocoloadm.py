@@ -1,4 +1,4 @@
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 
 import pytest
 from django.core.urlresolvers import reverse
