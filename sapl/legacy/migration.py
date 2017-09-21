@@ -16,8 +16,10 @@ from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
 
+from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, ProblemaMigracao, TipoAutor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
@@ -206,6 +208,22 @@ def fill_vinculo_norma_juridica():
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
 
+def fill_tipo_numeracao_protocolo():
+    letra = 'A'
+    try:
+        tipo = TipoNumeracaoProtocolo.objects.latest('dat_inicial_protocolo')
+        if 'POR ANO' in tipo.des_numeracao_protocolo:
+            letra = 'A'
+        elif 'POR LEGISLATURA' in tipo.des_numeracao_protocolo:
+            letra = 'L'
+        elif 'CONSECUTIVO' in tipo.des_numeracao_protocolo:
+            letra = 'U'
+    except Exception as e:
+        pass
+    appconf = AppConf(sequencia_numeracao=letra)
+    appconf.save()
+
+
 # Uma anomalia no sapl 2.5 causa a duplicação de registros de votação.
 # Essa duplicação deve ser eliminada para que não haja erro no sapl 3.1
 def excluir_registrovotacao_duplicados():
@@ -232,6 +250,21 @@ def excluir_registrovotacao_duplicados():
                     primeiro_registro = objeto
                 except:
                     assert 0
+
+
+def delete_old(legacy_model, cols_values):
+
+    def eq_clause(col, value):
+        if value is None:
+            return '{} IS NULL'.format(col)
+        else:
+            return '{}="{}"'.format(col, value)
+
+    delete_sql = 'delete from {} where {}'.format(
+        legacy_model._meta.db_table,
+        ' and '.join([eq_clause(col, value)
+                      for col, value in cols_values.items()]))
+    exec_sql(delete_sql, 'legacy')
 
 
 class DataMigrator:
@@ -305,6 +338,7 @@ class DataMigrator:
               '--database=default', '--no-input'], stdout=PIPE)
 
         fill_vinculo_norma_juridica()
+        fill_tipo_numeracao_protocolo()
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 
@@ -345,6 +379,10 @@ class DataMigrator:
                 with reversion.create_revision():
                     new.save()
                     reversion.set_comment('Objeto criado pela migração')
+
+                # apaga registro do legado
+                delete_old(legacy_model, old.__dict__)
+
             old_records = iter_sql_records(
                 'select * from ' + legacy_model._meta.db_table, 'legacy')
         else:
@@ -354,6 +392,9 @@ class DataMigrator:
                     new.id = getattr(old, legacy_pk_name)
                     new.save()
                     reversion.set_comment('Objeto criado pela migração')
+
+                # apaga registro do legado
+                delete_old(legacy_model, {legacy_pk_name: new.id})
 
             old_records = legacy_model.objects.all().order_by(legacy_pk_name)
 

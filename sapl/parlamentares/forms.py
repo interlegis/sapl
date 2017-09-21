@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.forms import ModelForm
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
 
@@ -168,7 +169,8 @@ def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
         return [True, '']
 
     # data ficticia de desfiliacao
-    df_desfiliacao = data_desfiliacao if data_desfiliacao else date.today()
+    today = timezone.now()
+    df_desfiliacao = data_desfiliacao if data_desfiliacao else today
 
     # se não puder haver filiação no mesmo dia de desfiliação, basta
     # retirar os timedelta abaixo

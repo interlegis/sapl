@@ -1,8 +1,8 @@
-from datetime import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
@@ -63,6 +63,13 @@ class NormaPesquisaView(FilterView):
     model = NormaJuridica
     filterset_class = NormaFilterSet
     paginate_by = 10
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        qs.select_related('tipo', 'materia')
+
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super(NormaPesquisaView, self).get_context_data(**kwargs)
@@ -197,7 +204,7 @@ def recuperar_numero_norma(request):
     ano = request.GET.get('ano', '')
 
     param = {'tipo': tipo}
-    param['ano'] = ano if ano else datetime.now().year
+    param['ano'] = ano if ano else timezone.now().year
 
     norma = NormaJuridica.objects.filter(**param).order_by(
         'tipo', 'ano', 'numero').values_list('numero', 'ano').last()

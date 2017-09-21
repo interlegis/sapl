@@ -1,6 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n common_tags %}
-
+{% load tz %}
 {% block sub_actions %}{{block.super}}
   <div class="actions btn-group btn-group-sm {%block sub_actions_pull%}{% endblock%}" role="group">
     {% if object.texto_articulado.exists %}
@@ -62,7 +62,7 @@
 
         <div class="col-sm-9">
           <div class="alert alert-danger alert-dismissible fade in" role="alert">
-            <strong>{% trans "Proposição devolvida em:" %} {{ object.data_devolucao|date:"DATETIME_FORMAT"}}</strong>
+            <strong>{% trans "Proposição devolvida em:" %} {{ object.data_devolucao|localtime|date:"DATETIME_FORMAT"}}</strong>
             <div >{% trans "Justificativa:" %} {{object.justificativa_devolucao}}</div>
           </div>
         </div>

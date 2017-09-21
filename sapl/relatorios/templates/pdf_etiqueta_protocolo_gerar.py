@@ -121,6 +121,7 @@ def principal(imagem, lst_protocolos, dic_cabecalho, lst_rodape):
     tmp_data += paraStyle()
     tmp_data += protocolos(lst_protocolos, dic_cabecalho)
     tmp_data += '</document>\n'
+    import ipdb; ipdb.set_trace()
     tmp_pdf = parseString(tmp_data)
 
     return tmp_pdf

@@ -1,5 +1,3 @@
-from datetime import date, datetime
-
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -8,7 +6,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView
 from django.views.generic.base import RedirectView, TemplateView
@@ -121,7 +121,7 @@ class DocumentoAdministrativoCrud(Crud):
             if self.object.protocolo:
                 p = self.object.protocolo
                 return {'ano_protocolo': p.ano,
-                        'protocolo__numero': p.numero}
+                        'numero_protocolo': p.numero}
 
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
 
@@ -295,7 +295,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=date.today().year).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
             legislatura = Legislatura.objects.last()
             data_inicio = legislatura.data_inicio
@@ -309,10 +309,10 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         f.tipo_processo = '0'  # TODO validar o significado
         f.anulado = False
         f.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
-        f.ano = datetime.now().year
-        f.data = datetime.now().date()
-        f.hora = datetime.now().time()
-        f.timestamp = datetime.now()
+        f.ano = timezone.now().year
+        f.data = timezone.now()
+        f.hora = timezone.now().time()
+        f.timestamp = timezone.now()
         f.assunto_ementa = self.request.POST['assunto']
 
         f.save()
@@ -334,7 +334,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
                        kwargs={'pk': self.kwargs['pk']})
 
     def criar_documento(self, protocolo):
-        curr_year = datetime.now().date().year
+        curr_year = timezone.now().year
 
         numero_max = DocumentoAdministrativo.objects.filter(
             tipo=protocolo.tipo_documento, ano=curr_year
@@ -343,8 +343,8 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc = {}
         doc['tipo'] = protocolo.tipo_documento
         doc['ano'] = curr_year
-        doc['data'] = datetime.today()
-        doc['protocolo__numero'] = protocolo.numero
+        doc['data'] = timezone.now()
+        doc['numero_protocolo'] = protocolo.numero
         doc['ano_protocolo'] = protocolo.ano
         doc['protocolo'] = protocolo.id
         doc['assunto'] = protocolo.assunto_ementa
@@ -430,7 +430,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=date.today().year).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
@@ -441,10 +441,10 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         protocolo.numero = (
             numero['numero__max'] + 1) if numero['numero__max'] else 1
-        protocolo.ano = datetime.now().year
-        protocolo.data = datetime.now().date()
-        protocolo.hora = datetime.now().time()
-        protocolo.timestamp = datetime.now()
+        protocolo.ano = timezone.now().year
+        protocolo.data = timezone.now().date()
+        protocolo.hora = timezone.now().time()
+        protocolo.timestamp = timezone.now()
 
         protocolo.tipo_protocolo = 0
         protocolo.tipo_processo = '1'  # TODO validar o significado
@@ -482,7 +482,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         lista_comissoes = Comissao.objects.filter(Q(
             data_extincao__isnull=True) | Q(
-            data_extincao__gt=date.today())).values_list('id', flat=True)
+            data_extincao__gt=timezone.now())).values_list('id', flat=True)
         model_comissao = ContentType.objects.get_for_model(Comissao)
         autor_comissoes = Autor.objects.filter(
             content_type=model_comissao, object_id__in=lista_comissoes)
@@ -585,6 +585,33 @@ class TramitacaoAdmCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoAdmForm
 
+        def get_initial(self):
+            local = DocumentoAdministrativo.objects.get(
+                pk=self.kwargs['pk']).tramitacaoadministrativo_set.order_by(
+                '-data_tramitacao',
+                '-id').first()
+
+            if local:
+                self.initial['unidade_tramitacao_local'
+                             ] = local.unidade_tramitacao_destino.pk
+            else:
+                self.initial['unidade_tramitacao_local'] = ''
+            self.initial['data_tramitacao'] = timezone.now().date()
+            return self.initial
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            primeira_tramitacao = not(TramitacaoAdministrativo.objects.filter(
+                documento_id=int(kwargs['root_pk'])).exists())
+
+            # Se não for a primeira tramitação daquela matéria, o campo
+            # não pode ser modificado
+            if not primeira_tramitacao:
+                context['form'].fields[
+                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
+            return context
+
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
 
@@ -593,11 +620,36 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
+            return qs.filter(**kwargs).order_by('-data_tramitacao',
+                                                '-id')
 
     class DetailView(DocumentoAdministrativoMixin,
                      MasterDetailCrud.DetailView):
         pass
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def delete(self, request, *args, **kwargs):
+            tramitacao = TramitacaoAdministrativo.objects.get(
+                id=self.kwargs['pk'])
+            documento = DocumentoAdministrativo.objects.get(
+                id=tramitacao.documento.id)
+            url = reverse(
+                'sapl.protocoloadm:tramitacaoadministrativo_list',
+                kwargs={'pk': tramitacao.documento.id})
+
+            ultima_tramitacao = \
+                documento.tramitacaoadministrativo_set.order_by(
+                    '-data_tramitacao',
+                    '-id').first()
+
+            if tramitacao.pk != ultima_tramitacao.pk:
+                msg = _('Somente a última tramitação pode ser deletada!')
+                messages.add_message(request, messages.ERROR, msg)
+                return HttpResponseRedirect(url)
+            else:
+                tramitacao.delete()
+                return HttpResponseRedirect(url)
 
 
 class DocumentoAcessorioAdministrativoCrud(MasterDetailCrud):
