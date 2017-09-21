@@ -10,6 +10,7 @@ from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
+from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
 from sapl.parlamentares.models import Votante
@@ -397,6 +398,9 @@ def get_votos(response, materia):
 def get_dados_painel(request, pk):
     sessao = SessaoPlenaria.objects.get(id=pk)
 
+    casa = CasaLegislativa.objects.first()
+    imagem = casa.logotipo.url
+
     response = {
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
@@ -404,7 +408,8 @@ def get_dados_painel(request, pk):
         'cronometro_aparte': get_cronometro_status(request, 'aparte'),
         'cronometro_discurso': get_cronometro_status(request, 'discurso'),
         'cronometro_ordem': get_cronometro_status(request, 'ordem'),
-        'status_painel': sessao.painel_aberto
+        'status_painel': sessao.painel_aberto,
+        'imagem': imagem
     }
 
     ordem_dia = get_materia_aberta(pk)
