@@ -19,7 +19,8 @@ def test_incluir_sessao_plenaria_submit(admin_client):
                                   'tipo': str(tipo.pk),
                                   'sessao_legislativa': str(sessao.pk),
                                   'data_inicio': '10/11/2017',
-                                  'hora_inicio': '10:10'
+                                  'hora_inicio': '10:10',
+                                  'painel_aberto': False
                                   }, follow=True)
 
     assert response.status_code == 200

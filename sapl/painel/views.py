@@ -1,3 +1,4 @@
+import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
@@ -221,6 +222,20 @@ def votante_view(request):
 def painel_view(request, pk):
     context = {'head_title': str(_('Painel Plenário')), 'sessao_id': pk}
     return render(request, 'painel/index.html', context)
+
+
+@user_passes_test(check_permission)
+def switch_painel(request):
+    sessao = SessaoPlenaria.objects.get(id=request.POST['pk_sessao'])
+    switch = json.loads(request.POST['aberto'])
+
+    if switch:
+        sessao.painel_aberto = True
+    else:
+        sessao.painel_aberto = False
+
+    sessao.save()
+    return JsonResponse({})
 
 
 @user_passes_test(check_permission)

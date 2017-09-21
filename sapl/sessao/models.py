@@ -111,6 +111,7 @@ class SessaoPlenaria(models.Model):
     # TODO analyze querying all hosted databases !
     cod_andamento_sessao = models.PositiveIntegerField(blank=True, null=True)
 
+    painel_aberto = models.BooleanField(blank=True, default=False, verbose_name=_('Painel está aberto?'))
     tipo = models.ForeignKey(TipoSessaoPlenaria,
                              on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
