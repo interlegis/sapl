@@ -15,7 +15,8 @@ install_requires = [
     # TODO O django-admin-bootstrapped 2.5.7 não inseriu a mudança que permite
     # a compatibilidade com Django 1.9+. A linha abaixo será mudada quando uma
     # nova versão do django-admin-bootstrapped for lançada
-    #'git+git://github.com/django-admin-bootstrapped/django-admin-bootstrapped.git',
+    # 'git+git://github.com/django-admin-bootstrapped/
+    #      django-admin-bootstrapped.git',
     'django-bootstrap3==7.0.1',
     'django-bower==5.1.0',
     'django-braces==1.9.0',
@@ -30,7 +31,7 @@ install_requires = [
     'djangorestframework',
     'drfdocs',
     'easy-thumbnails==2.3',
-    #'git+git://github.com/interlegis/trml2pdf.git',
+    # 'git+git://github.com/interlegis/trml2pdf.git',
     'libsass==0.11.1',
     'psycopg2==2.6.2',
     'python-decouple==3.0',
