@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load tz %}
 {% load crispy_forms_tags %}
 {% load static %}
 
@@ -49,7 +50,7 @@
     </tr>
     <tr>
       <td>Autor: <b>{{proposicao.autor}}</b></td>
-      <td>Data de Envio: <b>{{proposicao.data_envio|date:"d/m/Y H:i:s"}}</b></td>
+      <td>Data de Envio: <b>{{proposicao.data_envio|localtime|date:"d/m/Y H:i:s"}}</b></td>
     </tr>
     <tr>
       <td>Descrição: <b>{{proposicao.descricao}}</b></td>

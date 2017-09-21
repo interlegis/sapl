@@ -1,4 +1,3 @@
-from datetime import datetime
 
 import django_filters
 from crispy_forms.bootstrap import InlineRadios
@@ -8,6 +7,7 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
@@ -441,28 +441,26 @@ class TramitacaoAdmForm(ModelForm):
                   'texto',
                   ]
 
-        widgets = {
-            'data_tramitacao': forms.DateInput(format='%d/%m/%Y'),
-            'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
-            'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
-        }
-
     def clean(self):
-        super(TramitacaoAdmForm, self).clean()
+        cleaned_data = super(TramitacaoAdmForm, self).clean()
 
-        data_enc_form = self.cleaned_data['data_encaminhamento']
-        data_prazo_form = self.cleaned_data['data_fim_prazo']
-        data_tram_form = self.cleaned_data['data_tramitacao']
+        if 'data_encaminhamento' in cleaned_data:
+            data_enc_form = cleaned_data['data_encaminhamento']
+        if 'data_fim_prazo' in cleaned_data:
+            data_prazo_form = cleaned_data['data_fim_prazo']
+        if 'data_tramitacao' in cleaned_data:
+            data_tram_form = cleaned_data['data_tramitacao']
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return cleaned_data
 
         ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
             documento_id=self.instance.documento_id).exclude(
-            id=self.instance.id).last()
+            id=self.instance.id).order_by(
+            '-data_tramitacao',
+            '-id').first()
 
         if not self.instance.data_tramitacao:
-
             if ultima_tramitacao:
                 destino = ultima_tramitacao.unidade_tramitacao_destino
                 if (destino != self.cleaned_data['unidade_tramitacao_local']):
@@ -470,7 +468,7 @@ class TramitacaoAdmForm(ModelForm):
                             'destino  da última adicionada!')
                     raise ValidationError(msg)
 
-            if self.cleaned_data['data_tramitacao'] > datetime.now().date():
+            if self.cleaned_data['data_tramitacao'] > timezone.now().date():
                 msg = _(
                     'A data de tramitação deve ser ' +
                     'menor ou igual a data de hoje!')
@@ -516,25 +514,33 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
                   'texto',
                   ]
 
-        widgets = {
-            'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
-            'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
-        }
-
     def clean(self):
-        super(TramitacaoAdmEditForm, self).clean()
+        ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
+            documento_id=self.instance.documento_id).order_by(
+            '-data_tramitacao',
+            '-id').first()
 
-        local = self.instance.unidade_tramitacao_local
-        data_tram = self.instance.data_tramitacao
+        # Se a Tramitação que está sendo editada não for a mais recente,
+        # ela não pode ter seu destino alterado.
+        if ultima_tramitacao != self.instance:
+            if self.cleaned_data['unidade_tramitacao_destino'] != \
+                    self.instance.unidade_tramitacao_destino:
+                raise ValidationError(
+                    'Você não pode mudar a Unidade de Destino desta '
+                    'tramitação, pois irá conflitar com a Unidade '
+                    'Local da tramitação seguinte')
 
-        self.cleaned_data['data_tramitacao'] = data_tram
-        self.cleaned_data['unidade_tramitacao_local'] = local
+        self.cleaned_data['data_tramitacao'] = \
+            self.instance.data_tramitacao
+        self.cleaned_data['unidade_tramitacao_local'] = \
+            self.instance.unidade_tramitacao_local
+
         return super(TramitacaoAdmEditForm, self).clean()
 
 
 class DocumentoAdministrativoForm(ModelForm):
 
-    data = forms.DateField(initial=datetime.today)
+    data = forms.DateField(initial=timezone.now)
 
     ano_protocolo = forms.ChoiceField(required=False,
                                       label=Protocolo._meta.

@@ -1,4 +1,3 @@
-from datetime import datetime
 
 import reversion
 from django.contrib.auth.models import Group
@@ -6,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.utils import formats
+from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
@@ -711,7 +710,7 @@ class Proposicao(models.Model):
     def title_type(self):
         return '%s nº _____ %s' % (
             self.tipo, formats.date_format(
-                self.data_envio if self.data_envio else datetime.now(),
+                self.data_envio if self.data_envio else timezone.now(),
                 "\d\e d \d\e F \d\e Y"))
 
     class Meta:

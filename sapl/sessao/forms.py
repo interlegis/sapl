@@ -15,7 +15,7 @@ from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
-                        autor_modal)
+                        autor_modal, timezone)
 
 from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
                      OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca)
@@ -132,7 +132,7 @@ class ExpedienteMateriaForm(ModelForm):
 
     data_ordem = forms.CharField(
         label='Data Sessão',
-        initial=datetime.now().strftime('%d/%m/%Y'),
+        initial=datetime.strftime(timezone.now(), '%d/%m/%Y'),
         widget=forms.TextInput(attrs={'readonly': 'readonly'}))
 
     class Meta:
