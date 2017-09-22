@@ -237,6 +237,13 @@ def switch_painel(request):
     sessao.save()
     return JsonResponse({})
 
+@user_passes_test(check_permission)
+def verifica_painel(request):
+    sessao = SessaoPlenaria.objects.get(id=request.GET['pk_sessao'])
+    status = sessao.painel_aberto
+    resposta = JsonResponse(dict(status=status))
+    return resposta
+
 
 @user_passes_test(check_permission)
 def painel_mensagem_view(request):

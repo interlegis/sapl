@@ -14,8 +14,8 @@
 
   <div class="row">
     <div class="col-md-6"><a href="" onclick="window.open('{% url 'sapl.painel:painel_principal' pk %}','Comprovante','width=800, height=800, scrollbars=yes'); return false;" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>
-    <div class="col-md-3"><button onclick="switch_painel(true)" id="id_abrir_painel" class="btn btn-primary btn-sm active">Abrir Painel</button></div>
-    <div class="col-md-3"><button onclick="switch_painel(false)" id="id_fechar_painel" class="btn btn-primary btn-sm active">Fechar Painel</button></div>
+    <div class="col-md-3"><button onclick="switch_painel(true)" id="id_abrir_painel" class="btn btn-primary btn-sm active" style="display: none">Abrir Painel</button></div>
+    <div class="col-md-3"><button onclick="switch_painel(false)" id="id_fechar_painel" class="btn btn-primary btn-sm active" style="display: none;">Fechar Painel</button></div>
   </div>
 	<br />
 
@@ -281,6 +281,33 @@ function switch_painel(aberto) {
         botao_fechar.style.display = 'none';
     }
 }
+
+$(document).ready(function(){
+    var pk_sessao = {{root_pk}};
+    var botao_abrir = document.getElementById('id_abrir_painel');
+    var botao_fechar = document.getElementById('id_fechar_painel');
+
+    $.ajax({
+        data: {pk_sessao: pk_sessao},
+        type: 'GET',
+        dataType: 'json',
+        url: "{% url 'sapl.painel:verifica_painel' %}",
+        error: function () {
+            alert("Erro ao verificar o Painel");
+        },
+        success: function (data) {
+            if (data['status']) {
+                botao_abrir.style.display = 'none';
+                botao_fechar.style.display = 'block';
+            } else {
+                botao_abrir.style.display = 'block';
+                botao_fechar.style.display = 'none';
+            }
+        },
+    });
+
+
+});
 
 </script>
 
