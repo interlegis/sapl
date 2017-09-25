@@ -11,7 +11,7 @@ from sapl.sessao.models import SessaoPlenaria, TipoSessaoPlenaria
 def test_incluir_sessao_plenaria_submit(admin_client):
     legislatura = mommy.make(Legislatura)
     sessao = mommy.make(SessaoLegislativa)
-    tipo = mommy.make(TipoSessaoPlenaria)
+    tipo = mommy.make(TipoSessaoPlenaria, id=1)
 
     response = admin_client.post(reverse('sapl.sessao:sessaoplenaria_create'),
                                  {'legislatura': str(legislatura.pk),
@@ -19,8 +19,7 @@ def test_incluir_sessao_plenaria_submit(admin_client):
                                   'tipo': str(tipo.pk),
                                   'sessao_legislativa': str(sessao.pk),
                                   'data_inicio': '10/11/2017',
-                                  'hora_inicio': '10:10',
-                                  'painel_aberto': False
+                                  'hora_inicio': '10:10'
                                   }, follow=True)
 
     assert response.status_code == 200
