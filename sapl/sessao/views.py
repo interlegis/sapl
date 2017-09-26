@@ -148,6 +148,9 @@ def abrir_votacao(request, pk, spk):
             verifica_sessao_iniciada(request, spk)):
         materia_votacao = model.objects.get(id=pk)
         materia_votacao.votacao_aberta = True
+        sessao = SessaoPlenaria.objects.get(id=spk)
+        sessao.painel_aberto = True
+        sessao.save()
         materia_votacao.save()
 
     return HttpResponseRedirect(
