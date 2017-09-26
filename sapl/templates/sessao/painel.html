@@ -262,8 +262,8 @@ $(function() {
 
 function switch_painel(aberto) {
     var pk_sessao = {{root_pk}};
-    var botao_abrir = document.getElementById('id_abrir_painel');
-    var botao_fechar = document.getElementById('id_fechar_painel');
+    var botao_abrir = $('#id_abrir_painel');
+    var botao_fechar = $('#id_fechar_painel');
 
 
     $.ajax({
@@ -274,11 +274,11 @@ function switch_painel(aberto) {
     });
 
     if (aberto) {
-        botao_abrir.style.display = 'none';
-        botao_fechar.style.display = 'block';
+        botao_abrir.hide();
+        botao_fechar.show();
     } else {
-        botao_abrir.style.display = 'block';
-        botao_fechar.style.display = 'none';
+        botao_abrir.show();
+        botao_fechar.hide();
     }
 }
 
