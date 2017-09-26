@@ -284,8 +284,8 @@ function switch_painel(aberto) {
 
 $(document).ready(function(){
     var pk_sessao = {{root_pk}};
-    var botao_abrir = document.getElementById('id_abrir_painel');
-    var botao_fechar = document.getElementById('id_fechar_painel');
+    var botao_abrir = $('#id_abrir_painel');
+    var botao_fechar = $('#id_fechar_painel');
 
     $.ajax({
         data: {pk_sessao: pk_sessao},
@@ -297,11 +297,11 @@ $(document).ready(function(){
         },
         success: function (data) {
             if (data['status']) {
-                botao_abrir.style.display = 'none';
-                botao_fechar.style.display = 'block';
+                botao_abrir.hide();
+                botao_fechar.show();
             } else {
-                botao_abrir.style.display = 'block';
-                botao_fechar.style.display = 'none';
+                botao_abrir.show();
+                botao_fechar.hide();
             }
         },
     });
