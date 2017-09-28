@@ -231,7 +231,7 @@ class AutorForm(ModelForm):
         if 'status_user' in self.Meta.fields:
             if self.instance.pk and self.instance.user_id:
                 if getattr(
-                        self.instance.user.username,
+                        self.instance.user,
                         get_user_model().USERNAME_FIELD) != cd['username']:
                     if 'status_user' not in cd or not cd['status_user']:
                         raise ValidationError(
