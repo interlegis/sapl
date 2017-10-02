@@ -260,10 +260,10 @@ def get_materia_aberta(pk):
 def get_presentes(pk, response, materia):
     if type(materia) == OrdemDia:
         presentes = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=pk)
+            sessao_plenaria_id=pk).order_by('parlamentar')
     elif type(materia) == ExpedienteMateria:
         presentes = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=pk)
+            sessao_plenaria_id=pk).order_by('parlamentar')
 
     num_presentes = len(presentes)
     data_sessao = materia.sessao_plenaria.data_inicio
