@@ -273,7 +273,7 @@ def get_presentes(pk, response, materia):
         filiacao = filiacao_data(p.parlamentar, data_sessao, data_sessao)
 
         if not filiacao:
-            partido = _('Sem Registro')
+            partido = 'Sem Registro'
         else:
             partido = filiacao
 
