@@ -492,11 +492,12 @@ class CasaLegislativaCrud(CrudAux):
                         kwargs={'pk': self.kwargs['pk']}))
 
 
-class HelpView(PermissionRequiredMixin, TemplateView):
-    # XXX treat non existing template as a 404!!!!
-
+class HelpTopicView(TemplateView):
     def get_template_names(self):
-        return ['ajuda/%s.html' % self.kwargs['topic']]
+        if 'topic' in self.request.GET and self.request.GET['topic']:
+            return ['ajuda/%s.html' % self.request.GET['topic']]
+        else:
+            return HttpResponseRedirect(reverse('sapl.base:help'))
 
 
 class AppConfigCrud(CrudAux):
