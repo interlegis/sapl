@@ -259,6 +259,9 @@ def excluir_registrovotacao_duplicados():
 
 
 def delete_old(legacy_model, cols_values):
+    # ajuste necessário por conta de cósigos html em txt_expediente
+    if legacy_model.__name__ == 'ExpedienteSessaoPlenaria':
+        cols_values.pop('txt_expediente')
 
     def eq_clause(col, value):
         if value is None:
