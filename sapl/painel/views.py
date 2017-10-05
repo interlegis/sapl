@@ -8,6 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
+from operator import itemgetter
 
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
@@ -257,13 +258,18 @@ def get_materia_aberta(pk):
         sessao_plenaria_id=pk, votacao_aberta=True).last()
 
 
+def sort_nome_parlamentar(lista):
+    lista_ordenada = sorted(lista, key=itemgetter('nome'))
+    return lista_ordenada
+
+
 def get_presentes(pk, response, materia):
     if type(materia) == OrdemDia:
         presentes = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=pk).order_by('parlamentar')
+            sessao_plenaria_id=pk)
     elif type(materia) == ExpedienteMateria:
         presentes = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=pk).order_by('parlamentar')
+            sessao_plenaria_id=pk)
 
     num_presentes = len(presentes)
     data_sessao = materia.sessao_plenaria.data_inicio
@@ -291,6 +297,8 @@ def get_presentes(pk, response, materia):
         tipo_votacao = 'Nominal'
     elif materia.tipo_votacao == 3:
         tipo_votacao = 'Secreta'
+
+    presentes_list = sort_nome_parlamentar(presentes_list)
 
     response.update({
         'presentes': presentes_list,
