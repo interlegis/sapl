@@ -173,11 +173,11 @@ retorna a tela com a rela&ccedil;&atilde;o de
 Coliga&ccedil;&otilde;es j&aacute; cadastradas.<br />
 
 <br />
-  <a href="partidos">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic'%}?topic=partidos">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="cadastro_parlamentares">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic'%}?topic=cadastro_parlamentares">Pr&oacute;xima</a>
 
 <br />
 

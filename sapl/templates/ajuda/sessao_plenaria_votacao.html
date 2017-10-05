@@ -16,11 +16,11 @@
 <br>O campo observa&ccedil;&otilde;es deve ser preenchido, quando for o caso, com as informa&ccedil;&otilde;es que forem julgadas oportunas e de esclarecimentos adicionais. <br />
 <br>Ap&oacute;s preenchidas todas as informa&ccedil;&otilde;es, clicar no bot&atilde;o 'Salvar'. O sistema dever&aacute; emitir a mensagem: <i>!Vota&ccedil;&atilde;o salva com sucesso!</i> caso todos os dados estejam corretos, devendo clicar em <i>continuar</i> para retomar o registro da vota&ccedil;&atilde;o de outras mat&eacute;rias.<br />
 <br>Entretanto, emitir&aacute; a mensagem: <i>!Quantidade de Votos &eacute; diferente do n&uacute;mero de parlamentares presentes na Ordem do Dia!</i> caso o total de votantes esteja diferente da lista de presen&ccedil;a indicada na Ordem do Dia. Neste caso, clique em <i>voltar</i> para retornar a tela anterior e efetuar as corre&ccedil;&otilde;es.<br />
-<br>  <a href="sessao_plenaria">Anterior</a> |
+<br>  <a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="sessao_plenaria_agenda">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_agenda">Pr&oacute;xima</a>
 <br />
 <br />
 </div>

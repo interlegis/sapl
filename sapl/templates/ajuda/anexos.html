@@ -1,7 +1,7 @@
-{% extends "base.html" %
-{% load "i18n" %
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}
 
-{% block base_content %
+{% block base_content %}
 
             <div id="conteudo">
 
@@ -90,9 +90,9 @@ banco de dados.<br />
 Qualquer d&uacute;vida, entre em contato conosco.<br />
 
 <br />
-  <a href="glossario">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic'%}?topic=glossario">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
 
 <br />

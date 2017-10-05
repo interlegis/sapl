@@ -10,11 +10,11 @@
 <h1 class="firstHeading">Proposi&ccedil;&atilde;o - edi&ccedil;&atilde;o / atualiza&ccedil;&atilde;o</h1>
 A tela exibe um conjunto de dados b&aacute;sicos para a atualiza&ccedil;&atilde;o da proposi&ccedil;&atilde;o ou documento acess&oacute;rio. A seguir, as situa&ccedil;&otilde;es poss&iacute;veis:<br><br> <b>- Proposi&ccedil;&atilde;o ainda n&atilde;o enviada</b> - Neste caso o autor tem dispon&iacute;vel as seguintes a&ccedil;&otilde;es:  <b>Editar o Texto Integral</b>, sendo que, antes da edi&ccedil;&atilde;o, os dados b&aacute;sicos eventualmente modificados devem ser salvos; retornar a tela anterior, clicando em <b>In&iacute;cio</b>; clicar em <b>Salvar</b> para salvar os dados b&aacute;sicos; ou, clicar em <b>Excluir</b> para excluir a proposi&ccedil;&atilde;o ou o documento acess&oacute;rio, conforme o caso. <br><br> <b>- Proposi&ccedil;&atilde;o j&aacute; enviada, por&eacute;m, ainda n&atilde;o recebida</b> - Neste estado, as a&ccedil;&otilde;es dispon&iacute;veis s&atilde;o: clicar em <b>Imprimir Recibo</b> para imprimir o recibo referente ao envio para protocolo; clicar em <b>Imprimir Texto Integral</b> para imprimir a proposi&ccedil;&atilde;o ou documento; clicar em <b>In&iacute;cio</b> para retornar a tela anterior; ou, ainda, clicar em<b> retomar a proposi&ccedil;&atilde;o enviada</b> para retomar a proposi&ccedil;&atilde;o e realizar modifica&ccedil;&otilde;es no seu texto. Neste caso, o Sapl ir&aacute; desprezar o n&uacute;mero anteriormente gerado, no momento do envio, e ao ser reenviada a proposi&ccedil;&atilde;o, gerar nova numera&ccedil;&atilde;o. Ap&oacute;s essa a&ccedil;&atilde;o, a proposi&ccedil;&atilde;o ou documento retorna a situa&ccedil;&atilde;o de <b>proposi&ccedil;&atilde;o ainda n&atilde;o enviada</b>.<br><br><b>- Proposi&ccedil;&atilde;o j&aacute; enviada e recebida</b> - Nesta situa&ccedil;&atilde;o, todas as a&ccedil;&otilde;es relativas a situa&ccedil;&atilde;o anterior - de recebida -  est&atilde;o dispon&iacute;veis, exceto que n&atilde;o ser&aacute; permitida retomar a proposi&ccedil;&atilde;o e nem realizar altera&ccedil;&otilde;es nos dados b&aacute;sicos.
 <br><br>
-  <a href="proposicao">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic'%}?topic=proposicao">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="tipo_proposicao">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic'%}?topic=tipo_proposicao">Pr&oacute;xima</a>
 
 <br>
 

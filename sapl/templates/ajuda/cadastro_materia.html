@@ -504,18 +504,22 @@ inicial do sistema.<br />
 Selecione a Mat&eacute;ria j&aacute; cadastrada para continuar
 alimentando as outras informa&ccedil;&otilde;es sobre a
 mat&eacute;ria tais como:
-<a href="despacho_autoria"><b> Despacho Inicial</b></a>, <a href="despacho_autoria#autoria"><b>Autoria</b></a>,
-<a href="legislacao_cita_matanexada"><b>Legislação Citada</b></a>, <a href="legislacao_cita_matanexada#matanexada"><b>Anexada</b></a>,
-<a href="tramitacao_relatoria"><b>Tramitação</b></a>, <a href="tramitacao_relatoria#relatoria"><b>Relatoria</b></a>, <a href="numeracao_docsacess"><b>Numeração</b></a> e
-<a href="numeracao_docsacess#docs_assessor"><b> Documentos Acessórios</b></a>.
+<a href="{% url 'sapl.base:help_topic'%}?topic=despacho_autoria"><b> Despacho Inicial</b></a>,
+<a href="{% url 'sapl.base:help_topic'%}?topic=despacho_autoria"><b>Autoria</b></a>,
+<a href="{% url 'sapl.base:help_topic'%}?topic=legislacao_cita_matanexada"><b>Legislação Citada</b></a>,
+<a href="{% url 'sapl.base:help_topic'%}?topic=legislacao_cita_matanexada"><b>Anexada</b></a>,
+<a href="{% url 'sapl.base:help_topic'%}?topic=tramitacao_relatoria"><b>Tramitação</b></a>,
+<a href="{% url 'sapl.base:help_topic'%}?topic=tramitacao_relatoria"><b>Relatoria</b></a>,
+<a href="{% url 'sapl.base:help_topic'%}?topic=numeracao_docsacess"><b>Numeração</b></a> e
+<a href="{% url 'sapl.base:help_topic'%}?topic=numeracao_docsacess"><b> Documentos Acessórios</b></a>.
 <br />
 
 <br />
-  <a href="tipo_documento">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic'%}?topic=tipo_documento">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="despacho_autoria">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic'%}?topic=despacho_autoria">Pr&oacute;xima</a>
 
 <br />
 

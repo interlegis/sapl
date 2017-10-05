@@ -42,7 +42,7 @@
 				<li><a href="{% url 'sapl.base:help_topic'%}?topic=nivel_instrucao">Nível de Instrução</a></li>
 				<li><a href="{% url 'sapl.base:help_topic'%}?topic=partidos">Partidos</a></li>
 				<li><a href="{% url 'sapl.base:help_topic'%}?topic=coligacao">Coligação</a>
-				<ul><li><a href="">Composição</a></li></ul>
+				<ul><li><a href="{% url 'sapl.base:help_topic'%}?topic=coligacao">Composição</a></li></ul>
 				</li>
 				<li><a href="{% url 'sapl.base:help_topic'%}?topic=cadastro_parlamentares">Cadastro de Parlamentares</a>
 					<ul>
@@ -74,7 +74,7 @@
 		</li>
 
 		<li>
-			<a href="">Matérias Legislativas</a>
+			<a href="{% url 'sapl.base:help_topic'%}?topic=modulo_tramitacao_materias">Matérias Legislativas</a>
 			<ul><li><a href="{% url 'sapl.base:help_topic'%}?topic=acomp_materia">Acompanhamento de Matéria Legislativa, via e-mail</a></ul>
 			<ul>
 				<li><a href="{% url 'sapl.base:help_topic'%}?topic=tipo_materia_legislativa">Tipo de Matéria Legislativa</a></li>
@@ -128,7 +128,7 @@
 					<li><a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_mesa">Mesa</a></li>
 					<li><a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_oradores">Oradores</a></li>
 					<li><a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_lista_presença_sessao">Lista de Presença Sesão</a></li>
-					<li><a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_ordem_dia">Lista de Presença - Ordem do Dia</a></li>
+					<li><a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_presenca_ordem_dia">Lista de Presença - Ordem do Dia</a></li>
 					<li><a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_votacao">Votação</a></li>
 					<li><a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_ata">Agenda</a></li>
 					<li><a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_materias_ordem_dia">Matérias</a></li>
@@ -140,8 +140,8 @@
 			<li><a href="{% url 'sapl.base:help_topic'%}?topic=anexos">Anexos</a></li>
 
 			<ul>
-				<li><a href="">A - Acesso a Banco de Dados</a></li>
-				<li><a href="">B - Procedimentos de Backup das Tabelas MySQL</a></li>
+				<li><a href="{% url 'sapl.base:help_topic'%}?topic=anexos">A - Acesso a Banco de Dados</a></li>
+				<li><a href="{% url 'sapl.base:help_topic'%}?topic=anexos">B - Procedimentos de Backup das Tabelas MySQL</a></li>
 			</ul>
 		</li>
 	</ul>

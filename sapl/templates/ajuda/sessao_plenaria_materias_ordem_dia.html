@@ -15,11 +15,11 @@
 <br>Esta fun&ccedil;&atilde;o permite o acesso as fun&ccedil;&otilde;es <b>inclus&atilde;o individual</b> ou de <b>v&aacute;rias mat&eacute;rias</b> na mesma transa&ccedil;&atilde;o, conforme o bot&atilde;o que for acionado, via clique do mouse. <br />
 <br>Tamb&eacute;m, &eacute; poss&iacute;vel ajustar as mat&eacute;rias na Ordem do Dia, de modo a restaurar o n&uacute;mero de ordem sequencial, bastando para isso, clicar no bot&atilde;o 'Ajustar Ordena&ccedil;&atilde;o na Ordem do Dia', as quais ser&atilde;o renumeradas em ordem de tipo, ano e n&uacute;mero. <br />
 <br>O retorno a tela anterior &eacute; feito ao acionar o bot&atilde;o 'Retornar', que se encontra na parte inferior da tela.<br />
-<br>  <a href="sessao_plenaria">Anterior</a> |
+<br>  <a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="sessao_plenaria_expedientes">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic'%}?topic=sessao_plenaria_expedientes">Pr&oacute;xima</a>
 <br />
 <br />
 </div>
