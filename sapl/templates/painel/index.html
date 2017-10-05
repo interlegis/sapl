@@ -27,10 +27,16 @@
           font-family: Verdana;
         }
       }
+      .center {
+          margin: auto;
+          width: 15%;
+
+      }
     </style>
+
   </head>
   <body>
-    <audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
+    <audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"></audio>
 
     <h1 id="title"></h1>
     <input id="json_url" type="hidden" value="{% url 'sapl.painel:dados_painel' sessao_id %}">
@@ -44,6 +50,10 @@
         <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_hora_inicio"></span></font></th>
       </tr>
     </table>
+
+    <div class="center">
+      <img src="" id="logo-painel" alt="" width="100%"/>
+    </div>
 
     <h2><font color="red"><p align="center"><span id="message"></span></p></font></h2>
 
@@ -167,6 +177,8 @@
               else{
                 $("#message").text("");
               }
+
+              $("#logo-painel").attr("src", data["imagem"]);
 
               var presentes = $("#parlamentares");
               var votacao = $("#votacao");
