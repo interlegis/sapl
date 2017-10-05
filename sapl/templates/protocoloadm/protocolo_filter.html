@@ -44,7 +44,6 @@
               {% if p.anulado %}<strong><font color="red">&nbsp;&nbsp;** NULO **</font></strong>{% endif %}
               </br>
               <strong>Assunto:</strong> {{ p.assunto_ementa|default_if_none:"Não informado"}}</br>
-              <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ p.hora|date:"G:i:s" }}</br>
               <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ p.timestamp|localtime|date:"G:i:s" }}</br>
 
               {% if p.tipo_processo == 0 %}
