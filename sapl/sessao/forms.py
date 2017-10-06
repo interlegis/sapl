@@ -116,6 +116,7 @@ class BancadaForm(ModelForm):
 class ExpedienteMateriaForm(ModelForm):
 
     _model = ExpedienteMateria
+    data_atual = timezone.now()
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Tipo Matéria'),
@@ -128,7 +129,9 @@ class ExpedienteMateriaForm(ModelForm):
         label='Número Matéria', required=True)
 
     ano_materia = forms.CharField(
-        label='Ano Matéria', required=True)
+        label='Ano Matéria', 
+        initial=int(data_atual.year),
+        required=True)
 
     data_ordem = forms.CharField(
         label='Data Sessão',
