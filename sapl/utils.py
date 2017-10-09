@@ -4,6 +4,7 @@ import os
 import re
 from functools import wraps
 from unicodedata import normalize as unicodedata_normalize
+from operator import itemgetter
 
 import django_filters
 import magic
@@ -651,3 +652,14 @@ def show_results_filter_set(qr):
         return False
 
     return True
+
+
+def sort_lista_chave(lista, chave):
+    """
+    :param lista: Uma list a ser ordenada .
+    :param chave: Algum atributo (chave) que está presente na lista e qual deve ser usado para a ordenação da nova
+    lista.
+    :return: A lista ordenada pela chave passada.
+    """
+    lista_ordenada = sorted(lista, key=itemgetter(chave))
+    return lista_ordenada
