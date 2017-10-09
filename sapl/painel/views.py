@@ -1,4 +1,3 @@
-
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,6 +7,8 @@ from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
+from operator import itemgetter
+from sapl.utils import sort_lista_chave
 
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
@@ -291,6 +292,8 @@ def get_presentes(pk, response, materia):
         tipo_votacao = 'Nominal'
     elif materia.tipo_votacao == 3:
         tipo_votacao = 'Secreta'
+
+    presentes_list = sort_lista_chave(presentes_list, 'nome')
 
     response.update({
         'presentes': presentes_list,
