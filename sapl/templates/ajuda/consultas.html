@@ -108,9 +108,9 @@ Parlamentar.<br />
 Ao selecionar este m&oacute;dulo Protocolo Geral &eacute; exibida uma tela com o seguinte menu de op&ccedil;&otilde;es:<br />
 <br />
 <ul>
-  <li><a href="protocolo_administrativo">Protocolar Documentos</a></li>
-  <li><a href="protocolo_legislativo">Protocolar Mat&eacute;rias</a></li>
-  <li><a href="protocolo_anular">Anular Protocolos</a></li>
+  <li><a href="{% url 'sapl.base:help_topic'%}?topic=protocolo_administrativo">Protocolar Documentos</a></li>
+  <li><a href="{% url 'sapl.base:help_topic'%}?topic=protocolo_legislativo">Protocolar Mat&eacute;rias</a></li>
+  <li><a href="{% url 'sapl.base:help_topic'%}?topic=protocolo_anular">Anular Protocolos</a></li>
 </ul>
 <br />Tamb&eacute;m, apresenta uma tela com campos a serem preenchidos com argumentos de pesquisa sobre registros de protocolo. <br />
 <br />
@@ -176,11 +176,11 @@ Ex: Para que se possa encontrar protocolos que mencionem a palavra 'asfalto' no 
 Apresenta o resultado da pesquisa feita. Al&eacute;m disso,  exibe o seguinte menu de op&ccedil;&otilde;es:<br />
 <br />
 <ul>
-  <li><a href="protocolo_administrativo">Protocolar Documentos</a></li>
-  <li><a href="protocolo_legislativo">Protocolar Mat&eacute;rias</a></li>
-  <li><a href="protocolo_anular">Anular Protocolos</a></li>
-  <li><a href="protocolo_gerar_etiqueta_protocolo">Gerar Etiquetas de Protocolo</a></li>
-  <li><a href="protocolo_gerar_etiqueta_processo">Gerar Etiquetas de Processo</a></li>
+  <li><a href="{% url 'sapl.base:help_topic'%}?topic=protocolo_administrativo">Protocolar Documentos</a></li>
+  <li><a href="{% url 'sapl.base:help_topic'%}?topic=protocolo_legislativo">Protocolar Mat&eacute;rias</a></li>
+  <li><a href="{% url 'sapl.base:help_topic'%}?topic=protocolo_anular">Anular Protocolos</a></li>
+  <li><a href="{% url 'sapl.base:help_topic'%}?topic=protocolo_gerar_etiqueta_protocolo">Gerar Etiquetas de Protocolo</a></li>
+  <li><a href="{% url 'sapl.base:help_topic'%}?topic=protocolo_gerar_etiqueta_processo">Gerar Etiquetas de Processo</a></li>
 </ul>
 <br />O conte&uacute;do a seguir &eacute; a lista do resultado da pesquisa feita. <br />
 <br />
@@ -707,9 +707,9 @@ Preenchimento</b></font></p>
 
 	<br />
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="acessando_alimenta">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic'%}?topic=acessando_alimenta">Pr&oacute;xima</a>
 
 <br />
 

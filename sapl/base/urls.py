@@ -11,7 +11,7 @@ from sapl.settings import EMAIL_SEND_USER
 
 from .apps import AppConfig
 from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
-from .views import (AppConfigCrud, CasaLegislativaCrud, HelpView,
+from .views import (AppConfigCrud, CasaLegislativaCrud, HelpTopicView,
                     RelatorioAtasView, RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
@@ -54,9 +54,10 @@ urlpatterns = [
     url(r'^sistema/autor/tipo/', include(TipoAutorCrud.get_urls())),
     url(r'^sistema/autor/', include(AutorCrud.get_urls())),
 
-    url(r'^sistema/ajuda/', TemplateView.as_view(template_name='ajuda.html')),
-    url(r'^sistema/ajuda/(?P<topic>\w+)$',
-        HelpView.as_view(), name='help_topic'),
+    url(r'^sistema/ajuda/', TemplateView.as_view(template_name='ajuda.html'),
+        name='help'),
+    url(r'^sistema/ajuda-topico/$',
+        HelpTopicView.as_view(), name='help_topic'),
     url(r'^sistema/ajuda/',
         TemplateView.as_view(template_name='ajuda/index.html'),
         name='help_base'),

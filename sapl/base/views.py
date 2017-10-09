@@ -7,12 +7,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db.models import Count
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
+from django.template import TemplateDoesNotExist
+from django.template.loader import get_template
 from haystack.views import SearchView
 
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
@@ -473,7 +475,6 @@ class CasaLegislativaCrud(CrudAux):
         form_class = CasaLegislativaForm
 
     class ListView(CrudAux.ListView):
-
         def get(self, request, *args, **kwargs):
             casa = get_casalegislativa()
             if casa:
@@ -492,11 +493,19 @@ class CasaLegislativaCrud(CrudAux):
                         kwargs={'pk': self.kwargs['pk']}))
 
 
-class HelpView(PermissionRequiredMixin, TemplateView):
-    # XXX treat non existing template as a 404!!!!
-
+class HelpTopicView(TemplateView):
     def get_template_names(self):
-        return ['ajuda/%s.html' % self.kwargs['topic']]
+        if 'topic' in self.request.GET and self.request.GET['topic']:
+            return ['ajuda/%s.html' % self.request.GET['topic']]
+        else:
+            return HttpResponseRedirect(reverse('sapl.base:help'))
+
+    def get_template(self):
+        if 'topic' in self.request.GET and self.request.GET['topic']:
+            try:
+                get_template('ajuda/%s.html' % self.request.GET['topic'])
+            except TemplateDoesNotExist:
+                raise Http404()
 
 
 class AppConfigCrud(CrudAux):
