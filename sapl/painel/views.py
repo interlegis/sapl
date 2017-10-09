@@ -1,3 +1,4 @@
+import json
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
@@ -225,6 +226,27 @@ def painel_view(request, pk):
 
 
 @user_passes_test(check_permission)
+def switch_painel(request):
+    sessao = SessaoPlenaria.objects.get(id=request.POST['pk_sessao'])
+    switch = json.loads(request.POST['aberto'])
+
+    if switch:
+        sessao.painel_aberto = True
+    else:
+        sessao.painel_aberto = False
+
+    sessao.save()
+    return JsonResponse({})
+
+@user_passes_test(check_permission)
+def verifica_painel(request):
+    sessao = SessaoPlenaria.objects.get(id=request.GET['pk_sessao'])
+    status = sessao.painel_aberto
+    resposta = JsonResponse(dict(status=status))
+    return resposta
+
+
+@user_passes_test(check_permission)
 def painel_mensagem_view(request):
     return render(request, 'painel/mensagem.html')
 
@@ -262,12 +284,13 @@ def get_presentes(pk, response, materia):
     if type(materia) == OrdemDia:
         presentes = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=pk)
-    elif type(materia) == ExpedienteMateria:
+    else:
         presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=pk)
 
+    sessao = SessaoPlenaria.objects.get(id=pk)
     num_presentes = len(presentes)
-    data_sessao = materia.sessao_plenaria.data_inicio
+    data_sessao = sessao.data_inicio
 
     presentes_list = []
     for p in presentes:
@@ -286,24 +309,29 @@ def get_presentes(pk, response, materia):
              'voto': ''
              })
 
-    if materia.tipo_votacao == 1:
-        tipo_votacao = 'Simbólica'
-    elif materia.tipo_votacao == 2:
-        tipo_votacao = 'Nominal'
-    elif materia.tipo_votacao == 3:
-        tipo_votacao = 'Secreta'
+    if materia:
+        if materia.tipo_votacao == 1:
+            tipo_votacao = 'Simbólica'
+        elif materia.tipo_votacao == 2:
+            tipo_votacao = 'Nominal'
+        elif materia.tipo_votacao == 3:
+            tipo_votacao = 'Secreta'
+
+        response.update({
+            'tipo_resultado': materia.resultado,
+            'observacao_materia': materia.observacao,
+            'tipo_votacao': tipo_votacao,
+            'materia_legislativa_texto': str(materia.materia)
+        })
+
 
     presentes_list = sort_lista_chave(presentes_list, 'nome')
 
     response.update({
         'presentes': presentes_list,
         'num_presentes': num_presentes,
-        'status_painel': 'ABERTO',
         'msg_painel': str(_('Votação aberta!')),
-        'tipo_resultado': materia.resultado,
-        'tipo_votacao': tipo_votacao,
-        'observacao_materia': materia.observacao,
-        'materia_legislativa_texto': str(materia.materia)})
+    })
 
     return response
 
@@ -315,7 +343,6 @@ def get_materia_expediente_aberta(pk):
 
 def response_nenhuma_materia(response):
     response.update({
-        'status_painel': 'FECHADO',
         'msg_painel': str(_('Nenhuma matéria disponivel para votação.'))})
     return JsonResponse(response)
 
@@ -378,6 +405,7 @@ def get_dados_painel(request, pk):
         'cronometro_aparte': get_cronometro_status(request, 'aparte'),
         'cronometro_discurso': get_cronometro_status(request, 'discurso'),
         'cronometro_ordem': get_cronometro_status(request, 'ordem'),
+        'status_painel': sessao.painel_aberto
     }
 
     ordem_dia = get_materia_aberta(pk)
@@ -426,4 +454,4 @@ def get_dados_painel(request, pk):
                             materia))
 
     # Retorna que não há nenhuma matéria já votada ou aberta
-    return response_nenhuma_materia(response)
+    return response_nenhuma_materia(get_presentes(pk, response, None))

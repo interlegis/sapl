@@ -161,10 +161,10 @@
               $("#sessao_plenaria").text(data["sessao_plenaria"])
               $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
               $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
-              if (data["status_painel"] == "FECHADO") {
+              if (data["status_painel"] == false) {
                 $("#message").text("PAINEL ENCONTRA-SE FECHADO");
               }
-              else{
+              else {
                 $("#message").text("");
               }
 
@@ -176,7 +176,7 @@
 
               var presentes_list = data["presentes"];
 
-              if (presentes_list) {
+              if (data["status_painel"] == true) {
                   presentes.append('<table id="parlamentares_list">');
                   jQuery.each(presentes_list, function (index, parlamentar) {
                       $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
@@ -190,7 +190,7 @@
               else{
                   presentes.append('<span id="parlamentares_list">');
                   $('#parlamentares_list').append(
-                      '<center>A listagem de parlamentares só aparecerá quando alguma matéria estiver em votação ou já tiver sido votada.</center>')
+                      '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
                   presentes.append('</span>');
               }
 

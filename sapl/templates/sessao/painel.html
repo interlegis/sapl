@@ -14,6 +14,8 @@
 
   <div class="row">
     <div class="col-md-6"><a href="" onclick="window.open('{% url 'sapl.painel:painel_principal' pk %}','Comprovante','width=800, height=800, scrollbars=yes'); return false;" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>
+    <div class="col-md-3"><button onclick="switch_painel(true)" id="id_abrir_painel" class="btn btn-primary btn-sm active" style="display: none">Abrir Painel</button></div>
+    <div class="col-md-3"><button onclick="switch_painel(false)" id="id_fechar_painel" class="btn btn-danger btn-sm active" style="display: none;">Fechar Painel</button></div>
   </div>
 	<br />
 
@@ -257,6 +259,56 @@ $(function() {
     });
 
 });
+
+function switch_painel(aberto) {
+    var pk_sessao = {{root_pk}};
+    var botao_abrir = $('#id_abrir_painel');
+    var botao_fechar = $('#id_fechar_painel');
+
+
+    $.ajax({
+        data: {pk_sessao: pk_sessao, aberto: aberto},
+        type: 'POST',
+        url: "{% url 'sapl.painel:switch_painel' %}",
+        headers: {'X-CSRFToken': getCookie('csrftoken')},
+    });
+
+    if (aberto) {
+        botao_abrir.hide();
+        botao_fechar.show();
+    } else {
+        botao_abrir.show();
+        botao_fechar.hide();
+    }
+}
+
+$(document).ready(function(){
+    var pk_sessao = {{root_pk}};
+    var botao_abrir = $('#id_abrir_painel');
+    var botao_fechar = $('#id_fechar_painel');
+
+    $.ajax({
+        data: {pk_sessao: pk_sessao},
+        type: 'GET',
+        dataType: 'json',
+        url: "{% url 'sapl.painel:verifica_painel' %}",
+        error: function () {
+            alert("Erro ao verificar o Painel");
+        },
+        success: function (data) {
+            if (data['status']) {
+                botao_abrir.hide();
+                botao_fechar.show();
+            } else {
+                botao_abrir.show();
+                botao_fechar.hide();
+            }
+        },
+    });
+
+
+});
+
 </script>
 
 {% endblock %}
