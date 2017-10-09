@@ -12,6 +12,7 @@ RUN apk add --no-cache python3 nginx tzdata && \
     rm -f /etc/nginx/conf.d/*
 
 RUN mkdir -p /var/interlegis/sapl && \
+    mkdir /var/log/gunicorn \
     apk add --update --no-cache $BUILD_PACKAGES && \
     npm install -g bower && \
     npm cache clean
@@ -41,7 +42,7 @@ RUN python3 manage.py bower_install -- --allow-root --no-input && \
     python3 manage.py compilescss
 
 RUN python3 manage.py collectstatic --noinput --clear
- 
+
 # Remove .env(fake) e sapl.db da imagem
 RUN rm -rf /var/interlegis/sapl/sapl/.env && \
     rm -rf /var/interlegis/sapl/sapl.db
