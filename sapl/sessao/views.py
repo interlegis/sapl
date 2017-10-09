@@ -165,8 +165,7 @@ def customize_link_materia(context):
         numeracao = materia.numeracao_set.first()
         autoria = materia.autoria_set.filter(
             primeiro_autor=True).first()
-        if autoria:
-            autor = autoria.autor
+        autor = autoria.autor if autoria else None
         num_protocolo = materia.numero_protocolo
 
         title_materia = '''<a href=%s>%s</a> </br>
