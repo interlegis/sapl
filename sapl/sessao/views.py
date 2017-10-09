@@ -2291,7 +2291,11 @@ class PautaSessaoDetailView(DetailView):
             ementa = m.materia.ementa
             titulo = m.materia
             numero = m.numero_ordem
-            situacao = m.materia.tramitacao_set.last().status
+
+            ultima_tramitacao = m.materia.tramitacao_set.last()
+
+            situacao = ultima_tramitacao.status if ultima_tramitacao else None
+
             if situacao is None:
                 situacao = _("Não informada")
             rv = m.registrovotacao_set.all()
@@ -2348,7 +2352,11 @@ class PautaSessaoDetailView(DetailView):
             ementa = o.materia.ementa
             titulo = o.materia
             numero = o.numero_ordem
-            situacao = o.materia.tramitacao_set.last().status
+
+            ultima_tramitacao = o.materia.tramitacao_set.last()
+
+            situacao = ultima_tramitacao.status if ultima_tramitacao else None
+
             if situacao is None:
                 situacao = _("Não informada")
             # Verificar resultado
