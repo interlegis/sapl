@@ -120,8 +120,7 @@ class DocumentoAdministrativo(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Protocolo'))
     data = models.DateField(verbose_name=_('Data'))
-    numero_protocolo = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Núm. Protocolo'))
+
     interessado = models.CharField(
         max_length=50, blank=True, verbose_name=_('Interessado'))
     autor = models.ForeignKey(Autor, blank=True, null=True,

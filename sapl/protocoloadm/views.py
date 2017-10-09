@@ -88,7 +88,7 @@ class DocumentoAdministrativoCrud(Crud):
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data',
-                            'numero_protocolo', 'assunto',
+                            'protocolo__numero', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
 
         @property
