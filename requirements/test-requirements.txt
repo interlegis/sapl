@@ -1,6 +1,6 @@
 -r requirements.txt
 coverage==4.1
-django-webtest
+django-webtest==1.7.8
 flake8==2.6.2
 isort==4.2.5
 model-mommy==1.2.6
