@@ -956,7 +956,7 @@ def get_etiqueta_protocolos(prots):
 
         dic['num_documento'] = ''
         for documento in DocumentoAdministrativo.objects.filter(
-                numero_protocolo=p.numero):
+                protocolo=p):
             dic['num_documento'] = str(documento)
 
         dic['ident_processo'] = dic['num_materia'] or dic['num_documento']

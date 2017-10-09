@@ -8,7 +8,7 @@
           Pesquisa Textual
       </a>
 
-      {% if perms.materia %}
+      {% if perms.materia.add_materialegislativa %}
       <a href="{% url 'sapl.materia:materialegislativa_create' %}" class="btn btn-default">
           {% blocktrans with verbose_name=view.verbose_name %} Adicionar Matéria Legislativa {% endblocktrans %}
       </a>

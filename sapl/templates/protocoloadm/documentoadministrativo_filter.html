@@ -7,7 +7,7 @@
 
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
-    {% if perms.protocoloadm %}
+    {% if perms.protocoloadm.add_documentoadministrativo %}
       <a href="{% url 'sapl.protocoloadm:documentoadministrativo_create' %}" class="btn btn-default">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Documento Administrativo {% endblocktrans %}
       </a>

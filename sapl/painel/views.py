@@ -1,5 +1,4 @@
 import json
-
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,6 +8,8 @@ from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
+from operator import itemgetter
+from sapl.utils import sort_lista_chave
 
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
@@ -296,7 +297,7 @@ def get_presentes(pk, response, materia):
         filiacao = filiacao_data(p.parlamentar, data_sessao, data_sessao)
 
         if not filiacao:
-            partido = _('Sem Registro')
+            partido = 'Sem Registro'
         else:
             partido = filiacao
 
@@ -323,6 +324,8 @@ def get_presentes(pk, response, materia):
             'materia_legislativa_texto': str(materia.materia)
         })
 
+
+    presentes_list = sort_lista_chave(presentes_list, 'nome')
 
     response.update({
         'presentes': presentes_list,

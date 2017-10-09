@@ -17,7 +17,8 @@ from django.db.models import Count, Max
 from django.db.models.base import ModelBase
 
 from sapl.base.models import AppConfig as AppConf
-from sapl.base.models import Autor, ProblemaMigracao, TipoAutor
+from sapl.base.models import (Autor, CasaLegislativa, ProblemaMigracao,
+                              TipoAutor)
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
@@ -208,7 +209,8 @@ def fill_vinculo_norma_juridica():
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
 
-def fill_tipo_numeracao_protocolo():
+def fill_dados_basicos():
+    # Ajusta sequencia numérica e cria base.AppConfig
     letra = 'A'
     try:
         tipo = TipoNumeracaoProtocolo.objects.latest('dat_inicial_protocolo')
@@ -222,6 +224,10 @@ def fill_tipo_numeracao_protocolo():
         pass
     appconf = AppConf(sequencia_numeracao=letra)
     appconf.save()
+
+    # Cria instância de CasaLegislativa
+    casa = CasaLegislativa()
+    casa.save()
 
 
 # Uma anomalia no sapl 2.5 causa a duplicação de registros de votação.
@@ -253,6 +259,9 @@ def excluir_registrovotacao_duplicados():
 
 
 def delete_old(legacy_model, cols_values):
+    # ajuste necessário por conta de cósigos html em txt_expediente
+    if legacy_model.__name__ == 'ExpedienteSessaoPlenaria':
+        cols_values.pop('txt_expediente')
 
     def eq_clause(col, value):
         if value is None:
@@ -338,7 +347,7 @@ class DataMigrator:
               '--database=default', '--no-input'], stdout=PIPE)
 
         fill_vinculo_norma_juridica()
-        fill_tipo_numeracao_protocolo()
+        fill_dados_basicos()
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 

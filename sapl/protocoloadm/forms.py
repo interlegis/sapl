@@ -4,7 +4,8 @@ from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import (MultipleObjectsReturned,
+                                    ObjectDoesNotExist, ValidationError)
 from django.db import models
 from django.forms import ModelForm
 from django.utils import timezone
@@ -153,7 +154,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         model = DocumentoAdministrativo
         fields = ['tipo',
                   'numero',
-                  'numero_protocolo',
+                  'protocolo__numero',
                   'data',
                   'tramitacaoadministrativo__unidade_tramitacao_destino',
                   'tramitacaoadministrativo__status']
@@ -172,7 +173,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
         row2 = to_row(
             [('ano', 4),
-             ('numero_protocolo', 4),
+             ('protocolo__numero', 4),
              ('data', 4)])
 
         row3 = to_row(
@@ -549,6 +550,10 @@ class DocumentoAdministrativoForm(ModelForm):
                                       widget=forms.Select(
                                           attrs={'class': 'selector'}))
 
+    numero_protocolo = forms.IntegerField(required=False,
+                                          label=Protocolo._meta.
+                                          get_field('numero').verbose_name)
+
     class Meta:
         model = DocumentoAdministrativo
         fields = ['tipo',
@@ -577,8 +582,8 @@ class DocumentoAdministrativoForm(ModelForm):
         if not self.is_valid():
             return cleaned_data
 
-        numero_protocolo = cleaned_data['numero_protocolo']
-        ano_protocolo = cleaned_data['ano_protocolo']
+        numero_protocolo = self.data['numero_protocolo']
+        ano_protocolo = self.data['ano_protocolo']
 
         # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
@@ -588,6 +593,11 @@ class DocumentoAdministrativoForm(ModelForm):
                     ano=ano_protocolo).pk
             except ObjectDoesNotExist:
                 msg = _('Protocolo %s/%s inexistente.' % (
+                    numero_protocolo, ano_protocolo))
+                raise ValidationError(msg)
+            except MultipleObjectsReturned:
+                msg = _(
+                    'Existe mais de um Protocolo com este ano e número.' % (
                     numero_protocolo, ano_protocolo))
                 raise ValidationError(msg)
 
