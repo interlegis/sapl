@@ -23,7 +23,7 @@ DJANGO_WSGI_MODULE=sapl.wsgi                    # WSGI module name (*)
 
 echo "Starting $NAME as `whoami` on base dir $SAPL_DIR"
 
-# parameter can be passed to run without virtualenv 
+# parameter can be passed to run without virtualenv
 if [[ "$@" != "no-venv" ]]; then
     # Activate the virtual environment
     cd $DJANGODIR
@@ -42,4 +42,6 @@ exec gunicorn ${DJANGO_WSGI_MODULE}:application \
   --name $NAME \
   --workers $NUM_WORKERS \
   --user $USER \
+  --access-logfile /var/log/gunicorn/gunicorn-access.log \
+  --error-logfile /var/log/gunicorn/gunicorn-error.log \
   --bind=unix:$SOCKFILE
