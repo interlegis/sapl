@@ -128,6 +128,7 @@ def test_mandato_submit(admin_client):
                               kwargs={'pk': 14}),
                       {'parlamentar': 14,  # hidden field
                        'legislatura': 5,
+                       'data_inicio_mandato': Legislatura.objects.get(id=5).data_inicio,
                        'data_expedicao_diploma': '2016-03-22',
                        'observacao': 'Observação do mandato',
                        'salvar': 'salvar'},
@@ -171,12 +172,14 @@ def test_mandato_form_duplicado():
 
     Mandato.objects.create(parlamentar=parlamentar,
                            legislatura=legislatura,
-                           data_expedicao_diploma='2017-07-25')
+                           data_expedicao_diploma='2017-07-25',
+                           data_inicio_mandato=legislatura.data_inicio,)
 
     form = MandatoForm(data={
         'parlamentar': str(parlamentar.pk),
         'legislatura': str(legislatura.pk),
-        'data_expedicao_diploma': '01/07/2015'
+        'data_expedicao_diploma': '01/07/2015',
+        'data_inicio_mandato': legislatura.data_inicio,
     })
 
     assert not form.is_valid()
