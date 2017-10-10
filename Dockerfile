@@ -16,9 +16,6 @@ RUN mkdir -p /var/interlegis/sapl && \
     npm install -g bower && \
     npm cache clean
 
-#RUN ln -sf /proc/self/fd/1 /var/log/gunicorn/gunicorn-access.log && \
-#    ln -sf /proc/self/fd/1 /var/log/gunicorn/gunicorn-error.log
-
 WORKDIR /var/interlegis/sapl/
 
 ADD . /var/interlegis/sapl/
