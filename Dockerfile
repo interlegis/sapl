@@ -12,10 +12,12 @@ RUN apk add --no-cache python3 nginx tzdata && \
     rm -f /etc/nginx/conf.d/*
 
 RUN mkdir -p /var/interlegis/sapl && \
-    mkdir /var/log/gunicorn \
     apk add --update --no-cache $BUILD_PACKAGES && \
     npm install -g bower && \
     npm cache clean
+
+#RUN ln -sf /proc/self/fd/1 /var/log/gunicorn/gunicorn-access.log && \
+#    ln -sf /proc/self/fd/1 /var/log/gunicorn/gunicorn-error.log
 
 WORKDIR /var/interlegis/sapl/
 

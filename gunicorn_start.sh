@@ -42,6 +42,6 @@ exec gunicorn ${DJANGO_WSGI_MODULE}:application \
   --name $NAME \
   --workers $NUM_WORKERS \
   --user $USER \
-  --access-logfile /var/log/gunicorn/gunicorn-access.log \
-  --error-logfile /var/log/gunicorn/gunicorn-error.log \
+  --access-logfile - \
+  --error-logfile - \
   --bind=unix:$SOCKFILE
