@@ -11,11 +11,11 @@
 Esta tela exibe uma lista de proposi&ccedil;&otilde;es legislativas, que foram, ou est&atilde;o sendo, elaboradas por um usu&aacute;rio com perfil de autor. Cont&eacute;m as seguintes colunas de dados:<br><br><b>Data de envio</b> - refere-se a data na qual o autor enviou a proposi&ccedil;&atilde;o para protocolo. Caso ainda, a mesma n&atilde;o tenha sido enviada, o sistema exibe a palavra <b>em elabora&ccedil;&atilde;o</b>. Essa coluna possui um link para a tela que cont&eacute;m o detalhamento da proposi&ccedil;&atilde;o referida, o qual &eacute; acionado quando se clica sobre o mesmo.<br><br><b>Tipo</b> - indica o tipo de proposi&ccedil;&atilde;o.<br><br><b>Descri&ccedil;&atilde;o</b> - cont&eacute;m a descri&ccedil;&atilde;o da proposi&ccedil;&atilde;o. <br><br><b>Recebida</b> - sim ou n&atilde;o, indicando a informa&ccedil;&atilde;o de recebimento ou n&atilde;o da proposi&ccedil;&atilde;o pela Secretaria Legislativa da Casa, para que seja protocolada, no caso da Proposi&ccedil;&atilde;o j&aacute; ter sido enviada.<br><br>Al&eacute;m das colunas de dados acima, possui os seguintes links de acionamento de funcionalidades:<br><br><b>Pr&oacute;xima p&aacute;gina</b> - avan&ccedil;a para apresentar mais 8 proposi&ccedil;&otilde;es - paginando para frente, no caso de haver mais proposi&ccedil;&otilde;es.<br><br><b>P&aacute;gina anterior</b> - retrocede para apresentar as 8 proposi&ccedil;&otilde;es anteriores - paginando para tr&aacute;s, se houver.<br/><br/><b>Elaborar nova proposi&ccedil;&atilde;o</b> - link que, ao ser acionado, direciona o usu&aacute;rio para a tela de inclus&atilde;o de nova proposi&ccedil;&atilde;o.
 
 <br><br>
-  <a href="{% url 'sapl.base:help_topic'%}?topic=norma_juridica">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic' 'norma_juridica' %}">Anterior</a> |
 
   <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="{% url 'sapl.base:help_topic'%}?topic=proposicao">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'proposicao' %}">Pr&oacute;xima</a>
 
 <br>
 

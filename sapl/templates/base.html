@@ -136,7 +136,7 @@
 
                 {% block help %}
 {#                  {% if view.help_path %}#}
-{#                    <a class="contextual-help right" href="{% url 'sapl.base:help_base' %}?topic={{ view.help_path }}">{% trans 'Ajuda' %}</a>#}
+{#                    <a class="contextual-help right" href="{% url 'sapl.base:help_base' %}{{ view.help_path }}">{% trans 'Ajuda' %}</a>#}
 {#                  {% endif %}#}
                 {% endblock %}
 

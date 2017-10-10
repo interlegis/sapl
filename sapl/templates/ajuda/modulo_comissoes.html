@@ -17,14 +17,14 @@ esta transa&ccedil;&atilde;o, que s&atilde;o:<br />
 <b>- Tabelas Auxiliares</b><br />
 <br />
 <ul>
-  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic'%}?topic=tipo_comissao">Tipo de Comiss&atilde;o</a></li>
-  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic'%}?topic=periodo_composicao_comissao">Per&iacute;odo da
+  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic' 'tipo_comissao' %}">Tipo de Comiss&atilde;o</a></li>
+  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic' 'periodo_composicao_comissao' %}">Per&iacute;odo da
 Composi&ccedil;&atilde;o da Comiss&atilde;o</a></li>
-  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic'%}?topic=modulo_parlamentares">Parlamentares</a></li>
-  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic'%}?topic=cargo_comissao">Cargo Comiss&atilde;o</a></li>
-  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic'%}?topic=partidos">Partidos</a></li>
-  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic'%}?topic=tipo_autor">Tipo Autor</a></li>
-  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic'%}?topic=autor">Autor</a></li>
+  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic' 'modulo_parlamentares' %}">Parlamentares</a></li>
+  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic' 'cargo_comissao' %}">Cargo Comiss&atilde;o</a></li>
+  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic' 'partidos' %}">Partidos</a></li>
+  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic' 'tipo_autor' %}">Tipo Autor</a></li>
+  <li>&nbsp;&nbsp;&nbsp;<a href="{% url 'sapl.base:help_topic' 'autor' %}">Autor</a></li>
 </ul>
 <br /><br />
 
@@ -37,11 +37,11 @@ data a partir da qual ela ficou inativa; devendo, nesse caso, ser posterior a da
 A exclus&atilde;o da comiss&atilde;o somente ser&aacute; poss&iacute;vel se n&atilde;o tiver havido qualquer tramita&ccedil;&atilde;o de mat&eacute;ria para ela. Ent&atilde;o, deve-se exclui-la antes da tabela de unidades de tramita&ccedil;&atilde;o. <br />
 <br />
 
-  <a href="{% url 'sapl.base:help_topic'%}?topic=cadastro_mesa_diretora">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic' 'cadastro_mesa_diretora' %}">Anterior</a> |
 
   <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="{% url 'sapl.base:help_topic'%}?topic=cargo_comissao">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'cargo_comissao' %}">Pr&oacute;xima</a>
 
 <br />
 
