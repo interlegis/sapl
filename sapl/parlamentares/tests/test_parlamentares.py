@@ -128,7 +128,8 @@ def test_mandato_submit(admin_client):
                               kwargs={'pk': 14}),
                       {'parlamentar': 14,  # hidden field
                        'legislatura': 5,
-                       'data_inicio_mandato': Legislatura.objects.get(id=5).data_inicio,
+                       'data_inicio_mandato': \
+                          Legislatura.objects.get(id=5).data_inicio,
                        'data_expedicao_diploma': '2016-03-22',
                        'observacao': 'Observação do mandato',
                        'salvar': 'salvar'},

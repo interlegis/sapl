@@ -598,7 +598,7 @@ class DocumentoAdministrativoForm(ModelForm):
             except MultipleObjectsReturned:
                 msg = _(
                     'Existe mais de um Protocolo com este ano e número.' % (
-                    numero_protocolo, ano_protocolo))
+                        numero_protocolo, ano_protocolo))
                 raise ValidationError(msg)
 
         return self.cleaned_data

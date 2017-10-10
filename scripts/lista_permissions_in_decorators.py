@@ -17,7 +17,7 @@ def get_decorators(cls):
     target = cls
     decorators = {}
 
-    def visit_FunctionDef(node):
+    def visit_functionDef(node):
         decorators[node.name] = []
         for n in node.decorator_list:
             name = ''
@@ -30,7 +30,7 @@ def get_decorators(cls):
             decorators[node.name].append(name)
 
     node_iter = ast.NodeVisitor()
-    node_iter.visit_FunctionDef = visit_FunctionDef
+    node_iter.visit_functionDef = visit_functionDef
     node_iter.visit(ast.parse(inspect.getsource(target)))
     return decorators
 
@@ -77,7 +77,7 @@ def get_permission_requireds(cls):
 
             get_permission_required(arg)
 
-    def visit_FunctionDef(node):
+    def visit_functionDef(node):
         for n in node.decorator_list:
             if not isinstance(n, ast.Call):
                 continue
@@ -98,7 +98,7 @@ def get_permission_requireds(cls):
                 get_method_decorator(n)
 
     node_iter = ast.NodeVisitor()
-    node_iter.visit_FunctionDef = visit_FunctionDef
+    node_iter.visit_functionDef = visit_functionDef
     node_iter.visit(ast.parse(inspect.getsource(target)))
     return decorators
 

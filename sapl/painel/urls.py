@@ -25,4 +25,3 @@ urlpatterns = [
     url(r'^voto-individual/$', votante_view,
         name='voto_individual'),
 ]
-

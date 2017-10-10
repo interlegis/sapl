@@ -2,7 +2,7 @@ import pytest
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.materia.models import TipoMateriaLegislativa, MateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
 from sapl.sessao import forms
 from sapl.sessao.models import (ExpedienteMateria, SessaoPlenaria,

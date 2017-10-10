@@ -129,7 +129,7 @@ class ExpedienteMateriaForm(ModelForm):
         label='Número Matéria', required=True)
 
     ano_materia = forms.CharField(
-        label='Ano Matéria', 
+        label='Ano Matéria',
         initial=int(data_atual.year),
         required=True)
 

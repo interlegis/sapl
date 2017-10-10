@@ -1642,7 +1642,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             doc.arquivo = request.FILES['arquivo']
             doc.nome = request.POST['nome']
             doc.data = tz.localize(datetime.strptime(
-                                    request.POST['data'], "%d/%m/%Y"))
+                request.POST['data'], "%d/%m/%Y"))
             doc.autor = request.POST['autor']
             doc.ementa = request.POST['ementa']
             doc.save()

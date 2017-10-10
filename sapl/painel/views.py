@@ -1,4 +1,5 @@
 import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,8 +9,6 @@ from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
-from operator import itemgetter
-from sapl.utils import sort_lista_chave
 
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
@@ -17,7 +16,7 @@ from sapl.parlamentares.models import Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoParlamentar)
-from sapl.utils import filiacao_data, get_client_ip
+from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
 from .models import Cronometro
 
@@ -238,6 +237,7 @@ def switch_painel(request):
     sessao.save()
     return JsonResponse({})
 
+
 @user_passes_test(check_permission)
 def verifica_painel(request):
     sessao = SessaoPlenaria.objects.get(id=request.GET['pk_sessao'])
@@ -323,7 +323,6 @@ def get_presentes(pk, response, materia):
             'tipo_votacao': tipo_votacao,
             'materia_legislativa_texto': str(materia.materia)
         })
-
 
     presentes_list = sort_lista_chave(presentes_list, 'nome')
 
