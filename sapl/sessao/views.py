@@ -2362,9 +2362,11 @@ class PautaSessaoDetailView(DetailView):
             # Verificar resultado
             rv = o.registrovotacao_set.all()
             if rv:
-                resultado_observacao = rv[0].tipo_resultado_votacao.nome
+                resultado = rv[0].tipo_resultado_votacao.nome
+                resultado_observacao = rv[0].observacao
             else:
-                resultado_observacao = _('Matéria não votada')
+                resultado = _('Matéria não votada')
+                resultado_observacao = _(' ')
 
             autoria = Autoria.objects.filter(
                 materia_id=o.materia_id)
