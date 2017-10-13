@@ -54,7 +54,7 @@ class ConfirmarEmailView(TemplateView):
 
 class TipoAutorCrud(CrudAux):
     model = TipoAutor
-    help_path = 'tipo-autor'
+    help_topic = 'tipo-autor'
 
     class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['descricao', 'content_type']
@@ -63,7 +63,7 @@ class TipoAutorCrud(CrudAux):
 
 class AutorCrud(CrudAux):
     model = Autor
-    help_path = 'autor'
+    help_topic = 'autor'
 
     class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['tipo', 'nome', 'user']

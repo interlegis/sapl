@@ -525,7 +525,7 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
 
 class UnidadeTramitacaoCrud(CrudAux):
     model = UnidadeTramitacao
-    help_path = 'unidade_tramitacao'
+    help_topic = 'unidade_tramitacao'
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['comissao', 'orgao', 'parlamentar']
@@ -551,7 +551,7 @@ class UnidadeTramitacaoCrud(CrudAux):
 
 class ProposicaoCrud(Crud):
     model = Proposicao
-    help_path = ''
+    help_topic = ''
     container_field = 'autor__user'
 
     class BaseMixin(Crud.BaseMixin):
@@ -838,7 +838,7 @@ class ReciboProposicaoView(TemplateView):
 class RelatoriaCrud(MasterDetailCrud):
     model = Relatoria
     parent_field = 'materia'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class CreateView(MasterDetailCrud.CreateView):
@@ -913,7 +913,7 @@ class RelatoriaCrud(MasterDetailCrud):
 class TramitacaoCrud(MasterDetailCrud):
     model = Tramitacao
     parent_field = 'materia'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -1058,7 +1058,7 @@ def montar_helper_documento_acessorio(self):
 class DocumentoAcessorioCrud(MasterDetailCrud):
     model = DocumentoAcessorio
     parent_field = 'materia'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -1094,7 +1094,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
 class AutoriaCrud(MasterDetailCrud):
     model = Autoria
     parent_field = 'materia'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
     list_field_names = ['autor', 'autor__tipo__descricao', 'primeiro_autor']
 
@@ -1169,7 +1169,7 @@ class AutoriaMultiCreateView(PermissionRequiredForAppCrudMixin, FormView):
 class DespachoInicialCrud(MasterDetailCrud):
     model = DespachoInicial
     parent_field = 'materia'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class CreateView(MasterDetailCrud.CreateView):
@@ -1182,7 +1182,7 @@ class DespachoInicialCrud(MasterDetailCrud):
 class LegislacaoCitadaCrud(MasterDetailCrud):
     model = LegislacaoCitada
     parent_field = 'materia'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -1267,14 +1267,14 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
 class NumeracaoCrud(MasterDetailCrud):
     model = Numeracao
     parent_field = 'materia'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
 
 class AnexadaCrud(MasterDetailCrud):
     model = Anexada
     parent_field = 'materia_principal'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -1302,7 +1302,7 @@ class AnexadaCrud(MasterDetailCrud):
 class MateriaAssuntoCrud(MasterDetailCrud):
     model = MateriaAssunto
     parent_field = 'materia'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -1326,7 +1326,7 @@ class MateriaAssuntoCrud(MasterDetailCrud):
 
 class MateriaLegislativaCrud(Crud):
     model = MateriaLegislativa
-    help_path = 'materia_legislativa'
+    help_topic = 'materia_legislativa'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(Crud.BaseMixin):

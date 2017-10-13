@@ -203,7 +203,7 @@ def get_presencas_generic(model, sessao, legislatura):
 class MateriaOrdemDiaCrud(MasterDetailCrud):
     model = OrdemDia
     parent_field = 'sessao_plenaria'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -358,7 +358,7 @@ def recuperar_materia(request):
 class ExpedienteMateriaCrud(MasterDetailCrud):
     model = ExpedienteMateria
     parent_field = 'sessao_plenaria'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -504,7 +504,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 class OradorCrud(MasterDetailCrud):
     model = ''
     parent_field = 'sessao_plenaria'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class ListView(MasterDetailCrud.ListView):
@@ -571,7 +571,7 @@ def sessao_legislativa_legislatura_ajax(request):
 
 class SessaoCrud(Crud):
     model = SessaoPlenaria
-    help_path = 'sessao_plenaria'
+    help_topic = 'sessao_plenaria'
     public = [RP_DETAIL]
 
     class BaseMixin(Crud.BaseMixin):

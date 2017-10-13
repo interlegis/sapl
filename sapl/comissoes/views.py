@@ -78,7 +78,7 @@ class ComposicaoCrud(MasterDetailCrud):
 
 class ComissaoCrud(Crud):
     model = Comissao
-    help_path = 'modulo_comissoes'
+    help_topic = 'modulo_comissoes'
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):

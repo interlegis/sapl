@@ -55,7 +55,7 @@
                     </li>
                   </ul>
               </li>
-{#              <li><a href="/sistema/ajuda"><img src="{% static 'img/manual.png' %}"></a></li>#}
+              <li><a href="/sistema/ajuda"><img src="{% static 'img/manual.png' %}"></a></li>
               {% if not user.is_authenticated %}
                 <li><a href="{% url 'sapl.base:login' %}"><img src="{% static 'img/user.png' %}"></a></li>
               {% else %}
@@ -135,9 +135,9 @@
               <div class="clearfix">
 
                 {% block help %}
-{#                  {% if view.help_path %}#}
-{#                    <a class="contextual-help right" href="{% url 'sapl.base:help_base' %}{{ view.help_path }}">{% trans 'Ajuda' %}</a>#}
-{#                  {% endif %}#}
+                    {% if view.help_topic %}
+                        <a class="contextual-help right" href="{% url 'sapl.base:help'  %}{{ view.help_topic  }}">{% trans 'Ajuda' %}</a>
+                    {% endif %}
                 {% endblock %}
 
                 {% block title %}
