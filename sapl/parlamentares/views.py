@@ -89,7 +89,7 @@ class FrenteList(MasterDetailCrud):
 class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Relatoria
     parent_field = 'parlamentar'
-    help_topic = 'relatoria_parlamentar'
+    help_topic = 'tramitacao_relatoria'
     namespace = AppConfig.name
 
     class BaseMixin(CrudBaseForListAndDetailExternalAppView.BaseMixin):
@@ -181,7 +181,7 @@ class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 
 class ColigacaoCrud(CrudAux):
     model = Coligacao
-    help_topic = 'tabelas_auxiliares#coligacao'
+    help_topic = 'coligacao'
 
     class ListView(CrudAux.ListView):
         ordering = ('-numero_votos', 'nome')
@@ -272,7 +272,7 @@ def parlamentares_frente_selected(request):
 
 class FrenteCrud(CrudAux):
     model = Frente
-    help_topic = 'tabelas_auxiliares#tipo_situa_militar'
+    help_topic = 'tipo_situa_militar'
     list_field_names = ['nome', 'data_criacao', 'parlamentares']
 
     class CreateView(CrudAux.CreateView):
@@ -337,7 +337,7 @@ class MandatoCrud(MasterDetailCrud):
 class ComposicaoColigacaoCrud(MasterDetailCrud):
     model = ComposicaoColigacao
     parent_field = 'coligacao'
-    help_topic = ''
+    help_topic = 'coligacao'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
 
@@ -353,7 +353,7 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
 
 class LegislaturaCrud(CrudAux):
     model = Legislatura
-    help_topic = 'tabelas_auxiliares#legislatura'
+    help_topic = 'legislatura'
 
     class CreateView(CrudAux.CreateView):
         form_class = LegislaturaForm
@@ -391,7 +391,7 @@ class LegislaturaCrud(CrudAux):
 class FiliacaoCrud(MasterDetailCrud):
     model = Filiacao
     parent_field = 'parlamentar'
-    help_topic = ''
+    help_topic = 'filiacoes_partidarias'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):

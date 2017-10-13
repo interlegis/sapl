@@ -33,7 +33,7 @@ TipoVinculoNormaJuridicaCrud = CrudAux.build(
 class NormaRelacionadaCrud(MasterDetailCrud):
     model = NormaRelacionada
     parent_field = 'norma_principal'
-    help_topic = ''
+    help_topic = 'norma_juridica'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
