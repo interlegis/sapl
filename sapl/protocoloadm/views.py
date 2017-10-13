@@ -84,7 +84,7 @@ class DocumentoAdministrativoMixin:
 
 class DocumentoAdministrativoCrud(Crud):
     model = DocumentoAdministrativo
-    help_path = ''
+    help_topic = 'numeracao_docsacess'
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data',
@@ -142,7 +142,7 @@ class DocumentoAdministrativoCrud(Crud):
 
 class StatusTramitacaoAdministrativoCrud(CrudAux):
     model = StatusTramitacaoAdministrativo
-    help_path = ''
+    help_topic = 'status_tramitacao'
 
     class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['sigla', 'indicador', 'descricao']
@@ -577,7 +577,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
 class TramitacaoAdmCrud(MasterDetailCrud):
     model = TramitacaoAdministrativo
     parent_field = 'documento'
-    help_path = ''
+    help_topic = 'unidade_tramitacao'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
@@ -656,7 +656,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 class DocumentoAcessorioAdministrativoCrud(MasterDetailCrud):
     model = DocumentoAcessorioAdministrativo
     parent_field = 'documento'
-    help_path = ''
+    help_topic = 'numeracao_docsacess'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['nome', 'tipo',

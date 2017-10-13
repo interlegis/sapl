@@ -6,7 +6,7 @@ from .models import City, Country
 
 class CountryCrud(Crud):
     model = Country
-    help_path = 'help_path',
+    help_topic = 'help_topic',
 
     class ListView(CrudListView):
         paginate_by = 10
@@ -14,4 +14,4 @@ class CountryCrud(Crud):
 
 class CityCrud(MasterDetailCrud):
     model = City
-    help_path = 'help_path',
+    help_topic = 'help_topic',
