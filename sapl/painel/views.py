@@ -10,6 +10,7 @@ from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
+from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
@@ -399,7 +400,12 @@ def get_dados_painel(request, pk):
     sessao = SessaoPlenaria.objects.get(id=pk)
 
     casa = CasaLegislativa.objects.first()
-    imagem = casa.logotipo.url
+
+    app_config = ConfiguracoesAplicacao.objects.first()
+
+    brasao = None
+    if app_config:
+        brasao = casa.logotipo.url if app_config.mostrar_brasao_painel else None
 
     response = {
         'sessao_plenaria': str(sessao),
@@ -409,7 +415,7 @@ def get_dados_painel(request, pk):
         'cronometro_discurso': get_cronometro_status(request, 'discurso'),
         'cronometro_ordem': get_cronometro_status(request, 'ordem'),
         'status_painel': sessao.painel_aberto,
-        'imagem': imagem
+        'brasao': brasao
     }
 
     ordem_dia = get_materia_aberta(pk)

@@ -178,7 +178,8 @@
                 $("#message").text("");
               }
 
-              $("#logo-painel").attr("src", data["imagem"]);
+              if (data["brasao"] != null)
+                $("#logo-painel").attr("src", data["brasao"]);
 
               var presentes = $("#parlamentares");
               var votacao = $("#votacao");

@@ -642,6 +642,12 @@ class LoginForm(AuthenticationForm):
 
 class ConfiguracoesAppForm(ModelForm):
 
+    mostrar_brasao_painel = forms.BooleanField(
+        help_text=_('Sugerimos fortemente que faça o upload de imagens com o ' \
+                    'fundo transparente.'),
+        label=_('Mostrar brasão da Casa no painel?'),
+        required = False)
+
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
@@ -653,7 +659,8 @@ class ConfiguracoesAppForm(ModelForm):
                   'proposicao_incorporacao_obrigatoria',
                   'cronometro_discurso',
                   'cronometro_aparte',
-                  'cronometro_ordem']
+                  'cronometro_ordem',
+                  'mostrar_brasao_painel']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
