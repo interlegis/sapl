@@ -673,7 +673,7 @@ class ConfiguracoesAppForm(ModelForm):
                                                                         False)
         casa = CasaLegislativa.objects.first()
 
-        if casa is None:
+        if not casa:
             raise ValidationError("Não há casa legislativa relacionada")
 
         if (not bool(casa.logotipo) and mostrar_brasao_painel):
