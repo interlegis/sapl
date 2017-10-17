@@ -405,7 +405,8 @@ def get_dados_painel(request, pk):
 
     brasao = None
     if app_config:
-        brasao = casa.logotipo.url if app_config.mostrar_brasao_painel else None
+        brasao = casa.logotipo.url \
+            if app_config.mostrar_brasao_painel else None
 
     response = {
         'sessao_plenaria': str(sessao),

@@ -161,7 +161,6 @@ class AppConfig(models.Model):
         default=False,
         verbose_name=_('Mostrar brasão da Casa no painel?'))
 
-
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')
