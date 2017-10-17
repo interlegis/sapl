@@ -623,7 +623,7 @@ class CasaLegislativaForm(ModelForm):
         logotipo = self.cleaned_data.get('logotipo', False)
         if logotipo:
             if logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
-                raise ValidationError("Imagem muito grande. ( > 2mb )")
+                raise ValidationError("Imagem muito grande. ( > 2MB )")
         return logotipo
 
 
@@ -667,6 +667,20 @@ class ConfiguracoesAppForm(ModelForm):
         self.fields['cronometro_discurso'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_aparte'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
+
+    def clean_mostrar_brasao_painel(self):
+        mostrar_brasao_painel = self.cleaned_data.get('mostrar_brasao_painel',
+                                                                        False)
+        casa = CasaLegislativa.objects.first()
+
+        if casa is None:
+            raise ValidationError("Não há casa legislativa relacionada")
+
+        if (not bool(casa.logotipo) and mostrar_brasao_painel):
+            raise ValidationError("Não há logitipo configurado para esta "
+                                  "Casa legislativa.")
+
+        return mostrar_brasao_painel
 
 
 class RecuperarSenhaForm(PasswordResetForm):

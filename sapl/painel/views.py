@@ -404,7 +404,7 @@ def get_dados_painel(request, pk):
     app_config = ConfiguracoesAplicacao.objects.first()
 
     brasao = None
-    if app_config:
+    if app_config and (bool(casa.logotipo)):
         brasao = casa.logotipo.url \
             if app_config.mostrar_brasao_painel else None
 
