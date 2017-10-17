@@ -1,0 +1,119 @@
+[
+    {
+        "fields": {
+            "descricao_ativa": "Altera o(a)",
+            "descricao_passiva": "Alterado(a) pelo(a)",
+            "sigla": "A"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "1"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Revoga integralmente o(a)",
+            "descricao_passiva": "Revogado(a) integralmente pelo(a)",
+            "sigla": "R"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "2"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Revoga parcialmente o(a)",
+            "descricao_passiva": "Revogado(a) parcialmente pelo(a)",
+            "sigla": "P"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "3"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Revoga integralmente por consolida\u00e7\u00e3o",
+            "descricao_passiva": "Revogado(a) integralmente por consolida\u00e7\u00e3o",
+            "sigla": "T"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "4"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Norma correlata",
+            "descricao_passiva": "Norma correlata",
+            "sigla": "C"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "5"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Ressalva o(a)",
+            "descricao_passiva": "Ressalvada pelo(a)",
+            "sigla": "S"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "6"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Reedita o(a)",
+            "descricao_passiva": "Reeditada pelo(a)",
+            "sigla": "E"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "7"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Reedita com altera\u00e7\u00e3o o(a)",
+            "descricao_passiva": "Reeditada com altera\u00e7\u00e3o pelo(a)",
+            "sigla": "I"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "8"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Regulamenta o(a)",
+            "descricao_passiva": "Regulamentada pelo(a)",
+            "sigla": "G"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "9"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Suspende parcialmente o(a)",
+            "descricao_passiva": "Suspenso(a) parcialmente pelo(a)",
+            "sigla": "K"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "10"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Suspende integralmente o(a)",
+            "descricao_passiva": "Suspenso(a) integralmente pelo(a)",
+            "sigla": "L"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "11"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Julga integralmente inconstitucional",
+            "descricao_passiva": "Julgada integralmente inconstitucional",
+            "sigla": "N"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "12"
+    },
+    {
+        "fields": {
+            "descricao_ativa": "Julga parcialmente inconstitucional",
+            "descricao_passiva": "Julgada parcialmente inconstitucional",
+            "sigla": "O"
+        },
+        "model": "norma.TipoVinculoNormaJuridica",
+        "pk": "13"
+    }
+]
