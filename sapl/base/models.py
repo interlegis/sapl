@@ -122,9 +122,10 @@ class AppConfig(models.Model):
         verbose_name=_('Sequência de numeração'),
         choices=SEQUENCIA_NUMERACAO, default='A')
 
-    painel_aberto = models.BooleanField(
-        verbose_name=_('Painel aberto para usuário anônimo'),
-        choices=YES_NO_CHOICES, default=False)
+    # TODO: a ser implementado na versão 3.2
+    # painel_aberto = models.BooleanField(
+    #     verbose_name=_('Painel aberto para usuário anônimo'),
+    #     choices=YES_NO_CHOICES, default=False)
 
     texto_articulado_proposicao = models.BooleanField(
         verbose_name=_('Usar Textos Articulados para Proposições'),
