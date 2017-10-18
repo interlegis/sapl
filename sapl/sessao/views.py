@@ -708,14 +708,6 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
     template_name = 'sessao/painel.html'
     app_label = 'painel'
 
-    def has_permission(self):
-        painel_aberto = AppsAppConfig.attr('painel_aberto')
-
-        if painel_aberto and self.request.user.is_anonymous():
-            return True
-
-        return PermissionRequiredForAppCrudMixin.has_permission(self)
-
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous():
             self.template_name = 'painel/index.html'
