@@ -157,6 +157,10 @@ class AppConfig(models.Model):
         blank=True,
         null=True)
 
+    mostrar_brasao_painel = models.BooleanField(
+        default=False,
+        verbose_name=_('Mostrar brasão da Casa no painel?'))
+
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')

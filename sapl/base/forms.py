@@ -623,7 +623,7 @@ class CasaLegislativaForm(ModelForm):
         logotipo = self.cleaned_data.get('logotipo', False)
         if logotipo:
             if logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
-                raise ValidationError("Imagem muito grande. ( > 2mb )")
+                raise ValidationError("Imagem muito grande. ( > 2MB )")
         return logotipo
 
 
@@ -642,6 +642,12 @@ class LoginForm(AuthenticationForm):
 
 class ConfiguracoesAppForm(ModelForm):
 
+    mostrar_brasao_painel = forms.BooleanField(
+        help_text=_('Sugerimos fortemente que faça o upload de imagens com '\
+                    'o fundo transparente.'),
+        label=_('Mostrar brasão da Casa no painel?'),
+        required=False)
+
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
@@ -653,13 +659,28 @@ class ConfiguracoesAppForm(ModelForm):
                   'proposicao_incorporacao_obrigatoria',
                   'cronometro_discurso',
                   'cronometro_aparte',
-                  'cronometro_ordem']
+                  'cronometro_ordem',
+                  'mostrar_brasao_painel']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
         self.fields['cronometro_discurso'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_aparte'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
+
+    def clean_mostrar_brasao_painel(self):
+        mostrar_brasao_painel = self.cleaned_data.get('mostrar_brasao_painel',
+                                                                        False)
+        casa = CasaLegislativa.objects.first()
+
+        if not casa:
+            raise ValidationError("Não há casa legislativa relacionada")
+
+        if (not bool(casa.logotipo) and mostrar_brasao_painel):
+            raise ValidationError("Não há logitipo configurado para esta "
+                                  "Casa legislativa.")
+
+        return mostrar_brasao_painel
 
 
 class RecuperarSenhaForm(PasswordResetForm):

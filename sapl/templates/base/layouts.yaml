@@ -23,6 +23,9 @@ AppConfig:
   {% trans 'Cronômetros do Painel' %}:
   - cronometro_discurso cronometro_aparte cronometro_ordem
 
+  {% trans 'Configurações do Painel' %}:
+  - mostrar_brasao_painel
+
 TipoAutor:
   {% trans 'Tipo Autor' %}:
   - content_type:4 descricao
