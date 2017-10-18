@@ -328,6 +328,7 @@ TIPOS_TEXTO_PERMITIDOS = (
     'application/x-vnd.oasis.opendocument.text',
     'application/pdf',
     'application/x-pdf',
+    'application/zip',
     'application/acrobat',
     'applications/vnd.pdf',
     'text/pdf',
