@@ -28,8 +28,8 @@
 				<legend>Votos</legend>
 	      <div class="row">
 	        {% for parlamentar in parlamentares %}
-		        <div class="col-md-6">{{parlamentar.0.nome_parlamentar}}</div>
-		        <div class="col-md-6">
+		        <div class="col-md-4" id="styleparlamentar">{{parlamentar.0.nome_parlamentar}}</div>
+		        <div class="col-md-5">
 							{% if parlamentar.1 %} <input type="hidden" name="voto_parlamentar" value="{{parlamentar.1}}:{{parlamentar.0.id}}" /> {% endif %}
 		          <select id="voto_parlamentar" name="voto_parlamentar" class="form-control" {% if parlamentar.1 %} disabled {% endif %}>
 		            <option value="Não Votou:{{parlamentar.0.id}}">Não Votou</option>
