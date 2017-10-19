@@ -163,11 +163,6 @@ def iter_sql_records(sql, db):
         yield record
 
 
-def get_last_value(model):
-    last_value = model.objects.all().aggregate(Max('pk'))
-    return last_value['pk__max'] or 0
-
-
 def save_relation(obj, nome_campo='', problema='', descricao='',
                   eh_stub=False, critico=False):
     link = ProblemaMigracao(
