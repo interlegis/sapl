@@ -163,11 +163,6 @@ def iter_sql_records(sql, db):
         yield record
 
 
-def get_last_value(model):
-    last_value = model.objects.all().aggregate(Max('pk'))
-    return last_value['pk__max'] or 0
-
-
 def save_relation(obj, nome_campo='', problema='', descricao='',
                   eh_stub=False, critico=False):
     link = ProblemaMigracao(
@@ -274,6 +269,17 @@ def delete_old(legacy_model, cols_values):
         ' and '.join([eq_clause(col, value)
                       for col, value in cols_values.items()]))
     exec_sql(delete_sql, 'legacy')
+
+
+def get_last_pk(model):
+    last_value = model.objects.all().aggregate(Max('pk'))
+    return last_value['pk__max'] or 0
+
+
+def reinicia_sequence(model, id):
+    sequence_name = '%s_id_seq' % model._meta.db_table
+    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
+        sequence_name, id))
 
 
 class DataMigrator:
@@ -383,7 +389,9 @@ class DataMigrator:
 
         # setup migration strategy for tables with or without a pk
         if legacy_pk_name == 'id':
+            deve_ajustar_sequence_ao_final = False
             # There is no pk in the legacy table
+
             def save(new, old):
                 with reversion.create_revision():
                     new.save()
@@ -395,6 +403,8 @@ class DataMigrator:
             old_records = iter_sql_records(
                 'select * from ' + legacy_model._meta.db_table, 'legacy')
         else:
+            deve_ajustar_sequence_ao_final = True
+
             def save(new, old):
                 with reversion.create_revision():
                     # salva new com id de old
@@ -437,6 +447,10 @@ class DataMigrator:
                             self.data_mudada.clear()
                             reversion.set_comment(
                                 'Ajuste de data pela migração')
+            # reinicia sequence
+            if deve_ajustar_sequence_ao_final:
+                last_pk = get_last_pk(model)
+                reinicia_sequence(model, last_pk + 1)
 
 
 def migrate(obj=appconfs, interativo=True):
