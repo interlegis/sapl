@@ -465,21 +465,21 @@ def adjust_acompanhamentomateria(new, old):
 
 
 def adjust_documentoadministrativo(new, old):
-    if new.numero_protocolo:
+    if old.num_protocolo:
         protocolo = Protocolo.objects.filter(
-            numero=new.numero_protocolo, ano=new.ano)
+            numero=old.num_protocolo, ano=new.ano)
         if not protocolo:
             protocolo = Protocolo.objects.filter(
-                numero=new.numero_protocolo, ano=new.ano + 1)
+                numero=old.num_protocolo, ano=new.ano + 1)
             print('PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '
                   'DocumentoAdministrativo: {}, numero_protocolo: {}, '
                   'ano doc adm: {}'.format(
-                      old.cod_documento, new.numero_protocolo, new.ano))
+                      old.cod_documento, old.num_protocolo, new.ano))
         if not protocolo:
             raise ForeignKeyFaltando(
                 'Protocolo {} faltando '
                 '(referenciado no documento administrativo {}'.format(
-                    new.numero_protocolo, old.cod_documento))
+                    old.num_protocolo, old.cod_documento))
         assert len(protocolo) == 1
         new.protocolo = protocolo[0]
 
