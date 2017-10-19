@@ -643,7 +643,7 @@ class LoginForm(AuthenticationForm):
 class ConfiguracoesAppForm(ModelForm):
 
     mostrar_brasao_painel = forms.BooleanField(
-        help_text=_('Sugerimos fortemente que faça o upload de imagens com '\
+        help_text=_('Sugerimos fortemente que faça o upload de imagens com '
                     'o fundo transparente.'),
         label=_('Mostrar brasão da Casa no painel?'),
         required=False)
@@ -652,7 +652,7 @@ class ConfiguracoesAppForm(ModelForm):
         model = AppConfig
         fields = ['documentos_administrativos',
                   'sequencia_numeracao',
-                  #'painel_aberto', # TODO: a ser implementado na versão 3.2
+                  # 'painel_aberto', # TODO: a ser implementado na versão 3.2
                   'texto_articulado_proposicao',
                   'texto_articulado_materia',
                   'texto_articulado_norma',
@@ -669,8 +669,8 @@ class ConfiguracoesAppForm(ModelForm):
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
 
     def clean_mostrar_brasao_painel(self):
-        mostrar_brasao_painel = self.cleaned_data.get('mostrar_brasao_painel',
-                                                                        False)
+        mostrar_brasao_painel = self.cleaned_data.get(
+            'mostrar_brasao_painel', False)
         casa = CasaLegislativa.objects.first()
 
         if not casa:
