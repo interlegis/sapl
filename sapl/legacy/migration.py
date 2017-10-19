@@ -4,8 +4,9 @@ from functools import lru_cache
 from subprocess import PIPE, call
 
 import pkg_resources
-import reversion
 import yaml
+
+import reversion
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
@@ -15,7 +16,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
-
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import (Autor, CasaLegislativa, ProblemaMigracao,
                               TipoAutor)
@@ -28,7 +28,7 @@ from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
 from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
                                TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
-                                       TipoAfastamento)
+                                       Partido, TipoAfastamento)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
@@ -687,24 +687,28 @@ def adjust_normajuridica_depois_salvar(new, old):
             pass  # ignora assuntos inexistentes
 
 
-def adjust_autor(new, old):
-    if old.cod_parlamentar:
+def vincula_autor(new, old, model_relacionado, campo_relacionado, campo_nome):
+    pk_rel = getattr(old, campo_relacionado)
+    if pk_rel:
         try:
-            new.autor_related = Parlamentar.objects.get(pk=old.cod_parlamentar)
+            new.autor_related = model_relacionado.objects.get(pk=pk_rel)
         except ObjectDoesNotExist:
             # ignoramos o autor órfão
-            raise ForeignKeyFaltando('Parlamentar inexiste para autor')
+            raise ForeignKeyFaltando('{} inexiste para autor'.format(
+                model_relacionado._meta.verbose_name))
         else:
-            new.nome = new.autor_related.nome_parlamentar
+            new.nome = getattr(new.autor_related, campo_nome)
+            return True
 
-    elif old.cod_comissao:
-        try:
-            new.autor_related = Comissao.objects.get(pk=old.cod_comissao)
-        except ObjectDoesNotExist:
-            # ignoramos o autor órfão
-            raise ForeignKeyFaltando('Comissao inexiste para autor')
-        else:
-            new.nome = new.autor_related.nome
+
+def adjust_autor(new, old):
+    for args in [
+            # essa ordem é importante
+            (Parlamentar, 'cod_parlamentar', 'nome_parlamentar'),
+            (Comissao, 'cod_comissao', 'nome'),
+            (Partido, 'cod_partido', 'nome')]:
+        if vincula_autor(new, old, *args):
+            break
 
     if old.col_username:
         user_model = get_user_model()
