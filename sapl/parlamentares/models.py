@@ -356,7 +356,7 @@ class Parlamentar(models.Model):
 
 @reversion.register()
 class TipoDependente(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+    descricao = models.CharField(max_length=150, verbose_name=_('Descrição'))
 
     class Meta:
         verbose_name = _('Tipo de Dependente')
@@ -377,7 +377,7 @@ class Dependente(models.Model):
     tipo = models.ForeignKey(TipoDependente, on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+    nome = models.CharField(max_length=150, verbose_name=_('Nome'))
     sexo = models.CharField(
         max_length=1, verbose_name=_('Sexo'), choices=SEXO_CHOICE)
     data_nascimento = models.DateField(
