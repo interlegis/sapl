@@ -1730,6 +1730,23 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
         if 'cancelar-votacao' in request.POST:
             fechar_votacao_materia(materia_votacao)
             return self.form_valid(form)
+        else:
+            if not request.POST['resultado_votacao']:
+                msg = "Resultado votação deve ser informado"
+                messages.add_message(request, messages.ERROR, msg)
+
+                if self.ordem:
+                    view = 'sapl.sessao:votacaonominal'
+                elif self.expediente:
+                    view = 'sapl.sessao:votacaonominalexp'
+                else:
+                    view = None
+
+                return HttpResponseRedirect(reverse(
+                    view,
+                    kwargs={'pk': kwargs['pk'],
+                            'oid': kwargs['oid'],
+                            'mid': kwargs['mid']}))
 
         if form.is_valid():
             votos_sim = 0

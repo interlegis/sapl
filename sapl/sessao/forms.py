@@ -260,6 +260,8 @@ class VotacaoForm(forms.Form):
     votos_nao = forms.CharField(required=True, label='Não')
     abstencoes = forms.CharField(required=True, label='Abstenções')
     total_votos = forms.CharField(required=False, label='total')
+    resultado_votacao = forms.CharField(required=True,
+                                        label='Resultado da Votação')
 
 
 class VotacaoEditForm(forms.Form):
