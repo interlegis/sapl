@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # rodar esse script na raiz do projeto
-if [ $# -eq 3 ]; then
+if [ $# -ge 2 ]; then
+
+    # proteje pasta com dumps de alterações acidentais
+    chmod -R -w ~/sapl_dumps
+
     DATE=$(date +%Y-%m-%d)
     DIR=~/${DATE}_logs_migracao
     mkdir -p $DIR
@@ -14,18 +18,16 @@ if [ $# -eq 3 ]; then
     echo "########################################" | tee -a $LOG
     echo >> $LOG
 
-    echo "--- CRIANDO BACKUP ---" | tee -a $LOG
-    echo >> $LOG
-    EXISTE=`mysql -u $2 -p$3 -N -s -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$1_copy';"`
-
-    if [[ $EXISTE == $1_copy ]]; then
-		mysql -u $2 -p$3 -N -s -e "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;" && mysqldump -u $2 -p$3 $1_copy | mysql -u $2 -p$3  $1
-		echo "O banco legado foi restaurado" |& tee -a $LOG
-    elif [[ ! $EXISTE ]]; then
-        mysql -u $2 -p$3 -N -s -e "CREATE DATABASE $1_copy;"
-        mysqldump -u $2 -p$3 $1 | mysql -u $2 -p$3  $1_copy
-        echo "O banco de cópia $1_copy não existia e foi criado" |& tee -a $LOG
-    fi
+    if [ $3 ]; then
+        # se há senha do mysql
+        mysql -u $2 -p "$3" -N -s -e "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;"
+        mysql -u $2 -p "$3" < ~/sapl_dumps/$1.sql
+    else
+        # se não há senha do mysql
+        mysql -u $2 -N -s -e "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;"
+        mysql -u $2 < ~/sapl_dumps/$1.sql
+    fi;
+    echo "O banco legado foi restaurado" |& tee -a $LOG
     echo >> $LOG
 
     echo "--- DJANGO MIGRATE ---" | tee -a $LOG
@@ -42,5 +44,5 @@ if [ $# -eq 3 ]; then
     echo >> $LOG
 else
     echo "USO:"
-    echo "    $0 [nome_database] [usuário mysql] [senha mysql]"
+    echo "    $0 <nome_database> <usuário mysql> [senha mysql]"
 fi;
