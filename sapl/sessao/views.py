@@ -1651,6 +1651,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal.html'
     ordem = None
     expediente = None
+    form_class = VotacaoNominalForm
 
     def get(self, request, *args, **kwargs):
         if self.ordem:
@@ -1706,6 +1707,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        form = self.get_form()
 
         if self.ordem:
             ordem_id = kwargs['oid']
@@ -1725,28 +1727,10 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
 
             materia_votacao = expediente
 
-        form = VotacaoNominalForm(request.POST)
 
         if 'cancelar-votacao' in request.POST:
             fechar_votacao_materia(materia_votacao)
             return self.form_valid(form)
-        else:
-            if not request.POST['resultado_votacao']:
-                msg = "Resultado votação deve ser informado"
-                messages.add_message(request, messages.ERROR, msg)
-
-                if self.ordem:
-                    view = 'sapl.sessao:votacaonominal'
-                elif self.expediente:
-                    view = 'sapl.sessao:votacaonominalexp'
-                else:
-                    view = None
-
-                return HttpResponseRedirect(reverse(
-                    view,
-                    kwargs={'pk': kwargs['pk'],
-                            'oid': kwargs['oid'],
-                            'mid': kwargs['mid']}))
 
         if form.is_valid():
             votos_sim = 0
@@ -1840,8 +1824,28 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     expediente=expediente,
                     votacao__isnull=True).delete()
             return self.form_valid(form)
+
         else:
-            return self.form_invalid(form)
+            errors_tuple = [(form[e].label, form.errors[e]) for e in form.errors]
+            error_message = '''<ul>'''
+            for e in errors_tuple:
+                error_message += '''<li><b>%s</b>: %s</li>''' % (e[0], e[1][0])
+            error_message += '''</ul>'''
+
+            messages.add_message(request, messages.ERROR, error_message)
+
+            if self.ordem:
+                view = 'sapl.sessao:votacaonominal'
+            elif self.expediente:
+                view = 'sapl.sessao:votacaonominalexp'
+            else:
+                view = None
+
+            return HttpResponseRedirect(reverse(
+                view,
+                kwargs={'pk': kwargs['pk'],
+                        'oid': kwargs['oid'],
+                        'mid': kwargs['mid']}))
 
     def get_parlamentares(self, presencas):
         self.object = self.get_object()

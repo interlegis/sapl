@@ -46,6 +46,7 @@
 	      <div class="col-md-12">
 	        Resultado da Votação
 	        <select id="resultado_votacao" name="resultado_votacao" class="form-control">
+            <option value="">-------------------</option>
 	          {% for tipo in tipos %}
 	          <option value="{{tipo.id}}">{{tipo.nome}}</option>
 	          {% endfor %}
