@@ -1,7 +1,6 @@
 
 import os
 
-import django_filters
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
@@ -22,8 +21,8 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
-import sapl
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -42,6 +41,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model,
                         qs_override_django_filter)
+import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -939,6 +939,12 @@ class TipoProposicaoForm(ModelForm):
                 _('O Registro definido (%s) não está na base de %s.'
                   ) % (cd['tipo_conteudo_related'], content_type))
 
+        """
+        A unicidade de tipo proposição para tipo de conteudo
+        foi desabilitada pois existem casos em quem é o procedimento da 
+        instituição convergir vários tipos de proposição
+        para um tipo de matéria.
+         
         unique_value = self._meta.model.objects.filter(
             content_type=content_type, object_id=cd['tipo_conteudo_related'])
 
@@ -953,7 +959,7 @@ class TipoProposicaoForm(ModelForm):
                   'que foi defindo como (%s) para (%s)'
                   ) % (unique_value,
                        content_type,
-                       unique_value.tipo_conteudo_related))
+                       unique_value.tipo_conteudo_related))"""
 
         return super().clean()
 
