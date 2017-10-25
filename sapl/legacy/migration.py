@@ -1,6 +1,6 @@
 import re
 from datetime import date
-from functools import lru_cache
+from functools import lru_cache, partial
 from subprocess import PIPE, call
 
 import pkg_resources
@@ -139,17 +139,127 @@ def get_fk_related(field, value, label=None):
         raise ForeignKeyFaltando(msg)
 
 
-def exec_sql_file(path, db='default'):
-    with open(path) as arq:
-        sql = arq.read()
-    with connections[db].cursor() as cursor:
-        cursor.execute(sql)
-
-
 def exec_sql(sql, db='default'):
     cursor = connections[db].cursor()
     cursor.execute(sql)
     return cursor
+
+# UNIFORMIZAÇÃO DO BANCO ANTES DA MIGRAÇÃO ###############################
+
+SQL_NAO_TEM_TABELA = '''
+   SELECT count(*)
+   FROM information_schema.columns
+   WHERE table_schema=database()
+     AND TABLE_NAME="{}"
+'''
+SQL_NAO_TEM_COLUNA = SQL_NAO_TEM_TABELA + ' AND COLUMN_NAME="{}"'
+
+exec_legado = partial(exec_sql, db='legacy')
+
+
+def existe_tabela_no_legado(tabela):
+    sql = SQL_NAO_TEM_TABELA.format(tabela)
+    return exec_legado(sql).fetchone()[0]
+
+
+def existe_coluna_no_legado(tabela, coluna):
+    sql = SQL_NAO_TEM_COLUNA.format(tabela, coluna)
+    return exec_legado(sql).fetchone()[0] > 0
+
+
+def garante_coluna_no_legado(tabela, spec_coluna):
+    coluna = spec_coluna.split()[0]
+    if not existe_coluna_no_legado(tabela, coluna):
+        exec_legado('ALTER TABLE {} ADD COLUMN {}'.format(tabela, spec_coluna))
+    assert existe_coluna_no_legado(tabela, coluna)
+
+
+def garante_tabela_no_legado(create_table):
+    tabela = create_table.strip().splitlines()[0].split()[2]
+    if not existe_tabela_no_legado(tabela):
+        exec_legado(create_table)
+        assert existe_tabela_no_legado(tabela)
+
+
+def uniformiza_banco():
+    exec_legado('''
+      SELECT replace(@@sql_mode,"STRICT_TRANS_TABLES,","ALLOW_INVALID_DATES");
+    ''')
+
+    # ajusta data zero em proposicao
+    # isso é necessário para poder alterar a tabela a seguir
+    exec_legado('''
+        UPDATE proposicao SET dat_envio = "1800-01-01" WHERE dat_envio = 0;
+        alter table proposicao modify dat_envio datetime;
+        UPDATE proposicao SET dat_envio = NULL where dat_envio = "1800-01-01";
+        ''')
+
+    garante_coluna_no_legado('proposicao',
+                             'num_proposicao int(11) NULL')
+
+    garante_coluna_no_legado('tipo_materia_legislativa',
+                             'ind_num_automatica BOOLEAN NULL DEFAULT FALSE')
+
+    garante_coluna_no_legado('tipo_materia_legislativa',
+                             'quorum_minimo_votacao int(11) NULL')
+
+    # Cria campos cod_presenca_sessao (sendo a nova PK da tabela)
+    # e dat_sessao em sessao_plenaria_presenca
+    if not existe_coluna_no_legado('sessao_plenaria_presenca',
+                                   'cod_presenca_sessao'):
+        exec_legado('''
+            ALTER TABLE sessao_plenaria_presenca
+            DROP PRIMARY KEY,
+            ADD cod_presenca_sessao INT auto_increment PRIMARY KEY FIRST;
+        ''')
+        assert existe_coluna_no_legado('sessao_plenaria_presenca',
+                                       'cod_presenca_sessao')
+
+    garante_coluna_no_legado('sessao_plenaria_presenca',
+                             'dat_sessao DATE NULL')
+
+    garante_tabela_no_legado('''
+        CREATE TABLE lexml_registro_publicador (
+            cod_publicador INT auto_increment NOT NULL,
+            id_publicador INT, nom_publicador varchar(255),
+            adm_email varchar(50),
+            sigla varchar(255),
+            nom_responsavel varchar(255),
+            tipo varchar(50),
+            id_responsavel INT, PRIMARY KEY (cod_publicador));
+    ''')
+
+    garante_tabela_no_legado('''
+        CREATE TABLE lexml_registro_provedor (
+            cod_provedor INT auto_increment NOT NULL,
+            id_provedor INT, nom_provedor varchar(255),
+            sgl_provedor varchar(15),
+            adm_email varchar(50),
+            nom_responsavel varchar(255),
+            tipo varchar(50),
+            id_responsavel INT, xml_provedor longtext,
+            PRIMARY KEY (cod_provedor));
+    ''')
+
+    garante_tabela_no_legado('''
+        CREATE TABLE tipo_situacao_militar (
+            tip_situacao_militar INT auto_increment NOT NULL,
+            des_tipo_situacao varchar(50),
+            ind_excluido INT, PRIMARY KEY (tip_situacao_militar));
+    ''')
+
+    update_specs = '''
+vinculo_norma_juridica| ind_excluido = ''           | trim(ind_excluido) = '0'
+unidade_tramitacao    | cod_parlamentar = NULL      | cod_parlamentar = 0
+parlamentar           | cod_nivel_instrucao = NULL  | cod_nivel_instrucao = 0
+parlamentar           | tip_situacao_militar = NULL | tip_situacao_militar = 0
+mandato               | tip_afastamento = NULL      | tip_afastamento = 0
+relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
+    '''.strip().splitlines()
+
+    for spec in update_specs:
+        spec = spec.split('|')
+        exec_legado('UPDATE {} SET {} WHERE {}'.format(*spec))
 
 
 def iter_sql_records(sql, db):
@@ -333,8 +443,8 @@ class DataMigrator:
 
     def migrate(self, obj=appconfs, interativo=True):
         # warning: model/app migration order is of utmost importance
-        exec_sql_file(PROJECT_DIR.child(
-            'sapl', 'legacy', 'scripts', 'fix_tables.sql'), 'legacy')
+
+        uniformiza_banco()
 
         # excluindo database antigo.
         if interativo:
