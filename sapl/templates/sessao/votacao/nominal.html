@@ -1,5 +1,5 @@
 {% extends "crud/detail.html" %}
-{% load i18n %}
+{% load i18n crispy_forms_tags %}
 
 {% block detail_content %}
 <form method="post">
@@ -44,12 +44,7 @@
 
 	    <div class="row">
 	      <div class="col-md-12">
-	        Resultado da Votação
-	        <select id="resultado_votacao" name="resultado_votacao" class="form-control">
-	          {% for tipo in tipos %}
-	          <option value="{{tipo.id}}">{{tipo.nome}}</option>
-	          {% endfor %}
-	        </select>
+	        {{ form.resultado_votacao|as_crispy_field }}
 	      </div>
 	    </div>
 

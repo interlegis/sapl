@@ -18,7 +18,7 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         autor_modal, timezone)
 
 from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
-                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca)
+                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca, TipoResultadoVotacao)
 
 
 def recupera_anos():
@@ -238,10 +238,6 @@ class PresencaForm(forms.Form):
     parlamentar = forms.CharField(required=False, max_length=20)
 
 
-class VotacaoNominalForm(forms.Form):
-    pass
-
-
 class ListMateriaForm(forms.Form):
     error_message = forms.CharField(required=False, label='votacao_aberta')
 
@@ -256,10 +252,17 @@ class ExpedienteForm(forms.Form):
 
 
 class VotacaoForm(forms.Form):
-    votos_sim = forms.CharField(required=True, label='Sim')
-    votos_nao = forms.CharField(required=True, label='Não')
-    abstencoes = forms.CharField(required=True, label='Abstenções')
+    votos_sim = forms.CharField(label='Sim')
+    votos_nao = forms.CharField(label='Não')
+    abstencoes = forms.CharField(label='Abstenções')
     total_votos = forms.CharField(required=False, label='total')
+    resultado_votacao = forms.CharField(label='Resultado da Votação')
+
+
+class VotacaoNominalForm(forms.Form):
+    resultado_votacao = forms.ModelChoiceField(label='Resultado da Votação',
+                                               required=True,
+                                               queryset=TipoResultadoVotacao.objects.all())
 
 
 class VotacaoEditForm(forms.Form):
