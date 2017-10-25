@@ -1,17 +1,17 @@
 #!/bin/bash
 
-# Check if there's some debug breakpoint in codebase
+# Verifica se um breakpoint foi esquecido no código
 me=`basename "$0"`
-stmts=`grep --exclude=$me -r -l "ipdb.set_trace()" * | wc -l`
-if [ $stmts != '0' ]
+busca=`grep --color=auto --exclude=$me --exclude=ipython_log.py* -r -l "pdb.set_trace()" .`
+
+if [ ! -z "$busca" ]
 then
-    echo "=================================================================="
-    echo "ERROR: ipdb.set_trace() call in codebase! Remove, please."
-    grep --exclude=$me -r -n "ipdb.set_trace()" *
-    echo "=================================================================="
+    echo "============================================================================"
+    echo "ERROR: pdb.set_trace() encontrado nos seguintes arquivos. Remova, por favor."
+    echo "$busca"
+    echo "============================================================================"
 fi
 
-# QA checks: run this before every commit
-./manage.py check
-flake8 --exclude='ipython_log.py*,migrations,templates' .
-isort --recursive --check-only --skip='migrations' --skip='templates' --skip='ipython_log.py' .
+# ./manage.py check
+# flake8 --exclude='ipython_log.py*,migrations,templates' .
+# isort --recursive --check-only --skip='migrations' --skip='templates' --skip='ipython_log.py' .
