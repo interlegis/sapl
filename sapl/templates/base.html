@@ -65,7 +65,7 @@
                   <ul class="dropdown-menu">
                     <li><a>{{user.username}}</a></li>
                     {% if 'parlamentares.can_vote' in request.user.get_all_permissions %}
-                      <li><a href="{% url 'sapl.painel:voto_individual' %}">
+                      <li><a href="" onclick="window.open('{% url 'sapl.painel:voto_individual' %}','Voto Individual','width=1000, height=800, scrollbars=yes')";>
                         Votar Matéria
                       </a></li>
                     {% endif %}
