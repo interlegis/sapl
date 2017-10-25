@@ -18,7 +18,7 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         autor_modal, timezone)
 
 from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
-                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca)
+                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca, TipoResultadoVotacao)
 
 
 def recupera_anos():
@@ -259,10 +259,10 @@ class VotacaoForm(forms.Form):
     resultado_votacao = forms.CharField(label='Resultado da Votação')
 
 
-class VotacaoNominalForm(VotacaoForm):
-    votos_sim = forms.CharField(required=False, label='Sim')
-    votos_nao = forms.CharField(required=False, label='Não')
-    abstencoes = forms.CharField(required=False, label='Abstenções')
+class VotacaoNominalForm(forms.Form):
+    resultado_votacao = forms.ModelChoiceField(label='Resultado da Votação',
+                                               required=True,
+                                               queryset=TipoResultadoVotacao.objects.all())
 
 
 class VotacaoEditForm(forms.Form):

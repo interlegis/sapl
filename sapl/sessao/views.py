@@ -1700,7 +1700,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                            materia_votacao.materia.ementa))}
         context = {'materia': materia, 'object': self.get_object(),
                    'parlamentares': self.get_parlamentares(presentes),
-                   'tipos': self.get_tipos_votacao(),
+                   'form': self.get_form(),
                    'total': total}
 
         return self.render_to_response(context)
@@ -1743,19 +1743,20 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 voto = v[0]
                 parlamentar_id = v[1]
 
-                if(voto == 'Sim'):
+                if voto == 'Sim':
                     votos_sim += 1
-                elif(voto == 'Não'):
+                elif voto == 'Não':
                     votos_nao += 1
-                elif(voto == 'Abstenção'):
+                elif voto == 'Abstenção':
                     abstencoes += 1
-                elif(voto == 'Não Votou'):
+                elif voto == 'Não Votou':
                     nao_votou += 1
 
             # Caso todas as opções sejam 'Não votou', fecha a votação
             if nao_votou == len(request.POST.getlist('voto_parlamentar')):
-                fechar_votacao_materia(materia_votacao)
-                return self.form_valid(form)
+                form.add_error(None, 'Não é possível finalizar a votação sem '\
+                                     'nenhum voto')
+                return self.form_invalid(form)
 
             if self.ordem:
                 votacao = RegistroVotacao.objects.filter(
@@ -1772,7 +1773,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             votacao.numero_votos_sim = votos_sim
             votacao.numero_votos_nao = votos_nao
             votacao.numero_abstencoes = abstencoes
-            votacao.observacao = request.POST['observacao']
+            votacao.observacao = request.POST.get('observacao', None)
 
             if self.ordem:
                 votacao.materia_id = ordem.materia.id
@@ -1781,8 +1782,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 votacao.materia_id = expediente.materia.id
                 votacao.expediente_id = expediente_id
 
-            votacao.tipo_resultado_votacao_id = int(
-                request.POST['resultado_votacao'])
+            votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
             votacao.save()
 
             for votos in request.POST.getlist('voto_parlamentar'):
@@ -1804,8 +1804,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 voto_parlamentar.votacao_id = votacao.id
                 voto_parlamentar.save()
 
-                resultado = TipoResultadoVotacao.objects.get(
-                    id=request.POST['resultado_votacao'])
+                resultado = form.cleaned_data['resultado_votacao']
 
                 materia_votacao.resultado = resultado.nome
                 materia_votacao.votacao_aberta = False
@@ -1826,26 +1825,32 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             return self.form_valid(form)
 
         else:
-            errors_tuple = [(form[e].label, form.errors[e]) for e in form.errors]
-            error_message = '''<ul>'''
-            for e in errors_tuple:
-                error_message += '''<li><b>%s</b>: %s</li>''' % (e[0], e[1][0])
-            error_message += '''</ul>'''
+            return self.form_invalid(form)
 
-            messages.add_message(request, messages.ERROR, error_message)
+    def form_invalid(self, form):
+        errors_tuple = [(form[e].label, form.errors[e]) for e in form.errors if e in form.fields]
+        error_message = '''<ul>'''
+        for e in errors_tuple:
+            error_message += '''<li><b>%s</b>: %s</li>''' % (e[0], e[1][0])
+        for e in form.non_field_errors():
+            error_message += '''<li>%s</li>''' % e
+        error_message += '''</ul>'''
 
-            if self.ordem:
-                view = 'sapl.sessao:votacaonominal'
-            elif self.expediente:
-                view = 'sapl.sessao:votacaonominalexp'
-            else:
-                view = None
+        messages.add_message(self.request, messages.ERROR, error_message)
 
-            return HttpResponseRedirect(reverse(
-                view,
-                kwargs={'pk': kwargs['pk'],
-                        'oid': kwargs['oid'],
-                        'mid': kwargs['mid']}))
+        if self.ordem:
+            view = 'sapl.sessao:votacaonominal'
+        elif self.expediente:
+            view = 'sapl.sessao:votacaonominalexp'
+        else:
+            view = None
+
+        return HttpResponseRedirect(reverse(
+            view,
+            kwargs={'pk': self.kwargs['pk'],
+                    'oid': self.kwargs['oid'],
+                    'mid': self.kwargs['mid']}))
+
 
     def get_parlamentares(self, presencas):
         self.object = self.get_object()
@@ -1868,10 +1873,6 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     yield [parlamentar, None]
                 else:
                     yield [parlamentar, voto.voto]
-
-    def get_tipos_votacao(self):
-        for tipo in TipoResultadoVotacao.objects.all():
-            yield tipo
 
     def get_success_url(self):
         pk = self.kwargs['pk']
