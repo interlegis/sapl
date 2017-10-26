@@ -1939,7 +1939,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                 votosNao += 1
             elif v.voto == 'Abstenção':
                 abstencoes += 1
-            elif v.voto == '-1':
+            elif v.voto == 'Não Votou':
                 naoRegistrados += 1
 
         list_contagem = {'votosSim': votosSim, 'votosNao': votosNao, 'abstencoes': abstencoes,
