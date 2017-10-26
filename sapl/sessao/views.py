@@ -1124,6 +1124,14 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+def get_turno(turno):
+    for i in Tramitacao.TURNO_CHOICES:
+        if i[0] == turno:
+            return str(i[1])
+    else:
+        return ''
+
+
 class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
@@ -1211,6 +1219,10 @@ class ResumoView(DetailView):
             ementa = m.materia.ementa
             titulo = m.materia
             numero = m.numero_ordem
+            tramitacao = m.materia.tramitacao_set.last()
+            turno = None
+            if tramitacao:
+                turno = get_turno(tramitacao.turno)
 
             rv = m.registrovotacao_set.first()
             if rv:
@@ -1227,6 +1239,7 @@ class ResumoView(DetailView):
             mat = {'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
+                   'turno': turno,
                    'resultado': resultado,
                    'resultado_observacao': resultado_observacao,
                    'autor': autor
@@ -1271,6 +1284,10 @@ class ResumoView(DetailView):
             ementa = o.materia.ementa
             titulo = o.materia
             numero = o.numero_ordem
+            tramitacao = o.materia.tramitacao_set.last()
+            turno = None
+            if tramitacao:
+                turno = get_turno(tramitacao.turno)
 
             # Verificar resultado
             rv = o.registrovotacao_set.filter(materia=o.materia).first()
@@ -1288,6 +1305,7 @@ class ResumoView(DetailView):
             mat = {'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
+                   'turno': turno,
                    'resultado': resultado,
                    'resultado_observacao': resultado_observacao,
                    'autor': autor

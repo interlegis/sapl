@@ -13,7 +13,11 @@
         <tr>
           <td>
             {{m.numero}} - {{m.titulo}}
+            <br/>
+            {% if m.turno %}
+            <b>Turno:</b> {{m.turno}}
             <br />
+            {% endif %}
             <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
           </td>
           <td>{{m.ementa|safe}}</td>
