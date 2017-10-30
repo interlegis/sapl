@@ -20,27 +20,26 @@
 	<legend>Norma Juridica Vinculada</legend>
 	<!-- TODO -->
 	{% for n in norma %}
-		<b><a href="">{{n}}</a></b>
+		<b><a href="">{{n}}</a></b><br/>
 	{% endfor %}
 </fieldset>
 <br /><br />
 <fieldset>
 	<legend>Outras Informações</legend>
 
-	<b>Em Tramitação?</b> {{ordem.materia.em_tramitacao|yesno:"Sim,Não"}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	<b>Matéria Polêmica?</b> {{ordem.materia.polemica|yesno:"Sim,Não"}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	<b>Regime Tramitação:</b> {{ordem.materia.regime_tramitacao}}
+	<b>Em Tramitação?</b> {{ordem.materia.em_tramitacao|yesno:"Sim,Não"}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+	<b>Matéria Polêmica?</b> {{ordem.materia.polemica|yesno:"Sim,Não"}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+	<b>Regime Tramitação:</b> {{ordem.materia.regime_tramitacao}}<br/>
 </fieldset>
 <br /><br />
 <fieldset>
 	<legend>Documentos Acessórios</legend>
 
 	{% for d in doc_ace %}
-		<b>Nome:</b> {{d.nome}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<b>Tipo:</b> {{d.tipo}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<b>Data:</b> {{d.data}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<b>Autor:</b> {{d.autor}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-
+		<b>Nome:</b> {{d.nome}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+		<b>Tipo:</b> {{d.tipo}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+		<b>Data:</b> {{d.data}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+		<b>Autor:</b> {{d.autor}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
 		<br /><br />
 	{% endfor %}
 </fieldset>
