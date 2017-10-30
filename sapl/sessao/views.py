@@ -1252,7 +1252,9 @@ class ResumoView(DetailView):
                    'turno': turno,
                    'resultado': resultado,
                    'resultado_observacao': resultado_observacao,
-                   'autor': autor
+                   'autor': autor,
+                   'numero_protocolo': m.materia.numero_protocolo,
+                   'numero_processo': m.materia.numeracao_set.last()
                    }
             materias_expediente.append(mat)
 
@@ -1318,7 +1320,9 @@ class ResumoView(DetailView):
                    'turno': turno,
                    'resultado': resultado,
                    'resultado_observacao': resultado_observacao,
-                   'autor': autor
+                   'autor': autor,
+                   'numero_protocolo': o.materia.numero_protocolo,
+                   'numero_processo': o.materia.numeracao_set.last()
                    }
             materias_ordem.append(mat)
 
