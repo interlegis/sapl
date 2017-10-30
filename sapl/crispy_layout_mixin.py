@@ -38,7 +38,7 @@ def form_actions(more=[], save_label=_('Salvar')):
     return FormActions(
         Submit('salvar', save_label, css_class='pull-right',
                # para impedir resubmissão do form
-               onclick='this.disabled=true;'),
+               onclick='this.form.submit();this.disabled=true;'),
         *more)
 
 
