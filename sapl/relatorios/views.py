@@ -740,7 +740,8 @@ def get_sessao_plenaria(sessao, casa):
 def get_turno(dic, materia):
     descricao_turno = ' '
     descricao_tramitacao = ' '
-    tramitacao = Tramitacao.objects.filter(materia=materia).last()
+    tramitacao = Tramitacao.objects.filter(materia=materia).order_by(
+        '-data_tramitacao').first()
     if tramitacao is not None:
         for t in Tramitacao.TURNO_CHOICES:
             if t[0] == tramitacao.turno:
