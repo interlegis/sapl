@@ -69,5 +69,10 @@
 		function voltar() {
 			window.history.back();
 		}
+
+		$(window).on('beforeunload', function () {
+            $("input[type=submit], input[type=button]").prop("disabled", "disabled");
+        });
+
 	</script>
 {% endblock extra_js%}
