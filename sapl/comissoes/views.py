@@ -72,7 +72,7 @@ class ComposicaoCrud(MasterDetailCrud):
 
             context['participacao_set'] = Participacao.objects.filter(
                 composicao__pk=context['composicao_pk']
-            ).order_by('parlamentar')
+            ).order_by('id')
             return context
 
 
