@@ -11,18 +11,23 @@
     <tbody>
       {% for m in materia_expediente %}
         <tr>
-          <br>
+          <td>
             {{m.numero}} - {{m.titulo}}
-            <br />
+
             {% if m.turno %}
-            <b>Turno:</b> {{m.turno}}
-            <br />
+              <br />
+              <b>Turno:</b> {{m.turno}}
             {% endif %}
+
+            <br />
+
             <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+
             {% if m.numero_protocolo %}
               <br />
               <b>Número de Protocolo:</b> {{ m.numero_protocolo }}
             {% endif %}
+
             {% if m.numero_processo %}
               <br />
               <b>Processo:</b> {{ m.numero_processo }}
