@@ -299,3 +299,8 @@ def excepthook(*args):
         'Uncaught exception:', exc_info=args)
 
 # sys.excepthook = excepthook
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # default
+    'sapl.hashers.ZopeSHA1PasswordHasher',
+]
