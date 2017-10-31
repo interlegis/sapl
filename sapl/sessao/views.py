@@ -1963,11 +1963,27 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                        '&nbsp;', ' ', strip_tags(ementa))}
         context.update({'materia': materia})
 
+        votosSim = votosNao = abstencoes = naoRegistrados = 0
+        for v in votos:
+            if v.voto == 'Sim':
+                votosSim += 1
+            elif v.voto == 'Não':
+                votosNao += 1
+            elif v.voto == 'Abstenção':
+                abstencoes += 1
+            elif v.voto == 'Não Votou':
+                naoRegistrados += 1
+
+        list_contagem = {'votosSim': votosSim, 'votosNao': votosNao, 'abstencoes': abstencoes,
+                         'naoRegistrados': naoRegistrados}
+
+        context.update({'contagem': list_contagem})
+
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
-            votacao.tipo_resultado_votacao_id}
+                votacao.tipo_resultado_votacao_id}
         context.update({'votacao': votacao_existente,
                         'tipos': self.get_tipos_votacao()})
 
