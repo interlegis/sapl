@@ -342,11 +342,12 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                           resultado_observacao))
                     else:
                         if obj.tipo_votacao == 2:
-                            url = reverse('sapl.sessao:votacao_nominal_transparencia' + '&materia=ordem',
+                            url = reverse('sapl.sessao:votacao_nominal_transparencia',
                                           kwargs={
                                               'pk': obj.sessao_plenaria_id,
                                               'oid': obj.pk,
-                                              'mid': obj.materia_id})
+                                              'mid': obj.materia_id}) +\
+                                               '?&materia=expediente'
                         else:
                             obj.resultado = ('%s<br/>%s' %
                                              (resultado_descricao,
