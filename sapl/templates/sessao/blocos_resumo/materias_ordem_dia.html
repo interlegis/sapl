@@ -18,7 +18,8 @@
             <b>Turno:</b> {{m.turno}}
             <br />
             {% endif %}
-            <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+            <b>Autor: {{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+            <b>Protocolo: {{ m.autor|length|pluralize:"es" }}</b>
           </td>
           <td>{{m.ementa|safe}}</td>
           <td><b>{{m.resultado}}</b><br/>{{m.resultado_observacao}}</td>

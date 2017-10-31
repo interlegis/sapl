@@ -168,15 +168,25 @@ def customize_link_materia(context):
         autor = autoria.autor if autoria else None
         num_protocolo = materia.numero_protocolo
 
+        tramitacao = Tramitacao.objects.filter(materia=materia).last()
+        turno = '  '
+        if tramitacao is not None:
+            for t in Tramitacao.TURNO_CHOICES:
+               if t[0] == tramitacao.turno:
+                    turno = t[1]
+                    break
+
         title_materia = '''<a href=%s>%s</a> </br>
-                           <b>Número de Processo:</b> %s </br>
+                           <b>Processo:</b> %s </br>
                            <b>Autor:</b> %s </br>
-                           <b>Número de Protocolo:</b> %s </br>
+                           <b>Protocolo:</b> %s </br>
+                           <b>Turno:</b> %s </br>
                         ''' % (url_materia,
                                row[1][0],
                                numeracao if numeracao else '',
                                autor if autor else '',
-                               num_protocolo if num_protocolo else '')
+                               num_protocolo if num_protocolo else '',
+                               turno)
 
         # Na linha abaixo, o segundo argumento é None para não colocar
         # url em toda a string de title_materia
@@ -1242,7 +1252,9 @@ class ResumoView(DetailView):
                    'turno': turno,
                    'resultado': resultado,
                    'resultado_observacao': resultado_observacao,
-                   'autor': autor
+                   'autor': autor,
+                   'numero_protocolo': m.materia.numero_protocolo,
+                   'numero_processo': m.materia.numeracao_set.last()
                    }
             materias_expediente.append(mat)
 
@@ -1308,7 +1320,9 @@ class ResumoView(DetailView):
                    'turno': turno,
                    'resultado': resultado,
                    'resultado_observacao': resultado_observacao,
-                   'autor': autor
+                   'autor': autor,
+                   'numero_protocolo': o.materia.numero_protocolo,
+                   'numero_processo': o.materia.numeracao_set.last()
                    }
             materias_ordem.append(mat)
 
