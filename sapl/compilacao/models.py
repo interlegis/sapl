@@ -1,5 +1,4 @@
 
-import reversion
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -13,6 +12,7 @@ from django.utils import timezone
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
+import reversion
 
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
                                    int_to_roman)
@@ -115,13 +115,13 @@ class TipoTextoArticulado(models.Model):
         on_delete=models.SET_NULL,
         verbose_name=_('Modelo Integrado'))
     participacao_social = models.BooleanField(
-        blank=False,
+        blank=False, default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Participação Social'))
 
     publicacao_func = models.BooleanField(
         choices=YES_NO_CHOICES,
-        blank=False,
+        blank=False, default=False,
         verbose_name=_('Histórico de Publicação'))
 
     perfis = models.ManyToManyField(
