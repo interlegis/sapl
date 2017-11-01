@@ -168,7 +168,14 @@ def customize_link_materia(context):
         autor = autoria.autor if autoria else None
         num_protocolo = materia.numero_protocolo
 
-        tramitacao = Tramitacao.objects.filter(materia=materia).last()
+        tramitacao = Tramitacao.objects.filter(materia=materia, turno__isnull=False
+                                               ).exclude(turno__exact=''
+                                                        ).select_related(
+                                                        'materia',
+                                                        'status',
+                                                        'materia__tipo').order_by(
+                                                        '-data_tramitacao'
+                                                        ).first()
         turno = '  '
         if tramitacao is not None:
             for t in Tramitacao.TURNO_CHOICES:
