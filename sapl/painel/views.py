@@ -14,7 +14,7 @@ from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
-from sapl.parlamentares.models import Votante
+from sapl.parlamentares.models import Votante, Parlamentar
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoParlamentar)
@@ -296,20 +296,21 @@ def get_presentes(pk, response, materia):
 
     presentes_list = []
     for p in presentes:
-        filiacao = filiacao_data(p.parlamentar, data_sessao, data_sessao)
+        if (p.parlamentar.ativo):
+            filiacao = filiacao_data(p.parlamentar, data_sessao, data_sessao)
 
-        if not filiacao:
-            partido = 'Sem Registro'
-        else:
-            partido = filiacao
+            if not filiacao:
+                partido = 'Sem Registro'
+            else:
+                partido = filiacao
 
-        presentes_list.append(
-            {'id': p.id,
-             'parlamentar_id': p.parlamentar.id,
-             'nome': p.parlamentar.nome_parlamentar,
-             'partido': partido,
-             'voto': ''
-             })
+            presentes_list.append(
+                {'id': p.id,
+                 'parlamentar_id': p.parlamentar.id,
+                 'nome': p.parlamentar.nome_parlamentar,
+                 'partido': partido,
+                 'voto': ''
+                 })
 
     if materia:
         if materia.tipo_votacao == 1:
