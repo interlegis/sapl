@@ -2071,10 +2071,8 @@ class VotacaoNominalTransparenciaDetailView(TemplateView):
 
         if materia_votacao == 'ordem':
             votacao = RegistroVotacao.objects.get(ordem=self.kwargs['oid'])
-
         if materia_votacao == 'expediente':
             votacao = RegistroVotacao.objects.get(expediente=self.kwargs['oid'])
-
         else:
             raise Http404()
 
