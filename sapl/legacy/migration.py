@@ -825,7 +825,8 @@ def adjust_autor(new, old):
         if not user_model.objects.filter(username=old.col_username).exists():
             # cria um novo ususaŕio para o autor
             user = user_model(username=old.col_username)
-            user.set_password(12345)
+            # gera uma senha inutilizável, que precisará ser trocada
+            user.set_password(None)
             with reversion.create_revision():
                 user.save()
                 reversion.set_comment(

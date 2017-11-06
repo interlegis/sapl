@@ -1,14 +1,9 @@
-import yaml
-from django.conf import settings
 from django.contrib.auth.models import Group, User
 
+from sapl.settings import MEDIA_ROOT
 
-def le_yaml_dados_zope(caminho_yaml):
-    with open(caminho_yaml, 'r') as f:
-        dados = yaml.load(f.read())
-    return dados
-
-PERFIL_LEGADO_PARA_NOVO = [
+PERFIL_LEGADO_PARA_NOVO = {legado: Group.objects.get(name=novo)
+                           for legado, novo in [
     ('Autor', 'Autor'),
     ('Operador', 'Operador Geral'),
     ('Operador Comissao', 'Operador de Comissões'),
@@ -18,32 +13,40 @@ PERFIL_LEGADO_PARA_NOVO = [
     ('Operador Parlamentar', 'Parlamentar'),
     ('Operador Protocolo', 'Operador de Protocolo Administrativo'),
     ('Operador Sessao Plenaria', 'Operador de Sessão Plenária'),
+    ('Parlamentar', 'Votante'),
 ]
+}
 
-ADMINISTRADORES = ['Administrador', 'Manager']
+ADMINISTRADORES = {'Administrador', 'Manager'}
 
-VOTANTE = Group.objects.get(name='Votante')
+IGNORADOS = {
+    # sem significado fora do zope
+    'Alterar Senha', 'Authenticated', 'Owner',
+
+    # obsoletos (vide docs a seguir)
+    'Operador Mesa Diretora',
+    'Operador Ordem Dia',
+    'Operador Tabela Auxiliar',
+    'Operador Lexml',
+}
 
 
-def migra_usuarios(caminho_yaml):
+def migra_usuarios():
     """
-    Existe um método em nosso projeto interno de **consulta a todos os sapls**
-    que exporta os dados de usuários (e nome da casa e url interna)
-    como um yaml.
-
-    Esse yaml é lido por essa rotina e os usuários são criados se necessário
-    e seus perfis ajustados.
+    Lê o arquivo media/USERS e importa os usuários nele listados,
+    com senhas e perfis.
+    Os usuários são criados se necessário e seus perfis ajustados.
 
     Os seguintes perfis no legado não correspondem a nenhum no código atual
     e estão sendo **ignorados**:
 
     * Operador Mesa Diretora
-      Contei apenas **8 usuários**, em todas as bases, que tem esse perfil
-      e não tem nem "Operador" nem "Operador Sessao Plenaria"
+      Apenas **8 usuários**, em todas as bases, têm esse perfil
+      e não têm nem "Operador" nem "Operador Sessao Plenaria"
 
     * Operador Ordem Dia
-      Contei apenas **16 usuários**, em todas as bases, que tem esse perfil
-      e não tem nem "Operador" nem "Operador Sessao Plenaria"
+      Apenas **16 usuários**, em todas as bases, têm esse perfil
+      e não têm nem "Operador" nem "Operador Sessao Plenaria"
 
     * Operador Tabela Auxiliar
       A edição das tabelas auxiliares deve ser feita por um administrador
@@ -51,19 +54,26 @@ def migra_usuarios(caminho_yaml):
     * Operador Lexml
       Também podemos assumir que essa é uma tarefa de um administrador
     """
-    dados = le_yaml_dados_zope(caminho_yaml)
-    db = settings.DATABASES['legacy']['NAME']
-    nome, url, usuarios_perfis = dados[db]
-    for nome, perfis in usuarios_perfis:
-        usuario, _ = User.objects.get_or_create(username=nome)
-        for legado, novo in PERFIL_LEGADO_PARA_NOVO:
-            if legado in perfis:
-                grupo = Group.objects.get(name=novo)
-                usuario.groups.add(grupo)
-            # Manager
-            if any(a in perfis for a in ADMINISTRADORES):
+
+    ARQUIVO_USUARIOS = MEDIA_ROOT.child('USERS')
+    with open(ARQUIVO_USUARIOS, 'r') as f:
+        usuarios = eval(f.read())
+    usuarios = [
+        (nome,
+         # troca senha "inicial" por uma inutilizável
+         senha if senha != 'inicial' else None,
+         # filtra perfis ignorados
+         {p for p in perfis if p not in IGNORADOS})
+        for nome, senha, perfis in usuarios]
+
+    for nome, senha, perfis in usuarios:
+        usuario = User.objects.get_or_create(username=nome)[0]
+        for perfil in perfis:
+            if perfil in ADMINISTRADORES:
+                # Manager
                 usuario.is_staff = True
                 usuario.save()
-            # Votante
-            if 'Parlamentar' in perfis:
-                usuario.groups.add(VOTANTE)
+            else:
+                usuario.groups.add(PERFIL_LEGADO_PARA_NOVO[perfil])
+    # apaga arquivo (importante pois contém senhas)
+    ARQUIVO_USUARIOS.remove()
