@@ -157,7 +157,7 @@ def abrir_votacao(request, pk, spk):
         reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk}))
 
 
-def customize_link_materia(context):
+def customize_link_materia(context, pk):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
         url_materia = reverse('sapl.materia:materialegislativa_detail',
@@ -168,7 +168,11 @@ def customize_link_materia(context):
         autor = autoria.autor if autoria else None
         num_protocolo = materia.numero_protocolo
 
-        tramitacao = Tramitacao.objects.filter(materia=materia, turno__isnull=False
+        data_inicio_sessao = SessaoPlenaria.objects.get(id=pk).data_inicio
+
+        tramitacao = Tramitacao.objects.filter(materia=materia,
+                                               turno__isnull=False,
+                                               data_tramitacao__lte=data_inicio_sessao
                                                ).exclude(turno__exact=''
                                                         ).select_related(
                                                         'materia',
@@ -179,7 +183,7 @@ def customize_link_materia(context):
         turno = '  '
         if tramitacao is not None:
             for t in Tramitacao.TURNO_CHOICES:
-               if t[0] == tramitacao.turno:
+                if t[0] == tramitacao.turno:
                     turno = t[1]
                     break
 
@@ -265,8 +269,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-
-            return customize_link_materia(context)
+            return customize_link_materia(context, self.kwargs['pk'])
 
         def get_rows(self, object_list):
             for obj in object_list:
@@ -397,7 +400,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            return customize_link_materia(context)
+            return customize_link_materia(context, self.kwargs['pk'])
 
         def get_rows(self, object_list):
             for obj in object_list:

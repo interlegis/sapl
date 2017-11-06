@@ -563,7 +563,7 @@ def get_sessao_plenaria(sessao, casa):
                 str(numeracao.numero_materia) + '/' + str(
                     numeracao.ano_materia))
 
-        turno, _ = get_turno(dic_expediente_materia, materia)
+        turno, _ = get_turno(dic_expediente_materia, materia, sessao.data_inicio)
 
         dic_expediente_materia["des_turno"] = turno
 
@@ -666,7 +666,7 @@ def get_sessao_plenaria(sessao, casa):
                 '/' +
                 str(numeracao.ano_materia))
 
-        turno, _ = get_turno(dic_votacao, materia)
+        turno, _ = get_turno(dic_votacao, materia, sessao.data_inicio)
 
         dic_votacao["des_turno"] = turno
 
@@ -737,10 +737,12 @@ def get_sessao_plenaria(sessao, casa):
             lst_oradores)
 
 
-def get_turno(dic, materia):
+def get_turno(dic, materia, sessao_data_inicio):
     descricao_turno = ' '
     descricao_tramitacao = ' '
-    tramitacao = Tramitacao.objects.filter(materia=materia, turno__isnull=False
+    tramitacao = Tramitacao.objects.filter(materia=materia,
+                                           turno__isnull=False,
+                                           data_tramitacao__lte=sessao_data_inicio,
                                            ).exclude(turno__exact=''
                                                      ).select_related(
                                                         'materia',
@@ -1060,7 +1062,7 @@ def get_pauta_sessao(sessao, casa):
         elif autoria is None:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
-        turno, tramitacao = get_turno(dic_expediente_materia, materia)
+        turno, tramitacao = get_turno(dic_expediente_materia, materia, sessao.data_inicio)
 
         dic_expediente_materia["des_turno"] = turno
         dic_expediente_materia["des_situacao"] = tramitacao
@@ -1109,7 +1111,7 @@ def get_pauta_sessao(sessao, casa):
         elif autoria is None:
             dic_votacao["nom_autor"] = 'Desconhecido'
 
-        turno, tramitacao = get_turno(dic_expediente_materia, materia)
+        turno, tramitacao = get_turno(dic_expediente_materia, materia, sessao.data_inicio)
         dic_votacao["des_turno"] = turno
         dic_votacao["des_situacao"] = tramitacao
         lst_votacao.append(dic_votacao)
