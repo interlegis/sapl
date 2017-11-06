@@ -8,13 +8,14 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
-from sapl.parlamentares.models import Votante, Parlamentar
+from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoParlamentar)
@@ -296,9 +297,15 @@ def get_presentes(pk, response, materia):
 
     presentes_list = []
     for p in presentes:
-        if (p.parlamentar.ativo):
-            filiacao = filiacao_data(p.parlamentar, data_sessao, data_sessao)
+        now_year = timezone.now().year
+        # Recupera a legislatura vigente
+        legislatura = Legislatura.objects.get(data_inicio__year__lte = now_year,
+                                                 data_fim__year__gte = now_year)
+        # Recupera os mandatos daquele parlamentar
+        mandatos = p.parlamentar.mandato_set.filter(legislatura=legislatura)
 
+        if p.parlamentar.ativo and mandatos:
+            filiacao = filiacao_data(p.parlamentar, data_sessao, data_sessao)
             if not filiacao:
                 partido = 'Sem Registro'
             else:
