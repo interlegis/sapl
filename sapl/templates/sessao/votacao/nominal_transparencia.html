@@ -8,16 +8,16 @@
 	<fieldset>
 		<legend>Votação Nominal</legend>
 		<div>
-			Matéria: {{materia.materia|safe}}
+			Matéria: {{votacao.materia}}
 			<br />
-			Ementa: {{materia.ementa|safe}}
+			Ementa: {{votacao.materia.ementa}}
 		</div>
 
 		<br />
 		<fieldset>
 			<legend>Votos</legend>
       <div class="row">
-        {% for v in votos %}
+        {% for v in voto_parlamentar %}
 
         <div class="col-md-6">{{v.parlamentar}} -
           {% if v.voto == '-1'%}
@@ -32,41 +32,17 @@
 		</fieldset>
 
 		<br />
-    <div class="row">
-      <div class="col-md-12">
-            Anular Votação
-            <select id="anular_votacao" name="anular_votacao" class="form-control">
-              <option value="1">Sim</option>
-              <option value="0" selected>Não</option>
-            </select>
-      </div>
-    </div>
 
-		<br />
+	<br />
     <div class="row">
       <div class="col-md-12">
         <b>Resultado da Votação: </b>
         {% for tipo in tipos %}
-	        {% if votacao.tipo_resultado == tipo.id %}
+	        {% if resultado_votacao.tipo_resultado == tipo.id %}
 	        	{{ tipo.nome }}
 	        {% endif %}
         {% endfor %}
       </div>
-    </div>
-
-        <br />
-    <div class="row">
-        <div class="col-md-12">
-            <b>Contagem do Resultado:</b>
-            <br />
-            Votos Sim: {{ contagem.votosSim }}
-            <br />
-            Votos Não: {{ contagem.votosNao }}
-            <br />
-            Abstenções: {{ contagem.abstencoes }}
-            <br />
-            Votos Não Registrados: {{ contagem.naoRegistrados }}
-        </div>
     </div>
 
 		<br />
@@ -78,7 +54,6 @@
     </div>
 
 		<br /><br />
-		    <input type="submit" value="Salvar" class="btn btn-primary" />
 	</fieldset>
 </form>
 {% endblock detail_content %}

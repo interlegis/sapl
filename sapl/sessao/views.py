@@ -348,9 +348,17 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                           resultado_descricao,
                                           resultado_observacao))
                     else:
-                        obj.resultado = ('%s<br/>%s' %
-                                         (resultado_descricao,
-                                          resultado_observacao))
+                        if obj.tipo_votacao == 2:
+                            url = reverse('sapl.sessao:votacao_nominal_transparencia',
+                                          kwargs={
+                                              'pk': obj.sessao_plenaria_id,
+                                              'oid': obj.pk,
+                                              'mid': obj.materia_id}) +\
+                                               '?&materia=expediente'
+                        else:
+                            obj.resultado = ('%s<br/>%s' %
+                                             (resultado_descricao,
+                                              resultado_observacao))
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -395,6 +403,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             for obj in object_list:
                 exist_resultado = obj.registrovotacao_set.filter(
                     materia=obj.materia).exists()
+
                 if not exist_resultado:
                     if obj.votacao_aberta:
                         url = ''
@@ -470,11 +479,12 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                     else:
                         if obj.tipo_votacao == 2:
                             url = reverse(
-                                'sapl.sessao:votacaonominalexpdetail',
+                                'sapl.sessao:votacao_nominal_transparencia',
                                 kwargs={
                                     'pk': obj.sessao_plenaria_id,
                                     'oid': obj.pk,
-                                    'mid': obj.materia_id})
+                                    'mid': obj.materia_id}) +\
+                                     '?&materia=expediente'
                             obj.resultado = ('<a href="%s">%s</a><br/>%s' %
                                              (url,
                                               resultado_descricao,
@@ -2055,6 +2065,45 @@ class VotacaoNominalEditView(VotacaoNominalEditAbstract):
 class VotacaoNominalExpedienteEditView(VotacaoNominalEditAbstract):
     expediente = True
     ordem = False
+
+
+class VotacaoNominalTransparenciaDetailView(TemplateView):
+    template_name = 'sessao/votacao/nominal_transparencia.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(VotacaoNominalTransparenciaDetailView,
+                        self).get_context_data(**kwargs)
+
+        materia_votacao = self.request.GET.get('materia', None)
+
+        if materia_votacao == 'ordem':
+            votacao = RegistroVotacao.objects.get(ordem=self.kwargs['oid'])
+        if materia_votacao == 'expediente':
+            votacao = RegistroVotacao.objects.get(expediente=self.kwargs['oid'])
+        else:
+            raise Http404()
+
+        context['votacao'] = votacao
+
+        voto_parlamentar = VotoParlamentar.objects.filter(
+            votacao=votacao)
+
+        context['voto_parlamentar'] = voto_parlamentar
+
+        votacao_existente = {'observacao': sub(
+            '&nbsp;', ' ', strip_tags(votacao.observacao)),
+            'resultado': votacao.tipo_resultado_votacao.nome,
+            'tipo_resultado':
+            votacao.tipo_resultado_votacao_id}
+        context.update({'resultado_votacao': votacao_existente,
+                        'tipos': self.get_tipos_votacao()})
+
+        return context
+
+    def get_tipos_votacao(self):
+        for tipo in TipoResultadoVotacao.objects.all():
+            yield tipo
+
 
 
 class VotacaoNominalExpedienteDetailView(DetailView):
