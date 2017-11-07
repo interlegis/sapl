@@ -2507,46 +2507,6 @@ class PautaSessaoDetailView(DetailView):
         return self.render_to_response(context)
 
 
-class PautaExpedienteDetail(DetailView):
-    template_name = "sessao/pauta/expediente.html"
-    model = SessaoPlenaria
-
-    def get(self, request, *args, **kwargs):
-        pk = self.kwargs['pk']
-
-        expediente = ExpedienteMateria.objects.get(id=pk)
-        doc_ace = DocumentoAcessorio.objects.filter(
-            materia=expediente.materia)
-        tramitacao = Tramitacao.objects.filter(
-            materia=expediente.materia)
-
-        return self.render_to_response(
-            {'expediente': expediente,
-             'doc_ace': doc_ace,
-             'tramitacao': tramitacao})
-
-
-class PautaOrdemDetail(DetailView):
-    template_name = "sessao/pauta/ordem.html"
-    model = SessaoPlenaria
-
-    def get(self, request, *args, **kwargs):
-        pk = self.kwargs['pk']
-
-        ordem = OrdemDia.objects.get(id=pk)
-        norma = NormaJuridica.objects.filter(
-            materia=ordem.materia)
-        doc_ace = DocumentoAcessorio.objects.filter(
-            materia=ordem.materia)
-        tramitacao = Tramitacao.objects.filter(
-            materia=ordem.materia)
-
-        return self.render_to_response(
-            {'ordem': ordem,
-             'norma': norma,
-             'doc_ace': doc_ace,
-             'tramitacao': tramitacao})
-
 
 class PesquisarSessaoPlenariaView(FilterView):
     model = SessaoPlenaria
