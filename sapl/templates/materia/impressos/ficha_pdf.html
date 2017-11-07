@@ -45,9 +45,13 @@ body
 #despacho_inicial
 	{
      font-family: Arial;
+     line-height: 150%;
      border-style: none;
      text-align: justify;
      font-size: small;
+     height:130px;
+     padding: 0pt 5pt 0pt 0pt;
+     margin-right:100px;
     }
 
 @media print {
@@ -88,19 +92,8 @@ body
       <td height="60pt" valign=top>
         <div>
 
-        <!-- Lista os autores -->
-           {% if materia.autoria_set.all %}
-        	  <strong class="text_pdf">Autor:</strong>
-        	  {% for a in materia.autoria_set.all %}
-        		{% if not forloop.first %}
-        	      <span class="text_pdf">{{a.autor}}</span><br>
-        		{% else %}
-        		  <span class="text_pdf">{{a.autor}}</span><br>
-        		{% endif %}
-        	   {% endfor %}
-        	   </br>
-            {% endif %}
-        </div>
+        <!-- Lista primeiro autor -->
+		<strong class="text_pdf">Autor: </strong><span class="text_pdf">{{materia.autoria_set.first.autor.nome}}</span><br>
        </td>
     </table>
 
