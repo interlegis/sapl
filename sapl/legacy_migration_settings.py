@@ -13,8 +13,10 @@ INSTALLED_APPS += (
 )
 
 DATABASES['legacy'] = config('DATABASE_URL_FONTE', cast=db_url,)
-DATABASES['default'] = config('DATABASE_URL_DESTINO', cast=db_url,
-                              default=DATABASES['default'])
+DATABASES['default'] = config(
+    'DATABASE_URL_DESTINO',
+    cast=lambda v: v if isinstance(v, dict) else db_url,
+    default=DATABASES['default'])
 
 # Sobrescreve o nome dos bancos caso a variável de ambiente seja definida
 # Útil para migração em lote de vários bancos
