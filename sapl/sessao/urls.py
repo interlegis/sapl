@@ -6,7 +6,6 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                ExpedienteMateriaCrud, ExpedienteView,
                                MateriaOrdemDiaCrud, MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
-                               PautaExpedienteDetail, PautaOrdemDetail,
                                PautaSessaoDetailView, PautaSessaoListView,
                                PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
@@ -97,10 +96,6 @@ urlpatterns = [
         PesquisarPautaSessaoView.as_view(), name='pesquisar_pauta'),
     url(r'^sessao/pauta-sessao/(?P<pk>\d+)$',
         PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
-    url(r'^sessao/pauta-sessao/(?P<pk>\d+)/expediente/$',
-        PautaExpedienteDetail.as_view(), name='pauta_expediente_detail'),
-    url(r'^sessao/pauta-sessao/(?P<pk>\d+)/ordem/$',
-        PautaOrdemDetail.as_view(), name='pauta_ordem_detail'),
 
     # Subnav sessão
     url(r'^sessao/(?P<pk>\d+)/expediente$',
