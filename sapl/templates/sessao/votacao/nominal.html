@@ -40,7 +40,16 @@
 		        </div>
 	        {% endfor %}
 	      </div>
-			</fieldset>
+
+              <legend>Situação da Votação:</legend>
+
+              <div class="row">
+                <div class="col-md-12"><input type="button" value="Computar Votos Informados pelo Operador" onClick="conta_votos()" class="btn btn-primary sm"></div>
+              </div>
+              <br />
+              <div id="soma_votos"></div>
+
+	</fieldset>
 
 	    <div class="row">
 	      <div class="col-md-12">
@@ -69,6 +78,45 @@
 		function voltar() {
 			window.history.back();
 		}
+
+                function conta_votos() {
+                        var votos_sim = 0;
+                        var votos_nao = 0;
+                        var votos_abstencao = 0;
+                        var nao_votou = 0;
+                        //alert($("#voto_parlamentar").text());
+                        $('[name=voto_parlamentar]').each(function() {
+                          if (($(this).is(':hidden')) == false) {
+                            switch ($(this).val().substring(0,4)) {
+                              case "Sim:":
+                                votos_sim = votos_sim + 1;
+                                //alert("votos sim: " + votos_sim);
+                                break;
+                              case "Não:":
+                                votos_nao = votos_nao + 1;
+                                //alert("votos não: " + votos_sim);
+                                break;
+                              case "Abst":
+                                votos_abstencao = votos_abstencao + 1;
+                                //alert("abstenções: " + votos_abstencao);
+                                break;
+                              case "Não ":
+                                nao_votou = nao_votou + 1;
+                                //alert("ainda não votaram: " + nao_votou);
+                                break;
+                            };
+                          };
+                        });
+
+                  $("#soma_votos").empty();
+                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Sim: " + votos_sim + "</div></div>");
+                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Não: " + votos_nao + "</div></div>");
+                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Abstenções: " + votos_abstencao + "</div></div>");
+                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Ainda não votaram: " + nao_votou + "</div></div>");
+
+                }
+
+                window.onload = conta_votos();
 
 		$(window).on('beforeunload', function () {
             $("input[type=submit], input[type=button]").prop("disabled", "disabled");

@@ -360,9 +360,11 @@ def get_votos(response, materia):
     if type(materia) == OrdemDia:
         registro = RegistroVotacao.objects.filter(
             ordem=materia, materia=materia.materia).last()
+        tipo = 'ordem'
     elif type(materia) == ExpedienteMateria:
         registro = RegistroVotacao.objects.filter(
             expediente=materia, materia=materia.materia).last()
+        tipo = 'expediente'
 
     if not registro:
         response.update({
@@ -373,6 +375,24 @@ def get_votos(response, materia):
             'total_votos': 0,
             'tipo_resultado': 'Ainda não foi votada.',
         })
+
+        if materia.tipo_votacao == 2:
+            if tipo == 'ordem':
+                votos_parlamentares = VotoParlamentar.objects.filter(
+                    ordem_id=materia.id).order_by(
+                        'parlamentar__nome_parlamentar')
+            else:
+                votos_parlamentares = VotoParlamentar.objects.filter(
+                    expediente_id=materia.id).order_by(
+                        'parlamentar__nome_parlamentar')
+
+
+            for i, p in enumerate(response['presentes']):
+                try:
+                    if votos_parlamentares.get(parlamentar_id=p['parlamentar_id']).voto:
+                        response['presentes'][i]['voto'] = 'Voto Informado'
+                except ObjectDoesNotExist:
+                    response['presentes'][i]['voto'] = ''
 
     else:
         total = (registro.numero_votos_sim +
