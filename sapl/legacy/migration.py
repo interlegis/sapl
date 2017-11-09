@@ -200,6 +200,16 @@ def migra_autor():
 
     SQL_DELETE_AUTOR_INATIVO = "delete from autor where cod_autor in ({});"
 
+    SQL_ENUMERA_AUTORIA_REPETIDOS = '''
+        select cod_materia, COUNT(*) from autoria where cod_autor in ({})
+        group by cod_materia
+        having 1 < COUNT(*);
+    '''
+
+    SQL_INFO_AUTORIA = '''
+        select * from autoria where cod_materia = {} and cod_autor in ({});
+    '''
+
     cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
 
     all_authors = []
@@ -223,7 +233,7 @@ def migra_autor():
             # tupl[8] = ind_excluido
             if tupl[8] == 1:
                 inativ.append(tupl)
-            elif tupl[8] == 0:\
+            elif tupl[8] == 0:
                 ativ.append(tupl)
 
         tables = ['autoria', 'documento_administrativo', 'proposicao', 'protocolo']
@@ -232,6 +242,15 @@ def migra_autor():
             ativId = ativ[0][0]
             inativIds = [u[0] for u in inativ]
             inativIds = (str(inativIds)).replace(']', '').replace('[', '')
+
+            sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(ativId + ', ' + inativIds)
+            cursor = exec_legado(sql)
+
+            for response in cursor:
+                sql = SQL_INFO_AUTORIA.format(response[0], ativId + ', ' + inativIds)
+                materias = exec_legado(sql)
+
+
             sql = SQL_UPDATE_TABLES_AUTOR.format(table, ativId, inativIds)
             exec_legado(sql)
 
