@@ -319,6 +319,9 @@ def get_presentes(pk, response, materia):
                  'voto': ''
                  })
 
+        elif not p.parlamentar.ativo or not mandatos:
+            num_presentes += -1
+
     if materia:
         if materia.tipo_votacao == 1:
             tipo_votacao = 'Simbólica'
