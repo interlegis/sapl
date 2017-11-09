@@ -19,8 +19,8 @@ def migra_autor(db, passwd):
 
     for author in all_authors:
         query2 = ("select * from {}.autor \
-                  where cod_parlamentar = " + str(author[0]) + " \
-                  group by cod_autor;").format(db)
+                  where cod_parlamentar = {} \
+                  group by cod_autor;").format(db, str(author[0]))
         cursor.execute(query2)
         user = []
 
@@ -30,6 +30,7 @@ def migra_autor(db, passwd):
         ativ = []
         inativ = []
         for tupl in user:
+            # tupl[8] = ind_excluido
             if tupl[8] == 1:
                 inativ.append(tupl)
             elif tupl[8] == 0:
@@ -43,10 +44,11 @@ def migra_autor(db, passwd):
             inativIds = [u[0] for u in inativ]
             inativIds = (str(inativIds)).replace(']', ')').replace('[', '(')
             query3 += inativIds + ';'
-            #cursor.execute(query3)
+            cursor.execute(query3)
 
 
         query4 = ("delete from sapl_cm_ere_cpy.autor \
               where cod_autor in ")
         query4 += inativIds + ';'
+        cursor.execute(query4)
 
