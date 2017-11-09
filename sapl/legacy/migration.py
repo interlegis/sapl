@@ -181,6 +181,65 @@ def garante_tabela_no_legado(create_table):
         assert existe_tabela_no_legado(tabela)
 
 
+def migra_autor():
+    SQL_ENUMERA_REPETIDOS = '''
+          select cod_parlamentar, COUNT(*)
+          from autor where col_username is not null
+          group by col_username, cod_parlamentar
+          having 1 < COUNT(*)
+          order by cod_parlamentar asc;
+    '''
+
+    SQL_INFOS_AUTOR = '''
+          select * from autor 
+          where cod_parlamentar = {} 
+          group by cod_autor;
+    '''
+
+    SQL_UPDATE_TABLES_AUTOR = "update {} set cod_autor = {} where cod_autor in ({});"
+
+    SQL_DELETE_AUTOR_INATIVO = "delete from autor where cod_autor in ({});"
+
+    cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
+
+    all_authors = []
+
+    for response in cursor:
+        if response[0] is not None:
+            all_authors.append(response)
+
+    for author in all_authors:
+        sql = SQL_INFOS_AUTOR.format(str(author[0]))
+        cursor = exec_legado(sql)
+
+        user = []
+
+        for response in cursor:
+            user.append(response)
+
+        ativ = []
+        inativ = []
+        for tupl in user:
+            # tupl[8] = ind_excluido
+            if tupl[8] == 1:
+                inativ.append(tupl)
+            elif tupl[8] == 0:\
+                ativ.append(tupl)
+
+        tables = ['autoria', 'documento_administrativo', 'proposicao', 'protocolo']
+        for table in tables:
+            # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
+            ativId = ativ[0][0]
+            inativIds = [u[0] for u in inativ]
+            inativIds = (str(inativIds)).replace(']', '').replace('[', '')
+            sql = SQL_UPDATE_TABLES_AUTOR.format(table, ativId, inativIds)
+            exec_legado(sql)
+
+
+            sql = SQL_DELETE_AUTOR_INATIVO.format(inativIds)
+            exec_legado(sql)
+
+
 def uniformiza_banco():
     exec_legado('''
       SELECT replace(@@sql_mode,"STRICT_TRANS_TABLES,","ALLOW_INVALID_DATES");
