@@ -2430,7 +2430,7 @@ class PautaSessaoDetailView(DetailView):
             autoria = Autoria.objects.filter(materia_id=m.materia_id)
             autor = [str(x.autor) for x in autoria]
 
-            mat = {'id': m.id,
+            mat = {'id': m.materia_id,
                    'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
@@ -2493,7 +2493,7 @@ class PautaSessaoDetailView(DetailView):
                 materia_id=o.materia_id)
             autor = [str(x.autor) for x in autoria]
 
-            mat = {'id': o.id,
+            mat = {'id': o.materia_id,
                    'ementa': ementa,
                    'titulo': titulo,
                    'numero': numero,
