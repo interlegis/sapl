@@ -76,10 +76,13 @@ def enumerate_folder(folder):
 
 
 def enumerate_btree(folder):
+    contagem_esperada = folder['_count'].value
     tree = folder['_tree']
-    for id, obj in tree.iteritems():
+    for contagem_real, (id, obj) in enumerate(tree.iteritems(), start=1):
         obj, meta_type = br(obj), type(obj).__name__
         yield id, obj, meta_type
+    # verificação de consistência
+    assert contagem_esperada == contagem_real
 
 
 def dump_folder(folder, path='', enum=enumerate_folder):
