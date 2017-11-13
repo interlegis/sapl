@@ -99,9 +99,9 @@
     </br>
     <h2><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h2>
     <table style="width:75%; border:1px;" align="center">
-      <tr><th style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></th></tr>
-      <tr><th style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></th></tr>
-      <tr><th style="text-align:center"><font color="#45919D"><span id="resultado_votacao"></span></font></th></tr>
+      <tr><th style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></h4></th></tr>
+      <tr><th style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></h4></th></tr>
+      <tr><th style="text-align:center"><h2><font color="#45919D"><span id="resultado_votacao"></span></font></h2></th></tr>
     </table>
   </body>
 
@@ -185,18 +185,29 @@
               var votacao = $("#votacao");
               $("#votacao").text('');
               presentes.children().remove();
-              votacao.children().remove()
+              votacao.children().remove();
 
               var presentes_list = data["presentes"];
 
               if (data["status_painel"] == true) {
                   presentes.append('<table id="parlamentares_list">');
                   jQuery.each(presentes_list, function (index, parlamentar) {
+
+                    if (parlamentar.voto == 'Voto Informado'){
+                      $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
+                          parlamentar.nome +
+                          '</td> <td style="padding-right:20px; color:yellow">' +
+                          parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
+                          + '</td></tr>')
+                    }
+                    else{
                       $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
                           parlamentar.nome +
                           '</td> <td style="padding-right:20px">' +
                           parlamentar.partido + '</td> <td style="padding-right:20px">'
-                          + show_voto(parlamentar.voto) + '</td> </tr>')
+                          + show_voto(parlamentar.voto) + '</td></tr>')
+                    } 
+
                   });
                   presentes.append('</table>');
               }
@@ -269,8 +280,16 @@
                 $("#observacao_materia").text('');
               }
 
-              if (data['resultado_votacao']){
+              if (data['tipo_resultado']){
                 $("#resultado_votacao").text(data["tipo_resultado"]);
+                $("#resultado_votacao").css("color", "#45919D");
+                var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
+                  if (resultado_votacao_upper.search("APROV") != -1){
+                    $("#resultado_votacao").css("color", "green");
+                  }
+                  if (resultado_votacao_upper.search("REJEIT") != -1){
+                    $("#resultado_votacao").css("color", "red"); 
+                  }
               }
               else{
                 $("#resultado_votacao").text('');
