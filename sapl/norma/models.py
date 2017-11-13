@@ -174,8 +174,8 @@ class NormaJuridica(models.Model):
 
 @reversion.register()
 class LegislacaoCitada(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
-    norma = models.ForeignKey(NormaJuridica, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
+    norma = models.ForeignKey(NormaJuridica, on_delete=models.CASCADE)
     disposicoes = models.CharField(
         max_length=15, blank=True, verbose_name=_('Disposição'))
     parte = models.CharField(
