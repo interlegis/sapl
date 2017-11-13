@@ -182,6 +182,10 @@ def garante_tabela_no_legado(create_table):
 
 
 def migra_autor():
+    SQL_ALTERA_IND_EXCLUIDO = '''
+        update {} set ind_excluido = null;
+    '''
+
     SQL_ENUMERA_REPETIDOS = '''
           select cod_parlamentar, COUNT(*)
           from autor where col_username is not null
@@ -210,6 +214,11 @@ def migra_autor():
         select * from autoria where cod_materia = {} and cod_autor in ({});
     '''
 
+    SQL_DELETE_AUTORIA = '''
+        delete from autoria where cod_materia in ({}) and cod_autor in ({});   
+    '''
+
+    cursor = exec_legado(SQL_ALTERA_IND_EXCLUIDO.format('autor'))
     cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
 
     all_authors = []
@@ -227,35 +236,26 @@ def migra_autor():
         for response in cursor:
             user.append(response)
 
-        ativ = []
-        inativ = []
-        for tupl in user:
-            # tupl[8] = ind_excluido
-            if tupl[8] == 1:
-                inativ.append(tupl)
-            elif tupl[8] == 0:
-                ativ.append(tupl)
+        last = user.pop(len(user) - 1)
+        ativId = last[0]
+        inativIds =[u[0] for u in user]
 
         tables = ['autoria', 'documento_administrativo', 'proposicao', 'protocolo']
         for table in tables:
             # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
-            ativId = ativ[0][0]
-            inativIds = [u[0] for u in inativ]
             inativIds = (str(inativIds)).replace(']', '').replace('[', '')
 
             sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(ativId + ', ' + inativIds)
             cursor = exec_legado(sql)
 
             for response in cursor:
-                sql = SQL_INFO_AUTORIA.format(response[0], ativId + ', ' + inativIds)
-                materias = exec_legado(sql)
+                if table == 'autoria':
+                    sql = SQL_INFO_AUTORIA.format(response[0], ativId + ', ' + inativIds)
+                    materias = exec_legado(sql)
+                    sql = SQL_DELETE_AUTORIA.format(response[0], inativIds)
 
 
             sql = SQL_UPDATE_TABLES_AUTOR.format(table, ativId, inativIds)
-            exec_legado(sql)
-
-
-            sql = SQL_DELETE_AUTOR_INATIVO.format(inativIds)
             exec_legado(sql)
 
 
