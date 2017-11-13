@@ -69,6 +69,9 @@
                         Votar Matéria
                       </a></li>
                     {% endif %}
+                    {% if request.user.is_superuser %}
+                      <li><a href="/admin">Administração</a></li>
+                    {% endif %}
                     <li><a href="{% url 'sapl.base:logout' %}">Sair</a></li>
                   </ul>
                 </li>
