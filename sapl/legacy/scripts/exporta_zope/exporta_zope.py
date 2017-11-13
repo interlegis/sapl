@@ -152,3 +152,13 @@ def dump_sapl(data_fs_path):
             print('#' * 80)
     finally:
         close_db()
+
+
+def dump_propriedades(docs):
+    props_sapl = br(docs['props_sapl'])
+    ids = [p['id'] for p in props_sapl['_properties']]
+    props = {id: props_sapl[id] for id in ids}
+    props = {id: p.decode('iso-8859-1') if isinstance(p, str) else p
+             for id, p in props.items()}
+    with open('sapl_documentos/propriedades.yaml', 'w') as f:
+        f.write(yaml.safe_dump(props))
