@@ -92,6 +92,10 @@ SituacaoMilitar:
   {% trans 'Tipo Situação Militar' %}:
   - descricao
 
+Municipio:
+  {% trans 'Município' %}:
+  - nome  uf regiao
+
 ComposicaoColigacao:
   {% trans 'Nome do Partido' %}:
   - partido
