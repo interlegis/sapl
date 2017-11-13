@@ -4,8 +4,9 @@ from functools import lru_cache, partial
 from subprocess import PIPE, call
 
 import pkg_resources
-import reversion
 import yaml
+
+import reversion
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
@@ -15,7 +16,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
-
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import (Autor, CasaLegislativa, ProblemaMigracao,
                               TipoAutor)
@@ -146,6 +146,7 @@ def exec_sql(sql, db='default'):
 
 # UNIFORMIZAÇÃO DO BANCO ANTES DA MIGRAÇÃO ###############################
 
+
 SQL_NAO_TEM_TABELA = '''
    SELECT count(*)
    FROM information_schema.columns
@@ -182,9 +183,6 @@ def garante_tabela_no_legado(create_table):
 
 
 def migra_autor():
-    SQL_ALTERA_IND_EXCLUIDO = '''
-        update {} set ind_excluido = null;
-    '''
 
     SQL_ENUMERA_REPETIDOS = '''
           select cod_parlamentar, COUNT(*)
@@ -195,8 +193,8 @@ def migra_autor():
     '''
 
     SQL_INFOS_AUTOR = '''
-          select * from autor 
-          where cod_parlamentar = {} 
+          select cod_autor from autor
+          where cod_parlamentar = {}
           group by cod_autor;
     '''
 
@@ -215,47 +213,38 @@ def migra_autor():
     '''
 
     SQL_DELETE_AUTORIA = '''
-        delete from autoria where cod_materia in ({}) and cod_autor in ({});   
+        delete from autoria where cod_materia in ({}) and cod_autor in ({});
     '''
 
-    cursor = exec_legado(SQL_ALTERA_IND_EXCLUIDO.format('autor'))
+    cursor = exec_legado('update autor set ind_excluido = null;')
     cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
 
-    all_authors = []
+    autores_parlamentares = [r[0] for r in cursor if r[0]]
 
-    for response in cursor:
-        if response[0] is not None:
-            all_authors.append(response)
+    for cod_autor in autores_parlamentares:
 
-    for author in all_authors:
-        sql = SQL_INFOS_AUTOR.format(str(author[0]))
+        sql = SQL_INFOS_AUTOR.format(cod_autor)
+
         cursor = exec_legado(sql)
+        autores = cursor.fetch_all()
+        ids = [a[0] for a in autores]
+        id_ativo, ids_inativos = ids[-1], ids[:-1]
 
-        user = []
-
-        for response in cursor:
-            user.append(response)
-
-        last = user.pop(len(user) - 1)
-        ativId = last[0]
-        inativIds =[u[0] for u in user]
-
-        tables = ['autoria', 'documento_administrativo', 'proposicao', 'protocolo']
-        for table in tables:
+        tabelas = ['autoria', 'documento_administrativo',
+                   'proposicao', 'protocolo']
+        for tabela in tabelas:
             # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
-            inativIds = (str(inativIds)).replace(']', '').replace('[', '')
+            ids_inativos = str(ids_inativos).strip('[]')
 
-            sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(ativId + ', ' + inativIds)
+            sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(str(ids).strip('[]'))
             cursor = exec_legado(sql)
 
             for response in cursor:
-                if table == 'autoria':
-                    sql = SQL_INFO_AUTORIA.format(response[0], ativId + ', ' + inativIds)
-                    materias = exec_legado(sql)
-                    sql = SQL_DELETE_AUTORIA.format(response[0], inativIds)
+                if tabela == 'autoria':
+                    sql = SQL_DELETE_AUTORIA.format(response[0], ids_inativos)
 
-
-            sql = SQL_UPDATE_TABLES_AUTOR.format(table, ativId, inativIds)
+            sql = SQL_UPDATE_TABLES_AUTOR.format(
+                tabela, id_ativo, ids_inativos)
             exec_legado(sql)
 
 
