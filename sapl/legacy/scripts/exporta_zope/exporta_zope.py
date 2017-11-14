@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # IMPORTANTE:
@@ -5,9 +6,11 @@
 # e depende apenas do descrito no arquivo requiments.txt
 
 import os.path
+import sys
 from collections import defaultdict
 from functools import partial
 
+import yaml
 import ZODB.DB
 import ZODB.FileStorage
 from ZODB.broken import Broken
@@ -64,7 +67,6 @@ def dump_file(doc, path):
     return name
 
 
-nao_identificados = defaultdict(list)
 
 
 def enumerate_folder(folder):
@@ -83,6 +85,9 @@ def enumerate_btree(folder):
         yield id, obj, meta_type
     # verificação de consistência
     assert contagem_esperada == contagem_real
+
+
+nao_identificados = defaultdict(list)
 
 
 def dump_folder(folder, path='', enum=enumerate_folder):
@@ -135,6 +140,16 @@ def find_sapl(app):
                 return sapl
 
 
+def dump_propriedades(docs):
+    props_sapl = br(docs['props_sapl'])
+    ids = [p['id'] for p in props_sapl['_properties']]
+    props = {id: props_sapl[id] for id in ids}
+    props = {id: p.decode('iso-8859-1') if isinstance(p, str) else p
+             for id, p in props.items()}
+    with open('sapl_documentos/propriedades.yaml', 'w') as f:
+        f.write(yaml.safe_dump(props))
+
+
 def dump_sapl(data_fs_path):
     app, close_db = get_app(data_fs_path)
     try:
@@ -143,6 +158,7 @@ def dump_sapl(data_fs_path):
 
         nao_identificados.clear()
         dump_folder(docs)
+        dump_propriedades(docs)
         if nao_identificados:
             print('#' * 80)
             print('#' * 80)
@@ -155,11 +171,9 @@ def dump_sapl(data_fs_path):
         close_db()
 
 
-def dump_propriedades(docs):
-    props_sapl = br(docs['props_sapl'])
-    ids = [p['id'] for p in props_sapl['_properties']]
-    props = {id: props_sapl[id] for id in ids}
-    props = {id: p.decode('iso-8859-1') if isinstance(p, str) else p
-             for id, p in props.items()}
-    with open('sapl_documentos/propriedades.yaml', 'w') as f:
-        f.write(yaml.safe_dump(props))
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        data_fs_path = sys.argv[1]
+        dump_sapl(data_fs_path)
+    else:
+        print('Uso: python exporta_zope <caminho p Data.fs>')
