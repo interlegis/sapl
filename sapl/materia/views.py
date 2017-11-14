@@ -941,7 +941,7 @@ class TramitacaoCrud(MasterDetailCrud):
                              ] = local.unidade_tramitacao_destino.pk
             else:
                 self.initial['unidade_tramitacao_local'] = ''
-            self.initial['data_tramitacao'] = timezone.now()
+            self.initial['data_tramitacao'] = timezone.now().date()
             return self.initial
 
         def get_context_data(self, **kwargs):
