@@ -3,33 +3,36 @@ import os.path
 import re
 import string
 
-import textract
+from django.db.models import Q, F, Value
+from django.db.models.fields import TextField
+from django.db.models.fields.files import FieldFile
+from django.db.models.functions import Concat
 from django.template import loader
-from haystack import indexes
+from haystack.constants import Indexable
+from haystack.fields import CharField
+from haystack.indexes import SearchIndex
+from haystack.utils import get_model_ct_tuple
 from textract.exceptions import ExtensionNotSupported
+import textract
 
+from sapl.compilacao.models import TextoArticulado, Dispositivo,\
+    STATUS_TA_PUBLIC, STATUS_TA_IMMUTABLE_PUBLIC
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.settings import BASE_DIR, SOLR_URL
 
+
 logger = logging.getLogger(BASE_DIR.name)
 
 
-class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.CharField(document=True, use_template=True)
+class TextExtractField(CharField):
 
-    filename = 'arquivo'
-    model = DocumentoAcessorio
-    template_name = 'materia/documentoacessorio_text.txt'
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        assert self.model_attr
 
-    def get_model(self):
-        return self.model
-
-    def index_queryset(self, using=None):
-        return self.get_model().objects.all()
-
-    def get_updated_field(self):
-        return 'data_ultima_atualizacao'
+        if not isinstance(self.model_attr, (list, tuple)):
+            self.model_attr = (self.model_attr, )
 
     def solr_extraction(self, arquivo):
         extracted_data = self._get_backend(None).extract_file_contents(
@@ -59,71 +62,99 @@ class DocumentoAcessorioIndex(indexes.SearchIndex, indexes.Indexable):
         print(msg)
         logger.error(msg)
 
-    def prepare(self, obj):
-        if not self.filename or not self.model or not self.template_name:
-            raise Exception
+    def extract_data(self, obj):
 
-        data = super(DocumentoAcessorioIndex, self).prepare(obj)
+        data = []
 
-        arquivo = getattr(obj, self.filename)
+        for attr in self.model_attr:
+            if not hasattr(obj, attr):
+                raise Exception
 
-        if arquivo:
-            if not os.path.exists(arquivo.path):
-                return self.prepared_data
+            value = getattr(obj, attr)
 
-            if not os.path.splitext(arquivo.path)[1][:1]:
-                return self.prepared_data
+            if not value:
+                continue
 
-            # Em ambiente de produção utiliza-se o SOLR
-            if SOLR_URL:
-                try:
-                    extracted_data = self.solr_extraction(arquivo)
-                except Exception:
-                    self.print_error(arquivo)
-                    return self.prepared_data
+            if isinstance(value, FieldFile):
+                if not os.path.exists(value.path):
+                    continue
 
-            # Em ambiente de DEV utiliza-se o Whoosh
-            # Como ele não possui extração, faz-se uso do textract
-            else:
-                try:
-                    extracted_data = self.whoosh_extraction(arquivo)
-                except ExtensionNotSupported as e:
-                    print(str(e))
-                    logger.error(str(e))
-                    return self.prepared_data
-                except Exception:
-                    self.print_error(arquivo)
-                    return self.prepared_data
+                if not os.path.splitext(value.path)[1][:1]:
+                    continue
 
-            # Now we'll finally perform the template processing to render the
-            # text field with *all* of our metadata visible for templating:
-            t = loader.select_template((
-                'search/indexes/' + self.template_name, ))
-            data['text'] = t.render({'object': obj,
-                                     'extracted': extracted_data})
+                # Em ambiente de produção utiliza-se o SOLR
+                if SOLR_URL:
+                    try:
+                        data.append(self.solr_extraction(value))
+                    except Exception:
+                        self.print_error(value)
 
-            return data
+                # Em ambiente de DEV utiliza-se o Whoosh
+                # Como ele não possui extração, faz-se uso do textract
+                else:
+                    try:
+                        data.append(self.whoosh_extraction(value))
+                    except ExtensionNotSupported as e:
+                        print(str(e))
+                        logger.error(str(e))
+                    except Exception:
+                        self.print_error(value)
 
-        return self.prepared_data
+            elif hasattr(value, 'model') and value.model == TextoArticulado:
+
+                for ta in value.filter(privacidade__in=[
+                        STATUS_TA_PUBLIC,
+                        STATUS_TA_IMMUTABLE_PUBLIC]):
+                    dispositivos = Dispositivo.objects.filter(
+                        Q(ta=ta) | Q(ta_publicado=ta)
+                    ).order_by(
+                        'ordem'
+                    ).annotate(
+                        rotulo_texto=Concat(
+                            F('rotulo'), Value(' '), F('texto'),
+                            output_field=TextField(),
+                        )
+                    ).values_list(
+                        'rotulo_texto', flat=True)
+                    data += list(filter(lambda x: x.strip(), dispositivos))
+
+        return ' '.join(data)
+
+    def prepare_template(self, obj):
+        app_label, model_name = get_model_ct_tuple(obj)
+        template_names = ['search/indexes/%s/%s_%s.txt' %
+                          (app_label, model_name, self.instance_name)]
+
+        t = loader.select_template(template_names)
+
+        return t.render({'object': obj,
+                         'extracted': self.extract_data(obj)})
 
 
-class MateriaLegislativaIndex(DocumentoAcessorioIndex):
-    text = indexes.CharField(document=True, use_template=True)
+class DocumentoAcessorioIndex(SearchIndex, Indexable):
+    model = DocumentoAcessorio
+    text = TextExtractField(
+        document=True, use_template=True, model_attr='arquivo')
 
-    filename = 'texto_original'
-    model = MateriaLegislativa
-    template_name = 'materia/materialegislativa_text.txt'
+    def get_model(self):
+        return self.model
+
+    def index_queryset(self, using=None):
+        return self.get_model().objects.all()
 
     def get_updated_field(self):
         return 'data_ultima_atualizacao'
 
 
 class NormaJuridicaIndex(DocumentoAcessorioIndex):
-    text = indexes.CharField(document=True, use_template=True)
-
-    filename = 'texto_integral'
     model = NormaJuridica
-    template_name = 'norma/normajuridica_text.txt'
+    text = TextExtractField(
+        model_attr=('texto_integral', 'texto_articulado'),
+        document=True, use_template=True, )
 
-    def get_updated_field(self):
-        return 'data_ultima_atualizacao'
+
+class MateriaLegislativaIndex(DocumentoAcessorioIndex):
+    model = MateriaLegislativa
+    text = TextExtractField(
+        model_attr=('texto_original', 'texto_articulado'),
+        document=True, use_template=True, )

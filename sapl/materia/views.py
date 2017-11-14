@@ -2,7 +2,6 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
-import weasyprint
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
@@ -20,8 +19,8 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+import weasyprint
 
-import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -42,6 +41,7 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor, show_results_filter_set)
+import sapl
 
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
@@ -61,6 +61,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
+
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
