@@ -947,15 +947,18 @@ class TramitacaoCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            primeira_tramitacao = not(Tramitacao.objects.filter(
-                materia_id=int(kwargs['root_pk'])).exists())
+            ultima_tramitacao = Tramitacao.objects.filter(
+                materia_id=self.kwargs['pk']).order_by(
+                '-data_tramitacao',
+                '-id').first()
 
-            # Se não for a primeira tramitação daquela matéria, o campo
-            # não pode ser modificado
-            if not primeira_tramitacao:
+            if ultima_tramitacao:
                 context['form'].fields[
-                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
+                    'unidade_tramitacao_local'].choices = [
+                    (ultima_tramitacao.unidade_tramitacao_destino.pk,
+                     ultima_tramitacao.unidade_tramitacao_destino)]
             return context
+
 
         def form_valid(self, form):
             self.object = form.save()

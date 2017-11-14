@@ -7,9 +7,12 @@
     // Caso o campo esteja desabilitado (quando não é a primeira tramitação),
     // habilita ele no momento do submit para que o valor de unidade local
     // não seja enviado como vazio
-    $('form').submit(function(){
-      $('#id_unidade_tramitacao_local').prop('disabled', false);
-    });
+
+    // ESTA SOLUCAO NAO FUNCIONOU NO CHROME, SOMENTE NO FIREFOX
+    // NO CHROME NAO E DISPARADO A FUNCAO DE HABILITACAO NO SUBMIT DO FORM
+    <!--$('form').submit(function(){-->
+      <!--$('#id_unidade_tramitacao_local').prop('disabled', false);-->
+    <!--});-->
 </script>
 
 {% endblock %}
