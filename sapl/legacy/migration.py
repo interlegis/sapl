@@ -211,8 +211,8 @@ def migra_autor():
     '''
 
     SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO = '''
-        update documento_administrativo 
-        set cod_autor = {} 
+        update documento_administrativo
+        set cod_autor = {}
         where cod_autor in ({});
     '''
 
@@ -228,7 +228,7 @@ def migra_autor():
         where cod_autor in ({});
     '''
 
-    #cursor = exec_legado('update autor set ind_excluido = null;')
+    cursor = exec_legado('update autor set ind_excluido = 0;')
     cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
 
     autores_parlamentares = [r[0] for r in cursor if r[0]]
@@ -252,7 +252,7 @@ def migra_autor():
         tabelas = ['autoria', 'documento_administrativo',
                    'proposicao', 'protocolo']
         for tabela in tabelas:
-            if tabela == 'autoria':
+            if tabela == 'autoria' and id_ativo and ids_inativos:
                 # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
                 sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(ids)
                 cursor = exec_legado(sql)
@@ -262,22 +262,22 @@ def migra_autor():
                     materias.append(response[0])
 
                 materias = str(materias).strip('[]')
-
-                sql = SQL_DELETE_AUTORIA.format(materias, ids_inativos)
-                exec_legado(sql)
+                if materias:
+                    sql = SQL_DELETE_AUTORIA.format(materias, ids_inativos)
+                    exec_legado(sql)
 
                 sql = SQL_UPDATE_AUTOR.format(id_ativo, ids_inativos)
                 exec_legado(sql)
 
-            elif tabela == 'documento_administrativo':
+            elif tabela == 'documento_administrativo' and id_ativo and ids_inativos:
                 sql = SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO.format(id_ativo, ids_inativos)
                 exec_legado(sql)
 
-            elif tabela == 'proposicao':
+            elif tabela == 'proposicao' and id_ativo and ids_inativos:
                 sql = SQL_UPDATE_PROPOSICAO.format(id_ativo, ids_inativos)
                 exec_legado(sql)
 
-            elif tabela == 'protocolo':
+            elif tabela == 'protocolo' and id_ativo and ids_inativos:
                 sql = SQL_UPDATE_PROTOCOLO.format(id_ativo, ids_inativos)
                 exec_legado(sql)
 
@@ -361,6 +361,8 @@ relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
     for spec in update_specs:
         spec = spec.split('|')
         exec_legado('UPDATE {} SET {} WHERE {}'.format(*spec))
+
+    migra_autor() # Migra autores para um único autor
 
 
 def iter_sql_records(sql, db):
