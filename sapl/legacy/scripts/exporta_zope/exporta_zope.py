@@ -55,18 +55,28 @@ def dump_file(doc, path):
     fullname = os.path.join(path, name + extension)
     print(fullname)
 
-    pdata = br(doc['data'])
+    # A partir daqui usamos dict.pop('...') nos __Broken_state__
+    # para contornar um "vazamento" de memória que ocorre
+    # ao percorrer a árvore de objetos
+    #
+    # Imaginamos que, internamente, o ZODB está guardando referências
+    # para os objetos Broken criados e não conseguimos identificar como.
+    #
+    # Essa medida descarta quase todos os dados retornados
+    # e só funciona na primeira passagem
+
+    pdata = br(doc.pop('data'))
     if isinstance(pdata, str):
         # Retrocedemos se pdata ja eh uma str (necessario em Images)
+        doc['data'] = pdata
         pdata = doc
 
     with open(fullname, 'w') as arq:
         while pdata:
-            arq.write(pdata['data'])
-            pdata = br(pdata.get('next', None))
+            arq.write(pdata.pop('data'))
+            pdata = br(pdata.pop('next', None))
+
     return name
-
-
 
 
 def enumerate_folder(folder):
