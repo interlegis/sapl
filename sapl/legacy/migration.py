@@ -216,7 +216,7 @@ def migra_autor():
         delete from autoria where cod_materia in ({}) and cod_autor in ({});
     '''
 
-    cursor = exec_legado('update autor set ind_excluido = null;')
+    #cursor = exec_legado('update autor set ind_excluido = null;')
     cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
 
     autores_parlamentares = [r[0] for r in cursor if r[0]]
@@ -226,26 +226,36 @@ def migra_autor():
         sql = SQL_INFOS_AUTOR.format(cod_autor)
 
         cursor = exec_legado(sql)
-        autores = cursor.fetch_all()
+        autores = []
+
+        for response in cursor:
+            autores.append(response)
+
         ids = [a[0] for a in autores]
         id_ativo, ids_inativos = ids[-1], ids[:-1]
 
         tabelas = ['autoria', 'documento_administrativo',
                    'proposicao', 'protocolo']
         for tabela in tabelas:
-            # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
-            ids_inativos = str(ids_inativos).strip('[]')
+            if tabela == 'autoria':
+                # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
+                ids_inativos = str(ids_inativos).strip('[]')
 
-            sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(str(ids).strip('[]'))
-            cursor = exec_legado(sql)
+                sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(str(ids).strip('[]'))
+                cursor = exec_legado(sql)
 
-            for response in cursor:
-                if tabela == 'autoria':
-                    sql = SQL_DELETE_AUTORIA.format(response[0], ids_inativos)
+                materias = []
+                for response in cursor:
+                    materias.append(response[0])
+
+                sql = SQL_DELETE_AUTORIA.format(str(materias).strip('[]'), ids_inativos)
+                import ipdb
+                ipdb.set_trace()
+                print('')
 
             sql = SQL_UPDATE_TABLES_AUTOR.format(
                 tabela, id_ativo, ids_inativos)
-            exec_legado(sql)
+            #exec_legado(sql)
 
 
 def uniformiza_banco():
