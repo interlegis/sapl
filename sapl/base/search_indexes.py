@@ -62,18 +62,15 @@ class TextExtractField(CharField):
         print(msg)
         logger.error(msg)
 
-    def file_extraction(self, arquivo):
-        r = []
-        if not os.path.exists(arquivo.path):
-            return r
-
-        if not os.path.splitext(arquivo.path)[1][:1]:
-            return r
+    def file_extractor(self, arquivo):
+        if not os.path.exists(arquivo.path) or \
+                not os.path.splitext(arquivo.path)[1][:1]:
+            return ''
 
         # Em ambiente de produção utiliza-se o SOLR
         if SOLR_URL:
             try:
-                r.append(self.solr_extraction(arquivo))
+                return self.solr_extraction(arquivo)
             except Exception:
                 self.print_error(arquivo)
 
@@ -81,15 +78,15 @@ class TextExtractField(CharField):
         # Como ele não possui extração, faz-se uso do textract
         else:
             try:
-                r.apend(self.whoosh_extraction(arquivo))
+                return self.whoosh_extraction(arquivo)
             except ExtensionNotSupported as e:
                 print(str(e))
                 logger.error(str(e))
             except Exception:
                 self.print_error(arquivo)
-        return r
+        return ''
 
-    def ta_extraction(self, value):
+    def ta_extractor(self, value):
         r = []
         for ta in value.filter(privacidade__in=[
                 STATUS_TA_PUBLIC,
@@ -106,26 +103,22 @@ class TextExtractField(CharField):
             ).values_list(
                 'rotulo_texto', flat=True)
             r += list(filter(lambda x: x.strip(), dispositivos))
-        return r
+        return ' '.join(r)
 
     def extract_data(self, obj):
 
-        data = []
+        data = ''
 
-        for attr in self.model_attr:
-            if not hasattr(obj, attr):
+        for attr, func in self.model_attr:
+            if not hasattr(obj, attr) or not hasattr(self, func):
                 raise Exception
 
             value = getattr(obj, attr)
             if not value:
                 continue
+            data += getattr(self, func)(value)
 
-            if isinstance(value, FieldFile):
-                data.append(self.file_extraction(value))
-            elif hasattr(value, 'model') and value.model == TextoArticulado:
-                data += self.ta_extraction(value)
-
-        return ' '.join(data)
+        return data
 
     def prepare_template(self, obj):
         app_label, model_name = get_model_ct_tuple(obj)
@@ -141,7 +134,9 @@ class TextExtractField(CharField):
 class DocumentoAcessorioIndex(SearchIndex, Indexable):
     model = DocumentoAcessorio
     text = TextExtractField(
-        document=True, use_template=True, model_attr='arquivo')
+        document=True, use_template=True,
+        model_attr=(('arquivo', 'file_extractor'), )
+    )
 
     def get_model(self):
         return self.model
@@ -156,12 +151,20 @@ class DocumentoAcessorioIndex(SearchIndex, Indexable):
 class NormaJuridicaIndex(DocumentoAcessorioIndex):
     model = NormaJuridica
     text = TextExtractField(
-        model_attr=('texto_integral', 'texto_articulado'),
-        document=True, use_template=True, )
+        document=True, use_template=True,
+        model_attr=(
+            ('texto_integral', 'file_extractor'),
+            ('texto_articulado', 'ta_extractor')
+        )
+    )
 
 
 class MateriaLegislativaIndex(DocumentoAcessorioIndex):
     model = MateriaLegislativa
     text = TextExtractField(
-        model_attr=('texto_original', 'texto_articulado'),
-        document=True, use_template=True, )
+        document=True, use_template=True,
+        model_attr=(
+            ('texto_original', 'file_extractor'),
+            ('texto_articulado', 'ta_extractor')
+        )
+    )
