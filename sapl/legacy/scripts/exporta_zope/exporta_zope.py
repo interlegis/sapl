@@ -126,12 +126,13 @@ def get_app(data_fs_path):
 
 
 def find_sapl(app):
-    [id] = [e['id'] for e in app['_objects']
-            if e['id'].startswith('cm_')
-            and e['meta_type'] == 'Folder']
-    cm_zzz = br(app[id])
-    sapl = br(cm_zzz['sapl'])
-    return sapl
+    for obj in app['_objects']:
+        id, meta_type = obj['id'], obj['meta_type']
+        if id.startswith('cm_') and meta_type == 'Folder':
+            cm_zzz = br(app[id])
+            sapl = br(cm_zzz.get('sapl', None))
+            if sapl and 'sapl_documentos' in sapl and 'acl_users' in sapl:
+                return sapl
 
 
 def dump_sapl(data_fs_path):
