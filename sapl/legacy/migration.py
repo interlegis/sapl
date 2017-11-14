@@ -198,9 +198,7 @@ def migra_autor():
           group by cod_autor;
     '''
 
-    SQL_UPDATE_TABLES_AUTOR = "update {} set cod_autor = {} where cod_autor in ({});"
-
-    SQL_DELETE_AUTOR_INATIVO = "delete from autor where cod_autor in ({});"
+    SQL_UPDATE_AUTOR = "update autoria set cod_autor = {} where cod_autor in ({});"
 
     SQL_ENUMERA_AUTORIA_REPETIDOS = '''
         select cod_materia, COUNT(*) from autoria where cod_autor in ({})
@@ -208,12 +206,26 @@ def migra_autor():
         having 1 < COUNT(*);
     '''
 
-    SQL_INFO_AUTORIA = '''
-        select * from autoria where cod_materia = {} and cod_autor in ({});
-    '''
-
     SQL_DELETE_AUTORIA = '''
         delete from autoria where cod_materia in ({}) and cod_autor in ({});
+    '''
+
+    SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO = '''
+        update documento_administrativo 
+        set cod_autor = {} 
+        where cod_autor in ({});
+    '''
+
+    SQL_UPDATE_PROPOSICAO = '''
+        update proposicao
+        set cod_autor = {}
+        where cod_autor in ({});
+    '''
+
+    SQL_UPDATE_PROTOCOLO = '''
+        update protocolo
+        set cod_autor = {}
+        where cod_autor in ({});
     '''
 
     #cursor = exec_legado('update autor set ind_excluido = null;')
@@ -233,29 +245,41 @@ def migra_autor():
 
         ids = [a[0] for a in autores]
         id_ativo, ids_inativos = ids[-1], ids[:-1]
+        ids = str(ids).strip('[]')
+        id_ativo = str(id_ativo).strip('[]')
+        ids_inativos = str(ids_inativos).strip('[]')
 
         tabelas = ['autoria', 'documento_administrativo',
                    'proposicao', 'protocolo']
         for tabela in tabelas:
             if tabela == 'autoria':
                 # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
-                ids_inativos = str(ids_inativos).strip('[]')
-
-                sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(str(ids).strip('[]'))
+                sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(ids)
                 cursor = exec_legado(sql)
 
                 materias = []
                 for response in cursor:
                     materias.append(response[0])
 
-                sql = SQL_DELETE_AUTORIA.format(str(materias).strip('[]'), ids_inativos)
-                import ipdb
-                ipdb.set_trace()
-                print('')
+                materias = str(materias).strip('[]')
 
-            sql = SQL_UPDATE_TABLES_AUTOR.format(
-                tabela, id_ativo, ids_inativos)
-            #exec_legado(sql)
+                sql = SQL_DELETE_AUTORIA.format(materias, ids_inativos)
+                exec_legado(sql)
+
+                sql = SQL_UPDATE_AUTOR.format(id_ativo, ids_inativos)
+                exec_legado(sql)
+
+            elif tabela == 'documento_administrativo':
+                sql = SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO.format(id_ativo, ids_inativos)
+                exec_legado(sql)
+
+            elif tabela == 'proposicao':
+                sql = SQL_UPDATE_PROPOSICAO.format(id_ativo, ids_inativos)
+                exec_legado(sql)
+
+            elif tabela == 'protocolo':
+                sql = SQL_UPDATE_PROTOCOLO.format(id_ativo, ids_inativos)
+                exec_legado(sql)
 
 
 def uniformiza_banco():
