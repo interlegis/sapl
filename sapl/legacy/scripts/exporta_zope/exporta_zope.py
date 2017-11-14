@@ -49,11 +49,19 @@ def br(obj):
         return obj
 
 
+extensoes_desconhecidas = defaultdict(list)
+
+
 def dump_file(doc, path):
     name = doc['__name__']
-    extension = EXTENSOES[doc['content_type']]
+    content_type = doc['content_type']
+    extension = EXTENSOES.get(content_type, 'ZZZZ')
+
     fullname = os.path.join(path, name + extension)
     print(fullname)
+
+    if extension == 'ZZZZ':
+        extensoes_desconhecidas[content_type].append(fullname)
 
     # A partir daqui usamos dict.pop('...') nos __Broken_state__
     # para contornar um "vazamento" de memória que ocorre
