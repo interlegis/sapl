@@ -62,6 +62,52 @@ class TextExtractField(CharField):
         print(msg)
         logger.error(msg)
 
+    def file_extraction(self, arquivo):
+        r = []
+        if not os.path.exists(arquivo.path):
+            return r
+
+        if not os.path.splitext(arquivo.path)[1][:1]:
+            return r
+
+        # Em ambiente de produção utiliza-se o SOLR
+        if SOLR_URL:
+            try:
+                r.append(self.solr_extraction(arquivo))
+            except Exception:
+                self.print_error(arquivo)
+
+        # Em ambiente de DEV utiliza-se o Whoosh
+        # Como ele não possui extração, faz-se uso do textract
+        else:
+            try:
+                r.apend(self.whoosh_extraction(arquivo))
+            except ExtensionNotSupported as e:
+                print(str(e))
+                logger.error(str(e))
+            except Exception:
+                self.print_error(arquivo)
+        return r
+
+    def ta_extraction(self, value):
+        r = []
+        for ta in value.filter(privacidade__in=[
+                STATUS_TA_PUBLIC,
+                STATUS_TA_IMMUTABLE_PUBLIC]):
+            dispositivos = Dispositivo.objects.filter(
+                Q(ta=ta) | Q(ta_publicado=ta)
+            ).order_by(
+                'ordem'
+            ).annotate(
+                rotulo_texto=Concat(
+                    F('rotulo'), Value(' '), F('texto'),
+                    output_field=TextField(),
+                )
+            ).values_list(
+                'rotulo_texto', flat=True)
+            r += list(filter(lambda x: x.strip(), dispositivos))
+        return r
+
     def extract_data(self, obj):
 
         data = []
@@ -71,52 +117,13 @@ class TextExtractField(CharField):
                 raise Exception
 
             value = getattr(obj, attr)
-
             if not value:
                 continue
 
             if isinstance(value, FieldFile):
-                if not os.path.exists(value.path):
-                    continue
-
-                if not os.path.splitext(value.path)[1][:1]:
-                    continue
-
-                # Em ambiente de produção utiliza-se o SOLR
-                if SOLR_URL:
-                    try:
-                        data.append(self.solr_extraction(value))
-                    except Exception:
-                        self.print_error(value)
-
-                # Em ambiente de DEV utiliza-se o Whoosh
-                # Como ele não possui extração, faz-se uso do textract
-                else:
-                    try:
-                        data.append(self.whoosh_extraction(value))
-                    except ExtensionNotSupported as e:
-                        print(str(e))
-                        logger.error(str(e))
-                    except Exception:
-                        self.print_error(value)
-
+                data.append(self.file_extraction(value))
             elif hasattr(value, 'model') and value.model == TextoArticulado:
-
-                for ta in value.filter(privacidade__in=[
-                        STATUS_TA_PUBLIC,
-                        STATUS_TA_IMMUTABLE_PUBLIC]):
-                    dispositivos = Dispositivo.objects.filter(
-                        Q(ta=ta) | Q(ta_publicado=ta)
-                    ).order_by(
-                        'ordem'
-                    ).annotate(
-                        rotulo_texto=Concat(
-                            F('rotulo'), Value(' '), F('texto'),
-                            output_field=TextField(),
-                        )
-                    ).values_list(
-                        'rotulo_texto', flat=True)
-                    data += list(filter(lambda x: x.strip(), dispositivos))
+                data += self.ta_extraction(value)
 
         return ' '.join(data)
 
