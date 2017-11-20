@@ -141,8 +141,9 @@
     });
 
     // Reabilita o campo, no momento do Submit, para que seu dado seja enviado
-    $('form').submit(function(){
-      $('#id_unidade_tramitacao_local').prop('disabled', false);
-    });
+    $('input[type=submit]').click(function() {
+        $('#id_unidade_tramitacao_local').attr('disabled', false);
+        $('#id_unidade_tramitacao_local').parents('form').submit();
+    }
 	</script>
 {% endblock %}
