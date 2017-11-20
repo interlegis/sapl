@@ -105,6 +105,9 @@ class TextExtractField(CharField):
             r += list(filter(lambda x: x.strip(), dispositivos))
         return ' '.join(r)
 
+    def string_extractor(self, value):
+        return value
+
     def extract_data(self, obj):
 
         data = ''
@@ -135,7 +138,11 @@ class DocumentoAcessorioIndex(SearchIndex, Indexable):
     model = DocumentoAcessorio
     text = TextExtractField(
         document=True, use_template=True,
-        model_attr=(('arquivo', 'file_extractor'), )
+        model_attr=(
+            ('arquivo', 'file_extractor'),
+            ('ementa', 'string_extractor'),
+            ('indexacao', 'string_extractor'),
+        )
     )
 
     def get_model(self):
@@ -154,7 +161,10 @@ class NormaJuridicaIndex(DocumentoAcessorioIndex):
         document=True, use_template=True,
         model_attr=(
             ('texto_integral', 'file_extractor'),
-            ('texto_articulado', 'ta_extractor')
+            ('texto_articulado', 'ta_extractor'),
+            ('ementa', 'string_extractor'),
+            ('indexacao', 'string_extractor'),
+            ('observacao', 'string_extractor'),
         )
     )
 
@@ -165,6 +175,9 @@ class MateriaLegislativaIndex(DocumentoAcessorioIndex):
         document=True, use_template=True,
         model_attr=(
             ('texto_original', 'file_extractor'),
-            ('texto_articulado', 'ta_extractor')
+            ('texto_articulado', 'ta_extractor'),
+            ('ementa', 'string_extractor'),
+            ('indexacao', 'string_extractor'),
+            ('observacao', 'string_extractor'),
         )
     )
