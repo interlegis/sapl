@@ -224,77 +224,77 @@ class RelatorioPresencaSessaoView(FilterView):
             return context
 
         # =====================================================================
-        if 'salvar' in self.request.GET:
-            where = context['object_list'].query.where
-            _range = where.children[0].rhs
+        # if 'salvar' not in self.request.GET:
+        where = context['object_list'].query.where
+        _range = where.children[0].rhs
 
-            sufixo = 'sessao_plenaria__data_inicio__range'
-            param0 = {'%s' % sufixo: _range}
+        sufixo = 'sessao_plenaria__data_inicio__range'
+        param0 = {'%s' % sufixo: _range}
 
-            # Parlamentares com Mandato no intervalo de tempo (Ativos)
-            parlamentares_qs = parlamentares_ativos(
-                _range[0], _range[1]).order_by('nome_parlamentar')
-            parlamentares_id = parlamentares_qs.values_list(
-                'id', flat=True)
+        # Parlamentares com Mandato no intervalo de tempo (Ativos)
+        parlamentares_qs = parlamentares_ativos(
+            _range[0], _range[1]).order_by('nome_parlamentar')
+        parlamentares_id = parlamentares_qs.values_list(
+            'id', flat=True)
 
-            # Presenças de cada Parlamentar em Sessões
-            presenca_sessao = SessaoPlenariaPresenca.objects.filter(
-                parlamentar_id__in=parlamentares_id,
-                sessao_plenaria__data_inicio__range=_range).values_list(
-                'parlamentar_id').annotate(
-                sessao_count=Count('id'))
+        # Presenças de cada Parlamentar em Sessões
+        presenca_sessao = SessaoPlenariaPresenca.objects.filter(
+            parlamentar_id__in=parlamentares_id,
+            sessao_plenaria__data_inicio__range=_range).values_list(
+            'parlamentar_id').annotate(
+            sessao_count=Count('id'))
 
-            # Presenças de cada Ordem do Dia
-            presenca_ordem = PresencaOrdemDia.objects.filter(
-                parlamentar_id__in=parlamentares_id,
-                sessao_plenaria__data_inicio__range=_range).values_list(
-                'parlamentar_id').annotate(
-                sessao_count=Count('id'))
+        # Presenças de cada Ordem do Dia
+        presenca_ordem = PresencaOrdemDia.objects.filter(
+            parlamentar_id__in=parlamentares_id,
+            sessao_plenaria__data_inicio__range=_range).values_list(
+            'parlamentar_id').annotate(
+            sessao_count=Count('id'))
 
-            total_ordemdia = PresencaOrdemDia.objects.filter(
-                **param0).distinct('sessao_plenaria__id').order_by(
-                'sessao_plenaria__id').count()
+        total_ordemdia = PresencaOrdemDia.objects.filter(
+            **param0).distinct('sessao_plenaria__id').order_by(
+            'sessao_plenaria__id').count()
 
-            total_sessao = context['object_list'].count()
+        total_sessao = context['object_list'].count()
 
-            # Completa o dicionario as informacoes parlamentar/sessao/ordem
-            parlamentares_presencas = []
-            for i, p in enumerate(parlamentares_qs):
-                parlamentares_presencas.append({
-                    'parlamentar': p,
-                    'sessao_porc': 0,
-                    'ordemdia_porc': 0
-                })
-                try:
-                    sessao_count = presenca_sessao.get(parlamentar_id=p.id)[1]
-                except ObjectDoesNotExist:
-                    sessao_count = 0
-                try:
-                    ordemdia_count = presenca_ordem.get(parlamentar_id=p.id)[1]
-                except ObjectDoesNotExist:
-                    ordemdia_count = 0
+        # Completa o dicionario as informacoes parlamentar/sessao/ordem
+        parlamentares_presencas = []
+        for i, p in enumerate(parlamentares_qs):
+            parlamentares_presencas.append({
+                'parlamentar': p,
+                'sessao_porc': 0,
+                'ordemdia_porc': 0
+            })
+            try:
+                sessao_count = presenca_sessao.get(parlamentar_id=p.id)[1]
+            except ObjectDoesNotExist:
+                sessao_count = 0
+            try:
+                ordemdia_count = presenca_ordem.get(parlamentar_id=p.id)[1]
+            except ObjectDoesNotExist:
+                ordemdia_count = 0
 
-                parlamentares_presencas[i].update({
-                    'sessao_count': sessao_count,
-                    'ordemdia_count': ordemdia_count
-                })
+            parlamentares_presencas[i].update({
+                'sessao_count': sessao_count,
+                'ordemdia_count': ordemdia_count
+            })
 
-                if total_sessao != 0:
-                    parlamentares_presencas[i].update(
-                        {'sessao_porc': round(
-                            sessao_count * 100 / total_sessao, 2)})
-                if total_ordemdia != 0:
-                    parlamentares_presencas[i].update(
-                        {'ordemdia_porc': round(
-                            ordemdia_count * 100 / total_ordemdia, 2)})
+            if total_sessao != 0:
+                parlamentares_presencas[i].update(
+                    {'sessao_porc': round(
+                        sessao_count * 100 / total_sessao, 2)})
+            if total_ordemdia != 0:
+                parlamentares_presencas[i].update(
+                    {'ordemdia_porc': round(
+                        ordemdia_count * 100 / total_ordemdia, 2)})
 
-            context['date_range'] = _range
-            context['total_ordemdia'] = total_ordemdia
-            context['total_sessao'] = context['object_list'].count()
-            context['parlamentares'] = parlamentares_presencas
-            context['periodo'] = (
-                self.request.GET['data_inicio_0'] +
-                ' - ' + self.request.GET['data_inicio_1'])
+        context['date_range'] = _range
+        context['total_ordemdia'] = total_ordemdia
+        context['total_sessao'] = context['object_list'].count()
+        context['parlamentares'] = parlamentares_presencas
+        context['periodo'] = (
+            self.request.GET['data_inicio_0'] +
+            ' - ' + self.request.GET['data_inicio_1'])
         # =====================================================================
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
