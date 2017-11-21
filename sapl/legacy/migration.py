@@ -186,8 +186,8 @@ def migra_autor():
 
     SQL_ENUMERA_REPETIDOS = '''
           select cod_parlamentar, COUNT(*)
-          from autor where col_username is not null
-          group by col_username, cod_parlamentar
+          from autor where cod_parlamentar is not null
+          group by cod_parlamentar
           having 1 < COUNT(*)
           order by cod_parlamentar asc;
     '''
@@ -195,7 +195,8 @@ def migra_autor():
     SQL_INFOS_AUTOR = '''
           select cod_autor from autor
           where cod_parlamentar = {}
-          group by cod_autor;
+          group by cod_autor
+          order by col_username, des_cargo desc;
     '''
 
     SQL_UPDATE_AUTOR = "update autoria set cod_autor = {} where cod_autor in ({});"
@@ -233,7 +234,7 @@ def migra_autor():
         and cod_autor not in ({});
     '''
 
-    cursor = exec_legado('update autor set ind_excluido = 0;')
+    cursor = exec_legado('update autor set ind_excluido = 0 where cod_autor is not null;')
     cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
 
     autores_parlamentares = [r[0] for r in cursor if r[0]]
