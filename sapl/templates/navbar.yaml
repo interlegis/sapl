@@ -65,6 +65,9 @@
     - title: {% trans 'Tabelas Auxiliares' %}
       url: '/sistema'
       check_permission: base.view_tabelas_auxiliares
+    - title: {% trans 'Administração de Usuários' %}
+      url: '/admin'
+      check_permission: user.is_superuser
 
 {% comment %}
 <li class="nav__sub-item"><a class="nav__sub-link" href="#">Provedor LexML</a></li>
