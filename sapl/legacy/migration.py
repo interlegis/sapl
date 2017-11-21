@@ -228,6 +228,11 @@ def migra_autor():
         where cod_autor in ({});
     '''
 
+    SQL_DELETE_AUTOR = '''
+        delete from autor where cod_autor in ({}) 
+        and cod_autor not in ({});
+    '''
+
     cursor = exec_legado('update autor set ind_excluido = 0;')
     cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
 
@@ -280,6 +285,10 @@ def migra_autor():
             elif tabela == 'protocolo' and id_ativo and ids_inativos:
                 sql = SQL_UPDATE_PROTOCOLO.format(id_ativo, ids_inativos)
                 exec_legado(sql)
+
+        # Faz a exclusão dos autores que não serão migrados
+        sql = SQL_DELETE_AUTOR.format(ids, id_ativo)
+        cursor = exec_legado(sql)
 
 
 def uniformiza_banco():
