@@ -292,6 +292,115 @@ def migra_autor():
         cursor = exec_legado(sql)
 
 
+def migra_comissao():
+    SQL_ENUMERA_REPETIDOS = '''
+        select cod_comissao, COUNT(*)
+        from autor where cod_comissao is not null
+        group by cod_comissao
+        having 1 < COUNT(*)
+        order by cod_comissao asc;
+    '''
+
+    SQL_INFOS_COMISSAO = '''
+        select cod_autor from autor
+        where cod_comissao = {}
+        group by cod_autor;
+    '''
+
+    SQL_UPDATE_AUTOR = "update autoria set cod_autor = {} where cod_autor in ({});"
+
+    SQL_ENUMERA_AUTORIA_REPETIDOS = '''
+        select cod_materia, COUNT(*) from autoria where cod_autor in ({})
+        group by cod_materia
+        having 1 < COUNT(*);
+    '''
+
+    SQL_DELETE_AUTORIA = '''
+        delete from autoria where cod_materia in ({}) and cod_autor in ({});
+    '''
+
+    SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO = '''
+        update documento_administrativo
+        set cod_autor = {}
+        where cod_autor in ({});
+    '''
+
+    SQL_UPDATE_PROPOSICAO = '''
+        update proposicao
+        set cod_autor = {}
+        where cod_autor in ({});
+    '''
+
+    SQL_UPDATE_PROTOCOLO = '''
+        update protocolo
+        set cod_autor = {}
+        where cod_autor in ({});
+    '''
+
+    SQL_DELETE_AUTOR = '''
+        delete from autor where cod_autor in ({}) 
+        and cod_autor not in ({});
+    '''
+
+    cursor = exec_legado('update autor set ind_excluido = 0 where cod_comissao is not null;')
+    cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
+
+    comissoes_parlamentares = [r[0] for r in cursor if r[0]]
+
+    for cod_comissao in comissoes_parlamentares:
+
+        sql = SQL_INFOS_COMISSAO.format(cod_comissao)
+        cursor = exec_legado(sql)
+
+        comissoes = []
+
+        for response in cursor:
+            comissoes.append(response)
+
+        ids = [c[0] for c in comissoes]
+        id_ativo, ids_inativos = ids[-1], ids[:-1]
+        ids = str(ids).strip('[]')
+        id_ativo = str(id_ativo).strip('[]')
+        ids_inativos = str(ids_inativos).strip('[]')
+
+        tabelas = ['autoria', 'documento_administrativo',
+                   'proposicao', 'protocolo']
+
+        for tabela in tabelas:
+            if tabela == 'autoria' and id_ativo and ids_inativos:
+                # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
+                sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(ids)
+                cursor = exec_legado(sql)
+
+                materias = []
+                for response in cursor:
+                    materias.append(response[0])
+
+                materias = str(materias).strip('[]')
+                if materias:
+                    sql = SQL_DELETE_AUTORIA.format(materias, ids_inativos)
+                    exec_legado(sql)
+
+                sql = SQL_UPDATE_AUTOR.format(id_ativo, ids_inativos)
+                exec_legado(sql)
+
+            elif tabela == 'documento_administrativo' and id_ativo and ids_inativos:
+                sql = SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO.format(id_ativo, ids_inativos)
+                exec_legado(sql)
+
+            elif tabela == 'proposicao' and id_ativo and ids_inativos:
+                sql = SQL_UPDATE_PROPOSICAO.format(id_ativo, ids_inativos)
+                exec_legado(sql)
+
+            elif tabela == 'protocolo' and id_ativo and ids_inativos:
+                sql = SQL_UPDATE_PROTOCOLO.format(id_ativo, ids_inativos)
+                exec_legado(sql)
+
+        # Faz a exclusão dos autores que não serão migrados
+        sql = SQL_DELETE_AUTOR.format(ids, id_ativo)
+        cursor = exec_legado(sql)
+
+
 def uniformiza_banco():
     exec_legado('''
       SELECT replace(@@sql_mode,"STRICT_TRANS_TABLES,","ALLOW_INVALID_DATES");
@@ -373,6 +482,7 @@ relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
         exec_legado('UPDATE {} SET {} WHERE {}'.format(*spec))
 
     migra_autor() # Migra autores para um único autor
+    migra_comissao() # Migra comissões para uma única comissão
 
 
 def iter_sql_records(sql, db):
