@@ -521,15 +521,18 @@ class AppConfigCrud(CrudAux):
     class CreateView(CrudAux.CreateView):
 
         def get(self, request, *args, **kwargs):
-            app_config = AppConfig.objects.last()
-            if app_config:
-                return HttpResponseRedirect(
-                    reverse('sapl.base:appconfig_update',
-                            kwargs={'pk': app_config.pk}))
-            else:
-                self.object = None
-                return super(CrudAux.CreateView, self).get(
-                    request, *args, **kwargs)
+            app_config = AppConfig.objects.first()
+
+            if not app_config:
+                app_config = AppConfig()
+                app_config.save()
+
+            return HttpResponseRedirect(
+                reverse('sapl.base:appconfig_update',
+                        kwargs={'pk': app_config.pk}))
+
+        def post(self, request, *args, **kwargs):
+            return self.get(request, *args, **kwargs)
 
     class ListView(CrudAux.ListView):
 
