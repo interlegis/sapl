@@ -9,6 +9,7 @@ import os.path
 import sys
 from collections import defaultdict
 from functools import partial
+from os.path import splitext
 
 import yaml
 import ZODB.DB
@@ -53,9 +54,10 @@ extensoes_desconhecidas = defaultdict(list)
 
 
 def dump_file(doc, path):
-    name = doc['__name__']
+    id = doc['__name__']
+    name, extension = splitext(id)
     content_type = doc['content_type']
-    extension = EXTENSOES.get(content_type, 'ZZZZ')
+    extension = extension or EXTENSOES.get(content_type, 'ZZZZ')
 
     fullname = os.path.join(path, name + extension)
     print(fullname)
@@ -84,7 +86,7 @@ def dump_file(doc, path):
             arq.write(pdata.pop('data'))
             pdata = br(pdata.pop('next', None))
 
-    return name
+    return id
 
 
 def enumerate_folder(folder):
