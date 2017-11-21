@@ -91,8 +91,6 @@ def test_norma_juridica_materia_inexistente():
 
     assert not form.is_valid()
 
-    import ipdb; ipdb.set_trace()
-
     assert form.errors['__all__'] == [_("Matéria Legislativa 2/2017 (VETO) é inexistente.")]
 
 
