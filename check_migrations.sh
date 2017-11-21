@@ -21,6 +21,7 @@ if [ $MIGRATIONS -eq 0 ]; then
     echo
     echo -e "${RED}ALGUMAS ALTERAÇÕES EXIGEM MIGRAÇÃO.${NC}"
     echo -e "${RED}RODE 'python manage.py makemigrations' ANTES DE SUBMETER SEU CÓDIGO...${NC}"
+    echo -e "${RED}lembre de adicionar os arquivos criados ao git com 'git add .' ou semelhante.${NC}"
     echo
     exit 1
 fi
