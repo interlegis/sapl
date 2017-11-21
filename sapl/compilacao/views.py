@@ -877,7 +877,7 @@ class PublicacaoCreateView(PublicacaoMixin, FormMessagesMixin, CreateView):
 
 class PublicacaoDetailView(PublicacaoMixin, DetailView):
     model = Publicacao
-    permission_required = 'compilacao.detail_publicacao'
+    permission_required = []
 
 
 class PublicacaoUpdateView(PublicacaoMixin, UpdateView):
