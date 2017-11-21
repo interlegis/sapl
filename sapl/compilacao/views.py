@@ -830,7 +830,7 @@ class PublicacaoListView(PublicacaoMixin, ListView):
 
     @property
     def title(self):
-        return _('%s de %s' % (
+        return _('%s <small>(%s)</small>' % (
             self.model._meta.verbose_name_plural,
             self.ta))
 
@@ -846,6 +846,8 @@ class PublicacaoListView(PublicacaoMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(PublicacaoListView, self).get_context_data(**kwargs)
+        context['title'] = self.title
+        context['object'] = self.ta
         context['NO_ENTRIES_MSG'] = CrudListView.no_entries_msg
         return context
 
@@ -878,6 +880,16 @@ class PublicacaoCreateView(PublicacaoMixin, FormMessagesMixin, CreateView):
 class PublicacaoDetailView(PublicacaoMixin, DetailView):
     model = Publicacao
     permission_required = []
+
+    @property
+    def list_url(self):
+        return reverse_lazy('sapl.compilacao:ta_pub_list',
+                            kwargs={
+                                'ta_id': self.kwargs['ta_id']})
+
+    @property
+    def verbose_name_plural(self):
+        return self.model._meta.verbose_name_plural
 
 
 class PublicacaoUpdateView(PublicacaoMixin, UpdateView):

@@ -1,22 +1,23 @@
-{% extends "base.html" %}
+{% extends "crud/detail.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
 {% load common_tags %}
 
-{% block base_content %}
-  <div class="clearfix">
-    {% block actions %}
-    <div class="actions btn-group pull-right" role="group">
-        <a href="{% url 'sapl.compilacao:ta_pub_edit' object.ta.pk object.pk %}" class="btn btn-default">{% trans 'Editar' %}</a>
-        <a href="{% url 'sapl.compilacao:ta_pub_delete' object.ta.pk object.pk %}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
-    </div>
-    {% endblock actions %}
-  </div>
-  <div class="actions btn-group pull-right" role="group">
-    {% block sections_nav %}
-    {% endblock %}
-  </div>
+{% block sections_nav %}
+  <ul class="nav nav-pills navbar-right">
+      <li><a href="{% url 'sapl.compilacao:ta_text' object.ta.pk %}">{% trans 'Voltar para Texto' %}</a></li>
 
+  </ul>
+{% endblock %}
+
+{% block editions %}
+<div class="actions btn-group pull-right" role="group">
+    <a href="{% url 'sapl.compilacao:ta_pub_edit' object.ta.pk object.pk %}" class="btn btn-default">{% trans 'Editar' %}</a>
+    <a href="{% url 'sapl.compilacao:ta_pub_delete' object.ta.pk object.pk %}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
+</div>
+{% endblock editions %}
+
+  </div>
   {% block detail_content %} {# TODO replace fieldset for something semantically correct, but with similar visual grouping style #}
     <fieldset>
       <legend>{%trans 'Identificação Básica'%}</legend>
@@ -89,4 +90,3 @@
       </div>
     </fieldset>
   {% endblock detail_content %}
-{% endblock base_content %}
