@@ -76,7 +76,7 @@ def test_norma_form_invalida():
 def test_norma_juridica_materia_inexistente():
 
     tipo = mommy.make(TipoNormaJuridica)
-    tipo_materia = mommy.make(TipoMateriaLegislativa)
+    tipo_materia = mommy.make(TipoMateriaLegislativa, descricao='VETO')
 
     form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
                                    'numero': '1',
@@ -91,7 +91,9 @@ def test_norma_juridica_materia_inexistente():
 
     assert not form.is_valid()
 
-    assert form.errors['__all__'] == [_("Matéria 2/2017 é inexistente.")]
+    import ipdb; ipdb.set_trace()
+
+    assert form.errors['__all__'] == [_("Matéria Legislativa 2/2017 (VETO) é inexistente.")]
 
 
 @pytest.mark.django_db(transaction=False)
