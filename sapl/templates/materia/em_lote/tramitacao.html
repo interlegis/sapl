@@ -138,12 +138,12 @@
       if (primeira_tramitacao == false){
         $('#id_unidade_tramitacao_local').prop('disabled', true);
       }
-    });
 
-    // Reabilita o campo, no momento do Submit, para que seu dado seja enviado
-    $('input[type=submit]').click(function() {
+      // Reabilita o campo, no momento do Submit, para que seu dado seja enviado
+      $('input[type=submit]').click(function() {
         $('#id_unidade_tramitacao_local').attr('disabled', false);
         $('#id_unidade_tramitacao_local').parents('form').submit();
-    }
+      })
+    });
 	</script>
 {% endblock %}

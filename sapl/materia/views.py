@@ -1743,6 +1743,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 texto=request.POST['texto']
             )
             t.save()
+
+        if request.POST['turno'] == 'F':
+            for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+                materia.em_tramitacao = False
+                materia.save()
+
         msg = _('Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
