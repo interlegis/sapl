@@ -4,12 +4,62 @@
 {% block detail_content %}
 
 <!-- Success and errors messages div -->
+{% if user.is_authenticated or composicao_mesa %}
+<fieldset class="form-group">
+  {% if perms.sessao.add_integrantemesa %}
+  <legend>Escolha da Composição da Mesa Diretora da Sessão Plenária</legend>
+  {% endif %}
+  <div class="row">
+    <div class="col-md-4">
+      <label>Composição da Mesa Diretora</label>
+      <select multiple size="5" class="form-control" id="id_composicao_mesa" name="composicao_mesa">
+        {% for p in composicao_mesa %}
+        <option value="{{p.id}}">
+          {{p.parlamentar}} || {{p.cargo}}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+
+    <div class="col-md-4" align="center">
+      <br /><br />
+      {% if perms.sessao.add_integrantemesa %}
+      <input type="submit" style="display: none" name="Incluir" id="id_incluir" Value="Incluir" class="btn btn-primary" />
+      {% endif %}
+      <br />
+      <br />
+      {% if perms.sessao.add_integrantemesa %}
+      <input type="submit" style="display: none" name="Excluir" id="id_excluir" Value="Excluir" class="btn btn-danger" />
+      {% endif %}
+    </div>
+    {% if user.is_authenticated and cargos_vagos  %}
+    <div class="col-md-4">
+      <label id='parlamentar-cargo-title' style="display: none">Parlamentar | Cargo</label>
+      <select class="form-control" name="parlamentar" id="id_parlamentar" style="display: none">
+        {% for p in parlamentares %}
+        <option value="{{p.id}}">{{p.nome_completo}}</option>
+        {% endfor %}
+      </select>
+      <br />
+      <select class="form-control" name="cargo" id="id_cargo" style="display: none">
+        {% for c in cargos_vagos %}
+        <option value="{{c.id}}">{{c}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+  </div>
+</fieldset>
+{% endif %}
+
 <div class="alert alert-danger alert-dismissible fade in" id="div-error" role="alert" style="display: none">
 	<button type="button" class="close" data-dismiss="alert" aria-label="Close">
   <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 </button>
 	<b><span id="error-message"></span></b>
 </div>
+<!-- Success and errors messages div end -->
 
 <div class="alert alert-success alert-dismissible fade in" id="div-success" style="display: none" role="alert">
 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -17,53 +67,6 @@
 </button>
 <b><span id="success-message"></span></b>
 </div>
-<!-- Success and errors messages div end -->
-
-<fieldset class="form-group">
-  {% if perms.sessao.add_integrantemesa %}
-	  <legend>Escolha da Composição da Mesa Diretora da Sessão Plenária</legend>
-  {% endif %}
-<div class="row">
-  <div class="col-md-4">
-    <label>Composição da Mesa Diretora</label>
-    <select multiple size="5" class="form-control" id="id_composicao_mesa" name="composicao_mesa">
-      {% for p in composicao_mesa %}
-          <option value="{{p.id}}">
-          	{{p.parlamentar}} || {{p.cargo}}
-          </option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <div class="col-md-4" align="center">
-			<br /><br />
-	{% if perms.sessao.add_integrantemesa %}
-		<input type="submit" style="display: none" name="Incluir" id="id_incluir" Value="Incluir" class="btn btn-primary" />
-	{% endif %}
-    <br />
-    <br />
-    {% if perms.sessao.add_integrantemesa %}
-    	<input type="submit" style="display: none" name="Excluir" id="id_excluir" Value="Excluir" class="btn btn-danger" />
-    {% endif %}
-  </div>
-
-  <div class="col-md-4">
-    <label id='parlamentar-cargo-title' style="display: none">Parlamentar | Cargo</label>
-    <select class="form-control" name="parlamentar" id="id_parlamentar" style="display: none">
-      {% for p in parlamentares %}
-      	<option value="{{p.id}}">{{p.nome_completo}}</option>
-      {% endfor %}
-    </select>
-			<br />
-    <select class="form-control" name="cargo" id="id_cargo" style="display: none">
-      {% for c in cargos_vagos %}
-      	<option value="{{c.id}}">{{c}}</option>
-      {% endfor %}
-    </select>
-  </div>
-
-</div>
-</fieldset>
 {% endblock detail_content %}
 
 
