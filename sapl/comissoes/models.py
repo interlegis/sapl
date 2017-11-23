@@ -182,14 +182,12 @@ class Participacao(models.Model):  # ComposicaoComissao
 def get_comissao_media_path(instance, subpath, filename):
     return './sapl/comissao/%s/%s/%s' % (instance.numero, subpath, filename)
 
-
 def pauta_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
 
+    return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
 
 def ata_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
-
 
 def anexo_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='anexo', pk_first=True)
