@@ -3,13 +3,23 @@ from django.core.urlresolvers import reverse
 from django.db.models import F
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import ListView
+from django.views.generic.base import RedirectView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import FormMixin
+
+
+from sapl.base.models import AppConfig as AppsAppConfig
+from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud,
+                           CrudAux, MasterDetailCrud,
+                           PermissionRequiredForAppCrudMixin)
 from sapl.comissoes.forms import ParticipacaoCreateForm, ParticipacaoEditForm
-from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
-from .forms import ComissaoForm
+from .forms import ReuniaoForm, ComissaoForm
+
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
-                     Periodo, TipoComissao)
+                     Periodo, TipoComissao, Reuniao)
+from sapl.comissoes.apps import AppConfig
 
 
 def pegar_url_composicao(pk):
@@ -136,3 +146,67 @@ class MateriasTramitacaoListView(ListView):
             MateriasTramitacaoListView, self).get_context_data(**kwargs)
         context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
         return context
+
+class ReuniaoCrud(Crud):
+    model = Reuniao
+
+    class BaseMixin(Crud.BaseMixin):
+        list_field_names = ['data', 'comissao', 'tipo']
+
+        @property
+        def list_url(self):
+            return ''
+
+        @property
+        def search_url(self):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_reuniao'))
+
+    class ListView(Crud.ListView, RedirectView):
+
+        def get_redirect_url(self, *args, **kwargs):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'pesquisar_reuniao'))
+            # arrumar a url
+
+        def get(self, request, *args, **kwargs):
+            return RedirectView.get(self, request, *args, **kwargs)
+
+    class UpdateView(Crud.UpdateView):
+
+        form_class = ReuniaoForm
+
+        def get_initial(self):
+            return {'comissao': self.object.comissao}
+
+    class CreateView(Crud.CreateView):
+
+        form_class = ReuniaoForm
+
+        @property
+        def cancel_url(self):
+            return self.search_url
+
+        def get_initial(self):
+            comissao = Comissao.objects.order_by('-data').first()
+            if comissao:
+                return {
+                    'comissao': comissao
+                    }
+            else:
+                msg = _('Cadastre alguma comissão antes de adicionar ' +
+                        'uma reunião!')
+                messages.add_message(self.request, messagesself.ERROR, msg)
+                return {}
+
+    class DeleteView(Crud.DeleteView, RedirectView):
+
+        def get_success_url(self):
+            namespace = self.model._meta.app_config.name
+            return reverse('%s:%s' % (namespace, 'reuniao_list'))
+
+class ReuniaoPermissionMixin(PermissionRequiredForAppCrudMixin,
+                            FormMixin,
+                            DetailView):
+    model = Reuniao
+    app_label = AppConfig.label,
