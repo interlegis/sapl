@@ -89,12 +89,18 @@ def dump_file(doc, path):
     return id
 
 
-def enumerate_folder(folder):
-    # folder vazio nao tem _objects
-    for entry in folder.get('_objects', []):
-        id, meta_type = entry['id'], entry['meta_type']
-        obj = br(folder[id])
+def enumerate_by_key_list(folder, key_list, type_key):
+    for entry in folder.get(key_list, []):
+        id, meta_type = entry['id'], entry[type_key]
+        obj = br(folder.get(id, None))
         yield id, obj, meta_type
+
+
+enumerate_folder = partial(enumerate_by_key_list,
+                           key_list='_objects', type_key='meta_type')
+
+enumerate_properties = partial(enumerate_by_key_list,
+                               key_list='_properties', type_key='type')
 
 
 def enumerate_btree(folder):
@@ -125,11 +131,49 @@ def dump_folder(folder, path='', enum=enumerate_folder):
     return name
 
 
+def decode_iso8859(obj):
+    return obj.decode('iso8859-1') if isinstance(obj, str) else obj
+
+
+def read_sde(element):
+
+    def read_properties():
+        for id, obj, meta_type in enumerate_properties(element):
+            assert meta_type == 'string'
+            if id == 'title':
+                assert not obj
+            else:
+                yield id, decode_iso8859(obj)
+
+    def read_children():
+        for id, obj, meta_type in enumerate_folder(element):
+            assert meta_type == 'SDE-Document-Element'
+            yield id, read_sde(obj)
+
+    data = dict(read_properties())
+    children = list(read_children())
+    if children:
+        assert all(k.startswith('SDE') for k, v in children)
+        data['children'] = children
+    return data
+
+
+def dump_sde(strdoc, path):
+    id = strdoc['id']
+    fullname = os.path.join(path, id + '.sde.yaml')
+    print(fullname)
+    sde = read_sde(strdoc)
+    with open(fullname, 'w') as arquivo:
+        yaml.safe_dump(sde, arquivo)
+    return id
+
+
 DUMP_FUNCTIONS = {
     'File': dump_file,
     'Image': dump_file,
     'Folder': partial(dump_folder, enum=enumerate_folder),
     'BTreeFolder2': partial(dump_folder, enum=enumerate_btree),
+    'SDE-Document': dump_sde,
 
     # explicitamente ignorados
     'ZCatalog': None,
