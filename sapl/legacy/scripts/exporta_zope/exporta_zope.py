@@ -139,28 +139,30 @@ def read_sde(element):
 
     def read_properties():
         for id, obj, meta_type in enumerate_properties(element):
-            assert meta_type == 'string'
-            if id == 'title':
-                assert not obj
-            else:
-                yield id, decode_iso8859(obj)
+            yield id, decode_iso8859(obj)
 
     def read_children():
         for id, obj, meta_type in enumerate_folder(element):
-            assert meta_type == 'SDE-Document-Element'
-            yield id, read_sde(obj)
+            assert meta_type in ['SDE-Document-Element',
+                                 'SDE-Template-Element',
+                                 'SDE-Template-Link',
+                                 'SDE-Template-Attribute',
+                                 'Script (Python)',
+                                 ]
+            if meta_type != 'Script (Python)':
+                # ignoramos os scrips python de eventos dos templates
+                yield id, read_sde(obj)
 
     data = dict(read_properties())
     children = list(read_children())
     if children:
-        assert all(k.startswith('SDE') for k, v in children)
         data['children'] = children
     return data
 
 
-def dump_sde(strdoc, path):
+def dump_sde(strdoc, path, tipo):
     id = strdoc['id']
-    fullname = os.path.join(path, id + '.sde.yaml')
+    fullname = os.path.join(path, '{}.{}.yaml'.format(id, tipo))
     print(fullname)
     sde = read_sde(strdoc)
     with open(fullname, 'w') as arquivo:
@@ -173,7 +175,8 @@ DUMP_FUNCTIONS = {
     'Image': dump_file,
     'Folder': partial(dump_folder, enum=enumerate_folder),
     'BTreeFolder2': partial(dump_folder, enum=enumerate_btree),
-    'SDE-Document': dump_sde,
+    'SDE-Document': partial(dump_sde, tipo='sde.document'),
+    'SDE-Template': partial(dump_sde, tipo='sde.template'),
 
     # explicitamente ignorados
     'ZCatalog': None,
