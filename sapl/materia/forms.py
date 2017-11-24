@@ -1,7 +1,6 @@
 
 import os
 
-import django_filters
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
@@ -22,8 +21,8 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
-import sapl
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -42,6 +41,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model,
                         qs_override_django_filter)
+import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -73,7 +73,7 @@ class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Filtrar Autores'),
-                     row1, form_actions(save_label='Filtrar'))
+                     row1, form_actions(label='Filtrar'))
         )
 
 
@@ -86,7 +86,7 @@ class ReceberProposicaoForm(Form):
         self.helper.layout = Layout(
             Fieldset(
                 _('Incorporar Proposição'), row1,
-                form_actions(save_label='Buscar Proposição')
+                form_actions(label='Buscar Proposição')
             )
         )
         super(ReceberProposicaoForm, self).__init__(*args, **kwargs)
@@ -113,7 +113,7 @@ class MateriaSimplificadaForm(ModelForm):
             Fieldset(
                 _('Formulário Simplificado'),
                 row1, row2, row3, row4, row5,
-                form_actions(save_label='Salvar')
+                form_actions(label='Salvar')
             )
         )
         super(MateriaSimplificadaForm, self).__init__(*args, **kwargs)
@@ -151,7 +151,7 @@ class AcompanhamentoMateriaForm(ModelForm):
         row1 = to_row([('email', 10)])
 
         row1.append(
-            Column(form_actions(save_label='Cadastrar'), css_class='col-md-2')
+            Column(form_actions(label='Cadastrar'), css_class='col-md-2')
         )
 
         self.helper = FormHelper()
@@ -602,7 +602,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      HTML(autor_label),
                      HTML(autor_modal),
                      row4, row5, row6, row7, row8, row9, row10,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
     @property
@@ -689,7 +689,7 @@ class AutoriaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Autoria'),
-                     row1, 'data_relativa', form_actions(save_label='Salvar')))
+                     row1, 'data_relativa', form_actions(label='Salvar')))
 
         if not kwargs['instance']:
             self.fields['autor'].choices = []
@@ -747,7 +747,7 @@ class AutoriaMultiCreateForm(Form):
         self.helper.layout = Layout(
             Fieldset(
                 _('Autorias'), row1, row2, 'data_relativa', 'autores',
-                form_actions(save_label='Incluir Autores Selecionados')))
+                form_actions(label='Incluir Autores Selecionados')))
 
         self.fields['autor'].choices = []
 
@@ -792,7 +792,7 @@ class AcessorioEmLoteFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Documentos Acessórios em Lote'),
-                     row1, row2, form_actions(save_label='Pesquisar')))
+                     row1, row2, form_actions(label='Pesquisar')))
 
 
 class PrimeiraTramitacaoEmLoteFilterSet(django_filters.FilterSet):
@@ -824,7 +824,7 @@ class PrimeiraTramitacaoEmLoteFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Primeira Tramitação'),
-                     row1, row2, form_actions(save_label='Pesquisar')))
+                     row1, row2, form_actions(label='Pesquisar')))
 
 
 class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
@@ -865,7 +865,7 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitação em Lote'),
-                     row1, row2, form_actions(save_label='Pesquisar')))
+                     row1, row2, form_actions(label='Pesquisar')))
 
 
 class TipoProposicaoForm(ModelForm):
@@ -1303,8 +1303,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             if self.proposicao_incorporacao_obrigatoria != 'N':
                 itens_incorporacao.append(to_column(('numero_de_paginas', 4)))
 
-        itens_incorporacao.append(to_column((FormActions(Submit(
-            'incorporar', _('Incorporar'), css_class='pull-right')), 12)))
+        itens_incorporacao.append(
+            to_column(
+                (form_actions(label=_('Incorporar'),
+                              name='incorporar'), 12)
+            )
+        )
 
         fields.append(
             Fieldset(_('Registro de Incorporação'), *itens_incorporacao))
@@ -1313,10 +1317,14 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             Fieldset(
                 _('Registro de Devolução'),
                 to_column(('justificativa_devolucao', 12)),
-                to_column((FormActions(Submit(
-                    'devolver', _('Devolver'),
-                    css_class='btn-danger pull-right')), 12))
-            ))
+                to_column(
+                    (form_actions(label=_('Devolver'),
+                                  name='devolver',
+                                  css_class='btn-danger pull-right'), 12)
+                )
+            )
+        )
+
         self.helper = FormHelper()
         self.helper.layout = Layout(*fields)
 
@@ -1662,7 +1670,7 @@ class EtiquetaPesquisaForm(forms.Form):
             Fieldset(
                 ('Formulário de Etiqueta'),
                 row1, row2,
-                form_actions(save_label='Pesquisar')
+                form_actions(label='Pesquisar')
             )
         )
 
@@ -1730,7 +1738,7 @@ class FichaPesquisaForm(forms.Form):
             Fieldset(
                 ('Formulário de Ficha'),
                 row1,
-                form_actions(save_label='Pesquisar')
+                form_actions(label='Pesquisar')
             )
         )
 
@@ -1764,6 +1772,6 @@ class FichaSelecionaForm(forms.Form):
             Fieldset(
                 ('Selecione a ficha que deseja imprimir'),
                 row1,
-                form_actions(save_label='Gerar Impresso')
+                form_actions(label='Gerar Impresso')
             )
         )

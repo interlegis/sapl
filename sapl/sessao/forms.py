@@ -300,7 +300,7 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(self.titulo,
                      row1,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -376,7 +376,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                      HTML(autor_label),
                      HTML(autor_modal),
                      row4, row5, row6, row7, row8, row9,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -467,7 +467,7 @@ class ResumoOrdenacaoForm(forms.Form):
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
-                     form_actions(save_label='Atualizar'))
+                     form_actions(label='Atualizar'))
         )
 
     def clean(self):

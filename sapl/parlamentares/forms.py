@@ -298,7 +298,7 @@ class VotanteForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Votante'),
-                     row1, form_actions(save_label='Salvar'))
+                     row1, form_actions(label='Salvar'))
         )
         super(VotanteForm, self).__init__(*args, **kwargs)
 

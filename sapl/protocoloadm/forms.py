@@ -123,7 +123,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                      HTML(autor_label),
                      HTML(autor_modal),
                      row4, row5, row6,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -194,7 +194,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
             Fieldset(_('Pesquisar Documento'),
                      row1, row2,
                      row3, row4, row5,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -276,7 +276,7 @@ class AnularProcoloAdmForm(ModelForm):
                      row1,
                      row2,
                      HTML("&nbsp;"),
-                     form_actions(save_label='Anular')
+                     form_actions(label='Anular')
                      )
         )
         super(AnularProcoloAdmForm, self).__init__(
@@ -339,7 +339,7 @@ class ProtocoloDocumentForm(ModelForm):
                      row4,
                      row5,
                      HTML("&nbsp;"),
-                     form_actions(save_label=_('Protocolar Documento'))
+                     form_actions(label=_('Protocolar Documento'))
                      )
         )
         super(ProtocoloDocumentForm, self).__init__(
@@ -407,7 +407,7 @@ class ProtocoloMateriaForm(ModelForm):
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
                      row1, row3,
-                     row4, form_actions(save_label='Protocolar Matéria')))
+                     row4, form_actions(label='Protocolar Matéria')))
 
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
