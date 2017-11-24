@@ -409,7 +409,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Atas das Sessões Plenárias'),
-                     row1, form_actions(save_label='Pesquisar'))
+                     row1, form_actions(label='Pesquisar'))
         )
 
 
@@ -439,7 +439,7 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Presença dos parlamentares nas sessões plenárias'),
-                     row1, form_actions(save_label='Pesquisar'))
+                     row1, form_actions(label='Pesquisar'))
         )
 
     @property
@@ -483,7 +483,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Histórico de Tramita'),
                      row1, row2,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -514,7 +514,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
                      row1, row2, row3, row4,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -540,7 +540,7 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar'),
                      row1,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -586,7 +586,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
                      HTML(autor_label),
                      HTML(autor_modal),
                      row3,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -692,7 +692,7 @@ class RecuperarSenhaForm(PasswordResetForm):
         self.helper.layout = Layout(
             Fieldset(_('Insira o e-mail cadastrado com a sua conta'),
                      row1,
-                     form_actions(save_label='Enviar'))
+                     form_actions(label='Enviar'))
         )
 
         super(RecuperarSenhaForm, self).__init__(*args, **kwargs)
@@ -723,4 +723,4 @@ class NovaSenhaForm(SetPasswordForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             row1,
-            form_actions(save_label='Enviar'))
+            form_actions(label='Enviar'))
