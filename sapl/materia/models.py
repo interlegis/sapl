@@ -330,10 +330,12 @@ class AcompanhamentoMateria(models.Model):
 class Anexada(models.Model):
     materia_principal = models.ForeignKey(
         MateriaLegislativa, related_name='materia_principal_set',
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+        verbose_name=_('Matéria Principal'))
     materia_anexada = models.ForeignKey(
         MateriaLegislativa, related_name='materia_anexada_set',
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+        verbose_name=_('Matéria Anexada'))
     data_anexacao = models.DateField(verbose_name=_('Data Anexação'))
     data_desanexacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Desanexação'))
