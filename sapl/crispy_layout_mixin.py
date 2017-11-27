@@ -4,7 +4,7 @@ from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.translation import ugettext as _
 import rtyaml
@@ -206,13 +206,68 @@ class CrispyLayoutFormMixin:
 
     def get_column(self, fieldname, span):
         obj = self.get_object()
-        verbose_name, text = get_field_display(obj, fieldname)
+
+        func = None
+        if '|' in fieldname:
+            fieldname, func = tuple(fieldname.split('|'))
+
+        if func:
+            verbose_name, text = getattr(self, func)(obj, fieldname)
+        else:
+            verbose_name, text = get_field_display(obj, fieldname)
+
         return {
             'id': fieldname,
             'span': span,
             'verbose_name': verbose_name,
             'text': text,
         }
+
+    def fk_urlize_for_detail(self, obj, fieldname):
+
+        field = obj._meta.get_field(fieldname)
+        value = getattr(obj, fieldname)
+
+        display = '<a href="{}">{}</a>'.format(
+            reverse(
+                '%s:%s_detail' % (
+                    value._meta.app_config.name, value._meta.model_name),
+                args=(value.id,)),
+            value)
+
+        return field.verbose_name, display
+
+    def m2m_urlize_for_detail(self, obj, fieldname):
+
+        manager, fieldname = tuple(fieldname.split('__'))
+
+        manager = getattr(obj, manager)
+
+        verbose_name = manager.model._meta.verbose_name
+        display = ''
+        for item in manager.all():
+            obj_m2m = getattr(item, fieldname)
+
+            if obj == obj_m2m:
+                continue
+
+            verbose_name = item._meta.get_field(fieldname).verbose_name
+
+            display += '<li><a href="{}">{}</a></li>'.format(
+                reverse(
+                    '%s:%s_detail' % (
+                        obj_m2m._meta.app_config.name, obj_m2m._meta.model_name),
+                    args=(obj_m2m.id,)),
+                obj_m2m)
+
+        display += ''
+
+        if display:
+            display = '<ul>%s</ul>' % display
+        else:
+            verbose_name = ''
+
+        return verbose_name, display
 
     @property
     def layout_display(self):

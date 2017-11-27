@@ -60,19 +60,20 @@
         {% for row in fieldset.rows %}
           <div class="row-fluid">
             {% for column in row %}
-              <div class="col-sm-{{ column.span }}">
-                <div id="div_id_{{ column.id }}" class="form-group">
-                  <p class="control-label">{{ column.verbose_name }}</p>
-                  <div class="controls">
-                    {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
-                    {% if column.text|url %}
-                      <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe|default:"" }} </a></div>
-                    {% else %}
-                      <div class="form-control-static">{{ column.text|safe|default:"" }}</div>
-                    {% endif %}
+              {% if column.verbose_name or column.text %}
+                <div class="col-sm-{{ column.span }}">
+                  <div id="div_id_{{ column.id }}" class="form-group">
+                    <p class="control-label">{{ column.verbose_name }}</p>
+                    <div class="controls">
+                      {% if column.text|url %}
+                        <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe|default:"" }} </a></div>
+                      {% else %}
+                        <div class="form-control-static">{{ column.text|safe|default:"" }}</div>
+                      {% endif %}
+                    </div>
                   </div>
                 </div>
-              </div>
+              {% endif %}
             {% endfor %}
           </div>
         {% endfor %}
