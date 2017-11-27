@@ -18,8 +18,8 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
 
-EM_TRAMITACAO = [(1, 'Sim'),
-                 (0, 'Não')]
+EM_TRAMITACAO = [(True, 'Sim'),
+                 (False, 'Não')]
 
 
 def grupo_autor():
