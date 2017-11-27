@@ -23,7 +23,7 @@ def handle_tramitacao_signal(sender, **kwargs):
 
 @receiver(post_delete, sender=Tramitacao)
 def status_tramitacao_materia(sender, instance, **kwargs):
-    if instance.turno == 'F':
+    if instance.status.indicador == 'F':
         materia = instance.materia
         materia.em_tramitacao = True
         materia.save()
