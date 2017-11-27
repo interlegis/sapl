@@ -186,7 +186,8 @@ def update_groups(app_config, verbosity=2, interactive=True,
                 **param_username)[0]
             usuario.set_password('interlegis')
             usuario.save()
-            grupo.user_set.add(usuario)
+            g = Group.objects.get_or_create(name=grupo)[0]
+            g.user_set.add(usuario)
 
         def cria_usuarios_padrao(self):
             for group, user in (
