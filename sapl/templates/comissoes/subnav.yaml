@@ -8,3 +8,4 @@
   url: materias_em_tramitacao
 - title: {% trans 'Reunião' %}
   url: reuniao_list
+
