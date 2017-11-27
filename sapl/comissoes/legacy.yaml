@@ -43,3 +43,16 @@ Participacao (ComposicaoComissao):
   observacao: obs_composicao
   parlamentar: cod_parlamentar
   titular: ind_titular
+
+Reuniao:
+    periodo: periodo_reuniao
+    comissao: comissao_fk
+    tipo: tipo_comissao
+    numero: num_comissao
+    nome: nom_reuniao
+    tema: tem_reuniao
+    data: dat_reuniao
+    hora_inicio: hora_inicio_reuniao
+    hora_fim: hora_fim_reuniao
+    local_reuniao: local
+    observacao:
