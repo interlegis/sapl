@@ -205,8 +205,8 @@ class ReuniaoCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'reuniao_list'))
 
-class ReuniaoPermissionMixin(PermissionRequiredForAppCrudMixin,
-                            FormMixin,
-                            DetailView):
-    model = Reuniao
-    app_label = AppConfig.label,
+    class DetailView(Crud.DetailView):
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)

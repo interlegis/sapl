@@ -46,7 +46,7 @@ Participacao (ComposicaoComissao):
 
 Reuniao:
     periodo: periodo_reuniao
-    comissao: comissao_fk
+    comissao: cod_comissao
     tipo: tipo_comissao
     numero: num_comissao
     nome: nom_reuniao
@@ -55,4 +55,9 @@ Reuniao:
     hora_inicio: hora_inicio_reuniao
     hora_fim: hora_fim_reuniao
     local_reuniao: local
-    observacao:
+    observacao: obs_reuniao
+    ulr_audio: audio_reuniao
+    url_video: video_reuniao
+    upload_pauta: pauta_reuniao
+    upload_ata: ata_reuniao
+    upload_anexo: anexo_reuniao

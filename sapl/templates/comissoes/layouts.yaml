@@ -44,8 +44,16 @@ ParticipacaoEdit:
   - motivo_desligamento
   - observacao
 
- Reuniao:
+Reuniao:
   {% trans 'Reunião' %}:
   - periodo
   - comissao
+  - tipo
+  - numero
+  - nome
+  - tema
+  - data
+  - hora_inicio
+  - hora_fim
+  - local_reuniao
 
