@@ -7,4 +7,4 @@
 - title: {% trans 'Matérias em Tramitação' %}
   url: materias_em_tramitacao
 - title: {% trans 'Reunião' %}
-  url: reuniao_detail
+  url: reuniao_list

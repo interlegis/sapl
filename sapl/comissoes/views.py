@@ -149,6 +149,8 @@ class MateriasTramitacaoListView(ListView):
 
 class ReuniaoCrud(Crud):
     model = Reuniao
+    parent_field = 'comissao'
+    public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['data', 'comissao', 'tipo']
@@ -162,15 +164,32 @@ class ReuniaoCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'pesquisar_reuniao'))
 
-    class ListView(Crud.ListView, RedirectView):
+    class ListView(Crud.ListView):
 
-        def get_redirect_url(self, *args, **kwargs):
-            namespace = self.model._meta.app_config.name
-            return reverse('%s:%s' % (namespace, 'pesquisar_reuniao'))
-            # arrumar a url
+        template_name = "comissoes/reuniao_list.html"
+        paginate_by = None
 
-        def get(self, request, *args, **kwargs):
-            return RedirectView.get(self, request, *args, **kwargs)
+        def take_reuniao_pk(self):
+            try:
+                return int(self.request.GET['pk'])
+            except:
+                return 0
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            reuniao_pk = self.take_reuniao_pk()
+
+            if reuniao_pk == 0:
+                ultima_reuniao = context['reuniao_list'].last()
+                if ultima_reuniao:
+                    context['reuniao_pk'] = ultima_reuniao.pk
+                else:
+                    context['reuniao_pk'] = 0
+            else:
+                context['reuniao_pk'] = reuniao_pk
+
+            return context
 
     class UpdateView(Crud.UpdateView):
 
