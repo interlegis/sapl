@@ -112,7 +112,10 @@
                 </div>
             {% endif %}
         {% else %}
-            {# Show some example queries to run, maybe query syntax, something else? #}
+           {% if 'q=' in request.get_full_path %}
+                <strong><h2>Favor informar um conjunto de caracteres na caixa 'Pesquisar' para realizar a busca</h2></strong>
+           {% endif %}
         {% endif %}
+
     </form>
 {% endblock %}
