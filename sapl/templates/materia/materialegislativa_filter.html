@@ -117,7 +117,10 @@
                   {% endfor %}
                 {% endif %}
                 {% if m.documentoacessorio_set.all.exists %}
-                    <strong>Documentos Acessórios:</strong> {{ m.documentoacessorio_set.all.count }}
+                    <strong>Documentos Acessórios:</strong>
+                    <a href="{% url 'sapl.materia:documentoacessorio_list' m.id %}">
+                        {{ m.documentoacessorio_set.all.count }}
+                    </a>
                     </br>
                 {% endif %}
                 {% if m.texto_original %}<strong><a href="{{m.texto_original.url}}">Texto Original</a></strong></br>{% endif %}
