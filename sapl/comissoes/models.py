@@ -95,6 +95,7 @@ class Comissao(models.Model):
     class Meta:
         verbose_name = _('Comissão')
         verbose_name_plural = _('Comissões')
+        ordering = ['nome']
 
     def __str__(self):
         return self.sigla + ' - ' + self.nome

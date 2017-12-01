@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.db.models.functions import Concat
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -402,6 +403,7 @@ class TipoDocumento(models.Model):
     class Meta:
         verbose_name = _('Tipo de Documento')
         verbose_name_plural = _('Tipos de Documento')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
@@ -545,6 +547,7 @@ class Orgao(models.Model):
     class Meta:
         verbose_name = _('Órgão')
         verbose_name_plural = _('Órgãos')
+        ordering = ['nome']
 
     def __str__(self):
         return _(
@@ -790,6 +793,19 @@ class StatusTramitacao(models.Model):
             'descricao': self.descricao}
 
 
+class UnidadeTramitacaoManager(models.Manager):
+    """
+        Esta classe permite ordenar alfabeticamente a unidade de tramitacao
+        através da concatenação de 3 fields
+    """
+    def get_queryset(self):
+        return super(UnidadeTramitacaoManager, self).get_queryset().annotate(
+                nome_composto=Concat('orgao__nome',
+                                     'comissao__sigla',
+                                     'parlamentar__nome_parlamentar')
+                                    ).order_by('nome_composto')
+
+
 @reversion.register()
 class UnidadeTramitacao(models.Model):
     comissao = models.ForeignKey(
@@ -802,10 +818,11 @@ class UnidadeTramitacao(models.Model):
         Parlamentar, blank=True, null=True,
         on_delete=models.PROTECT, verbose_name=_('Parlamentar'))
 
+    objects = UnidadeTramitacaoManager()
+
     class Meta:
         verbose_name = _('Unidade de Tramitação')
         verbose_name_plural = _('Unidades de Tramitação')
-        ordering = ['orgao', 'comissao', 'parlamentar']
 
     def __str__(self):
         if self.orgao and self.comissao and self.parlamentar:
