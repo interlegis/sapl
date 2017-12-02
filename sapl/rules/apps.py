@@ -1,15 +1,15 @@
 from builtins import LookupError
 
-import django
-import reversion
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import django
+import reversion
 
 from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
@@ -78,7 +78,19 @@ def create_proxy_permissions(
             ctype = ContentType.objects.db_manager(using).get_for_model(klass)
 
         ctypes.add(ctype)
-        for perm in _get_all_permissions(klass._meta, ctype):
+
+        # FIXME: Retirar try except quando sapl passar a usar django 1.11
+        try:
+            # Função não existe mais em Django 1.11
+            # como sapl ainda não foi para Django 1.11
+            # esta excessão foi adicionada para caso o
+            # Sapl esteja rodando em um projeto 1.11 não ocorra erros
+            _all_perms_of_klass = _get_all_permissions(klass._meta, ctype)
+        except:
+            # Nova função usada em projetos com Django 1.11 e o sapl é uma app
+            _all_perms_of_klass = _get_all_permissions(klass._meta)
+
+        for perm in _all_perms_of_klass:
             searched_perms.append((ctype, perm))
 
     # Find all the Permissions that have a content_type for a model we're
