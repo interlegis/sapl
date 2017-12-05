@@ -160,13 +160,18 @@ def read_sde(element):
     return data
 
 
+def save_as_yaml(path, name, obj):
+    fullname = os.path.join(path, name)
+    with open(fullname, 'w') as arquivo:
+        yaml.safe_dump(obj, arquivo)
+    print(fullname)
+    return fullname
+
+
 def dump_sde(strdoc, path, tipo):
     id = strdoc['id']
-    fullname = os.path.join(path, '{}.{}.yaml'.format(id, tipo))
-    print(fullname)
     sde = read_sde(strdoc)
-    with open(fullname, 'w') as arquivo:
-        yaml.safe_dump(sde, arquivo)
+    save_as_yaml(path,  '{}.{}.yaml'.format(id, tipo), sde)
     return id
 
 
@@ -207,25 +212,35 @@ def find_sapl(app):
                 return sapl
 
 
-def dump_propriedades(docs):
+def dump_propriedades(docs, path):
     props_sapl = br(docs['props_sapl'])
     ids = [p['id'] for p in props_sapl['_properties']]
     props = {id: props_sapl[id] for id in ids}
     props = {id: p.decode('iso-8859-1') if isinstance(p, str) else p
              for id, p in props.items()}
-    with open('sapl_documentos/propriedades.yaml', 'w') as f:
-        f.write(yaml.safe_dump(props))
+    save_as_yaml(path, 'sapl_documentos/propriedades.yaml', props)
 
 
-def dump_sapl(data_fs_path):
+def dump_usuarios(sapl, path):
+    users = br(br(sapl['acl_users'])['data'])
+    users = {k: br(v) for k, v in users['data'].items()}
+    save_as_yaml(path, 'usuarios.yaml', users)
+
+
+def dump_sapl(data_fs_path, destino='../../../../media'):
     app, close_db = get_app(data_fs_path)
     try:
         sapl = find_sapl(app)
-        docs = br(sapl['sapl_documentos'])
+        # extrai folhas XSLT
+        dump_folder(br(sapl['XSLT']), destino)
+        # extrai usuários com suas senhas e perfis
+        dump_usuarios(sapl, destino)
 
+        # extrai documentos
+        docs = br(sapl['sapl_documentos'])
         nao_identificados.clear()
-        dump_folder(docs)
-        dump_propriedades(docs)
+        dump_folder(docs, destino)
+        dump_propriedades(docs, destino)
         if nao_identificados:
             print('#' * 80)
             print('#' * 80)
