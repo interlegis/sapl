@@ -123,6 +123,13 @@ h6, .h6 {
     display: block;
   }
 }
+
+.help-block-danger {
+  margin: $grid-gutter-width / 2;
+  padding: $grid-gutter-width / 2;
+  border: 2px dashed #f00;
+}
+
 .controls-radio-checkbox {
   padding: 0px;
   border: 1px solid #d6e1e5;

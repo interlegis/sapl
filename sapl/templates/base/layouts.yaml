@@ -28,7 +28,7 @@ AppConfig:
 
 TipoAutor:
   {% trans 'Tipo Autor' %}:
-  - content_type:4 descricao
+  - descricao
 
 Autor:
   {% trans 'Autor' %}:

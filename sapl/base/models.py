@@ -195,7 +195,10 @@ class AppConfig(models.Model):
 
 @reversion.register()
 class TipoAutor(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+    descricao = models.CharField(
+        max_length=50, verbose_name=_('Descrição'),
+        help_text=_('Obs: Não crie tipos de autores '
+                    'semelhante aos tipos fixos. '))
 
     content_type = models.OneToOneField(
         ContentType,
