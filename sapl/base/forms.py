@@ -1,4 +1,3 @@
-import django_filters
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
@@ -12,8 +11,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.forms import ModelForm
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -27,6 +27,7 @@ from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
                         qs_override_django_filter)
 
 from .models import AppConfig, CasaLegislativa
+
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('A', _('Associar um usuário existente')),
@@ -45,26 +46,13 @@ STATUS_USER_CHOICE = [
 
 class TipoAutorForm(ModelForm):
 
-    content_type = forms.ModelChoiceField(
-        queryset=ContentType.objects.all(),
-        label=TipoAutor._meta.get_field('content_type').verbose_name,
-        required=False)
-
     class Meta:
         model = TipoAutor
-        fields = ['descricao',
-                  'content_type']
+        fields = ['descricao']
 
     def __init__(self, *args, **kwargs):
 
         super(TipoAutorForm, self).__init__(*args, **kwargs)
-
-        content_types = ContentType.objects.get_for_models(
-            *models_with_gr_for_model(Autor))
-
-        self.fields['content_type'].choices = [
-            ('', _('Outros (Especifique)'))] + [
-                (ct.pk, ct) for key, ct in content_types.items()]
 
 
 class AutorForm(ModelForm):

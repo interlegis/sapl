@@ -11,7 +11,7 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, string_concat
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
@@ -57,8 +57,28 @@ class TipoAutorCrud(CrudAux):
     help_topic = 'tipo-autor'
 
     class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ['descricao', 'content_type']
+        list_field_names = ['descricao']
         form_class = TipoAutorForm
+
+        @property
+        def verbose_name(self):
+            vn = super().verbose_name
+            vn = string_concat(vn, ' ', _('Externo ao SAPL'))
+            return vn
+
+    class ListView(CrudAux.ListView):
+        def get_queryset(self):
+            qs = CrudAux.ListView.get_queryset(self)
+            qs = qs.filter(content_type__isnull=True)
+            return qs
+
+        def get_context_data(self, **kwargs):
+            context = CrudAux.ListView.get_context_data(self, **kwargs)
+
+            context['tipos_sapl'] = TipoAutor.objects.filter(
+                content_type__isnull=False)
+
+            return context
 
 
 class AutorCrud(CrudAux):

@@ -22,58 +22,58 @@
   {% endblock actions %}
 </div>
 
-{% block extra_content %} {% endblock %}
-
-{% if not rows %}
-  <p>{{ NO_ENTRIES_MSG }}</p>
-{% else %}
-  <div class="container-table">
-    <div class="result-count">{% blocktrans with verbose_name_plural=view.verbose_name_plural %}Total de {{ verbose_name_plural }}: <strong>{{count}}</strong>{% endblocktrans %}</div>
-    <table class="table table-striped table-hover table-link-ordering">
-      <thead>
-        <tr>
-          {% for name in headers %}
-            <th>
-              {% if view.ordered_list %}
-                <a title="{% trans 'Clique para alterar a ordem a listagem'%}" href="?o={% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}-{%endif%}{{forloop.counter}}{{ordering_url}}">
-                  {{ name }}
-                  {% if 'o' in request.GET or not view.ordering %}
-                    {% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}
-                      <span class="caret top" title="{% trans 'Listado na Ordem Ascendente'%}"></span>
-                    {% elif 'o' in request.GET and forloop.counter == request.GET.o|str2intabs %}
-                      <span class="caret" title="{% trans 'Listado na Ordem Descendente'%}"></span>
+{% block container_table_list %}
+  {% if not rows %}
+    <p>{{ NO_ENTRIES_MSG }}</p>
+  {% else %}
+    <div class="container-table">
+      <div class="result-count">{% blocktrans with verbose_name_plural=view.verbose_name_plural %}Total de {{ verbose_name_plural }}: <strong>{{count}}</strong>{% endblocktrans %}</div>
+      <table class="table table-striped table-hover table-link-ordering">
+        <thead>
+          <tr>
+            {% for name in headers %}
+              <th>
+                {% if view.ordered_list %}
+                  <a title="{% trans 'Clique para alterar a ordem a listagem'%}" href="?o={% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}-{%endif%}{{forloop.counter}}{{ordering_url}}">
+                    {{ name }}
+                    {% if 'o' in request.GET or not view.ordering %}
+                      {% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}
+                        <span class="caret top" title="{% trans 'Listado na Ordem Ascendente'%}"></span>
+                      {% elif 'o' in request.GET and forloop.counter == request.GET.o|str2intabs %}
+                        <span class="caret" title="{% trans 'Listado na Ordem Descendente'%}"></span>
+                      {%endif%}
                     {%endif%}
-                  {%endif%}
-                </a>
+                  </a>
+                {% else %}
+                    {{ name }}
+                {% endif %}
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+        {% for value_list in rows %}
+        <tr>
+          {% for value, href in value_list %}
+          <td>
+            {% if href %}
+            <a href="{{ href }}">{{ value|safe|default:"" }}</a>
+            {% elif valu != 'core.Cep.None' %}
+              {% if value|url %}
+                <a href="{{ value|safe }}"> {{ value|safe|default:"" }} </a></div>
               {% else %}
-                  {{ name }}
+                {{ value|safe|default:"" }}
               {% endif %}
-            </th>
+            {% endif %}
+          </td>
           {% endfor %}
         </tr>
-      </thead>
-      <tbody>
-      {% for value_list in rows %}
-      <tr>
-        {% for value, href in value_list %}
-        <td>
-          {% if href %}
-          <a href="{{ href }}">{{ value|safe|default:"" }}</a>
-          {% elif valu != 'core.Cep.None' %}
-            {% if value|url %}
-              <a href="{{ value|safe }}"> {{ value|safe|default:"" }} </a></div>
-            {% else %}
-              {{ value|safe|default:"" }}
-            {% endif %}
-          {% endif %}
-        </td>
         {% endfor %}
-      </tr>
-      {% endfor %}
-    </tbody>
-    </table>
-  </div>
-{% endif %}
+      </tbody>
+      </table>
+    </div>
+  {% endif %}
+{% endblock container_table_list %}
 
 {% include "paginacao.html" %}
 
