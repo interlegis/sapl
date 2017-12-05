@@ -32,19 +32,19 @@ from .apps import AppConfig
 app_name = AppConfig.name
 
 urlpatterns_impressos = [
-    url(r'^relatorios/impressos/$',
+    url(r'^materia/impressos/$',
         ImpressosView.as_view(),
         name='impressos'),
-    url(r'^relatorios/impressos/etiqueta-pesquisa/$',
+    url(r'^materia/impressos/etiqueta-pesquisa/$',
         EtiquetaPesquisaView.as_view(),
         name='impressos_etiqueta'),
-    url(r'^relatorios/impressos/ficha-pesquisa/$',
+    url(r'^materia/impressos/ficha-pesquisa/$',
         FichaPesquisaView.as_view(),
         name='impressos_ficha_pesquisa'),
-    url(r'^relatorios/impressos/ficha-seleciona/$',
+    url(r'^materia/impressos/ficha-seleciona/$',
         FichaSelecionaView.as_view(),
         name='impressos_ficha_seleciona'),
-    url(r'^relatorios/impressos/norma-pesquisa/$',
+    url(r'^materia/impressos/norma-pesquisa/$',
         NormaPesquisaView.as_view(),
         name='impressos_norma_pesquisa'),
 ]

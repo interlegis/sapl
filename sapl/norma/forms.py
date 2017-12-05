@@ -244,24 +244,24 @@ class NormaPesquisaForm(forms.Form):
                 form_actions(label='Pesquisar')
             )
         )
-
+    
     def clean(self):
+        super(NormaPesquisaForm, self).clean()
         cleaned_data = self.cleaned_data
 
-        # Verifica se algum campo de data foi preenchido
-        if cleaned_data['data_inicial'] or cleaned_data['data_final']:
-            # Então verifica se o usuário preencheu o Incial e mas não
-            # preencheu o Final, ou vice-versa
-            if (not cleaned_data['data_inicial'] or
-                    not cleaned_data['data_final']):
-                raise ValidationError(_(
-                    'Caso pesquise por data, os campos de Data Incial e ' +
-                    'Data Final devem ser preenchidos obrigatoriamente'))
-            # Caso tenha preenchido, verifica se a data final é maior que
-            # a inicial
-            elif cleaned_data['data_final'] < cleaned_data['data_inicial']:
-                raise ValidationError(_(
-                    'A Data Final não pode ser menor que a Data Inicial'))
+        data_inicial = cleaned_data['data_inicial']
+        data_final = cleaned_data['data_final']
+        
+        if (data_inicial and data_final and 
+            data_inicial > data_final):
+                 raise ValidationError(_(
+                      'A Data Final não pode ser menor que a Data Inicial'))
+        else:
+             condicao1 = data_inicial and not data_final
+             condicao2 = not data_inicial and data_final
+             if condicao1 or condicao2:
+                        raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e ' +
+                            'Data Final devem ser preenchidos obrigatoriamente'))
 
 
         return cleaned_data
