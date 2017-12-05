@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db.models import Count
@@ -79,6 +79,22 @@ class TipoAutorCrud(CrudAux):
                 content_type__isnull=False)
 
             return context
+
+    class TipoAutorMixin:
+        def dispatch(self, request, *args, **kwargs):
+            object = self.get_object()
+            if object.content_type:
+                raise PermissionDenied()
+            return super().get(request, *args, **kwargs)
+
+    class UpdateView(TipoAutorMixin, CrudAux.UpdateView):
+        pass
+
+    class DetailView(TipoAutorMixin, CrudAux.DetailView):
+        pass
+
+    class DeleteView(TipoAutorMixin, CrudAux.DeleteView):
+        pass
 
 
 class AutorCrud(CrudAux):
