@@ -208,3 +208,61 @@ class NormaRelacionadaForm(ModelForm):
         relacionada.norma_relacionada = self.cleaned_data['norma_relacionada']
         relacionada.save()
         return relacionada
+    
+class NormaPesquisaForm(forms.Form):
+    tipo_norma = forms.ModelChoiceField(
+        label=TipoNormaJuridica._meta.verbose_name,
+        queryset=TipoNormaJuridica.objects.all(),
+        required=False,
+        empty_label='Selecione')
+
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    data_final = forms.DateField(
+        label='Data Final',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(NormaPesquisaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('tipo_norma', 6),
+             ('data_inicial', 3),
+             ('data_final', 3)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Índice de Normas'),
+                row1,
+                form_actions(label='Pesquisar')
+            )
+        )
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        # Verifica se algum campo de data foi preenchido
+        if cleaned_data['data_inicial'] or cleaned_data['data_final']:
+            # Então verifica se o usuário preencheu o Incial e mas não
+            # preencheu o Final, ou vice-versa
+            if (not cleaned_data['data_inicial'] or
+                    not cleaned_data['data_final']):
+                raise ValidationError(_(
+                    'Caso pesquise por data, os campos de Data Incial e ' +
+                    'Data Final devem ser preenchidos obrigatoriamente'))
+            # Caso tenha preenchido, verifica se a data final é maior que
+            # a inicial
+            elif cleaned_data['data_final'] < cleaned_data['data_inicial']:
+                raise ValidationError(_(
+                    'A Data Final não pode ser menor que a Data Inicial'))
+
+
+        return cleaned_data
+
