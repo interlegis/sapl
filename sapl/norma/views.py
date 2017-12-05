@@ -245,12 +245,13 @@ class NormaPesquisaView(PermissionRequiredMixin, FormView):
     form_class = NormaPesquisaForm
     template_name = 'materia/impressos/norma.html'
     permission_required = ('materia.can_access_impressos', )
-
-
+    
+    
     def form_valid(self, form):
         context = {}
 
         normas = NormaJuridica.objects.all()
+        template_norma = 'materia/impressos/normas_pdf.html'
 
         if form.cleaned_data['tipo_norma']:
             normas = normas.filter(tipo=form.cleaned_data['tipo_norma'])
@@ -268,5 +269,4 @@ class NormaPesquisaView(PermissionRequiredMixin, FormView):
 
         context['normas'] = normas
         
-        return gerar_pdf_impressos(self.request, context,
-            'materia/impressos/normas_pdf.html')
+        return gerar_pdf_impressos(self.request, context, template_norma)
