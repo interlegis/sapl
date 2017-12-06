@@ -22,8 +22,7 @@ from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
-from sapl.utils import create_barcode, get_client_ip, show_results_filter_set
-
+from sapl.utils import create_barcode, get_client_ip, show_results_filter_set, get_mime_type_from_file_extension
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,
@@ -55,12 +54,7 @@ def doc_texto_integral(request, pk):
         if documento.texto_integral:
             arquivo = documento.texto_integral
 
-            ext = arquivo.name.split('.')[-1]
-            mime = ''
-            if ext == 'odt':
-                mime = 'application/vnd.oasis.opendocument.text'
-            else:
-                mime = "application/%s" % (ext,)
+            mime = get_mime_type_from_file_extension(arquivo.name)
 
             with open(arquivo.path, 'rb') as f:
                 data = f.read()
@@ -163,9 +157,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
 
         kwargs = {'data': self.request.GET or None}
 
-        qs = self.get_queryset().order_by('ano', 'numero')
-
-        qs = qs.distinct()
+        qs = self.get_queryset().order_by('ano', 'numero').distinct()
 
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', '-numero')
@@ -197,7 +189,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
         # Provavelmente você criou um novo campo no Form/FilterSet
         # Então a ordem da URL está diferente
         data = self.filterset.data
-        if (data and data.get('numero') is not None):
+        if data and data.get('numero') is not None:
             url = "&" + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('numero=') - 1
@@ -552,7 +544,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         # Provavelmente você criou um novo campo no Form/FilterSet
         # Então a ordem da URL está diferente
         data = self.filterset.data
-        if (data and data.get('tipo') is not None):
+        if data and data.get('tipo') is not None:
             url = "&" + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('tipo=') - 1

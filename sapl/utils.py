@@ -665,3 +665,12 @@ def sort_lista_chave(lista, chave):
     """
     lista_ordenada = sorted(lista, key=itemgetter(chave))
     return lista_ordenada
+
+
+def get_mime_type_from_file_extension(filename):
+    ext = filename.split('.')[-1]
+    if ext == 'odt':
+        mime = 'application/vnd.oasis.opendocument.text'
+    else:
+        mime = "application/%s" % (ext,)
+    return mime
