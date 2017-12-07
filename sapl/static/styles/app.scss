@@ -219,6 +219,18 @@ body {
   }
 }
 
+label {
+  margin-bottom: 0;
+  line-height: 1;
+}
+.control-label {
+  margin: 0;
+}
+.form-control-static {
+  padding-top: 0;
+  min-height: auto;
+}
+
 // #### pagination ########################################
 .pagination {
   padding-top: 25px;
