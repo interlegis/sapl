@@ -230,6 +230,9 @@ label {
   padding-top: 0;
   min-height: auto;
 }
+.textarea.form-control {
+    height: 100px;
+}
 
 // #### pagination ########################################
 .pagination {
