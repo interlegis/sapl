@@ -250,7 +250,8 @@ class NormaPesquisaView(PermissionRequiredMixin, FormView):
     def form_valid(self, form):
         context = {}
 
-        normas = NormaJuridica.objects.all()
+        normas = NormaJuridica.objects.all().order_by(
+            '-numero')
         template_norma = 'materia/impressos/normas_pdf.html'
 
         if form.cleaned_data['tipo_norma']:
