@@ -23,7 +23,7 @@
         ul, li {
           list-style-type: none;
         }
-        #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao{
+        #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao, #orador {
           font-family: Verdana;
         }
       }
@@ -70,7 +70,18 @@
           </table>
         </div>
 
-        <div class="col-md-4" >
+        <div class="row container-detail clearfix">
+          <div  class="row-fluid">
+            <div class="col-md-4">
+              <h2><font color="#459170"><p align="center" style="font-family:Verdana">Oradores</p></b></font></h2>
+              <table align="center">
+                <tr>
+                  <th><h4><font color="white"><span id="orador"></span></h4></font></th>
+                </tr>
+              </table>
+            </div>
+
+        <div class="col-md-3" >
           <h2><font color="#459170"><p align="center" style="font-family:Verdana">Cronômetros</p></font></h2>
           <table align="center">
             <tr>
@@ -183,15 +194,19 @@
 
               var presentes = $("#parlamentares");
               var votacao = $("#votacao");
+              var oradores = $("#orador")
               $("#votacao").text('');
               presentes.children().remove();
               votacao.children().remove();
+              oradores.children().remove();
 
+              var oradores_list = data["oradores"];
               var presentes_list = data["presentes"];
 
               if (data["status_painel"] == true) {
                   presentes.append('<table id="parlamentares_list">');
                   jQuery.each(presentes_list, function (index, parlamentar) {
+
 
                     if (parlamentar.voto == 'Voto Informado'){
                       $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
@@ -206,16 +221,30 @@
                           '</td> <td style="padding-right:20px">' +
                           parlamentar.partido + '</td> <td style="padding-right:20px">'
                           + show_voto(parlamentar.voto) + '</td></tr>')
-                    } 
+                    }
 
                   });
-                  presentes.append('</table>');
+                  presentes.append('</table>')
+
+                  oradores.append('<table id="oradores_list">');
+                  jQuery.each(oradores_list, function (index, orador) {
+                    $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
+                        orador.numero + 'º &nbsp' +
+                        orador.nome +'</td></tr>')
+                  });
+                  oradores.append('</table>');
+
               }
               else{
                   presentes.append('<span id="parlamentares_list">');
                   $('#parlamentares_list').append(
                       '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
                   presentes.append('</span>');
+
+                  oradores.append('<span id="oradores_list">');
+                  $('#oradores_list').append(
+                      '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
+                  oradores.append('</span>');
               }
 
               if (data['materia_legislativa_texto']){
@@ -288,7 +317,7 @@
                     $("#resultado_votacao").css("color", "green");
                   }
                   if (resultado_votacao_upper.search("REJEIT") != -1){
-                    $("#resultado_votacao").css("color", "red"); 
+                    $("#resultado_votacao").css("color", "red");
                   }
               }
               else{
