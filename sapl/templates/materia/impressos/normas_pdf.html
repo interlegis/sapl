@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Impressos</title>
+	<meta charset="utf-8">
+</head>
+
+<style type="text/css">
+	.text_pdf{
+		font-family: arial;
+		font-size: 70%;
+	}
+</style>
+
+<body style="margin-left:10px;margin-right:-50px; margin-top: -50px; text-align: justify">
+
+{% if quantidade > 30 %}
+	<b><p class="alert_message">Sua pesquisa retornou mais do que 2000 impressos.</p><p class="alert_message">Por questões de performance, foram retornados apenas os 2000 primeiros.</p></b>
+	</br></br></br>
+{% endif %}
+
+
+{% for m in normas %}
+<table>
+	<tr>
+		<td style="width:200px; vertical-align:top;"><span class="text_pdf"> {{m.tipo}} nº </span><span class="text_pdf"> {{m.numero}}, de {{m.data|date:"d/m/Y" }} </span>
+		</td>
+		<td>
+		</td>
+		<td style="width:450px; vertical-align:top;"><span class="text_pdf">{{m.ementa}}</span>
+		</td>
+	</tr>
+</table>
+</br>
+
+{% endfor %}
+
+
+
+</body>
