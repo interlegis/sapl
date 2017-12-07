@@ -6,6 +6,13 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
+from django.contrib.auth.mixins import PermissionRequiredMixin
+
+from django.http import HttpResponse, JsonResponse
+from django.views.generic.edit import FormView
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.template import RequestContext, loader
+import weasyprint
 
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
@@ -13,7 +20,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.utils import show_results_filter_set
 
-from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm
+from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm, NormaPesquisaForm
 from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica)
 
@@ -216,3 +223,51 @@ def recuperar_numero_norma(request):
             {'numero': 1, 'ano': ano})
 
     return response
+
+
+class ImpressosView(PermissionRequiredMixin, TemplateView):
+    template_name = 'materia/impressos/impressos.html'
+    permission_required = ('materia.can_access_impressos', )
+
+
+def gerar_pdf_impressos(request, context, template_name):
+    template = loader.get_template(template_name)
+    html = template.render(RequestContext(request, context))
+    response = HttpResponse(content_type="application/pdf")
+    weasyprint.HTML(
+        string=html,
+        base_url=request.build_absolute_uri()).write_pdf(
+        response)
+
+    return response
+
+class NormaPesquisaView(PermissionRequiredMixin, FormView):
+    form_class = NormaPesquisaForm
+    template_name = 'materia/impressos/norma.html'
+    permission_required = ('materia.can_access_impressos', )
+    
+    
+    def form_valid(self, form):
+        context = {}
+
+        normas = NormaJuridica.objects.all().order_by(
+            '-numero')
+        template_norma = 'materia/impressos/normas_pdf.html'
+
+        if form.cleaned_data['tipo_norma']:
+            normas = normas.filter(tipo=form.cleaned_data['tipo_norma'])
+
+        if form.cleaned_data['data_inicial']:
+            normas = normas.filter(
+                data__gte=form.cleaned_data['data_inicial'],
+                data__lte=form.cleaned_data['data_final'])
+ 
+
+        context['quantidade'] = len(normas)
+
+        if context['quantidade'] > 2000:
+            normas = normas[:2000]
+
+        context['normas'] = normas
+        
+        return gerar_pdf_impressos(self.request, context, template_norma)
