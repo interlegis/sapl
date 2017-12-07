@@ -16,7 +16,8 @@ from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
 from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
-from sapl.sessao.models import (ExpedienteMateria, OrdemDia, PresencaOrdemDia,
+from sapl.sessao.models import (ExpedienteMateria, OrdemDia, OradorExpediente,
+                                PresencaOrdemDia,
                                 RegistroVotacao, SessaoPlenaria,
                                 SessaoPlenariaPresenca, VotoParlamentar)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
@@ -294,6 +295,17 @@ def get_presentes(pk, response, materia):
     sessao = SessaoPlenaria.objects.get(id=pk)
     num_presentes = len(presentes)
     data_sessao = sessao.data_inicio
+    oradores = OradorExpediente.objects.filter(
+        sessao_plenaria_id=pk).order_by('numero_ordem')
+
+    oradores_list = []
+    for o in oradores:
+
+        oradores_list.append(
+            {
+            'nome': o.parlamentar.nome_parlamentar,
+            'numero': o.numero_ordem
+            })
 
     presentes_list = []
     for p in presentes:
@@ -334,7 +346,8 @@ def get_presentes(pk, response, materia):
             'tipo_resultado': materia.resultado,
             'observacao_materia': materia.observacao,
             'tipo_votacao': tipo_votacao,
-            'materia_legislativa_texto': str(materia.materia)
+            'materia_legislativa_texto': str(materia.materia),
+            'oradores': oradores_list
         })
 
     presentes_list = sort_lista_chave(presentes_list, 'nome')
