@@ -184,7 +184,8 @@ class AppConfig(models.Model):
         config = AppConfig.objects.first()
 
         if not config:
-            return ''
+            config = AppConfig()
+            config.save()
 
         return getattr(config, attr)
 
