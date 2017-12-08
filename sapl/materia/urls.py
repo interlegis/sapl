@@ -25,7 +25,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
                                 proposicao_texto, recuperar_materia)
 
-from sapl.norma.views import  NormaPesquisaView
+from sapl.norma.views import  NormaPesquisaSimplesView
 
 from .apps import AppConfig
 
@@ -45,7 +45,7 @@ urlpatterns_impressos = [
         FichaSelecionaView.as_view(),
         name='impressos_ficha_seleciona'),
     url(r'^materia/impressos/norma-pesquisa/$',
-        NormaPesquisaView.as_view(),
+        NormaPesquisaSimplesView.as_view(),
         name='impressos_norma_pesquisa'),
 ]
 

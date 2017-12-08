@@ -20,7 +20,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.utils import show_results_filter_set
 
-from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm, NormaPesquisaForm
+from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm, NormaPesquisaSimplesForm
 from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica)
 
@@ -241,8 +241,8 @@ def gerar_pdf_impressos(request, context, template_name):
 
     return response
 
-class NormaPesquisaView(PermissionRequiredMixin, FormView):
-    form_class = NormaPesquisaForm
+class NormaPesquisaSimplesView(PermissionRequiredMixin, FormView):
+    form_class = NormaPesquisaSimplesForm
     template_name = 'materia/impressos/norma.html'
     permission_required = ('materia.can_access_impressos', )
     
@@ -267,6 +267,7 @@ class NormaPesquisaView(PermissionRequiredMixin, FormView):
 
         if context['quantidade'] > 2000:
             normas = normas[:2000]
+            
 
         context['normas'] = normas
         

@@ -209,7 +209,7 @@ class NormaRelacionadaForm(ModelForm):
         relacionada.save()
         return relacionada
     
-class NormaPesquisaForm(forms.Form):
+class NormaPesquisaSimplesForm(forms.Form):
     tipo_norma = forms.ModelChoiceField(
         label=TipoNormaJuridica._meta.verbose_name,
         queryset=TipoNormaJuridica.objects.all(),
@@ -229,7 +229,7 @@ class NormaPesquisaForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        super(NormaPesquisaForm, self).__init__(*args, **kwargs)
+        super(NormaPesquisaSimplesForm, self).__init__(*args, **kwargs)
 
         row1 = to_row(
             [('tipo_norma', 6),
@@ -246,7 +246,7 @@ class NormaPesquisaForm(forms.Form):
         )
     
     def clean(self):
-        super(NormaPesquisaForm, self).clean()
+        super(NormaPesquisaSimplesForm, self).clean()
         cleaned_data = self.cleaned_data
 
         data_inicial = cleaned_data['data_inicial']
