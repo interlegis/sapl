@@ -959,7 +959,6 @@ class TramitacaoCrud(MasterDetailCrud):
                      ultima_tramitacao.unidade_tramitacao_destino)]
             return context
 
-
         def form_valid(self, form):
             self.object = form.save()
 
@@ -1196,55 +1195,6 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
             namespace = 'sapl.materia'
             return reverse('%s:%s' % (namespace, self.url_name(suffix)),
                            args=args)
-
-        def has_permission(self):
-            perms = self.get_permission_required()
-            # Torna a view pública se não possuir conteudo
-            # no atributo permission_required
-            return self.request.user.has_module_perms('materia')\
-                if len(perms) else True
-
-        def permission(self, rad):
-            return '%s%s%s' % ('norma' if rad.endswith('_') else '',
-                               rad,
-                               self.model_name if rad.endswith('_') else '')
-
-        @property
-        def detail_create_url(self):
-            obj = self.crud if hasattr(self, 'crud') else self
-            if self.request.user.has_module_perms('materia'):
-                parent_field = obj.parent_field.split('__')[0]
-                parent_object = getattr(self.object, parent_field)
-
-                root_pk = parent_object.pk
-
-                return self.resolve_url(ACTION_CREATE, args=(root_pk,))
-            return ''
-
-        @property
-        def list_url(self):
-            return self.resolve_url(ACTION_LIST, args=(self.kwargs['pk'],))\
-                if self.request.user.has_module_perms('materia') else ''
-
-        @property
-        def create_url(self):
-            return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],))\
-                if self.request.user.has_module_perms('materia') else ''
-
-        @property
-        def detail_url(self):
-            return self.resolve_url(ACTION_DETAIL, args=(self.object.id,))\
-                if self.request.user.has_module_perms('materia') else ''
-
-        @property
-        def update_url(self):
-            return self.resolve_url(ACTION_UPDATE, args=(self.kwargs['pk'],))\
-                if self.request.user.has_module_perms('materia') else ''
-
-        @property
-        def delete_url(self):
-            return self.resolve_url(ACTION_DELETE, args=(self.object.id,))\
-                if self.request.user.has_module_perms('materia') else ''
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = LegislacaoCitadaForm

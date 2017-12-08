@@ -127,7 +127,7 @@ def create_proxy_permissions(
 
 
 def update_groups(app_config, verbosity=2, interactive=True,
-                  using=DEFAULT_DB_ALIAS, cria_usuarios_padrao=False,
+                  using=DEFAULT_DB_ALIAS, cria_usuarios_padrao=True,
                   **kwargs):
 
     if app_config != AppConfig and not isinstance(app_config, AppConfig):
