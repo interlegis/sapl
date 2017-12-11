@@ -2,6 +2,7 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
+import weasyprint
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
@@ -19,8 +20,8 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
-import weasyprint
 
+import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -40,9 +41,7 @@ from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
-                        montar_row_autor, show_results_filter_set)
-import sapl
-
+                        montar_row_autor, show_results_filter_set, get_mime_type_from_file_extension)
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
@@ -62,7 +61,6 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
 
-
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
 OrigemCrud = Crud.build(Origem, '')
@@ -81,9 +79,9 @@ TipoFimRelatoriaCrud = CrudAux.build(
 
 
 def autores_ja_adicionados(materia_pk):
-    autorias = Autoria.objects.filter(materia_id=materia_pk)
-    pks = [a.autor.pk for a in autorias]
-    return pks
+    autorias = Autoria.objects.filter(materia_id=materia_pk).values_list(
+        'autor_id', flat=True)
+    return autorias
 
 
 def proposicao_texto(request, pk):
@@ -96,12 +94,7 @@ def proposicao_texto(request, pk):
 
         arquivo = proposicao.texto_original
 
-        ext = arquivo.name.split('.')[-1]
-        mime = ''
-        if ext == 'odt':
-            mime = 'application/vnd.oasis.opendocument.text'
-        else:
-            mime = "application/%s" % (ext,)
+        mime = get_mime_type_from_file_extension(arquivo.name)
 
         with open(arquivo.path, 'rb') as f:
             data = f.read()
@@ -176,14 +169,14 @@ class CriarProtocoloMateriaView(CreateView):
         except ObjectDoesNotExist:
             raise Http404()
 
-        materias_ano = MateriaLegislativa.objects.filter(
-            ano=protocolo.ano,
-            tipo=protocolo.tipo_materia).order_by('-numero')
-
-        if materias_ano:
-            numero = materias_ano.first().numero + 1
-        else:
-            numero = 1
+        numero = 1
+        try:
+            materias_ano = MateriaLegislativa.objects.filter(
+                ano=protocolo.ano,
+                tipo=protocolo.tipo_materia).latest('numero')
+            numero = materias_ano.numero + 1
+        except ObjectDoesNotExist:
+            pass  # numero ficou com o valor padrão 1 acima
 
         context['form'].fields['tipo'].initial = protocolo.tipo_materia
         context['form'].fields['numero'].initial = numero
@@ -489,7 +482,8 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
 
     def get_object(self, queryset=None):
         try:
-            """Não deve haver acesso na rotina de confirmação a proposições:
+            """
+            Não deve haver acesso na rotina de confirmação a proposições:
             já recebidas -> data_recebimento != None
             não enviadas -> data_envio == None
             """
@@ -901,11 +895,9 @@ class RelatoriaCrud(MasterDetailCrud):
                 participacao = Participacao.objects.filter(
                     composicao=composicao)
 
-                parlamentares = []
-                for p in participacao:
-                    if p.titular:
-                        parlamentares.append(
-                            [p.parlamentar.id, p.parlamentar.nome_parlamentar])
+                parlamentares = [[p.parlamentar.id, p.parlamentar.nome_parlamentar] for
+                                    p in participacao if p.titular]
+
                 context['form'].fields['parlamentar'].choices = parlamentares
 
             return context

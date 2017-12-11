@@ -55,9 +55,6 @@ class ComposicaoCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-#            context['composicao_pk'] = context['composicao_list'].last(
-#                ).pk if self.take_composicao_pk(
-#                ) == 0 else self.take_composicao_pk()
 
             composicao_pk = self.take_composicao_pk()
 

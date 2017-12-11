@@ -577,14 +577,14 @@ def recuperar_numero_sessao(request):
             tipo__pk=request.GET['tipo'],
             sessao_legislativa=request.GET['sessao_legislativa']).last()
     except ObjectDoesNotExist:
-        response = JsonResponse({'numero': 1})
+        numero = 1
     else:
         if sessao:
-            response = JsonResponse({'numero': sessao.numero + 1})
+            numero = sessao.numero + 1
         else:
-            response = JsonResponse({'numero': 1})
+            numero = 1
 
-    return response
+    return JsonResponse({'numero': numero})
 
 
 def sessao_legislativa_legislatura_ajax(request):
@@ -1764,20 +1764,15 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
         if self.ordem:
             ordem_id = kwargs['oid']
             try:
-                ordem = OrdemDia.objects.get(id=ordem_id)
+                materia_votacao = OrdemDia.objects.get(id=ordem_id)
             except ObjectDoesNotExist:
                 raise Http404()
-
-            materia_votacao = ordem
-
         elif self.expediente:
             expediente_id = kwargs['oid']
             try:
-                expediente = ExpedienteMateria.objects.get(id=expediente_id)
+                materia_votacao = ExpedienteMateria.objects.get(id=expediente_id)
             except ObjectDoesNotExist:
                 raise Http404()
-
-            materia_votacao = expediente
 
 
         if 'cancelar-votacao' in request.POST:
@@ -2157,9 +2152,9 @@ class VotacaoNominalExpedienteDetailView(DetailView):
 
 class VotacaoExpedienteView(SessaoPermissionMixin):
 
-    '''
+    """
         Votação Simbólica e Secreta
-    '''
+    """
 
     template_name = 'sessao/votacao/votacao.html'
     form_class = VotacaoForm
@@ -2278,9 +2273,9 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
 
 class VotacaoExpedienteEditView(SessaoPermissionMixin):
 
-    '''
+    """
         Votação Simbólica e Secreta
-    '''
+    """
 
     template_name = 'sessao/votacao/votacao_edit.html'
     form_class = VotacaoEditForm
@@ -2554,7 +2549,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         # Provavelmente você criou um novo campo no Form/FilterSet
         # Então a ordem da URL está diferente
         data = self.filterset.data
-        if (data and data.get('data_inicio__year') is not None):
+        if data and data.get('data_inicio__year') is not None:
             url = "&" + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('data_inicio__year=') - 1

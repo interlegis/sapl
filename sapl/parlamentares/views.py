@@ -223,20 +223,20 @@ class ColigacaoCrud(CrudAux):
 
 
 def json_date_convert(date):
-    '''
+    """
     :param date: recebe a data de uma chamada ajax no formato de
      string "dd/mm/yyyy"
     :return:
-    '''
+    """
 
     return datetime.strptime(date, "%d/%m/%Y").date()
 
 
 def frente_atualiza_lista_parlamentares(request):
-    '''
+    """
     :param request: recebe os parâmetros do GET da chamada Ajax
     :return: retorna a lista atualizada dos parlamentares
-    '''
+    """
     ativos = json.loads(request.GET['ativos'])
 
     parlamentares = Parlamentar.objects.all()
@@ -258,9 +258,9 @@ def frente_atualiza_lista_parlamentares(request):
 
 
 def parlamentares_frente_selected(request):
-    '''
+    """
     :return: Lista com o id dos parlamentares em uma frente
-    '''
+    """
     try:
         frente = Frente.objects.get(id=int(request.GET['frente_id']))
     except ObjectDoesNotExist:
@@ -445,12 +445,12 @@ class ParlamentarCrud(Crud):
             return 'ParlamentarCreate'
 
         def form_valid(self, form):
-            '''
+            """
             Reimplementa form_valid devido ao save de ParlamentarCreateForm
             ser específico, sendo necessário isolar padrão do crud que aciona
             form.save(commit=False) para registrar dados de auditoria se
             o model implementá-los, bem como de container se também implement.
-            '''
+            """
             return super(Crud.CreateView, self).form_valid(form)
 
     class ListView(Crud.ListView):
