@@ -2,7 +2,6 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
-import weasyprint
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
@@ -20,8 +19,8 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+import weasyprint
 
-import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -36,12 +35,15 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 AutoriaMultiCreateForm,
                                 ConfirmarProposicaoForm, LegislacaoCitadaForm,
                                 ProposicaoForm, TipoProposicaoForm,
-                                TramitacaoForm, TramitacaoUpdateForm)
+                                TramitacaoForm, TramitacaoUpdateForm,
+                                DevolverProposicaoForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         montar_row_autor, show_results_filter_set, get_mime_type_from_file_extension)
+import sapl
+
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
@@ -60,6 +62,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
+
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -469,7 +472,7 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
     app_label = sapl.protocoloadm.apps.AppConfig.label
     template_name = "materia/confirmar_proposicao.html"
     model = Proposicao
-    form_class = ConfirmarProposicaoForm
+    form_class = ConfirmarProposicaoForm, DevolverProposicaoForm
 
     def get_success_url(self):
         msgs = self.object.results['messages']
@@ -491,11 +494,9 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
                                                 data_envio__isnull=False,
                                                 data_recebimento__isnull=True)
             self.object = None
-            # FIXME implementar hash para texto eletrônico
 
             if proposicao.texto_articulado.exists():
                 ta = proposicao.texto_articulado.first()
-                # FIXME hash para textos articulados
                 hasher = 'P' + ta.hash() + '/' + str(proposicao.id)
             else:
                 hasher = gerar_hash_arquivo(
@@ -516,6 +517,21 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['subnav_template_name'] = ''
         return context
+
+    def get_form(self, form_class=None):
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        if self.request.POST:
+            if 'justificativa_devolucao' in self.request.POST:
+                return form_class[1](**self.get_form_kwargs())
+            else:
+                return form_class[0](**self.get_form_kwargs())
+        else:
+            forms = []
+            for form in form_class:
+                forms.append(form(**self.get_form_kwargs()))
+            return forms
 
 
 class UnidadeTramitacaoCrud(CrudAux):
@@ -896,7 +912,7 @@ class RelatoriaCrud(MasterDetailCrud):
                     composicao=composicao)
 
                 parlamentares = [[p.parlamentar.id, p.parlamentar.nome_parlamentar] for
-                                    p in participacao if p.titular]
+                                 p in participacao if p.titular]
 
                 context['form'].fields['parlamentar'].choices = parlamentares
 

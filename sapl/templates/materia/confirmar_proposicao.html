@@ -1,4 +1,4 @@
-{% extends "materia/proposicao_form.html" %}
+{% extends "base.html" %}
 {% load i18n crispy_forms_tags common_tags %}
 
 {% block base_content %}
@@ -17,8 +17,9 @@
     </div>
   {% endblock actions%}
 </div>
-<br>
 
-{{block.super}}
-
+  {% for f in form %}
+    {% crispy f %}
+  {% endfor %}
+  
 {% endblock %}

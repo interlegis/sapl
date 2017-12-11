@@ -1183,6 +1183,84 @@ class ProposicaoForm(forms.ModelForm):
         return inst
 
 
+class DevolverProposicaoForm(ProposicaoForm):
+
+    justificativa_devolucao = forms.CharField(
+        required=False, widget=widgets.Textarea(attrs={'rows': 5}))
+
+    class Meta:
+        model = Proposicao
+        fields = [
+            'justificativa_devolucao',
+        ]
+
+    def __init__(self, *args, **kwargs):
+
+        # esta chamada isola o __init__ de ProposicaoForm
+        super(ProposicaoForm, self).__init__(*args, **kwargs)
+        fields = []
+
+        fields.append(
+            Fieldset(
+                _('Registro de Devolução'),
+                to_column(('justificativa_devolucao', 12)),
+                to_column(
+                    (form_actions(label=_('Devolver'),
+                                  name='devolver',
+                                  css_class='btn-danger pull-right'), 12)
+                )
+            )
+        )
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(*fields)
+
+    def clean(self):
+        super(DevolverProposicaoForm, self).clean()
+
+        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+
+        if not numeracao:
+            raise ValidationError("A sequência de numeração (por ano ou geral)"
+                                  " não foi configurada para a aplicação em "
+                                  "tabelas auxiliares")
+
+        cd = ProposicaoForm.clean(self)
+
+        cd = self.cleaned_data
+
+        if 'justificativa_devolucao' not in cd or\
+                not cd['justificativa_devolucao']:
+            # TODO Implementar notificação ao autor por email
+            raise ValidationError(
+                _('Adicione uma Justificativa para devolução.'))
+        return cd
+
+    @transaction.atomic
+    def save(self, commit=False):
+        # TODO Implementar workflow entre protocolo e autores
+        cd = self.cleaned_data
+
+        self.instance.data_devolucao = timezone.now()
+        self.instance.data_recebimento = None
+        self.instance.data_envio = None
+        self.instance.save()
+
+        if self.instance.texto_articulado.exists():
+            ta = self.instance.texto_articulado.first()
+            ta.privacidade = STATUS_TA_PRIVATE
+            ta.editing_locked = False
+            ta.save()
+
+        self.instance.results = {
+            'messages': {
+                'success': [_('Devolução efetuada com sucesso.'), ]
+            },
+            'url': reverse('sapl.materia:receber-proposicao')
+        }
+        return self.instance
+
+
 class ConfirmarProposicaoForm(ProposicaoForm):
 
     tipo_readonly = forms.CharField(
@@ -1194,9 +1272,6 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         label=Autor._meta.verbose_name,
         required=False, widget=widgets.TextInput(
             attrs={'readonly': 'readonly'}))
-
-    justificativa_devolucao = forms.CharField(
-        required=False, widget=widgets.Textarea(attrs={'rows': 5}))
 
     regime_tramitacao = forms.ModelChoiceField(
         required=False, queryset=RegimeTramitacao.objects.all())
@@ -1216,7 +1291,6 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         fields = [
             'data_envio',
             'descricao',
-            'justificativa_devolucao',
             'gerar_protocolo',
             'numero_de_paginas'
         ]
@@ -1306,26 +1380,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         itens_incorporacao.append(
             to_column(
                 (form_actions(label=_('Incorporar'),
-                              name='incorporar',
-                              disabled=False), 12)
+                              name='incorporar'), 12)
             )
         )
 
         fields.append(
             Fieldset(_('Registro de Incorporação'), *itens_incorporacao))
-
-        fields.append(
-            Fieldset(
-                _('Registro de Devolução'),
-                to_column(('justificativa_devolucao', 12)),
-                to_column(
-                    (form_actions(label=_('Devolver'),
-                                  name='devolver',
-                                  disabled=False,
-                                  css_class='btn-danger pull-right'), 12)
-                )
-            )
-        )
 
         self.helper = FormHelper()
         self.helper.layout = Layout(*fields)
@@ -1356,34 +1416,23 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             raise ValidationError("A sequência de numeração (por ano ou geral)"
                                   " não foi configurada para a aplicação em "
                                   "tabelas auxiliares")
-        if 'incorporar' in self.data:
-            cd = ProposicaoForm.clean(self)
 
-            if self.instance.tipo.content_type.model_class() ==\
-                    TipoMateriaLegislativa:
-                if 'regime_tramitacao' not in cd or\
-                        not cd['regime_tramitacao']:
-                    raise ValidationError(
-                        _('Regime de Tramitação deve ser informado.'))
+        cd = ProposicaoForm.clean(self)
 
-            elif self.instance.tipo.content_type.model_class(
-            ) == TipoDocumento and not cd['materia_de_vinculo']:
-
+        if self.instance.tipo.content_type.model_class() ==\
+                TipoMateriaLegislativa:
+            if 'regime_tramitacao' not in cd or\
+                    not cd['regime_tramitacao']:
                 raise ValidationError(
-                    _('Documentos não podem ser incorporados sem definir '
-                      'para qual Matéria Legislativa ele se destina.'))
+                    _('Regime de Tramitação deve ser informado.'))
 
-        elif 'devolver' in self.data:
-            cd = self.cleaned_data
+        elif self.instance.tipo.content_type.model_class(
+        ) == TipoDocumento and not cd['materia_de_vinculo']:
 
-            if 'justificativa_devolucao' not in cd or\
-                    not cd['justificativa_devolucao']:
-                # TODO Implementar notificação ao autor por email
-                raise ValidationError(
-                    _('Adicione uma Justificativa para devolução.'))
-        else:
             raise ValidationError(
-                _('Dados de Confirmação invalidos.'))
+                _('Documentos não podem ser incorporados sem definir '
+                  'para qual Matéria Legislativa ele se destina.'))
+
         return cd
 
     @transaction.atomic
@@ -1391,37 +1440,16 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         # TODO Implementar workflow entre protocolo e autores
         cd = self.cleaned_data
 
-        if 'devolver' in self.data:
-            self.instance.data_devolucao = timezone.now()
-            self.instance.data_recebimento = None
-            self.instance.data_envio = None
-            self.instance.save()
+        self.instance.justificativa_devolucao = ''
+        self.instance.data_devolucao = None
+        self.instance.data_recebimento = timezone.now()
+        self.instance.materia_de_vinculo = cd['materia_de_vinculo']
 
-            if self.instance.texto_articulado.exists():
-                ta = self.instance.texto_articulado.first()
-                ta.privacidade = STATUS_TA_PRIVATE
-                ta.editing_locked = False
-                ta.save()
-
-            self.instance.results = {
-                'messages': {
-                    'success': [_('Devolução efetuada com sucesso.'), ]
-                },
-                'url': reverse('sapl.materia:receber-proposicao')
-            }
-            return self.instance
-
-        elif 'incorporar' in self.data:
-            self.instance.justificativa_devolucao = ''
-            self.instance.data_devolucao = None
-            self.instance.data_recebimento = timezone.now()
-            self.instance.materia_de_vinculo = cd['materia_de_vinculo']
-
-            if self.instance.texto_articulado.exists():
-                ta = self.instance.texto_articulado.first()
-                ta.privacidade = STATUS_TA_IMMUTABLE_PUBLIC
-                ta.editing_locked = True
-                ta.save()
+        if self.instance.texto_articulado.exists():
+            ta = self.instance.texto_articulado.first()
+            ta.privacidade = STATUS_TA_IMMUTABLE_PUBLIC
+            ta.editing_locked = True
+            ta.save()
 
         self.instance.save()
 
