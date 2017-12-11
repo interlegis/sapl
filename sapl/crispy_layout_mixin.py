@@ -35,11 +35,17 @@ def to_fieldsets(fields):
 
 
 def form_actions(more=[],
-                 label=_('Salvar'), name='salvar', css_class='pull-right'):
+                 label=_('Salvar'), name='salvar', css_class='pull-right', disabled=True):
+
+    if disabled:
+        doubleclick = 'this.form.submit();this.disabled=true;'
+    else:
+        doubleclick = 'return true;'
+
     return FormActions(
         Submit(name, label, css_class=css_class,
                # para impedir resubmissão do form
-               onclick='this.form.submit();this.disabled=true;'),
+               onclick=doubleclick),
         *more)
 
 

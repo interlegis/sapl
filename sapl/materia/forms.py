@@ -1306,7 +1306,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         itens_incorporacao.append(
             to_column(
                 (form_actions(label=_('Incorporar'),
-                              name='incorporar'), 12)
+                              name='incorporar',
+                              disabled=False), 12)
             )
         )
 
@@ -1320,6 +1321,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 to_column(
                     (form_actions(label=_('Devolver'),
                                   name='devolver',
+                                  disabled=False,
                                   css_class='btn-danger pull-right'), 12)
                 )
             )
