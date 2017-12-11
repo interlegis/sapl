@@ -248,8 +248,6 @@ class NormaPesquisaSimplesView(PermissionRequiredMixin, FormView):
     
     
     def form_valid(self, form):
-        context = {}
-
         normas = NormaJuridica.objects.all().order_by(
             '-numero')
         template_norma = 'materia/impressos/normas_pdf.html'
@@ -262,13 +260,11 @@ class NormaPesquisaSimplesView(PermissionRequiredMixin, FormView):
                 data__gte=form.cleaned_data['data_inicial'],
                 data__lte=form.cleaned_data['data_final'])
  
-
-        context['quantidade'] = len(normas)
-
-        if context['quantidade'] > 2000:
+        qtd_resultados = len(normas)
+        if qtd_resultados > 2000:
             normas = normas[:2000]
-            
-
-        context['normas'] = normas
+                   
+        context = {'quantidade': qtd_resultados,
+                   'normas': normas}
         
         return gerar_pdf_impressos(self.request, context, template_norma)
