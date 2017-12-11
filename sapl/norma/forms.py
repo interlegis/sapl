@@ -208,3 +208,61 @@ class NormaRelacionadaForm(ModelForm):
         relacionada.norma_relacionada = self.cleaned_data['norma_relacionada']
         relacionada.save()
         return relacionada
+    
+class NormaPesquisaSimplesForm(forms.Form):
+    tipo_norma = forms.ModelChoiceField(
+        label=TipoNormaJuridica._meta.verbose_name,
+        queryset=TipoNormaJuridica.objects.all(),
+        required=False,
+        empty_label='Selecione')
+
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    data_final = forms.DateField(
+        label='Data Final',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(NormaPesquisaSimplesForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('tipo_norma', 6),
+             ('data_inicial', 3),
+             ('data_final', 3)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Índice de Normas'),
+                row1,
+                form_actions(label='Pesquisar')
+            )
+        )
+    
+    def clean(self):
+        super(NormaPesquisaSimplesForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        data_inicial = cleaned_data['data_inicial']
+        data_final = cleaned_data['data_final']
+        
+        if (data_inicial and data_final and 
+            data_inicial > data_final):
+                 raise ValidationError(_(
+                      'A Data Final não pode ser menor que a Data Inicial'))
+        else:
+             condicao1 = data_inicial and not data_final
+             condicao2 = not data_inicial and data_final
+             if condicao1 or condicao2:
+                        raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e ' +
+                            'Data Final devem ser preenchidos obrigatoriamente'))
+
+
+        return cleaned_data
+
