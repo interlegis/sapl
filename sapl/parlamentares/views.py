@@ -1,5 +1,5 @@
-from datetime import datetime
 import json
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -10,6 +10,7 @@ from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.templatetags.static import static
+from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -25,13 +26,12 @@ from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 from sapl.utils import parlamentares_ativos
 
-from .forms import (FiliacaoForm, LegislaturaCreateForm, LegislaturaUpdateForm,
-                    MandatoForm, ParlamentarCreateForm, ParlamentarForm,
-                    VotanteForm)
+from .forms import (FiliacaoForm, LegislaturaForm, MandatoForm,
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
-                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
+                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante, Municipio)
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
@@ -40,6 +40,7 @@ TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
+MunicipioCrud = CrudAux.build(Municipio, 'municipio')
 
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
@@ -89,7 +90,7 @@ class FrenteList(MasterDetailCrud):
 class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Relatoria
     parent_field = 'parlamentar'
-    help_path = 'relatoria_parlamentar'
+    help_topic = 'tramitacao_relatoria'
     namespace = AppConfig.name
 
     class BaseMixin(CrudBaseForListAndDetailExternalAppView.BaseMixin):
@@ -181,7 +182,7 @@ class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 
 class ColigacaoCrud(CrudAux):
     model = Coligacao
-    help_path = 'tabelas_auxiliares#coligacao'
+    help_topic = 'coligacao'
 
     class ListView(CrudAux.ListView):
         ordering = ('-numero_votos', 'nome')
@@ -222,22 +223,20 @@ class ColigacaoCrud(CrudAux):
 
 
 def json_date_convert(date):
-    '''
+    """
     :param date: recebe a data de uma chamada ajax no formato de
      string "dd/mm/yyyy"
     :return:
-    '''
-    dia, mes, ano = date.split('/')
-    return datetime.date(day=int(dia),
-                         month=int(mes),
-                         year=int(ano))
+    """
+
+    return datetime.strptime(date, "%d/%m/%Y").date()
 
 
 def frente_atualiza_lista_parlamentares(request):
-    '''
+    """
     :param request: recebe os parâmetros do GET da chamada Ajax
     :return: retorna a lista atualizada dos parlamentares
-    '''
+    """
     ativos = json.loads(request.GET['ativos'])
 
     parlamentares = Parlamentar.objects.all()
@@ -259,9 +258,9 @@ def frente_atualiza_lista_parlamentares(request):
 
 
 def parlamentares_frente_selected(request):
-    '''
+    """
     :return: Lista com o id dos parlamentares em uma frente
-    '''
+    """
     try:
         frente = Frente.objects.get(id=int(request.GET['frente_id']))
     except ObjectDoesNotExist:
@@ -274,7 +273,7 @@ def parlamentares_frente_selected(request):
 
 class FrenteCrud(CrudAux):
     model = Frente
-    help_path = 'tabelas_auxiliares#tipo_situa_militar'
+    help_topic = 'tipo_situa_militar'
     list_field_names = ['nome', 'data_criacao', 'parlamentares']
 
     class CreateView(CrudAux.CreateView):
@@ -339,7 +338,7 @@ class MandatoCrud(MasterDetailCrud):
 class ComposicaoColigacaoCrud(MasterDetailCrud):
     model = ComposicaoColigacao
     parent_field = 'coligacao'
-    help_path = ''
+    help_topic = 'coligacao'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
 
@@ -355,10 +354,10 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
 
 class LegislaturaCrud(CrudAux):
     model = Legislatura
-    help_path = 'tabelas_auxiliares#legislatura'
+    help_topic = 'legislatura'
 
     class CreateView(CrudAux.CreateView):
-        form_class = LegislaturaCreateForm
+        form_class = LegislaturaForm
 
         def get_initial(self):
             try:
@@ -369,7 +368,7 @@ class LegislaturaCrud(CrudAux):
             return {'numero': numero}
 
     class UpdateView(CrudAux.UpdateView):
-        form_class = LegislaturaUpdateForm
+        form_class = LegislaturaForm
 
     class DetailView(CrudAux.DetailView):
 
@@ -393,7 +392,7 @@ class LegislaturaCrud(CrudAux):
 class FiliacaoCrud(MasterDetailCrud):
     model = Filiacao
     parent_field = 'parlamentar'
-    help_path = ''
+    help_topic = 'filiacoes_partidarias'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -446,12 +445,12 @@ class ParlamentarCrud(Crud):
             return 'ParlamentarCreate'
 
         def form_valid(self, form):
-            '''
+            """
             Reimplementa form_valid devido ao save de ParlamentarCreateForm
             ser específico, sendo necessário isolar padrão do crud que aciona
             form.save(commit=False) para registrar dados de auditoria se
             o model implementá-los, bem como de container se também implement.
-            '''
+            """
             return super(Crud.CreateView, self).form_valid(form)
 
     class ListView(Crud.ListView):
@@ -661,8 +660,8 @@ class MesaDiretoraView(FormView):
         sessoes = SessaoLegislativa.objects.filter(
             legislatura=legislatura).order_by("data_inicio")
 
-        today = datetime.now()
-        sessao_atual = sessoes.filter(data_inicio__year=today.year).first()
+        year = timezone.now().year
+        sessao_atual = sessoes.filter(data_inicio__year=year).first()
 
         mesa = sessao_atual.composicaomesa_set.all() if sessao_atual else []
 
@@ -716,9 +715,9 @@ def altera_field_mesa(request):
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
-        today = datetime.now()
+        year = timezone.now().year
         try:
-            sessao_selecionada = sessoes.get(data_inicio__year=today.year).id
+            sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist:
             sessao_selecionada = sessoes.first().id
 
@@ -884,8 +883,8 @@ def altera_field_mesa_public_view(request):
     # atual deve ser a primeira daquela legislatura
     else:
         try:
-            today = datetime.now()
-            sessao_selecionada = sessoes.get(data_inicio__year=today.year).id
+            year = timezone.now().year
+            sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist as e:
             sessao_selecionada = sessoes.first().id
 

@@ -14,11 +14,11 @@
 <br>Ap&oacute;s digitar os textos dentro da caixa, acione o bot&atilde;o 'Salvar' para grava-los.<br />
 <br><b>Nota:</b> Deve-se evitar copiar textos de outros editores MS Word, etc (Crtl-C e Crtl-V) para dentro da caixa de texto, uma vez que juntamente com o texto vem <i>tags</i> inseridas pelo Editor de Textos, as quais  nem sempre s&atilde;o reconhecidas ou pass&iacute;veis de tradu&ccedil;&atilde;o para o <i>html</i>, que &eacute; a linguagem do Navegador Web. Esta sugest&atilde;o &eacute; feita, pois sempre que uma <i>tag</i> existente no texto e n&atilde;o reconhecida pela fun&ccedil;&atilde;o de convers&atilde;o, o relat&oacute;rio em <i>PDF</i> deixa de ser gerado devido a ocorr&ecirc;ncias de erros decorrentes dessas <i>tags</i> n&atilde;o traduzidas.<br />
 <br />
-<br>  <a href="sessao_plenaria">Anterior</a> |
+<br>  <a href="{% url 'sapl.base:help_topic' 'sessao_plenaria' %}">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="recebimento_proposicao">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'recebimento_proposicao' %}">Pr&oacute;xima</a>
 <br />
 <br />
 </div>

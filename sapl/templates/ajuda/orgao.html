@@ -1,4 +1,4 @@
-{% extends "base.html% }
+{% extends "base.html" %}
 {% load i18n %}
 
 {% block base_content %}
@@ -141,11 +141,11 @@ retorna a tela com a rela&ccedil;&atilde;o de
 &oacute;rg&atilde;os j&aacute; cadastrados.<br />
 
 <br />
-  <a href="unidade_tramitacao">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic' 'unidade_tramitacao' %}">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="fim_relatoria">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'fim_relatoria' %}">Pr&oacute;xima</a>
 
 <br />
 

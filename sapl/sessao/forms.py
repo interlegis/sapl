@@ -15,10 +15,10 @@ from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
-                        autor_modal)
+                        autor_modal, timezone)
 
 from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
-                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca)
+                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca, TipoResultadoVotacao)
 
 
 def recupera_anos():
@@ -116,6 +116,7 @@ class BancadaForm(ModelForm):
 class ExpedienteMateriaForm(ModelForm):
 
     _model = ExpedienteMateria
+    data_atual = timezone.now()
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Tipo Matéria'),
@@ -128,11 +129,13 @@ class ExpedienteMateriaForm(ModelForm):
         label='Número Matéria', required=True)
 
     ano_materia = forms.CharField(
-        label='Ano Matéria', required=True)
+        label='Ano Matéria',
+        initial=int(data_atual.year),
+        required=True)
 
     data_ordem = forms.CharField(
         label='Data Sessão',
-        initial=datetime.now().strftime('%d/%m/%Y'),
+        initial=datetime.strftime(timezone.now(), '%d/%m/%Y'),
         widget=forms.TextInput(attrs={'readonly': 'readonly'}))
 
     class Meta:
@@ -157,9 +160,10 @@ class ExpedienteMateriaForm(ModelForm):
         return self.instance.sessao_plenaria.data_inicio
 
     def clean(self):
-        super(ExpedienteMateriaForm, self).clean()
+        cleaned_data = super(ExpedienteMateriaForm, self).clean()
+        if not self.is_valid():
+            return cleaned_data
 
-        cleaned_data = self.cleaned_data
         sessao = self.instance.sessao_plenaria
 
         try:
@@ -217,7 +221,9 @@ class OrdemDiaForm(ExpedienteMateriaForm):
         return self.cleaned_data['numero_ordem']
 
     def clean(self):
-        super(OrdemDiaForm, self).clean()
+        cleaned_data = super(OrdemDiaForm, self).clean()
+        if not self.is_valid():
+            return cleaned_data
         return self.cleaned_data
 
     def save(self, commit=False):
@@ -230,10 +236,6 @@ class OrdemDiaForm(ExpedienteMateriaForm):
 class PresencaForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
     parlamentar = forms.CharField(required=False, max_length=20)
-
-
-class VotacaoNominalForm(forms.Form):
-    pass
 
 
 class ListMateriaForm(forms.Form):
@@ -250,10 +252,17 @@ class ExpedienteForm(forms.Form):
 
 
 class VotacaoForm(forms.Form):
-    votos_sim = forms.CharField(required=True, label='Sim')
-    votos_nao = forms.CharField(required=True, label='Não')
-    abstencoes = forms.CharField(required=True, label='Abstenções')
+    votos_sim = forms.CharField(label='Sim')
+    votos_nao = forms.CharField(label='Não')
+    abstencoes = forms.CharField(label='Abstenções')
     total_votos = forms.CharField(required=False, label='total')
+    resultado_votacao = forms.CharField(label='Resultado da Votação')
+
+
+class VotacaoNominalForm(forms.Form):
+    resultado_votacao = forms.ModelChoiceField(label='Resultado da Votação',
+                                               required=True,
+                                               queryset=TipoResultadoVotacao.objects.all())
 
 
 class VotacaoEditForm(forms.Form):
@@ -291,7 +300,7 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(self.titulo,
                      row1,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -367,7 +376,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                      HTML(autor_label),
                      HTML(autor_modal),
                      row4, row5, row6, row7, row8, row9,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -458,7 +467,7 @@ class ResumoOrdenacaoForm(forms.Form):
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
-                     form_actions(save_label='Atualizar'))
+                     form_actions(label='Atualizar'))
         )
 
     def clean(self):

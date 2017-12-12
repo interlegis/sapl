@@ -1,17 +1,26 @@
-from datetime import datetime
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import RedirectView
 from django_filters.views import FilterView
+from django.contrib.auth.mixins import PermissionRequiredMixin
+
+from django.http import HttpResponse, JsonResponse
+from django.views.generic.edit import FormView
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.template import RequestContext, loader
+import weasyprint
 
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
+from sapl.utils import show_results_filter_set
 
-from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm
+from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm, NormaPesquisaSimplesForm
 from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica)
 
@@ -31,7 +40,7 @@ TipoVinculoNormaJuridicaCrud = CrudAux.build(
 class NormaRelacionadaCrud(MasterDetailCrud):
     model = NormaRelacionada
     parent_field = 'norma_principal'
-    help_path = ''
+    help_topic = 'norma_juridica'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -62,6 +71,13 @@ class NormaPesquisaView(FilterView):
     filterset_class = NormaFilterSet
     paginate_by = 10
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        qs.select_related('tipo', 'materia')
+
+        return qs
+
     def get_context_data(self, **kwargs):
         context = super(NormaPesquisaView, self).get_context_data(**kwargs)
 
@@ -79,6 +95,8 @@ class NormaPesquisaView(FilterView):
             page_obj.number, paginator.num_pages)
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
 
         return context
 
@@ -112,7 +130,7 @@ class NormaTaView(IntegracaoTaView):
 
 class NormaCrud(Crud):
     model = NormaJuridica
-    help_path = 'norma_juridica'
+    help_topic = 'norma_juridica'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(Crud.BaseMixin):
@@ -145,7 +163,6 @@ class NormaCrud(Crud):
         @property
         def layout_key(self):
             return 'NormaJuridicaCreate'
-
 
     class ListView(Crud.ListView, RedirectView):
 
@@ -194,7 +211,7 @@ def recuperar_numero_norma(request):
     ano = request.GET.get('ano', '')
 
     param = {'tipo': tipo}
-    param['ano'] = ano if ano else datetime.now().year
+    param['ano'] = ano if ano else timezone.now().year
 
     norma = NormaJuridica.objects.filter(**param).order_by(
         'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
@@ -206,3 +223,48 @@ def recuperar_numero_norma(request):
             {'numero': 1, 'ano': ano})
 
     return response
+
+
+class ImpressosView(PermissionRequiredMixin, TemplateView):
+    template_name = 'materia/impressos/impressos.html'
+    permission_required = ('materia.can_access_impressos', )
+
+
+def gerar_pdf_impressos(request, context, template_name):
+    template = loader.get_template(template_name)
+    html = template.render(RequestContext(request, context))
+    response = HttpResponse(content_type="application/pdf")
+    weasyprint.HTML(
+        string=html,
+        base_url=request.build_absolute_uri()).write_pdf(
+        response)
+
+    return response
+
+class NormaPesquisaSimplesView(PermissionRequiredMixin, FormView):
+    form_class = NormaPesquisaSimplesForm
+    template_name = 'materia/impressos/norma.html'
+    permission_required = ('materia.can_access_impressos', )
+    
+    
+    def form_valid(self, form):
+        normas = NormaJuridica.objects.all().order_by(
+            '-numero')
+        template_norma = 'materia/impressos/normas_pdf.html'
+
+        if form.cleaned_data['tipo_norma']:
+            normas = normas.filter(tipo=form.cleaned_data['tipo_norma'])
+
+        if form.cleaned_data['data_inicial']:
+            normas = normas.filter(
+                data__gte=form.cleaned_data['data_inicial'],
+                data__lte=form.cleaned_data['data_final'])
+ 
+        qtd_resultados = len(normas)
+        if qtd_resultados > 2000:
+            normas = normas[:2000]
+                   
+        context = {'quantidade': qtd_resultados,
+                   'normas': normas}
+        
+        return gerar_pdf_impressos(self.request, context, template_norma)

@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime as dt
 
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from django.core.urlresolvers import reverse
 from django.template import Context, loader
+from django.utils import timezone
 
 from sapl.base.models import CasaLegislativa
 from sapl.settings import EMAIL_SEND_USER
@@ -150,7 +151,8 @@ def criar_email_tramitacao(base_url, casa_legislativa, materia, status,
     templates = load_email_templates(['email/tramitacao.txt',
                                       'email/tramitacao.html'],
                                      {"casa_legislativa": casa_nome,
-                                      "data_registro": datetime.now().strftime(
+                                      "data_registro": dt.strftime(
+                                          timezone.now(),
                                           "%d/%m/%Y"),
                                       "cod_materia": materia.id,
                                       "logotipo": casa_legislativa.logotipo,

@@ -8,7 +8,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 CriarProtocoloMateriaView, DespachoInicialCrud,
                                 DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
-                                ImpressosView, EtiquetaPesquisaView,
+                                EtiquetaPesquisaView, FichaPesquisaView,
+                                FichaSelecionaView, ImpressosView,
                                 LegislacaoCitadaCrud, MateriaAssuntoCrud,
                                 MateriaLegislativaCrud,
                                 MateriaLegislativaPesquisaView, MateriaTaView,
@@ -24,6 +25,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
                                 proposicao_texto, recuperar_materia)
 
+from sapl.norma.views import  NormaPesquisaSimplesView
+
 from .apps import AppConfig
 
 app_name = AppConfig.name
@@ -35,6 +38,15 @@ urlpatterns_impressos = [
     url(r'^materia/impressos/etiqueta-pesquisa/$',
         EtiquetaPesquisaView.as_view(),
         name='impressos_etiqueta'),
+    url(r'^materia/impressos/ficha-pesquisa/$',
+        FichaPesquisaView.as_view(),
+        name='impressos_ficha_pesquisa'),
+    url(r'^materia/impressos/ficha-seleciona/$',
+        FichaSelecionaView.as_view(),
+        name='impressos_ficha_seleciona'),
+    url(r'^materia/impressos/norma-pesquisa/$',
+        NormaPesquisaSimplesView.as_view(),
+        name='impressos_norma_pesquisa'),
 ]
 
 urlpatterns_materia = [

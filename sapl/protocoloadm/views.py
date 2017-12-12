@@ -1,4 +1,3 @@
-from datetime import date, datetime
 
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
@@ -8,21 +7,22 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView
-from django.views.generic.base import TemplateView, RedirectView
+from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 
+import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
-from sapl.utils import create_barcode, get_client_ip
-import sapl
-
+from sapl.utils import create_barcode, get_client_ip, show_results_filter_set, get_mime_type_from_file_extension
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,
@@ -31,7 +31,6 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
-
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -55,12 +54,7 @@ def doc_texto_integral(request, pk):
         if documento.texto_integral:
             arquivo = documento.texto_integral
 
-            ext = arquivo.name.split('.')[-1]
-            mime = ''
-            if ext == 'odt':
-                mime = 'application/vnd.oasis.opendocument.text'
-            else:
-                mime = "application/%s" % (ext,)
+            mime = get_mime_type_from_file_extension(arquivo.name)
 
             with open(arquivo.path, 'rb') as f:
                 data = f.read()
@@ -84,11 +78,11 @@ class DocumentoAdministrativoMixin:
 
 class DocumentoAdministrativoCrud(Crud):
     model = DocumentoAdministrativo
-    help_path = ''
+    help_topic = 'numeracao_docsacess'
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data',
-                            'numero_protocolo', 'assunto',
+                            'protocolo__numero', 'assunto',
                             'interessado', 'tramitacao', 'texto_integral']
 
         @property
@@ -142,7 +136,7 @@ class DocumentoAdministrativoCrud(Crud):
 
 class StatusTramitacaoAdministrativoCrud(CrudAux):
     model = StatusTramitacaoAdministrativo
-    help_path = ''
+    help_topic = 'status_tramitacao'
 
     class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['sigla', 'indicador', 'descricao']
@@ -163,9 +157,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
 
         kwargs = {'data': self.request.GET or None}
 
-        qs = self.get_queryset().order_by('ano', 'numero')
-
-        qs = qs.distinct()
+        qs = self.get_queryset().order_by('ano', 'numero').distinct()
 
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', '-numero')
@@ -197,7 +189,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
         # Provavelmente você criou um novo campo no Form/FilterSet
         # Então a ordem da URL está diferente
         data = self.filterset.data
-        if (data and data.get('numero') is not None):
+        if data and data.get('numero') is not None:
             url = "&" + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('numero=') - 1
@@ -212,6 +204,9 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
                                         filter_url=url,
                                         numero_res=len(self.object_list)
                                         )
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
 
         return self.render_to_response(context)
 
@@ -293,7 +288,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=date.today().year).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
             legislatura = Legislatura.objects.last()
             data_inicio = legislatura.data_inicio
@@ -307,10 +302,10 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         f.tipo_processo = '0'  # TODO validar o significado
         f.anulado = False
         f.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
-        f.ano = datetime.now().year
-        f.data = datetime.now().date()
-        f.hora = datetime.now().time()
-        f.timestamp = datetime.now()
+        f.ano = timezone.now().year
+        f.data = timezone.now()
+        f.hora = timezone.now().time()
+        f.timestamp = timezone.now()
         f.assunto_ementa = self.request.POST['assunto']
 
         f.save()
@@ -332,7 +327,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
                        kwargs={'pk': self.kwargs['pk']})
 
     def criar_documento(self, protocolo):
-        curr_year = datetime.now().date().year
+        curr_year = timezone.now().year
 
         numero_max = DocumentoAdministrativo.objects.filter(
             tipo=protocolo.tipo_documento, ano=curr_year
@@ -341,7 +336,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc = {}
         doc['tipo'] = protocolo.tipo_documento
         doc['ano'] = curr_year
-        doc['data'] = datetime.today()
+        doc['data'] = timezone.now()
         doc['numero_protocolo'] = protocolo.numero
         doc['ano_protocolo'] = protocolo.ano
         doc['protocolo'] = protocolo.id
@@ -428,7 +423,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=date.today().year).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
@@ -439,10 +434,10 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         protocolo.numero = (
             numero['numero__max'] + 1) if numero['numero__max'] else 1
-        protocolo.ano = datetime.now().year
-        protocolo.data = datetime.now().date()
-        protocolo.hora = datetime.now().time()
-        protocolo.timestamp = datetime.now()
+        protocolo.ano = timezone.now().year
+        protocolo.data = timezone.now().date()
+        protocolo.hora = timezone.now().time()
+        protocolo.timestamp = timezone.now()
 
         protocolo.tipo_protocolo = 0
         protocolo.tipo_processo = '1'  # TODO validar o significado
@@ -480,7 +475,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         lista_comissoes = Comissao.objects.filter(Q(
             data_extincao__isnull=True) | Q(
-            data_extincao__gt=date.today())).values_list('id', flat=True)
+            data_extincao__gt=timezone.now())).values_list('id', flat=True)
         model_comissao = ContentType.objects.get_for_model(Comissao)
         autor_comissoes = Autor.objects.filter(
             content_type=model_comissao, object_id__in=lista_comissoes)
@@ -549,7 +544,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         # Provavelmente você criou um novo campo no Form/FilterSet
         # Então a ordem da URL está diferente
         data = self.filterset.data
-        if (data and data.get('tipo') is not None):
+        if data and data.get('tipo') is not None:
             url = "&" + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('tipo=') - 1
@@ -565,13 +560,16 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
                                         numero_res=len(self.object_list)
                                         )
 
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
+
         return self.render_to_response(context)
 
 
 class TramitacaoAdmCrud(MasterDetailCrud):
     model = TramitacaoAdministrativo
     parent_field = 'documento'
-    help_path = ''
+    help_topic = 'unidade_tramitacao'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['data_tramitacao', 'unidade_tramitacao_local',
@@ -579,6 +577,33 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoAdmForm
+
+        def get_initial(self):
+            local = DocumentoAdministrativo.objects.get(
+                pk=self.kwargs['pk']).tramitacaoadministrativo_set.order_by(
+                '-data_tramitacao',
+                '-id').first()
+
+            if local:
+                self.initial['unidade_tramitacao_local'
+                             ] = local.unidade_tramitacao_destino.pk
+            else:
+                self.initial['unidade_tramitacao_local'] = ''
+            self.initial['data_tramitacao'] = timezone.now().date()
+            return self.initial
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            primeira_tramitacao = not(TramitacaoAdministrativo.objects.filter(
+                documento_id=int(kwargs['root_pk'])).exists())
+
+            # Se não for a primeira tramitação daquela matéria, o campo
+            # não pode ser modificado
+            if not primeira_tramitacao:
+                context['form'].fields[
+                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
+            return context
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
@@ -588,17 +613,42 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
+            return qs.filter(**kwargs).order_by('-data_tramitacao',
+                                                '-id')
 
     class DetailView(DocumentoAdministrativoMixin,
                      MasterDetailCrud.DetailView):
         pass
 
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def delete(self, request, *args, **kwargs):
+            tramitacao = TramitacaoAdministrativo.objects.get(
+                id=self.kwargs['pk'])
+            documento = DocumentoAdministrativo.objects.get(
+                id=tramitacao.documento.id)
+            url = reverse(
+                'sapl.protocoloadm:tramitacaoadministrativo_list',
+                kwargs={'pk': tramitacao.documento.id})
+
+            ultima_tramitacao = \
+                documento.tramitacaoadministrativo_set.order_by(
+                    '-data_tramitacao',
+                    '-id').first()
+
+            if tramitacao.pk != ultima_tramitacao.pk:
+                msg = _('Somente a última tramitação pode ser deletada!')
+                messages.add_message(request, messages.ERROR, msg)
+                return HttpResponseRedirect(url)
+            else:
+                tramitacao.delete()
+                return HttpResponseRedirect(url)
+
 
 class DocumentoAcessorioAdministrativoCrud(MasterDetailCrud):
     model = DocumentoAcessorioAdministrativo
     parent_field = 'documento'
-    help_path = ''
+    help_topic = 'numeracao_docsacess'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['nome', 'tipo',

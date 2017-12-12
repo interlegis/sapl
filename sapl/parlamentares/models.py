@@ -1,7 +1,7 @@
-from datetime import datetime
 
 import reversion
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
@@ -26,7 +26,7 @@ class Legislatura(models.Model):
         verbose_name_plural = _('Legislaturas')
 
     def atual(self):
-        current_year = datetime.now().year
+        current_year = timezone.now().year
         return self.data_inicio.year <= current_year <= self.data_fim.year
 
     @vigencia_atual
@@ -190,6 +190,7 @@ class SituacaoMilitar(models.Model):
     class Meta:
         verbose_name = _('Tipo Situação Militar')
         verbose_name_plural = _('Tipos Situações Militares')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
@@ -355,11 +356,12 @@ class Parlamentar(models.Model):
 
 @reversion.register()
 class TipoDependente(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+    descricao = models.CharField(max_length=150, verbose_name=_('Descrição'))
 
     class Meta:
         verbose_name = _('Tipo de Dependente')
         verbose_name_plural = _('Tipos de Dependente')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
@@ -375,7 +377,7 @@ class Dependente(models.Model):
     tipo = models.ForeignKey(TipoDependente, on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+    nome = models.CharField(max_length=150, verbose_name=_('Nome'))
     sexo = models.CharField(
         max_length=1, verbose_name=_('Sexo'), choices=SEXO_CHOICE)
     data_nascimento = models.DateField(
@@ -432,6 +434,7 @@ class TipoAfastamento(models.Model):
     class Meta:
         verbose_name = _('Tipo de Afastamento')
         verbose_name_plural = _('Tipos de Afastamento')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
@@ -450,7 +453,7 @@ class Mandato(models.Model):
     # TODO what is this field??????
     tipo_causa_fim_mandato = models.PositiveIntegerField(blank=True, null=True)
     data_inicio_mandato = models.DateField(verbose_name=_('Início do Mandato'),
-                                           blank=True,
+                                           blank=False,
                                            null=True)
     data_fim_mandato = models.DateField(verbose_name=_('Fim do Mandato'),
                                         blank=True,
@@ -486,7 +489,7 @@ class Mandato(models.Model):
                     self.legislatura.data_inicio,
                     self.legislatura.data_fim,
                     f.data,
-                    f.data_desfiliacao or datetime.max.date())]
+                    f.data_desfiliacao or timezone.datetime.max.date())]
 
 
 @reversion.register()

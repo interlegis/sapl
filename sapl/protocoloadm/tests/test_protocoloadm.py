@@ -1,4 +1,4 @@
-import datetime
+from datetime import date, timedelta
 
 import pytest
 from django.core.urlresolvers import reverse
@@ -9,8 +9,7 @@ from model_mommy import mommy
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
                                      DocumentoAdministrativoForm,
-                                     MateriaLegislativa,
-                                     ProtocoloDocumentForm,
+                                     MateriaLegislativa, ProtocoloDocumentForm,
                                      ProtocoloMateriaForm)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo,
@@ -146,7 +145,7 @@ def test_create_tramitacao(admin_client):
         unidade_tramitacao_destino=unidade_tramitacao_destino_1,
         status=status,
         documento=documento_adm,
-        data_tramitacao=datetime.date(2016, 8, 21))
+        data_tramitacao=date(2016, 8, 21))
 
     response = admin_client.post(
         reverse(
@@ -156,7 +155,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_local_1.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': datetime.date(2016, 8, 21)},
+         'data_tramitacao': date(2016, 8, 21)},
         follow=True)
 
     msg = force_text(_('A origem da nova tramitação deve ser igual ao '
@@ -174,7 +173,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': datetime.date(2016, 8, 20)},
+         'data_tramitacao': date(2016, 8, 20)},
         follow=True)
 
     msg = _('A data da nova tramitação deve ser ' +
@@ -192,7 +191,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': datetime.date.today() + datetime.timedelta(
+         'data_tramitacao': date.today() + timedelta(
              days=1)},
         follow=True)
 
@@ -211,8 +210,8 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': datetime.date(2016, 8, 21),
-         'data_encaminhamento': datetime.date(2016, 8, 20)},
+         'data_tramitacao': date(2016, 8, 21),
+         'data_encaminhamento': date(2016, 8, 20)},
         follow=True)
 
     msg = force_text(_('A data de encaminhamento deve ser ' +
@@ -230,8 +229,8 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': datetime.date(2016, 8, 21),
-         'data_fim_prazo': datetime.date(2016, 8, 20)},
+         'data_tramitacao': date(2016, 8, 21),
+         'data_fim_prazo': date(2016, 8, 20)},
         follow=True)
 
     msg = _('A data fim de prazo deve ser ' +
@@ -249,12 +248,12 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': datetime.date(2016, 8, 21)},
+         'data_tramitacao': date(2016, 8, 21)},
         follow=True)
 
     tramitacao = TramitacaoAdministrativo.objects.last()
     # Verifica se a tramitacao que obedece as regras de negócios é criada
-    assert tramitacao.data_tramitacao == datetime.date(2016, 8, 21)
+    assert tramitacao.data_tramitacao == date(2016, 8, 21)
 
 
 @pytest.mark.django_db(transaction=False)
@@ -288,7 +287,7 @@ def test_anular_protocolo_form_anula_protocolo_inexistente():
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_form_anula_protocolo_anulado():
-    protocolo = mommy.make(Protocolo, numero=1, ano=2017, anulado=True)
+    mommy.make(Protocolo, numero=1, ano=2017, anulado=True)
 
     form = AnularProcoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
@@ -305,15 +304,15 @@ def test_anular_protocolo_form_anula_protocolo_anulado():
 def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
     tipo_materia = mommy.make(TipoMateriaLegislativa)
 
-    protocolo_materia = mommy.make(Protocolo,
-                                   numero=1,
-                                   ano=2017,
-                                   tipo_materia=tipo_materia,
-                                   anulado=False)
+    mommy.make(Protocolo,
+               numero=1,
+               ano=2017,
+               tipo_materia=tipo_materia,
+               anulado=False)
 
-    materia_legislativa = mommy.make(MateriaLegislativa,
-                                     ano=2017,
-                                     numero_protocolo=1)
+    mommy.make(MateriaLegislativa,
+               ano=2017,
+               numero_protocolo=1)
 
     form = AnularProcoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
@@ -334,8 +333,8 @@ def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
                                      tipo_documento=tipo_documento,
                                      anulado=False)
 
-    documento_administrativo = mommy.make(DocumentoAdministrativo,
-                                          protocolo=protocolo_documento)
+    mommy.make(DocumentoAdministrativo,
+               protocolo=protocolo_documento)
 
     form = AnularProcoloAdmForm(data={'numero': '2',
                                       'ano': '2017',

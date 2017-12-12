@@ -1,13 +1,11 @@
 import pytest
-
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-
 from model_mommy import mommy
 
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.norma.forms import NormaJuridicaForm, NormaRelacionadaForm
-from sapl.norma.models import (NormaJuridica, TipoNormaJuridica)
+from sapl.norma.models import NormaJuridica, TipoNormaJuridica
 
 
 @pytest.mark.django_db(transaction=False)
@@ -78,7 +76,7 @@ def test_norma_form_invalida():
 def test_norma_juridica_materia_inexistente():
 
     tipo = mommy.make(TipoNormaJuridica)
-    tipo_materia = mommy.make(TipoMateriaLegislativa)
+    tipo_materia = mommy.make(TipoMateriaLegislativa, descricao='VETO')
 
     form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
                                    'numero': '1',
@@ -93,17 +91,17 @@ def test_norma_juridica_materia_inexistente():
 
     assert not form.is_valid()
 
-    assert form.errors['__all__'] == [_("Matéria 2/2017 é inexistente.")]
+    assert form.errors['__all__'] == [_("Matéria Legislativa 2/2017 (VETO) é inexistente.")]
 
 
 @pytest.mark.django_db(transaction=False)
 def test_norma_juridica_materia_existente():
     tipo = mommy.make(TipoNormaJuridica)
     tipo_materia = mommy.make(TipoMateriaLegislativa)
-    materia = mommy.make(MateriaLegislativa,
-                         numero=2,
-                         ano=2017,
-                         tipo=tipo_materia)
+    mommy.make(MateriaLegislativa,
+               numero=2,
+               ano=2017,
+               tipo=tipo_materia)
 
     form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
                                    'numero': '1',

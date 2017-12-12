@@ -16,11 +16,11 @@
 <div class="helpsapl"><a id="ajuda" href="http://sapl3.interlegis.leg.br/generico/lexml_infografico">INFOGRÁFICO - Como funciona o LexML</a>
 </div></td></tr></table><br /><br />
 
-<br />  <a href="ajuda">Anterior</a> |
+<br />  <a href="{% url 'sapl.base:help'%}">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="ajuda/consultas#cons_topo">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'consultas' %}">Pr&oacute;xima</a>
 <br/>
 <br />
 </div>

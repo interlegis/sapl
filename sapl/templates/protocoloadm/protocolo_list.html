@@ -1,8 +1,8 @@
 {% extends "protocoloadm/protocoloadm_detail.html" %}
 {% load i18n %}
+{% load tz %}
 {% load crispy_forms_tags %}
 {% load static %}
-
 {% block detail_content %}
 {% if protocolos %}
 	<table>
@@ -20,7 +20,7 @@
 					<img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual">
 				</a></br>
 				<strong>Assunto:</strong> {{ p.assunto_ementa }}</br>
-				<strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y" }} - Horário: {{ p.hora|date:"H:m:s" }}</br>
+				<strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y" }} - Horário: {{ p.timestamp|localtime|date:"H:m:s" }}</br>
 				<strong>Natureza do Processo:</strong>
 					{% if p.tipo_processo == 0 %}
 						Administrativo </br>

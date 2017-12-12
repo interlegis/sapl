@@ -123,6 +123,13 @@ h6, .h6 {
     display: block;
   }
 }
+
+.help-block-danger {
+  margin: $grid-gutter-width / 2;
+  padding: $grid-gutter-width / 2;
+  border: 2px dashed #f00;
+}
+
 .controls-radio-checkbox {
   padding: 0px;
   border: 1px solid #d6e1e5;
@@ -210,6 +217,18 @@ body {
   .container {
     padding-top: 25px;
   }
+}
+
+label {
+  margin-bottom: 0;
+  line-height: 1;
+}
+.control-label {
+  margin: 0;
+}
+.form-control-static {
+  padding-top: 0;
+  min-height: auto;
 }
 
 // #### pagination ########################################
@@ -492,4 +511,26 @@ p {
   .container {
       width: 1070px;
   }
+}
+
+/* Estilização da Listagem de Votos em sessões plenárias */
+
+#styleparlamentar {
+  border: 0px solid #d6e1e5;
+  border-top-color: rgb(214, 225, 229);
+  border-right-color: rgb(214, 225, 229);
+  border-bottom-color: rgb(214, 225, 229);
+  border-left-color: rgb(214, 225, 229);
+  border-image-source: initial;
+  border-image-slice: initial;
+  border-image-repeat: initial;
+  font-size: 16px;
+  line-height: 1.467;
+  padding: 7px 12px;
+  height: 40px;
+  -webkit-appearance: none;
+  border-radius: 4px;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  margin-left: 1.0em;
 }

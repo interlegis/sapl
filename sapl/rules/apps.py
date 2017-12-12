@@ -1,16 +1,15 @@
 from builtins import LookupError
 
-import django
-import reversion
 from django.apps import apps
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import django
+import reversion
 
 from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
@@ -79,7 +78,19 @@ def create_proxy_permissions(
             ctype = ContentType.objects.db_manager(using).get_for_model(klass)
 
         ctypes.add(ctype)
-        for perm in _get_all_permissions(klass._meta, ctype):
+
+        # FIXME: Retirar try except quando sapl passar a usar django 1.11
+        try:
+            # Função não existe mais em Django 1.11
+            # como sapl ainda não foi para Django 1.11
+            # esta excessão foi adicionada para caso o
+            # Sapl esteja rodando em um projeto 1.11 não ocorra erros
+            _all_perms_of_klass = _get_all_permissions(klass._meta, ctype)
+        except:
+            # Nova função usada em projetos com Django 1.11 e o sapl é uma app
+            _all_perms_of_klass = _get_all_permissions(klass._meta)
+
+        for perm in _all_perms_of_klass:
             searched_perms.append((ctype, perm))
 
     # Find all the Permissions that have a content_type for a model we're
@@ -116,7 +127,8 @@ def create_proxy_permissions(
 
 
 def update_groups(app_config, verbosity=2, interactive=True,
-                  using=DEFAULT_DB_ALIAS, **kwargs):
+                  using=DEFAULT_DB_ALIAS, cria_usuarios_padrao=False,
+                  **kwargs):
 
     if app_config != AppConfig and not isinstance(app_config, AppConfig):
         return
@@ -149,40 +161,15 @@ def update_groups(app_config, verbosity=2, interactive=True,
             if not group_name:
                 return
 
-            g = Group.objects.get_or_create(name=group_name)
-            if not isinstance(g, Group):
-                g = g[0]
-            g.permissions.clear()
+            group, created = Group.objects.get_or_create(name=group_name)
+            group.permissions.clear()
 
             try:
-
                 print(' ', group_name)
                 for model, perms in rules_list:
-                    self.associar(g, model, perms)
+                    self.associar(group, model, perms)
             except Exception as e:
                 print(group_name, e)
-
-            if settings.DEBUG:
-                user = ''
-                if group_name == SAPL_GROUP_ADMINISTRATIVO:
-                    user = 'operador_administrativo'
-                elif group_name == SAPL_GROUP_PROTOCOLO:
-                    user = 'operador_protocoloadm'
-                elif group_name == SAPL_GROUP_COMISSOES:
-                    user = 'operador_comissoes'
-                elif group_name == SAPL_GROUP_MATERIA:
-                    user = 'operador_materia'
-                elif group_name == SAPL_GROUP_NORMA:
-                    user = 'operador_norma'
-                elif group_name == SAPL_GROUP_SESSAO:
-                    user = 'operador_sessao'
-                elif group_name == SAPL_GROUP_PAINEL:
-                    user = 'operador_painel'
-                elif group_name == SAPL_GROUP_GERAL:
-                    user = 'operador_geral'
-
-                if user:
-                    self.cria_usuario(user, g)
 
         def groups_add_user(self, user, groups_name):
             if not isinstance(groups_name, list):
@@ -211,7 +198,21 @@ def update_groups(app_config, verbosity=2, interactive=True,
                 **param_username)[0]
             usuario.set_password('interlegis')
             usuario.save()
-            grupo.user_set.add(usuario)
+            g = Group.objects.get_or_create(name=grupo)[0]
+            g.user_set.add(usuario)
+
+        def cria_usuarios_padrao(self):
+            for group, user in (
+                (SAPL_GROUP_ADMINISTRATIVO, 'operador_administrativo'),
+                (SAPL_GROUP_PROTOCOLO, 'operador_protocoloadm'),
+                (SAPL_GROUP_COMISSOES, 'operador_comissoes'),
+                (SAPL_GROUP_MATERIA, 'operador_materia'),
+                (SAPL_GROUP_NORMA, 'operador_norma'),
+                (SAPL_GROUP_SESSAO, 'operador_sessao'),
+                (SAPL_GROUP_PAINEL, 'operador_painel'),
+                (SAPL_GROUP_GERAL, 'operador_geral'),
+            ):
+                self.cria_usuario(user, group)
 
         def update_groups(self):
             print('')
@@ -225,6 +226,8 @@ def update_groups(app_config, verbosity=2, interactive=True,
 
     rules = Rules(rules_patterns)
     rules.update_groups()
+    if cria_usuarios_padrao:
+        rules.cria_usuarios_padrao()
 
 
 def revision_pre_delete_signal(sender, **kwargs):

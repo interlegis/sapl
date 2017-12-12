@@ -1,4 +1,4 @@
-{% extends "base.html" %
+{% extends "base.html" %}
 {% load i18n %}
 
 {% block base_content %}
@@ -14,26 +14,26 @@
 <br>Al&eacute;m das informa&ccedil;&otilde;es b&aacute;sicas de identifica&ccedil;&aacute;o da Sess&atilde;o &eacute; poss&iacute;vel acessar o &aacute;udio num dos formatos <i>mp3</i> e <i>aac</i> e o video num dos formatos: <i>mp4</i>, <i>flv</i> e <i>webM</i> por meio das respectivas <b>URL's</b>, caso tenham sido gerados. Ao selecionar uma sess&atilde;o espec&iacute;fica, o sistema ir&aacute; apresentar o seguinte menu de op&ccedil;&oacute;es, relativo a sess&atilde;o plen&aacute;ria:<br />
 <br><b>Menu de Op&ccedil;&otilde;es</b><br />
 <ul>
-  <li><a href="sessao_plenaria_mesa">Mesa</a></li>
-  <li><a href="sessao_plenaria_lista_presenca_sessao">Presen&ccedil;a Sess&atilde;o</a></li>
-  <li><a href="sessao_plenaria_expedientes">Expedientes</a></li>
-  <li><a href="sessao_plenaria_materias_expediente">Mat&eacute;rias Expediente</a></li>
-  <li><a href="sessao_plenaria_oradores_expediente">Oradores Expediente</a></li>
-  <li><a href="sessao_plenaria_presenca_ordem_dia">Presen&ccedil;a Ordem do Dia</a></li>
-  <li><a href="sessao_plenaria_materias_ordem_dia">Ordem Dia</a></li>
-  <li><a href="sessao_plenaria_oradores_explicacoes_pessoais">Explica&ccedil;&otilde;es Pessoais</a></li>
-  <li><a href="sessao_plenaria">Resumo</a></li>
-  <li><a href="sessao_plenaria_ata">Ata</a></li>
-  <li><a href="sessao_plenaria">In&iacute;cio</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_mesa' %}">Mesa</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_lista_presenca_sessao' %}">Presen&ccedil;a Sess&atilde;o</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_expedientes' %}">Expedientes</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_materias_expediente' %}">Mat&eacute;rias Expediente</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_oradores_expediente' %}">Oradores Expediente</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_presenca_ordem_dia' %}">Presen&ccedil;a Ordem do Dia</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_materias_ordem_dia' %}">Ordem Dia</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_oradores_explicacoes_pessoais' %}">Explica&ccedil;&otilde;es Pessoais</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria' %}">Resumo</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_ata' %}">Ata</a></li>
+  <li><a href="{% url 'sapl.base:help_topic' 'sessao_plenaria' %}">In&iacute;cio</a></li>
 </ul><br />
 <br>Ao ter acesso, para cadastro, ser&aacute; exibida a op&ccedil;&atilde;o de Incluir, para a inclus&atilde;o de novas Sess&otilde;es. Ao ser acionada essa fun&ccedil;&atilde;o, ser&aacute; exibida a tela Formul&aacute;rio de Cadastro.<br />
 <br>Para a efetiva&ccedil;&atilde;o do cadastramento ser&atilde;o necess&aacute;rios dados das seguintes tabelas auxiliares:<br />
 <br />
 <b>Tabelas Auxiliares</b><br />
 <ul>
-   <li><a href="tipo_sessao_plenaria">Tipo de Sess&atilde;o Plen&aacute;ria</a></li>
-   <li><a href="legislatura">Legislatura</a></li>
-   <li><a href="sessao_legislativa">Sess&atilde;o Legislativa</a></li>
+   <li><a href="{% url 'sapl.base:help_topic' 'tipo_sessao_plenaria' %}">Tipo de Sess&atilde;o Plen&aacute;ria</a></li>
+   <li><a href="{% url 'sapl.base:help_topic' 'legislatura' %}">Legislatura</a></li>
+   <li><a href="{% url 'sapl.base:help_topic' 'sessao_legislativa' %}">Sess&atilde;o Legislativa</a></li>
 </ul><br />
 Os seguintes campos dever&atilde;o ser preenchidos:<br />
 <br />
@@ -131,11 +131,11 @@ a data de encerramento da sess&atilde;o plen&aacute;ria no formato dd/mm/aaaa e 
 <br>Acione a fun&ccedil;&atilde;o&nbsp;&ldquo;Salvar&rdquo; para que as informa&ccedil;&otilde;es sejam salvas no arquivo.<br />
 <br>Ser&aacute; enviada a mensagem <i>!Sess&atilde;o Plen&aacute;ria salva com sucesso!</i> <br />
 <br>Acione a fun&ccedil;&atilde;o &ldquo;Sair&rdquo; para sair do cadastramento de Sess&otilde;es e voltar a tela anterior.<br />
-<br>  <a href="ordem_dia">Anterior</a> |
+<br>  <a href="{% url 'sapl.base:help_topic' 'ordem_dia' %}">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="recebimento_proposicao">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'recebimento_proposicao' %}">Pr&oacute;xima</a>
 <br />
 <br />
 </div>

@@ -1,18 +1,19 @@
-import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import pytest
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from sapl.rules.apps import AppConfig, update_groups
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
+
 
 pytestmark = pytest.mark.django_db
 
@@ -71,6 +72,7 @@ def create_perms_post_migrate(sapl_app_config):
         if (ct.pk, codename) not in all_perms
     ]
     Permission.objects.bulk_create(perms)
+
 
 btn_login = ('<input class="btn btn-success btn-sm" '
              'type="submit" value="login" />')
@@ -173,26 +175,29 @@ apps_url_patterns_prefixs_and_users = {
             '/ta',
         ]},
     'redireciona_urls': {
-       'prefixs': [
-           '/default_index_html',
-           '/consultas/parlamentar/parlamentar_',
-           '/consultas/comissao/comissao_',
-           '/consultas/pauta_sessao/pauta_sessao_',
-           '/consultas/sessao_plenaria/',
-           '/relatorios_administrativos/relatorios_administrativos_index_html',
-           '/tramitacaoMaterias/tramitacaoMaterias',
-           '/tramitacaoMaterias/materia_mostrar_proc',
-           '/generico/materia_pesquisar_',
-           '/consultas/mesa_diretora/mesa_diretora_index_html',
-           '/consultas/mesa_diretora/parlamentar/parlamentar_',
-           '/generico/norma_juridica_pesquisar_',
-           '/consultas/norma_juridica/norma_juridica_mostrar_proc',
-           '/historicoTramitacoes/historicoTramitacoes',
-           '/atasSessao',
-           '/presencaSessao',
-           '/resumoPropositurasAutor',
-           '/propositurasAnoAutorTipo',
-       ]},
+        'prefixs': [
+            '/default_index_html',
+            '/consultas/parlamentar/parlamentar_',
+            '/consultas/comissao/comissao_',
+            '/consultas/pauta_sessao/pauta_sessao_',
+            '/consultas/sessao_plenaria/',
+
+            '/relatorios_administrativos/'
+            'relatorios_administrativos_index_html',
+
+            '/tramitacaoMaterias/tramitacaoMaterias',
+            '/tramitacaoMaterias/materia_mostrar_proc',
+            '/generico/materia_pesquisar_',
+            '/consultas/mesa_diretora/mesa_diretora_index_html',
+            '/consultas/mesa_diretora/parlamentar/parlamentar_',
+            '/generico/norma_juridica_pesquisar_',
+            '/consultas/norma_juridica/norma_juridica_mostrar_proc',
+            '/historicoTramitacoes/historicoTramitacoes',
+            '/atasSessao',
+            '/presencaSessao',
+            '/resumoPropositurasAutor',
+            '/propositurasAnoAutorTipo',
+        ]},
     'lexml': {
         'prefixs': [
             '/lexml',
@@ -256,7 +261,6 @@ apps_url_patterns_prefixs_and_users = {
 }
 
 
-@pytest.mark.skip(reason="TODO: Lento demais. Precisa ser refatorado")
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_urlpatterns(url_item, admin_client):
 

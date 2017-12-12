@@ -1,5 +1,5 @@
 {% extends "crud/detail.html" %}
-{% load i18n %}
+{% load i18n crispy_forms_tags %}
 
 {% block detail_content %}
 <form method="post">
@@ -28,8 +28,8 @@
 				<legend>Votos</legend>
 	      <div class="row">
 	        {% for parlamentar in parlamentares %}
-		        <div class="col-md-6">{{parlamentar.0.nome_parlamentar}}</div>
-		        <div class="col-md-6">
+		        <div class="col-md-4" id="styleparlamentar">{{parlamentar.0.nome_parlamentar}}</div>
+		        <div class="col-md-5">
 							{% if parlamentar.1 %} <input type="hidden" name="voto_parlamentar" value="{{parlamentar.1}}:{{parlamentar.0.id}}" /> {% endif %}
 		          <select id="voto_parlamentar" name="voto_parlamentar" class="form-control" {% if parlamentar.1 %} disabled {% endif %}>
 		            <option value="Não Votou:{{parlamentar.0.id}}">Não Votou</option>
@@ -40,16 +40,20 @@
 		        </div>
 	        {% endfor %}
 	      </div>
-			</fieldset>
+
+              <legend>Situação da Votação:</legend>
+
+              <div class="row">
+                <div class="col-md-12"><input type="button" value="Computar Votos Informados pelo Operador" onClick="conta_votos()" class="btn btn-primary sm"></div>
+              </div>
+              <br />
+              <div id="soma_votos"></div>
+
+	</fieldset>
 
 	    <div class="row">
 	      <div class="col-md-12">
-	        Resultado da Votação
-	        <select id="resultado_votacao" name="resultado_votacao" class="form-control">
-	          {% for tipo in tipos %}
-	          <option value="{{tipo.id}}">{{tipo.nome}}</option>
-	          {% endfor %}
-	        </select>
+	        {{ form.resultado_votacao|as_crispy_field }}
 	      </div>
 	    </div>
 
@@ -74,5 +78,44 @@
 		function voltar() {
 			window.history.back();
 		}
+
+                function conta_votos() {
+                        var votos_sim = 0;
+                        var votos_nao = 0;
+                        var votos_abstencao = 0;
+                        var nao_votou = 0;
+                        $('[name=voto_parlamentar]').each(function() {
+                          if (($(this).is(':hidden')) == false) {
+                            switch ($(this).val().substring(0,4)) {
+                              case "Sim:":
+                                votos_sim = votos_sim + 1;
+                                break;
+                              case "Não:":
+                                votos_nao = votos_nao + 1;
+                                break;
+                              case "Abst":
+                                votos_abstencao = votos_abstencao + 1;
+                                break;
+                              case "Não ":
+                                nao_votou = nao_votou + 1;
+                                break;
+                            };
+                          };
+                        });
+
+                  $("#soma_votos").empty();
+                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Sim: " + votos_sim + "</div></div>");
+                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Não: " + votos_nao + "</div></div>");
+                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Abstenções: " + votos_abstencao + "</div></div>");
+                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Ainda não votaram: " + nao_votou + "</div></div>");
+
+                }
+
+                window.onload = conta_votos();
+
+		$(window).on('beforeunload', function () {
+            $("input[type=submit], input[type=button]").prop("disabled", "disabled");
+        });
+
 	</script>
 {% endblock extra_js%}

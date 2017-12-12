@@ -179,18 +179,16 @@ class AutoresPossiveisFilterSet(FilterSet):
             data_inicio__lte=data_relativa,
             data_fim__gte=data_relativa).first()
 
-        params = {
-            'parlamentar_set__mandato__data_inicio_mandato__lte':
-            data_relativa,
-            'parlamentar_set__mandato__data_fim_mandato__gte': data_relativa
-        }
+        q = Q(
+            parlamentar_set__mandato__data_inicio_mandato__lte=data_relativa,
+            parlamentar_set__mandato__data_fim_mandato__isnull=True) | Q(
+            parlamentar_set__mandato__data_inicio_mandato__lte=data_relativa,
+            parlamentar_set__mandato__data_fim_mandato__gte=data_relativa)
 
         if legislatura_relativa.atual():
-            params['parlamentar_set__ativo'] = True
+            q = q & Q(parlamentar_set__ativo=True)
 
-        qs = queryset.filter(**params)
-
-        return qs
+        return queryset.filter(q)
 
     def filter_comissao(self, queryset, data_relativa):
         return queryset.filter(

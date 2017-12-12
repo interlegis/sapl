@@ -1,0 +1,34 @@
+{% extends "crud/list.html" %}
+{% load i18n base_tags %}
+
+
+{% block container_table_list %}
+<div class="row">
+  <div class="col-lg-4">
+    <div class="list-group">
+        <span class="list-group-item active">Tipos de Autores do SAPL</span>
+      {% for tipo in tipos_sapl %}
+          <a href="{% url tipo|tipoautor_contenttype_list %}" class="list-group-item">{{tipo}}</a>
+      {% endfor %}
+
+
+    </div>
+  </div>
+  <div class="col-lg-8">
+    {{block.super}}
+    <div class="help-block-danger">
+      <strong>Atenção!!!</strong> - Não cadastre tipos de autores semelhantes
+      aos "Tipos de Autores do SAPL" que estão na tabela ao lado. Esses tipos
+      são fixos no SAPL pois representam seus cadastros no local apropriado.<br>
+    </div>
+    <div class="help-block-danger">
+      Novamente, NÃO cadastre "Tipos de Autor" semelhantes aos tipos do SAPL.<br>
+      <strong>Veja como exemplo:</strong> No Sapl existe o tipo Parlamentar.
+      Não use tipos semelhantes, como cadastrar um tipo com a descrição "Vereador",
+      ou mesmo cadastrar outro como "Parlamentar".<br>
+      Se está ali na tabela da lateral esquerda, talvez não exatamente igual,
+      mas tem o mesmo sentido de sua intenção, não deve ser adicionado.
+    </div>
+  </div>
+</div>
+{% endblock container_table_list %}

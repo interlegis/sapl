@@ -1,5 +1,6 @@
 sapldb:
   image: postgres
+  restart: always
   environment:
     POSTGRES_PASSWORD: sapl
     POSTGRES_USER: sapl
@@ -8,9 +9,19 @@ sapldb:
   volumes:
     - sapldb_data:/var/lib/postgresql/data/
   ports:
-    - "5532:5432"
+    - "5432:5432"
 sapl:
-  image: interlegis/sapl:3.1.20-BETA
+  image: interlegis/sapl:3.1.39-BETA
+  restart: always
+  environment:
+    ADMIN_PASSWORD: interlegis
+    ADMIN_EMAIL: email@dominio.net
+    DEBUG: 'False'
+    USE_TLS: 'False' 
+    EMAIL_PORT: 587
+    EMAIL_HOST: smtp.dominio.net
+    EMAIL_HOST_USER: usuariosmtp
+    EMAIL_HOST_PASSWORD: senhasmtp
   volumes:
     - sapl_data:/var/interlegis/sapl/data
     - sapl_media:/var/interlegis/sapl/media

@@ -209,7 +209,7 @@ LANGUAGES = (
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_L10N = True
-USE_TZ = False
+USE_TZ = True
 # DATE_FORMAT = 'N j, Y'
 DATE_FORMAT = 'd/m/Y'
 SHORT_DATE_FORMAT = 'd/m/Y'
@@ -299,3 +299,8 @@ def excepthook(*args):
         'Uncaught exception:', exc_info=args)
 
 # sys.excepthook = excepthook
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # default
+    'sapl.hashers.ZopeSHA1PasswordHasher',
+]

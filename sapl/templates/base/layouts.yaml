@@ -12,7 +12,7 @@ CasaLegislativa:
 
 AppConfig:
   {% trans 'Configurações da Aplicação' %}:
-  - documentos_administrativos  painel_aberto
+  - documentos_administrativos
 
   {% trans 'Proposições e Protocolo' %}:
   - sequencia_numeracao proposicao_incorporacao_obrigatoria
@@ -23,9 +23,12 @@ AppConfig:
   {% trans 'Cronômetros do Painel' %}:
   - cronometro_discurso cronometro_aparte cronometro_ordem
 
+  {% trans 'Configurações do Painel' %}:
+  - mostrar_brasao_painel
+
 TipoAutor:
   {% trans 'Tipo Autor' %}:
-  - content_type:4 descricao
+  - descricao
 
 Autor:
   {% trans 'Autor' %}:

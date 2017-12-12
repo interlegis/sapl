@@ -1,10 +1,18 @@
-import reversion
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models.signals import post_migrate
+from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
+import reversion
 
-from sapl.utils import UF, YES_NO_CHOICES, get_settings_auth_user_model
+from sapl.utils import (
+    UF,
+    YES_NO_CHOICES,
+    get_settings_auth_user_model,
+    models_with_gr_for_model
+)
+
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -122,9 +130,10 @@ class AppConfig(models.Model):
         verbose_name=_('Sequência de numeração'),
         choices=SEQUENCIA_NUMERACAO, default='A')
 
-    painel_aberto = models.BooleanField(
-        verbose_name=_('Painel aberto para usuário anônimo'),
-        choices=YES_NO_CHOICES, default=False)
+    # TODO: a ser implementado na versão 3.2
+    # painel_aberto = models.BooleanField(
+    #     verbose_name=_('Painel aberto para usuário anônimo'),
+    #     choices=YES_NO_CHOICES, default=False)
 
     texto_articulado_proposicao = models.BooleanField(
         verbose_name=_('Usar Textos Articulados para Proposições'),
@@ -157,6 +166,10 @@ class AppConfig(models.Model):
         blank=True,
         null=True)
 
+    mostrar_brasao_painel = models.BooleanField(
+        default=False,
+        verbose_name=_('Mostrar brasão da Casa no painel?'))
+
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')
@@ -164,13 +177,15 @@ class AppConfig(models.Model):
             ('menu_sistemas', _('Renderizar Menu Sistemas')),
             ('view_tabelas_auxiliares', _('Visualizar Tabelas Auxiliares')),
         )
+        ordering = ('-id',)
 
     @classmethod
     def attr(cls, attr):
         config = AppConfig.objects.first()
 
         if not config:
-            return ''
+            config = AppConfig()
+            config.save()
 
         return getattr(config, attr)
 
@@ -181,7 +196,10 @@ class AppConfig(models.Model):
 
 @reversion.register()
 class TipoAutor(models.Model):
-    descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
+    descricao = models.CharField(
+        max_length=50, verbose_name=_('Descrição'),
+        help_text=_('Obs: Não crie tipos de autores '
+                    'semelhante aos tipos fixos. '))
 
     content_type = models.OneToOneField(
         ContentType,
@@ -242,3 +260,40 @@ class Autor(models.Model):
             return str(self.partido)
         else:
         """
+
+
+def cria_models_tipo_autor(app_config, verbosity=2, interactive=True,
+                           using=DEFAULT_DB_ALIAS, **kwargs):
+
+    models = models_with_gr_for_model(Autor)
+
+    print("\n\033[93m\033[1m{}\033[0m".format(
+        _('Atualizando registros TipoAutor do SAPL:')))
+    for model in models:
+        content_type = ContentType.objects.get_for_model(model)
+        tipo_autor = TipoAutor.objects.filter(
+            content_type=content_type.id).exists()
+
+        if tipo_autor:
+            msg1 = "Carga de {} não efetuada.".format(
+                TipoAutor._meta.verbose_name)
+            msg2 = " Já Existe um {} {} relacionado...".format(
+                TipoAutor._meta.verbose_name,
+                model._meta.verbose_name)
+            msg = "  {}{}".format(msg1, msg2)
+        else:
+            novo_autor = TipoAutor()
+            novo_autor.content_type_id = content_type.id
+            novo_autor.descricao = model._meta.verbose_name
+            novo_autor.save()
+            msg1 = "Carga de {} efetuada.".format(
+                TipoAutor._meta.verbose_name)
+            msg2 = " {} {} criado...".format(
+                TipoAutor._meta.verbose_name, content_type.model)
+            msg = "  {}{}".format(msg1, msg2)
+        print(msg)
+    # Disconecta função para evitar a chamada repetidas vezes.
+    post_migrate.disconnect(receiver=cria_models_tipo_autor)
+
+
+post_migrate.connect(receiver=cria_models_tipo_autor)

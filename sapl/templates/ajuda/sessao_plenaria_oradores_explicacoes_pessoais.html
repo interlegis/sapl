@@ -14,11 +14,11 @@ Essa fun&ccedil;&atilde;o possui 3 caixas: Oradores Cadastrados, Cadastro de Ora
 <br>Em <b>Cadastro de Oradores</b> consta no combo box os parlamentares ativos que ainda podem ser selecionados e inclu&iacute;dos na lista de oradores com a indica&ccedil;&atilde;o da ordem de pronunciamento. Ao acionar o bot&atilde;o <i>incluir orador</i> o sistema ir&aacute; emitir a mensagem <i>! Parlamentar inclu&iacute;do com sucesso na lista de oradores!</i><br />
 <br>A &uacute;ltima caixa, <b>Cadastro de Discurso</b> permite a inclus&atilde;o do discurso do parlamentar. Para tanto, &eacute; necess&aacute;rio selecionar o parlamentar no combo box, clicar em <i>arquivo</i> para obter o discurso e, em seguida, clicar no bot&atilde;o <i>Incluir Discurso</i>. O sistema ir&aacute; emitir a mensagem <i>!Discurso inclu&iacute;do com sucesso!</i> e o link <i>continuar</i> que ao pressionado retorna a tela anterior.<br/>
 <br />
-<br>  <a href="sessao_plenaria">Anterior</a> |
+<br>  <a href="{% url 'sapl.base:help_topic' 'sessao_plenaria' %}">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="sessao_plenaria_lista_presenca_sessao">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'sessao_plenaria_lista_presenca_sessao' %}">Pr&oacute;xima</a>
 <br />
 <br />
 </div>

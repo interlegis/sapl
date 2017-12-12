@@ -30,7 +30,7 @@ Com o ambiente em produção, os arquivos estáticos devem ser servidos pelo web
 
 para que os arquivos SASS/SCSS sejam compilados em arquivos .css em ambiente de produção, e em seguida rode::
 
-   ./manage.py collectstatic --no-input
+   ./manage.py collectstatic --no-input --clear
 
 para coletar todos os arquivos estáticos do projeto e guarda-los no diretório definido em `STATIC_ROOT`, que será também o diretório no qual o `NGINX` irá referenciar para a aplicação.
 

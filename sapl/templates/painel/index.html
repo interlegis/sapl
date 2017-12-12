@@ -23,14 +23,20 @@
         ul, li {
           list-style-type: none;
         }
-        #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao{
+        #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao, #orador {
           font-family: Verdana;
         }
       }
+      .center {
+          margin: auto;
+          width: 15%;
+
+      }
     </style>
+
   </head>
   <body>
-    <audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"> </audio>
+    <audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"></audio>
 
     <h1 id="title"></h1>
     <input id="json_url" type="hidden" value="{% url 'sapl.painel:dados_painel' sessao_id %}">
@@ -44,6 +50,10 @@
         <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_hora_inicio"></span></font></th>
       </tr>
     </table>
+
+    <div class="center">
+      <img src="" id="logo-painel" alt="" width="100%"/>
+    </div>
 
     <h2><font color="red"><p align="center"><span id="message"></span></p></font></h2>
 
@@ -60,7 +70,18 @@
           </table>
         </div>
 
-        <div class="col-md-4" >
+        <div class="row container-detail clearfix">
+          <div  class="row-fluid">
+            <div class="col-md-4">
+              <h2><font color="#459170"><p align="center" style="font-family:Verdana">Oradores</p></b></font></h2>
+              <table align="center">
+                <tr>
+                  <th><h4><font color="white"><span id="orador"></span></h4></font></th>
+                </tr>
+              </table>
+            </div>
+
+        <div class="col-md-3" >
           <h2><font color="#459170"><p align="center" style="font-family:Verdana">Cronômetros</p></font></h2>
           <table align="center">
             <tr>
@@ -89,9 +110,9 @@
     </br>
     <h2><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h2>
     <table style="width:75%; border:1px;" align="center">
-      <tr><th style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></th></tr>
-      <tr><th style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></th></tr>
-      <tr><th style="text-align:center"><font color="#45919D"><span id="resultado_votacao"></span></font></th></tr>
+      <tr><th style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></h4></th></tr>
+      <tr><th style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></h4></th></tr>
+      <tr><th style="text-align:center"><h2><font color="#45919D"><span id="resultado_votacao"></span></font></h2></th></tr>
     </table>
   </body>
 
@@ -161,71 +182,82 @@
               $("#sessao_plenaria").text(data["sessao_plenaria"])
               $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
               $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
-              if (data["status_painel"] == "FECHADO") {
+              if (data["status_painel"] == false) {
                 $("#message").text("PAINEL ENCONTRA-SE FECHADO");
               }
-              else{
+              else {
                 $("#message").text("");
               }
 
+              if (data["brasao"] != null)
+                $("#logo-painel").attr("src", data["brasao"]);
+
               var presentes = $("#parlamentares");
               var votacao = $("#votacao");
+              var oradores = $("#orador")
               $("#votacao").text('');
               presentes.children().remove();
-              votacao.children().remove()
+              votacao.children().remove();
+              oradores.children().remove();
+
+              var oradores_list = data["oradores"];
+              var presentes_list = data["presentes"];
+
+              if (data["status_painel"] == true) {
+                  presentes.append('<table id="parlamentares_list">');
+                  jQuery.each(presentes_list, function (index, parlamentar) {
+
+
+                    if (parlamentar.voto == 'Voto Informado'){
+                      $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
+                          parlamentar.nome +
+                          '</td> <td style="padding-right:20px; color:yellow">' +
+                          parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
+                          + '</td></tr>')
+                    }
+                    else{
+                      $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
+                          parlamentar.nome +
+                          '</td> <td style="padding-right:20px">' +
+                          parlamentar.partido + '</td> <td style="padding-right:20px">'
+                          + show_voto(parlamentar.voto) + '</td></tr>')
+                    }
+
+                  });
+                  presentes.append('</table>')
+
+                  oradores.append('<table id="oradores_list">');
+                  jQuery.each(oradores_list, function (index, orador) {
+                    $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
+                        orador.numero + 'º &nbsp' +
+                        orador.nome +'</td></tr>')
+                  });
+                  oradores.append('</table>');
+
+              }
+              else{
+                  presentes.append('<span id="parlamentares_list">');
+                  $('#parlamentares_list').append(
+                      '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
+                  presentes.append('</span>');
+
+                  oradores.append('<span id="oradores_list">');
+                  $('#oradores_list').append(
+                      '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
+                  oradores.append('</span>');
+              }
 
               if (data['materia_legislativa_texto']){
-                if (data["presentes_ordem_dia"] != null) {
-                  presentes_ordem_dia = data["presentes_ordem_dia"];
-                }
-                else if (data["presentes_expediente"] != null){
-                  presentes_ordem_dia = data["presentes_expediente"]
-                }
-                presentes.append('<table id="parlamentares_list">');
-                if( data["natureza_resultado"] == "A" || data["natureza_resultado"] == "R" ) {
-                    if (data["tipo_votacao"] == "Nominal") {
-                        jQuery.each(data["votos"], function (index, parlamentar) {
-                            $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
-                                parlamentar.parlamentar +
-                                '</td> <td style="padding-right:20px">' +
-                                parlamentar.partido + '</td> <td style="padding-right:20px">'
-                                + show_voto(parlamentar.voto) + '</td> </tr>')
-                        });
-                    }
-                    else {
-                        jQuery.each(data["votos"], function (index, parlamentar) {
-                            $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
-                                parlamentar.parlamentar +
-                                '</td> <td style="padding-right:20px">' +
-                                parlamentar.partido + '</td> </tr>')
-                        });
-                    }
-                }
-
-                else{
-                    jQuery.each(presentes_ordem_dia, function (index, parlamentar) {
-                            $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
-                                parlamentar.nome +
-                                '</td> <td style="padding-right:20px">' +
-                                parlamentar.partido + '</td> </tr>')
-                        });
-                }
-
-                presentes.append('</table>');
 
                 //console.debug(presentes_ordem_dia)
                 var votacao = $("#votacao")
-                if (data["num_presentes_ordem_dia"] != null) {
-                  num_presentes_ordem_dia = data["num_presentes_ordem_dia"];
-                }
-                else if (data["num_presentes_expediente"] != null){
-                  num_presentes_ordem_dia = data["num_presentes_expediente"]
-                }
+
+                var num_presentes = data["num_presentes"];
 
                 votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
                 votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
                 votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
-                votacao.append("<li>Presentes: " + num_presentes_ordem_dia + "</li>")
+                votacao.append("<li>Presentes: " + num_presentes + "</li>")
                 votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
               }
 
@@ -277,8 +309,16 @@
                 $("#observacao_materia").text('');
               }
 
-              if (data['resultado_votacao']){
+              if (data['tipo_resultado']){
                 $("#resultado_votacao").text(data["tipo_resultado"]);
+                $("#resultado_votacao").css("color", "#45919D");
+                var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
+                  if (resultado_votacao_upper.search("APROV") != -1){
+                    $("#resultado_votacao").css("color", "green");
+                  }
+                  if (resultado_votacao_upper.search("REJEIT") != -1){
+                    $("#resultado_votacao").css("color", "red");
+                  }
               }
               else{
                 $("#resultado_votacao").text('');

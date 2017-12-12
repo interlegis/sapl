@@ -1,4 +1,3 @@
-from datetime import datetime
 
 import django_filters
 from crispy_forms.helper import FormHelper
@@ -7,6 +6,7 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.forms import ModelForm, widgets
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -72,7 +72,7 @@ class NormaFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Norma'),
                      row1, row2, row3,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -131,11 +131,13 @@ class NormaJuridicaForm(ModelForm):
                     tipo_id=cleaned_data['tipo_materia'],
                     numero=cleaned_data['numero_materia'],
                     ano=cleaned_data['ano_materia'])
+
             except ObjectDoesNotExist:
                 raise forms.ValidationError(
-                    _("Matéria %s/%s é inexistente." % (
+                    _("Matéria Legislativa %s/%s (%s) é inexistente." % (
                         self.cleaned_data['numero_materia'],
-                        self.cleaned_data['ano_materia'])))
+                        self.cleaned_data['ano_materia'],
+                        cleaned_data['tipo_materia'].descricao)))
             else:
                 cleaned_data['materia'] = materia
 
@@ -154,7 +156,7 @@ class NormaJuridicaForm(ModelForm):
 
     def save(self, commit=False):
         norma = self.instance
-        norma.timestamp = datetime.now()
+        norma.timestamp = timezone.now()
         norma.materia = self.cleaned_data['materia']
         norma = super(NormaJuridicaForm, self).save(commit=True)
         return norma
@@ -206,3 +208,61 @@ class NormaRelacionadaForm(ModelForm):
         relacionada.norma_relacionada = self.cleaned_data['norma_relacionada']
         relacionada.save()
         return relacionada
+    
+class NormaPesquisaSimplesForm(forms.Form):
+    tipo_norma = forms.ModelChoiceField(
+        label=TipoNormaJuridica._meta.verbose_name,
+        queryset=TipoNormaJuridica.objects.all(),
+        required=False,
+        empty_label='Selecione')
+
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    data_final = forms.DateField(
+        label='Data Final',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(NormaPesquisaSimplesForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('tipo_norma', 6),
+             ('data_inicial', 3),
+             ('data_final', 3)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Índice de Normas'),
+                row1,
+                form_actions(label='Pesquisar')
+            )
+        )
+    
+    def clean(self):
+        super(NormaPesquisaSimplesForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        data_inicial = cleaned_data['data_inicial']
+        data_final = cleaned_data['data_final']
+        
+        if (data_inicial and data_final and 
+            data_inicial > data_final):
+                 raise ValidationError(_(
+                      'A Data Final não pode ser menor que a Data Inicial'))
+        else:
+             condicao1 = data_inicial and not data_final
+             condicao2 = not data_inicial and data_final
+             if condicao1 or condicao2:
+                        raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e ' +
+                            'Data Final devem ser preenchidos obrigatoriamente'))
+
+
+        return cleaned_data
+

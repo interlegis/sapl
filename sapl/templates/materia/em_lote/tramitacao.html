@@ -3,11 +3,11 @@
 {% block actions %}{% endblock %}
 {% block detail_content %}
 
-  {% if not filter_url %}
+  {% if not show_results %}
     {% crispy filter.form %}
   {% endif %}
 
-  {% if filter_url %}
+  {% if show_results %}
     {% if object_list|length > 0 %}
       {% if object_list|length == 1 %}
         <h3 style="text-align: right;">{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
@@ -138,11 +138,12 @@
       if (primeira_tramitacao == false){
         $('#id_unidade_tramitacao_local').prop('disabled', true);
       }
-    });
 
-    // Reabilita o campo, no momento do Submit, para que seu dado seja enviado
-    $('form').submit(function(){
-      $('#id_unidade_tramitacao_local').prop('disabled', false);
+      // Reabilita o campo, no momento do Submit, para que seu dado seja enviado
+      $('input[type=submit]').click(function() {
+        $('#id_unidade_tramitacao_local').attr('disabled', false);
+        $('#id_unidade_tramitacao_local').parents('form').submit();
+      })
     });
 	</script>
 {% endblock %}

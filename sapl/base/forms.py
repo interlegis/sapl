@@ -1,4 +1,3 @@
-import django_filters
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
@@ -12,8 +11,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.forms import ModelForm
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -27,6 +27,7 @@ from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
                         qs_override_django_filter)
 
 from .models import AppConfig, CasaLegislativa
+
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('A', _('Associar um usuário existente')),
@@ -45,26 +46,13 @@ STATUS_USER_CHOICE = [
 
 class TipoAutorForm(ModelForm):
 
-    content_type = forms.ModelChoiceField(
-        queryset=ContentType.objects.all(),
-        label=TipoAutor._meta.get_field('content_type').verbose_name,
-        required=False)
-
     class Meta:
         model = TipoAutor
-        fields = ['descricao',
-                  'content_type']
+        fields = ['descricao']
 
     def __init__(self, *args, **kwargs):
 
         super(TipoAutorForm, self).__init__(*args, **kwargs)
-
-        content_types = ContentType.objects.get_for_models(
-            *models_with_gr_for_model(Autor))
-
-        self.fields['content_type'].choices = [
-            ('', _('Outros (Especifique)'))] + [
-                (ct.pk, ct) for key, ct in content_types.items()]
 
 
 class AutorForm(ModelForm):
@@ -231,7 +219,7 @@ class AutorForm(ModelForm):
         if 'status_user' in self.Meta.fields:
             if self.instance.pk and self.instance.user_id:
                 if getattr(
-                        self.instance.user.username,
+                        self.instance.user,
                         get_user_model().USERNAME_FIELD) != cd['username']:
                     if 'status_user' not in cd or not cd['status_user']:
                         raise ValidationError(
@@ -409,7 +397,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Atas das Sessões Plenárias'),
-                     row1, form_actions(save_label='Pesquisar'))
+                     row1, form_actions(label='Pesquisar'))
         )
 
 
@@ -439,7 +427,7 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Presença dos parlamentares nas sessões plenárias'),
-                     row1, form_actions(save_label='Pesquisar'))
+                     row1, form_actions(label='Pesquisar'))
         )
 
     @property
@@ -483,7 +471,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Histórico de Tramita'),
                      row1, row2,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -514,7 +502,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
                      row1, row2, row3, row4,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -540,7 +528,7 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar'),
                      row1,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -586,7 +574,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
                      HTML(autor_label),
                      HTML(autor_modal),
                      row3,
-                     form_actions(save_label='Pesquisar'))
+                     form_actions(label='Pesquisar'))
         )
 
 
@@ -623,7 +611,7 @@ class CasaLegislativaForm(ModelForm):
         logotipo = self.cleaned_data.get('logotipo', False)
         if logotipo:
             if logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
-                raise ValidationError("Imagem muito grande. ( > 2mb )")
+                raise ValidationError("Imagem muito grande. ( > 2MB )")
         return logotipo
 
 
@@ -642,24 +630,45 @@ class LoginForm(AuthenticationForm):
 
 class ConfiguracoesAppForm(ModelForm):
 
+    mostrar_brasao_painel = forms.BooleanField(
+        help_text=_('Sugerimos fortemente que faça o upload de imagens com '
+                    'o fundo transparente.'),
+        label=_('Mostrar brasão da Casa no painel?'),
+        required=False)
+
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
                   'sequencia_numeracao',
-                  'painel_aberto',
+                  # 'painel_aberto', # TODO: a ser implementado na versão 3.2
                   'texto_articulado_proposicao',
                   'texto_articulado_materia',
                   'texto_articulado_norma',
                   'proposicao_incorporacao_obrigatoria',
                   'cronometro_discurso',
                   'cronometro_aparte',
-                  'cronometro_ordem']
+                  'cronometro_ordem',
+                  'mostrar_brasao_painel']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
         self.fields['cronometro_discurso'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_aparte'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
+
+    def clean_mostrar_brasao_painel(self):
+        mostrar_brasao_painel = self.cleaned_data.get(
+            'mostrar_brasao_painel', False)
+        casa = CasaLegislativa.objects.first()
+
+        if not casa:
+            raise ValidationError("Não há casa legislativa relacionada")
+
+        if (not bool(casa.logotipo) and mostrar_brasao_painel):
+            raise ValidationError("Não há logitipo configurado para esta "
+                                  "Casa legislativa.")
+
+        return mostrar_brasao_painel
 
 
 class RecuperarSenhaForm(PasswordResetForm):
@@ -671,7 +680,7 @@ class RecuperarSenhaForm(PasswordResetForm):
         self.helper.layout = Layout(
             Fieldset(_('Insira o e-mail cadastrado com a sua conta'),
                      row1,
-                     form_actions(save_label='Enviar'))
+                     form_actions(label='Enviar'))
         )
 
         super(RecuperarSenhaForm, self).__init__(*args, **kwargs)
@@ -702,4 +711,4 @@ class NovaSenhaForm(SetPasswordForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             row1,
-            form_actions(save_label='Enviar'))
+            form_actions(label='Enviar'))

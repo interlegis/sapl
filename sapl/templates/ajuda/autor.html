@@ -163,11 +163,11 @@ retorna a tela com a rela&ccedil;&atilde;o de autores
 j&aacute; cadastrado.<br />
 
 <br />
-  <a href="envio_proposicao">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic' 'envio_proposicao' %}">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="tipo_autor">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'tipo_autor' %}">Pr&oacute;xima</a>
 
 <br />
 

@@ -95,11 +95,11 @@ retorna a tela com a rela&ccedil;&atilde;o de tipo de autor
 j&aacute; cadastrado.<br />
 
 <br />
-  <a href="autor">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic' 'autor' %}">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}">&Iacute;ndice</a>
 
-  | <a href="unidade_tramitacao">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'unidade_tramitacao' %}">Pr&oacute;xima</a>
 
 <br />
 

@@ -41,7 +41,7 @@ RUN python3 manage.py bower_install -- --allow-root --no-input && \
     python3 manage.py compilescss
 
 RUN python3 manage.py collectstatic --noinput --clear
- 
+
 # Remove .env(fake) e sapl.db da imagem
 RUN rm -rf /var/interlegis/sapl/sapl/.env && \
     rm -rf /var/interlegis/sapl/sapl.db

@@ -2,8 +2,8 @@ import hashlib
 import logging
 import os
 import re
-from datetime import date
 from functools import wraps
+from operator import itemgetter
 from unicodedata import normalize as unicodedata_normalize
 
 import django_filters
@@ -18,7 +18,7 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.utils import six
+from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
 from django_filters.filterset import STRICTNESS
 from floppyforms import ClearableFileInput
@@ -303,7 +303,8 @@ UF = [
     ('EX', 'Exterior'),
 ]
 
-RANGE_ANOS = [(year, year) for year in range(date.today().year, 1889, -1)]
+RANGE_ANOS = [(year, year) for year in range(timezone.now().year,
+                                             1889, -1)]
 
 RANGE_MESES = [
     (1, 'Janeiro'),
@@ -327,6 +328,7 @@ TIPOS_TEXTO_PERMITIDOS = (
     'application/x-vnd.oasis.opendocument.text',
     'application/pdf',
     'application/x-pdf',
+    'application/zip',
     'application/acrobat',
     'applications/vnd.pdf',
     'text/pdf',
@@ -642,3 +644,33 @@ def parlamentares_ativos(data_inicio, data_fim=None):
         flat=True).distinct('parlamentar_id')
 
     return Parlamentar.objects.filter(id__in=parlamentares_id)
+
+
+def show_results_filter_set(qr):
+    query_params = set(qr.keys())
+    if ((len(query_params) == 1 and 'iframe' in query_params) or
+            len(query_params) == 0):
+        return False
+
+    return True
+
+
+def sort_lista_chave(lista, chave):
+    """
+    :param lista: Uma list a ser ordenada .
+    :param chave: Algum atributo (chave) que está presente na lista e qual
+    deve ser usado para a ordenação da nova
+    lista.
+    :return: A lista ordenada pela chave passada.
+    """
+    lista_ordenada = sorted(lista, key=itemgetter(chave))
+    return lista_ordenada
+
+
+def get_mime_type_from_file_extension(filename):
+    ext = filename.split('.')[-1]
+    if ext == 'odt':
+        mime = 'application/vnd.oasis.opendocument.text'
+    else:
+        mime = "application/%s" % (ext,)
+    return mime

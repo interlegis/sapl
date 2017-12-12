@@ -29,11 +29,13 @@
 	</fieldset>
 	<br/>
 
-  <div class="actions btn-group pull-right btn-group-lg" role="group">
-    <a href="{% url 'sapl.comissoes:participacao_create' composicao_pk %}" class="btn btn-default">
-       Adicionar Participação em Comissão
-    </a>
-  </div>
+  {% if user.is_authenticated %}
+    <div class="actions btn-group pull-right btn-group-lg" role="group">
+        <a href="{% url 'sapl.comissoes:participacao_create' composicao_pk %}" class="btn btn-default">
+        Adicionar Participação em Comissão
+        </a>
+    </div>
+  {% endif %}
   <br />
 
   <div class="container-table">

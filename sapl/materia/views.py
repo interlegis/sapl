@@ -12,15 +12,15 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.template import Context, loader, RequestContext
-from django.utils import formats
+from django.template import RequestContext, loader
+from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+import weasyprint
 
-import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -35,18 +35,20 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 AutoriaMultiCreateForm,
                                 ConfirmarProposicaoForm, LegislacaoCitadaForm,
                                 ProposicaoForm, TipoProposicaoForm,
-                                TramitacaoForm, TramitacaoUpdateForm)
+                                TramitacaoForm, TramitacaoUpdateForm,
+                                DevolverProposicaoForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
-                        montar_row_autor)
+                        montar_row_autor, show_results_filter_set, get_mime_type_from_file_extension)
+import sapl
 
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
-                    MateriaAssuntoForm,
+                    FichaPesquisaForm, FichaSelecionaForm, MateriaAssuntoForm,
                     MateriaLegislativaFilterSet, MateriaSimplificadaForm,
                     PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
                     RelatoriaForm, TramitacaoEmLoteFilterSet,
@@ -61,7 +63,6 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
 
-import weasyprint
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -81,9 +82,9 @@ TipoFimRelatoriaCrud = CrudAux.build(
 
 
 def autores_ja_adicionados(materia_pk):
-    autorias = Autoria.objects.filter(materia_id=materia_pk)
-    pks = [a.autor.pk for a in autorias]
-    return pks
+    autorias = Autoria.objects.filter(materia_id=materia_pk).values_list(
+        'autor_id', flat=True)
+    return autorias
 
 
 def proposicao_texto(request, pk):
@@ -96,12 +97,7 @@ def proposicao_texto(request, pk):
 
         arquivo = proposicao.texto_original
 
-        ext = arquivo.name.split('.')[-1]
-        mime = ''
-        if ext == 'odt':
-            mime = 'application/vnd.oasis.opendocument.text'
-        else:
-            mime = "application/%s" % (ext,)
+        mime = get_mime_type_from_file_extension(arquivo.name)
 
         with open(arquivo.path, 'rb') as f:
             data = f.read()
@@ -138,6 +134,9 @@ class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
         context['title'] = _('Pesquisar Autores')
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
         context['pk_materia'] = self.kwargs['pk']
         return context
 
@@ -173,14 +172,14 @@ class CriarProtocoloMateriaView(CreateView):
         except ObjectDoesNotExist:
             raise Http404()
 
-        materias_ano = MateriaLegislativa.objects.filter(
-            ano=protocolo.ano,
-            tipo=protocolo.tipo_materia).order_by('-numero')
-
-        if materias_ano:
-            numero = materias_ano.first().numero + 1
-        else:
-            numero = 1
+        numero = 1
+        try:
+            materias_ano = MateriaLegislativa.objects.filter(
+                ano=protocolo.ano,
+                tipo=protocolo.tipo_materia).latest('numero')
+            numero = materias_ano.numero + 1
+        except ObjectDoesNotExist:
+            pass  # numero ficou com o valor padrão 1 acima
 
         context['form'].fields['tipo'].initial = protocolo.tipo_materia
         context['form'].fields['numero'].initial = numero
@@ -282,7 +281,7 @@ def recuperar_materia(request):
     ano = request.GET.get('ano', '')
 
     param = {'tipo': tipo}
-    param['data_apresentacao__year'] = ano if ano else datetime.now().year
+    param['data_apresentacao__year'] = ano if ano else timezone.now().year
 
     materia = MateriaLegislativa.objects.filter(**param).order_by(
         'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
@@ -291,7 +290,7 @@ def recuperar_materia(request):
                                  'ano': materia[1]})
     else:
         response = JsonResponse(
-            {'numero': 1, 'ano': ano if ano else datetime.now().year})
+            {'numero': 1, 'ano': ano if ano else timezone.now().year})
 
     return response
 
@@ -321,14 +320,14 @@ def criar_materia_proposicao(proposicao):
     tipo_materia = TipoMateriaLegislativa.objects.get(
         descricao=proposicao.tipo.descricao)
     numero = MateriaLegislativa.objects.filter(
-        ano=datetime.now().year).order_by('numero').last().numero + 1
+        ano=timezone.now().year).order_by('numero').last().numero + 1
     regime = RegimeTramitacao.objects.get(descricao='Normal')
 
     return MateriaLegislativa.objects.create(
         tipo=tipo_materia,
-        ano=datetime.now().year,
+        ano=timezone.now().year,
         numero=numero,
-        data_apresentacao=datetime.now(),
+        data_apresentacao=timezone.now(),
         regime_tramitacao=regime,
         em_tramitacao=True,
         ementa=proposicao.descricao,
@@ -473,7 +472,7 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
     app_label = sapl.protocoloadm.apps.AppConfig.label
     template_name = "materia/confirmar_proposicao.html"
     model = Proposicao
-    form_class = ConfirmarProposicaoForm
+    form_class = ConfirmarProposicaoForm, DevolverProposicaoForm
 
     def get_success_url(self):
         msgs = self.object.results['messages']
@@ -486,7 +485,8 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
 
     def get_object(self, queryset=None):
         try:
-            """Não deve haver acesso na rotina de confirmação a proposições:
+            """
+            Não deve haver acesso na rotina de confirmação a proposições:
             já recebidas -> data_recebimento != None
             não enviadas -> data_envio == None
             """
@@ -494,11 +494,9 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
                                                 data_envio__isnull=False,
                                                 data_recebimento__isnull=True)
             self.object = None
-            # FIXME implementar hash para texto eletrônico
 
             if proposicao.texto_articulado.exists():
                 ta = proposicao.texto_articulado.first()
-                # FIXME hash para textos articulados
                 hasher = 'P' + ta.hash() + '/' + str(proposicao.id)
             else:
                 hasher = gerar_hash_arquivo(
@@ -520,10 +518,25 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
         context['subnav_template_name'] = ''
         return context
 
+    def get_form(self, form_class=None):
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        if self.request.POST:
+            if 'justificativa_devolucao' in self.request.POST:
+                return form_class[1](**self.get_form_kwargs())
+            else:
+                return form_class[0](**self.get_form_kwargs())
+        else:
+            forms = []
+            for form in form_class:
+                forms.append(form(**self.get_form_kwargs()))
+            return forms
+
 
 class UnidadeTramitacaoCrud(CrudAux):
     model = UnidadeTramitacao
-    help_path = 'unidade_tramitacao'
+    help_topic = 'unidade_tramitacao'
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['comissao', 'orgao', 'parlamentar']
@@ -549,7 +562,7 @@ class UnidadeTramitacaoCrud(CrudAux):
 
 class ProposicaoCrud(Crud):
     model = Proposicao
-    help_path = ''
+    help_topic = 'proposicao'
     container_field = 'autor__user'
 
     class BaseMixin(Crud.BaseMixin):
@@ -614,7 +627,7 @@ class ProposicaoCrud(Crud):
                                       'Texto associado.')
                     else:
                         p.data_devolucao = None
-                        p.data_envio = datetime.now()
+                        p.data_envio = timezone.now()
                         p.save()
 
                         if p.texto_articulado.exists():
@@ -836,7 +849,7 @@ class ReciboProposicaoView(TemplateView):
 class RelatoriaCrud(MasterDetailCrud):
     model = Relatoria
     parent_field = 'materia'
-    help_path = ''
+    help_topic = 'tramitacao_relatoria'
     public = [RP_LIST, RP_DETAIL]
 
     class CreateView(MasterDetailCrud.CreateView):
@@ -898,11 +911,9 @@ class RelatoriaCrud(MasterDetailCrud):
                 participacao = Participacao.objects.filter(
                     composicao=composicao)
 
-                parlamentares = []
-                for p in participacao:
-                    if p.titular:
-                        parlamentares.append(
-                            [p.parlamentar.id, p.parlamentar.nome_parlamentar])
+                parlamentares = [[p.parlamentar.id, p.parlamentar.nome_parlamentar] for
+                                 p in participacao if p.titular]
+
                 context['form'].fields['parlamentar'].choices = parlamentares
 
             return context
@@ -911,7 +922,7 @@ class RelatoriaCrud(MasterDetailCrud):
 class TramitacaoCrud(MasterDetailCrud):
     model = Tramitacao
     parent_field = 'materia'
-    help_path = ''
+    help_topic = 'tramitacao_relatoria'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -930,27 +941,30 @@ class TramitacaoCrud(MasterDetailCrud):
         def get_initial(self):
             local = MateriaLegislativa.objects.get(
                 pk=self.kwargs['pk']).tramitacao_set.order_by(
-                '-data_tramitacao').first()
+                '-data_tramitacao',
+                '-id').first()
 
             if local:
                 self.initial['unidade_tramitacao_local'
                              ] = local.unidade_tramitacao_destino.pk
             else:
                 self.initial['unidade_tramitacao_local'] = ''
-            self.initial['data_tramitacao'] = datetime.now()
+            self.initial['data_tramitacao'] = timezone.now().date()
             return self.initial
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            primeira_tramitacao = not(Tramitacao.objects.filter(
-                materia_id=int(kwargs['root_pk'])).exists())
+            ultima_tramitacao = Tramitacao.objects.filter(
+                materia_id=self.kwargs['pk']).order_by(
+                '-data_tramitacao',
+                '-id').first()
 
-            # Se não for a primeira tramitação daquela matéria, o campo
-            # não pode ser modificado
-            if not primeira_tramitacao:
+            if ultima_tramitacao:
                 context['form'].fields[
-                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
+                    'unidade_tramitacao_local'].choices = [
+                    (ultima_tramitacao.unidade_tramitacao_destino.pk,
+                     ultima_tramitacao.unidade_tramitacao_destino)]
             return context
 
         def form_valid(self, form):
@@ -1009,7 +1023,8 @@ class TramitacaoCrud(MasterDetailCrud):
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data_tramitacao', '-id')
+            return qs.filter(**kwargs).order_by('-data_tramitacao',
+                                                '-id')
 
     class DeleteView(MasterDetailCrud.DeleteView):
 
@@ -1019,7 +1034,11 @@ class TramitacaoCrud(MasterDetailCrud):
             url = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': tramitacao.materia.id})
 
-            if tramitacao.pk != materia.tramitacao_set.last().pk:
+            ultima_tramitacao = materia.tramitacao_set.order_by(
+                '-data_tramitacao',
+                '-id').first()
+
+            if tramitacao.pk != ultima_tramitacao.pk:
                 msg = _('Somente a última tramitação pode ser deletada!')
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
@@ -1050,7 +1069,7 @@ def montar_helper_documento_acessorio(self):
 class DocumentoAcessorioCrud(MasterDetailCrud):
     model = DocumentoAcessorio
     parent_field = 'materia'
-    help_path = ''
+    help_topic = 'despacho_autoria'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -1063,7 +1082,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
         def get_initial(self):
-            self.initial['data'] = datetime.now().date()
+            self.initial['data'] = timezone.now().date()
 
             return self.initial
 
@@ -1086,7 +1105,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
 class AutoriaCrud(MasterDetailCrud):
     model = Autoria
     parent_field = 'materia'
-    help_path = ''
+    help_topic = 'despacho_autoria'
     public = [RP_LIST, RP_DETAIL]
     list_field_names = ['autor', 'autor__tipo__descricao', 'primeiro_autor']
 
@@ -1161,7 +1180,7 @@ class AutoriaMultiCreateView(PermissionRequiredForAppCrudMixin, FormView):
 class DespachoInicialCrud(MasterDetailCrud):
     model = DespachoInicial
     parent_field = 'materia'
-    help_path = ''
+    help_topic = 'despacho_autoria'
     public = [RP_LIST, RP_DETAIL]
 
     class CreateView(MasterDetailCrud.CreateView):
@@ -1174,7 +1193,7 @@ class DespachoInicialCrud(MasterDetailCrud):
 class LegislacaoCitadaCrud(MasterDetailCrud):
     model = LegislacaoCitada
     parent_field = 'materia'
-    help_path = ''
+    help_topic = 'legislacao_cita_matanexada'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -1184,55 +1203,6 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
             namespace = 'sapl.materia'
             return reverse('%s:%s' % (namespace, self.url_name(suffix)),
                            args=args)
-
-        def has_permission(self):
-            perms = self.get_permission_required()
-            # Torna a view pública se não possuir conteudo
-            # no atributo permission_required
-            return self.request.user.has_module_perms('materia')\
-                if len(perms) else True
-
-        def permission(self, rad):
-            return '%s%s%s' % ('norma' if rad.endswith('_') else '',
-                               rad,
-                               self.model_name if rad.endswith('_') else '')
-
-        @property
-        def detail_create_url(self):
-            obj = self.crud if hasattr(self, 'crud') else self
-            if self.request.user.has_module_perms('materia'):
-                parent_field = obj.parent_field.split('__')[0]
-                parent_object = getattr(self.object, parent_field)
-
-                root_pk = parent_object.pk
-
-                return self.resolve_url(ACTION_CREATE, args=(root_pk,))
-            return ''
-
-        @property
-        def list_url(self):
-            return self.resolve_url(ACTION_LIST, args=(self.kwargs['pk'],))\
-                if self.request.user.has_module_perms('materia') else ''
-
-        @property
-        def create_url(self):
-            return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],))\
-                if self.request.user.has_module_perms('materia') else ''
-
-        @property
-        def detail_url(self):
-            return self.resolve_url(ACTION_DETAIL, args=(self.object.id,))\
-                if self.request.user.has_module_perms('materia') else ''
-
-        @property
-        def update_url(self):
-            return self.resolve_url(ACTION_UPDATE, args=(self.kwargs['pk'],))\
-                if self.request.user.has_module_perms('materia') else ''
-
-        @property
-        def delete_url(self):
-            return self.resolve_url(ACTION_DELETE, args=(self.object.id,))\
-                if self.request.user.has_module_perms('materia') else ''
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = LegislacaoCitadaForm
@@ -1259,14 +1229,14 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
 class NumeracaoCrud(MasterDetailCrud):
     model = Numeracao
     parent_field = 'materia'
-    help_path = ''
+    help_topic = 'numeracao_docsacess'
     public = [RP_LIST, RP_DETAIL]
 
 
 class AnexadaCrud(MasterDetailCrud):
     model = Anexada
     parent_field = 'materia_principal'
-    help_path = ''
+    help_topic = 'materia_anexada'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -1294,7 +1264,7 @@ class AnexadaCrud(MasterDetailCrud):
 class MateriaAssuntoCrud(MasterDetailCrud):
     model = MateriaAssunto
     parent_field = 'materia'
-    help_path = ''
+    help_topic = ''
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -1318,7 +1288,7 @@ class MateriaAssuntoCrud(MasterDetailCrud):
 
 class MateriaLegislativaCrud(Crud):
     model = MateriaLegislativa
-    help_path = 'materia_legislativa'
+    help_topic = 'materia_legislativa'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(Crud.BaseMixin):
@@ -1507,6 +1477,8 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
+        context['show_results'] = show_results_filter_set(qr)
+
         return context
 
 
@@ -1608,6 +1580,9 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         context['object_list'] = context['object_list'].order_by(
             'ano', 'numero')
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -1620,13 +1595,16 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
 
+        tz = timezone.get_current_timezone()
+
         for materia_id in marcadas:
             doc = DocumentoAcessorio()
             doc.materia_id = materia_id
             doc.tipo = tipo
             doc.arquivo = request.FILES['arquivo']
             doc.nome = request.POST['nome']
-            doc.data = datetime.strptime(request.POST['data'], "%d/%m/%Y")
+            doc.data = tz.localize(datetime.strptime(
+                request.POST['data'], "%d/%m/%Y"))
             doc.autor = request.POST['autor']
             doc.ementa = request.POST['ementa']
             doc.save()
@@ -1675,10 +1653,15 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             'ano', 'numero')
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
         return context
 
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
+
+        tz = timezone.get_current_timezone()
 
         if len(marcadas) == 0:
             msg = _('Nenhuma máteria foi selecionada.')
@@ -1686,14 +1669,14 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             return self.get(request, self.kwargs)
 
         if request.POST['data_encaminhamento']:
-            data_encaminhamento = datetime.strptime(
-                request.POST['data_encaminhamento'], "%d/%m/%Y")
+            data_encaminhamento = tz.localize(datetime.strptime(
+                request.POST['data_encaminhamento'], "%d/%m/%Y"))
         else:
             data_encaminhamento = None
 
         if request.POST['data_fim_prazo']:
-            data_fim_prazo = datetime.strptime(
-                request.POST['data_fim_prazo'], "%d/%m/%Y")
+            data_fim_prazo = tz.localize(datetime.strptime(
+                request.POST['data_fim_prazo'], "%d/%m/%Y"))
         else:
             data_fim_prazo = None
 
@@ -1704,8 +1687,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         for materia_id in marcadas:
             t = Tramitacao(
                 materia_id=materia_id,
-                data_tramitacao=datetime.strptime(
-                    request.POST['data_tramitacao'], "%d/%m/%Y"),
+                data_tramitacao=tz.localize(datetime.strptime(
+                    request.POST['data_tramitacao'], "%d/%m/%Y")),
                 data_encaminhamento=data_encaminhamento,
                 data_fim_prazo=data_fim_prazo,
                 unidade_tramitacao_local_id=request.POST[
@@ -1718,6 +1701,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 texto=request.POST['texto']
             )
             t.save()
+
+        if request.POST['turno'] == 'F':
+            for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+                materia.em_tramitacao = False
+                materia.save()
+
         msg = _('Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
@@ -1751,8 +1740,9 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
     template_name = 'materia/impressos/impressos.html'
     permission_required = ('materia.can_access_impressos', )
 
-def gerar_pdf_impressos(request, context):
-    template = loader.get_template('materia/impressos/pdf.html')
+
+def gerar_pdf_impressos(request, context, template_name):
+    template = loader.get_template(template_name)
     html = template.render(RequestContext(request, context))
     response = HttpResponse(content_type="application/pdf")
     weasyprint.HTML(
@@ -1796,6 +1786,82 @@ class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
 
         context['materias'] = materias
 
-        return gerar_pdf_impressos(self.request, context)
+        return gerar_pdf_impressos(self.request, context,
+                                   'materia/impressos/etiqueta_pdf.html')
 
 
+class FichaPesquisaView(PermissionRequiredMixin, FormView):
+    form_class = FichaPesquisaForm
+    template_name = 'materia/impressos/ficha.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def form_valid(self, form):
+        tipo_materia = form.data['tipo_materia']
+        data_inicial = form.data['data_inicial']
+        data_final = form.data['data_final']
+
+        url = reverse('sapl.materia:impressos_ficha_seleciona')
+        url = url + '?tipo=%s&data_inicial=%s&data_final=%s' % (
+            tipo_materia, data_inicial, data_final)
+
+        return HttpResponseRedirect(url)
+
+
+class FichaSelecionaView(PermissionRequiredMixin, FormView):
+    form_class = FichaSelecionaForm
+    template_name = 'materia/impressos/ficha_seleciona.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def get_context_data(self, **kwargs):
+        if ('tipo' not in self.request.GET or
+            'data_inicial' not in self.request.GET or
+                'data_final' not in self.request.GET):
+            return HttpResponseRedirect(reverse(
+                'sapl.materia:impressos_ficha_pesquisa'))
+
+        context = super(FichaSelecionaView, self).get_context_data(
+            **kwargs)
+
+        tipo = self.request.GET['tipo']
+        data_inicial = datetime.strptime(
+            self.request.GET['data_inicial'], "%d/%m/%Y").date()
+        data_final = datetime.strptime(
+            self.request.GET['data_final'], "%d/%m/%Y").date()
+
+        materia_list = MateriaLegislativa.objects.filter(
+            tipo=tipo,
+            data_apresentacao__range=(data_inicial, data_final))
+        context['quantidade'] = len(materia_list)
+        materia_list = materia_list[:20]
+
+        context['form'].fields['materia'].choices = [
+            (m.id, str(m)) for m in materia_list]
+
+        if context['quantidade'] > 20:
+            messages.info(self.request, _('Sua pesquisa retornou mais do que '
+                                          '20 impressos. Por questões de '
+                                          'performance, foram retornados '
+                                          'apenas os 20 primeiros. Caso '
+                                          'queira outros, tente fazer uma '
+                                          'pesquisa mais específica'))
+
+        return context
+
+    def form_valid(self, form):
+        context = {}
+
+        try:
+            materia = MateriaLegislativa.objects.get(
+                id=form.data['materia'])
+        except ObjectDoesNotExist:
+            mensagem = _('Esta Máteria não existe!')
+            self.messages.add_message(self.request, messages.INFO, mensagem)
+
+            return self.render_to_response(context)
+
+        context['materia'] = materia
+        context['despachos'] = materia.despachoinicial_set.all().values_list(
+            'comissao__nome', flat=True)
+
+        return gerar_pdf_impressos(self.request, context,
+                                   'materia/impressos/ficha_pdf.html')

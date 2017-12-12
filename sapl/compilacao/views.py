@@ -1,7 +1,7 @@
-import logging
-import sys
 from collections import OrderedDict
 from datetime import timedelta
+import logging
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -19,8 +19,8 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -49,6 +49,7 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    get_integrations_view_names)
 from sapl.crud.base import Crud, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -829,7 +830,7 @@ class PublicacaoListView(PublicacaoMixin, ListView):
 
     @property
     def title(self):
-        return _('%s de %s' % (
+        return _('%s <small>(%s)</small>' % (
             self.model._meta.verbose_name_plural,
             self.ta))
 
@@ -845,6 +846,8 @@ class PublicacaoListView(PublicacaoMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(PublicacaoListView, self).get_context_data(**kwargs)
+        context['title'] = self.title
+        context['object'] = self.ta
         context['NO_ENTRIES_MSG'] = CrudListView.no_entries_msg
         return context
 
@@ -876,7 +879,17 @@ class PublicacaoCreateView(PublicacaoMixin, FormMessagesMixin, CreateView):
 
 class PublicacaoDetailView(PublicacaoMixin, DetailView):
     model = Publicacao
-    permission_required = 'compilacao.detail_publicacao'
+    permission_required = []
+
+    @property
+    def list_url(self):
+        return reverse_lazy('sapl.compilacao:ta_pub_list',
+                            kwargs={
+                                'ta_id': self.kwargs['ta_id']})
+
+    @property
+    def verbose_name_plural(self):
+        return self.model._meta.verbose_name_plural
 
 
 class PublicacaoUpdateView(PublicacaoMixin, UpdateView):
@@ -1157,10 +1170,14 @@ class TextEditView(CompMixin, TemplateView):
                 self.object.save()
                 messages.success(request, _(
                     'Texto Articulado desbloqueado com sucesso.'))
+
+                if self.object.content_object:
+                    self.object.content_object.save()
+
         else:
             if 'lock' in request.GET:
-                # TODO - implementar logging de ação de usuário
 
+                # TODO - implementar logging de ação de usuário
                 notificacoes = self.get_notificacoes(
                     object_list=self.object.dispositivos_set.all(),
                     type_notificacoes=['danger', ])
@@ -1182,6 +1199,9 @@ class TextEditView(CompMixin, TemplateView):
                 self.object.save()
                 messages.success(request, _(
                     'Texto Articulado bloqueado com sucesso.'))
+
+                if self.object.content_object:
+                    self.object.content_object.save()
 
                 return redirect(to=reverse_lazy(
                     'sapl.compilacao:ta_text', kwargs={

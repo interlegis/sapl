@@ -3,6 +3,12 @@
 {% load compilacao_filters %}
 {% load common_tags %}
 
+{% block sections_nav %}
+  <ul class="nav nav-pills navbar-right">
+      <li><a href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Voltar para Texto' %}</a></li>
+  </ul>
+{% endblock %}
+
 {% block base_content %}
 
   {% if perms.compilacao.add_publicacao %}

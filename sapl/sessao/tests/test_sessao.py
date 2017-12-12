@@ -2,9 +2,11 @@ import pytest
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
 from sapl.sessao import forms
-from sapl.sessao.models import SessaoPlenaria, TipoSessaoPlenaria
+from sapl.sessao.models import (ExpedienteMateria, SessaoPlenaria,
+                                TipoSessaoPlenaria)
 
 
 def test_valida_campos_obrigatorios_sessao_plenaria_form():
@@ -35,7 +37,8 @@ def test_sessao_plenaria_form_valido():
                                           'tipo': str(tipo.pk),
                                           'sessao_legislativa': str(sessao.pk),
                                           'data_inicio': '10/11/2017',
-                                          'hora_inicio': '10:10'
+                                          'hora_inicio': '10:10',
+                                          'painel_aberto': False
                                           })
 
     assert form.is_valid()
@@ -46,11 +49,11 @@ def test_numero_duplicado_sessao_plenaria_form():
     legislatura = mommy.make(Legislatura)
     sessao = mommy.make(SessaoLegislativa)
     tipo = mommy.make(TipoSessaoPlenaria)
-    sessao_plenaria = mommy.make(SessaoPlenaria,
-                                 legislatura=legislatura,
-                                 sessao_legislativa=sessao,
-                                 tipo=tipo,
-                                 numero=1)
+    mommy.make(SessaoPlenaria,
+               legislatura=legislatura,
+               sessao_legislativa=sessao,
+               tipo=tipo,
+               numero=1)
 
     form = forms.SessaoPlenariaForm(data={'legislatura': str(legislatura.pk),
                                           'numero': '1',
@@ -113,3 +116,25 @@ def test_bancada_form_datas_invalidas():
     assert not form.is_valid()
     assert form.errors['__all__'] == [_('Data de extinção não pode ser menor '
                                         'que a de criação')]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_expediente_materia_form_valido():
+    tipo_materia = mommy.make(TipoMateriaLegislativa)
+    materia = mommy.make(MateriaLegislativa, tipo=tipo_materia)
+
+    sessao = mommy.make(SessaoPlenaria)
+
+    instance = mommy.make(ExpedienteMateria, sessao_plenaria=sessao,
+                          materia=materia)
+
+    form = forms.ExpedienteMateriaForm(data={'data_ordem': '28/12/2009',
+                                             'numero_ordem': 1,
+                                             'tipo_materia': tipo_materia.pk,
+                                             'numero_materia': materia.numero,
+                                             'ano_materia': materia.ano,
+                                             'tipo_votacao': 1,
+                                             'sessao_plenaria': sessao.pk
+                                             },
+                                       instance=instance)
+    assert form.is_valid()

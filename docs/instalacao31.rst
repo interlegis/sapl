@@ -145,7 +145,7 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
       EMAIL_HOST_PASSWORD = [Insira este parâmetro]
       DEFAULT_FROM_EMAIL = [Insira este parâmetro]
       SERVER_EMAIL = [Insira este parâmetro]
-      
+
       SOLR_URL = '[Insira este parâmetro]'
 
 
@@ -162,7 +162,7 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
         DEFAULT_FROM_EMAIL =
         SERVER_EMAIL =
 
-        
+
 
 Rodar o comando abaixo, um detalhe importante, esse comando só funciona com o django extensions, mas ele já está presente no arquivo requirements/requirements.txt desse projeto::
 
@@ -178,17 +178,12 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
 * Instalar as dependências do ``bower``::
 
-    eval $(echo "sudo chown -R $USER:$USER /home/$USER/")    
+    eval $(echo "sudo chown -R $USER:$USER /home/$USER/")
     ./manage.py bower install
 
 * Atualizar e/ou criar as tabelas da base de dados para refletir o modelo da versão clonada::
 
    ./manage.py migrate
-
-* Atualizar arquivos estáticos::
-
-   ./manage.py collectstatic --noinput
-
 
 * Subir o servidor do django::
 

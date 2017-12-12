@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
-from sapl.parlamentares.forms import (FrenteForm, LegislaturaForm, MandatoForm)
+from sapl.parlamentares.forms import FrenteForm, LegislaturaForm, MandatoForm
 from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
                                        TipoDependente)
@@ -128,6 +128,8 @@ def test_mandato_submit(admin_client):
                               kwargs={'pk': 14}),
                       {'parlamentar': 14,  # hidden field
                        'legislatura': 5,
+                       'data_inicio_mandato': \
+                          Legislatura.objects.get(id=5).data_inicio,
                        'data_expedicao_diploma': '2016-03-22',
                        'observacao': 'Observação do mandato',
                        'salvar': 'salvar'},
@@ -171,12 +173,14 @@ def test_mandato_form_duplicado():
 
     Mandato.objects.create(parlamentar=parlamentar,
                            legislatura=legislatura,
-                           data_expedicao_diploma='2017-07-25')
+                           data_expedicao_diploma='2017-07-25',
+                           data_inicio_mandato=legislatura.data_inicio,)
 
     form = MandatoForm(data={
         'parlamentar': str(parlamentar.pk),
         'legislatura': str(legislatura.pk),
-        'data_expedicao_diploma': '01/07/2015'
+        'data_expedicao_diploma': '01/07/2015',
+        'data_inicio_mandato': legislatura.data_inicio,
     })
 
     assert not form.is_valid()
@@ -225,10 +229,10 @@ def test_legislatura_form_invalido():
 
     errors = legislatura_form.errors
 
-    errors['numero'] == [_('Este campo é obrigatório.')]
-    errors['data_inicio'] == [_('Este campo é obrigatório.')]
-    errors['data_fim'] == [_('Este campo é obrigatório.')]
-    errors['data_eleicao'] == [_('Este campo é obrigatório.')]
+    assert errors['numero'] == [_('Este campo é obrigatório.')]
+    assert errors['data_inicio'] == [_('Este campo é obrigatório.')]
+    assert errors['data_fim'] == [_('Este campo é obrigatório.')]
+    assert errors['data_eleicao'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 4
 
@@ -244,7 +248,8 @@ def test_legislatura_form_datas_invalidas():
     assert not legislatura_form.is_valid()
 
     expected = \
-        _("Data eleição não pode ser inferior a data início da legislatura")
+        _("A data início deve ser menor que a data fim, "
+          "e a data eleição deve ser menor que a data início")
     assert legislatura_form.errors['__all__'] == [expected]
 
     legislatura_form = LegislaturaForm(data={'numero': '1',
@@ -255,8 +260,7 @@ def test_legislatura_form_datas_invalidas():
 
     assert not legislatura_form.is_valid()
 
-    assert legislatura_form.errors['__all__'] == \
-        [_("Intervalo de início e fim inválido para legislatura.")]
+    assert legislatura_form.errors['__all__'] == [expected]
 
 
 @pytest.mark.django_db(transaction=False)

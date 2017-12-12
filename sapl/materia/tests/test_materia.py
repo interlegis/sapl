@@ -1,9 +1,9 @@
-import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
+import pytest
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, TipoComissao
@@ -18,6 +18,7 @@ from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
 from sapl.utils import models_with_gr_for_model
 
 
+@pytest.mark.django_db(transaction=False)
 def make_unidade_tramitacao(descricao):
     # Cria uma comissão para ser a unidade de tramitação
     tipo_comissao = mommy.make(TipoComissao)

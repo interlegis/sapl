@@ -53,8 +53,8 @@ Anexada:
 
 AnexadaDetail:
   {% trans 'Matéria Anexada' %}:
-  - materia_principal
-  - materia_anexada
+  - materia_principal|fk_urlize_for_detail
+  - materia_anexada|fk_urlize_for_detail
   - data_anexacao  data_desanexacao
 
 Autoria:
@@ -137,6 +137,8 @@ MateriaLegislativaDetail:
   - data_apresentacao  numero_protocolo  tipo_apresentacao
   - texto_original
   - numeracao_set
+  - materia_anexada_set__materia_principal|m2m_urlize_for_detail
+  - materia_principal_set__materia_anexada|m2m_urlize_for_detail
   {% trans 'Outras Informações' %}:
   - apelido  dias_prazo  polemica
   - objeto  regime_tramitacao  em_tramitacao

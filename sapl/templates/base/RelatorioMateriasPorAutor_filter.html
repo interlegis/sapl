@@ -3,11 +3,11 @@
 {% load crispy_forms_tags %}
 
 {% block base_content %}
-  {% if not filter_url %}
+  {% if not show_results %}
     {% crispy filter.form %}
   {% endif %}
 
-  {% if filter_url %}
+  {% if show_results %}
     <div class="actions btn-group pull-right" role="group">
       <a href="{% url 'sapl.base:materia_por_autor' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
     </div>

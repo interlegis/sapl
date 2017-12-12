@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.forms import ModelForm
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
 
@@ -108,52 +109,16 @@ class LegislaturaForm(ModelForm):
         data_fim = data['data_fim']
         data_eleicao = data['data_eleicao']
 
-        if data_eleicao.year >= data_inicio.year:
-            raise ValidationError(_("Data eleição não pode ser inferior a "
-                                    "data início da legislatura"))
+        pk = self.instance.pk
 
-        if data_inicio > data_fim or (data_fim.year - data_inicio.year != 4):
-            raise ValidationError(_("Intervalo de início e fim inválido para "
-                                    "legislatura."))
+        valida_datas = validar_datas_legislatura(data_eleicao,
+                                                 data_inicio,
+                                                 data_fim,
+                                                 pk=pk)
+        if not valida_datas[0]:
+            raise ValidationError(valida_datas[1])
 
         return data
-
-
-class LegislaturaCreateForm(LegislaturaForm):
-
-    def clean(self):
-        super(LegislaturaCreateForm, self).clean()
-
-        cleaned_data = self.cleaned_data
-
-        if not self.is_valid():
-            return cleaned_data
-
-        eleicao = cleaned_data['data_eleicao']
-        inicio = cleaned_data['data_inicio']
-        fim = cleaned_data['data_fim']
-
-        valida_datas = validar_datas_legislatura(eleicao, inicio, fim)
-        if not valida_datas[0]:
-            raise ValidationError(valida_datas[1])
-        return cleaned_data
-
-
-class LegislaturaUpdateForm(LegislaturaCreateForm):
-
-    def clean(self):
-        super(LegislaturaUpdateForm, self).clean()
-
-        cleaned_data = super(LegislaturaCreateForm, self).clean()
-        eleicao = cleaned_data['data_eleicao']
-        inicio = cleaned_data['data_inicio']
-        fim = cleaned_data['data_fim']
-
-        valida_datas = validar_datas_legislatura(
-            eleicao, inicio, fim, pk=self.instance.pk)
-        if not valida_datas[0]:
-            raise ValidationError(valida_datas[1])
-        return cleaned_data
 
 
 class ParlamentarForm(ModelForm):
@@ -204,7 +169,8 @@ def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
         return [True, '']
 
     # data ficticia de desfiliacao
-    df_desfiliacao = data_desfiliacao if data_desfiliacao else date.today()
+    today = timezone.now()
+    df_desfiliacao = data_desfiliacao if data_desfiliacao else today
 
     # se não puder haver filiação no mesmo dia de desfiliação, basta
     # retirar os timedelta abaixo
@@ -332,7 +298,7 @@ class VotanteForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Votante'),
-                     row1, form_actions(save_label='Salvar'))
+                     row1, form_actions(label='Salvar'))
         )
         super(VotanteForm, self).__init__(*args, **kwargs)
 

@@ -4,11 +4,11 @@
 {% load common_tags %}
 
 {% block base_content %}
-  {% if not filter_url %}
+  {% if not show_results %}
     {% crispy filter.form %}
   {% endif %}
 
-  {% if filter_url %}
+  {% if show_results %}
     <style type="text/css">
       .presenca_table td, th{
         text-align: center;

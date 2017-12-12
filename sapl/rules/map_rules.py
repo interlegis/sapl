@@ -195,7 +195,7 @@ rules_group_geral = {
             'view_tabelas_auxiliares'
         ]),
 
-        (base.CasaLegislativa, __listdetailchange__),
+        (base.CasaLegislativa, __listdetailchange__ + [RP_ADD]),
         (base.ProblemaMigracao, []),
         (base.Argumento, []),
         (base.Constraint, []),

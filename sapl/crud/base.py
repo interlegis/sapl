@@ -81,7 +81,7 @@ def make_pagination(index, num_pages):
 
 """
 variáveis do crud:
-    help_path
+    help_topic
     container_field
     container_field_set
     is_m2m
@@ -865,7 +865,7 @@ class Crud:
     DetailView = CrudDetailView
     UpdateView = CrudUpdateView
     DeleteView = CrudDeleteView
-    help_path = ''
+    help_topic = ''
 
     class PublicMixin:
         permission_required = []
@@ -877,7 +877,7 @@ class Crud:
             if view:
                 class CrudViewWithBase(cls.BaseMixin, view):
                     model = cls.model
-                    help_path = cls.help_path
+                    help_topic = cls.help_topic
                     crud = cls
                 CrudViewWithBase.__name__ = view.__name__
                 return CrudViewWithBase
@@ -909,13 +909,13 @@ class Crud:
                 for regex, view, suffix in cruds]
 
     @classonlymethod
-    def build(cls, _model, _help_path, _model_set=None, list_field_names=[]):
+    def build(cls, _model, _help_topic, _model_set=None, list_field_names=[]):
 
         def create_class(_list_field_names):
             class ModelCrud(cls):
                 model = _model
                 model_set = _model_set
-                help_path = _help_path
+                help_topic = _help_topic
                 list_field_names = _list_field_names
             return ModelCrud
 
@@ -938,16 +938,6 @@ class CrudAux(Crud):
     class BaseMixin(Crud.BaseMixin):
         subnav_template_name = None
 
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            """
-            Mantem as permissões individuais geradas pelo Crud através do
-            Modelo e adiciona a obrigatoriedade de permissão para view
-            tabelas auxiliares.
-            """
-            self.permission_required = self.permission_required + \
-                self.crud.permission_required
-
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             """Força o template filter subnav em base/templatetags/menus.py
@@ -960,10 +950,10 @@ class CrudAux(Crud):
             return context
 
     @classonlymethod
-    def build(cls, _model, _help_path, _model_set=None, list_field_names=[]):
+    def build(cls, _model, _help_topic, _model_set=None, list_field_names=[]):
 
         ModelCrud = Crud.build(
-            _model, _help_path, _model_set, list_field_names)
+            _model, _help_topic, _model_set, list_field_names)
 
         class ModelCrudAux(CrudAux, ModelCrud):
             pass
@@ -1415,10 +1405,10 @@ class MasterDetailCrud(Crud):
             return ''
 
     @classonlymethod
-    def build(cls, model, parent_field, help_path,
+    def build(cls, model, parent_field, help_topic,
               _model_set=None, list_field_names=[]):
         crud = super(MasterDetailCrud, cls).build(
-            model, help_path, _model_set=_model_set,
+            model, help_topic, _model_set=_model_set,
             list_field_names=list_field_names)
         crud.parent_field = parent_field
         return crud

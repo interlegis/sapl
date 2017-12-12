@@ -1,4 +1,3 @@
-from datetime import datetime
 
 import reversion
 from django.contrib.auth.models import Group
@@ -6,7 +5,8 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.utils import formats
+from django.db.models.functions import Concat
+from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
@@ -19,8 +19,8 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
 
-EM_TRAMITACAO = [(1, 'Sim'),
-                 (0, 'Não')]
+EM_TRAMITACAO = [(True, 'Sim'),
+                 (False, 'Não')]
 
 
 def grupo_autor():
@@ -66,7 +66,6 @@ class TipoProposicao(models.Model):
     class Meta:
         verbose_name = _('Tipo de Proposição')
         verbose_name_plural = _('Tipos de Proposições')
-        unique_together = (('content_type', 'object_id'), )
 
     def __str__(self):
         return self.descricao
@@ -289,9 +288,9 @@ class MateriaLegislativa(models.Model):
 class Autoria(models.Model):
     autor = models.ForeignKey(Autor,
                               verbose_name=_('Autor'),
-                              on_delete=models.PROTECT)
+                              on_delete=models.CASCADE)
     materia = models.ForeignKey(
-        MateriaLegislativa, on_delete=models.PROTECT,
+        MateriaLegislativa, on_delete=models.CASCADE,
         verbose_name=_('Matéria Legislativa'))
     primeiro_autor = models.BooleanField(verbose_name=_('Primeiro Autor'),
                                          choices=YES_NO_CHOICES,
@@ -304,14 +303,14 @@ class Autoria(models.Model):
         ordering = ('-primeiro_autor', 'autor__nome')
 
     def __str__(self):
-        return _('%(autor)s - %(materia)s') % {
+        return _('Autoria: %(autor)s - %(materia)s') % {
             'autor': self.autor, 'materia': self.materia}
 
 
 @reversion.register()
 class AcompanhamentoMateria(models.Model):
     usuario = models.CharField(max_length=50)
-    materia = models.ForeignKey(MateriaLegislativa)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     email = models.EmailField(
         max_length=100, verbose_name=_('E-mail'))
     data_cadastro = models.DateField(auto_now_add=True)
@@ -332,10 +331,12 @@ class AcompanhamentoMateria(models.Model):
 class Anexada(models.Model):
     materia_principal = models.ForeignKey(
         MateriaLegislativa, related_name='materia_principal_set',
-        on_delete=models.PROTECT)
+        on_delete=models.CASCADE,
+        verbose_name=_('Matéria Principal'))
     materia_anexada = models.ForeignKey(
         MateriaLegislativa, related_name='materia_anexada_set',
-        on_delete=models.PROTECT)
+        on_delete=models.CASCADE,
+        verbose_name=_('Matéria Anexada'))
     data_anexacao = models.DateField(verbose_name=_('Data Anexação'))
     data_desanexacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Desanexação'))
@@ -374,8 +375,8 @@ class DespachoInicial(models.Model):
     # TODO M2M?
     # TODO Despachos não são necessáriamente comissoes, podem ser outros
     #  órgãos, ex: procuradorias
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
-    comissao = models.ForeignKey(Comissao, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
+    comissao = models.ForeignKey(Comissao, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _('Despacho Inicial')
@@ -402,6 +403,7 @@ class TipoDocumento(models.Model):
     class Meta:
         verbose_name = _('Tipo de Documento')
         verbose_name_plural = _('Tipos de Documento')
+        ordering = ['descricao']
 
     def __str__(self):
         return self.descricao
@@ -409,7 +411,7 @@ class TipoDocumento(models.Model):
 
 @reversion.register()
 class DocumentoAcessorio(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     tipo = models.ForeignKey(TipoDocumento,
                              on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
@@ -479,11 +481,11 @@ class MateriaAssunto(models.Model):
     # TODO M2M ??
     assunto = models.ForeignKey(
         AssuntoMateria,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         verbose_name=_('Assunto'))
     materia = models.ForeignKey(
         MateriaLegislativa,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         verbose_name=_('Matéria'))
 
     class Meta:
@@ -497,7 +499,7 @@ class MateriaAssunto(models.Model):
 
 @reversion.register()
 class Numeracao(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa,
         on_delete=models.PROTECT,
@@ -545,6 +547,7 @@ class Orgao(models.Model):
     class Meta:
         verbose_name = _('Órgão')
         verbose_name_plural = _('Órgãos')
+        ordering = ['nome']
 
     def __str__(self):
         return _(
@@ -566,9 +569,9 @@ class TipoFimRelatoria(models.Model):
 
 @reversion.register()
 class Relatoria(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     parlamentar = models.ForeignKey(Parlamentar,
-                                    on_delete=models.PROTECT,
+                                    on_delete=models.CASCADE,
                                     verbose_name=_('Parlamentar'))
     tipo_fim_relatoria = models.ForeignKey(
         TipoFimRelatoria,
@@ -578,7 +581,7 @@ class Relatoria(models.Model):
         verbose_name=_('Motivo Fim Relatoria'))
     comissao = models.ForeignKey(
         Comissao, blank=True, null=True,
-        on_delete=models.PROTECT, verbose_name=_('Comissão'))
+        on_delete=models.CASCADE, verbose_name=_('Comissão'))
     data_designacao_relator = models.DateField(
         verbose_name=_('Data Designação'))
     data_destituicao_relator = models.DateField(
@@ -597,8 +600,8 @@ class Relatoria(models.Model):
 
 @reversion.register()
 class Parecer(models.Model):
-    relatoria = models.ForeignKey(Relatoria, on_delete=models.PROTECT)
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    relatoria = models.ForeignKey(Relatoria, on_delete=models.CASCADE)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     tipo_conclusao = models.CharField(max_length=3, blank=True)
     tipo_apresentacao = models.CharField(
         max_length=1, choices=TIPO_APRESENTACAO_CHOICES)
@@ -621,11 +624,13 @@ class Proposicao(models.Model):
                               blank=True,
                               on_delete=models.PROTECT)
     tipo = models.ForeignKey(TipoProposicao, on_delete=models.PROTECT,
+                             blank=False,
+                             null=True,
                              verbose_name=_('Tipo'))
 
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de Envio'))
+        blank=False, null=True, verbose_name=_('Data de Envio'))
     data_recebimento = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de Recebimento'))
     data_devolucao = models.DateTimeField(
@@ -680,7 +685,7 @@ class Proposicao(models.Model):
     # retire o comentário quando resolver
     materia_de_vinculo = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         verbose_name=_('Matéria anexadora'),
         related_name=_('proposicao_set'))
 
@@ -710,7 +715,7 @@ class Proposicao(models.Model):
     def title_type(self):
         return '%s nº _____ %s' % (
             self.tipo, formats.date_format(
-                self.data_envio if self.data_envio else datetime.now(),
+                self.data_envio if self.data_envio else timezone.now(),
                 "\d\e d \d\e F \d\e Y"))
 
     class Meta:
@@ -788,6 +793,19 @@ class StatusTramitacao(models.Model):
             'descricao': self.descricao}
 
 
+class UnidadeTramitacaoManager(models.Manager):
+    """
+        Esta classe permite ordenar alfabeticamente a unidade de tramitacao
+        através da concatenação de 3 fields
+    """
+    def get_queryset(self):
+        return super(UnidadeTramitacaoManager, self).get_queryset().annotate(
+                nome_composto=Concat('orgao__nome',
+                                     'comissao__sigla',
+                                     'parlamentar__nome_parlamentar')
+                                    ).order_by('nome_composto')
+
+
 @reversion.register()
 class UnidadeTramitacao(models.Model):
     comissao = models.ForeignKey(
@@ -799,6 +817,8 @@ class UnidadeTramitacao(models.Model):
     parlamentar = models.ForeignKey(
         Parlamentar, blank=True, null=True,
         on_delete=models.PROTECT, verbose_name=_('Parlamentar'))
+
+    objects = UnidadeTramitacaoManager()
 
     class Meta:
         verbose_name = _('Unidade de Tramitação')
@@ -844,8 +864,12 @@ class Tramitacao(models.Model):
     )
 
     status = models.ForeignKey(StatusTramitacao, on_delete=models.PROTECT,
+                               # TODO PÓS MIGRACAO INICIAL (vide #1381)
+                               # não nulo quando todas as
+                               # bases tiverem sido corrigidas
+                               null=True,
                                verbose_name=_('Status'))
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     data_tramitacao = models.DateField(verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
         UnidadeTramitacao,
@@ -856,6 +880,10 @@ class Tramitacao(models.Model):
         blank=True, null=True, verbose_name=_('Data Encaminhamento'))
     unidade_tramitacao_destino = models.ForeignKey(
         UnidadeTramitacao,
+        # TODO PÓS MIGRACAO INICIAL (vide #1381)
+        # não nulo quando todas as
+        # bases tiverem sido corrigidas
+        null=True,
         related_name='tramitacoes_destino',
         on_delete=models.PROTECT,
         verbose_name=_('Unidade Destino'))

@@ -1,6 +1,4 @@
-from datetime import datetime
 
-import reversion
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -10,9 +8,11 @@ from django.db.models.aggregates import Max
 from django.db.models.deletion import PROTECT
 from django.http.response import Http404
 from django.template import defaultfilters
+from django.utils import timezone
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
+import reversion
 
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
                                    int_to_roman)
@@ -115,13 +115,13 @@ class TipoTextoArticulado(models.Model):
         on_delete=models.SET_NULL,
         verbose_name=_('Modelo Integrado'))
     participacao_social = models.BooleanField(
-        blank=False,
+        blank=False, default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Participação Social'))
 
     publicacao_func = models.BooleanField(
         choices=YES_NO_CHOICES,
-        blank=False,
+        blank=False, default=False,
         verbose_name=_('Histórico de Publicação'))
 
     perfis = models.ManyToManyField(
@@ -357,9 +357,9 @@ class TextoArticulado(TimestampedMixin):
         if not ta.data:
             ta.data = getattr(obj, map_fields['data']
                               if map_fields['data'] else 'xxx',
-                              datetime.now())
+                              timezone.now())
             if not ta.data:
-                ta.data = datetime.now()
+                ta.data = timezone.now()
 
         ta.ementa = getattr(
             obj, map_fields['ementa']
@@ -370,15 +370,16 @@ class TextoArticulado(TimestampedMixin):
             obj, map_fields['observacao']
             if map_fields['observacao'] else 'xxx', '')
 
+        now = timezone.now()
         ta.numero = getattr(
             obj, map_fields['numero']
             if map_fields['numero'] else 'xxx', int('%s%s%s' % (
-                int(datetime.now().year),
-                int(datetime.now().month),
-                int(datetime.now().day))))
+                int(now.year),
+                int(now.month),
+                int(now.day))))
 
         ta.ano = getattr(obj, map_fields['ano']
-                         if map_fields['ano'] else 'xxx', datetime.now().year)
+                         if map_fields['ano'] else 'xxx', now.year)
 
         ta.save()
         return ta

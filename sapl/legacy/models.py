@@ -968,6 +968,19 @@ class TipoNormaJuridica(models.Model):
         db_table = 'tipo_norma_juridica'
 
 
+class TipoNumeracaoProtocolo(models.Model):
+    seq_tip_num_protocolo = models.AutoField(primary_key=True)
+    tip_numeracao_protocolo = models.IntegerField()
+    des_numeracao_protocolo = models.CharField(max_length=50)
+    dat_inicial_protocolo = models.DateTimeField()
+    vlr_inicial_protocolo = models.IntegerField()
+    ind_excluido = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'tipo_numeracao_protocolo'
+
+
 class TipoProposicao(models.Model):
     tip_proposicao = models.AutoField(primary_key=True)
     des_tipo_proposicao = models.CharField(max_length=50)

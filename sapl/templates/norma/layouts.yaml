@@ -26,7 +26,7 @@ NormaJuridica:
 
 NormaJuridicaCreate:
   {% trans 'Identificação Básica' %}:
-  - tipo  numero  ano
+  - tipo  ano numero
   - data  esfera_federacao  complemento
   - tipo_materia  numero_materia  ano_materia
   - data_publicacao  veiculo_publicacao  pagina_inicio_publicacao  pagina_fim_publicacao

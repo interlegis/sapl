@@ -463,15 +463,16 @@ Quando for informado OK ser&aacute; enviada a mensagem !Parlamentar
 exclu&iacute;do com sucesso!<br />
 Selecione um Parlamentar j&aacute; cadastrado para continuar
 alimentando outras informa&ccedil;&otilde;es tais como:
-<a href="mandatos_parlamentar"><b>Mandato</b></a>,
-<a href="filiacoes_partidarias"><b>Filiação Partidária</b></a> e <a href="dependentes"><b>Dependente</b></a>. <br />
+<a href="{% url 'sapl.base:help_topic' 'mandatos_parlamentar' %}"><b>Mandato</b></a>,
+<a href="{% url 'sapl.base:help_topic' 'filiacoes_partidarias' %}"><b>Filiação Partidária</b></a> e
+<a href="{% url 'sapl.base:help_topic' 'dependentes' %}"><b>Dependente</b></a>. <br />
 
 <br />
-  <a href="coligacao">Anterior</a> |
+  <a href="{% url 'sapl.base:help_topic' 'coligacao' %}">Anterior</a> |
 
-  <a href="ajuda_index_html">&Iacute;ndice</a>
+  <a href="{% url 'sapl.base:help'%}?">&Iacute;ndice</a>
 
-  | <a href="mandatos_parlamentar">Pr&oacute;xima</a>
+  | <a href="{% url 'sapl.base:help_topic' 'mandatos_parlamentar' %}">Pr&oacute;xima</a>
 
 <br />
 
