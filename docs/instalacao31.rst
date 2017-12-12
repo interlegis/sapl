@@ -192,35 +192,6 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
    http://localhost:8001/
 
-================================
-Instruções para instalar o Solr
-================================
-
-Solr é a ferramenta utilizada pelo SAPL 3.1 para indexar documentos para que possa ser feita
-a Pesquisa Textual.
-
-Adicione ao final do arquivo ``.env`` o seguinte atributo:
-
-``SOLR_URL = 'http://127.0.0.1:8983/solr'``
-
-Dentro do diretório principal siga os seguintes passos::
-
-   curl -LO https://archive.apache.org/dist/lucene/solr/4.10.2/solr-4.10.2.tgz
-   tar xvzf solr-4.10.2.tgz
-   cd solr-4.10.2
-   cd example
-   java -jar start.jar
-   ./manage.py build_solr_schema --filename solr-4.10.2/example/solr/collection1/conf/schema.xml
-
-
-Após isso, deve-se parar o servidor do Solr e restartar com ``java -jar start.jar``
-este processo prende o prompt
-
-**OBS: Toda vez que o código da pesquisa textual for modificado, os comandos de build_solr_schema e start.jar devem ser rodados, nessa mesma ordem.**
-
-
-
-
 Instruções para criação do super usuário e de usuários de testes
 ===========================================================================
 
