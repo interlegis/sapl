@@ -11,14 +11,25 @@
 		font-family: arial;
 		font-size: 70%;
 	}
+	#titulo
+    {
+    font-size: xx-large;
+    text-align: center;
+    }
+	
 </style>
 
 <body style="margin-left:10px;margin-right:-50px; margin-top: -50px; text-align: justify">
 
-{% if quantidade > 30 %}
+{% if quantidade > 2000 %}
 	<b><p class="alert_message">Sua pesquisa retornou mais do que 2000 impressos.</p><p class="alert_message">Por questões de performance, foram retornados apenas os 2000 primeiros.</p></b>
 	</br></br></br>
 {% endif %}
+
+<div id="titulo">
+		<td vertical-align:top;"><strong class="text_pdf">{{titulo}}</strong></td>
+</div>
+</br>
 
 
 {% for m in normas %}
