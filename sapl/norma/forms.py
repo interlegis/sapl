@@ -227,6 +227,11 @@ class NormaPesquisaSimplesForm(forms.Form):
         required=False,
         widget=forms.DateInput(format='%d/%m/%Y')
     )
+    
+    titulo = forms.CharField(
+        label='Título do Relatório',
+        required=False,
+        max_length=150)
 
     def __init__(self, *args, **kwargs):
         super(NormaPesquisaSimplesForm, self).__init__(*args, **kwargs)
@@ -235,12 +240,15 @@ class NormaPesquisaSimplesForm(forms.Form):
             [('tipo_norma', 6),
              ('data_inicial', 3),
              ('data_final', 3)])
+        
+        row2 = to_row(
+            [('titulo', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Índice de Normas'),
-                row1,
+                row1, row2,
                 form_actions(label='Pesquisar')
             )
         )
