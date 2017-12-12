@@ -20,9 +20,9 @@ Instalação do Ambiente de Desenvolvimento
    `Instalação do Ambiente de Desenvolvimento <https://github.com/interlegis/sapl/blob/master/docs/instalacao31.rst>`_
 
 
-Instruções para Importação da base mysql 2.5
-============================================
-   `Importação da Base do SAPL 2.5 para SAPL 3.1 <https://github.com/interlegis/sapl/wiki/Migra%C3%A7%C3%A3o-sapl-2.5-para-3.1>`_
+Instalação do Solr
+======================
+   `Instalação e configuração do Solr <https://github.com/interlegis/sapl/blob/master/docs/solr.rst>`_
 
 
 Instruções para Deploy
@@ -30,10 +30,9 @@ Instruções para Deploy
    `Deploy SAPL com Nginx + Gunicorn <https://github.com/interlegis/sapl/blob/master/docs/deploy.rst>`_
 
 
-Instalação do Solr
-======================
-   `Instalação e configuração do Solr <https://github.com/interlegis/sapl/blob/master/docs/solr.rst>`_
-
+Instruções para Importação da base mysql 2.5
+============================================
+   `Importação da Base do SAPL 2.5 para SAPL 3.1 <https://github.com/interlegis/sapl/wiki/Migra%C3%A7%C3%A3o-sapl-2.5-para-3.1>`_
 
 
 Instruções para Tradução
