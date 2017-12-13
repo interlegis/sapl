@@ -54,8 +54,8 @@ def ANO_CHOICES():
 
 def em_tramitacao():
     return [('', 'Tanto Faz'),
-            (True, 'Sim'),
-            (False, 'Não')]
+            (1, 'Sim'),
+            (0, 'Não')]
 
 
 class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
