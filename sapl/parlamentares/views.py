@@ -468,7 +468,7 @@ class ParlamentarCrud(Crud):
                 for l in Legislatura.objects.all():
                     if l.atual():
                         return l.id
-                return 0
+                return l.first()
 
         def get_queryset(self):
             queryset = super().get_queryset()
