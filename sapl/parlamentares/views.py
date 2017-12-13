@@ -465,10 +465,13 @@ class ParlamentarCrud(Crud):
             try:
                 return int(self.request.GET['pk'])
             except:
-                for l in Legislatura.objects.all():
+                legislaturas = Legislatura.objects.all()
+                for l in legislaturas:
                     if l.atual():
                         return l.id
-                return l.first()
+                if legislaturas:
+                    return legislaturas[0].id
+                return 0
 
         def get_queryset(self):
             queryset = super().get_queryset()

@@ -118,6 +118,51 @@ class MateriaSimplificadaForm(ModelForm):
         )
         super(MateriaSimplificadaForm, self).__init__(*args, **kwargs)
 
+    def clean(self):
+        super(MateriaSimplificadaForm, self).clean()
+
+        cleaned_data = self.cleaned_data
+
+        data_apresentacao = cleaned_data['data_apresentacao']
+        ano = cleaned_data['ano']
+
+        if data_apresentacao.year != ano:
+            raise ValidationError("O ano da matéria não pode ser "
+                                  "diferente do ano na data de apresentação")
+
+        return cleaned_data
+
+
+class MateriaLegislativaForm(ModelForm):
+
+    class Meta:
+        model = MateriaLegislativa
+        exclude = ['texto_articulado', 'autores', 'proposicao',
+                   'anexadas', 'data_ultima_atualizacao']
+
+    def clean(self):
+        super(MateriaLegislativaForm, self).clean()
+
+        cleaned_data = self.cleaned_data
+
+        data_apresentacao = cleaned_data['data_apresentacao']
+        ano = cleaned_data['ano']
+
+        if data_apresentacao.year != ano:
+            raise ValidationError("O ano da matéria não pode ser "
+                                  "diferente do ano na data de apresentação")
+
+        ano_origem_externa = cleaned_data['ano_origem_externa']
+        data_origem_externa = cleaned_data['data_origem_externa']
+
+        if ano_origem_externa and data_origem_externa and \
+                        ano_origem_externa != data_origem_externa.year:
+            raise ValidationError("O ano de origem externa da matéria não "
+                                  "pode ser diferente do ano na data de "
+                                  "origem externa")
+
+
+        return cleaned_data
 
 class UnidadeTramitacaoForm(ModelForm):
 

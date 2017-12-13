@@ -54,7 +54,7 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     RelatoriaForm, TramitacaoEmLoteFilterSet,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
-                    filtra_tramitacao_status)
+                    filtra_tramitacao_status, MateriaLegislativaForm)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaAssunto,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -1304,6 +1304,16 @@ class MateriaLegislativaCrud(Crud):
             return reverse('%s:%s' % (namespace, 'pesquisar_materia'))
 
     class CreateView(Crud.CreateView):
+
+        form_class = MateriaLegislativaForm
+
+        @property
+        def cancel_url(self):
+            return self.search_url
+
+    class UpdateView(Crud.UpdateView):
+
+        form_class = MateriaLegislativaForm
 
         @property
         def cancel_url(self):
