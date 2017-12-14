@@ -31,7 +31,7 @@ Instalar as seguintes dependências do sistema::
     python3-pip curl poppler-utils default-jre
 
     sudo -i
-    curl -sL https://deb.nodesource.com/setup_5.x | bash -
+    curl -sL https://deb.nodesource.com/setup_6.x | bash -
     exit
     sudo apt-get install nodejs
 
@@ -47,7 +47,7 @@ Instalar o virtualenv usando python 3 para o projeto.
 
     sudo mkdir -p /var/interlegis/.virtualenvs
 
-* Ajustar as permissões - onde sapl31 trocar por usuario::
+* Ajustar as permissões - onde ``sapl31`` trocar por usuario::
 
     sudo chown -R sapl31:sapl31 /var/interlegis/
 
