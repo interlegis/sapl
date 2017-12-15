@@ -56,10 +56,8 @@
                               {% if result.object.texto_original %}
                                 <strong>Texto Original:</strong> <a href="{{result.object.texto_original.url}}"> Clique aqui </a></br>
                               {% endif %}
-                              {% if result.object.texto_articulado.first %}
+                              {% if result.object.texto_articulado %}
                                   <strong>Texto Articulado:</strong> <a href="{% url 'sapl.materia:materia_ta' result.object.pk %}"> Clique aqui </a></br>
-                              {% else %}
-                                <strong>O texto desta matéria foi removido recentemente. Em breve ela sairá desta listagem.</strong></br>
                               {% endif %}
                             </p>
 
@@ -69,8 +67,6 @@
                               {{result.object.ementa}}<br>
                               {% if result.object.arquivo %}
                                 <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
-                              {% else %}
-                                <strong>O texto deste documento foi removido recentemente. Em breve ele sairá desta listagem.</strong></br>
                               {% endif %}
                             </p>
 
@@ -80,10 +76,8 @@
                               {{result.object.ementa}}<br>
                               {% if result.object.texto_integral %}
                                 <strong>Texto Original:</strong> <a href="{{result.object.texto_integral.url}}"> Clique aqui </a></br>
-                              {% else %}
-                                <strong>O texto integral desta norma foi removido recentemente. Em breve ela sairá desta listagem.</strong></br>
                               {% endif %}
-                              {% if result.object.texto_articulado.first %}
+                              {% if result.object.texto_articulado %}
                                   <strong>Texto Articulado:</strong> <a href="{% url 'sapl.norma:norma_ta' result.object.pk %}"> Clique aqui </a></br>
                               {% endif %}
                             </p>
