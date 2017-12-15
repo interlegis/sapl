@@ -1712,7 +1712,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             )
             t.save()
 
-        if request.POST['turno'] == 'F':
+        status = StatusTramitacao.objects.get(id=request.POST['status'])
+
+        if status.indicador == 'F':
             for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
                 materia.em_tramitacao = False
                 materia.save()
