@@ -85,6 +85,7 @@ class FrenteList(MasterDetailCrud):
         @classmethod
         def url_name(cls, suffix):
             return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
+            
 
 
 class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
@@ -274,6 +275,7 @@ def parlamentares_frente_selected(request):
 class FrenteCrud(CrudAux):
     model = Frente
     help_topic = 'tipo_situa_militar'
+    public = [RP_DETAIL, RP_LIST]
     list_field_names = ['nome', 'data_criacao', 'parlamentares']
 
     class CreateView(CrudAux.CreateView):
