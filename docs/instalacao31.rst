@@ -152,7 +152,7 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
 
         DATABASE_URL = postgresql://sapl:sapl@localhost:5432/sapl
         SECRET_KEY = 'cole aqui entre as aspas simples a chave gerada pelo comando abaixo'
-        DEBUG = False
+        DEBUG = True
         EMAIL_USE_TLS = True
         EMAIL_PORT = 587
         EMAIL_HOST =
@@ -187,6 +187,11 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 * Subir o servidor do django::
 
    ./manage.py runserver 0.0.0.0:8001
+   
+* Compilar os arquivos de estilização::
+  
+   ./manage.py compilescss
+   ./manage.py collectstatic
 
 * Acesse o SAPL em::
 
