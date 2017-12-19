@@ -236,9 +236,9 @@ def create_barcode(value):
     '''
     from base64 import b64encode
     from reportlab.graphics.barcode import createBarcodeDrawing
-
+    value_bytes = bytes(value, "ascii")
     barcode = createBarcodeDrawing('Code128',
-                                   value=value,
+                                   value=value_bytes,
                                    barWidth=170,
                                    height=50,
                                    fontSize=2,
