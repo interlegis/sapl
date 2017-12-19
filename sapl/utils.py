@@ -230,17 +230,17 @@ def get_base_url(request):
     return "{0}://{1}".format(protocol, current_domain)
 
 
-def create_barcode(value):
+def create_barcode(value, width=170, height=50):
     '''
         creates a base64 encoded barcode PNG image
     '''
     from base64 import b64encode
     from reportlab.graphics.barcode import createBarcodeDrawing
-
+    value_bytes = bytes(value, "ascii")
     barcode = createBarcodeDrawing('Code128',
-                                   value=value,
-                                   barWidth=170,
-                                   height=50,
+                                   value=value_bytes,
+                                   barWidth=width,
+                                   height=height,
                                    fontSize=2,
                                    humanReadable=True)
     data = b64encode(barcode.asString('png'))
