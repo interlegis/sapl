@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.forms.forms import Form
+from django.forms.utils import ErrorDict
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -533,6 +535,27 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
                 forms.append(form(**self.get_form_kwargs()))
             return forms
 
+    def form_invalid(self, form):
+        # Só um form é enviado por vez mas podem existir invalidade em ambos.
+        # em caso de um form ser inválido e retornar para a tela dos
+        # formulários, o outro precisa ser renderizado, mas neste ponto por ser
+        # um POST só chega um form dada lógica no método acima get_form,
+        # assim o form_invalid cria o form alternativo e o insere para
+        # renderização do template_name definido nesta classe
+
+        kwargs = {
+            'initial': self.get_initial(),
+            'prefix': self.get_prefix(),
+            'instance': form.instance
+        }
+
+        if isinstance(form, self.form_class[0]):
+            forms = [form, DevolverProposicaoForm(**kwargs)]
+        else:
+            forms = [ConfirmarProposicaoForm(**kwargs), form]
+
+        return self.render_to_response(self.get_context_data(form=forms))
+
 
 class UnidadeTramitacaoCrud(CrudAux):
     model = UnidadeTramitacao
@@ -829,7 +852,6 @@ class ReciboProposicaoView(TemplateView):
         from sapl.utils import create_barcode
         base64_data = create_barcode(_hash, 100, 200)
         barcode = 'data:image/png;base64,{0}'.format(base64_data)
-
 
         context.update({'proposicao': proposicao,
                         'hash': _hash,

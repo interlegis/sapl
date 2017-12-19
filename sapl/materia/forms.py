@@ -156,13 +156,13 @@ class MateriaLegislativaForm(ModelForm):
         data_origem_externa = cleaned_data['data_origem_externa']
 
         if ano_origem_externa and data_origem_externa and \
-                        ano_origem_externa != data_origem_externa.year:
+                ano_origem_externa != data_origem_externa.year:
             raise ValidationError("O ano de origem externa da matéria não "
                                   "pode ser diferente do ano na data de "
                                   "origem externa")
 
-
         return cleaned_data
+
 
 class UnidadeTramitacaoForm(ModelForm):
 
@@ -1228,7 +1228,7 @@ class ProposicaoForm(forms.ModelForm):
         return inst
 
 
-class DevolverProposicaoForm(ProposicaoForm):
+class DevolverProposicaoForm(forms.ModelForm):
 
     justificativa_devolucao = forms.CharField(
         required=False, widget=widgets.Textarea(attrs={'rows': 5}))
@@ -1242,7 +1242,7 @@ class DevolverProposicaoForm(ProposicaoForm):
     def __init__(self, *args, **kwargs):
 
         # esta chamada isola o __init__ de ProposicaoForm
-        super(ProposicaoForm, self).__init__(*args, **kwargs)
+        super(DevolverProposicaoForm, self).__init__(*args, **kwargs)
         fields = []
 
         fields.append(
@@ -1263,15 +1263,6 @@ class DevolverProposicaoForm(ProposicaoForm):
     def clean(self):
         super(DevolverProposicaoForm, self).clean()
 
-        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
-
-        if not numeracao:
-            raise ValidationError("A sequência de numeração (por ano ou geral)"
-                                  " não foi configurada para a aplicação em "
-                                  "tabelas auxiliares")
-
-        cd = ProposicaoForm.clean(self)
-
         cd = self.cleaned_data
 
         if 'justificativa_devolucao' not in cd or\
@@ -1283,7 +1274,6 @@ class DevolverProposicaoForm(ProposicaoForm):
 
     @transaction.atomic
     def save(self, commit=False):
-        # TODO Implementar workflow entre protocolo e autores
         cd = self.cleaned_data
 
         self.instance.data_devolucao = timezone.now()
