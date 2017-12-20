@@ -850,7 +850,7 @@ class ReciboProposicaoView(TemplateView):
             _hash = 'P' + ta.hash() + '/' + str(proposicao.id)
 
         from sapl.utils import create_barcode
-        base64_data = create_barcode(_hash, 100, 200)
+        base64_data = create_barcode(_hash, 100, 500)
         barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
         context.update({'proposicao': proposicao,
