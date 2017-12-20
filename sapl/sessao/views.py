@@ -1822,11 +1822,10 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             votacao.numero_abstencoes = abstencoes
             votacao.observacao = request.POST.get('observacao', None)
 
+            votacao.materia_id = materia_votacao.materia.id
             if self.ordem:
-                votacao.materia_id = ordem.materia.id
                 votacao.ordem_id = ordem_id
             elif self.expediente:
-                votacao.materia_id = expediente.materia.id
                 votacao.expediente_id = expediente_id
 
             votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
@@ -1840,11 +1839,11 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 if self.ordem:
                     voto_parlamentar = VotoParlamentar.objects.get_or_create(
                         parlamentar_id=parlamentar_id,
-                        ordem=ordem)[0]
+                        ordem_id=ordem_id)[0]
                 elif self.expediente:
                     voto_parlamentar = VotoParlamentar.objects.get_or_create(
                         parlamentar_id=parlamentar_id,
-                        expediente=expediente)[0]
+                        expediente_id=expediente_id)[0]
 
                 voto_parlamentar.voto = voto
                 voto_parlamentar.parlamentar_id = parlamentar_id
@@ -1863,11 +1862,11 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             # votação
             if self.ordem:
                 VotoParlamentar.objects.filter(
-                    ordem=ordem,
+                    ordem_id=ordem_id,
                     votacao__isnull=True).delete()
             elif self.expediente:
                 VotoParlamentar.objects.filter(
-                    expediente=expediente,
+                    expediente_id=expediente_id,
                     votacao__isnull=True).delete()
             return self.form_valid(form)
 
