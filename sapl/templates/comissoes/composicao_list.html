@@ -2,6 +2,7 @@
 {% load i18n common_tags crispy_forms_tags%}
 
 {% block base_content %}
+  {% if user.is_authenticated and perms.comissoes.add_composicao %}
   <div class="context-actions clearfix">
     {% block actions %}
       <div class="actions btn-group pull-right btn-group-lg" role="group">
@@ -14,6 +15,7 @@
       </div>
     {% endblock actions %}
   </div>
+  {% endif %}
 
   <fieldset class="form-group">
 		<legend>Selecione o Período</legend>
@@ -28,8 +30,7 @@
 		</form>
 	</fieldset>
 	<br/>
-
-  {% if user.is_authenticated %}
+  {% if user.is_authenticated and perms.comissoes.add_participacao %}
     <div class="actions btn-group pull-right btn-group-lg" role="group">
         <a href="{% url 'sapl.comissoes:participacao_create' composicao_pk %}" class="btn btn-default">
         Adicionar Participação em Comissão
