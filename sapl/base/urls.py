@@ -16,9 +16,16 @@ from .views import (AppConfigCrud, CasaLegislativaCrud, HelpTopicView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,
-                    RelatorioPresencaSessaoView, SaplSearchView)
+                    RelatorioPresencaSessaoView, SaplSearchView, AlterarSenha)
 
 app_name = AppConfig.name
+
+alterar_senha = [
+    url(r'^alterar-senha/$',
+        AlterarSenha.as_view(),
+        name='alterar_senha'),
+
+]
 
 recuperar_senha = [
     url(r'^recuperar-senha/email/$',
@@ -100,4 +107,4 @@ urlpatterns = [
 
     url(r'^sistema/search/', SaplSearchView(), name='haystack_search'),
 
-] + recuperar_senha
+] + recuperar_senha + alterar_senha

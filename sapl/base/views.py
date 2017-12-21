@@ -15,7 +15,8 @@ from django.utils.translation import ugettext_lazy as _, string_concat
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
-
+from django.views.generic import FormView
+from django.contrib.auth import update_session_auth_hash
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
@@ -32,7 +33,7 @@ from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
-                    RelatorioPresencaSessaoFilterSet)
+                    RelatorioPresencaSessaoFilterSet, AlterarSenhaForm)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -603,3 +604,10 @@ class SaplSearchView(SearchView):
             context['models'] = context['models'] + '&models=' + m
 
         return context
+
+class AlterarSenha(FormView):
+    form_class = AlterarSenhaForm
+    template_name = 'base/alterar_senha_form.html'
+    def post(self, request, *args, **kwargs):
+        self.get_form()
+        return self.get(request, *args, **kwargs)

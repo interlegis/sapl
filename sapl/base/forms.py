@@ -13,6 +13,7 @@ from django.db import models, transaction
 from django.forms import ModelForm
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
+
 import django_filters
 
 from sapl.base.models import Autor, TipoAutor
@@ -712,3 +713,20 @@ class NovaSenhaForm(SetPasswordForm):
         self.helper.layout = Layout(
             row1,
             form_actions(label='Enviar'))
+
+class AlterarSenhaForm(forms.Form):
+    new_password1 = forms.PasswordInput()
+    new_password2 = forms.PasswordInput()
+
+    # def __init__(self, *args, **kwargs):
+    #
+    #     super(AlterarSenhaForm, self).__init__(*args, **kwargs)
+    #
+    #     row1 = to_row(
+    #         [('new_password1', 6),
+    #          ('new_password2', 6)])
+    #
+    #     self.helper = FormHelper()
+    #     self.helper.layout = Layout(
+    #         row1,
+    #         form_actions(label='Alterar'))
