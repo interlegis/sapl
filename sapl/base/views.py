@@ -605,9 +605,24 @@ class SaplSearchView(SearchView):
 
         return context
 
+
 class AlterarSenha(FormView):
+    from sapl.settings import LOGIN_URL
+
     form_class = AlterarSenhaForm
-    template_name = 'base/alterar_senha_form.html'
-    def post(self, request, *args, **kwargs):
-        self.get_form()
-        return self.get(request, *args, **kwargs)
+    template_name = 'base/alterar_senha.html'
+    success_url = LOGIN_URL
+
+    def get_initial(self):
+        initial = super(AlterarSenha, self).get_initial()
+        initial['username'] = self.request.user
+        return initial
+
+    def form_valid(self, form):
+        new_password = form.cleaned_data['new_password1']
+
+        user = self.request.user
+        user.set_password(new_password)
+        user.save()
+
+        return super().form_valid(form)

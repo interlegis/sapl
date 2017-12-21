@@ -7,10 +7,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
                                        SetPasswordForm)
 from django.contrib.auth.models import Group, User
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.forms import ModelForm
+from django.forms import ModelForm, Form
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 
@@ -714,19 +713,70 @@ class NovaSenhaForm(SetPasswordForm):
             row1,
             form_actions(label='Enviar'))
 
-class AlterarSenhaForm(forms.Form):
-    new_password1 = forms.PasswordInput()
-    new_password2 = forms.PasswordInput()
 
-    # def __init__(self, *args, **kwargs):
-    #
-    #     super(AlterarSenhaForm, self).__init__(*args, **kwargs)
-    #
-    #     row1 = to_row(
-    #         [('new_password1', 6),
-    #          ('new_password2', 6)])
-    #
-    #     self.helper = FormHelper()
-    #     self.helper.layout = Layout(
-    #         row1,
-    #         form_actions(label='Alterar'))
+class AlterarSenhaForm(Form):
+
+    username = forms.CharField(widget=forms.HiddenInput())
+
+    old_password = forms.CharField(label='Senha atual',
+                                   max_length=50,
+                                   widget=forms.PasswordInput())
+    new_password1 = forms.CharField(label='Nova senha',
+                                    max_length=50,
+                                    widget=forms.PasswordInput())
+    new_password2 = forms.CharField(label='Confirmar senha',
+                                    max_length=50,
+                                    widget=forms.PasswordInput())
+
+
+    class Meta:
+        fields = ['username', 'old_password', 'new_password1', 'new_password2']
+
+    def __init__(self, *args, **kwargs):
+
+        super(AlterarSenhaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('old_password', 12)])
+        row2 = to_row(
+            [('new_password1', 6),
+             ('new_password2', 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            row1,
+            row2,
+            form_actions(label='Alterar Senha'))
+
+    def clean(self):
+        super(AlterarSenhaForm, self).clean()
+
+        data = self.cleaned_data
+
+        new_password1 = data['new_password1']
+        new_password2 = data['new_password2']
+
+        if new_password1 != new_password2:
+            raise ValidationError("'Nova Senha' diferente de 'Confirmar Senha'")
+
+        # TODO: colocar mais regras como: tamanho mínimo,
+        # TODO: caracteres alfanuméricos, maiúsculas (?),
+        # TODO: senha atual igual a senha anterior, etc
+
+        if len(new_password1) < 6:
+            raise ValidationError("A senha informada deve ter no mínimo 6 caracteres")
+
+        username = data['username']
+        old_password = data['old_password']
+        user = User.objects.get(username=username)
+
+        if user.is_anonymous():
+            raise ValidationError("Não é possível alterar senha de usuário anônimo")
+
+        if not user.check_password(old_password):
+            raise ValidationError("Senha atual informada não confere "
+                                  "com a senha armazenada")
+
+        if user.check_password(new_password1):
+            raise ValidationError("Nova senha não pode ser igual à senha anterior")
+
+        return self.cleaned_data

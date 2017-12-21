@@ -1,0 +1,12 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block actions %}{% endblock %}
+{% block detail_content %}
+    <h1>Alterar Senha</h1>
+	{% crispy form %}
+    </br>
+    Atenção, a mudança de senha fará com que o usuário atual seja deslogado do sistema.</br>
+    Favor entrar novamente com a nova senha após a mudança com sucesso.
+
+{% endblock detail_content %}

@@ -21,7 +21,7 @@ from .views import (AppConfigCrud, CasaLegislativaCrud, HelpTopicView,
 app_name = AppConfig.name
 
 alterar_senha = [
-    url(r'^alterar-senha/$',
+    url(r'^sistema/alterar-senha/$',
         AlterarSenha.as_view(),
         name='alterar_senha'),
 
