@@ -42,10 +42,17 @@ class ParticipacaoCrud(MasterDetailCrud):
 
         def get_initial(self):
             initial = super().get_initial()
+            initial['parent_pk'] = self.kwargs['pk']
             return initial
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = ParticipacaoForm
+
+        def get_initial(self):
+            initial = super().get_initial()
+            # import ipdb; ipdb.set_trace()
+            initial['parent_pk'] = self.kwargs['pk']
+            return initial
 
 
 class ComposicaoCrud(MasterDetailCrud):
