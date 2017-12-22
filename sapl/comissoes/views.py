@@ -4,6 +4,7 @@ from django.db.models import F
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import ListView
 
+from sapl.comissoes.forms import ParticipacaoForm
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
@@ -35,6 +36,16 @@ class ParticipacaoCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['composicao', 'parlamentar', 'cargo']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ParticipacaoForm
+
+        def get_initial(self):
+            initial = super().get_initial()
+            return initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ParticipacaoForm
 
 
 class ComposicaoCrud(MasterDetailCrud):
