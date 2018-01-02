@@ -70,9 +70,14 @@ def paraStyle():
     tmp += '\t\t\t<blockBackground colorName="silver" start="0,0" stop="3,0" />\n'
     tmp += '\t\t\t<lineStyle kind="GRID" colorName="silver" />\n'
     tmp += '\t\t\t<lineStyle kind="LINEBELOW" colorName="black" start="0,0" stop="-1,0" thickness="0.5"/>\n'
-    tmp += '\t\t\t<blockAlignment value="LEFT"/>\n'
     tmp += '\t\t\t<blockValign value="TOP"/>\n'
     tmp += '\t\t</blockTableStyle>\n'
+
+    tmp += '\t\t<blockTableStyle id="expedientes">\n'
+    tmp += '\t\t\t<lineStyle kind="GRID" colorName="silver" />\n'
+    tmp += '\t\t\t<blockValign value="TOP"/>\n'
+    tmp += '\t\t</blockTableStyle>\n'
+
     tmp += '\t\t<initialize>\n'
     tmp += '\t\t\t<paraStyle name="all" alignment="justify"/>\n'
     tmp += '\t\t</initialize>\n'

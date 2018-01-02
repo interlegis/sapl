@@ -19,7 +19,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.settings import STATIC_ROOT
-from sapl.utils import UF, filiacao_data
+from sapl.utils import UF, filiacao_data, TrocaTag, ExtraiTag
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
@@ -791,6 +791,15 @@ def relatorio_sessao_plenaria(request, pk):
      lst_presenca_ordem_dia,
      lst_votacao,
      lst_oradores) = get_sessao_plenaria(sessao, casa)
+
+
+    for idx in range(len(lst_expedientes)):
+        txt_expedientes = lst_expedientes[idx]['txt_expediente']
+        txt_expedientes = TrocaTag(txt_expedientes, '<table', 'table>', 6, 6, 'expedientes')
+        lst_expedientes[idx]['txt_expediente'] = txt_expedientes
+
+
+
 
     pdf = pdf_sessao_plenaria_gerar.principal(
         cabecalho,
