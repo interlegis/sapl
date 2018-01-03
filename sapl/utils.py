@@ -674,3 +674,39 @@ def get_mime_type_from_file_extension(filename):
     else:
         mime = "application/%s" % (ext,)
     return mime
+
+def ExtraiTag(texto, posicao):
+    for i in range(posicao, len(texto)):
+        if (texto[i] == '>'):
+            return i + 1
+
+
+def TrocaTag(texto, startTag, endTag, sizeStart, sizeEnd, styleName):
+    textoSaida = ''
+    insideTag = 0
+    i = 0
+    if texto is None or texto.strip() == '':
+        return texto
+    if '<tbody>' in texto:
+        texto = texto.replace('<tbody>', '')
+        texto = texto.replace('</tbody>', '')
+    while (i < len(texto)):
+        shard = texto[i:i + sizeStart]
+        if (shard == startTag):
+            i = ExtraiTag(texto, i)
+            textoSaida += '</para><blockTable style = "' + styleName + '">'
+            insideTag = 1
+        else:
+            if (insideTag == 1):
+                if (texto[i:i + sizeEnd] == endTag):
+                    textoSaida += 'blockTable><para>'
+                    insideTag = 0
+                    i = i + sizeEnd
+                else:
+                    textoSaida += texto[i]
+                    i = i + 1
+            else:
+                textoSaida += texto[i]
+                i = i + 1
+
+    return textoSaida
