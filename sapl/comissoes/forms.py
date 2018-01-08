@@ -18,6 +18,15 @@ class ParticipacaoForm(forms.ModelForm):
     def __init__(self, user=None, **kwargs):
         super(ParticipacaoForm, self).__init__(**kwargs)
 
+        if self.instance:
+            comissao = kwargs['initial']
+            comissao_pk = int(comissao['parent_pk'])
+            composicao = Composicao.objects.get(id=comissao_pk)
+            participantes = composicao.participacao_set.all()
+            id_part = [p.parlamentar.id for p in participantes]
+        else:
+            id_part = []
+
         qs = self.create_participacao()
 
         parlamentares = Mandato.objects.filter(qs,
@@ -25,7 +34,10 @@ class ParticipacaoForm(forms.ModelForm):
                                                ).prefetch_related('parlamentar').\
                                                values_list('parlamentar',
                                                            flat=True).distinct()
-        qs = Parlamentar.objects.filter(id__in=parlamentares).distinct()
+
+        qs = Parlamentar.objects.filter(id__in=parlamentares).distinct().\
+        exclude(id__in=id_part)
+
         self.fields['parlamentar'].queryset = qs
 
     def create_participacao(self):
