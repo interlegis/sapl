@@ -37,6 +37,9 @@ class ParticipacaoForm(forms.ModelForm):
 
         qs = Parlamentar.objects.filter(id__in=parlamentares).distinct().\
         exclude(id__in=id_part)
+        # eligible = self.verifica()
+        # result = list(set(qs) & set(eligible))
+        # cmp(result, eli) # se igual a 0 significa que o qs e o eli são iguais!
         self.fields['parlamentar'].queryset = qs
 
     def create_participacao(self):
@@ -64,6 +67,7 @@ class ParticipacaoForm(forms.ModelForm):
         participantes = composicao.participacao_set.all()
         participantes_id = [p.parlamentar.id for p in participantes]
         parlamentares = Parlamentar.objects.all().exclude(id__in=participantes_id).order_by('nome_completo')
+        parlamentares = [p for p in parlamentares if p.ativo]
 
         lista = []
 
@@ -79,6 +83,6 @@ class ParticipacaoForm(forms.ModelForm):
                     or (data_fim is None and data_inicio <= comp_data_inicio):
                     lista.append(p)
 
-        lista = set(lista)
+        lista = list(set(lista))
 
         return lista
