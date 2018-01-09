@@ -37,7 +37,6 @@ class ParticipacaoForm(forms.ModelForm):
 
         qs = Parlamentar.objects.filter(id__in=parlamentares).distinct().\
         exclude(id__in=id_part)
-
         self.fields['parlamentar'].queryset = qs
 
     def create_participacao(self):
@@ -59,3 +58,27 @@ class ParticipacaoForm(forms.ModelForm):
 
         # if self.instance:
         return self.cleaned_data
+
+    def verifica(self):
+        composicao = Composicao.objects.get(id=self.initial['parent_pk'])
+        participantes = composicao.participacao_set.all()
+        participantes_id = [p.parlamentar.id for p in participantes]
+        parlamentares = Parlamentar.objects.all().exclude(id__in=participantes_id).order_by('nome_completo')
+
+        lista = []
+
+        for p in parlamentares:
+            mandatos = p.mandato_set.all()
+            for m in mandatos:
+                data_inicio = m.data_inicio_mandato
+                data_fim = m.data_fim_mandato
+                comp_data_inicio = composicao.periodo.data_inicio
+                comp_data_fim = composicao.periodo.data_fim
+                if (data_fim and data_fim >= comp_data_inicio)\
+                    or (data_inicio >= comp_data_inicio and data_inicio <= comp_data_fim)\
+                    or (data_fim is None and data_inicio <= comp_data_inicio):
+                    lista.append(p)
+
+        lista = set(lista)
+
+        return lista
