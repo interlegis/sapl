@@ -50,7 +50,6 @@ class ParticipacaoCrud(MasterDetailCrud):
 
         def get_initial(self):
             initial = super().get_initial()
-            # import ipdb; ipdb.set_trace()
             initial['parent_pk'] = self.kwargs['pk']
             return initial
 

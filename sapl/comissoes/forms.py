@@ -61,7 +61,6 @@ class ParticipacaoForm(forms.ModelForm):
 
     def clean(self):
         super(ParticipacaoForm, self).clean()
-        # import ipdb; ipdb.set_trace()
 
         # if self.instance:
         return self.cleaned_data
