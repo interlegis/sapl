@@ -37,10 +37,14 @@ class ParticipacaoForm(forms.ModelForm):
 
         qs = Parlamentar.objects.filter(id__in=parlamentares).distinct().\
         exclude(id__in=id_part)
-        # eligible = self.verifica()
-        # result = list(set(qs) & set(eligible))
-        # cmp(result, eli) # se igual a 0 significa que o qs e o eli são iguais!
-        self.fields['parlamentar'].queryset = qs
+        eligible = self.verifica()
+        result = list(set(qs) & set(eligible))
+        if not cmp(result, eligible): # se igual a 0 significa que o qs e o eli são iguais!
+            self.fields['parlamentar'].queryset = qs
+        else:
+            ids = [e.id for e in eligible]
+            qs = Parlamentar.objects.filter(id__in=ids)
+            self.fields['parlamentar'].queryset = qs
 
     def create_participacao(self):
         composicao = Composicao.objects.get(id=self.initial['parent_pk'])
