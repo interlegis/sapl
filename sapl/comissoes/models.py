@@ -154,9 +154,14 @@ class Composicao(models.Model):  # IGNORE
 class Participacao(models.Model):  # ComposicaoComissao
     composicao = models.ForeignKey(Composicao,
                                    related_name='participacao_set',
-                                   on_delete=models.PROTECT)
-    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    cargo = models.ForeignKey(CargoComissao, on_delete=models.PROTECT)
+                                   on_delete=models.PROTECT,
+                                   verbose_name=_('Composição'))
+    parlamentar = models.ForeignKey(Parlamentar,
+                                    on_delete=models.PROTECT,
+                                    verbose_name='Parlamentar')
+    cargo = models.ForeignKey(CargoComissao,
+                              on_delete=models.PROTECT,
+                              verbose_name='Cargo')
     titular = models.BooleanField(
         verbose_name=_('Titular'),
         default=False,
