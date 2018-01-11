@@ -5,7 +5,7 @@ Origem:
 
 TipoMateriaLegislativa:
   {% trans 'Tipo Matéria Legislativa' %}:
-  - sigla:4  descricao
+  - sigla:4  descricao sequencia_numeracao
 
 RegimeTramitacao:
   {% trans 'Tipo de Documento' %}:
