@@ -2,9 +2,12 @@
 {% load i18n %}
 {% load tz %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block detail_content %}
-	<strong>Protocolo: </strong>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }}</br>
+        <strong>Protocolo: </strong>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }} - 
+        <a href="{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}"><img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a></br>
+
 	<strong>Assunto: </strong> {{ protocolo.assunto_ementa|default:"Não informado" }}</br>
 	<strong>Data Protocolo: </strong> {{ protocolo.data|date:"d/m/Y" }} - Horário: {{ protocolo.timestamp|localtime|date:"H:i" }}</br>
 
