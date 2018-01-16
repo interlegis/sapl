@@ -39,11 +39,14 @@
               <strong><a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' d.id %}">{{d.tipo.sigla}} {{d.numero}}/{{d.ano}} - {{d.tipo}}</strong></a></br>
               <strong>Interessado:</strong>&nbsp;{{ d.interessado|default_if_none:"Não informado"}}</br>
               <strong>Assunto:</strong>&nbsp;{{ d.assunto|safe }}</br>
-
               {% if d.protocolo %}
                 <strong>Protocolo:</strong>&nbsp;<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' d.protocolo.id %}">{{ d.protocolo}}</a></br>
               {% endif %}
+              {% if d.texto_integral %}
+                <strong><a href="{{ d.texto_integral.url }}">Texto Integral</a></strong></br>
+              {% endif %}
             </td>
+
           </tr>
         {% endfor %}
       {% else  %}
