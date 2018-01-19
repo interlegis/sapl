@@ -1,15 +1,15 @@
 from builtins import LookupError
 
+import django
+import reversion
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-import django
-import reversion
+from django.utils.translation import string_concat
 
 from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
@@ -126,12 +126,7 @@ def create_proxy_permissions(
             print("Adding permission '%s'" % perm)
 
 
-def update_groups(app_config, verbosity=2, interactive=True,
-                  using=DEFAULT_DB_ALIAS, cria_usuarios_padrao=False,
-                  **kwargs):
-
-    if app_config != AppConfig and not isinstance(app_config, AppConfig):
-        return
+def get_rules():
 
     from sapl.rules.map_rules import rules_patterns
     from django.contrib.auth.models import Group, Permission
@@ -224,10 +219,22 @@ def update_groups(app_config, verbosity=2, interactive=True,
                 rules_list = rules_group['rules']
                 self._config_group(group_name, rules_list)
 
-    rules = Rules(rules_patterns)
+    return Rules(rules_patterns)
+
+
+def update_groups(app_config, verbosity=2, interactive=True,
+                  using=DEFAULT_DB_ALIAS, **kwargs):
+
+    if app_config != AppConfig and not isinstance(app_config, AppConfig):
+        return
+
+    rules = get_rules()
     rules.update_groups()
-    if cria_usuarios_padrao:
-        rules.cria_usuarios_padrao()
+
+
+def cria_usuarios_padrao():
+    rules = get_rules()
+    rules.cria_usuarios_padrao()
 
 
 def revision_pre_delete_signal(sender, **kwargs):
