@@ -22,7 +22,7 @@ Atualizar o sistema::
 Instalar as seguintes dependências do sistema::
 ----------------------------------------------------------------------------------------
 
-* ::
+::
 
     sudo apt-get install git python3-dev libpq-dev graphviz-dev graphviz \
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
@@ -91,7 +91,7 @@ Clonar o projeto do github, ou fazer um fork e depois clonar
 
 Criar o ambiente virtual de desenvolvimento para o SAPL
 -------------------------------------------------------
-* ::
+::
 
     mkvirtualenv -a /var/interlegis/sapl -p python3 -r requirements/requirements.txt sapl
 
@@ -210,7 +210,14 @@ Instruções para criação do super usuário e de usuários de testes
 
 * Os perfis fixos não aceitam customização via admin, porém outros grupos podem ser criados. O SAPL não interferirá no conjunto de permissões definidas em grupos customizados e se comportará diante de usuários segundo seus grupos e suas permissões.
 
-* Os usuários de testes de perfil são criados apenas se o SAPL estiver rodando em modo DEBUG=True. Todos com senha "interlegis", serão::
+* Para criar os usuários de teste, deve-se seguir os seguintes passos::
+    
+    ./manage.py shell_plus
+    from sapl.rules.apps import cria_usuarios_padrao
+    cria_usuarios_padrao()
+
+
+* Todos com senha "interlegis", serão::
 
     operador_administrativo
     operador_protocoloadm
