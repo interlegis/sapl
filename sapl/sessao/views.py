@@ -346,18 +346,23 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                               'pk': obj.sessao_plenaria_id,
                                               'oid': obj.pk,
                                               'mid': obj.materia_id})
-                        obj.resultado = ('<a href="%s">%s</a><br/>%s' %
+                        obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
                                          (url,
                                           resultado_descricao,
                                           resultado_observacao))
                     else:
                         if obj.tipo_votacao == 2:
-                            url = reverse('sapl.sessao:votacao_nominal_transparencia',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id}) +\
-                                               '?&materia=expediente'
+                            url = reverse(
+                                'sapl.sessao:votacao_nominal_transparencia',
+                                kwargs={
+                                    'pk': obj.sessao_plenaria_id,
+                                    'oid': obj.pk,
+                                    'mid': obj.materia_id}) +\
+                                    '?&materia=ordem'
+                            obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
+                                             (url,
+                                              resultado_descricao,
+                                              resultado_observacao))
                         else:
                             obj.resultado = ('%s<br/>%s' %
                                              (resultado_descricao,
@@ -475,7 +480,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                               'pk': obj.sessao_plenaria_id,
                                               'oid': obj.pk,
                                               'mid': obj.materia_id})
-                        obj.resultado = ('<a href="%s">%s</a><br/>%s' %
+                        obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
                                          (url,
                                           resultado_descricao,
                                           resultado_observacao))
@@ -488,7 +493,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                     'oid': obj.pk,
                                     'mid': obj.materia_id}) +\
                                      '?&materia=expediente'
-                            obj.resultado = ('<a href="%s">%s</a><br/>%s' %
+                            obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
                                              (url,
                                               resultado_descricao,
                                               resultado_observacao))
@@ -2075,7 +2080,7 @@ class VotacaoNominalTransparenciaDetailView(TemplateView):
 
         if materia_votacao == 'ordem':
             votacao = RegistroVotacao.objects.get(ordem=self.kwargs['oid'])
-        if materia_votacao == 'expediente':
+        elif materia_votacao == 'expediente':
             votacao = RegistroVotacao.objects.get(expediente=self.kwargs['oid'])
         else:
             raise Http404()
