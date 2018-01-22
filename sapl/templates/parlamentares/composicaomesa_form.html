@@ -168,8 +168,8 @@
       $("#id_parlamentar option").remove();
       $("#id_cargo option").remove();
 
-      
-      $.get({% url 'sapl.parlamentares:altera_field_mesa' %},
+
+      $.get("{% url 'sapl.parlamentares:altera_field_mesa' %}",
       	{legislatura: legislatura_value, sessao: sessao_value},
       	function(data) {
       		// Caso não venha nenhum dado da requisição, retorna null
@@ -235,9 +235,9 @@
 	      if (data['msg'][1] == 0){
 	      	msg = data['msg']
 	      }
-				
-				errors_handler(msg)	      
-	      
+
+				errors_handler(msg)
+
       });
     }
 
@@ -268,7 +268,7 @@
           success: function(data){
           						var msg = data['msg'];
           						legislatura = $("#id_legislatura").val();
-    									sessao = $("#id_sessao_legislativa").val();	             
+    									sessao = $("#id_sessao_legislativa").val();
 				              setTimeout(function(data){
 				               // Atualiza os campos após a inserção
 				            	 altera_field(legislatura, sessao, msg)
@@ -289,7 +289,7 @@
 		        headers: {
 	                'X-CSRFToken': getCookie('csrftoken')
 	            },
-	          success: function(data){		 
+	          success: function(data){
 	                      var msg = data['msg'];
 	                      legislatura = $("#id_legislatura").val();
     										sessao = $("#id_sessao_legislativa").val();
