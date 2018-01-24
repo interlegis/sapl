@@ -1,12 +1,12 @@
 import re
 from datetime import date
 from functools import lru_cache, partial
+from itertools import groupby
 from subprocess import PIPE, call
 
 import pkg_resources
-import yaml
-
 import reversion
+import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
@@ -16,6 +16,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
+
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import (Autor, CasaLegislativa, ProblemaMigracao,
                               TipoAutor)
@@ -144,8 +145,14 @@ def exec_sql(sql, db='default'):
     cursor.execute(sql)
     return cursor
 
-# UNIFORMIZAÇÃO DO BANCO ANTES DA MIGRAÇÃO ###############################
+exec_legado = partial(exec_sql, db='legacy')
 
+
+def primeira_coluna(cursor):
+    return (r[0] for r in cursor)
+
+
+# UNIFORMIZAÇÃO DO BANCO ANTES DA MIGRAÇÃO ###############################
 
 SQL_NAO_TEM_TABELA = '''
    SELECT count(*)
@@ -153,19 +160,17 @@ SQL_NAO_TEM_TABELA = '''
    WHERE table_schema=database()
      AND TABLE_NAME="{}"
 '''
-SQL_NAO_TEM_COLUNA = SQL_NAO_TEM_TABELA + ' AND COLUMN_NAME="{}"'
-
-exec_legado = partial(exec_sql, db='legacy')
 
 
 def existe_tabela_no_legado(tabela):
     sql = SQL_NAO_TEM_TABELA.format(tabela)
-    return exec_legado(sql).fetchone()[0]
+    return primeira_coluna(exec_legado(sql))[0]
 
 
 def existe_coluna_no_legado(tabela, coluna):
-    sql = SQL_NAO_TEM_COLUNA.format(tabela, coluna)
-    return exec_legado(sql).fetchone()[0] > 0
+    sql_nao_tem_coluna = SQL_NAO_TEM_TABELA + ' AND COLUMN_NAME="{}"'
+    sql = sql_nao_tem_coluna.format(tabela, coluna)
+    return primeira_coluna(exec_legado(sql))[0] > 0
 
 
 def garante_coluna_no_legado(tabela, spec_coluna):
@@ -182,223 +187,120 @@ def garante_tabela_no_legado(create_table):
         assert existe_tabela_no_legado(tabela)
 
 
-def migra_autor():
-
-    SQL_ENUMERA_REPETIDOS = '''
-          select cod_parlamentar, COUNT(*)
-          from autor where cod_parlamentar is not null
-          group by cod_parlamentar
-          having 1 < COUNT(*)
-          order by cod_parlamentar asc;
-    '''
-
-    SQL_INFOS_AUTOR = '''
-          select cod_autor from autor
-          where cod_parlamentar = {}
-          group by cod_autor
-          order by col_username, des_cargo desc;
-    '''
-
-    SQL_UPDATE_AUTOR = "update autoria set cod_autor = {} where cod_autor in ({});"
-
-    SQL_ENUMERA_AUTORIA_REPETIDOS = '''
-        select cod_materia, COUNT(*) from autoria where cod_autor in ({})
-        group by cod_materia
-        having 1 < COUNT(*);
-    '''
-
-    SQL_DELETE_AUTORIA = '''
-        delete from autoria where cod_materia in ({}) and cod_autor in ({});
-    '''
-
-    SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO = '''
-        update documento_administrativo
-        set cod_autor = {}
-        where cod_autor in ({});
-    '''
-
-    SQL_UPDATE_PROPOSICAO = '''
-        update proposicao
-        set cod_autor = {}
-        where cod_autor in ({});
-    '''
-
-    SQL_UPDATE_PROTOCOLO = '''
-        update protocolo
-        set cod_autor = {}
-        where cod_autor in ({});
-    '''
-
-    SQL_DELETE_AUTOR = '''
-        delete from autor where cod_autor in ({}) 
-        and cod_autor not in ({});
-    '''
-
-    cursor = exec_legado('update autor set ind_excluido = 0 where cod_autor is not null;')
-    cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
-
-    autores_parlamentares = [r[0] for r in cursor if r[0]]
-
-    for cod_autor in autores_parlamentares:
-
-        sql = SQL_INFOS_AUTOR.format(cod_autor)
-
-        cursor = exec_legado(sql)
-        autores = []
-
-        for response in cursor:
-            autores.append(response)
-
-        ids = [a[0] for a in autores]
-        id_ativo, ids_inativos = ids[-1], ids[:-1]
-        ids = str(ids).strip('[]')
-        id_ativo = str(id_ativo).strip('[]')
-        ids_inativos = str(ids_inativos).strip('[]')
-
-        tabelas = ['autoria', 'documento_administrativo',
-                   'proposicao', 'protocolo']
-        for tabela in tabelas:
-            if tabela == 'autoria' and id_ativo and ids_inativos:
-                # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
-                sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(ids)
-                cursor = exec_legado(sql)
-
-                materias = []
-                for response in cursor:
-                    materias.append(response[0])
-
-                materias = str(materias).strip('[]')
-                if materias:
-                    sql = SQL_DELETE_AUTORIA.format(materias, ids_inativos)
-                    exec_legado(sql)
-
-                sql = SQL_UPDATE_AUTOR.format(id_ativo, ids_inativos)
-                exec_legado(sql)
-
-            elif tabela == 'documento_administrativo' and id_ativo and ids_inativos:
-                sql = SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO.format(id_ativo, ids_inativos)
-                exec_legado(sql)
-
-            elif tabela == 'proposicao' and id_ativo and ids_inativos:
-                sql = SQL_UPDATE_PROPOSICAO.format(id_ativo, ids_inativos)
-                exec_legado(sql)
-
-            elif tabela == 'protocolo' and id_ativo and ids_inativos:
-                sql = SQL_UPDATE_PROTOCOLO.format(id_ativo, ids_inativos)
-                exec_legado(sql)
-
-        # Faz a exclusão dos autores que não serão migrados
-        sql = SQL_DELETE_AUTOR.format(ids, id_ativo)
-        cursor = exec_legado(sql)
+TABELAS_REFERENCIANDO_AUTOR = [
+    # <nome da tabela>, <tem ind excluido>
+    ('autoria', True),
+    ('documento_administrativo', True),
+    ('proposicao', True),
+    ('protocolo', False)]
 
 
-def migra_comissao():
-    SQL_ENUMERA_REPETIDOS = '''
-        select cod_comissao, COUNT(*)
-        from autor where cod_comissao is not null
-        group by cod_comissao
-        having 1 < COUNT(*)
-        order by cod_comissao asc;
-    '''
+def reverte_exclusao_de_autores_referenciados_no_legado():
 
-    SQL_INFOS_COMISSAO = '''
-        select cod_autor from autor
-        where cod_comissao = {}
-        group by cod_autor;
-    '''
+    def get_autores_referenciados(tabela, tem_ind_excluido):
+        sql = '''select distinct cod_autor from {}
+                 where cod_autor is not null
+              '''.format(tabela)
+        if tem_ind_excluido:
+            sql += ' and ind_excluido != 1'
+        return primeira_coluna(exec_legado(sql))
 
-    SQL_UPDATE_AUTOR = "update autoria set cod_autor = {} where cod_autor in ({});"
+    # reverte exclusões de autores referenciados por outras tabelas
+    autores_referenciados = {
+        cod
+        for tabela, tem_ind_excluido in TABELAS_REFERENCIANDO_AUTOR
+        for cod in get_autores_referenciados(tabela, tem_ind_excluido)}
+    exec_legado(
+        'update autor set ind_excluido = 0 where cod_autor in {}'.format(
+            tuple(autores_referenciados)
+        ))
 
-    SQL_ENUMERA_AUTORIA_REPETIDOS = '''
-        select cod_materia, COUNT(*) from autoria where cod_autor in ({})
-        group by cod_materia
-        having 1 < COUNT(*);
-    '''
 
-    SQL_DELETE_AUTORIA = '''
-        delete from autoria where cod_materia in ({}) and cod_autor in ({});
-    '''
+def get_reapontamento_de_autores_repetidos(autores):
+    """ Dada uma lista ordenada de pares (cod_zzz, cod_autor) retorna:
 
-    SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO = '''
-        update documento_administrativo
-        set cod_autor = {}
-        where cod_autor in ({});
-    '''
+    * a lista de grupos de cod_autor'es repetidos
+      (quando há mais de um cod_autor para um mesmo cod_zzz)
 
-    SQL_UPDATE_PROPOSICAO = '''
-        update proposicao
-        set cod_autor = {}
-        where cod_autor in ({});
-    '''
+    * a lista de cod_autor'es a serem apagados (todos além do 1o de cada grupo)
+    """
+    grupos_de_repetidos = [
+        [cod_autor for _, cod_autor in grupo]
+        for cod_zzz, grupo in groupby(autores, lambda r: r[0])]
+    # mantém apenas os grupos com mais de um autor por cod_zzz
+    grupos_de_repetidos = [g for g in grupos_de_repetidos if len(g) > 1]
+    # aponta cada autor de cada grupo de repetidos para o 1o do seu grupo
+    reapontamento = {autor: grupo[0]
+                     for grupo in grupos_de_repetidos
+                     for autor in grupo}
+    # apagaremos todos menos o primeiro
+    apagar = [k for k, v in reapontamento.items() if k != v]
+    return reapontamento, apagar
 
-    SQL_UPDATE_PROTOCOLO = '''
-        update protocolo
-        set cod_autor = {}
-        where cod_autor in ({});
-    '''
 
-    SQL_DELETE_AUTOR = '''
-        delete from autor where cod_autor in ({}) 
-        and cod_autor not in ({});
-    '''
+def get_autorias_sem_repeticoes(autoria, reapontamento):
+    "Autorias sem repetições de autores e com ind_primeiro_autor ajustado"
 
-    cursor = exec_legado('update autor set ind_excluido = 0 where cod_comissao is not null;')
-    cursor = exec_legado(SQL_ENUMERA_REPETIDOS)
+    # substitui cada autor repetido pelo 1o de seu grupo
+    autoria = sorted((reapontamento[a], m, i) for a, m, i in autoria)
+    # agrupa por [autor (1o do grupo de repetidos), materia], com
+    # ind_primeiro_autor == 1 se isso acontece em qualquer autor do grupo
+    autoria = [(a, m, max(i for a, m, i in grupo))
+               for (a, m), grupo in groupby(autoria, lambda x: x[:2])]
+    return autoria
 
-    comissoes_parlamentares = [r[0] for r in cursor if r[0]]
 
-    for cod_comissao in comissoes_parlamentares:
+def unifica_autores_repetidos_no_legado(campo_agregador):
+    "Reúne autores repetidos em um único, antes da migracão"
 
-        sql = SQL_INFOS_COMISSAO.format(cod_comissao)
-        cursor = exec_legado(sql)
+    # enumeramos a repeticoes segundo o campo relevante
+    # (p. ex. cod_parlamentar ou cod_comissao)
+    # a ordenação prioriza, as entradas:
+    #  - não excluidas,
+    #  - em seguida as que têm col_username,
+    #  - em seguida as que têm des_cargo
+    autores = exec_legado('''
+            select {cod_parlamentar}, cod_autor from autor
+            where {cod_parlamentar} is not null
+            order by {cod_parlamentar},
+            ind_excluido, col_username desc, des_cargo desc'''.format(
+        cod_parlamentar=campo_agregador))
 
-        comissoes = []
+    reapontamento, apagar = get_reapontamento_de_autores_repetidos(autores)
 
-        for response in cursor:
-            comissoes.append(response)
+    # Reaponta AUTORIA (many-to-many)
 
-        ids = [c[0] for c in comissoes]
-        id_ativo, ids_inativos = ids[-1], ids[:-1]
-        ids = str(ids).strip('[]')
-        id_ativo = str(id_ativo).strip('[]')
-        ids_inativos = str(ids_inativos).strip('[]')
+    # simplificamos retirando inicialmente as autorias excluidas
+    exec_legado('delete from autoria where ind_excluido = 1')
 
-        tabelas = ['autoria', 'documento_administrativo',
-                   'proposicao', 'protocolo']
+    # selecionamos as autorias envolvidas em repetições de autores
+    from_autoria = ' from autoria where cod_autor in {}'.format(
+        tuple(reapontamento))
+    autoria = exec_legado(
+        'select cod_autor, cod_materia, ind_primeiro_autor' + from_autoria)
 
-        for tabela in tabelas:
-            if tabela == 'autoria' and id_ativo and ids_inativos:
-                # Para update e delete no MySQL -> SET SQL_SAFE_UPDATES = 0;
-                sql = SQL_ENUMERA_AUTORIA_REPETIDOS.format(ids)
-                cursor = exec_legado(sql)
+    # apagamos todas as autorias envolvidas
+    exec_legado('delete ' + from_autoria)
+    # e depois inserimos apenas as sem repetições c ind_primeiro_autor ajustado
+    nova_autoria = get_autorias_sem_repeticoes(autoria, reapontamento)
+    exec_legado('''
+        insert into autoria
+        (cod_autor, cod_materia, ind_primeiro_autor, ind_excluido)
+        values {}'''.format(', '.join([str((a, m, i, 0))
+                                       for a, m, i in nova_autoria])))
 
-                materias = []
-                for response in cursor:
-                    materias.append(response[0])
+    # Reaponta outras tabelas que referenciam autor
+    for tabela, _ in TABELAS_REFERENCIANDO_AUTOR:
+        for antigo, novo in reapontamento.items():
+            if antigo != novo:
+                exec_legado('''
+                    update {} set cod_autor = {} where cod_autor = {}
+                    '''.format(tabela, novo, antigo))
 
-                materias = str(materias).strip('[]')
-                if materias:
-                    sql = SQL_DELETE_AUTORIA.format(materias, ids_inativos)
-                    exec_legado(sql)
-
-                sql = SQL_UPDATE_AUTOR.format(id_ativo, ids_inativos)
-                exec_legado(sql)
-
-            elif tabela == 'documento_administrativo' and id_ativo and ids_inativos:
-                sql = SQL_UPDATE_DOCUMENTO_ADMINISTRATIVO.format(id_ativo, ids_inativos)
-                exec_legado(sql)
-
-            elif tabela == 'proposicao' and id_ativo and ids_inativos:
-                sql = SQL_UPDATE_PROPOSICAO.format(id_ativo, ids_inativos)
-                exec_legado(sql)
-
-            elif tabela == 'protocolo' and id_ativo and ids_inativos:
-                sql = SQL_UPDATE_PROTOCOLO.format(id_ativo, ids_inativos)
-                exec_legado(sql)
-
-        # Faz a exclusão dos autores que não serão migrados
-        sql = SQL_DELETE_AUTOR.format(ids, id_ativo)
-        cursor = exec_legado(sql)
+    # Finalmente excluimos os autores redundantes,
+    # cujas referências foram todas substituídas a essa altura
+    exec_legado('delete from autor where cod_autor in {}'.format(
+        tuple(apagar)))
 
 
 def uniformiza_banco():
@@ -481,8 +383,14 @@ relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
         spec = spec.split('|')
         exec_legado('UPDATE {} SET {} WHERE {}'.format(*spec))
 
-    migra_autor() # Migra autores para um único autor
-    migra_comissao() # Migra comissões para uma única comissão
+    # retira apontamentos de materia para assunto inexistente
+    exec_legado('delete from materia_assunto where cod_assunto = 0')
+
+    # corrige string "None" em autor
+    exec_legado('update autor set des_cargo = NULL where des_cargo = "None"')
+
+    unifica_autores_repetidos_no_legado('cod_parlamentar')
+    unifica_autores_repetidos_no_legado('cod_comissao')
 
 
 def iter_sql_records(sql, db):
