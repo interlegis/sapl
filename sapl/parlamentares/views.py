@@ -666,7 +666,9 @@ class MesaDiretoraView(FormView):
             legislatura=legislatura).order_by("data_inicio")
 
         year = timezone.now().year
-        sessao_atual = sessoes.filter(data_inicio__year=year).first()
+        month = timezone.now().month
+
+        sessao_atual = sessoes.filter(data_inicio__year__lte=year).exclude(data_inicio__gt=timezone.now()).order_by('-data_inicio').first()
 
         mesa = sessao_atual.composicaomesa_set.all() if sessao_atual else []
 
@@ -689,13 +691,13 @@ class MesaDiretoraView(FormView):
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
-                'legislatura_selecionada': legislatura,
-                'sessoes': sessoes,
-                'sessao_selecionada': sessao_atual,
-                'composicao_mesa': mesa,
-                'parlamentares': parlamentares_vagos,
-                'cargos_vagos': cargos_vagos
-            })
+             'legislatura_selecionada': legislatura,
+             'sessoes': sessoes,
+             'sessao_selecionada': sessao_atual,
+             'composicao_mesa': mesa,
+             'parlamentares': parlamentares_vagos,
+             'cargos_vagos': cargos_vagos
+             })
 
 
 def altera_field_mesa(request):
