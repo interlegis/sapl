@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.norma.forms import NormaJuridicaForm, NormaRelacionadaForm
+from sapl.norma.forms import NormaJuridicaForm, NormaRelacionadaForm, NormaPesquisaSimplesForm
 from sapl.norma.models import NormaJuridica, TipoNormaJuridica
 
 
@@ -130,3 +130,16 @@ def test_norma_relacionada_form_campos_obrigatorios():
     assert errors['tipo_vinculo'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 4
+
+
+@pytest.mark.django_db(transaction=False)
+def test_norma_pesquisa_form_datas_invalidas():
+    tipo = mommy.make(TipoNormaJuridica)
+
+    form = NormaPesquisaSimplesForm(data={'tipo_norma': str(tipo.pk),
+                                         'data_inicial': '10/11/2017',
+                                         'data_final': '09/11/2017'
+                                         })
+    assert not form.is_valid()
+    assert form.errors['__all__'] == [_('A Data Final não pode ser menor que '
+                                        'a Data Inicial')]
