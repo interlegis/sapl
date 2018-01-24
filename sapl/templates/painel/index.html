@@ -295,6 +295,18 @@
                 ordem_previous = ordem_current;
               }
 
+              if($('#cronometro_discurso').runner('info').formattedTime == 30) {
+                  audioAlertFinish.play();
+              }
+
+              if($('#cronometro_aparte').runner('info').formattedTime == 30) {
+                  audioAlertFinish.play();
+              }
+
+              if($('#cronometro_ordem').runner('info').formattedTime == 30) {
+                  audioAlertFinish.play();
+              }
+
               if (data['materia_legislativa_texto']){
                 $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
               }
@@ -328,7 +340,7 @@
               console.error(err);
            },
            dataType: "json",
-           complete: setTimeout(function() {poll()}, 2000),
+           complete: setTimeout(function() {poll()}, 500),
            timeout: 20000 // TODO: decrease
         })
       })();
