@@ -303,26 +303,19 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
         tuple(apagar)))
 
 
-def arruma_tip_origem_externa():
+def anula_tipos_origem_externa_invalidos():
+    """Anula tipos de origem externa inválidos
+    para que não impeçam a migração da matéria"""
 
-    SQL_SELECT_TIPO_MATERIA = '''
+    tipos_validos = tuple(primeira_coluna(exec_legado('''
         select tip_materia
-        from tipo_materia_legislativa;
-    '''
+        from tipo_materia_legislativa
+        where ind_excluido <> 1;''')))
 
-    SQL_UPDATE_MATERIA = '''
+    exec_legado('''
         update materia_legislativa
         set tip_origem_externa = NULL
-        where tip_origem_externa not in {};
-    '''
-
-    cursor = exec_legado(SQL_SELECT_TIPO_MATERIA)
-
-    tipo_materia = [r[0] for r in cursor if r[0]]
-
-    if tipo_materia:
-        tipo_materia = str(tipo_materia).replace('[', '(').replace(']', ')')
-        cursor = exec_legado(SQL_UPDATE_MATERIA.format(tipo_materia))
+        where tip_origem_externa not in {};'''.format(tipos_validos))
 
 
 def uniformiza_banco():
@@ -414,7 +407,7 @@ relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
     unifica_autores_repetidos_no_legado('cod_parlamentar')
     unifica_autores_repetidos_no_legado('cod_comissao')
 
-    arruma_tip_origem_externa()
+    anula_tipos_origem_externa_invalidos()
 
 
 def iter_sql_records(sql, db):
