@@ -71,9 +71,9 @@
           </table>
         </div>
 
-        <div class="row container-detail clearfix" id="aparecer_oradores">
+        <div class="row container-detail clearfix">
           <div class="row-fluid">
-            <div class="col-md-4">
+            <div class="col-md-4" id="aparecer_oradores">
               <h2><font color="#459170"><p align="center" style="font-family:Verdana">Oradores</p></b></font></h2>
               <table align="center">
                 <tr>
@@ -81,11 +81,8 @@
                 </tr>
               </table>
             </div>
-          </div>
-        </div>  
 
-
-        <div class="col-md-3" >
+        <div class="col-md-3">
           <h2><font color="#459170"><p align="center" style="font-family:Verdana">Cronômetros</p></font></h2>
           <table align="center">
             <tr>
@@ -111,12 +108,14 @@
 
 
     </br>
-    <h2><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h2>
-    <table style="width:75%; border:1px;" align="center">
-      <tr><th style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></h4></th></tr>
-      <tr><th style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></h4></th></tr>
-      <tr><th style="text-align:center"><h2><font color="#45919D"><span id="resultado_votacao"></span></font></h2></th></tr>
-    </table>
+     <div class="col-md-4">
+      <h2><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h2>
+      <table style="width:75%; border:1px;" align="center">
+        <tr><th style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></h4></th></tr>
+        <tr><th style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></h4></th></tr>
+        <tr><th style="text-align:center"><h2><font color="#45919D"><span id="resultado_votacao"></span></font></h2></th></tr>
+      </table>
+    </div>
   </body>
 
   <script type="text/javascript">
@@ -229,7 +228,8 @@
                   });
                   presentes.append('</table>')
 
-                  if (oradores_list.length > 0){
+                  if (data["oradores"].length > 0){
+                    $('#aparecer_oradores').show();
                     oradores.append('<table id="oradores_list">');
                     jQuery.each(oradores_list, function (index, orador) {
                       $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
@@ -239,7 +239,7 @@
                     oradores.append('</table>');
                   }
                   else {
-                    $("#aparecer_oradores").hide();
+                    $('#aparecer_oradores').hide();
                   }
               }
               else{
