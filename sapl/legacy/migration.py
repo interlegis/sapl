@@ -303,6 +303,21 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
         tuple(apagar)))
 
 
+def anula_tipos_origem_externa_invalidos():
+    """Anula tipos de origem externa inválidos
+    para que não impeçam a migração da matéria"""
+
+    tipos_validos = tuple(primeira_coluna(exec_legado('''
+        select tip_materia
+        from tipo_materia_legislativa
+        where ind_excluido <> 1;''')))
+
+    exec_legado('''
+        update materia_legislativa
+        set tip_origem_externa = NULL
+        where tip_origem_externa not in {};'''.format(tipos_validos))
+
+
 def uniformiza_banco():
     exec_legado('''
       SELECT replace(@@sql_mode,"STRICT_TRANS_TABLES,","ALLOW_INVALID_DATES");
@@ -391,6 +406,8 @@ relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
 
     unifica_autores_repetidos_no_legado('cod_parlamentar')
     unifica_autores_repetidos_no_legado('cod_comissao')
+
+    anula_tipos_origem_externa_invalidos()
 
 
 def iter_sql_records(sql, db):
