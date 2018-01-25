@@ -346,8 +346,7 @@ def get_presentes(pk, response, materia):
             'tipo_resultado': materia.resultado,
             'observacao_materia': materia.observacao,
             'tipo_votacao': tipo_votacao,
-            'materia_legislativa_texto': str(materia.materia),
-            'oradores': oradores_list
+            'materia_legislativa_texto': str(materia.materia)
         })
 
     presentes_list = sort_lista_chave(presentes_list, 'nome')
@@ -355,6 +354,7 @@ def get_presentes(pk, response, materia):
     response.update({
         'presentes': presentes_list,
         'num_presentes': num_presentes,
+        'oradores': oradores_list,
         'msg_painel': str(_('Votação aberta!')),
     })
 
