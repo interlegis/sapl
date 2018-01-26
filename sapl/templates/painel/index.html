@@ -17,6 +17,10 @@
       <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
 
     <style type="text/css">
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
       @media screen {
         body {
           background: #1c1b1b;
@@ -46,9 +50,9 @@
 
     <table style="width:100%">
       <tr>
-        <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_data"></span></font></th>
+        <td style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_data"></span></font></td>
 
-        <th style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_hora_inicio"></span></font></th>
+        <td style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_hora_inicio"></span></font></td>
       </tr>
     </table>
 
@@ -66,10 +70,12 @@
           <h2><font color="#459170"><p align="center" style="font-family:Verdana">Parlamentares</p></b></font></h2>
           <table align="center">
             <tr>
-              <th><h4><font color="white"><span id="parlamentares"></span></h4></font></th>
+              <td><h4><font color="white"><span id="parlamentares"></span></h4></font></td>
             </tr>
           </table>
         </div>
+      </div>
+    </div>
 
         <div class="row container-detail clearfix">
           <div class="row-fluid">
@@ -77,43 +83,50 @@
               <h2><font color="#459170"><p align="center" style="font-family:Verdana">Oradores</p></b></font></h2>
               <table align="center">
                 <tr>
-                  <th><h4><font color="white"><span id="orador"></span></h4></font></th>
+                  <td><h4><font color="white"><span id="orador"></span></h4></font></td>
                 </tr>
               </table>
             </div>
-
-        <div class="col-md-3">
-          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Cronômetros</p></font></h2>
-          <table align="center">
-            <tr>
-              <th style="font-family:Verdana; text-align:center;"><font size="5" color="white">Discurso: <span id="cronometro_discurso"></span></font></th>
-            </tr>
-            <tr>
-              <th style="font-family:Verdana; text-align:center;"><font size="5" color="white">Aparte: <span id="cronometro_aparte"></span></font></th>
-            </tr>
-            <tr>
-              <th style="font-family:Verdana; text-align:center;"><font size="5" color="white">Questão de Ordem: <span id="cronometro_ordem"></span></font></th>
-            </tr>
-          </table>
+          </div>
         </div>
 
         <div class="col-md-4">
-          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Resultado</p></font></h2>
+          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Cronômetros</p></font></h2>
           <table align="center">
             <tr>
-              <th><h4><font color="white"><span id="votacao"></span></h4></font></th>
+              <td style="font-family:Verdana; text-align:center;"><font size="5" color="white">Discurso: <span id="cronometro_discurso"></span></font></td>
+            </tr>
+            <tr>
+              <td style="font-family:Verdana; text-align:center;"><font size="5" color="white">Aparte: <span id="cronometro_aparte"></span></font></td>
+            </tr>
+            <tr>
+              <td style="font-family:Verdana; text-align:center;"><font size="5" color="white">Questão de Ordem: <span id="cronometro_ordem"></span></font></td>
             </tr>
           </table>
         </div>
+
+        <div class="row container-detail clearfix">
+          <div  class="row-fluid">
+            <div class="col-md-4">
+              <h2><font color="#459170"><p align="center" style="font-family:Verdana">Resultado</p></b></font></h2>
+              <table align="center">
+                <tr>
+                  <td><h4><font color="white"><span id="votacao"></span></h4></font></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+
 
 
     </br>
      <div class="col-md-4">
       <h2><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h2>
       <table style="width:75%; border:1px;" align="center">
-        <tr><th style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></h4></th></tr>
-        <tr><th style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></h4></th></tr>
-        <tr><th style="text-align:center"><h2><font color="#45919D"><span id="resultado_votacao"></span></font></h2></th></tr>
+        <tr><td style="text-align:center"><h4><font color="white"><span id="materia_legislativa_texto"></span></font></h4></td></tr>
+        <tr><td style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></h4></td></tr>
+        <tr><td style="text-align:center"><h2><font color="#45919D"><span id="resultado_votacao"></span></font></h2></td></tr>
       </table>
     </div>
   </body>
@@ -269,7 +282,7 @@
               }
 
               else{
-                $("#votacao").text('Não há votação, pois não há nenhuma matéria aberta ou já votada.');
+                  $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
               }
 
               var discurso_current = data["cronometro_discurso"];
@@ -322,7 +335,13 @@
               }
 
               if (data['observacao_materia']){
-                $("#observacao_materia").text(data["observacao_materia"]);
+                var texto = data['observacao_materia'];
+                if(texto.length > 151) {
+                    $("#observacao_materia").text(texto.substr(0, 150));
+                }
+                else{
+                    $("#observacao_materia").text(texto);
+                }
               }
               else{
                 $("#observacao_materia").text('');
