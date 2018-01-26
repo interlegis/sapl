@@ -1791,6 +1791,7 @@ def gerar_pdf_impressos(request, context, template_name):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = (
         'inline; filename="relatorio_impressos.pdf"')
+    response['Content-Transfer-Encoding'] = 'binary'
 
     return response
 
