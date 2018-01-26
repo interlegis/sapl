@@ -233,13 +233,12 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
     html = template.render(RequestContext(request, context))
-    response = HttpResponse(content_type="application/pdf")
-    weasyprint.HTML(
-        string=html,
-        base_url=request.build_absolute_uri()).write_pdf(
-        response)
+    pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()
+                          ).write_pdf()
 
-    return response
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = (
+        'inline; filename="relatorio_impressos.pdf"')
 
 class NormaPesquisaSimplesView(PermissionRequiredMixin, FormView):
     form_class = NormaPesquisaSimplesForm
