@@ -1,3 +1,4 @@
+import html
 import json
 
 from django.contrib import messages
@@ -344,7 +345,7 @@ def get_presentes(pk, response, materia):
 
         response.update({
             'tipo_resultado': materia.resultado,
-            'observacao_materia': materia.observacao,
+            'observacao_materia': html.unescape(materia.observacao),
             'tipo_votacao': tipo_votacao,
             'materia_legislativa_texto': str(materia.materia)
         })
