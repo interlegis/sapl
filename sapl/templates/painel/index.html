@@ -337,7 +337,7 @@
               if (data['observacao_materia']){
                 var texto = data['observacao_materia'];
                 if(texto.length > 151) {
-                    $("#observacao_materia").text(texto.substr(0, 150));
+                    $("#observacao_materia").text(texto.substr(0, 145).concat('(...)'));
                 }
                 else{
                     $("#observacao_materia").text(texto);
