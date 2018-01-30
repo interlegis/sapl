@@ -19,15 +19,13 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.settings import STATIC_ROOT
-from sapl.utils import UF, filiacao_data, TrocaTag, ExtraiTag
+from sapl.utils import LISTA_DE_UFS, ExtraiTag, TrocaTag, filiacao_data
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
-
-uf_dic = dict(UF)
 
 
 def get_kwargs_params(request, fields):
@@ -46,8 +44,9 @@ def get_cabecalho(casa):
 
     cabecalho = {}
     cabecalho["nom_casa"] = casa.nome
+    uf_dict = dict(LISTA_DE_UFS)
     # FIXME i18n
-    cabecalho["nom_estado"] = "Estado de " + uf_dic[casa.uf.upper()]
+    cabecalho["nom_estado"] = "Estado de " + uf_dict[casa.uf.upper()]
     return cabecalho
 
 
@@ -745,11 +744,11 @@ def get_turno(dic, materia, sessao_data_inicio):
                                            data_tramitacao__lte=sessao_data_inicio,
                                            ).exclude(turno__exact=''
                                                      ).select_related(
-                                                        'materia',
-                                                        'status',
-                                                        'materia__tipo').order_by(
-                                                            '-data_tramitacao'
-                                                        ).first()
+        'materia',
+        'status',
+        'materia__tipo').order_by(
+        '-data_tramitacao'
+    ).first()
     if tramitacao is not None:
         for t in Tramitacao.TURNO_CHOICES:
             if t[0] == tramitacao.turno:
@@ -792,14 +791,10 @@ def relatorio_sessao_plenaria(request, pk):
      lst_votacao,
      lst_oradores) = get_sessao_plenaria(sessao, casa)
 
-
     for idx in range(len(lst_expedientes)):
         txt_expedientes = lst_expedientes[idx]['txt_expediente']
         txt_expedientes = TrocaTag(txt_expedientes, '<table', 'table>', 6, 6, 'expedientes')
         lst_expedientes[idx]['txt_expediente'] = txt_expedientes
-
-
-
 
     pdf = pdf_sessao_plenaria_gerar.principal(
         cabecalho,
@@ -1075,7 +1070,6 @@ def get_pauta_sessao(sessao, casa):
 
         dic_expediente_materia["des_turno"] = turno
         dic_expediente_materia["des_situacao"] = tramitacao
-
 
         lst_expediente_materia.append(dic_expediente_materia)
 

@@ -272,7 +272,7 @@ def listify(function):
         return list(function(*args, **kwargs))
     return f
 
-UF = [
+LISTA_DE_UFS = [
     ('AC', 'Acre'),
     ('AL', 'Alagoas'),
     ('AP', 'Amapá'),
@@ -674,6 +674,7 @@ def get_mime_type_from_file_extension(filename):
     else:
         mime = "application/%s" % (ext,)
     return mime
+
 
 def ExtraiTag(texto, posicao):
     for i in range(posicao, len(texto)):

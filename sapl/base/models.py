@@ -1,18 +1,13 @@
+import reversion
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
-import reversion
 
-from sapl.utils import (
-    UF,
-    YES_NO_CHOICES,
-    get_settings_auth_user_model,
-    models_with_gr_for_model
-)
-
+from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
+                        get_settings_auth_user_model, models_with_gr_for_model)
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
                                  ('R', _('Restritivo')))
@@ -36,7 +31,7 @@ class CasaLegislativa(models.Model):
     cep = models.CharField(max_length=100, verbose_name=_('CEP'))
     municipio = models.CharField(max_length=100, verbose_name=_('Município'))
     uf = models.CharField(max_length=100,
-                          choices=UF,
+                          choices=LISTA_DE_UFS,
                           verbose_name=_('UF'))
     telefone = models.CharField(
         max_length=100, blank=True, verbose_name=_('Telefone'))

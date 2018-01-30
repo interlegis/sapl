@@ -7,7 +7,7 @@ from model_utils import Choices
 
 from sapl.base.models import Autor
 from sapl.decorators import vigencia_atual
-from sapl.utils import (INDICADOR_AFASTAMENTO, UF, YES_NO_CHOICES,
+from sapl.utils import (INDICADOR_AFASTAMENTO, LISTA_DE_UFS, YES_NO_CHOICES,
                         SaplGenericRelation, get_settings_auth_user_model,
                         intervalos_tem_intersecao,
                         restringe_tipos_de_arquivo_img, texto_upload_path)
@@ -155,7 +155,7 @@ class Municipio(models.Model):  # Localidade
 
     nome = models.CharField(max_length=50, blank=True)
     uf = models.CharField(
-        max_length=2, blank=True, choices=UF)
+        max_length=2, blank=True, choices=LISTA_DE_UFS)
     regiao = models.CharField(
         max_length=2, blank=True, choices=REGIAO_CHOICES)
 
