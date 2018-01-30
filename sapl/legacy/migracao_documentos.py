@@ -3,9 +3,10 @@ import os
 import re
 
 import magic
+import yaml
 
 from sapl.base.models import CasaLegislativa
-from sapl.legacy.migration import warn
+from sapl.legacy.migration import exec_legado, warn
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
 from sapl.norma.models import NormaJuridica
@@ -29,17 +30,7 @@ EXTENSOES = {
     'text/html': '.html',
     'text/rtf': '.rtf',
     'text/x-python': '.py',
-    'text/plain': '.ksh',
-    'text/plain': '.c',
-    'text/plain': '.h',
     'text/plain': '.txt',
-    'text/plain': '.bat',
-    'text/plain': '.pl',
-    'text/plain': '.asc',
-    'text/plain': '.text',
-    'text/plain': '.pot',
-    'text/plain': '.brf',
-    'text/plain': '.srt',
 
     # sem extensao
     'application/octet-stream': '',  # binário
@@ -47,26 +38,31 @@ EXTENSOES = {
 }
 
 DOCS = {
-    CasaLegislativa: [(
-        'logotipo',
-        'props_sapl/logo_casa.gif',
-        'casa/logotipo/logo_casa.gif')],
-    Parlamentar: [(
-        'fotografia',
-        'parlamentar/fotos/{}_foto_parlamentar',
-        'public/parlamentar/{0}/{0}_foto_parlamentar{1}')],
-    MateriaLegislativa: [(
-        'texto_original',
-        'materia/{}_texto_integral',
-        'public/materialegislativa/{2}/{0}/{0}_texto_integral{1}')],
-    DocumentoAcessorio: [(
-        'arquivo',
-        'materia/{}',
-        'public/documentoacessorio/{2}/{0}/{0}{1}')],
-    NormaJuridica: [(
-        'texto_integral',
-        'norma_juridica/{}_texto_integral',
-        'public/normajuridica/{2}/{0}/{0}_texto_integral{1}')],
+    CasaLegislativa: [
+        ('logotipo',
+         'props_sapl/logo_casa.gif',
+         'casa/logotipo/logo_casa.gif')
+    ],
+    Parlamentar: [
+        ('fotografia',
+         'parlamentar/fotos/{}_foto_parlamentar',
+         'public/parlamentar/{0}/{0}_foto_parlamentar{1}')
+    ],
+    MateriaLegislativa: [
+        ('texto_original',
+         'materia/{}_texto_integral',
+         'public/materialegislativa/{2}/{0}/{0}_texto_integral{1}')
+    ],
+    DocumentoAcessorio: [
+        ('arquivo',
+         'materia/{}',
+         'public/documentoacessorio/{2}/{0}/{0}{1}')
+    ],
+    NormaJuridica: [
+        ('texto_integral',
+         'norma_juridica/{}_texto_integral',
+         'public/normajuridica/{2}/{0}/{0}_texto_integral{1}')
+    ],
     SessaoPlenaria: [
         ('upload_ata',
          'ata_sessao/{}_ata_sessao',
@@ -75,20 +71,21 @@ DOCS = {
          'anexo_sessao/{}_texto_anexado',
          'public/sessaoplenaria/{0}/anexo/{0}_texto_anexado{1}')
     ],
-    Proposicao: [(
-        'texto_original',
-        'proposicao/{}',
-        'private/proposicao/{0}/{0}{1}')],
-    DocumentoAdministrativo: [(
-        'texto_integral',
-        'administrativo/{}_texto_integral',
-        'private/documentoadministrativo/{0}/{0}_texto_integral{1}')
+    Proposicao: [
+        ('texto_original',
+         'proposicao/{}',
+         'private/proposicao/{0}/{0}{1}')
     ],
-    DocumentoAcessorioAdministrativo: [(
-        'arquivo',
-        'administrativo/{}',
-        'private/documentoacessorioadministrativo/{0}/'
-        '{0}_acessorio_administrativo{1}')
+    DocumentoAdministrativo: [
+        ('texto_integral',
+         'administrativo/{}_texto_integral',
+         'private/documentoadministrativo/{0}/{0}_texto_integral{1}')
+    ],
+    DocumentoAcessorioAdministrativo: [
+        ('arquivo',
+         'administrativo/{}',
+         'private/documentoacessorioadministrativo/{0}/'
+         '{0}_acessorio_administrativo{1}')
     ],
 }
 
@@ -110,16 +107,36 @@ def mover_documento(origem, destino):
     os.rename(origem, destino)
 
 
-def get_casa_legislativa():
+def migrar_propriedades_da_casa():
+    print('#### Migrando propriedades da casa ####')
+    caminho = em_media('sapl_documentos/propriedades.yaml')
+    with open(caminho, 'r') as arquivo:
+        propriedades = yaml.safe_load(arquivo)
     casa = CasaLegislativa.objects.first()
     if not casa:
-        casa = CasaLegislativa.objects.create(**{k: 'PREENCHER...' for k in [
-            'codigo', 'nome', 'sigla', 'endereco', 'cep', 'municipio', 'uf',
-        ]})
-    return casa
+        casa = CasaLegislativa()
+    campos_para_propriedades = [('codigo', 'cod_casa'),
+                                ('nome', 'nom_casa'),
+                                ('sigla', 'sgl_casa'),
+                                ('endereco', 'end_casa'),
+                                ('cep', 'num_cep'),
+                                ('telefone', 'num_tel'),
+                                ('fax', 'num_fax'),
+                                ('endereco_web', 'end_web_casa'),
+                                ('email', 'end_email_casa'),
+                                ('sigla', 'sgl_casa'),
+                                ('informacao_geral', 'txt_informacao_geral')]
+    for campo, prop in campos_para_propriedades:
+        setattr(casa, campo, propriedades[prop])
+    # Localidade
+    sql_localidade = '''
+        select nom_localidade, sgl_uf from localidade
+        where cod_localidade = {}'''.format(propriedades['cod_localidade'])
+    [(casa.municipio, casa.uf)] = exec_legado(sql_localidade)
+    casa.save()
 
 
-def migrar_docs_logo():
+def migrar_logotipo_da_casa():
     print('#### Migrando logotipo da casa ####')
     [(_, origem, destino)] = DOCS[CasaLegislativa]
     props_sapl = os.path.dirname(origem)
@@ -136,7 +153,7 @@ def migrar_docs_logo():
              ', '.join(sobrando))
 
     mover_documento(origem, destino)
-    casa = get_casa_legislativa()
+    casa = CasaLegislativa.objects.first()
     casa.logotipo = destino
     casa.save()
 
@@ -163,7 +180,7 @@ def migrar_docs_por_ids(model):
         print('#### Migrando {} de {} ####'.format(campo, model.__name__))
 
         dir_origem, nome_origem = os.path.split(em_media(base_origem))
-        pat = re.compile('^{}$'.format(nome_origem.format('(\d+)')))
+        pat = re.compile('^{}\.\w+$'.format(nome_origem.format('(\d+)')))
 
         if not os.path.isdir(dir_origem):
             print('  >>> O diretório {} não existe! Abortado.'.format(
@@ -206,7 +223,10 @@ def migrar_documentos():
     # Isto significa que para rodar novamente esta função é preciso
     # restaurar a pasta sapl_documentos ao estado inicial
 
-    migrar_docs_logo()
+    # esta ordem é importante
+    migrar_propriedades_da_casa()
+    migrar_logotipo_da_casa()
+
     for model in [
         Parlamentar,
         MateriaLegislativa,
