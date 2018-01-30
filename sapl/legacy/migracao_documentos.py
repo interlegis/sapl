@@ -6,11 +6,11 @@ import magic
 import yaml
 
 from sapl.base.models import CasaLegislativa
-from sapl.legacy.migration import warn
+from sapl.legacy.migration import exec_legado, warn
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import Parlamentar, Municipio
+from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
                                       DocumentoAdministrativo)
 from sapl.sessao.models import SessaoPlenaria
@@ -74,7 +74,8 @@ DOCS = {
     Proposicao: [
         ('texto_original',
          'proposicao/{}',
-         'private/proposicao/{0}/{0}{1}')],
+         'private/proposicao/{0}/{0}{1}')
+    ],
     DocumentoAdministrativo: [
         ('texto_integral',
          'administrativo/{}_texto_integral',
@@ -106,16 +107,36 @@ def mover_documento(origem, destino):
     os.rename(origem, destino)
 
 
-def get_casa_legislativa():
+def migrar_propriedades_da_casa():
+    print('#### Migrando propriedades da casa ####')
+    caminho = em_media('sapl_documentos/propriedades.yaml')
+    with open(caminho, 'r') as arquivo:
+        propriedades = yaml.safe_load(arquivo)
     casa = CasaLegislativa.objects.first()
     if not casa:
-        casa = CasaLegislativa.objects.create(**{k: 'PREENCHER...' for k in [
-            'codigo', 'nome', 'sigla', 'endereco', 'cep', 'municipio', 'uf',
-        ]})
-    return casa
+        casa = CasaLegislativa()
+    campos_para_propriedades = [('codigo', 'cod_casa'),
+                                ('nome', 'nom_casa'),
+                                ('sigla', 'sgl_casa'),
+                                ('endereco', 'end_casa'),
+                                ('cep', 'num_cep'),
+                                ('telefone', 'num_tel'),
+                                ('fax', 'num_fax'),
+                                ('endereco_web', 'end_web_casa'),
+                                ('email', 'end_email_casa'),
+                                ('sigla', 'sgl_casa'),
+                                ('informacao_geral', 'txt_informacao_geral')]
+    for campo, prop in campos_para_propriedades:
+        setattr(casa, campo, propriedades[prop])
+    # Localidade
+    sql_localidade = '''
+        select nom_localidade, sgl_uf from localidade
+        where cod_localidade = {}'''.format(propriedades['cod_localidade'])
+    [(casa.municipio, casa.uf)] = exec_legado(sql_localidade)
+    casa.save()
 
 
-def migrar_docs_logo():
+def migrar_logotipo_da_casa():
     print('#### Migrando logotipo da casa ####')
     [(_, origem, destino)] = DOCS[CasaLegislativa]
     props_sapl = os.path.dirname(origem)
@@ -132,7 +153,7 @@ def migrar_docs_logo():
              ', '.join(sobrando))
 
     mover_documento(origem, destino)
-    casa = get_casa_legislativa()
+    casa = CasaLegislativa.objects.first()
     casa.logotipo = destino
     casa.save()
 
@@ -193,41 +214,6 @@ def migrar_docs_por_ids(model):
                     obj.save()
 
 
-def migrar_info_da_casa():
-    props = 'media/sapl_documentos/propriedades.yaml'
-    campos_usados = {
-        'cod_casa': 'codigo',
-        'nom_casa': 'nome',
-        'sgl_casa': 'sigla',
-        'end_casa': 'endereco',
-        'num_cep': 'cep',
-        'num_tel': 'telefone',
-        'num_fax': 'fax',
-        'end_web_casa': 'endereco_web',
-        'end_email_casa': 'email',
-        'sgl_casa': 'sigla',
-        'txt_informacao_geral': 'informacao_geral',
-    }
-    campos_nao_usados = [
-        'cor_borda', 'cor_fundo', 'cor_principal', 'id_logo',
-        'ind_acesso_info_adm', 'txt_senha_inicial', 'versao',
-    ]
-
-    f = open(props, 'r')
-    propriedades = yaml.safe_load(f)
-    for campo in campos_nao_usados:
-        propriedades.pop(campo)
-    cod_localidade = propriedades.pop('cod_localidade')
-    municipio = Municipio.objects.get(pk=cod_localidade)
-
-    casa = CasaLegislativa.objects.first()
-    for nome_campo, valor in propriedades.items():
-        setattr(casa, campos_usados[nome_campo], valor)
-    casa.municipio = municipio.nome
-    casa.uf = municipio.uf
-    casa.save()
-
-
 def migrar_documentos():
     # aqui supomos que uma pasta chamada sapl_documentos está em MEDIA_ROOT
     # com o conteúdo da pasta de mesmo nome do zope
@@ -237,8 +223,10 @@ def migrar_documentos():
     # Isto significa que para rodar novamente esta função é preciso
     # restaurar a pasta sapl_documentos ao estado inicial
 
-    migrar_docs_logo()
-    migrar_info_da_casa()
+    # esta ordem é importante
+    migrar_propriedades_da_casa()
+    migrar_logotipo_da_casa()
+
     for model in [
         Parlamentar,
         MateriaLegislativa,
