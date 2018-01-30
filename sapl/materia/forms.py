@@ -31,7 +31,7 @@ from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import (AssuntoMateria, MateriaAssunto,
                                  MateriaLegislativa, RegimeTramitacao,
-                                 TipoDocumento, TipoProposicao)
+                                 TipoDocumento, TipoProposicao, Orgao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.protocoloadm.models import Protocolo
@@ -76,6 +76,28 @@ class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
                      row1, form_actions(label='Filtrar'))
         )
 
+
+class OrgaoForm(ModelForm):
+
+    class Meta:
+        model = Orgao
+        fields = ['nome', 'sigla', 'unidade_deliberativa',
+                  'endereco', 'telefone']
+
+    @transaction.atomic
+    def save(self, commit=True):
+        orgao = super(OrgaoForm, self).save(commit)
+        content_type = ContentType.objects.get_for_model(Orgao)
+        object_id = orgao.pk
+        tipo = TipoAutor.objects.get(descricao='Órgão')
+        nome = orgao.nome+' - '+orgao.sigla
+        Autor.objects.create(
+            content_type=content_type,
+            object_id=object_id,
+            tipo=tipo,
+            nome=nome
+        )
+        return orgao
 
 class ReceberProposicaoForm(Form):
     cod_hash = forms.CharField(label='Código do Documento', required=True)

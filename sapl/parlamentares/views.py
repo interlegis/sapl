@@ -27,7 +27,7 @@ from sapl.parlamentares.apps import AppConfig
 from sapl.utils import parlamentares_ativos
 
 from .forms import (FiliacaoForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm)
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, FrenteForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -278,27 +278,20 @@ class FrenteCrud(CrudAux):
     public = [RP_DETAIL, RP_LIST]
     list_field_names = ['nome', 'data_criacao', 'parlamentares']
 
-    class CreateView(CrudAux.CreateView):
+    class UpdateView(Crud.UpdateView):
+        form_class = FrenteForm
 
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
+    class CreateView(Crud.CreateView):
+        form_class = FrenteForm
 
-            # Update view é um indicador para o javascript
-            # de que esta não é uma tela de edição de frente
-            context['update_view'] = 0
-
-            return context
-
-    class UpdateView(CrudAux.UpdateView):
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-
-            # Update view é um indicador para o javascript
-            # de que esta não é uma tela de edição de frente
-            context['update_view'] = 1
-
-            return context
+        def form_valid(self, form):
+            """
+            Reimplementa form_valid devido ao save de ParlamentarCreateForm
+            ser específico, sendo necessário isolar padrão do crud que aciona
+            form.save(commit=False) para registrar dados de auditoria se
+            o model implementá-los, bem como de container se também implement.
+            """
+            return super(Crud.CreateView, self).form_valid(form)
 
 
 class MandatoCrud(MasterDetailCrud):

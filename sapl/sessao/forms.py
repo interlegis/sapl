@@ -4,10 +4,13 @@ import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
+from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
@@ -18,7 +21,7 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         autor_modal, timezone)
 
 from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
-                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca, TipoResultadoVotacao)
+                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca, TipoResultadoVotacao, Bloco)
 
 
 def recupera_anos():
@@ -112,6 +115,50 @@ class BancadaForm(ModelForm):
                 raise ValidationError(msg)
         return self.cleaned_data
 
+    @transaction.atomic
+    def save(self, commit=True):
+        bancada = super(BancadaForm, self).save(commit)
+        content_type = ContentType.objects.get_for_model(Bancada)
+        object_id = bancada.pk
+        tipo = TipoAutor.objects.get(descricao='Bancada Parlamentar')
+        Autor.objects.create(
+            content_type=content_type,
+            object_id=object_id,
+            tipo=tipo,
+            nome=bancada.nome
+        )
+        return bancada
+
+class BlocoForm(ModelForm):
+
+    class Meta:
+        model = Bloco
+        fields = ['nome', 'partidos', 'data_criacao',
+                  'data_extincao', 'descricao']
+
+    def clean(self):
+        super(BlocoForm, self).clean()
+
+        if self.cleaned_data['data_extincao']:
+            if (self.cleaned_data['data_extincao'] <
+                    self.cleaned_data['data_criacao']):
+                msg = _('Data de extinção não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        return self.cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=True):
+        bloco = super(BlocoForm, self).save(commit)
+        content_type = ContentType.objects.get_for_model(Bloco)
+        object_id = bloco.pk
+        tipo = TipoAutor.objects.get(descricao='Bloco Parlamentar')
+        Autor.objects.create(
+            content_type=content_type,
+            object_id=object_id,
+            tipo=tipo,
+            nome=bloco.nome
+        )
+        return bloco
 
 class ExpedienteMateriaForm(ModelForm):
 

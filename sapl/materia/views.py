@@ -38,7 +38,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 ConfirmarProposicaoForm, LegislacaoCitadaForm,
                                 ProposicaoForm, TipoProposicaoForm,
                                 TramitacaoForm, TramitacaoUpdateForm,
-                                DevolverProposicaoForm)
+                                DevolverProposicaoForm, OrgaoForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
@@ -296,9 +296,16 @@ def recuperar_materia(request):
 
     return response
 
-
-OrgaoCrud = CrudAux.build(Orgao, 'orgao')
 StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
+
+class OrgaoCrud(Crud):
+    model = Orgao
+
+    class CreateView(Crud.CreateView):
+        form_class = OrgaoForm
+
+        def get_success_url(self):
+            return reverse('sapl.materia:orgao_list')
 
 
 class TipoProposicaoCrud(CrudAux):
