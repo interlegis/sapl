@@ -175,6 +175,7 @@ class NivelInstrucao(models.Model):
         max_length=50, verbose_name=_('Nível de Instrução'))
 
     class Meta:
+        ordering = ['descricao']
         verbose_name = _('Nível Instrução')
         verbose_name_plural = _('Níveis Instrução')
 
