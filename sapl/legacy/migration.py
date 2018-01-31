@@ -164,13 +164,13 @@ SQL_NAO_TEM_TABELA = '''
 
 def existe_tabela_no_legado(tabela):
     sql = SQL_NAO_TEM_TABELA.format(tabela)
-    return primeira_coluna(exec_legado(sql))[0]
+    return list(primeira_coluna(exec_legado(sql)))[0]
 
 
 def existe_coluna_no_legado(tabela, coluna):
     sql_nao_tem_coluna = SQL_NAO_TEM_TABELA + ' AND COLUMN_NAME="{}"'
     sql = sql_nao_tem_coluna.format(tabela, coluna)
-    return primeira_coluna(exec_legado(sql))[0] > 0
+    return list(primeira_coluna(exec_legado(sql)))[0] > 0
 
 
 def garante_coluna_no_legado(tabela, spec_coluna):
@@ -267,6 +267,10 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
         cod_parlamentar=campo_agregador))
 
     reapontamento, apagar = get_reapontamento_de_autores_repetidos(autores)
+
+    # se não houver autores repetidos encerramos por aqui
+    if not reapontamento:
+        return
 
     # Reaponta AUTORIA (many-to-many)
 
