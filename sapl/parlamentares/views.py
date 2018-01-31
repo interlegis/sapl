@@ -31,7 +31,7 @@ from .forms import (FiliacaoForm, LegislaturaForm, MandatoForm,
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
-                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante, Municipio)
+                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
@@ -40,7 +40,6 @@ TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
-MunicipioCrud = CrudAux.build(Municipio, 'municipio')
 
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
@@ -85,7 +84,6 @@ class FrenteList(MasterDetailCrud):
         @classmethod
         def url_name(cls, suffix):
             return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
-            
 
 
 class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
@@ -668,7 +666,8 @@ class MesaDiretoraView(FormView):
         year = timezone.now().year
         month = timezone.now().month
 
-        sessao_atual = sessoes.filter(data_inicio__year__lte=year).exclude(data_inicio__gt=timezone.now()).order_by('-data_inicio').first()
+        sessao_atual = sessoes.filter(data_inicio__year__lte=year).exclude(
+            data_inicio__gt=timezone.now()).order_by('-data_inicio').first()
 
         mesa = sessao_atual.composicaomesa_set.all() if sessao_atual else []
 
@@ -691,13 +690,13 @@ class MesaDiretoraView(FormView):
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
-             'legislatura_selecionada': legislatura,
-             'sessoes': sessoes,
-             'sessao_selecionada': sessao_atual,
-             'composicao_mesa': mesa,
-             'parlamentares': parlamentares_vagos,
-             'cargos_vagos': cargos_vagos
-             })
+                'legislatura_selecionada': legislatura,
+                'sessoes': sessoes,
+                'sessao_selecionada': sessao_atual,
+                'composicao_mesa': mesa,
+                'parlamentares': parlamentares_vagos,
+                'cargos_vagos': cargos_vagos
+            })
 
 
 def altera_field_mesa(request):

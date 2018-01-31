@@ -28,11 +28,6 @@ ComposicaoColigacao:
   coligacao: cod_coligacao
   partido: cod_partido
 
-Municipio (Localidade):
-  nome: nom_localidade
-  regiao: sgl_regiao
-  uf: sgl_uf
-
 NivelInstrucao:
   descricao: des_nivel_instrucao
 
@@ -52,7 +47,6 @@ Parlamentar:
   fax: num_fax_parlamentar
   fax_residencia: num_fax_resid
   locais_atuacao: des_local_atuacao
-  municipio_residencia: cod_localidade_resid
   nivel_instrucao: cod_nivel_instrucao
   nome_completo: nom_completo
   nome_parlamentar: nom_parlamentar

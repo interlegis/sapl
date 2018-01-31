@@ -232,7 +232,6 @@ rules_group_geral = {
         (parlamentares.Coligacao, __base__),
         (parlamentares.ComposicaoColigacao, __base__),
         (parlamentares.Partido, __base__),
-        (parlamentares.Municipio, __base__),
         (parlamentares.NivelInstrucao, __base__),
         (parlamentares.SituacaoMilitar, __base__),
         (parlamentares.Parlamentar, __base__),
