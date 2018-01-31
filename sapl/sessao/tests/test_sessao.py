@@ -81,8 +81,9 @@ def test_valida_campos_obrigatorios_bancada_form():
 
     assert errors['legislatura'] == [_('Este campo é obrigatório.')]
     assert errors['nome'] == [_('Este campo é obrigatório.')]
+    assert errors['data_criacao'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 2
+    assert len(errors) == 3
 
 
 @pytest.mark.django_db(transaction=False)
