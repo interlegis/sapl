@@ -789,6 +789,13 @@ def adjust_parlamentar(new, old):
         if value is None:
             warn('nulo convertido para falso')
             new.unidade_deliberativa = False
+    # migra município de residência
+    if old.cod_localidade_resid:
+        municipio_uf = list(exec_legado('''
+            select nom_localidade, sgl_uf from localidade
+            where cod_localidade = {}'''.format(old.cod_localidade_resid)))
+        if municipio_uf:
+            new.municipio_residencia, new.uf_residencia = municipio_uf[0]
 
 
 def adjust_participacao(new, old):
