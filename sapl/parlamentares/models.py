@@ -141,35 +141,6 @@ class ComposicaoColigacao(models.Model):
 
 
 @reversion.register()
-class Municipio(models.Model):  # Localidade
-    # TODO filter on migration leaving only cities
-
-    REGIAO_CHOICES = (
-        ('CO', 'Centro-Oeste'),
-        ('NE', 'Nordeste'),
-        ('NO', 'Norte'),
-        ('SE', 'Sudeste'),  # TODO convert on migrate SD => SE
-        ('SL', 'Sul'),
-        ('EX', 'Exterior'),
-    )
-
-    nome = models.CharField(max_length=50, blank=True)
-    uf = models.CharField(
-        max_length=2, blank=True, choices=LISTA_DE_UFS)
-    regiao = models.CharField(
-        max_length=2, blank=True, choices=REGIAO_CHOICES)
-
-    class Meta:
-        verbose_name = _('Município')
-        verbose_name_plural = _('Municípios')
-
-    def __str__(self):
-        return _('%(nome)s - %(uf)s (%(regiao)s)') % {
-            'nome': self.nome, 'uf': self.uf, 'regiao': self.regiao
-        }
-
-
-@reversion.register()
 class NivelInstrucao(models.Model):
     descricao = models.CharField(
         max_length=50, verbose_name=_('Nível de Instrução'))
@@ -256,9 +227,10 @@ class Parlamentar(models.Model):
         max_length=100,
         blank=True,
         verbose_name=_('Endereço Residencial'))
-    municipio_residencia = models.ForeignKey(
-        Municipio, blank=True, null=True,
-        on_delete=models.PROTECT, verbose_name=_('Município'))
+    municipio_residencia = models.CharField(
+        max_length=50, blank=True, verbose_name=_('Município'))
+    uf_residencia = models.CharField(
+        max_length=2, blank=True, choices=LISTA_DE_UFS, verbose_name=_('UF'))
     cep_residencia = models.CharField(
         max_length=9, blank=True, verbose_name=_('CEP'))
     telefone_residencia = models.CharField(
