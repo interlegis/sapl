@@ -257,7 +257,7 @@ class Autor(models.Model):
         """
 
 
-def cria_models_tipo_autor(app_config, verbosity=2, interactive=True,
+def cria_models_tipo_autor(app_config=None, verbosity=2, interactive=True,
                            using=DEFAULT_DB_ALIAS, **kwargs):
 
     models = models_with_gr_for_model(Autor)

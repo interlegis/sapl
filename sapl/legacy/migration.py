@@ -18,8 +18,8 @@ from django.db.models import Count, Max
 from django.db.models.base import ModelBase
 
 from sapl.base.models import AppConfig as AppConf
-from sapl.base.models import (Autor, CasaLegislativa, ProblemaMigracao,
-                              TipoAutor)
+from sapl.base.models import (Autor, ProblemaMigracao, TipoAutor,
+                              cria_models_tipo_autor)
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
@@ -482,10 +482,6 @@ def fill_dados_basicos():
     appconf = AppConf(sequencia_numeracao=letra)
     appconf.save()
 
-    # Cria instância de CasaLegislativa
-    casa = CasaLegislativa()
-    casa.save()
-
 
 # Uma anomalia no sapl 2.5 causa a duplicação de registros de votação.
 # Essa duplicação deve ser eliminada para que não haja erro no sapl 3.1
@@ -614,6 +610,9 @@ class DataMigrator:
         call([PROJECT_DIR.child('manage.py'), 'flush',
               '--database=default', '--no-input'], stdout=PIPE)
 
+        # apaga tipos de autor padrão (criados no flush acima)
+        TipoAutor.objects.all().delete()
+
         fill_vinculo_norma_juridica()
         fill_dados_basicos()
         info('Começando migração: %s...' % obj)
@@ -621,6 +620,9 @@ class DataMigrator:
 
         info('Excluindo possíveis duplicações em RegistroVotacao...')
         excluir_registrovotacao_duplicados()
+
+        # recria tipos de autor padrão que não foram criados pela migração
+        cria_models_tipo_autor()
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
