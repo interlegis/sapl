@@ -29,8 +29,8 @@ class CasaLegislativa(models.Model):
     sigla = models.CharField(max_length=100, verbose_name=_('Sigla'))
     endereco = models.CharField(max_length=100, verbose_name=_('Endereço'))
     cep = models.CharField(max_length=100, verbose_name=_('CEP'))
-    municipio = models.CharField(max_length=100, verbose_name=_('Município'))
-    uf = models.CharField(max_length=100,
+    municipio = models.CharField(max_length=50, verbose_name=_('Município'))
+    uf = models.CharField(max_length=2,
                           choices=LISTA_DE_UFS,
                           verbose_name=_('UF'))
     telefone = models.CharField(
