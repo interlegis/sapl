@@ -304,10 +304,6 @@ class OrgaoCrud(Crud):
     class CreateView(Crud.CreateView):
         form_class = OrgaoForm
 
-        # def get_success_url(self):
-        #     return reverse('sapl.materia:orgao_list')
-
-
 class TipoProposicaoCrud(CrudAux):
     model = TipoProposicao
     help_text = 'tipo_proposicao'

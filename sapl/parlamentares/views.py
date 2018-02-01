@@ -278,19 +278,10 @@ class FrenteCrud(CrudAux):
     public = [RP_DETAIL, RP_LIST]
     list_field_names = ['nome', 'data_criacao', 'parlamentares']
 
-    class UpdateView(Crud.UpdateView):
-        form_class = FrenteForm
-
     class CreateView(Crud.CreateView):
         form_class = FrenteForm
 
         def form_valid(self, form):
-            """
-            Reimplementa form_valid devido ao save de ParlamentarCreateForm
-            ser específico, sendo necessário isolar padrão do crud que aciona
-            form.save(commit=False) para registrar dados de auditoria se
-            o model implementá-los, bem como de container se também implement.
-            """
             return super(Crud.CreateView, self).form_valid(form)
 
 
