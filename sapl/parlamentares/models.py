@@ -268,7 +268,7 @@ class Parlamentar(models.Model):
         validators=[restringe_tipos_de_arquivo_img], null=True, blank=True)
 
     cropping = ImageRatioField(
-        'fotografia', '128x128', verbose_name=_('Avatar'),
+        'fotografia', '128x128', verbose_name=_('Avatar'), size_warning=True,
         help_text=_('A configuração do Avatar '
                     'é possível após a atualização da fotografia.'))
 
