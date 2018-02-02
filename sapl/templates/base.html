@@ -20,6 +20,7 @@
       <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
 
       <link rel="stylesheet" href="{% static 'jquery-ui/themes/cupertino/jquery-ui.min.css' %}">
+      <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
 
       {# Scripts #}
       {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
@@ -224,7 +225,6 @@
     {% block foot_js %}
       <!-- Bootstrap core JavaScript ================================================== -->
       <!-- Placed at the end of the document so the pages load faster -->
-      <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
 
       <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>

@@ -1,5 +1,5 @@
-import json
 from datetime import datetime
+import json
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -32,6 +32,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
+
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
@@ -412,7 +413,6 @@ class ParlamentarCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         ordered_list = False
         list_field_names = [
-            'avatar_html',
             'nome_parlamentar',
             'filiacao_atual',
             'ativo',
@@ -436,6 +436,10 @@ class ParlamentarCrud(Crud):
 
     class UpdateView(Crud.UpdateView):
         form_class = ParlamentarForm
+
+        @property
+        def layout_key(self):
+            return 'ParlamentarUpdate'
 
     class CreateView(Crud.CreateView):
         form_class = ParlamentarCreateForm
@@ -493,8 +497,7 @@ class ParlamentarCrud(Crud):
                         mandato_titular=F('mandato__titular'))
 
         def get_headers(self):
-            return ['',
-                    _('Parlamentar'), _('Partido'),
+            return [_('Parlamentar'), _('Partido'),
                     _('Ativo?'), _('Titular?')]
 
         def get_context_data(self, **kwargs):
@@ -505,54 +508,44 @@ class ParlamentarCrud(Crud):
             context['legislaturas'] = legislaturas
             context['legislatura_id'] = self.take_legislatura_id()
 
-            # Tira Link do avatar_html e coloca no nome
             for row in context['rows']:
 
-                # preenche coluna foto, se vazia
-                if not row[0][0]:
-                    img = "<center><img width='50px' \
-                            height='50px' src='%s'/></center>" \
-                            % static('img/avatar.png')
-                    row[0] = (img, row[0][1])
+                # Pega o Parlamentar por meio da pk
+                parlamentar = Parlamentar.objects.get(
+                    id=(row[0][1].split('/')[-1]))
+
+                row[0] += (parlamentar, )
+
+                # Pega a Legislatura
+                legislatura = Legislatura.objects.get(
+                    id=context['legislatura_id'])
 
                 # Coloca a filiação atual ao invés da última
-                if row[0][1]:
-                    # Pega o Parlamentar por meio da pk
-                    parlamentar = Parlamentar.objects.get(
-                        id=(row[0][1].split('/')[-1]))
+                # As condições para mostrar a filiação são:
+                # A data de filiacao deve ser menor que a data de fim
+                # da legislatura e data de desfiliação deve nula, ou maior,
+                # ou igual a data de fim da legislatura
+                try:
+                    filiacao = parlamentar.filiacao_set.get(Q(
+                        data__lte=legislatura.data_fim,
+                        data_desfiliacao__gte=legislatura.data_fim) | Q(
+                        data__lte=legislatura.data_fim,
+                        data_desfiliacao__isnull=True))
 
-                    # Pega a Legislatura
-                    legislatura = Legislatura.objects.get(
-                        id=context['legislatura_id'])
+                # Caso não exista filiação com essas condições
+                except ObjectDoesNotExist:
+                    row[1] = ('Não possui filiação', None)
 
-                    # As condições para mostrar a filiação são:
-                    # A data de filiacao deve ser menor que a data de fim
-                    # da legislatura e data de desfiliação deve nula, ou maior,
-                    # ou igual a data de fim da legislatura
-                    try:
-                        filiacao = parlamentar.filiacao_set.get(Q(
-                            data__lte=legislatura.data_fim,
-                            data_desfiliacao__gte=legislatura.data_fim) | Q(
-                            data__lte=legislatura.data_fim,
-                            data_desfiliacao__isnull=True))
+                # Caso exista mais de uma filiação nesse intervalo
+                # Entretanto, NÃO DEVE OCORRER
+                except MultipleObjectsReturned:
+                    row[1] = (
+                        'O Parlamentar possui duas filiações conflitantes',
+                        None)
 
-                    # Caso não exista filiação com essas condições
-                    except ObjectDoesNotExist:
-                        row[2] = ('Não possui filiação', None)
-
-                    # Caso exista mais de uma filiação nesse intervalo
-                    # Entretanto, NÃO DEVE OCORRER
-                    except MultipleObjectsReturned:
-                        row[2] = (
-                            'O Parlamentar possui duas filiações conflitantes',
-                            None)
-
-                    # Caso encontre UMA filiação nessas condições
-                    else:
-                        row[2] = (filiacao.partido.sigla, None)
-
-                row[1] = (row[1][0], row[0][1])
-                row[0] = (row[0][0], None)
+                # Caso encontre UMA filiação nessas condições
+                else:
+                    row[1] = (filiacao.partido.sigla, None)
 
             return context
 

@@ -12,6 +12,7 @@ from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
+from image_cropping.widgets import ImageCropWidget, CropWidget
 
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
@@ -22,6 +23,18 @@ from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
 
 class ImageThumbnailFileInput(ClearableFileInput):
     template_name = 'floppyforms/image_thumbnail.html'
+
+
+class CustomImageCropWidget(ImageCropWidget):
+    """
+    Custom ImageCropWidget that doesn't show the initial value of the field.
+    We use this trick, and place it right under the CropWidget so that
+    it looks like the user is seeing the image and clearing the image.
+    """
+    template_with_initial = (
+        # '%(initial_text)s: <a href="%(initial_url)s">%(initial)s</a> '
+        '%(clear_template)s<br />%(input_text)s: %(input)s'
+    )
 
 
 def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
@@ -126,9 +139,12 @@ class ParlamentarForm(ModelForm):
     class Meta:
         model = Parlamentar
         exclude = []
-        widgets = {'fotografia': ImageThumbnailFileInput,
-                   'biografia': forms.Textarea(
-                       attrs={'id': 'texto-rico'})}
+
+        widgets = {
+            'fotografia': CustomImageCropWidget(),
+            'cropping': CropWidget(),
+            'biografia': forms.Textarea(
+                attrs={'id': 'texto-rico'})}
 
 
 class ParlamentarCreateForm(ParlamentarForm):
