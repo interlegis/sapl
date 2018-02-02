@@ -41,7 +41,7 @@ from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     OradorForm, PautaSessaoFilterSet, PresencaForm,
                     ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm)
+                    VotacaoNominalForm, BancadaForm, BlocoForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
@@ -53,10 +53,7 @@ TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
 
-BlocoCrud = CrudAux.build(
-    Bloco, '', list_field_names=['nome', 'data_criacao', 'partidos'])
-BancadaCrud = CrudAux.build(
-    Bancada, '', list_field_names=['nome', 'legislatura'])
+
 TipoResultadoVotacaoCrud = CrudAux.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 
@@ -575,6 +572,23 @@ class OradorCrud(OradorCrud):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
 
+class BancadaCrud(Crud):
+    model = Bancada
+
+    class CreateView(Crud.CreateView):
+        form_class = BancadaForm
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:bancada_list')
+
+class BlocoCrud(Crud):
+    model = Bloco
+
+    class CreateView(Crud.CreateView):
+        form_class = BlocoForm
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:bloco_list')
 
 def recuperar_numero_sessao(request):
     try:

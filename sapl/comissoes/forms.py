@@ -1,7 +1,12 @@
 from django.db.models import Q
 from django import forms
+from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
+from django.utils.translation import ugettext_lazy as _
 
-from sapl.comissoes.models import Participacao, Composicao
+from sapl.base.models import Autor, TipoAutor
+from sapl.comissoes.models import Participacao, Composicao, Comissao
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 
 
@@ -89,3 +94,34 @@ class ParticipacaoForm(forms.ModelForm):
         lista = list(set(lista))
 
         return lista
+
+class ComissaoForm(forms.ModelForm):
+
+    class Meta:
+        model = Comissao
+        fields = '__all__'
+
+    def clean(self):
+        super(ComissaoForm, self).clean()
+
+        if self.cleaned_data['data_extincao']:
+            if (self.cleaned_data['data_extincao'] <
+                    self.cleaned_data['data_criacao']):
+                msg = _('Data de extinção não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        return self.cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=True):
+        comissao = super(ComissaoForm, self).save(commit)
+        content_type = ContentType.objects.get_for_model(Comissao)
+        object_id = comissao.pk
+        tipo = TipoAutor.objects.get(descricao='Comissão')
+        nome = comissao.sigla+' - '+comissao.nome
+        Autor.objects.create(
+            content_type=content_type,
+            object_id=object_id,
+            tipo=tipo,
+            nome=nome
+        )
+        return comissao

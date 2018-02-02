@@ -8,6 +8,7 @@ from sapl.comissoes.forms import ParticipacaoForm
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
+from .forms import ComissaoForm
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
                      Periodo, TipoComissao)
 
@@ -100,18 +101,11 @@ class ComissaoCrud(Crud):
                             'data_criacao', 'data_extincao', 'ativa']
         ordering = '-ativa', 'sigla'
 
-    class ListView(Crud.ListView):
+    class CreateView(Crud.CreateView):
+        form_class = ComissaoForm
 
-        @xframe_options_exempt
-        def get(self, request, *args, **kwargs):
-            return super().get(request, *args, **kwargs)
-
-    class DetailView(Crud.DetailView):
-
-        @xframe_options_exempt
-        def get(self, request, *args, **kwargs):
-            return super().get(request, *args, **kwargs)
-
+        def form_valid(self, form):
+            return super(Crud.CreateView, self).form_valid(form)
 
 class MateriasTramitacaoListView(ListView):
     template_name = "comissoes/materias_em_tramitacao.html"

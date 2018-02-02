@@ -42,7 +42,7 @@ class Bancada(models.Model):
                                 null=True,
                                 on_delete=models.PROTECT,
                                 verbose_name=_('Partido'))
-    data_criacao = models.DateField(blank=True, null=True,
+    data_criacao = models.DateField(blank=False, null=True,
                                     verbose_name=_('Data Criação'))
     data_extincao = models.DateField(blank=True, null=True,
                                      verbose_name=_('Data Extinção'))
@@ -498,7 +498,7 @@ class Bloco(models.Model):
     partidos = models.ManyToManyField(
         Partido, blank=True, verbose_name=_('Partidos'))
     data_criacao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Criação'))
+        blank=False, null=True, verbose_name=_('Data Criação'))
     data_extincao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Dissolução'))
     descricao = models.TextField(blank=True, verbose_name=_('Descrição'))

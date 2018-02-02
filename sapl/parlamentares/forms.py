@@ -5,6 +5,7 @@ from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -16,6 +17,7 @@ from floppyforms.widgets import ClearableFileInput
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
 
+from sapl.base.models import Autor, TipoAutor
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
                      Mandato, Parlamentar, Votante)
 
@@ -152,8 +154,18 @@ class ParlamentarCreateForm(ParlamentarForm):
         Mandato.objects.create(
             parlamentar=parlamentar,
             legislatura=legislatura,
+            data_inicio_mandato=legislatura.data_inicio,
             data_fim_mandato=legislatura.data_fim,
             data_expedicao_diploma=self.cleaned_data['data_expedicao_diploma'])
+        content_type = ContentType.objects.get_for_model(Parlamentar)
+        object_id = parlamentar.pk
+        tipo = TipoAutor.objects.get(descricao='Parlamentar')
+        Autor.objects.create(
+            content_type = content_type,
+            object_id = object_id,
+            tipo = tipo,
+            nome = parlamentar.nome_parlamentar
+        )
         return parlamentar
 
 
@@ -279,6 +291,20 @@ class FrenteForm(ModelForm):
     class Meta:
         model = Frente
         fields = '__all__'
+
+    @transaction.atomic
+    def save(self, commit=True):
+        frente = super(FrenteForm, self).save(commit)
+        content_type = ContentType.objects.get_for_model(Frente)
+        object_id = frente.pk
+        tipo = TipoAutor.objects.get(descricao='Frente Parlamentar')
+        Autor.objects.create(
+            content_type=content_type,
+            object_id=object_id,
+            tipo=tipo,
+            nome=frente.nome
+        )
+        return frente
 
 
 class VotanteForm(ModelForm):
