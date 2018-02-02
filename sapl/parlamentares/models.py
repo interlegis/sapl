@@ -1,9 +1,10 @@
 
-import reversion
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.decorators import vigencia_atual
@@ -262,12 +263,14 @@ class Parlamentar(models.Model):
         blank=True, verbose_name=_('Biografia'))
     # XXX Esse atribuito foi colocado aqui para não atrapalhar a migração
 
-    fotografia = models.ImageField(
-        blank=True,
-        null=True,
-        upload_to=foto_upload_path,
-        verbose_name=_('Fotografia'),
-        validators=[restringe_tipos_de_arquivo_img])
+    fotografia = ImageCropField(
+        verbose_name=_('Fotografia'), upload_to=foto_upload_path,
+        validators=[restringe_tipos_de_arquivo_img], null=True, blank=True)
+
+    cropping = ImageRatioField(
+        'fotografia', '128x128', verbose_name=_('Avatar'), size_warning=True,
+        help_text=_('A configuração do Avatar '
+                    'é possível após a atualização da fotografia.'))
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.

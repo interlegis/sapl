@@ -1,3 +1,4 @@
+
 function initTinymce(elements, readonly=false) {
     removeTinymce();
     var config_tinymce = {

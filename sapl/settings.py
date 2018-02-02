@@ -17,10 +17,12 @@ import logging
 
 from decouple import config
 from dj_database_url import parse as db_url
+from easy_thumbnails.conf import Settings as thumbnail_settings
 from unipath import Path
 
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
+
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
@@ -79,6 +81,7 @@ INSTALLED_APPS = (
     'bootstrap3',  # basically for django_admin_bootstrapped
     'crispy_forms',
     'easy_thumbnails',
+    'image_cropping',
     'floppyforms',
     'haystack',
     'sass_processor',
@@ -180,6 +183,12 @@ DATABASES = {
         cast=db_url,
     )
 }
+
+IMAGE_CROPPING_JQUERY_URL = None
+THUMBNAIL_PROCESSORS = (
+    'image_cropping.thumbnail_processors.crop_corners',
+) + thumbnail_settings.THUMBNAIL_PROCESSORS
+
 
 # troque no caso de reimplementação da classe User conforme
 # https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#substituting-a-custom-user-model
@@ -299,6 +308,7 @@ def excepthook(*args):
         'Uncaught exception:', exc_info=args)
 
 # sys.excepthook = excepthook
+
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # default

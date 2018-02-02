@@ -1,5 +1,5 @@
 {% extends "crud/detail.html" %}
-{% load i18n %}
+{% load i18n cropping%}
 {% block actions %} {% endblock %}
 
 {% block detail_content %}
@@ -46,7 +46,7 @@
       	{% for p in composicao_mesa %}
 					<tr>
 						{% if p.parlamentar.fotografia %}
-							<td><img class="avatar-parlamentar" src="{{ p.parlamentar.fotografia.url }}"></td>
+							<td><img class="avatar-parlamentar" src="{% cropped_thumbnail p.parlamentar "cropping" %}"></td>
 						{% else %}
 							<td></td>
 						{% endif %}

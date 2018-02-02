@@ -17,8 +17,8 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
@@ -30,6 +30,7 @@ from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
 from sapl.settings import BASE_DIR
 from sapl.utils import normalize
 
+
 logger = logging.getLogger(BASE_DIR.name)
 
 ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
@@ -38,6 +39,7 @@ ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
 
 def _form_invalid_message(msg):
     return '%s %s' % (_('Formulário inválido.'), msg)
+
 
 FORM_MESSAGES = {ACTION_CREATE: (_('Registro criado com sucesso!'),
                                  _('O registro não foi criado.')),
@@ -78,6 +80,7 @@ def make_pagination(index, num_pages):
                         None, num_pages - 1, num_pages]
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
+
 
 """
 variáveis do crud:
