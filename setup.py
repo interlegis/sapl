@@ -33,7 +33,7 @@ install_requires = [
     'easy-thumbnails==2.3',
     # 'git+git://github.com/interlegis/trml2pdf.git',
     'libsass==0.11.1',
-    'psycopg2==2.6.2',
+    'psycopg2==2.7.3',
     'python-decouple==3.0',
     'pytz==2016.4',
     'pyyaml==3.11',
@@ -44,7 +44,7 @@ install_requires = [
     'python-magic==0.4.12',
     'gunicorn==19.6.0',
     'django-reversion==2.0.8',
-    'WeasyPrint==0.30',
+    'WeasyPrint==0.42',
     'whoosh==2.7.4'
 ]
 setup(
