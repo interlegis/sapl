@@ -29,10 +29,10 @@ TipoComissaoCrud = CrudAux.build(
 
 class ParticipacaoCrud(MasterDetailCrud):
     model = Participacao
-    parent_field = 'composicao__comissao'
+    parent_field = 'composicao'
     public = [RP_DETAIL, ]
     ListView = None
-    is_m2m = True
+    # is_m2m = True
     link_return_to_parent_field = True
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -41,18 +41,13 @@ class ParticipacaoCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ParticipacaoForm
 
-        def get_initial(self):
-            initial = super().get_initial()
-            initial['parent_pk'] = self.kwargs['pk']
-            return initial
+        # def get_initial(self):
+        #     initial = super().get_initial()
+        #     initial['parent_pk'] = self.kwargs['pk']
+        #     return initial
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = ParticipacaoForm
-
-        def get_initial(self):
-            initial = super().get_initial()
-            initial['parent_pk'] = self.kwargs['pk']
-            return initial
 
 
 class ComposicaoCrud(MasterDetailCrud):

@@ -23,11 +23,9 @@ class ParticipacaoForm(forms.ModelForm):
     def __init__(self, user=None, **kwargs):
         super(ParticipacaoForm, self).__init__(**kwargs)
 
-        if self.instance:
-            comissao = kwargs['initial']
-            comissao_pk = int(comissao['parent_pk'])
-            composicao = Composicao.objects.get(id=comissao_pk)
-            participantes = composicao.participacao_set.all()
+        import ipdb; ipdb.set_trace()
+        if self.instance.pk:
+            participantes = self.instance.composicao.participacao_set.all()
             id_part = [p.parlamentar.id for p in participantes]
         else:
             id_part = []
@@ -36,12 +34,12 @@ class ParticipacaoForm(forms.ModelForm):
 
         parlamentares = Mandato.objects.filter(qs,
                                                parlamentar__ativo=True
-                                               ).prefetch_related('parlamentar').\
-                                               values_list('parlamentar',
-                                                           flat=True).distinct()
+                                               ).prefetch_related('parlamentar'). \
+            values_list('parlamentar',
+                        flat=True).distinct()
 
-        qs = Parlamentar.objects.filter(id__in=parlamentares).distinct().\
-        exclude(id__in=id_part)
+        qs = Parlamentar.objects.filter(id__in=parlamentares).distinct(). \
+            exclude(id__in=id_part)
         eligible = self.verifica()
         result = list(set(qs) & set(eligible))
         if not cmp(result, eligible): # se igual a 0 significa que o qs e o eli são iguais!
@@ -52,7 +50,7 @@ class ParticipacaoForm(forms.ModelForm):
             self.fields['parlamentar'].queryset = qs
 
     def create_participacao(self):
-        composicao = Composicao.objects.get(id=self.initial['parent_pk'])
+        composicao = self.instance.composicao
         data_inicio_comissao = composicao.periodo.data_inicio
         data_fim_comissao = composicao.periodo.data_fim
         q1 = Q(data_fim_mandato__isnull=False,
@@ -71,7 +69,7 @@ class ParticipacaoForm(forms.ModelForm):
         return self.cleaned_data
 
     def verifica(self):
-        composicao = Composicao.objects.get(id=self.initial['parent_pk'])
+        composicao = self.instance.composicao
         participantes = composicao.participacao_set.all()
         participantes_id = [p.parlamentar.id for p in participantes]
         parlamentares = Parlamentar.objects.all().exclude(id__in=participantes_id).order_by('nome_completo')
