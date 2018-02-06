@@ -416,7 +416,8 @@ class DocumentoAcessorio(models.Model):
                              on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
-    data = models.DateField(blank=True, verbose_name=_('Data'))
+
+    data = models.DateField(blank=True, null=True, default=None, verbose_name=_('Data'))
     autor = models.CharField(
         max_length=50, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
