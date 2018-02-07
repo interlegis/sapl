@@ -9,23 +9,22 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Participacao, Composicao, Comissao
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 
-
-class ParticipacaoForm(forms.ModelForm):
+class ParticipacaoCreateForm(forms.ModelForm):
 
     parent_pk = forms.CharField(required=False) # widget=forms.HiddenInput())
 
     class Meta:
         model = Participacao
-        # includes = ['parlamentar', 'cargo', 'titular', 'data_designacao', 'data_desligamento', 'data_']
-        # exclude = []
         exclude = ['composicao']
 
     def __init__(self, user=None, **kwargs):
-        super(ParticipacaoForm, self).__init__(**kwargs)
+        super(ParticipacaoCreateForm, self).__init__(**kwargs)
 
-        import ipdb; ipdb.set_trace()
-        if self.instance.pk:
-            participantes = self.instance.composicao.participacao_set.all()
+        if self.instance:
+            comissao = kwargs['initial']
+            comissao_pk = int(comissao['parent_pk'])
+            composicao = Composicao.objects.get(id=comissao_pk)
+            participantes = composicao.participacao_set.all()
             id_part = [p.parlamentar.id for p in participantes]
         else:
             id_part = []
@@ -34,12 +33,12 @@ class ParticipacaoForm(forms.ModelForm):
 
         parlamentares = Mandato.objects.filter(qs,
                                                parlamentar__ativo=True
-                                               ).prefetch_related('parlamentar'). \
-            values_list('parlamentar',
-                        flat=True).distinct()
+                                               ).prefetch_related('parlamentar').\
+                                               values_list('parlamentar',
+                                                           flat=True).distinct()
 
-        qs = Parlamentar.objects.filter(id__in=parlamentares).distinct(). \
-            exclude(id__in=id_part)
+        qs = Parlamentar.objects.filter(id__in=parlamentares).distinct().\
+        exclude(id__in=id_part)
         eligible = self.verifica()
         result = list(set(qs) & set(eligible))
         if not cmp(result, eligible): # se igual a 0 significa que o qs e o eli são iguais!
@@ -50,7 +49,7 @@ class ParticipacaoForm(forms.ModelForm):
             self.fields['parlamentar'].queryset = qs
 
     def create_participacao(self):
-        composicao = self.instance.composicao
+        composicao = Composicao.objects.get(id=self.initial['parent_pk'])
         data_inicio_comissao = composicao.periodo.data_inicio
         data_fim_comissao = composicao.periodo.data_fim
         q1 = Q(data_fim_mandato__isnull=False,
@@ -63,13 +62,11 @@ class ParticipacaoForm(forms.ModelForm):
         return qs
 
     def clean(self):
-        super(ParticipacaoForm, self).clean()
-
-        # if self.instance:
+        super(ParticipacaoCreateForm, self).clean()
         return self.cleaned_data
 
     def verifica(self):
-        composicao = self.instance.composicao
+        composicao = Composicao.objects.get(id=self.initial['parent_pk'])
         participantes = composicao.participacao_set.all()
         participantes_id = [p.parlamentar.id for p in participantes]
         parlamentares = Parlamentar.objects.all().exclude(id__in=participantes_id).order_by('nome_completo')
@@ -93,6 +90,26 @@ class ParticipacaoForm(forms.ModelForm):
 
         return lista
 
+class ParticipacaoEditForm(forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False) # widget=forms.HiddenInput())
+    nome_parlamentar = forms.CharField(required=False, label='Parlamentar')
+
+    class Meta:
+        model = Participacao
+        fields = ['nome_parlamentar', 'parlamentar', 'cargo', 'titular', 'data_designacao', 'data_desligamento', 'motivo_desligamento', 'observacao']
+        widgets = {
+            'parlamentar': forms.HiddenInput(),
+        }
+
+    def __init__(self, user=None, **kwargs):
+        super(ParticipacaoEditForm, self).__init__(**kwargs)
+        self.initial['nome_parlamentar'] = Parlamentar.objects.filter(id=self.initial['parlamentar']).first().nome_parlamentar
+        self.fields['nome_parlamentar'].widget.attrs['disabled'] = 'disabled'
+
+
+
+
 class ComissaoForm(forms.ModelForm):
 
     class Meta:
@@ -114,7 +131,7 @@ class ComissaoForm(forms.ModelForm):
         comissao = super(ComissaoForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Comissao)
         object_id = comissao.pk
-        tipo = TipoAutor.objects.get(descricao='Comissão')
+        tipo = TipoAutor.objects.get(descricao__icontains='Comiss')
         nome = comissao.sigla+' - '+comissao.nome
         Autor.objects.create(
             content_type=content_type,

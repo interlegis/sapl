@@ -36,3 +36,10 @@ Participacao:
   - data_designacao data_desligamento
   - motivo_desligamento
   - observacao
+
+ParticipacaoEdit:
+  {% trans 'Participação' %}:
+  - nome_parlamentar cargo titular
+  - data_designacao data_desligamento
+  - motivo_desligamento
+  - observacao

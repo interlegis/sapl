@@ -4,7 +4,7 @@ from django.db.models import F
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import ListView
 
-from sapl.comissoes.forms import ParticipacaoForm
+from sapl.comissoes.forms import ParticipacaoCreateForm, ParticipacaoEditForm
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
@@ -29,25 +29,31 @@ TipoComissaoCrud = CrudAux.build(
 
 class ParticipacaoCrud(MasterDetailCrud):
     model = Participacao
-    parent_field = 'composicao'
+    parent_field = 'composicao__comissao'
     public = [RP_DETAIL, ]
     ListView = None
-    # is_m2m = True
     link_return_to_parent_field = True
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['composicao', 'parlamentar', 'cargo']
 
     class CreateView(MasterDetailCrud.CreateView):
-        form_class = ParticipacaoForm
+        form_class = ParticipacaoCreateForm
 
-        # def get_initial(self):
-        #     initial = super().get_initial()
-        #     initial['parent_pk'] = self.kwargs['pk']
-        #     return initial
+        def get_initial(self):
+            initial = super().get_initial()
+            initial['parent_pk'] = self.kwargs['pk']
+            return initial
 
     class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = ParticipacaoForm
+        layout_key = 'ParticipacaoEdit'
+        form_class = ParticipacaoEditForm
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+        def get_success_url(self):
+
+            return '{}?pk={}'.format(reverse('sapl.comissoes:composicao_list', args=[self.object.composicao.comissao.pk]), self.object.composicao.pk)
+
 
 
 class ComposicaoCrud(MasterDetailCrud):
