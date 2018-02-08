@@ -9,19 +9,16 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Participacao, Composicao, Comissao
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 
-
-class ParticipacaoForm(forms.ModelForm):
+class ParticipacaoCreateForm(forms.ModelForm):
 
     parent_pk = forms.CharField(required=False) # widget=forms.HiddenInput())
 
     class Meta:
         model = Participacao
-        # includes = ['parlamentar', 'cargo', 'titular', 'data_designacao', 'data_desligamento', 'data_']
-        # exclude = []
         exclude = ['composicao']
 
     def __init__(self, user=None, **kwargs):
-        super(ParticipacaoForm, self).__init__(**kwargs)
+        super(ParticipacaoCreateForm, self).__init__(**kwargs)
 
         if self.instance:
             comissao = kwargs['initial']
@@ -65,9 +62,7 @@ class ParticipacaoForm(forms.ModelForm):
         return qs
 
     def clean(self):
-        super(ParticipacaoForm, self).clean()
-
-        # if self.instance:
+        super(ParticipacaoCreateForm, self).clean()
         return self.cleaned_data
 
     def verifica(self):
@@ -95,6 +90,29 @@ class ParticipacaoForm(forms.ModelForm):
 
         return lista
 
+class ParticipacaoEditForm(forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False) # widget=forms.HiddenInput())
+    nome_parlamentar = forms.CharField(required=False, label='Parlamentar')
+
+    class Meta:
+        model = Participacao
+        fields = ['nome_parlamentar', 'parlamentar', 'cargo', 'titular',
+                  'data_designacao', 'data_desligamento',
+                  'motivo_desligamento', 'observacao']
+        widgets = {
+            'parlamentar': forms.HiddenInput(),
+        }
+
+    def __init__(self, user=None, **kwargs):
+        super(ParticipacaoEditForm, self).__init__(**kwargs)
+        self.initial['nome_parlamentar'] = Parlamentar.objects.get(
+            id=self.initial['parlamentar']).nome_parlamentar
+        self.fields['nome_parlamentar'].widget.attrs['disabled'] = 'disabled'
+
+
+
+
 class ComissaoForm(forms.ModelForm):
 
     class Meta:
@@ -116,7 +134,7 @@ class ComissaoForm(forms.ModelForm):
         comissao = super(ComissaoForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Comissao)
         object_id = comissao.pk
-        tipo = TipoAutor.objects.get(descricao='Comissão')
+        tipo = TipoAutor.objects.get(descricao__icontains='Comiss')
         nome = comissao.sigla+' - '+comissao.nome
         Autor.objects.create(
             content_type=content_type,
