@@ -97,14 +97,17 @@ class ParticipacaoEditForm(forms.ModelForm):
 
     class Meta:
         model = Participacao
-        fields = ['nome_parlamentar', 'parlamentar', 'cargo', 'titular', 'data_designacao', 'data_desligamento', 'motivo_desligamento', 'observacao']
+        fields = ['nome_parlamentar', 'parlamentar', 'cargo', 'titular',
+                  'data_designacao', 'data_desligamento',
+                  'motivo_desligamento', 'observacao']
         widgets = {
             'parlamentar': forms.HiddenInput(),
         }
 
     def __init__(self, user=None, **kwargs):
         super(ParticipacaoEditForm, self).__init__(**kwargs)
-        self.initial['nome_parlamentar'] = Parlamentar.objects.filter(id=self.initial['parlamentar']).first().nome_parlamentar
+        self.initial['nome_parlamentar'] = Parlamentar.objects.get(
+            id=self.initial['parlamentar']).nome_parlamentar
         self.fields['nome_parlamentar'].widget.attrs['disabled'] = 'disabled'
 
 

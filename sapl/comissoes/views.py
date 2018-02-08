@@ -51,8 +51,11 @@ class ParticipacaoCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
         def get_success_url(self):
-
-            return '{}?pk={}'.format(reverse('sapl.comissoes:composicao_list', args=[self.object.composicao.comissao.pk]), self.object.composicao.pk)
+            composicao_comissao_pk = self.object.composicao.comissao.pk
+            composicao_pk = self.object.composicao.pk
+            return '{}?pk={}'.format(reverse('sapl.comissoes:composicao_list',
+                                             args=[composicao_comissao_pk]),
+                                     )
 
 
 
