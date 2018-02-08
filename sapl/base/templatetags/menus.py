@@ -76,7 +76,7 @@ def nav_run(context, path=None):
             return
 
         try:
-            rendered = yaml_template.render()
+            rendered = yaml_template.render(context, request)
             menu = yaml.load(rendered)
             resolve_urls_inplace(menu, root_pk, rm, context)
         except Exception as e:
