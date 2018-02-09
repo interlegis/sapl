@@ -316,10 +316,11 @@ def anula_tipos_origem_externa_invalidos():
         from tipo_materia_legislativa
         where ind_excluido <> 1;''')))
 
-    exec_legado('''
-        update materia_legislativa
-        set tip_origem_externa = NULL
-        where tip_origem_externa not in {};'''.format(tipos_validos))
+    if tipos_validos:
+        exec_legado('''
+            update materia_legislativa
+            set tip_origem_externa = NULL
+            where tip_origem_externa not in {};'''.format(tipos_validos))
 
 
 def uniformiza_banco():
