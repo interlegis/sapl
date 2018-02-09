@@ -5,8 +5,9 @@ from itertools import groupby
 from subprocess import PIPE, call
 
 import pkg_resources
-import reversion
 import yaml
+
+import reversion
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
@@ -16,7 +17,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
-
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import (Autor, ProblemaMigracao, TipoAutor,
                               cria_models_tipo_autor)
@@ -144,6 +144,7 @@ def exec_sql(sql, db='default'):
     cursor = connections[db].cursor()
     cursor.execute(sql)
     return cursor
+
 
 exec_legado = partial(exec_sql, db='legacy')
 

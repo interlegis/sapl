@@ -1,5 +1,4 @@
 from django.conf.urls import include, url
-
 from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ComprovanteProtocoloView,
                                      CriarDocumentoProtocolo,

@@ -35,6 +35,7 @@ def create_superuser():
 
         sys.exit(0)
 
+
 if __name__ == '__main__':
     django.setup()
     create_superuser()

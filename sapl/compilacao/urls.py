@@ -1,5 +1,4 @@
 from django.conf.urls import include, url
-
 from sapl.compilacao import views
 from sapl.compilacao.views import (TipoDispositivoCrud, TipoNotaCrud,
                                    TipoPublicacaoCrud, TipoVideCrud,

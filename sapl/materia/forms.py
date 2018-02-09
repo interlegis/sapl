@@ -1,6 +1,8 @@
 
 import os
 
+import django_filters
+import sapl
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
@@ -21,8 +23,6 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-import django_filters
-
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -30,8 +30,8 @@ from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import (AssuntoMateria, MateriaAssunto,
-                                 MateriaLegislativa, RegimeTramitacao,
-                                 TipoDocumento, TipoProposicao, Orgao)
+                                 MateriaLegislativa, Orgao, RegimeTramitacao,
+                                 TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.protocoloadm.models import Protocolo
@@ -41,7 +41,6 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model,
                         qs_override_django_filter)
-import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -90,7 +89,7 @@ class OrgaoForm(ModelForm):
         content_type = ContentType.objects.get_for_model(Orgao)
         object_id = orgao.pk
         tipo = TipoAutor.objects.get(descricao='Órgão')
-        nome = orgao.nome+' - '+orgao.sigla
+        nome = orgao.nome + ' - ' + orgao.sigla
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,
@@ -98,6 +97,7 @@ class OrgaoForm(ModelForm):
             nome=nome
         )
         return orgao
+
 
 class ReceberProposicaoForm(Form):
     cod_hash = forms.CharField(label='Código do Documento', required=True)

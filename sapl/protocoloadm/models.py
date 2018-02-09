@@ -2,7 +2,6 @@ import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-
 from sapl.base.models import Autor
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path

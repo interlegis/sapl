@@ -1,7 +1,6 @@
 import pytest
 from django.core.urlresolvers import reverse
 from model_mommy import mommy
-
 from sapl.comissoes.models import Comissao, Composicao, Periodo, TipoComissao
 from sapl.parlamentares.models import Filiacao, Parlamentar, Partido
 

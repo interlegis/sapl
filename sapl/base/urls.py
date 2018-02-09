@@ -5,18 +5,18 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_confirm,
                                        password_reset_done)
 from django.views.generic.base import TemplateView
-
 from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
 from sapl.settings import EMAIL_SEND_USER
 
 from .apps import AppConfig
 from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
-from .views import (AppConfigCrud, CasaLegislativaCrud, HelpTopicView,
-                    RelatorioAtasView, RelatorioHistoricoTramitacaoView,
+from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
+                    HelpTopicView, RelatorioAtasView,
+                    RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,
-                    RelatorioPresencaSessaoView, SaplSearchView, AlterarSenha)
+                    RelatorioPresencaSessaoView, SaplSearchView)
 
 app_name = AppConfig.name
 

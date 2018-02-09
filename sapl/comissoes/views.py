@@ -3,7 +3,6 @@ from django.core.urlresolvers import reverse
 from django.db.models import F
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import ListView
-
 from sapl.comissoes.forms import ParticipacaoCreateForm, ParticipacaoEditForm
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
 from sapl.materia.models import MateriaLegislativa, Tramitacao
@@ -18,6 +17,7 @@ def pegar_url_composicao(pk):
     comp_pk = participacao.composicao.pk
     url = reverse('sapl.comissoes:composicao_detail', kwargs={'pk': comp_pk})
     return url
+
 
 CargoCrud = CrudAux.build(CargoComissao, 'cargo_comissao')
 PeriodoComposicaoCrud = CrudAux.build(Periodo, 'periodo_composicao_comissao')
@@ -56,7 +56,6 @@ class ParticipacaoCrud(MasterDetailCrud):
             return '{}?pk={}'.format(reverse('sapl.comissoes:composicao_list',
                                              args=[composicao_comissao_pk]),
                                      )
-
 
 
 class ComposicaoCrud(MasterDetailCrud):
@@ -110,6 +109,7 @@ class ComissaoCrud(Crud):
 
         def form_valid(self, form):
             return super(Crud.CreateView, self).form_valid(form)
+
 
 class MateriasTramitacaoListView(ListView):
     template_name = "comissoes/materias_em_tramitacao.html"

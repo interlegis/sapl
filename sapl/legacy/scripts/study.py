@@ -1,5 +1,4 @@
 from django.apps import apps
-
 from sapl.legacy.migration import legacy_app
 
 for model in apps.get_app_config('legacy').get_models():

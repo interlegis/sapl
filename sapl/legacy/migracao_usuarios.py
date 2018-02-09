@@ -1,5 +1,4 @@
 from django.contrib.auth.models import Group, User
-
 from sapl.settings import MEDIA_ROOT
 
 PERFIL_LEGADO_PARA_NOVO = {legado: Group.objects.get(name=novo)

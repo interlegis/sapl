@@ -1,7 +1,6 @@
 import pytest
 from django.utils.translation import ugettext as _
 from model_mommy import mommy
-
 from sapl.materia import forms
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 

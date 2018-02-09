@@ -1,6 +1,5 @@
 from compressor.utils import get_class
 from django import template
-
 from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica

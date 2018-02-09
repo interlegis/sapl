@@ -9,7 +9,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
-
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import MateriaLegislativaFilterSet
@@ -20,8 +19,9 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone)
 
-from .models import (Bancada, ExpedienteMateria, Orador, OradorExpediente,
-                     OrdemDia, SessaoPlenaria, SessaoPlenariaPresenca, TipoResultadoVotacao, Bloco)
+from .models import (Bancada, Bloco, ExpedienteMateria, Orador,
+                     OradorExpediente, OrdemDia, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoResultadoVotacao)
 
 
 def recupera_anos():
@@ -129,6 +129,7 @@ class BancadaForm(ModelForm):
         )
         return bancada
 
+
 class BlocoForm(ModelForm):
 
     class Meta:
@@ -159,6 +160,7 @@ class BlocoForm(ModelForm):
             nome=bloco.nome
         )
         return bloco
+
 
 class ExpedienteMateriaForm(ModelForm):
 

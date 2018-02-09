@@ -2,7 +2,6 @@ import pytest
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
-
 from sapl.parlamentares.models import Legislatura, SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria, TipoSessaoPlenaria
 

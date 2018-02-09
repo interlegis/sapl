@@ -2,6 +2,8 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
+import sapl
+import weasyprint
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
@@ -21,8 +23,6 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
-import weasyprint
-
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -35,28 +35,28 @@ from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 AutoriaMultiCreateForm,
-                                ConfirmarProposicaoForm, LegislacaoCitadaForm,
-                                ProposicaoForm, TipoProposicaoForm,
-                                TramitacaoForm, TramitacaoUpdateForm,
-                                DevolverProposicaoForm, OrgaoForm)
+                                ConfirmarProposicaoForm,
+                                DevolverProposicaoForm, LegislacaoCitadaForm,
+                                OrgaoForm, ProposicaoForm, TipoProposicaoForm,
+                                TramitacaoForm, TramitacaoUpdateForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
-                        montar_row_autor, show_results_filter_set, get_mime_type_from_file_extension)
-import sapl
+                        get_mime_type_from_file_extension, montar_row_autor,
+                        show_results_filter_set)
 
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
                     FichaPesquisaForm, FichaSelecionaForm, MateriaAssuntoForm,
-                    MateriaLegislativaFilterSet, MateriaSimplificadaForm,
-                    PrimeiraTramitacaoEmLoteFilterSet, ReceberProposicaoForm,
-                    RelatoriaForm, TramitacaoEmLoteFilterSet,
-                    filtra_tramitacao_destino,
+                    MateriaLegislativaFilterSet, MateriaLegislativaForm,
+                    MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
+                    ReceberProposicaoForm, RelatoriaForm,
+                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
-                    filtra_tramitacao_status, MateriaLegislativaForm)
+                    filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaAssunto,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -64,7 +64,6 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
-
 
 AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
@@ -296,13 +295,16 @@ def recuperar_materia(request):
 
     return response
 
+
 StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
+
 
 class OrgaoCrud(Crud):
     model = Orgao
 
     class CreateView(Crud.CreateView):
         form_class = OrgaoForm
+
 
 class TipoProposicaoCrud(CrudAux):
     model = TipoProposicao

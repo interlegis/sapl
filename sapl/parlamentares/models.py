@@ -1,11 +1,10 @@
 
+import reversion
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
-import reversion
-
 from sapl.base.models import Autor
 from sapl.decorators import vigencia_atual
 from sapl.utils import (INDICADOR_AFASTAMENTO, LISTA_DE_UFS, YES_NO_CHOICES,

@@ -2,7 +2,6 @@ import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,

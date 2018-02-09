@@ -8,7 +8,6 @@ from django.db import models
 from django.forms import ModelForm, widgets
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
@@ -215,7 +214,8 @@ class NormaRelacionadaForm(ModelForm):
         relacionada.norma_relacionada = self.cleaned_data['norma_relacionada']
         relacionada.save()
         return relacionada
-    
+
+
 class NormaPesquisaSimplesForm(forms.Form):
     tipo_norma = forms.ModelChoiceField(
         label=TipoNormaJuridica._meta.verbose_name,
@@ -234,7 +234,7 @@ class NormaPesquisaSimplesForm(forms.Form):
         required=False,
         widget=forms.DateInput(format='%d/%m/%Y')
     )
-    
+
     titulo = forms.CharField(
         label='Título do Relatório',
         required=False,
@@ -247,7 +247,7 @@ class NormaPesquisaSimplesForm(forms.Form):
             [('tipo_norma', 6),
              ('data_inicial', 3),
              ('data_final', 3)])
-        
+
         row2 = to_row(
             [('titulo', 12)])
 
@@ -259,25 +259,23 @@ class NormaPesquisaSimplesForm(forms.Form):
                 form_actions(label='Pesquisar')
             )
         )
-    
+
     def clean(self):
         super(NormaPesquisaSimplesForm, self).clean()
         cleaned_data = self.cleaned_data
 
         data_inicial = cleaned_data['data_inicial']
         data_final = cleaned_data['data_final']
-        
-        if (data_inicial and data_final and 
-            data_inicial > data_final):
-                 raise ValidationError(_(
-                      'A Data Final não pode ser menor que a Data Inicial'))
-        else:
-             condicao1 = data_inicial and not data_final
-             condicao2 = not data_inicial and data_final
-             if condicao1 or condicao2:
-                        raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e ' +
-                            'Data Final devem ser preenchidos obrigatoriamente'))
 
+        if (data_inicial and data_final and
+                data_inicial > data_final):
+            raise ValidationError(_(
+                'A Data Final não pode ser menor que a Data Inicial'))
+        else:
+            condicao1 = data_inicial and not data_final
+            condicao2 = not data_inicial and data_final
+            if condicao1 or condicao2:
+                raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e ' +
+                                        'Data Final devem ser preenchidos obrigatoriamente'))
 
         return cleaned_data
-

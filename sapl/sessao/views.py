@@ -20,7 +20,6 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
-
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
@@ -36,12 +35,12 @@ from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set
 
-from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
-                    ListMateriaForm, MesaForm, OradorExpedienteForm,
-                    OradorForm, PautaSessaoFilterSet, PresencaForm,
-                    ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
+from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
+                    ExpedienteForm, ListMateriaForm, MesaForm,
+                    OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
+                    PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm, BancadaForm, BlocoForm)
+                    VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
@@ -171,12 +170,12 @@ def customize_link_materia(context, pk):
                                                turno__isnull=False,
                                                data_tramitacao__lte=data_inicio_sessao
                                                ).exclude(turno__exact=''
-                                                        ).select_related(
-                                                        'materia',
-                                                        'status',
-                                                        'materia__tipo').order_by(
-                                                        '-data_tramitacao'
-                                                        ).first()
+                                                         ).select_related(
+            'materia',
+            'status',
+            'materia__tipo').order_by(
+            '-data_tramitacao'
+        ).first()
         turno = '  '
         if tramitacao is not None:
             for t in Tramitacao.TURNO_CHOICES:
@@ -355,7 +354,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                                     'pk': obj.sessao_plenaria_id,
                                     'oid': obj.pk,
                                     'mid': obj.materia_id}) +\
-                                    '?&materia=ordem'
+                                '?&materia=ordem'
                             obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
                                              (url,
                                               resultado_descricao,
@@ -489,7 +488,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                                     'pk': obj.sessao_plenaria_id,
                                     'oid': obj.pk,
                                     'mid': obj.materia_id}) +\
-                                     '?&materia=expediente'
+                                '?&materia=expediente'
                             obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
                                              (url,
                                               resultado_descricao,
@@ -572,6 +571,7 @@ class OradorCrud(OradorCrud):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
 
+
 class BancadaCrud(Crud):
     model = Bancada
 
@@ -581,6 +581,7 @@ class BancadaCrud(Crud):
         def get_success_url(self):
             return reverse('sapl.sessao:bancada_list')
 
+
 class BlocoCrud(Crud):
     model = Bloco
 
@@ -589,6 +590,7 @@ class BlocoCrud(Crud):
 
         def get_success_url(self):
             return reverse('sapl.sessao:bloco_list')
+
 
 def recuperar_numero_sessao(request):
     try:
@@ -1793,7 +1795,6 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             except ObjectDoesNotExist:
                 raise Http404()
 
-
         if 'cancelar-votacao' in request.POST:
             fechar_votacao_materia(materia_votacao)
             return self.form_valid(form)
@@ -1820,7 +1821,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
 
             # Caso todas as opções sejam 'Não votou', fecha a votação
             if nao_votou == len(request.POST.getlist('voto_parlamentar')):
-                form.add_error(None, 'Não é possível finalizar a votação sem '\
+                form.add_error(None, 'Não é possível finalizar a votação sem '
                                      'nenhum voto')
                 return self.form_invalid(form)
 
@@ -1915,7 +1916,6 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             kwargs={'pk': self.kwargs['pk'],
                     'oid': self.kwargs['oid'],
                     'mid': self.kwargs['mid']}))
-
 
     def get_parlamentares(self, presencas):
         self.object = self.get_object()
@@ -2119,7 +2119,6 @@ class VotacaoNominalTransparenciaDetailView(TemplateView):
     def get_tipos_votacao(self):
         for tipo in TipoResultadoVotacao.objects.all():
             yield tipo
-
 
 
 class VotacaoNominalExpedienteDetailView(DetailView):
@@ -2521,7 +2520,6 @@ class PautaSessaoDetailView(DetailView):
         context.update({'subnav_template_name': 'sessao/pauta_subnav.yaml'})
 
         return self.render_to_response(context)
-
 
 
 class PesquisarSessaoPlenariaView(FilterView):

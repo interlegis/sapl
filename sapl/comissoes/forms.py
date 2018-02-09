@@ -1,17 +1,17 @@
-from django.db.models import Q
 from django import forms
-from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import Participacao, Composicao, Comissao
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
+from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
+
 
 class ParticipacaoCreateForm(forms.ModelForm):
 
-    parent_pk = forms.CharField(required=False) # widget=forms.HiddenInput())
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
 
     class Meta:
         model = Participacao
@@ -34,14 +34,14 @@ class ParticipacaoCreateForm(forms.ModelForm):
         parlamentares = Mandato.objects.filter(qs,
                                                parlamentar__ativo=True
                                                ).prefetch_related('parlamentar').\
-                                               values_list('parlamentar',
-                                                           flat=True).distinct()
+            values_list('parlamentar',
+                        flat=True).distinct()
 
         qs = Parlamentar.objects.filter(id__in=parlamentares).distinct().\
-        exclude(id__in=id_part)
+            exclude(id__in=id_part)
         eligible = self.verifica()
         result = list(set(qs) & set(eligible))
-        if not cmp(result, eligible): # se igual a 0 significa que o qs e o eli são iguais!
+        if not cmp(result, eligible):  # se igual a 0 significa que o qs e o eli são iguais!
             self.fields['parlamentar'].queryset = qs
         else:
             ids = [e.id for e in eligible]
@@ -55,7 +55,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
         q1 = Q(data_fim_mandato__isnull=False,
                data_fim_mandato__gte=data_inicio_comissao)
         q2 = Q(data_inicio_mandato__gte=data_inicio_comissao) \
-             & Q(data_inicio_mandato__lte=data_fim_comissao)
+            & Q(data_inicio_mandato__lte=data_fim_comissao)
         q3 = Q(data_fim_mandato__isnull=True,
                data_inicio_mandato__lte=data_inicio_comissao)
         qs = q1 | q2 | q3
@@ -82,17 +82,18 @@ class ParticipacaoCreateForm(forms.ModelForm):
                 comp_data_inicio = composicao.periodo.data_inicio
                 comp_data_fim = composicao.periodo.data_fim
                 if (data_fim and data_fim >= comp_data_inicio)\
-                    or (data_inicio >= comp_data_inicio and data_inicio <= comp_data_fim)\
-                    or (data_fim is None and data_inicio <= comp_data_inicio):
+                        or (data_inicio >= comp_data_inicio and data_inicio <= comp_data_fim)\
+                        or (data_fim is None and data_inicio <= comp_data_inicio):
                     lista.append(p)
 
         lista = list(set(lista))
 
         return lista
 
+
 class ParticipacaoEditForm(forms.ModelForm):
 
-    parent_pk = forms.CharField(required=False) # widget=forms.HiddenInput())
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
     nome_parlamentar = forms.CharField(required=False, label='Parlamentar')
 
     class Meta:
@@ -109,8 +110,6 @@ class ParticipacaoEditForm(forms.ModelForm):
         self.initial['nome_parlamentar'] = Parlamentar.objects.get(
             id=self.initial['parlamentar']).nome_parlamentar
         self.fields['nome_parlamentar'].widget.attrs['disabled'] = 'disabled'
-
-
 
 
 class ComissaoForm(forms.ModelForm):
@@ -135,7 +134,7 @@ class ComissaoForm(forms.ModelForm):
         content_type = ContentType.objects.get_for_model(Comissao)
         object_id = comissao.pk
         tipo = TipoAutor.objects.get(descricao__icontains='Comiss')
-        nome = comissao.sigla+' - '+comissao.nome
+        nome = comissao.sigla + ' - ' + comissao.nome
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,

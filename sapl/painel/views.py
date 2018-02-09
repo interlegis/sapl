@@ -11,16 +11,15 @@ from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-
 from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
 from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
-from sapl.sessao.models import (ExpedienteMateria, OrdemDia, OradorExpediente,
-                                PresencaOrdemDia,
-                                RegistroVotacao, SessaoPlenaria,
-                                SessaoPlenariaPresenca, VotoParlamentar)
+from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
+                                PresencaOrdemDia, RegistroVotacao,
+                                SessaoPlenaria, SessaoPlenariaPresenca,
+                                VotoParlamentar)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
 from .models import Cronometro
@@ -304,16 +303,16 @@ def get_presentes(pk, response, materia):
 
         oradores_list.append(
             {
-            'nome': o.parlamentar.nome_parlamentar,
-            'numero': o.numero_ordem
+                'nome': o.parlamentar.nome_parlamentar,
+                'numero': o.numero_ordem
             })
 
     presentes_list = []
     for p in presentes:
         now_year = timezone.now().year
         # Recupera a legislatura vigente
-        legislatura = Legislatura.objects.get(data_inicio__year__lte = now_year,
-                                                 data_fim__year__gte = now_year)
+        legislatura = Legislatura.objects.get(data_inicio__year__lte=now_year,
+                                              data_fim__year__gte=now_year)
         # Recupera os mandatos daquele parlamentar
         mandatos = p.parlamentar.mandato_set.filter(legislatura=legislatura)
 
@@ -402,7 +401,6 @@ def get_votos(response, materia):
                 votos_parlamentares = VotoParlamentar.objects.filter(
                     expediente_id=materia.id).order_by(
                         'parlamentar__nome_parlamentar')
-
 
             for i, p in enumerate(response['presentes']):
                 try:

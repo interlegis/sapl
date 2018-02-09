@@ -1,6 +1,5 @@
 from django.apps import apps
 from django.db import models
-
 from sapl.settings import SAPL_APPS
 
 

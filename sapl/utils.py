@@ -23,7 +23,6 @@ from django.utils.translation import ugettext_lazy as _
 from django_filters.filterset import STRICTNESS
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
-
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
 
@@ -271,6 +270,7 @@ def listify(function):
     def f(*args, **kwargs):
         return list(function(*args, **kwargs))
     return f
+
 
 LISTA_DE_UFS = [
     ('AC', 'Acre'),

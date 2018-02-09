@@ -5,7 +5,6 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
-
 from sapl.base.models import (Argumento, CasaLegislativa, Constraint,
                               ProblemaMigracao)
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
@@ -52,6 +51,7 @@ def test_models_in_rules_patterns(model_item):
                    'grupo padrão para regras de acesso.') % (
                        str(model_item),
                        model_item._meta.verbose_name)
+
 
 # __falsos_positivos__
 __fp__in__test_permission_of_models_in_rules_patterns = {

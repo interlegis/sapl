@@ -9,7 +9,6 @@ from django.db.models.functions import Concat
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
@@ -799,12 +798,13 @@ class UnidadeTramitacaoManager(models.Manager):
         Esta classe permite ordenar alfabeticamente a unidade de tramitacao
         através da concatenação de 3 fields
     """
+
     def get_queryset(self):
         return super(UnidadeTramitacaoManager, self).get_queryset().annotate(
-                nome_composto=Concat('orgao__nome',
-                                     'comissao__sigla',
-                                     'parlamentar__nome_parlamentar')
-                                    ).order_by('nome_composto')
+            nome_composto=Concat('orgao__nome',
+                                 'comissao__sigla',
+                                 'parlamentar__nome_parlamentar')
+        ).order_by('nome_composto')
 
 
 @reversion.register()

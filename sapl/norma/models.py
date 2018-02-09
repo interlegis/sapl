@@ -4,7 +4,6 @@ from django.db import models
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,

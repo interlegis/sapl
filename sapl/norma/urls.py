@@ -1,5 +1,4 @@
 from django.conf.urls import include, url
-
 from sapl.norma.views import (AssuntoNormaCrud, NormaCrud, NormaPesquisaView,
                               NormaRelacionadaCrud, NormaTaView, TipoNormaCrud,
                               TipoVinculoNormaJuridicaCrud, recuperar_norma,

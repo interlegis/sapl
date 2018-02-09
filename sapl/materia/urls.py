@@ -1,5 +1,4 @@
 from django.conf.urls import include, url
-
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
                                 AcompanhamentoMateriaView, AnexadaCrud,
@@ -24,8 +23,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
                                 proposicao_texto, recuperar_materia)
-
-from sapl.norma.views import  NormaPesquisaSimplesView
+from sapl.norma.views import NormaPesquisaSimplesView
 
 from .apps import AppConfig
 

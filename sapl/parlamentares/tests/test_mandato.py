@@ -2,7 +2,6 @@ from datetime import datetime
 
 import pytest
 from model_mommy import mommy
-
 from sapl.parlamentares.models import Filiacao, Legislatura, Mandato
 
 pytestmark = pytest.mark.django_db

@@ -1,5 +1,4 @@
 from django.conf.urls import include, url
-
 from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                AdicionarVariasMateriasOrdemDia, BancadaCrud,
                                BlocoCrud, CargoBancadaCrud,
@@ -18,9 +17,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoNominalExpedienteDetailView,
                                VotacaoNominalExpedienteEditView,
                                VotacaoNominalExpedienteView,
-                               VotacaoNominalView,
                                VotacaoNominalTransparenciaDetailView,
-                               VotacaoView, abrir_votacao,
+                               VotacaoNominalView, VotacaoView, abrir_votacao,
                                atualizar_mesa, insere_parlamentar_composicao,
                                mudar_ordem_materia_sessao, recuperar_materia,
                                recuperar_numero_sessao,

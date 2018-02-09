@@ -3,7 +3,6 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from reversion.models import Revision
-
 from sapl.base.models import ProblemaMigracao
 from sapl.utils import register_all_models_in_admin
 
@@ -40,5 +39,6 @@ class RevisionAdmin(admin.ModelAdmin):
     def change_view(self, request, obj=None):
         self.message_user(request, _('You cannot change history.'))
         return redirect('admin:reversion_revision_changelist')
+
 
 admin.site.register(Revision, RevisionAdmin)

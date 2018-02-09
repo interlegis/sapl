@@ -2,9 +2,9 @@ import mimetypes
 import os
 import re
 
-import magic
 import yaml
 
+import magic
 from sapl.base.models import CasaLegislativa
 from sapl.legacy.migration import exec_legado, warn
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,

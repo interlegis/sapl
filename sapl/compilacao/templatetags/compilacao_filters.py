@@ -4,7 +4,6 @@ from django.core.signing import Signer
 from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-
 from sapl.compilacao.models import Dispositivo
 
 register = template.Library()

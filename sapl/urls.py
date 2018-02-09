@@ -13,13 +13,6 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf import settings
-from django.conf.urls import include, url
-from django.conf.urls.static import static
-from django.contrib import admin
-from django.views.generic.base import RedirectView, TemplateView
-from django.views.static import serve as view_static_server
-
 import sapl.api.urls
 import sapl.base.urls
 import sapl.comissoes.urls
@@ -33,6 +26,12 @@ import sapl.protocoloadm.urls
 import sapl.redireciona_urls.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
+from django.conf import settings
+from django.conf.urls import include, url
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.views.generic.base import RedirectView, TemplateView
+from django.views.static import serve as view_static_server
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html'),

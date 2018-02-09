@@ -1,5 +1,4 @@
 from django.contrib import admin
-
 from sapl.materia.models import Proposicao
 from sapl.settings import DEBUG
 from sapl.utils import register_all_models_in_admin

@@ -1,5 +1,4 @@
 from django.conf.urls import include, url
-
 from sapl.lexml.views import LexmlProvedorCrud, LexmlPublicadorCrud
 
 from .apps import AppConfig

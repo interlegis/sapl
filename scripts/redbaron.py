@@ -64,6 +64,8 @@ def frase(n):
 
 def mark(n):
     mark.ok |= {n.value}
+
+
 mark.ok = set()
 
 

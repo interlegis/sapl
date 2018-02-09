@@ -10,7 +10,6 @@ from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
-
 from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
                         SAPL_GROUP_PAINEL, SAPL_GROUP_PROTOCOLO,

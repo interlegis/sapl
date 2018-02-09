@@ -1,5 +1,4 @@
 from django.core import mail
-
 from sapl.materia.email_utils import enviar_emails, load_email_templates
 
 

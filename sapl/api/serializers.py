@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import OrdemDia, SessaoPlenaria

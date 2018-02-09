@@ -1,26 +1,24 @@
 
+import weasyprint
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
+from django.template import RequestContext, loader
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic.base import RedirectView
-from django_filters.views import FilterView
-from django.contrib.auth.mixins import PermissionRequiredMixin
-
-from django.http import HttpResponse, JsonResponse
-from django.views.generic.edit import FormView
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
-from django.template import RequestContext, loader
-import weasyprint
-
+from django.views.generic.base import RedirectView
+from django.views.generic.edit import FormView
+from django_filters.views import FilterView
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.utils import show_results_filter_set
 
-from .forms import NormaFilterSet, NormaJuridicaForm, NormaRelacionadaForm, NormaPesquisaSimplesForm
+from .forms import (NormaFilterSet, NormaJuridicaForm,
+                    NormaPesquisaSimplesForm, NormaRelacionadaForm)
 from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica)
 
@@ -243,21 +241,19 @@ def gerar_pdf_impressos(request, context, template_name):
 
     return response
 
+
 class NormaPesquisaSimplesView(PermissionRequiredMixin, FormView):
     form_class = NormaPesquisaSimplesForm
     template_name = 'materia/impressos/norma.html'
     permission_required = ('materia.can_access_impressos', )
-    
-  
-    
+
     def form_valid(self, form):
         normas = NormaJuridica.objects.all().order_by(
             'numero')
         template_norma = 'materia/impressos/normas_pdf.html'
-        
+
         titulo = form.cleaned_data['titulo']
 
-        
         if form.cleaned_data['tipo_norma']:
             normas = normas.filter(tipo=form.cleaned_data['tipo_norma'])
 
@@ -265,13 +261,13 @@ class NormaPesquisaSimplesView(PermissionRequiredMixin, FormView):
             normas = normas.filter(
                 data__gte=form.cleaned_data['data_inicial'],
                 data__lte=form.cleaned_data['data_final'])
- 
+
         qtd_resultados = len(normas)
         if qtd_resultados > 2000:
             normas = normas[:2000]
-                   
+
         context = {'quantidade': qtd_resultados,
                    'titulo': titulo,
                    'normas': normas}
-        
+
         return gerar_pdf_impressos(self.request, context, template_norma)

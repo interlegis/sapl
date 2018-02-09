@@ -3,7 +3,6 @@
 
 
 from django.core.exceptions import ObjectDoesNotExist
-
 from sapl.protocoloadm.models import DocumentoAdministrativo, Protocolo
 
 

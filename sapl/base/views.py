@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -11,12 +11,12 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import ugettext_lazy as _, string_concat
+from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
+from django.views.generic import FormView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
-from django.views.generic import FormView
-from django.contrib.auth import update_session_auth_hash
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux
@@ -27,13 +27,13 @@ from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
 from sapl.utils import (parlamentares_ativos, sapl_logger,
                         show_results_filter_set)
 
-from .forms import (CasaLegislativaForm, ConfiguracoesAppForm,
-                    RelatorioAtasFilterSet,
+from .forms import (AlterarSenhaForm, CasaLegislativaForm,
+                    ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
-                    RelatorioPresencaSessaoFilterSet, AlterarSenhaForm)
+                    RelatorioPresencaSessaoFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 

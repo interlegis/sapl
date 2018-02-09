@@ -6,5 +6,6 @@ def popula_campo_data_inicio():
         m.data_inicio_mandato = m.legislatura.data_inicio
         m.save()
 
+
 if __name__ == '__main__':
     popula_campo_data_inicio()

@@ -1,4 +1,5 @@
 
+import sapl
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -14,15 +15,16 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
-
-import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
-from sapl.utils import create_barcode, get_client_ip, show_results_filter_set, get_mime_type_from_file_extension
+from sapl.utils import (create_barcode, get_client_ip,
+                        get_mime_type_from_file_extension,
+                        show_results_filter_set)
+
 from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,

@@ -1,3 +1,4 @@
+import django_filters
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
@@ -9,12 +10,9 @@ from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.forms import ModelForm, Form
-from django.utils.translation import string_concat
+from django.forms import Form, ModelForm
 from django.utils.translation import ugettext_lazy as _
-
-import django_filters
-
+from django.utils.translation import string_concat
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
@@ -27,7 +25,6 @@ from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
                         qs_override_django_filter)
 
 from .models import AppConfig, CasaLegislativa
-
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('A', _('Associar um usuário existente')),
@@ -727,7 +724,6 @@ class AlterarSenhaForm(Form):
     new_password2 = forms.CharField(label='Confirmar senha',
                                     max_length=50,
                                     widget=forms.PasswordInput())
-
 
     class Meta:
         fields = ['username', 'old_password', 'new_password1', 'new_password2']

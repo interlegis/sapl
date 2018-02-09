@@ -33,6 +33,7 @@ def novas_linhas(linhas):
             nome = nome.lower()
             yield '%s==%s' % (nome, freeze[nome])
 
+
 for arq, linhas in requirements:
     with open(arq, 'w') as f:
         f.writelines(l + '\n' for l in novas_linhas(linhas))
