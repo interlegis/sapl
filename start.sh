@@ -36,7 +36,8 @@ create_env() {
     echo "EMAIL_SEND_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "DEFAULT_FROM_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "SERVER_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
-    
+    echo "TIME_ZONE = ""${TIME_ZONE-''}" >> $FILENAME 
+
     echo "[ENV FILE] done."
 }
 
