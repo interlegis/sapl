@@ -30,7 +30,7 @@
 - title: {% trans 'Painel Eletrônico' %}
   url: painel
   {% if not 'painel_aberto'|get_config_attr %}check_permission: painel.list_painel{%endif%}
-  check_permission: user.is_superuser
+  check_permission: painel.list_painel
 
 - title: {% trans 'Resumo' %}
   url: resumo
