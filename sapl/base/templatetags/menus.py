@@ -1,9 +1,10 @@
-import yaml
-
 from django import template
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+import yaml
+
 from sapl.utils import sapl_logger
+
 
 register = template.Library()
 
@@ -76,7 +77,7 @@ def nav_run(context, path=None):
             return
 
         try:
-            rendered = yaml_template.render(context, request)
+            rendered = yaml_template.template.render(context)
             menu = yaml.load(rendered)
             resolve_urls_inplace(menu, root_pk, rm, context)
         except Exception as e:

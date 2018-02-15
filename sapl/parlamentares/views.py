@@ -1,5 +1,5 @@
-import json
 from datetime import datetime
+import json
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
+
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -31,6 +32,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
+
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
@@ -496,7 +498,8 @@ class ParlamentarCrud(Crud):
                 parlamentar = Parlamentar.objects.get(
                     id=(row[0][1].split('/')[-1]))
 
-                row[0] += (parlamentar, )
+                for index, value in enumerate(row):
+                    row[index] += (None if index else parlamentar,)
 
                 # Pega a Legislatura
                 legislatura = Legislatura.objects.get(
@@ -516,7 +519,7 @@ class ParlamentarCrud(Crud):
 
                 # Caso não exista filiação com essas condições
                 except ObjectDoesNotExist:
-                    row[1] = ('Não possui filiação', None)
+                    row[1] = ('Não possui filiação', None, None)
 
                 # Caso exista mais de uma filiação nesse intervalo
                 # Entretanto, NÃO DEVE OCORRER
@@ -527,7 +530,7 @@ class ParlamentarCrud(Crud):
 
                 # Caso encontre UMA filiação nessas condições
                 else:
-                    row[1] = (filiacao.partido.sigla, None)
+                    row[1] = (filiacao.partido.sigla, None, None)
 
             return context
 
