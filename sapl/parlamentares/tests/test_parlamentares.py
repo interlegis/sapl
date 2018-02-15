@@ -149,8 +149,6 @@ def test_form_errors_mandato(admin_client):
 
     assert (response.context_data['form'].errors['legislatura'] ==
             [_('Este campo é obrigatório.')])
-    assert (response.context_data['form'].errors['data_expedicao_diploma'] ==
-            [_('Este campo é obrigatório.')])
 
 
 def test_mandato_form_invalido():
@@ -162,7 +160,6 @@ def test_mandato_form_invalido():
     errors = form.errors
     assert errors['legislatura'] == [_('Este campo é obrigatório.')]
     assert errors['parlamentar'] == [_('Este campo é obrigatório.')]
-    assert errors['data_expedicao_diploma'] == [_('Este campo é obrigatório.')]
 
 
 @pytest.mark.django_db(transaction=False)
