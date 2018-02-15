@@ -35,9 +35,6 @@ if [ $# -ge 2 ]; then
     DATABASE_NAME=$1 ./manage.py migrate --settings sapl.legacy_migration_settings
     echo >> $LOG
 
-    # XXX Na primeira execução desse comando aparece o erro de "Coammands out of sync"
-    # A solução mais rápida foi executar duas vezes seguidas pra poder migrar.
-    DATABASE_NAME=$1 ./manage.py migracao_25_31 -f --settings sapl.legacy_migration_settings
     echo "--- MIGRACAO DE DADOS ---" | tee -a $LOG
     echo >> $LOG
     DATABASE_NAME=$1 ./manage.py migracao_25_31 -f --settings sapl.legacy_migration_settings |& tee -a $LOG
