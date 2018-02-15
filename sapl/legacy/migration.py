@@ -432,6 +432,10 @@ relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
     unifica_autores_repetidos_no_legado('cod_parlamentar')
     unifica_autores_repetidos_no_legado('cod_comissao')
 
+    # é importante reverter a exclusão de autores somente depois, para que a
+    # unificação possa dar prioridade às informações dos autores não excluídos
+    reverte_exclusao_de_autores_referenciados_no_legado()
+
     anula_tipos_origem_externa_invalidos()
 
 
