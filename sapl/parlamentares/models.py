@@ -435,8 +435,9 @@ class Mandato(models.Model):
                                         null=True)
     votos_recebidos = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Votos Recebidos (Mandato)'))
-    data_expedicao_diploma = models.DateField(
-        verbose_name=_('Expedição do Diploma'))
+    data_expedicao_diploma = models.DateField(blank=True,
+                                              null=True,
+                                              verbose_name=_('Expedição do Diploma'))
     titular = models.BooleanField(
         db_index=True,
         default=True,
