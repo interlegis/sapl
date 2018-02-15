@@ -5,9 +5,8 @@ from itertools import groupby
 from subprocess import PIPE, call
 
 import pkg_resources
-import yaml
-
 import reversion
+import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
@@ -17,6 +16,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
+
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import (Autor, ProblemaMigracao, TipoAutor,
                               cria_models_tipo_autor)
@@ -149,6 +149,25 @@ def exec_sql(sql, db='default'):
 exec_legado = partial(exec_sql, db='legacy')
 
 
+def _formatar_lista_para_sql(iteravel):
+    lista = list(iteravel)
+    if lista:
+        return '({})'.format(str(lista)[1:-1])  # transforma "[...]" em "(...)"
+    else:
+        return None
+
+
+def exec_legado_em_subconjunto(sql, ids):
+    """Executa uma query sql no legado no formato '.... in {}'
+    interpolando `ids`, se houver ids"""
+
+    lista_sql = _formatar_lista_para_sql(ids)
+    if lista_sql:
+        return exec_legado(sql.format(lista_sql))
+    else:
+        return []
+
+
 def primeira_coluna(cursor):
     return (r[0] for r in cursor)
 
@@ -197,6 +216,8 @@ TABELAS_REFERENCIANDO_AUTOR = [
 
 
 def reverte_exclusao_de_autores_referenciados_no_legado():
+    """Reverte a exclusão de autores que sejam referenciados de alguma forma
+    na base legada"""
 
     def get_autores_referenciados(tabela, tem_ind_excluido):
         sql = '''select distinct cod_autor from {}
@@ -211,10 +232,9 @@ def reverte_exclusao_de_autores_referenciados_no_legado():
         cod
         for tabela, tem_ind_excluido in TABELAS_REFERENCIANDO_AUTOR
         for cod in get_autores_referenciados(tabela, tem_ind_excluido)}
-    exec_legado(
-        'update autor set ind_excluido = 0 where cod_autor in {}'.format(
-            tuple(autores_referenciados)
-        ))
+    exec_legado_em_subconjunto(
+        'update autor set ind_excluido = 0 where cod_autor in {}',
+        autores_referenciados)
 
 
 def get_reapontamento_de_autores_repetidos(autores):
@@ -279,13 +299,13 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
     exec_legado('delete from autoria where ind_excluido = 1')
 
     # selecionamos as autorias envolvidas em repetições de autores
-    from_autoria = ' from autoria where cod_autor in {}'.format(
-        tuple(reapontamento))
-    autoria = exec_legado(
-        'select cod_autor, cod_materia, ind_primeiro_autor' + from_autoria)
+    from_autoria = ' from autoria where cod_autor in {}'
+    autoria = exec_legado_em_subconjunto(
+        'select cod_autor, cod_materia, ind_primeiro_autor' + from_autoria,
+        reapontamento)
 
     # apagamos todas as autorias envolvidas
-    exec_legado('delete ' + from_autoria)
+    exec_legado_em_subconjunto('delete ' + from_autoria, reapontamento)
     # e depois inserimos apenas as sem repetições c ind_primeiro_autor ajustado
     nova_autoria = get_autorias_sem_repeticoes(autoria, reapontamento)
     exec_legado('''
@@ -304,24 +324,23 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
 
     # Finalmente excluimos os autores redundantes,
     # cujas referências foram todas substituídas a essa altura
-    exec_legado('delete from autor where cod_autor in {}'.format(
-        tuple(apagar)))
+    exec_legado_em_subconjunto('delete from autor where cod_autor in {}',
+                               apagar)
 
 
 def anula_tipos_origem_externa_invalidos():
     """Anula tipos de origem externa inválidos
     para que não impeçam a migração da matéria"""
 
-    tipos_validos = tuple(primeira_coluna(exec_legado('''
+    tipos_validos = primeira_coluna(exec_legado('''
         select tip_materia
         from tipo_materia_legislativa
-        where ind_excluido <> 1;''')))
+        where ind_excluido <> 1;'''))
 
-    if tipos_validos:
-        exec_legado('''
-            update materia_legislativa
-            set tip_origem_externa = NULL
-            where tip_origem_externa not in {};'''.format(tipos_validos))
+    exec_legado_em_subconjunto('''
+        update materia_legislativa
+        set tip_origem_externa = NULL
+        where tip_origem_externa not in {};''', tipos_validos)
 
 
 def uniformiza_banco():

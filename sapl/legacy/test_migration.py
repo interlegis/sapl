@@ -1,6 +1,6 @@
 from random import shuffle
 
-from .migration import (get_autorias_sem_repeticoes,
+from .migration import (_formatar_lista_para_sql, get_autorias_sem_repeticoes,
                         get_reapontamento_de_autores_repetidos)
 
 
@@ -53,3 +53,9 @@ def test_unifica_autores_repetidos_no_legado():
                                    (10, 999, 0),
                                    (20, 999, 0),
                                    ])
+
+
+def test_formatar_lista_para_sql():
+    assert _formatar_lista_para_sql([1, 2, 3]) == '(1, 2, 3)'
+    assert _formatar_lista_para_sql([1]) == '(1)'
+    assert _formatar_lista_para_sql([]) is None
