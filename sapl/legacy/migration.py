@@ -344,17 +344,8 @@ def anula_tipos_origem_externa_invalidos():
 
 
 def uniformiza_banco():
-    exec_legado('''
-      SELECT replace(@@sql_mode,"STRICT_TRANS_TABLES,","ALLOW_INVALID_DATES");
-    ''')
-
-    # ajusta data zero em proposicao
-    # isso é necessário para poder alterar a tabela a seguir
-    exec_legado('''
-        UPDATE proposicao SET dat_envio = "1800-01-01" WHERE dat_envio = 0;
-        alter table proposicao modify dat_envio datetime;
-        UPDATE proposicao SET dat_envio = NULL where dat_envio = "1800-01-01";
-        ''')
+    # desliga todas as checagens do mysql
+    exec_legado('SET SESSION sql_mode = "";')
 
     garante_coluna_no_legado('proposicao',
                              'num_proposicao int(11) NULL')
