@@ -45,6 +45,11 @@
             setTimeout(function(){ window.location.reload(true) }, 500);
         }
      });
+     $(window).on('beforeunload', function () {
+            $('tbody').sortable('disable');
+            $("input[type=submit], input[type=button]").prop("disabled", "disabled");
+     });
+
     </script>
 
 {% endblock %}
