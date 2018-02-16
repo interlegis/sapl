@@ -5,13 +5,14 @@
 # Esse script precisa rodar em python 2
 # e depende apenas do descrito no arquivo requiments.txt
 
-import os.path
+import mimetypes
+import os
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
 from functools import partial
-from os.path import splitext
 
+import magic
 import yaml
 
 import ZODB.DB
@@ -36,6 +37,7 @@ EXTENSOES = {
     'SDE-Document': '.xml',
     'image/tiff': '.tiff',
     'application/tiff': '.tiff',
+    'audio/x-wav': '.wav',
 
     # TODO rever...
     'text/richtext': '.rtf',
@@ -54,20 +56,28 @@ def br(obj):
         return obj
 
 
-extensoes_desconhecidas = defaultdict(list)
+def guess_extension(caminho):
+    mime = magic.from_file(caminho, mime=True)
+    try:
+        return EXTENSOES[mime]
+    except KeyError as e:
+        msg = '\n'.join([
+            'Extensão não conhecida para o arquivo:',
+            caminho,
+            'E mimetype:',
+            mime,
+            ' Algumas possibilidades são:', ] +
+            ["    '{}': '{}',".format(mime, ext)
+             for ext in mimetypes.guess_all_extensions(mime)] +
+            ['Atualize o código do dicionário EXTENSOES!']
+        )
+        print(msg)
+        raise Exception(msg, e)
 
 
 def dump_file(doc, path):
-    id = doc['__name__']
-    name, extension = splitext(id)
-    content_type = doc['content_type']
-    extension = extension or EXTENSOES.get(content_type, '.ZZZ')
-
-    fullname = os.path.join(path, name + extension)
-    print(fullname)
-
-    if extension == '.ZZZ':
-        extensoes_desconhecidas[content_type].append(fullname)
+    name = doc['__name__']
+    fullname = os.path.join(path, name)
 
     # A partir daqui usamos dict.pop('...') nos __Broken_state__
     # para contornar um "vazamento" de memória que ocorre
@@ -90,7 +100,13 @@ def dump_file(doc, path):
             arq.write(pdata.pop('data'))
             pdata = br(pdata.pop('next', None))
 
-    return id
+    base = os.path.splitext(fullname)[0]
+    extension = guess_extension(fullname)
+    final_name = base + extension
+    os.rename(fullname, final_name)
+    print(final_name)
+
+    return name
 
 
 def enumerate_by_key_list(folder, key_list, type_key):
