@@ -33,13 +33,15 @@ EXTENSOES = {
     'text/rtf': '.rtf',
     'text/x-python': '.py',
     'text/plain': '.txt',
-    'SDE-Document': 'xml',
+    'SDE-Document': '.xml',
+    'image/tiff': '.tiff',
+    'application/tiff': '.tiff',
 
     # TODO rever...
     'text/richtext': '.rtf',
 
     # sem extensao
-    'application/octet-stream': '',  # binario
+    'application/octet-stream': '',  # binário
     'inode/x-empty': '',  # vazio
     'text/x-unknown-content-type': '',
 }
@@ -59,12 +61,12 @@ def dump_file(doc, path):
     id = doc['__name__']
     name, extension = splitext(id)
     content_type = doc['content_type']
-    extension = extension or EXTENSOES.get(content_type, 'ZZZZ')
+    extension = extension or EXTENSOES.get(content_type, '.ZZZ')
 
     fullname = os.path.join(path, name + extension)
     print(fullname)
 
-    if extension == 'ZZZZ':
+    if extension == '.ZZZ':
         extensoes_desconhecidas[content_type].append(fullname)
 
     # A partir daqui usamos dict.pop('...') nos __Broken_state__
