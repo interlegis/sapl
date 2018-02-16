@@ -1,9 +1,9 @@
 INSERT INTO compilacao_perfilestruturaltextoarticulado (id, sigla, nome, padrao, parent_id) VALUES (1, 'LC95', 'Lei Complementar 95', true, null);
 INSERT INTO compilacao_perfilestruturaltextoarticulado (id, sigla, nome, padrao, parent_id) VALUES (2, 'LC95-v', 'Lei Complementar 95 com Variação', false, null);
-INSERT INTO compilacao_perfilestruturaltextoarticulado (id, sigla, nome, padrao, parent_id) VALUES (3, 'PLOL', 'Projeto de Lei Ordinária do Legislativo', false, 1);
+INSERT INTO compilacao_perfilestruturaltextoarticulado (id, sigla, nome, padrao, parent_id) VALUES (3, 'PbLC95', 'Projetos baseados na LC 95', false, 1);
 INSERT INTO compilacao_perfilestruturaltextoarticulado (id, sigla, nome, padrao, parent_id) VALUES (4, 'REQ', 'Requerimento', false, null);
 SELECT pg_catalog.setval('compilacao_perfilestruturaltextoarticulado_id_seq', 4, true);
-update compilacao_perfilestruturaltextoarticulado set nome = 'Projeto de Lei Ordinária', sigla = 'PLO' where id = 3;
+update compilacao_perfilestruturaltextoarticulado set nome = 'Projetos baseados na LC 95', sigla = 'PbLC95' where id = 3;
 
 
 INSERT INTO compilacao_tipodispositivo (id, nome, class_css, rotulo_prefixo_html, rotulo_prefixo_texto, rotulo_ordinal, rotulo_sufixo_texto, rotulo_sufixo_html, texto_prefixo_html, texto_sufixo_html, nota_automatica_prefixo_html, nota_automatica_sufixo_html, contagem_continua, formato_variacao0, formato_variacao1, formato_variacao2, formato_variacao3, formato_variacao4, formato_variacao5, rotulo_separador_variacao01, rotulo_separador_variacao12, rotulo_separador_variacao23, rotulo_separador_variacao34, rotulo_separador_variacao45, dispositivo_de_articulacao, dispositivo_de_alteracao) VALUES (1, 'Articulação', 'articulacao', '', '', 0, '', '', '', '', '', '', true, 'N', 'N', 'N', 'N', 'N', 'N', '-', '-', '-', '-', '-', true, false);
