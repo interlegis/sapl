@@ -1,4 +1,6 @@
+import yaml
 from django.contrib.auth.models import Group, User
+
 from sapl.settings import MEDIA_ROOT
 
 PERFIL_LEGADO_PARA_NOVO = {legado: Group.objects.get(name=novo)
@@ -30,9 +32,20 @@ IGNORADOS = {
 }
 
 
+def decode_nome(nome):
+    if isinstance(nome, bytes):
+        try:
+            return nome.decode('utf-8')
+        except UnicodeDecodeError:
+            return nome.decode('iso8859-1')
+    else:
+        assert isinstance(nome, str)
+        return nome
+
+
 def migra_usuarios():
     """
-    Lê o arquivo media/USERS e importa os usuários nele listados,
+    Lê o arquivo media/usuarios.yaml e importa os usuários nele listados,
     com senhas e perfis.
     Os usuários são criados se necessário e seus perfis ajustados.
 
@@ -54,16 +67,19 @@ def migra_usuarios():
       Também podemos assumir que essa é uma tarefa de um administrador
     """
 
-    ARQUIVO_USUARIOS = MEDIA_ROOT.child('USERS')
+    ARQUIVO_USUARIOS = MEDIA_ROOT.child('usuarios.yaml')
     with open(ARQUIVO_USUARIOS, 'r') as f:
-        usuarios = eval(f.read())
+        usuarios = yaml.load(f)
+    # conferimos de que só há um nome de usuário
+    assert all(nome == dados['name'] for nome, dados in usuarios.items())
     usuarios = [
-        (nome,
-         # troca senha "inicial" por uma inutilizável
-         senha if senha != 'inicial' else None,
+        (decode_nome(nome),
+         # troca senha "inicial" (que existe em alguns zopes)
+         # por uma inutilizável
+         dados['__'] if dados['__'] != 'inicial' else None,
          # filtra perfis ignorados
-         {p for p in perfis if p not in IGNORADOS})
-        for nome, senha, perfis in usuarios]
+         set(dados['roles']) - IGNORADOS)
+        for nome, dados in usuarios.items()]
 
     for nome, senha, perfis in usuarios:
         usuario = User.objects.get_or_create(username=nome)[0]
