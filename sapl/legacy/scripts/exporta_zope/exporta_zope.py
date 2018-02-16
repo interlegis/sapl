@@ -8,6 +8,7 @@
 import os.path
 import sys
 from collections import defaultdict
+from contextlib import contextmanager
 from functools import partial
 from os.path import splitext
 
@@ -115,6 +116,20 @@ def enumerate_btree(folder):
 
 
 nao_identificados = defaultdict(list)
+
+
+@contextmanager
+def logando_nao_identificados():
+    nao_identificados.clear()
+    yield
+    if nao_identificados:
+        print('#' * 80)
+        print('#' * 80)
+        print(u'FORAM ENCONTRADOS ARQUIVOS DE FORMATO NÃO IDENTIFICADO!!!')
+        print(u'REFAÇA A EXPORTAÇÃO\n')
+        print(nao_identificados)
+        print('#' * 80)
+        print('#' * 80)
 
 
 def dump_folder(folder, path='', enum=enumerate_folder):
@@ -239,17 +254,9 @@ def dump_sapl(data_fs_path, destino='../../../../media'):
 
         # extrai documentos
         docs = br(sapl['sapl_documentos'])
-        nao_identificados.clear()
-        dump_folder(docs, destino)
-        dump_propriedades(docs, destino)
-        if nao_identificados:
-            print('#' * 80)
-            print('#' * 80)
-            print(u'FORAM ENCONTRADOS ARQUIVOS DE FORMATO NÃO IDENTIFICADO!!!')
-            print(u'REFAÇA A EXPORTAÇÃO\n')
-            print(nao_identificados)
-            print('#' * 80)
-            print('#' * 80)
+        with logando_nao_identificados():
+            dump_folder(docs, destino)
+            dump_propriedades(docs, destino)
     finally:
         close_db()
 
