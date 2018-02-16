@@ -1,6 +1,5 @@
 from math import ceil
 
-import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
@@ -8,6 +7,7 @@ from django import template
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.translation import ugettext as _
+import rtyaml
 
 
 def heads_and_tails(list_of_lists):
@@ -34,7 +34,7 @@ def to_fieldsets(fields):
             yield field
 
 
-def form_actions(more=[],
+def form_actions(more=[Div(css_class='clearfix')],
                  label=_('Salvar'), name='salvar', css_class='pull-right', disabled=True):
 
     if disabled:
