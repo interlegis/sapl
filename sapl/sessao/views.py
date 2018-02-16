@@ -432,9 +432,11 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
                         if self.request.user.has_module_perms(AppConfig.label):
                             btn_registrar = '''
-                                <a href="%s" class="btn btn-primary"
-                                   role="button">
-                                   Registrar Votação</a>''' % (url)
+                                <form action="%s">
+                                    <input type="submit" class="btn btn-primary"
+                                     value="Registrar Votação" />
+                                </form>
+                                ''' % (url)
                             obj.resultado = btn_registrar
                     else:
                         url = reverse('sapl.sessao:abrir_votacao', kwargs={
