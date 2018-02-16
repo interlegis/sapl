@@ -17,11 +17,12 @@ sapl:
     ADMIN_PASSWORD: interlegis
     ADMIN_EMAIL: email@dominio.net
     DEBUG: 'False'
-    USE_TLS: 'False' 
+    USE_TLS: 'False'
     EMAIL_PORT: 587
     EMAIL_HOST: smtp.dominio.net
     EMAIL_HOST_USER: usuariosmtp
     EMAIL_HOST_PASSWORD: senhasmtp
+    TZ: America/Sao_Paulo
   volumes:
     - sapl_data:/var/interlegis/sapl/data
     - sapl_media:/var/interlegis/sapl/media
