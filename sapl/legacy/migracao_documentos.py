@@ -1,10 +1,10 @@
 import mimetypes
 import os
 import re
+from glob import glob
 
 import yaml
 
-import magic
 from sapl.base.models import CasaLegislativa
 from sapl.legacy.migration import exec_legado, warn
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
@@ -17,82 +17,82 @@ from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MEDIA_ROOT
 
 # MIGRAÇÃO DE DOCUMENTOS  ###################################################
-EXTENSOES = {
-    'application/msword': '.doc',
-    'application/pdf': '.pdf',
-    'application/vnd.oasis.opendocument.text': '.odt',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',  # noqa
-    'application/xml': '.xml',
-    'text/xml': '.xml',
-    'application/zip': '.zip',
-    'image/jpeg': '.jpeg',
-    'image/png': '.png',
-    'text/html': '.html',
-    'text/rtf': '.rtf',
-    'text/x-python': '.py',
-    'text/plain': '.txt',
 
-    # sem extensao
-    'application/octet-stream': '',  # binário
-    'inode/x-empty': '',  # vazio
-}
+
+def get_ano(obj):
+    return [obj.ano]
+
+
+def ___(obj):
+    return []
+
 
 DOCS = {
     CasaLegislativa: [
         ('logotipo',
-         'props_sapl/logo_casa.gif',
-         'casa/logotipo/logo_casa.gif')
+         'props_sapl/{}.*',
+         'public/casa/logotipo/',
+         ___)
     ],
     Parlamentar: [
         ('fotografia',
          'parlamentar/fotos/{}_foto_parlamentar',
-         'public/parlamentar/{0}/{0}_foto_parlamentar{1}')
+         'public/parlamentar/{0}/',
+         ___)
     ],
     MateriaLegislativa: [
         ('texto_original',
          'materia/{}_texto_integral',
-         'public/materialegislativa/{2}/{0}/{0}_texto_integral{1}')
+         'public/materialegislativa/{1}/{0}/',
+         get_ano)
     ],
     DocumentoAcessorio: [
         ('arquivo',
          'materia/{}',
-         'public/documentoacessorio/{2}/{0}/{0}{1}')
+         'public/documentoacessorio/{1}/{0}/',
+         lambda obj: [obj.materia.ano])
     ],
     NormaJuridica: [
         ('texto_integral',
          'norma_juridica/{}_texto_integral',
-         'public/normajuridica/{2}/{0}/{0}_texto_integral{1}')
+         'public/normajuridica/{1}/{0}/',
+         get_ano)
     ],
     SessaoPlenaria: [
         ('upload_ata',
          'ata_sessao/{}_ata_sessao',
-         'public/sessaoplenaria/{0}/ata/{0}_ata_sessao{1}'),
+         'public/sessaoplenaria/{0}/ata/',
+         ___),
         ('upload_anexo',
          'anexo_sessao/{}_texto_anexado',
-         'public/sessaoplenaria/{0}/anexo/{0}_texto_anexado{1}')
+         'public/sessaoplenaria/{0}/anexo/',
+         ___)
     ],
     Proposicao: [
         ('texto_original',
          'proposicao/{}',
-         'private/proposicao/{0}/{0}{1}')
+         'private/proposicao/{0}/',
+         get_ano)
     ],
     DocumentoAdministrativo: [
         ('texto_integral',
          'administrativo/{}_texto_integral',
-         'private/documentoadministrativo/{0}/{0}_texto_integral{1}')
+         'private/documentoadministrativo/{0}/',
+         get_ano)
     ],
     DocumentoAcessorioAdministrativo: [
         ('arquivo',
          'administrativo/{}',
-         'private/documentoacessorioadministrativo/{0}/'
-         '{0}_acessorio_administrativo{1}')
+         'private/documentoacessorioadministrativo/{0}/',
+         ___)
     ],
 }
 
 DOCS = {model: [(campo,
                  os.path.join('sapl_documentos', origem),
-                 os.path.join('sapl', destino))
-                for campo, origem, destino in campos]
+                 os.path.join('sapl', destino),
+                 get_extra_args)
+                for campo, origem, destino, get_extra_args in campos]
         for model, campos in DOCS.items()}
 
 
@@ -128,59 +128,32 @@ def migrar_propriedades_da_casa():
                                 ('informacao_geral', 'txt_informacao_geral')]
     for campo, prop in campos_para_propriedades:
         setattr(casa, campo, propriedades[prop])
+
     # Localidade
     sql_localidade = '''
         select nom_localidade, sgl_uf from localidade
         where cod_localidade = {}'''.format(propriedades['cod_localidade'])
     [(casa.municipio, casa.uf)] = exec_legado(sql_localidade)
-    casa.save()
 
-
-def migrar_logotipo_da_casa():
-    print('#### Migrando logotipo da casa ####')
-    [(_, origem, destino)] = DOCS[CasaLegislativa]
-    props_sapl = os.path.dirname(origem)
-
-    # a pasta props_sapl deve conter apenas o origem e metadatas!
-    # Edit: Aparentemente há diretório que contém properties ao invés de
-    # metadata. O assert foi modificado para essa situação.
-    sobrando = set(os.listdir(em_media(props_sapl))) - {
-        'logo_casa.gif', '.metadata', 'logo_casa.gif.metadata',
-        '.properties', 'logo_casa.gif.properties', '.objects'}
-
-    if sobrando:
-        warn('Os seguintes arquivos da pasta props_sapl foram ignorados: ' +
-             ', '.join(sobrando))
-
+    print('.... Migrando logotipo da casa ....')
+    [(_, origem, destino, __)] = DOCS[CasaLegislativa]
+    # a extensão do logo pode ter sido ajustada pelo tipo real do arquivo
+    id_logo = os.path.splitext(propriedades['id_logo'])[0]
+    [origem] = glob(em_media(origem.format(id_logo)))
+    destino = os.path.join(destino, os.path.basename(origem))
     mover_documento(origem, destino)
-    casa = CasaLegislativa.objects.first()
     casa.logotipo = destino
     casa.save()
-
-
-def get_extensao(caminho):
-    mime = magic.from_file(caminho, mime=True)
-    try:
-        return EXTENSOES[mime]
-    except KeyError as e:
-        raise Exception('\n'.join([
-            'Extensão não conhecida para o arquivo:',
-            caminho,
-            'E mimetype:',
-            mime,
-            ' Algumas possibilidades são:', ] +
-            ["    '{}': '{}',".format(mime, ext)
-             for ext in mimetypes.guess_all_extensions(mime)] +
-            ['Atualize o código do dicionário EXTENSOES!']
-        )) from e
+    os.remove(caminho)
 
 
 def migrar_docs_por_ids(model):
-    for campo, base_origem, base_destino in DOCS[model]:
+    for campo, base_origem, base_destino, get_extra_args in DOCS[model]:
         print('#### Migrando {} de {} ####'.format(campo, model.__name__))
 
         dir_origem, nome_origem = os.path.split(em_media(base_origem))
-        pat = re.compile('^{}\.\w+$'.format(nome_origem.format('(\d+)')))
+        nome_origem = nome_origem.format('(\d+)')
+        pat = re.compile('^{}\.\w+$'.format(nome_origem))
 
         if not os.path.isdir(dir_origem):
             print('  >>> O diretório {} não existe! Abortado.'.format(
@@ -197,19 +170,12 @@ def migrar_docs_por_ids(model):
                     obj = model.objects.get(pk=id)
                 except model.DoesNotExist:
                     msg = '  {} (pk={}) não encontrado para documento em [{}]'
-                    print(msg.format(
-                        model.__name__, id, origem))
+                    print(msg.format(model.__name__, id, origem))
                 else:
-                    extensao = get_extensao(origem)
-                    if hasattr(obj, "ano"):
-                        destino = base_destino.format(id, extensao, obj.ano)
-                    elif isinstance(obj, DocumentoAcessorio):
-                        destino = base_destino.format(
-                            id, extensao, obj.materia.ano)
-                    else:
-                        destino = base_destino.format(id, extensao)
+                    destino = os.path.join(
+                        base_destino.format(id, *get_extra_args(obj)),
+                        os.path.basename(origem))
                     mover_documento(origem, destino)
-
                     setattr(obj, campo, destino)
                     obj.save()
 
@@ -217,15 +183,13 @@ def migrar_docs_por_ids(model):
 def migrar_documentos():
     # aqui supomos que uma pasta chamada sapl_documentos está em MEDIA_ROOT
     # com o conteúdo da pasta de mesmo nome do zope
-    # Os arquivos da pasta serão MOVIDOS para a nova estrutura e a pasta será
-    # apagada
+    # Os arquivos da pasta serão MOVIDOS para a nova estrutura!
+    # A pasta, após conferência do que não foi migrado, deve ser apagada.
     #
     # Isto significa que para rodar novamente esta função é preciso
     # restaurar a pasta sapl_documentos ao estado inicial
 
-    # esta ordem é importante
     migrar_propriedades_da_casa()
-    migrar_logotipo_da_casa()
 
     for model in [
         Parlamentar,

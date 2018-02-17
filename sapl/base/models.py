@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
+
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
 
@@ -38,7 +39,7 @@ class CasaLegislativa(models.Model):
         max_length=100, blank=True, verbose_name=_('Fax'))
     logotipo = models.ImageField(
         blank=True,
-        upload_to='sapl/casa/logotipo/',
+        upload_to='sapl/public/casa/logotipo/',
         verbose_name=_('Logotipo'))
     endereco_web = models.URLField(
         max_length=100, blank=True, verbose_name=_('HomePage'))
