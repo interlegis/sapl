@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import date
 from functools import lru_cache, partial
@@ -5,8 +6,9 @@ from itertools import groupby
 from subprocess import PIPE, call
 
 import pkg_resources
-import reversion
 import yaml
+
+import reversion
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
@@ -16,7 +18,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
-
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import (Autor, ProblemaMigracao, TipoAutor,
                               cria_models_tipo_autor)
@@ -33,8 +34,10 @@ from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
-from sapl.settings import PROJECT_DIR
+from sapl.settings import DATABASES, PROJECT_DIR
 from sapl.utils import normalize
+
+from .timezonesbrasil import get_timezone
 
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
@@ -563,6 +566,15 @@ class DataMigrator:
         self.data_mudada = {}
         self.choice_valida = {}
 
+        # configura timezone de migração
+        nome_legado = DATABASES['legacy']['NAME']
+        match = re.match('sapl_cm_(.*)', nome_legado)
+        sigla_casa = match.group(1)
+        with open(os.path.expanduser('~/sapl_dumps/tabela_timezones.yaml'), 'r') as arq:
+            tabela_timezones = yaml.load(arq)
+        municipio, uf = tabela_timezones[sigla_casa]
+        self.timezone = get_timezone(municipio, uf)
+
     def populate_renamed_fields(self, new, old):
         renames = self.field_renames[type(new)]
 
@@ -603,6 +615,13 @@ class DataMigrator:
                     if (field_type in ['CharField', 'TextField']
                             and value in [None, 'None']):
                         value = ''
+
+                    # adiciona timezone faltante aos campos com tempo
+                    #   os campos TIMESTAMP do mysql são gravados em UTC
+                    #   os DATETIME e TIME não têm timezone
+                    if (field_type in ['DateTimeField', 'TimeField']
+                            and value and not value.tzinfo):
+                        value = self.timezone.localize(value)
                     setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs, interativo=True):
