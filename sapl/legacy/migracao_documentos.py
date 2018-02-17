@@ -16,6 +16,7 @@ from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MEDIA_ROOT
 
+
 # MIGRAÇÃO DE DOCUMENTOS  ###################################################
 
 
@@ -59,6 +60,10 @@ DOCS = {
          get_ano)
     ],
     SessaoPlenaria: [
+        ('upload_pauta',
+         'pauta_sessao/{}_pauta_sessao',
+         'public/sessaoplenaria/{0}/pauta/',
+         ___),
         ('upload_ata',
          'ata_sessao/{}_ata_sessao',
          'public/sessaoplenaria/{0}/ata/',
