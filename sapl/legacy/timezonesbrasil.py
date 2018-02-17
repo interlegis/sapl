@@ -1,5 +1,7 @@
 import unicodedata
 
+from pytz import timezone
+
 UF_PARA_TIMEZONE = '''
     AC  America/Rio_Branco
     AL  America/Maceio
@@ -49,6 +51,7 @@ def normalizar_texto(texto):
 #     https://www.zeitverschiebung.net/en/timezone/america--santarem
 #     https://www.zeitverschiebung.net/en/timezone/america--manaus
 #     https://www.zeitverschiebung.net/en/timezone/america--eirunepe
+
 
 TZ_CIDADES_AMAZONAS_E_PARA = [
     ('America/Manaus', '''
@@ -166,7 +169,7 @@ TZ_CIDADES_AMAZONAS_E_PARA = {normalizar_texto(cidade.strip()): tz
                               for cidade in linhas.strip().splitlines()}
 
 
-def get_timezone(cidade, uf):
+def get_nome_timezone(cidade, uf):
     tz = UF_PARA_TIMEZONE[uf]
     if uf in ['PA', 'AM']:
         cidade = normalizar_texto(cidade)
@@ -175,7 +178,11 @@ def get_timezone(cidade, uf):
         return tz
 
 
-def test_get_timezone():
+def get_timezone(cidade, uf):
+    return timezone(get_nome_timezone(cidade, uf))
+
+
+def test_get_nome_timezone():
     for cidade, uf, tz in [
             ('Fortaleza', 'CE', 'America/Fortaleza'),
             ('Salvador', 'BA', 'America/Bahia'),
@@ -187,4 +194,4 @@ def test_get_timezone():
             ('Eirunepe', 'AM', 'America/Eirunepe'),  # sem acento
             ('Eirunepé', 'AM', 'America/Eirunepe'),  # com acento
     ]:
-        assert get_timezone(cidade, uf) == tz, (cidade, uf, tz)
+        assert get_nome_timezone(cidade, uf) == tz, (cidade, uf, tz)
