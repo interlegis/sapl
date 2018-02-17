@@ -246,11 +246,11 @@ def find_sapl(app):
                 return sapl
 
 
-def dump_propriedades(docs, path):
+def dump_propriedades(docs, path, encoding='iso-8859-1'):
     props_sapl = br(docs['props_sapl'])
     ids = [p['id'] for p in props_sapl['_properties']]
     props = {id: props_sapl[id] for id in ids}
-    props = {id: p.decode('iso-8859-1') if isinstance(p, str) else p
+    props = {id: p.decode(encoding) if isinstance(p, str) else p
              for id, p in props.items()}
     save_as_yaml(path, 'sapl_documentos/propriedades.yaml', props)
 
