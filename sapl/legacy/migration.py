@@ -6,9 +6,8 @@ from itertools import groupby
 from subprocess import PIPE, call
 
 import pkg_resources
-import yaml
-
 import reversion
+import yaml
 from django.apps import apps
 from django.apps.config import AppConfig
 from django.contrib.auth import get_user_model
@@ -18,6 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
+
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import (Autor, ProblemaMigracao, TipoAutor,
                               cria_models_tipo_autor)
@@ -136,6 +136,9 @@ def get_fk_related(field, value, label=None):
     # if field.related_model.objects.filter(id=value).exists():
     if value in _get_all_ids_from_model(field.related_model):
         return value
+    elif value == 0 and field.null:
+        # consideramos zeros como nulos, se não está entre os ids anteriores
+        return None
     else:
         msg = 'FK [%s] não encontrada para o valor %s (em %s %s)' % (
             field.name, value, field.model.__name__, label or '---')
