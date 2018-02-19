@@ -465,6 +465,7 @@ def test_proposicao_submit(admin_client):
              'autor': autor.pk,
              'texto_original': texto,
              'salvar': 'salvar',
+             'receber_recibo': 'True',
              },
             follow=True)
 
