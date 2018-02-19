@@ -17,6 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Count, Max
 from django.db.models.base import ModelBase
+from pytz import timezone
 
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import (Autor, ProblemaMigracao, TipoAutor,
@@ -575,8 +576,11 @@ class DataMigrator:
         sigla_casa = match.group(1)
         with open(os.path.expanduser('~/sapl_dumps/tabela_timezones.yaml'), 'r') as arq:
             tabela_timezones = yaml.load(arq)
-        municipio, uf = tabela_timezones[sigla_casa]
-        self.timezone = get_timezone(municipio, uf)
+        municipio, uf, nome_timezone = tabela_timezones[sigla_casa]
+        if nome_timezone:
+            self.timezone = timezone(nome_timezone)
+        else:
+            self.timezone = get_timezone(municipio, uf)
 
     def populate_renamed_fields(self, new, old):
         renames = self.field_renames[type(new)]

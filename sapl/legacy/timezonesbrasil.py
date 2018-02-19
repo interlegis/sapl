@@ -147,6 +147,13 @@ TZ_CIDADES_AMAZONAS_E_PARA = [
         Bujaru
         Senador José Porfírio
         Irituia
+        parauapebas
+        brejo grande do araguaia
+        santana do araguaia
+        ourilandia do norte
+        marituba
+        canaa dos carajas
+        goianesia do para
 '''),
     ('America/Santarem', '''
         Santarém
@@ -162,6 +169,7 @@ TZ_CIDADES_AMAZONAS_E_PARA = [
         Porto de Moz
         Nhamundá
         Prainha
+        medicilandia
 '''),
 ]
 TZ_CIDADES_AMAZONAS_E_PARA = {normalizar_texto(cidade.strip()): tz
@@ -170,6 +178,7 @@ TZ_CIDADES_AMAZONAS_E_PARA = {normalizar_texto(cidade.strip()): tz
 
 
 def get_nome_timezone(cidade, uf):
+    uf = uf.upper()
     tz = UF_PARA_TIMEZONE[uf]
     if uf in ['PA', 'AM']:
         cidade = normalizar_texto(cidade)
