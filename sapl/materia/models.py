@@ -649,6 +649,10 @@ class Proposicao(models.Model):
     numero_proposicao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número'))
 
+    hash_code = models.CharField(verbose_name=_('Código do Documento'),
+                                 max_length=200,
+                                 blank=True)
+
     """
     FIXME Campo não é necessário na modelagem e implementação atual para o
     módulo de proposições.

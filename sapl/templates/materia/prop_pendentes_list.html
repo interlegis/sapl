@@ -14,6 +14,7 @@
             <th>Tipo</th>
             <th>Descrição</th>
             <th>Autor</th>
+            <th>Código do Documento</th>
           </tr>
         </thead>
         <tbody>
@@ -23,6 +24,7 @@
               <td>{{ prop.tipo.descricao }}</td>
               <td>{{ prop.descricao }}</td>
               <td>{{ prop.autor }}</td>
+                <td>{{ prop.hash_code }}</td>
             </tr>
           {% endfor %}
         </tbody>

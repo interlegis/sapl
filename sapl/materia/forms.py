@@ -40,7 +40,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model,
-                        qs_override_django_filter)
+                        qs_override_django_filter, gerar_hash_arquivo)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -1113,9 +1113,14 @@ class ProposicaoForm(forms.ModelForm):
         widget=widgets.HiddenInput(),
         required=False)
 
+    receber_recibo = forms.TypedChoiceField(
+        choices=YES_NO_CHOICES,
+        label='Deseja protocolar com recibo?')
+
     class Meta:
         model = Proposicao
         fields = ['tipo',
+                  'receber_recibo',
                   'descricao',
                   'texto_original',
                   'materia_de_vinculo',
@@ -1123,11 +1128,13 @@ class ProposicaoForm(forms.ModelForm):
                   'tipo_materia',
                   'numero_materia',
                   'ano_materia',
-                  'tipo_texto']
+                  'tipo_texto',
+                  'hash_code']
 
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
-            'tipo': TipoProposicaoSelect()}
+            'tipo': TipoProposicaoSelect(),
+            'hash_code': forms.HiddenInput(),}
 
     def __init__(self, *args, **kwargs):
         self.texto_articulado_proposicao = sapl.base.models.AppConfig.attr(
@@ -1149,11 +1156,13 @@ class ProposicaoForm(forms.ModelForm):
                      to_column(('ano_materia', 4))
                      ),
 
+            to_column(('receber_recibo', 3)),
             to_column(
                 (Alert('teste',
                        css_class="ementa_materia hidden alert-info",
                        dismiss=False), 12)),
             to_column(('descricao', 12)),
+
         ]
 
         if self.texto_articulado_proposicao:
@@ -1196,6 +1205,7 @@ class ProposicaoForm(forms.ModelForm):
                     "Arquivo muito grande. ( > {0}MB )".format(max_size))
             return texto_original
 
+
     def clean(self):
         super(ProposicaoForm, self).clean()
 
@@ -1221,6 +1231,7 @@ class ProposicaoForm(forms.ModelForm):
     def save(self, commit=True):
         cd = self.cleaned_data
         inst = self.instance
+
         if inst.pk:
             if 'tipo_texto' in cd:
 
@@ -1244,6 +1255,14 @@ class ProposicaoForm(forms.ModelForm):
         numero__max = numero__max['numero_proposicao__max']
         inst.numero_proposicao = (
             numero__max + 1) if numero__max else 1
+
+        inst.save()
+        if cd['receber_recibo'] == 'True':
+            inst.hash_code = ''
+        else:
+            _hash = gerar_hash_arquivo(inst.texto_original.path, str(inst.pk))
+
+            inst.hash_code = _hash
 
         inst.save()
 
