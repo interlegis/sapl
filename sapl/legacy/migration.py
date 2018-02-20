@@ -626,9 +626,14 @@ class DataMigrator:
                     # adiciona timezone faltante aos campos com tempo
                     #   os campos TIMESTAMP do mysql são gravados em UTC
                     #   os DATETIME e TIME não têm timezone
-                    if (field_type in ['DateTimeField', 'TimeField']
-                            and value and not value.tzinfo):
+                    def campo_tempo_sem_timezone(tipo):
+                        return (field_type == tipo
+                                and value and not value.tzinfo)
+                    if campo_tempo_sem_timezone('DateTimeField'):
                         value = self.timezone.localize(value)
+                    if campo_tempo_sem_timezone('TimeField'):
+                        value = value.replace(tzinfo=self.timezone)
+
                     setattr(new, field.name, value)
 
     def migrate(self, obj=appconfs, interativo=True):
