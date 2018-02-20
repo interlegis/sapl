@@ -201,7 +201,7 @@ def read_sde(element):
 def save_as_yaml(path, name, obj):
     fullname = os.path.join(path, name)
     with open(fullname, 'w') as arquivo:
-        yaml.safe_dump(obj, arquivo)
+        yaml.safe_dump(obj, arquivo, allow_unicode=True)
     print(fullname)
     return fullname
 
