@@ -14,7 +14,6 @@ from functools import partial
 
 import magic
 import yaml
-
 import ZODB.DB
 import ZODB.FileStorage
 from ZODB.broken import Broken
@@ -100,10 +99,15 @@ def dump_file(doc, path):
             arq.write(pdata.pop('data'))
             pdata = br(pdata.pop('next', None))
 
-    base = os.path.splitext(fullname)[0]
+    base, original_extension = os.path.splitext(fullname)
     extension = guess_extension(fullname)
-    final_name = base + extension
-    os.rename(fullname, final_name)
+    if extension == '.xml' and original_extension in ['.xsl', '.xslt']:
+        # não trocamos as extensões XSL e XSLT
+        final_name = fullname
+    else:
+        # trocamos a extensão pela adivinhada
+        final_name = base + extension
+        os.rename(fullname, final_name)
     print(final_name)
 
     return name
