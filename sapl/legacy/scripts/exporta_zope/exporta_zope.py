@@ -224,6 +224,7 @@ DUMP_FUNCTIONS = {
     # explicitamente ignorados
     'ZCatalog': None,
     'Dumper': None,
+    'CachingPolicyManager': None,
 }
 
 
