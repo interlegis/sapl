@@ -12,9 +12,12 @@ falha ()
     exit 1
 }
 
-# deve haver alguma migration nova no commit
-if ! git diff --cached --name-status | grep -q '^A.*/migrations/[[:digit:]]\{4\}_.*\.py$'; then
-  falha
+# se há algum model no commit
+if git diff --cached --name-status | grep -q '^M.*models\.py$'; then
+  # deve haver alguma migration nova no commit
+  if ! git diff --cached --name-status | grep -q '^A.*/migrations/[[:digit:]]\{4\}_.*\.py$'; then
+    falha
+  fi
 fi
 
 # a verificação de migrations pendentes deve passar
