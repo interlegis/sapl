@@ -1115,7 +1115,8 @@ class ProposicaoForm(forms.ModelForm):
 
     receber_recibo = forms.TypedChoiceField(
         choices=YES_NO_CHOICES,
-        label='Deseja protocolar com recibo?')
+        label='Deseja protocolar com recibo?',
+        required=False)
 
     class Meta:
         model = Proposicao
