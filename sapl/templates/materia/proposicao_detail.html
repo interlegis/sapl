@@ -2,6 +2,7 @@
 {% load i18n common_tags %}
 {% load tz %}
 {% block sub_actions %}{{block.super}}
+
   <div class="actions btn-group btn-group-sm {%block sub_actions_pull%}{% endblock%}" role="group">
     {% if object.texto_articulado.exists %}
       <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_ta' object.pk%}">{% trans "Texto Eletrônico" %}</a>
@@ -62,7 +63,7 @@
 
         <div class="col-sm-9">
           <div class="alert alert-danger alert-dismissible fade in" role="alert">
-            <strong>{% trans "Proposição devolvida em:" %} {{ object.data_devolucao|localtime|date:"DATETIME_FORMAT"}}</strong>
+            <strong>{% trans "Proposição devolvida em:" %} {{ object.data_devolucao}}</strong>
             <div >{% trans "Justificativa:" %} {{object.justificativa_devolucao}}</div>
           </div>
         </div>
@@ -72,7 +73,7 @@
         {% if object.data_envio %}
           <div class="col-sm-3">
             <div id="div_id_data_envio" class="form-group">
-            <p class="control-label">{%field_verbose_name object 'data_envio'%}</p>
+            <p class="control-label">{%field_verbose_name object 'data_envio' %}</p>
               <div class="controls">
                   <div class="form-control-static">{{object.data_envio}}</div>
               </div>
