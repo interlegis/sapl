@@ -567,7 +567,6 @@ class DataMigrator:
 
     def __init__(self):
         self.field_renames, self.model_renames = get_renames()
-        self.data_mudada = {}
         self.choice_valida = {}
 
         # configura timezone de migração
@@ -602,23 +601,7 @@ class DataMigrator:
                     setattr(new, fk_field_name, value)
                 else:
                     value = getattr(old, old_field_name)
-                    # TODO rever esse DateField após as mudança para datas com
-                    # timezone
-                    if field_type == 'DateField' and \
-                            not field.null and value is None:
-                        # TODO REVER ISSO
-                        descricao = 'A data 1111-11-11 foi colocada no lugar'
-                        problema = 'O valor da data era nulo ou inválido'
-                        warn("O valor do campo %s (%s) do model %s "
-                             "era inválido => %s" % (
-                                 field.name, field_type,
-                                 field.model.__name__, descricao))
-                        value = date(1111, 11, 11)
-                        self.data_mudada['obj'] = new
-                        self.data_mudada['descricao'] = descricao
-                        self.data_mudada['problema'] = problema
-                        self.data_mudada.setdefault('nome_campo', []).\
-                            append(field.name)
+
                     if (field_type in ['CharField', 'TextField']
                             and value in [None, 'None']):
                         value = ''
@@ -752,12 +735,6 @@ class DataMigrator:
                     if ajuste_depois_salvar:
                         ajuste_depois_salvar(new, old)
 
-                    if self.data_mudada:
-                        with reversion.create_revision():
-                            save_relation(**self.data_mudada)
-                            self.data_mudada.clear()
-                            reversion.set_comment(
-                                'Ajuste de data pela migração')
             # reinicia sequence
             if deve_ajustar_sequence_ao_final:
                 last_pk = get_last_pk(model)
@@ -869,20 +846,6 @@ def adjust_participacao(new, old):
 def adjust_proposicao_antes_salvar(new, old):
     if new.data_envio:
         new.ano = new.data_envio.year
-
-
-def adjust_proposicao_depois_salvar(new, old):
-    if not hasattr(old.dat_envio, 'year') or old.dat_envio.year == 1800:
-        msg = "O valor do campo data_envio (DateField) da model Proposicao"\
-            " era inválido"
-        descricao = 'A data 1111-11-11 foi colocada no lugar'
-        problema = 'O valor da data era nulo ou inválido'
-        warn(msg + ' => ' + descricao)
-        new.data_envio = date(1111, 11, 11)
-        with reversion.create_revision():
-            save_relation(obj=new, problema=problema,
-                          descricao=descricao, eh_stub=False)
-            reversion.set_comment('Ajuste de data pela migração')
 
 
 def adjust_normarelacionada(new, old):
@@ -1079,7 +1042,6 @@ AJUSTE_ANTES_SALVAR = {
 AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
     OrdemDia: adjust_ordemdia_depois_salvar,
-    Proposicao: adjust_proposicao_depois_salvar,
     Protocolo: adjust_protocolo_depois_salvar,
     RegistroVotacao: adjust_registrovotacao_depois_salvar,
 }
