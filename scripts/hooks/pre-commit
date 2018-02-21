@@ -1,15 +1,8 @@
 #!/bin/bash
 
-# aqui apenas reportamos, não impedimos o commit
-./check_qa.sh
-if [ $? -eq 1 ]
-then
-    RED='\033[0;31m'
-    echo
-    echo -e "${RED}#### POR FAVOR, CORRIJA OS PROBLEMAS APONTADOS!!! ####${NC}"
-    echo
+# verifica antes se houve modificação em algum arquivo models.py
+if git diff --cached --name-status | grep -q '^M.*models\.py$'; then
+  # se a checagem de migrations falhar impedimos o commit
+  set -e
+  ./check_migrations.sh
 fi
-
-# se os comandos a seguir falharem impedimos o commit
-set -e
-./check_migrations.sh
