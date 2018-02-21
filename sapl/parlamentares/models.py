@@ -351,7 +351,7 @@ class Dependente(models.Model):
 
     tipo = models.ForeignKey(TipoDependente, on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
-    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.CASCADE)
     nome = models.CharField(max_length=150, verbose_name=_('Nome'))
     sexo = models.CharField(
         max_length=1, verbose_name=_('Sexo'), choices=SEXO_CHOICE)
@@ -377,7 +377,7 @@ class Dependente(models.Model):
 @reversion.register()
 class Filiacao(models.Model):
     data = models.DateField(verbose_name=_('Data Filiação'))
-    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.CASCADE)
     partido = models.ForeignKey(Partido,
                                 on_delete=models.PROTECT,
                                 verbose_name=_('Partido'))
@@ -417,7 +417,7 @@ class TipoAfastamento(models.Model):
 
 @reversion.register()
 class Mandato(models.Model):
-    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.CASCADE)
     tipo_afastamento = models.ForeignKey(
         TipoAfastamento, blank=True, null=True, on_delete=models.PROTECT)
     legislatura = models.ForeignKey(Legislatura, on_delete=models.PROTECT,
