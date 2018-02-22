@@ -1,7 +1,7 @@
-import logging
-import sys
 from collections import OrderedDict
 from datetime import timedelta
+import logging
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -19,13 +19,14 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django.views.generic.list import ListView
+
 from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
                                    DispositivoEdicaoAlteracaoForm,
                                    DispositivoEdicaoBasicaForm,
@@ -48,6 +49,7 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    get_integrations_view_names)
 from sapl.crud.base import Crud, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
+
 
 TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
 TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
@@ -2187,12 +2189,18 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                 else:
                     raise Exception('Não existe perfil padrão!')
 
+            perfil_parents = PerfilEstruturalTextoArticulado.objects.get(
+                pk=context['perfil_pk'])
+            perfil_parents = perfil_parents.parents + [perfil_parents, ]
+            perfil_parents.reverse()
+
             dp_irmao = None
             dp_pai = None
             for dp in parents:
                 if dp.tipo_dispositivo == tipo:
                     dp_irmao = dp
                     break
+
                 if tipo.permitido_inserir_in(
                         dp.tipo_dispositivo,
                         perfil_pk=context['perfil_pk']):
@@ -2230,24 +2238,25 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
             # verificar se existe restrição de quantidade de itens
             if dp.dispositivo_pai:
-                pp = dp.tipo_dispositivo.possiveis_pais.filter(
-                    pai_id=dp.dispositivo_pai.tipo_dispositivo_id,
-                    perfil_id=context['perfil_pk'])
+                for perfil in perfil_parents:
+                    pp = dp.tipo_dispositivo.possiveis_pais.filter(
+                        pai_id=dp.dispositivo_pai.tipo_dispositivo_id,
+                        perfil=perfil)
 
-                if pp.exists() and pp[0].quantidade_permitida >= 0:
-                    qtd_existente = Dispositivo.objects.filter(
-                        ta_id=dp.ta_id,
-                        tipo_dispositivo_id=dp.tipo_dispositivo_id,
-                        dispositivo_pai=dp.dispositivo_pai).count()
+                    if pp.exists() and pp[0].quantidade_permitida >= 0:
+                        qtd_existente = Dispositivo.objects.filter(
+                            ta_id=dp.ta_id,
+                            tipo_dispositivo_id=dp.tipo_dispositivo_id,
+                            dispositivo_pai=dp.dispositivo_pai).count()
 
-                    if qtd_existente >= pp[0].quantidade_permitida:
-                        data = {'pk': base.pk,
-                                'pai': [base.dispositivo_pai.pk, ]}
-                        self.set_message(data, 'warning',
-                                         _('Limite de inserções de '
-                                           'dispositivos deste tipo '
-                                           'foi excedido.'), time=6000)
-                        return data
+                        if qtd_existente >= pp[0].quantidade_permitida:
+                            data = {'pk': base.pk,
+                                    'pai': [base.dispositivo_pai.pk, ]}
+                            self.set_message(data, 'warning',
+                                             _('Limite de inserções de '
+                                               'dispositivos deste tipo '
+                                               'foi excedido.'), time=6000)
+                            return data
 
             ordem = base.criar_espaco(
                 espaco_a_criar=1, local=local_add)
@@ -2261,22 +2270,26 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
             count_auto_insert = 0
             if create_auto_inserts:
-                tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
-                    filho_de_insercao_automatica=True,
-                    perfil_id=context['perfil_pk'])
+                for perfil in perfil_parents:
+                    tipos_dp_auto_insert = tipo.filhos_permitidos.filter(
+                        filho_de_insercao_automatica=True,
+                        perfil=perfil)
 
-                for tipoauto in tipos_dp_auto_insert:
-                    qtdp = tipoauto.quantidade_permitida
-                    if qtdp >= 0:
-                        qtdp -= Dispositivo.objects.filter(
-                            ta_id=dp.ta_id,
-                            dispositivo_pai_id=dp.id,
-                            tipo_dispositivo_id=tipoauto.filho_permitido.pk
-                        ).count()
-                        if qtdp > 0:
+                    for tipoauto in tipos_dp_auto_insert:
+                        qtdp = tipoauto.quantidade_permitida
+                        if qtdp >= 0:
+                            qtdp -= Dispositivo.objects.filter(
+                                ta_id=dp.ta_id,
+                                dispositivo_pai_id=dp.id,
+                                tipo_dispositivo_id=tipoauto.filho_permitido.pk
+                            ).count()
+                            if qtdp > 0:
+                                count_auto_insert += 1
+                        else:
                             count_auto_insert += 1
-                    else:
-                        count_auto_insert += 1
+
+                    if count_auto_insert:
+                        break
 
             # Inserção automática
             if count_auto_insert:
