@@ -34,6 +34,7 @@ from sapl.materia.models import (AssuntoMateria, MateriaAssunto,
                                  TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
+from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -1554,15 +1555,41 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         if self.instance.tipo.content_type.model_class(
         ) == TipoMateriaLegislativa:
-            numero__max = MateriaLegislativa.objects.filter(
-                tipo=proposicao.tipo.tipo_conteudo_related,
-                ano=timezone.now().year).aggregate(Max('numero'))
-            numero__max = numero__max['numero__max']
+
+            numeracao = None
+            try:
+                numeracao = sapl.base.models.AppConfig.objects.last(
+                ).sequencia_numeracao
+            except AttributeError:
+                pass
+
+            tipo = proposicao.tipo.tipo_conteudo_related
+            if tipo.sequencia_numeracao:
+                numeracao = tipo.sequencia_numeracao
+
+            if numeracao == 'A':
+                numero = MateriaLegislativa.objects.filter(
+                    ano=timezone.now().year).aggregate(Max('numero'))
+            elif numeracao == 'L':
+                legislatura = Legislatura.objects.first()
+                data_inicio = legislatura.data_inicio
+                data_fim = legislatura.data_fim
+                numero = MateriaLegislativa.objects.filter(
+                    data_apresentacao__gte=data_inicio,
+                    data_apresentacao__lte=data_fim).aggregate(
+                    Max('numero'))
+            elif numeracao == 'U':
+                numero = MateriaLegislativa.objects.all().aggregate(Max('numero'))
+
+            if numeracao is None:
+                numero['numero__max'] = 0
+
+            max_numero = numero['numero__max'] + 1 if numero['numero__max'] else 1
 
             # dados básicos
             materia = MateriaLegislativa()
-            materia.numero = (numero__max + 1) if numero__max else 1
-            materia.tipo = proposicao.tipo.tipo_conteudo_related
+            materia.numero = max_numero
+            materia.tipo = tipo
             materia.ementa = proposicao.descricao
             materia.ano = timezone.now().year
             materia.data_apresentacao = timezone.now()

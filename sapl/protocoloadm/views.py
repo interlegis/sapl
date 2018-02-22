@@ -292,7 +292,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             numero = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
-            legislatura = Legislatura.objects.last()
+            legislatura = Legislatura.objects.first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
             numero = Protocolo.objects.filter(
@@ -414,6 +414,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             'pk': protocolo.pk})
 
     def form_valid(self, form):
+
         try:
             numeracao = sapl.base.models.AppConfig.objects.last(
             ).sequencia_numeracao
@@ -423,9 +424,22 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             messages.add_message(self.request, messages.ERROR, msg)
             return self.render_to_response(self.get_context_data())
 
+        # Se TipoMateriaLegislativa tem sequencia própria,
+        # então sobreescreve a sequência global
+        tipo = form.cleaned_data['tipo_materia']
+        if tipo.sequencia_numeracao:
+            numeracao = tipo.sequencia_numeracao
+
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))
+        elif numeracao == 'L':
+            legislatura = Legislatura.objects.first()
+            data_inicio = legislatura.data_inicio
+            data_fim = legislatura.data_fim
+            numero = Protocolo.objects.filter(
+                data__gte=data_inicio, data__lte=data_fim).aggregate(
+                    Max('numero'))
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 

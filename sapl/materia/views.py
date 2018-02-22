@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db.models import Max
 from django.forms.forms import Form
 from django.forms.utils import ErrorDict
 from django.http import HttpResponse, JsonResponse
@@ -40,6 +41,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 OrgaoForm, ProposicaoForm, TipoProposicaoForm,
                                 TramitacaoForm, TramitacaoUpdateForm)
 from sapl.norma.models import LegislacaoCitada
+from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
@@ -281,17 +283,36 @@ def recuperar_materia(request):
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
 
-    param = {'tipo': tipo}
-    param['data_apresentacao__year'] = ano if ano else timezone.now().year
+    numeracao = None
+    try:
+        numeracao = sapl.base.models.AppConfig.objects.last(
+        ).sequencia_numeracao
+    except AttributeError:
+        pass
 
-    materia = MateriaLegislativa.objects.filter(**param).order_by(
-        'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
-    if materia:
-        response = JsonResponse({'numero': materia[0] + 1,
-                                 'ano': materia[1]})
-    else:
-        response = JsonResponse(
-            {'numero': 1, 'ano': ano if ano else timezone.now().year})
+    if tipo.sequencia_numeracao:
+        numeracao = tipo.sequencia_numeracao
+
+    if numeracao == 'A':
+        numero = MateriaLegislativa.objects.filter(
+            ano=timezone.now().year).aggregate(Max('numero'))
+    elif numeracao == 'L':
+        legislatura = Legislatura.objects.first()
+        data_inicio = legislatura.data_inicio
+        data_fim = legislatura.data_fim
+        numero = MateriaLegislativa.objects.filter(
+            data_apresentacao__gte=data_inicio,
+            data_apresentacao__lte=data_fim).aggregate(
+            Max('numero'))
+    elif numeracao == 'U':
+        numero = MateriaLegislativa.objects.all().aggregate(Max('numero'))
+
+    if numeracao is None:
+        numero['numero__max'] = 0
+
+    max_numero = numero['numero__max'] + 1 if numero['numero__max'] else 1
+
+    response = JsonResponse({'numero': max_numero, 'ano': ano})
 
     return response
 
