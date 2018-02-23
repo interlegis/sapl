@@ -1009,10 +1009,10 @@ class TipoProposicaoForm(ModelForm):
 
         """
         A unicidade de tipo proposição para tipo de conteudo
-        foi desabilitada pois existem casos em quem é o procedimento da 
+        foi desabilitada pois existem casos em quem é o procedimento da
         instituição convergir vários tipos de proposição
         para um tipo de matéria.
-         
+
         unique_value = self._meta.model.objects.filter(
             content_type=content_type, object_id=cd['tipo_conteudo_related'])
 
