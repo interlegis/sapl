@@ -31,9 +31,5 @@ DATABASE_ROUTERS = ['sapl.legacy.router.LegacyRouter', ]
 
 DEBUG = True
 
-MOMMY_CUSTOM_FIELDS_GEN = {
-    'django.db.models.ForeignKey': 'sapl.legacy.migration.make_with_log'
-}
-
 # delisga indexação fulltext em tempo real
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
