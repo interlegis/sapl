@@ -1,11 +1,13 @@
 import pytest
+from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
 from sapl.sessao import forms
-from sapl.sessao.models import (ExpedienteMateria, SessaoPlenaria,
-                                TipoSessaoPlenaria)
+from sapl.sessao.models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
+                                SessaoPlenaria, TipoSessaoPlenaria)
 
 
 def test_valida_campos_obrigatorios_sessao_plenaria_form():
@@ -138,3 +140,25 @@ def test_expediente_materia_form_valido():
                                              },
                                        instance=instance)
     assert form.is_valid()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_registro_votacao_tem_ordem_xor_expediente():
+
+    def registro_votacao_com(ordem, expediente):
+        return mommy.make(RegistroVotacao, ordem=ordem, expediente=expediente)
+
+    ordem = mommy.make(OrdemDia)
+    expediente = mommy.make(ExpedienteMateria)
+
+    # a validação funciona com exatamente um dos campos preenchido
+    registro_votacao_com(ordem, None).full_clean()
+    registro_votacao_com(None, expediente).full_clean()
+
+    # a validação NÃO funciona quando nenhum deles é preenchido
+    with pytest.raises(ValidationError):
+        registro_votacao_com(None, None).full_clean()
+
+    # a validação NÃO funciona quando ambos são preenchidos
+    with pytest.raises(ValidationError):
+        registro_votacao_com(ordem, expediente).full_clean()
