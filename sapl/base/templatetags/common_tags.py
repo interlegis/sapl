@@ -5,6 +5,7 @@ from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
 from sapl.utils import filiacao_data
+from django.template.defaultfilters import stringfilter
 
 register = template.Library()
 
@@ -41,6 +42,12 @@ def lookup(d, key):
 def isinst(value, class_str):
     classe = value.__class__.__name__
     return classe == class_str
+
+
+@register.filter
+@stringfilter
+def strip_hash(value):
+    return value.split('/')[0][1:]
 
 
 @register.filter

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load tz %}
+{% load common_tags %}
 {% block base_content %}
   <fieldset>
     <legend>Proposições Não Recebidas</legend>
@@ -14,18 +15,30 @@
             <th>Tipo</th>
             <th>Descrição</th>
             <th>Autor</th>
-            <th>Código do Documento</th>
+            {% if not AppConfig.receber_recibo_proposicao %}
+                <th>Código do Documento</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
           {% for prop in object_list %}
             <tr>
-              <td><a href="{% url 'sapl.materia:proposicao_detail' prop.pk %}">{{ prop.data_envio|localtime|date:"d/m/Y H:i:s" }}</a></td>
+              <td>
+                 <a href="{% url 'sapl.materia:proposicao_detail' prop.pk %}">{{ prop.data_envio|localtime|date:"d/m/Y H:i:s" }}</a>
+              </td>
               <td>{{ prop.tipo.descricao }}</td>
               <td>{{ prop.descricao }}</td>
-              <td>{{ prop.autor }}</td>
-                <td>{{ prop.hash_code }}</td>
-            </tr>
+              <td>{{prop.autor}}</td>
+              <td>
+                {% if not AppConfig.receber_recibo_proposicao %}
+                  {%if prop.hash_code %}
+                    <a href="{% url 'sapl.materia:proposicao-confirmar' prop.hash_code|strip_hash prop.pk %}">{{ prop.hash_code }}</a>
+                  {% else %}
+                    {{ prop.hash_code }}
+                  {% endif %}
+                {% endif %}
+              </td>
+             </tr>
           {% endfor %}
         </tbody>
       </table>

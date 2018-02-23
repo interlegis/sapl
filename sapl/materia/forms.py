@@ -1009,10 +1009,10 @@ class TipoProposicaoForm(ModelForm):
 
         """
         A unicidade de tipo proposição para tipo de conteudo
-        foi desabilitada pois existem casos em quem é o procedimento da 
+        foi desabilitada pois existem casos em quem é o procedimento da
         instituição convergir vários tipos de proposição
         para um tipo de matéria.
-         
+
         unique_value = self._meta.model.objects.filter(
             content_type=content_type, object_id=cd['tipo_conteudo_related'])
 
@@ -1116,7 +1116,7 @@ class ProposicaoForm(forms.ModelForm):
 
     receber_recibo = forms.TypedChoiceField(
         choices=YES_NO_CHOICES,
-        label='Deseja protocolar com recibo?',
+        widget=widgets.HiddenInput(),
         required=False)
 
     class Meta:
@@ -1142,6 +1142,9 @@ class ProposicaoForm(forms.ModelForm):
         self.texto_articulado_proposicao = sapl.base.models.AppConfig.attr(
             'texto_articulado_proposicao')
 
+        self.receber_recibo = sapl.base.models.AppConfig.attr(
+            'receber_recibo_proposicao')
+
         if not self.texto_articulado_proposicao:
             if 'tipo_texto' in self._meta.fields:
                 self._meta.fields.remove('tipo_texto')
@@ -1158,7 +1161,6 @@ class ProposicaoForm(forms.ModelForm):
                      to_column(('ano_materia', 4))
                      ),
 
-            to_column(('receber_recibo', 3)),
             to_column(
                 (Alert('teste',
                        css_class="ementa_materia hidden alert-info",
