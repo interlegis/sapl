@@ -645,7 +645,8 @@ class ConfiguracoesAppForm(ModelForm):
                   'cronometro_discurso',
                   'cronometro_aparte',
                   'cronometro_ordem',
-                  'mostrar_brasao_painel']
+                  'mostrar_brasao_painel',
+                  'receber_recibo_proposicao']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)

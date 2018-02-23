@@ -136,16 +136,19 @@
           </div>
         </div>
     {% endif %}
-    {% if object.hash_code %}
 
-        <div class="col-sm-12">
-        <div id="div_id_hash_code" class="form-group">
-          <p class="control-label">{%field_verbose_name object 'hash_code'%}</p>
-          <div class="controls">
-              <div class="form-control-static">{{object.hash_code}}</div>
+    {% if not AppConfig.receber_recibo_proposicao %}
+        {% if object.hash_code %}
+
+            <div class="col-sm-12">
+            <div id="div_id_hash_code" class="form-group">
+              <p class="control-label">{%field_verbose_name object 'hash_code'%}</p>
+              <div class="controls">
+                  <div class="form-control-static">{{object.hash_code}}</div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        {% endif %}
     {% endif %}
   </div>
 {% endblock detail_content %}

@@ -15,7 +15,7 @@ AppConfig:
   - documentos_administrativos
 
   {% trans 'Proposições e Protocolo' %}:
-  - sequencia_numeracao proposicao_incorporacao_obrigatoria
+  - sequencia_numeracao proposicao_incorporacao_obrigatoria receber_recibo_proposicao
 
   {% trans 'Textos Articulados' %}:
   - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
