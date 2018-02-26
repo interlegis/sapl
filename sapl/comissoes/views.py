@@ -159,11 +159,6 @@ class ReuniaoCrud(MasterDetailCrud):
         def list_url(self):
             return ''
 
-        @property
-        def search_url(self):
-            namespace = self.model._meta.app_config.name
-            return reverse('%s:%s' % (namespace, 'pesquisar_reuniao'))
-
     class ListView(MasterDetailCrud.ListView):
 
         template_name = "comissoes/reuniao_list.html"
@@ -202,21 +197,12 @@ class ReuniaoCrud(MasterDetailCrud):
 
         form_class = ReuniaoForm
 
-        @property
-        def cancel_url(self):
-            return self.search_url
-
         def get_initial(self):
-            comissao = Comissao.objects.order_by('-data').first()
-            if comissao:
-                return {
-                    'comissao': comissao
-                    }
-            else:
-                msg = _('Cadastre alguma comissão antes de adicionar ' +
-                        'uma reunião!')
-                messages.add_message(self.request, messagesself.ERROR, msg)
-                return {}
+           def get_initial(self):
+            initial = super().get_initial()
+            initial['parent_pk'] = self.kwargs['pk']
+            return initial
+
 
     class DeleteView(MasterDetailCrud.DeleteView, RedirectView):
 

@@ -1,7 +1,21 @@
 {% extends "crud/list.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% block actions %}{% endblock %}
-{% block detail_content %}
-	{% crispy form %}
-{% endblock detail_content %}
+{% block base_content %}
+
+ {% if user.is_authenticated and perms.comissoes.add_composicao %}
+  <div class="context-actions clearfix">
+    {% block actions %}
+      <div class="actions btn-group pull-right btn-group-lg" role="group">
+        {% if view.create_url %}
+        <a href="{{ view.create_url }}" class="btn btn-default">
+          {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+        </a>
+        {% endif %}
+        {% block more_buttons %}{% endblock more_buttons %}
+      </div>
+    {% endblock actions %}
+  </div>
+  {% endif %}
+  
+{% endblock base_content %}

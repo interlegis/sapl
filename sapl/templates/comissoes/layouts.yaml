@@ -46,14 +46,9 @@ ParticipacaoEdit:
 
 Reuniao:
   {% trans 'Reunião' %}:
-  - periodo
-  - comissao
-  - tipo
-  - numero
-  - nome
+  - periodo comissao 
+  - numero nome 
   - tema
-  - data
-  - hora_inicio
-  - hora_fim
-  - local_reuniao
+  - data hora_inicio hora_fim 
+  - local_reuniao:4
 
