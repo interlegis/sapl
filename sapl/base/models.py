@@ -165,6 +165,10 @@ class AppConfig(models.Model):
         default=False,
         verbose_name=_('Mostrar brasão da Casa no painel?'))
 
+    receber_recibo_proposicao = models.BooleanField(
+        verbose_name=_('Protocolar proposição somente com recibo?'),
+        choices=YES_NO_CHOICES, default=True)
+
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')

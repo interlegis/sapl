@@ -422,6 +422,7 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
         context = super(ProposicaoPendente, self).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
+        context['AppConfig'] = sapl.base.models.AppConfig.objects.all().last()
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context['NO_ENTRIES_MSG'] = 'Nenhuma proposição pendente.'
@@ -650,6 +651,7 @@ class ProposicaoCrud(Crud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
+            context['AppConfig'] = sapl.base.models.AppConfig.objects.all().last()
 
             context['title'] = '%s <small>(%s)</small>' % (
                 self.object, self.object.autor)

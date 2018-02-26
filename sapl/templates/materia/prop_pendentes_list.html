@@ -15,7 +15,9 @@
             <th>Tipo</th>
             <th>Descrição</th>
             <th>Autor</th>
-            <th>Código do Documento</th>
+            {% if not AppConfig.receber_recibo_proposicao %}
+                <th>Código do Documento</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
@@ -28,11 +30,13 @@
               <td>{{ prop.descricao }}</td>
               <td>{{prop.autor}}</td>
               <td>
+                {% if not AppConfig.receber_recibo_proposicao %}
                   {%if prop.hash_code %}
                     <a href="{% url 'sapl.materia:proposicao-confirmar' prop.hash_code|strip_hash prop.pk %}">{{ prop.hash_code }}</a>
                   {% else %}
                     {{ prop.hash_code }}
                   {% endif %}
+                {% endif %}
               </td>
              </tr>
           {% endfor %}
