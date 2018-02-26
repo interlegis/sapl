@@ -147,12 +147,12 @@ class MateriasTramitacaoListView(ListView):
         context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
         return context
 
-class ReuniaoCrud(Crud):
+class ReuniaoCrud(MasterDetailCrud):
     model = Reuniao
     parent_field = 'comissao'
     public = [RP_LIST, RP_DETAIL, ]
 
-    class BaseMixin(Crud.BaseMixin):
+    class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['data', 'comissao', 'tipo']
 
         @property
@@ -164,7 +164,7 @@ class ReuniaoCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'pesquisar_reuniao'))
 
-    class ListView(Crud.ListView):
+    class ListView(MasterDetailCrud.ListView):
 
         template_name = "comissoes/reuniao_list.html"
         paginate_by = None
@@ -191,14 +191,14 @@ class ReuniaoCrud(Crud):
 
             return context
 
-    class UpdateView(Crud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
 
         form_class = ReuniaoForm
 
         def get_initial(self):
             return {'comissao': self.object.comissao}
 
-    class CreateView(Crud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
 
         form_class = ReuniaoForm
 
@@ -218,7 +218,7 @@ class ReuniaoCrud(Crud):
                 messages.add_message(self.request, messagesself.ERROR, msg)
                 return {}
 
-    class DeleteView(Crud.DeleteView, RedirectView):
+    class DeleteView(MasterDetailCrud.DeleteView, RedirectView):
 
         def get_success_url(self):
             namespace = self.model._meta.app_config.name

@@ -6,10 +6,9 @@ from django.db.models import Q
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
-from .models import Reuniao
 
 
 class ParticipacaoCreateForm(forms.ModelForm):
