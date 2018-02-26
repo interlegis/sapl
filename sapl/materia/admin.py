@@ -181,6 +181,8 @@ if not DEBUG:
 
         def has_delete_permission(self, request, obj=None):
             return False
+
+        
     admin.site.register(Proposicao, ProposicaoAdmin)
     admin.site.register(TipoAutor, TipoAutorAdmin)
     admin.site.register(TipoComissao, TipoComissaoAdmin)
