@@ -437,10 +437,10 @@ relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
     anula_tipos_origem_externa_invalidos()
 
 
-def iter_sql_records(sql, db):
+def iter_sql_records(sql):
     class Record:
         pass
-    cursor = exec_sql(sql, db)
+    cursor = exec_legado(sql)
     fieldnames = [name[0] for name in cursor.description]
     for row in cursor.fetchall():
         record = Record()
@@ -534,24 +534,6 @@ def excluir_registrovotacao_duplicados():
                     assert 0
 
 
-def delete_old(legacy_model, cols_values):
-    # ajuste necessário por conta de cósigos html em txt_expediente
-    if legacy_model.__name__ == 'ExpedienteSessaoPlenaria':
-        cols_values.pop('txt_expediente')
-
-    def eq_clause(col, value):
-        if value is None:
-            return '{} IS NULL'.format(col)
-        else:
-            return '{}="{}"'.format(col, value)
-
-    delete_sql = 'delete from {} where {}'.format(
-        legacy_model._meta.db_table,
-        ' and '.join([eq_clause(col, value)
-                      for col, value in cols_values.items()]))
-    exec_sql(delete_sql, 'legacy')
-
-
 def get_last_pk(model):
     last_value = model.objects.all().aggregate(Max('pk'))
     return last_value['pk__max'] or 0
@@ -561,6 +543,12 @@ def reinicia_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
     exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
         sequence_name, id))
+
+
+def get_pk_legado(tabela):
+    res = exec_legado(
+        'show index from {} WHERE Key_name = "PRIMARY"'.format(tabela))
+    return [r[4] for r in res]
 
 
 class DataMigrator:
@@ -648,8 +636,8 @@ class DataMigrator:
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 
-        info('Excluindo possíveis duplicações em RegistroVotacao...')
-        excluir_registrovotacao_duplicados()
+        # info('Excluindo possíveis duplicações em RegistroVotacao...')
+        # excluir_registrovotacao_duplicados()
 
         # recria tipos de autor padrão que não foram criados pela migração
         cria_models_tipo_autor()
@@ -677,45 +665,29 @@ class DataMigrator:
     def migrate_model(self, model):
         print('Migrando %s...' % model.__name__)
 
-        legacy_model_name = self.model_renames.get(model, model.__name__)
-        legacy_model = legacy_app.get_model(legacy_model_name)
-        legacy_pk_name = legacy_model._meta.pk.name
+        nome_model = self.model_renames.get(model, model.__name__)
+        model_legado = legacy_app.get_model(nome_model)
+        tabela_legado = model_legado._meta.db_table
+        campos_pk = get_pk_legado(tabela_legado)
 
-        # setup migration strategy for tables with or without a pk
-        if legacy_pk_name == 'id':
-            deve_ajustar_sequence_ao_final = False
-            # There is no pk in the legacy table
+        if len(campos_pk) == 1:
+            # a pk no legado tem um único campo
+            nome_pk = model_legado._meta.pk.name
+            old_records = model_legado.objects.all().order_by(nome_pk)
 
-            def save(new, old):
-                with reversion.create_revision():
-                    new.save()
-                    reversion.set_comment('Objeto criado pela migração')
-
-                # apaga registro do legado
-                delete_old(legacy_model, old.__dict__)
-
-            old_records = iter_sql_records(
-                'select * from ' + legacy_model._meta.db_table, 'legacy')
+            def get_id_do_legado(old):
+                return getattr(old, nome_pk)
         else:
-            deve_ajustar_sequence_ao_final = True
-
-            def save(new, old):
-                with reversion.create_revision():
-                    # salva new com id de old
-                    new.id = getattr(old, legacy_pk_name)
-                    new.save()
-                    reversion.set_comment('Objeto criado pela migração')
-
-                # apaga registro do legado
-                delete_old(legacy_model, {legacy_pk_name: new.id})
-
-            old_records = legacy_model.objects.all().order_by(legacy_pk_name)
+            # a pk no legado tem mais de um campo
+            old_records = iter_sql_records('select * from ' + tabela_legado)
+            get_id_do_legado = None
 
         ajuste_antes_salvar = AJUSTE_ANTES_SALVAR.get(model)
         ajuste_depois_salvar = AJUSTE_DEPOIS_SALVAR.get(model)
 
         # convert old records to new ones
         with transaction.atomic():
+            sql_delete_legado = ''
             for old in old_records:
                 if getattr(old, 'ind_excluido', False):
                     # não migramos registros marcados como excluídos
@@ -731,14 +703,34 @@ class DataMigrator:
                     # então este é um objeo órfão: simplesmente ignoramos
                     continue
                 else:
-                    save(new, old)
+                    if get_id_do_legado:
+                        new.id = get_id_do_legado(old)
+                    # validação do model
+                    new.clean()
+                    # salva novo registro
+                    with reversion.create_revision():
+                        new.save()
+                        reversion.set_comment('Objeto criado pela migração')
+
+                    # acumula deleção do registro no legado
+                    sql_delete_legado += 'delete from {} where {};\n'.format(
+                        tabela_legado,
+                        ' and '.join(
+                            '{} = "{}"'.format(campo,
+                                               getattr(old, campo))
+                            for campo in campos_pk))
+
                     if ajuste_depois_salvar:
                         ajuste_depois_salvar(new, old)
 
-            # reinicia sequence
-            if deve_ajustar_sequence_ao_final:
+            # se configuramos ids explicitamente devemos reiniciar a sequence
+            if get_id_do_legado:
                 last_pk = get_last_pk(model)
                 reinicia_sequence(model, last_pk + 1)
+
+            # apaga registros migrados do legado
+            if sql_delete_legado:
+                exec_legado(sql_delete_legado)
 
 
 def migrate(obj=appconfs, interativo=True):
@@ -797,7 +789,7 @@ def adjust_ordemdia_antes_salvar(new, old):
 def adjust_ordemdia_depois_salvar(new, old):
     if old.num_ordem is None and new.numero_ordem == 999999999:
         with reversion.create_revision():
-            problema = 'OrdemDia de PK %s tinha seu valor de numero ordem'\
+            problema = 'OrdemDia de PK %s tinha seu valor de numero ordem' \
                 ' nulo.' % old.pk
             descricao = 'O valor %s foi colocado no lugar.' % new.numero_ordem
             warn(problema + ' => ' + descricao)
@@ -880,19 +872,6 @@ def adjust_registrovotacao_antes_salvar(new, old):
         new.ordem = ordem_dia[0]
     if not ordem_dia and expediente_materia:
         new.expediente = expediente_materia[0]
-
-
-def adjust_registrovotacao_depois_salvar(new, old):
-    if not new.ordem and not new.expediente:
-        with reversion.create_revision():
-            problema = 'RegistroVotacao de PK %s não possui nenhuma OrdemDia'\
-                ' ou ExpedienteMateria.' % old.pk
-            descricao = 'RevistroVotacao deve ter no mínimo uma ordem do dia'\
-                ' ou expediente vinculado.'
-            warn(problema + ' => ' + descricao)
-            save_relation(obj=new, problema=problema,
-                          descricao=descricao, eh_stub=False)
-            reversion.set_comment('RegistroVotacao sem ordem ou expediente')
 
 
 def adjust_tipoafastamento(new, old):
@@ -1010,8 +989,8 @@ def adjust_autor(new, old):
 def adjust_comissao(new, old):
     if not old.dat_extincao and not old.dat_fim_comissao:
         new.ativa = True
-    elif old.dat_extincao and date.today() < new.data_extincao or \
-            old.dat_fim_comissao and date.today() < new.data_fim_comissao:
+    elif (old.dat_extincao and date.today() < new.data_extincao or
+          old.dat_fim_comissao and date.today() < new.data_fim_comissao):
         new.ativa = True
     else:
         new.ativa = False
@@ -1043,15 +1022,14 @@ AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
     OrdemDia: adjust_ordemdia_depois_salvar,
     Protocolo: adjust_protocolo_depois_salvar,
-    RegistroVotacao: adjust_registrovotacao_depois_salvar,
 }
 
 # CHECKS ####################################################################
 
 
 def get_ind_excluido(new):
-    legacy_model = legacy_app.get_model(type(new).__name__)
-    old = legacy_model.objects.get(**{legacy_model._meta.pk.name: new.id})
+    model_legado = legacy_app.get_model(type(new).__name__)
+    old = model_legado.objects.get(**{model_legado._meta.pk.name: new.id})
     return getattr(old, 'ind_excluido', False)
 
 
