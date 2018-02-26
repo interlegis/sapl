@@ -151,7 +151,7 @@ class ReuniaoForm(ModelForm):
 
     class Meta:
         model = Reuniao
-        exclude = ['cod_andamento_sessao']
+        exclude = ['cod_andamento_reuniao']
 
     def clean(self):
         super(ReuniaoForm, self).clean()
