@@ -9,7 +9,6 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
-from .models import Reuniao
 
 
 class ParticipacaoCreateForm(forms.ModelForm):
