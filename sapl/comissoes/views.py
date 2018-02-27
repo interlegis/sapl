@@ -178,13 +178,11 @@ class ReuniaoCrud(MasterDetailCrud):
           return {'comissao': comissao}
 
 
-    class DeleteView(MasterDetailCrud.DeleteView, RedirectView):
+    class DeleteView(MasterDetailCrud.DeleteView):
+        pass
 
-        def get_success_url(self):
-            namespace = self.model._meta.app_config.name
-            return reverse('%s:%s' % (namespace, 'reuniao_list'))
 
-    class DetailView(Crud.DetailView):
+    class DetailView(MasterDetailCrud.DetailView):
 
         @xframe_options_exempt
         def get(self, request, *args, **kwargs):

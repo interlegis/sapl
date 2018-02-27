@@ -231,10 +231,10 @@ class Reuniao(models.Model):
     observacao = models.CharField(
         max_length=150, blank=True, verbose_name=_('Observação'))
     url_audio = models.URLField(
-        max_length=150, blank=True, null=True,
+        max_length=150, blank=True, 
         verbose_name=_('URL Arquivo Áudio (Formatos MP3 / AAC)'))
     url_video = models.URLField(
-        max_length=150, blank=True, null=True,
+        max_length=150, blank=True, 
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
         blank=True,
