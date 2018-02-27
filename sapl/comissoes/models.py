@@ -221,11 +221,19 @@ class Reuniao(models.Model):
     observacao = models.TextField(
         max_length=150, blank=True, verbose_name=_('Observação'))
     url_audio = models.URLField(
+<<<<<<< HEAD
         max_length=150, blank=True,
         verbose_name=_('URL do Arquivo de Áudio (Formatos MP3 / AAC)'))
     url_video = models.URLField(
         max_length=150, blank=True,
         verbose_name=_('URL do Arquivo de Vídeo (Formatos MP4 / FLV / WebM)'))
+=======
+        max_length=150, blank=True, null=True,
+        verbose_name=_('URL Arquivo Áudio (Formatos MP3 / AAC)'))
+    url_video = models.URLField(
+        max_length=150, blank=True, null=True,
+        verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
+>>>>>>> Corrige Createview e Listview
     upload_pauta = models.FileField(
         blank=True, null=True,
         upload_to=pauta_upload_path,
