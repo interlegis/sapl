@@ -26,6 +26,7 @@ import sapl.protocoloadm.urls
 import sapl.redireciona_urls.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
+import sapl.audiencia.urls
 from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
@@ -49,6 +50,7 @@ urlpatterns = [
     url(r'', include(sapl.protocoloadm.urls)),
     url(r'', include(sapl.compilacao.urls)),
     url(r'', include(sapl.relatorios.urls)),
+    url(r'', include(sapl.audiencia.urls)),
 
     # must come at the end
     #   so that base /sistema/ url doesn't capture its children
