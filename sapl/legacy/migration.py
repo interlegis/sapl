@@ -352,9 +352,47 @@ def anula_tipos_origem_externa_invalidos():
         where tip_origem_externa not in {};''', tipos_validos)
 
 
+def get_ids_registros_votacao_para(tabela):
+    sql = '''
+        select r.cod_votacao from {} o
+            inner join registro_votacao r on
+            o.cod_ordem = r.cod_ordem and o.cod_materia = r.cod_materia
+        where o.ind_excluido != 1 and r.ind_excluido != 1
+        order by o.cod_sessao_plen, num_ordem
+        '''.format(tabela)
+    return set(primeira_coluna(exec_legado(sql)))
+
+
+def checa_registros_votacao_ambiguos_e_remove_nao_usados():
+    """Interrompe a migração caso restem registros de votação
+    que apontam para uma ordem_dia e um expediente_materia ao mesmo tempo.
+
+    Remove do legado registros de votação que não têm
+    nem ordem_dia nem expediente_materia associados."""
+
+    ordem, expediente = [
+        get_ids_registros_votacao_para(tabela)
+        for tabela in ('ordem_dia', 'expediente_materia')]
+
+    # interrompe migração se houver registros ambíguos
+    ambiguos = ordem.intersection(expediente)
+    assert not ambiguos, '''Existe(m) RegistroVotacao ambíguo(s): {}
+    Corrija os dados originais antes de migrar!'''.format(
+        ambiguos)
+
+    # exclui registros não usados (zumbis)
+    todos = set(primeira_coluna(exec_legado(
+        'select cod_votacao from registro_votacao')))
+    nao_usados = todos - ordem.union(expediente)
+    exec_legado_em_subconjunto('''
+        update registro_votacao set ind_excluido = 1
+        where cod_votacao in {}''', nao_usados)
+
+
 def uniformiza_banco():
-    # desliga todas as checagens do mysql
-    exec_legado('SET SESSION sql_mode = "";')
+    exec_legado('SET SESSION sql_mode = "";')  # desliga checagens do mysql
+
+    checa_registros_votacao_ambiguos_e_remove_nao_usados()
 
     garante_coluna_no_legado('proposicao',
                              'num_proposicao int(11) NULL')
