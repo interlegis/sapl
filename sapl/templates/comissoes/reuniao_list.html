@@ -1,7 +1,7 @@
 {% extends "crud/list.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% block base_content %}
+{% block detail_content %}
 
  {% if user.is_authenticated and perms.comissoes.add_composicao %}
   <div class="context-actions clearfix">
@@ -16,6 +16,5 @@
       </div>
     {% endblock actions %}
   </div>
-  {% endif %}
-  
-{% endblock base_content %}
+ {% endif %}
+{% endblock detail_content %}

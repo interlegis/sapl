@@ -49,6 +49,9 @@ Reuniao:
   - periodo comissao 
   - numero nome 
   - tema
+  - tipo
   - data hora_inicio hora_fim 
-  - local_reuniao:4
+  - url_video url_audio
+  - local_reuniao:4  observacao
+  - upload_pauta upload_ata upload_anexo
 

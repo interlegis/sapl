@@ -154,6 +154,7 @@ class ReuniaoForm(ModelForm):
 
     def clean(self):
         super(ReuniaoForm, self).clean()
+        import ipdb; ipdb.set_trace()
 
         if not self.is_valid():
             return self.cleaned_data
@@ -184,6 +185,13 @@ class ReuniaoForm(ModelForm):
                     raise error
             else:  # create
                 raise error
+
+        if self.cleaned_data['hora_fim']:
+            if (self.cleaned_data['hora_fim'] <
+                    self.cleaned_data['hora_inicio']):
+                msg = _('A hora de término não pode ser menor que a de início')
+                raise ValidationError(msg)
+        return self.cleaned_data
 
         return self.cleaned_data
 

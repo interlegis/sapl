@@ -164,45 +164,36 @@ class ReuniaoCrud(MasterDetailCrud):
         template_name = "comissoes/reuniao_list.html"
         paginate_by = None
 
-        def take_reuniao_pk(self):
-            try:
-                return int(self.request.GET['pk'])
-            except:
-                return 0
-
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-
-            reuniao_pk = self.take_reuniao_pk()
-
-            if reuniao_pk == 0:
-                ultima_reuniao = context['reuniao_list'].last()
-                if ultima_reuniao:
-                    context['reuniao_pk'] = ultima_reuniao.pk
-                else:
-                    context['reuniao_pk'] = 0
-            else:
-                context['reuniao_pk'] = reuniao_pk
+            self.reuniao_pk = context['root_pk']
 
             return context
 
-    class UpdateView(MasterDetailCrud.UpdateView):
+        def get_rows(self, object_list):
+            for obj in object_list:
 
+    class UpdateView(MasterDetailCrud.UpdateView):
         form_class = ReuniaoForm
 
         def get_initial(self):
             return {'comissao': self.object.comissao}
 
-    class CreateView(MasterDetailCrud.CreateView):
 
+    class CreateView(MasterDetailCrud.CreateView):
         form_class = ReuniaoForm
 
         def get_initial(self):
-           def get_initial(self):
-            initial = super().get_initial()
-            initial['parent_pk'] = self.kwargs['pk']
-            return initial
-
+            comissao = Comissao.objects.order_by('data_criacao').first() 
+            if comissao:  
+                return {   
+                    'comissao': comissao 
+                    }  
+            else:  
+                msg = _('Cadastre alguma comissão antes de adicionar '  
+                        'uma reunião!')    
+                messages.add_message(self.request, messagesself.ERROR, msg)    
+                return {}
 
     class DeleteView(MasterDetailCrud.DeleteView, RedirectView):
 
