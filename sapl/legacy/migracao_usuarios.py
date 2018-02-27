@@ -92,3 +92,4 @@ def migra_usuarios():
                 usuario.groups.add(PERFIL_LEGADO_PARA_NOVO[perfil])
     # apaga arquivo (importante pois contém senhas)
     ARQUIVO_USUARIOS.remove()
+    print('Usuários migrados com sucesso.')

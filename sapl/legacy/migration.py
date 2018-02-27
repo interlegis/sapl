@@ -121,7 +121,9 @@ def warn(msg):
 
 class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
-    pass
+
+    def __init__(self, msg=''):
+        self.msg = msg
 
 
 @lru_cache()
@@ -697,10 +699,11 @@ class DataMigrator:
                     self.populate_renamed_fields(new, old)
                     if ajuste_antes_salvar:
                         ajuste_antes_salvar(new, old)
-                except ForeignKeyFaltando:
+                except ForeignKeyFaltando as e:
                     # tentamos preencher uma FK e o ojeto relacionado
                     # não existe
                     # então este é um objeo órfão: simplesmente ignoramos
+                    warn(e.msg)
                     continue
                 else:
                     if get_id_do_legado:
@@ -749,19 +752,21 @@ def adjust_documentoadministrativo(new, old):
         protocolo = Protocolo.objects.filter(
             numero=old.num_protocolo, ano=new.ano)
         if not protocolo:
+            # tentamos encontrar o protocolo no ano seguinte
             protocolo = Protocolo.objects.filter(
                 numero=old.num_protocolo, ano=new.ano + 1)
-            print('PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '
-                  'DocumentoAdministrativo: {}, numero_protocolo: {}, '
-                  'ano doc adm: {}'.format(
-                      old.cod_documento, old.num_protocolo, new.ano))
-        if not protocolo:
-            raise ForeignKeyFaltando(
-                'Protocolo {} faltando '
-                '(referenciado no documento administrativo {}'.format(
-                    old.num_protocolo, old.cod_documento))
-        assert len(protocolo) == 1
-        new.protocolo = protocolo[0]
+            if protocolo:
+                print('PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '
+                      'DocumentoAdministrativo: {}, numero_protocolo: {}, '
+                      'ano doc adm: {}'.format(
+                          old.cod_documento, old.num_protocolo, new.ano))
+            else:
+                warn('Protocolo {} faltando '
+                     '(referenciado no documento administrativo {}'.format(
+                         old.num_protocolo, old.cod_documento))
+        if protocolo:
+            assert len(protocolo) == 1, 'mais de um protocolo encontrado'
+            [new.protocolo] = protocolo
 
 
 def adjust_mandato(new, old):
@@ -954,8 +959,9 @@ def vincula_autor(new, old, model_relacionado, campo_relacionado, campo_nome):
             new.autor_related = model_relacionado.objects.get(pk=pk_rel)
         except ObjectDoesNotExist:
             # ignoramos o autor órfão
-            raise ForeignKeyFaltando('{} inexiste para autor'.format(
-                model_relacionado._meta.verbose_name))
+            raise ForeignKeyFaltando(
+                '{} [pk={}] inexistente para autor'.format(
+                    model_relacionado._meta.verbose_name, pk_rel))
         else:
             new.nome = getattr(new.autor_related, campo_nome)
             return True
