@@ -147,6 +147,10 @@ def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
 
 
 apps_url_patterns_prefixs_and_users = {
+    'audiencia': {
+        'prefixs': [
+            '/audiencia',
+        ]},
     'api': {
         'prefixs': [
             '/api/',
