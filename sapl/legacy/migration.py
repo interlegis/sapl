@@ -785,26 +785,51 @@ def adjust_acompanhamentomateria(new, old):
     new.confirmado = True
 
 
+NOTA_DOCADM = '''
+## NOTA DE MIGRAÇÃO DE DADOS DO SAPL 2.5 ##
+O número de protocolo original deste documento era [{num_protocolo}], ano {ano_original}.
+'''.strip()  # noqa
+
+
 def adjust_documentoadministrativo(new, old):
     if old.num_protocolo:
+        nota = None
+        ano_original = new.ano
         protocolo = Protocolo.objects.filter(
             numero=old.num_protocolo, ano=new.ano)
         if not protocolo:
             # tentamos encontrar o protocolo no ano seguinte
-            protocolo = Protocolo.objects.filter(
-                numero=old.num_protocolo, ano=new.ano + 1)
+            ano_novo = ano_original + 1
+            protocolo = Protocolo.objects.filter(numero=old.num_protocolo,
+                                                 ano=ano_novo)
             if protocolo:
-                print('PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '
-                      'DocumentoAdministrativo: {}, numero_protocolo: {}, '
-                      'ano doc adm: {}'.format(
-                          old.cod_documento, old.num_protocolo, new.ano))
+                nota = NOTA_DOCADM + '''
+O protocolo vinculado é o de mesmo número, porém do ano seguinte ({ano_novo}),
+pois não existe protocolo no sistema com este número no ano {ano_original}.
+'''
+                nota = nota.strip().format(num_protocolo=old.num_protocolo,
+                                           ano_original=ano_original,
+                                           ano_novo=ano_novo)
+                warn('PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '
+                     'DocumentoAdministrativo: {}, numero_protocolo: {}, '
+                     'ano doc adm: {}'.format(
+                         old.cod_documento, old.num_protocolo, ano_original))
             else:
+                nota = NOTA_DOCADM + '''
+Não existe no sistema nenhum protocolo com estes dados
+e portanto nenhum protocolo foi vinculado a este documento.'''
+                nota = nota.format(
+                    num_protocolo=old.num_protocolo,
+                    ano_original=ano_original)
                 warn('Protocolo {} faltando '
-                     '(referenciado no documento administrativo {}'.format(
+                     '(referenciado no documento administrativo {})'.format(
                          old.num_protocolo, old.cod_documento))
         if protocolo:
             assert len(protocolo) == 1, 'mais de um protocolo encontrado'
             [new.protocolo] = protocolo
+        # adiciona nota ao final da observação
+        if nota:
+            new.observacao += ('\n\n' if new.observacao else '') + nota
 
 
 def adjust_mandato(new, old):
