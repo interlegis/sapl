@@ -195,5 +195,5 @@ class ReuniaoForm(ModelForm):
                 raise ValidationError(msg)
         return self.cleaned_data
 
-        return self.cleaned_data
+
 

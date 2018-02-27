@@ -223,9 +223,9 @@ class Reuniao(models.Model):
         max_length=100, verbose_name=_('Tema da Reunião'))
     data = models.DateField(verbose_name=_('Data'))
     hora_inicio = models.CharField(
-        max_length=5, verbose_name=_('Horário (hh:mm)'))
+        max_length=5, verbose_name=_('Horário de Início (hh:mm)'))
     hora_fim = models.CharField(
-        max_length=5, verbose_name=_('Horário (hh:mm)'))
+        max_length=5, verbose_name=_('Horário de Término (hh:mm)'))
     local_reuniao = models.CharField(
         max_length=100, blank=True, verbose_name=_('Local Reunião'))
     observacao = models.CharField(

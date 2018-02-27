@@ -153,16 +153,14 @@ class ReuniaoCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['data', 'comissao', 'tipo']
+        list_field_names = ['nome', 'tema', 'comissao']
 
         @property
         def list_url(self):
             return ''
 
     class ListView(MasterDetailCrud.ListView):
-
-        paginate_by = None
-
+        paginate_by = 10
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = ReuniaoForm
