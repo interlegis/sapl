@@ -1,6 +1,7 @@
 import yaml
 from django.contrib.auth.models import Group, User
 
+from sapl.hashers import zope_encoded_password_to_django
 from sapl.settings import MEDIA_ROOT
 
 PERFIL_LEGADO_PARA_NOVO = {legado: Group.objects.get(name=novo)
@@ -83,6 +84,7 @@ def migra_usuarios():
 
     for nome, senha, perfis in usuarios:
         usuario = User.objects.get_or_create(username=nome)[0]
+        usuario.password = zope_encoded_password_to_django(senha)
         for perfil in perfis:
             if perfil in ADMINISTRADORES:
                 # Manager
