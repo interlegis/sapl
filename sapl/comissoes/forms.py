@@ -148,13 +148,15 @@ class ComissaoForm(forms.ModelForm):
 
 class ReuniaoForm(ModelForm):
 
+    comissao = forms.ModelChoiceField(queryset=Comissao.objects.all(),
+                                      widget=forms.HiddenInput())
+
     class Meta:
         model = Reuniao
         exclude = ['cod_andamento_reuniao']
 
     def clean(self):
         super(ReuniaoForm, self).clean()
-        import ipdb; ipdb.set_trace()
 
         if not self.is_valid():
             return self.cleaned_data

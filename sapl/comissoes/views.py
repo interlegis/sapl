@@ -161,17 +161,8 @@ class ReuniaoCrud(MasterDetailCrud):
 
     class ListView(MasterDetailCrud.ListView):
 
-        template_name = "comissoes/reuniao_list.html"
         paginate_by = None
 
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            self.reuniao_pk = context['root_pk']
-
-            return context
-
-        def get_rows(self, object_list):
-            for obj in object_list:
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = ReuniaoForm
@@ -184,16 +175,10 @@ class ReuniaoCrud(MasterDetailCrud):
         form_class = ReuniaoForm
 
         def get_initial(self):
-            comissao = Comissao.objects.order_by('data_criacao').first() 
-            if comissao:  
-                return {   
-                    'comissao': comissao 
-                    }  
-            else:  
-                msg = _('Cadastre alguma comissão antes de adicionar '  
-                        'uma reunião!')    
-                messages.add_message(self.request, messagesself.ERROR, msg)    
-                return {}
+          comissao = Comissao.objects.get(id=self.kwargs['pk'])
+
+          return {'comissao': comissao}
+
 
     class DeleteView(MasterDetailCrud.DeleteView, RedirectView):
 
