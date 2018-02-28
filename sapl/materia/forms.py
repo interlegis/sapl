@@ -1261,11 +1261,10 @@ class ProposicaoForm(forms.ModelForm):
             numero__max + 1) if numero__max else 1
 
         inst.save()
-        if cd['receber_recibo'] == 'True':
+        if cd['receber_recibo'] == 'True' or not inst.texto_original:
             inst.hash_code = ''
         else:
             _hash = gerar_hash_arquivo(inst.texto_original.path, str(inst.pk))
-
             inst.hash_code = _hash
 
         inst.save()
