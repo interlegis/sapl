@@ -647,7 +647,7 @@ class DataMigrator:
 
                     setattr(new, field.name, value)
 
-    def migrate(self, obj=appconfs, interativo=True):
+    def migrar(self, obj=appconfs, interativo=True):
         # warning: model/app migration order is of utmost importance
 
         uniformiza_banco()
@@ -774,9 +774,9 @@ class DataMigrator:
                 exec_legado(sql_delete_legado)
 
 
-def migrate(obj=appconfs, interativo=True):
+def migrar(obj=appconfs, interativo=True):
     dm = DataMigrator()
-    dm.migrate(obj, interativo)
+    dm.migrar(obj, interativo)
 
 
 # MIGRATION_ADJUSTMENTS #####################################################

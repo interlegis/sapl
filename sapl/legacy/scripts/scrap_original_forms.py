@@ -10,7 +10,7 @@ from bs4.element import NavigableString, Tag
 
 from django.apps.config import AppConfig
 from sapl.crispy_layout_mixin import heads_and_tails
-from sapl.legacy.migration import appconfs, get_renames
+from sapl.legacy.migracao import appconfs, get_renames
 from sapl.legacy.scripts.utils import getsourcelines
 from sapl.utils import listify
 

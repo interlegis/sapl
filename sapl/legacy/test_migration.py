@@ -1,6 +1,6 @@
 from random import shuffle
 
-from .migration import (_formatar_lista_para_sql, get_autorias_sem_repeticoes,
+from .migracao import (_formatar_lista_para_sql, get_autorias_sem_repeticoes,
                         get_reapontamento_de_autores_repetidos)
 
 
