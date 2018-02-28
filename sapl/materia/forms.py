@@ -1565,7 +1565,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             except AttributeError:
                 pass
 
-            tipo = proposicao.tipo.tipo_conteudo_related
+            tipo = self.instance.tipo.tipo_conteudo_related
             if tipo.sequencia_numeracao:
                 numeracao = tipo.sequencia_numeracao
 

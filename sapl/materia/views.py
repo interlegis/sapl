@@ -297,7 +297,9 @@ def recuperar_materia(request):
         numero = MateriaLegislativa.objects.filter(
             ano=timezone.now().year).aggregate(Max('numero'))
     elif numeracao == 'L':
-        legislatura = Legislatura.objects.first()
+        legislatura = Legislatura.objects.filter(
+            data_inicio__lte=ano,
+            data_fim__gte=ano).first()
         data_inicio = legislatura.data_inicio
         data_fim = legislatura.data_fim
         numero = MateriaLegislativa.objects.filter(
