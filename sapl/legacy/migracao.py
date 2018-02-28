@@ -389,10 +389,57 @@ def checa_registros_votacao_ambiguos_e_remove_nao_usados():
         where cod_votacao in {}''', nao_usados)
 
 
+PROPAGACOES_DE_EXCLUSAO = [
+    # sessao_legislativa
+    ('composicao_mesa', 'sessao_legislativa', 'cod_sessao_leg'),
+
+    # parlamentar
+    ('dependente', 'parlamentar', 'cod_parlamentar'),
+    ('filiacao', 'parlamentar', 'cod_parlamentar'),
+    ('mandato', 'parlamentar', 'cod_parlamentar'),
+
+    # comissao
+    ('composicao_comissao', 'comissao', 'cod_comissao'),
+
+    # sessao
+    ('ordem_dia', 'sessao_plenaria', 'cod_sessao_plen'),
+    ('expediente_materia', 'sessao_plenaria', 'cod_sessao_plen'),
+    ('expediente_sessao_plenaria', 'sessao_plenaria', 'cod_sessao_plen'),
+    ('registro_votacao_parlamentar', 'registro_votacao', 'cod_votacao'),
+    # as consultas no código do sapl 2.5
+    # votacao_ordem_dia_obter_zsql e votacao_expediente_materia_obter_zsql
+    # indicam que os registros de votação de matérias excluídas não são
+    # exibidos...
+    ('registro_votacao', 'materia_legislativa', 'cod_materia'),
+    # as exclusões de registro_votacao sem referência
+    # nem a ordem_dia nem a expediente_materia são feitas num método à parte
+
+    # materia
+    ('tramitacao', 'materia_legislativa', 'cod_materia'),
+    ('autoria', 'materia_legislativa', 'cod_materia'),
+    ('anexada', 'materia_legislativa', 'cod_materia_principal'),
+    ('anexada', 'materia_legislativa', 'cod_materia_anexada'),
+    ('documento_acessorio', 'materia_legislativa', 'cod_materia'),
+
+    # documento administrativo
+    ('tramitacao_administrativo', 'documento_administrativo', 'cod_documento'),
+]
+
+
+def propaga_exclusoes():
+    for tabela_filha, tabela_pai, fk in PROPAGACOES_DE_EXCLUSAO:
+        [pk_pai] = get_pk_legado(tabela_pai)
+        exec_legado('''
+            update {} set ind_excluido = 1 where {} not in (
+                select {} from {} where ind_excluido != 1)
+            '''.format(tabela_filha, fk, pk_pai, tabela_pai))
+
+
 def uniformiza_banco():
     exec_legado('SET SESSION sql_mode = "";')  # desliga checagens do mysql
 
     checa_registros_votacao_ambiguos_e_remove_nao_usados()
+    propaga_exclusoes()
 
     garante_coluna_no_legado('proposicao',
                              'num_proposicao int(11) NULL')
