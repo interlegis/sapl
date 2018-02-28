@@ -44,7 +44,7 @@ def decode_nome(nome):
         return nome
 
 
-def migra_usuarios():
+def migrar_usuarios():
     """
     Lê o arquivo media/usuarios.yaml e importa os usuários nele listados,
     com senhas e perfis.

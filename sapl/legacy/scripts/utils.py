@@ -1,7 +1,7 @@
 import inspect
 
 from sapl.base.models import Autor
-from sapl.legacy.migracao import appconfs
+from sapl.legacy.migracao_dados import appconfs
 
 
 def getsourcelines(model):

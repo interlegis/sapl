@@ -4,7 +4,7 @@
 if [ $# -ge 2 ]; then
 
     # proteje pasta com dumps de alterações acidentais
-    chmod -R -w ~/sapl_dumps
+    chmod -R -w ~/migracao_sapl/sapl_dumps
 
     DATE=$(date +%Y-%m-%d)
     DIR=~/${DATE}_logs_migracao
@@ -21,11 +21,11 @@ if [ $# -ge 2 ]; then
     if [ $3 ]; then
         # se há senha do mysql
         mysql -u $2 -p "$3" -N -s -e "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;"
-        mysql -u $2 -p "$3" < ~/sapl_dumps/$1.sql
+        mysql -u $2 -p "$3" < ~/migracao_sapl/sapl_dumps/$1.sql
     else
         # se não há senha do mysql
         mysql -u $2 -N -s -e "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;"
-        mysql -u $2 < ~/sapl_dumps/$1.sql
+        mysql -u $2 < ~/migracao_sapl/sapl_dumps/$1.sql
     fi;
     echo "O banco legado foi restaurado" |& tee -a $LOG
     echo >> $LOG
