@@ -22,6 +22,7 @@ from django_filters.filterset import STRICTNESS
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
+from unipath.path import Path
 import django_filters
 import magic
 
@@ -34,6 +35,23 @@ sapl_logger = logging.getLogger(BASE_DIR.name)
 
 def pil_image(source, exif_orientation=False, **options):
     return source_generators.pil_image(source, exif_orientation, **options)
+
+
+def clear_thumbnails_cache(queryset, field):
+
+    for r in queryset:
+        assert hasattr(r, field), _(
+            'Objeto da listagem não possui o campo informado')
+
+        if not getattr(r, field):
+            continue
+
+        path = Path(getattr(r, field).path)
+        cache_files = path.parent.walk()
+
+        for cf in cache_files:
+            if cf != path:
+                cf.remove()
 
 
 def normalize(txt):
