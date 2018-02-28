@@ -1,6 +1,5 @@
 
 import os
-
 import django_filters
 import sapl
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
@@ -23,7 +22,7 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.models import Autor, TipoAutor, AppConfig
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
@@ -1235,6 +1234,7 @@ class ProposicaoForm(forms.ModelForm):
     def save(self, commit=True):
         cd = self.cleaned_data
         inst = self.instance
+        receber_recibo = AppConfig.objects.last().receber_recibo_proposicao
 
         if inst.pk:
             if 'tipo_texto' in cd:
@@ -1249,6 +1249,13 @@ class ProposicaoForm(forms.ModelForm):
                             not cd['texto_original'] and \
                             inst.texto_original:
                         inst.texto_original.delete()
+            inst.save()
+            import ipdb; ipdb.set_trace()
+            if receber_recibo == True or not inst.texto_original:
+                inst.hash_code = ''
+            else:
+                _hash = gerar_hash_arquivo(inst.texto_original.path, str(inst.pk))
+                inst.hash_code = _hash
 
             return super().save(commit)
 
@@ -1261,7 +1268,7 @@ class ProposicaoForm(forms.ModelForm):
             numero__max + 1) if numero__max else 1
 
         inst.save()
-        if cd['receber_recibo'] == 'True' or not inst.texto_original:
+        if receber_recibo == True or not inst.texto_original:
             inst.hash_code = ''
         else:
             _hash = gerar_hash_arquivo(inst.texto_original.path, str(inst.pk))
