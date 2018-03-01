@@ -1250,7 +1250,6 @@ class ProposicaoForm(forms.ModelForm):
                             inst.texto_original:
                         inst.texto_original.delete()
             inst.save()
-            import ipdb; ipdb.set_trace()
             if receber_recibo == True or not inst.texto_original:
                 inst.hash_code = ''
             else:

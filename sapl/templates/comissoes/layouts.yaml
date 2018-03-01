@@ -1,4 +1,4 @@
-{% load i18n %}
+ {% load i18n %}
 CargoComissao:
   {% trans 'Período de composição de Comissão' %}:
   - nome:10  unico
@@ -46,9 +46,8 @@ ParticipacaoEdit:
 
 Reuniao:
   {% trans 'Reunião' %}:
-  - periodo numero
+  - periodo numero tipo
   - nome tema
-  - tipo
   - data hora_inicio hora_fim 
   - url_video url_audio
   - local_reuniao:4  observacao
