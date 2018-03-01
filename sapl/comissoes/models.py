@@ -206,7 +206,7 @@ class Reuniao(models.Model):
     tipo = models.ForeignKey(
         TipoComissao,
         on_delete=models.PROTECT,
-        verbose_name=_('Tipo'))
+        verbose_name=_('Tipo de Comissão'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     nome = models.CharField(
         max_length=100, verbose_name=_('Nome da Reunião'))
@@ -218,15 +218,15 @@ class Reuniao(models.Model):
     hora_fim = models.CharField(
         max_length=5, verbose_name=_('Horário de Término (hh:mm)'))
     local_reuniao = models.CharField(
-        max_length=100, blank=True, verbose_name=_('Local Reunião'))
-    observacao = models.CharField(
+        max_length=100, blank=True, verbose_name=_('Local da Reunião'))
+    observacao = models.TextField(
         max_length=150, blank=True, verbose_name=_('Observação'))
     url_audio = models.URLField(
         max_length=150, blank=True, 
-        verbose_name=_('URL Arquivo Áudio (Formatos MP3 / AAC)'))
+        verbose_name=_('URL do Arquivo de Áudio (Formatos MP3 / AAC)'))
     url_video = models.URLField(
         max_length=150, blank=True, 
-        verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
+        verbose_name=_('URL do Arquivo de Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
         blank=True, null=True,
         upload_to=pauta_upload_path,

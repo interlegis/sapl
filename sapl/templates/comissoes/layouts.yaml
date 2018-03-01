@@ -47,10 +47,10 @@ ParticipacaoEdit:
 Reuniao:
   {% trans 'Reunião' %}:
   - periodo numero tipo
-  - nome tema
+  - nome tema local_reuniao
   - data hora_inicio hora_fim 
   - url_video url_audio
-  - local_reuniao:4  observacao
+  - observacao
   - upload_pauta upload_ata upload_anexo
   - comissao
 
