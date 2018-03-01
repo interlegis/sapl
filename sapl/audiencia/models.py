@@ -9,6 +9,24 @@ from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         restringe_tipos_de_arquivo_txt, texto_upload_path)
 
 
+def get_audiencia_media_path(instance, subpath, filename):
+    return './sapl/audiencia/%s/%s/%s' % (instance.numero, subpath, filename)
+
+
+def pauta_upload_path(instance, filename):
+    return texto_upload_path(
+        instance, filename, subpath='pauta', pk_first=True)
+
+
+def ata_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
+
+
+def anexo_upload_path(instance, filename):
+    return texto_upload_path(
+        instance, filename, subpath='anexo', pk_first=True)
+
+
 @reversion.register()
 class TipoAudienciaPublica(models.Model):
     TIPO_AUDIENCIA_CHOICES = Choices(('A', 'audiencia', _('Audiência Pública')),
@@ -84,7 +102,7 @@ class AudienciaPublica(models.Model):
         ordering = ['nome', 'numero', 'tipo']
 
     def __str__(self):
-        return self.nome
+        return self.nome + '-' + self.numero
 
     def delete(self, using=None, keep_parents=False):
         if self.upload_pauta:
@@ -123,21 +141,3 @@ class AudienciaPublica(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
-
-
-def get_audiencia_media_path(instance, subpath, filename):
-    return './sapl/audiencia/%s/%s/%s' % (instance.numero, subpath, filename)
-
-
-def pauta_upload_path(instance, filename):
-    return texto_upload_path(
-        instance, filename, subpath='pauta', pk_first=True)
-
-
-def ata_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
-
-
-def anexo_upload_path(instance, filename):
-    return texto_upload_path(
-        instance, filename, subpath='anexo', pk_first=True)
