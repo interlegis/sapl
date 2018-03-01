@@ -1265,6 +1265,7 @@ class ProposicaoForm(forms.ModelForm):
                         inst.texto_original.delete()
             self.gerar_hash(inst, receber_recibo)
 
+
             return super().save(commit)
 
         inst.ano = timezone.now().year
