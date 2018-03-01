@@ -1,6 +1,5 @@
 
 import os
-
 import django_filters
 import sapl
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
@@ -23,7 +22,7 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.models import Autor, TipoAutor, AppConfig
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
@@ -1209,6 +1208,20 @@ class ProposicaoForm(forms.ModelForm):
                     "Arquivo muito grande. ( > {0}MB )".format(max_size))
             return texto_original
 
+    def gerar_hash(self, inst, receber_recibo):
+
+        inst.save()
+        if receber_recibo == True:
+            inst.hash_code = ''
+        else:
+            if inst.texto_original:
+                inst.hash_code = gerar_hash_arquivo(
+                    inst.texto_original.path, str(inst.pk))
+            elif inst.texto_articulado.exists():
+                ta = inst.texto_articulado.first()
+                # FIXME hash para textos articulados
+                inst.hash_code = 'P' + ta.hash() + '/' + str(inst.pk)
+
 
     def clean(self):
         super(ProposicaoForm, self).clean()
@@ -1235,6 +1248,7 @@ class ProposicaoForm(forms.ModelForm):
     def save(self, commit=True):
         cd = self.cleaned_data
         inst = self.instance
+        receber_recibo = AppConfig.objects.last().receber_recibo_proposicao
 
         if inst.pk:
             if 'tipo_texto' in cd:
@@ -1250,6 +1264,8 @@ class ProposicaoForm(forms.ModelForm):
                             inst.texto_original:
                         inst.texto_original.delete()
 
+            self.gerar_hash(inst, receber_recibo)
+
             return super().save(commit)
 
         inst.ano = timezone.now().year
@@ -1260,13 +1276,7 @@ class ProposicaoForm(forms.ModelForm):
         inst.numero_proposicao = (
             numero__max + 1) if numero__max else 1
 
-        inst.save()
-        if cd['receber_recibo'] == 'True':
-            inst.hash_code = ''
-        else:
-            _hash = gerar_hash_arquivo(inst.texto_original.path, str(inst.pk))
-
-            inst.hash_code = _hash
+        self.gerar_hash(inst, receber_recibo)
 
         inst.save()
 

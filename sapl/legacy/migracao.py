@@ -121,7 +121,9 @@ def warn(msg):
 
 class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
-    pass
+
+    def __init__(self, msg=''):
+        self.msg = msg
 
 
 @lru_cache()
@@ -350,9 +352,94 @@ def anula_tipos_origem_externa_invalidos():
         where tip_origem_externa not in {};''', tipos_validos)
 
 
+def get_ids_registros_votacao_para(tabela):
+    sql = '''
+        select r.cod_votacao from {} o
+            inner join registro_votacao r on
+            o.cod_ordem = r.cod_ordem and o.cod_materia = r.cod_materia
+        where o.ind_excluido != 1 and r.ind_excluido != 1
+        order by o.cod_sessao_plen, num_ordem
+        '''.format(tabela)
+    return set(primeira_coluna(exec_legado(sql)))
+
+
+def checa_registros_votacao_ambiguos_e_remove_nao_usados():
+    """Interrompe a migração caso restem registros de votação
+    que apontam para uma ordem_dia e um expediente_materia ao mesmo tempo.
+
+    Remove do legado registros de votação que não têm
+    nem ordem_dia nem expediente_materia associados."""
+
+    ordem, expediente = [
+        get_ids_registros_votacao_para(tabela)
+        for tabela in ('ordem_dia', 'expediente_materia')]
+
+    # interrompe migração se houver registros ambíguos
+    ambiguos = ordem.intersection(expediente)
+    assert not ambiguos, '''Existe(m) RegistroVotacao ambíguo(s): {}
+    Corrija os dados originais antes de migrar!'''.format(
+        ambiguos)
+
+    # exclui registros não usados (zumbis)
+    todos = set(primeira_coluna(exec_legado(
+        'select cod_votacao from registro_votacao')))
+    nao_usados = todos - ordem.union(expediente)
+    exec_legado_em_subconjunto('''
+        update registro_votacao set ind_excluido = 1
+        where cod_votacao in {}''', nao_usados)
+
+
+PROPAGACOES_DE_EXCLUSAO = [
+    # sessao_legislativa
+    ('composicao_mesa', 'sessao_legislativa', 'cod_sessao_leg'),
+
+    # parlamentar
+    ('dependente', 'parlamentar', 'cod_parlamentar'),
+    ('filiacao', 'parlamentar', 'cod_parlamentar'),
+    ('mandato', 'parlamentar', 'cod_parlamentar'),
+
+    # comissao
+    ('composicao_comissao', 'comissao', 'cod_comissao'),
+
+    # sessao
+    ('ordem_dia', 'sessao_plenaria', 'cod_sessao_plen'),
+    ('expediente_materia', 'sessao_plenaria', 'cod_sessao_plen'),
+    ('expediente_sessao_plenaria', 'sessao_plenaria', 'cod_sessao_plen'),
+    ('registro_votacao_parlamentar', 'registro_votacao', 'cod_votacao'),
+    # as consultas no código do sapl 2.5
+    # votacao_ordem_dia_obter_zsql e votacao_expediente_materia_obter_zsql
+    # indicam que os registros de votação de matérias excluídas não são
+    # exibidos...
+    ('registro_votacao', 'materia_legislativa', 'cod_materia'),
+    # as exclusões de registro_votacao sem referência
+    # nem a ordem_dia nem a expediente_materia são feitas num método à parte
+
+    # materia
+    ('tramitacao', 'materia_legislativa', 'cod_materia'),
+    ('autoria', 'materia_legislativa', 'cod_materia'),
+    ('anexada', 'materia_legislativa', 'cod_materia_principal'),
+    ('anexada', 'materia_legislativa', 'cod_materia_anexada'),
+    ('documento_acessorio', 'materia_legislativa', 'cod_materia'),
+
+    # documento administrativo
+    ('tramitacao_administrativo', 'documento_administrativo', 'cod_documento'),
+]
+
+
+def propaga_exclusoes():
+    for tabela_filha, tabela_pai, fk in PROPAGACOES_DE_EXCLUSAO:
+        [pk_pai] = get_pk_legado(tabela_pai)
+        exec_legado('''
+            update {} set ind_excluido = 1 where {} not in (
+                select {} from {} where ind_excluido != 1)
+            '''.format(tabela_filha, fk, pk_pai, tabela_pai))
+
+
 def uniformiza_banco():
-    # desliga todas as checagens do mysql
-    exec_legado('SET SESSION sql_mode = "";')
+    exec_legado('SET SESSION sql_mode = "";')  # desliga checagens do mysql
+
+    checa_registros_votacao_ambiguos_e_remove_nao_usados()
+    propaga_exclusoes()
 
     garante_coluna_no_legado('proposicao',
                              'num_proposicao int(11) NULL')
@@ -437,10 +524,10 @@ relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
     anula_tipos_origem_externa_invalidos()
 
 
-def iter_sql_records(sql, db):
+def iter_sql_records(sql):
     class Record:
         pass
-    cursor = exec_sql(sql, db)
+    cursor = exec_legado(sql)
     fieldnames = [name[0] for name in cursor.description]
     for row in cursor.fetchall():
         record = Record()
@@ -534,24 +621,6 @@ def excluir_registrovotacao_duplicados():
                     assert 0
 
 
-def delete_old(legacy_model, cols_values):
-    # ajuste necessário por conta de cósigos html em txt_expediente
-    if legacy_model.__name__ == 'ExpedienteSessaoPlenaria':
-        cols_values.pop('txt_expediente')
-
-    def eq_clause(col, value):
-        if value is None:
-            return '{} IS NULL'.format(col)
-        else:
-            return '{}="{}"'.format(col, value)
-
-    delete_sql = 'delete from {} where {}'.format(
-        legacy_model._meta.db_table,
-        ' and '.join([eq_clause(col, value)
-                      for col, value in cols_values.items()]))
-    exec_sql(delete_sql, 'legacy')
-
-
 def get_last_pk(model):
     last_value = model.objects.all().aggregate(Max('pk'))
     return last_value['pk__max'] or 0
@@ -561,6 +630,12 @@ def reinicia_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
     exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
         sequence_name, id))
+
+
+def get_pk_legado(tabela):
+    res = exec_legado(
+        'show index from {} WHERE Key_name = "PRIMARY"'.format(tabela))
+    return [r[4] for r in res]
 
 
 class DataMigrator:
@@ -619,7 +694,7 @@ class DataMigrator:
 
                     setattr(new, field.name, value)
 
-    def migrate(self, obj=appconfs, interativo=True):
+    def migrar(self, obj=appconfs, interativo=True):
         # warning: model/app migration order is of utmost importance
 
         uniformiza_banco()
@@ -648,8 +723,8 @@ class DataMigrator:
         info('Começando migração: %s...' % obj)
         self._do_migrate(obj)
 
-        info('Excluindo possíveis duplicações em RegistroVotacao...')
-        excluir_registrovotacao_duplicados()
+        # info('Excluindo possíveis duplicações em RegistroVotacao...')
+        # excluir_registrovotacao_duplicados()
 
         # recria tipos de autor padrão que não foram criados pela migração
         cria_models_tipo_autor()
@@ -677,45 +752,29 @@ class DataMigrator:
     def migrate_model(self, model):
         print('Migrando %s...' % model.__name__)
 
-        legacy_model_name = self.model_renames.get(model, model.__name__)
-        legacy_model = legacy_app.get_model(legacy_model_name)
-        legacy_pk_name = legacy_model._meta.pk.name
+        nome_model = self.model_renames.get(model, model.__name__)
+        model_legado = legacy_app.get_model(nome_model)
+        tabela_legado = model_legado._meta.db_table
+        campos_pk = get_pk_legado(tabela_legado)
 
-        # setup migration strategy for tables with or without a pk
-        if legacy_pk_name == 'id':
-            deve_ajustar_sequence_ao_final = False
-            # There is no pk in the legacy table
+        if len(campos_pk) == 1:
+            # a pk no legado tem um único campo
+            nome_pk = model_legado._meta.pk.name
+            old_records = model_legado.objects.all().order_by(nome_pk)
 
-            def save(new, old):
-                with reversion.create_revision():
-                    new.save()
-                    reversion.set_comment('Objeto criado pela migração')
-
-                # apaga registro do legado
-                delete_old(legacy_model, old.__dict__)
-
-            old_records = iter_sql_records(
-                'select * from ' + legacy_model._meta.db_table, 'legacy')
+            def get_id_do_legado(old):
+                return getattr(old, nome_pk)
         else:
-            deve_ajustar_sequence_ao_final = True
-
-            def save(new, old):
-                with reversion.create_revision():
-                    # salva new com id de old
-                    new.id = getattr(old, legacy_pk_name)
-                    new.save()
-                    reversion.set_comment('Objeto criado pela migração')
-
-                # apaga registro do legado
-                delete_old(legacy_model, {legacy_pk_name: new.id})
-
-            old_records = legacy_model.objects.all().order_by(legacy_pk_name)
+            # a pk no legado tem mais de um campo
+            old_records = iter_sql_records('select * from ' + tabela_legado)
+            get_id_do_legado = None
 
         ajuste_antes_salvar = AJUSTE_ANTES_SALVAR.get(model)
         ajuste_depois_salvar = AJUSTE_DEPOIS_SALVAR.get(model)
 
         # convert old records to new ones
         with transaction.atomic():
+            sql_delete_legado = ''
             for old in old_records:
                 if getattr(old, 'ind_excluido', False):
                     # não migramos registros marcados como excluídos
@@ -725,25 +784,46 @@ class DataMigrator:
                     self.populate_renamed_fields(new, old)
                     if ajuste_antes_salvar:
                         ajuste_antes_salvar(new, old)
-                except ForeignKeyFaltando:
+                except ForeignKeyFaltando as e:
                     # tentamos preencher uma FK e o ojeto relacionado
                     # não existe
                     # então este é um objeo órfão: simplesmente ignoramos
+                    warn(e.msg)
                     continue
                 else:
-                    save(new, old)
+                    if get_id_do_legado:
+                        new.id = get_id_do_legado(old)
+                    # validação do model
+                    new.clean()
+                    # salva novo registro
+                    with reversion.create_revision():
+                        new.save()
+                        reversion.set_comment('Objeto criado pela migração')
+
+                    # acumula deleção do registro no legado
+                    sql_delete_legado += 'delete from {} where {};\n'.format(
+                        tabela_legado,
+                        ' and '.join(
+                            '{} = "{}"'.format(campo,
+                                               getattr(old, campo))
+                            for campo in campos_pk))
+
                     if ajuste_depois_salvar:
                         ajuste_depois_salvar(new, old)
 
-            # reinicia sequence
-            if deve_ajustar_sequence_ao_final:
+            # se configuramos ids explicitamente devemos reiniciar a sequence
+            if get_id_do_legado:
                 last_pk = get_last_pk(model)
                 reinicia_sequence(model, last_pk + 1)
 
+            # apaga registros migrados do legado
+            if sql_delete_legado:
+                exec_legado(sql_delete_legado)
 
-def migrate(obj=appconfs, interativo=True):
+
+def migrar(obj=appconfs, interativo=True):
     dm = DataMigrator()
-    dm.migrate(obj, interativo)
+    dm.migrar(obj, interativo)
 
 
 # MIGRATION_ADJUSTMENTS #####################################################
@@ -752,24 +832,51 @@ def adjust_acompanhamentomateria(new, old):
     new.confirmado = True
 
 
+NOTA_DOCADM = '''
+## NOTA DE MIGRAÇÃO DE DADOS DO SAPL 2.5 ##
+O número de protocolo original deste documento era [{num_protocolo}], ano {ano_original}.
+'''.strip()  # noqa
+
+
 def adjust_documentoadministrativo(new, old):
     if old.num_protocolo:
+        nota = None
+        ano_original = new.ano
         protocolo = Protocolo.objects.filter(
             numero=old.num_protocolo, ano=new.ano)
         if not protocolo:
-            protocolo = Protocolo.objects.filter(
-                numero=old.num_protocolo, ano=new.ano + 1)
-            print('PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '
-                  'DocumentoAdministrativo: {}, numero_protocolo: {}, '
-                  'ano doc adm: {}'.format(
-                      old.cod_documento, old.num_protocolo, new.ano))
-        if not protocolo:
-            raise ForeignKeyFaltando(
-                'Protocolo {} faltando '
-                '(referenciado no documento administrativo {}'.format(
-                    old.num_protocolo, old.cod_documento))
-        assert len(protocolo) == 1
-        new.protocolo = protocolo[0]
+            # tentamos encontrar o protocolo no ano seguinte
+            ano_novo = ano_original + 1
+            protocolo = Protocolo.objects.filter(numero=old.num_protocolo,
+                                                 ano=ano_novo)
+            if protocolo:
+                nota = NOTA_DOCADM + '''
+O protocolo vinculado é o de mesmo número, porém do ano seguinte ({ano_novo}),
+pois não existe protocolo no sistema com este número no ano {ano_original}.
+'''
+                nota = nota.strip().format(num_protocolo=old.num_protocolo,
+                                           ano_original=ano_original,
+                                           ano_novo=ano_novo)
+                warn('PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '
+                     'DocumentoAdministrativo: {}, numero_protocolo: {}, '
+                     'ano doc adm: {}'.format(
+                         old.cod_documento, old.num_protocolo, ano_original))
+            else:
+                nota = NOTA_DOCADM + '''
+Não existe no sistema nenhum protocolo com estes dados
+e portanto nenhum protocolo foi vinculado a este documento.'''
+                nota = nota.format(
+                    num_protocolo=old.num_protocolo,
+                    ano_original=ano_original)
+                warn('Protocolo {} faltando '
+                     '(referenciado no documento administrativo {})'.format(
+                         old.num_protocolo, old.cod_documento))
+        if protocolo:
+            assert len(protocolo) == 1, 'mais de um protocolo encontrado'
+            [new.protocolo] = protocolo
+        # adiciona nota ao final da observação
+        if nota:
+            new.observacao += ('\n\n' if new.observacao else '') + nota
 
 
 def adjust_mandato(new, old):
@@ -797,7 +904,7 @@ def adjust_ordemdia_antes_salvar(new, old):
 def adjust_ordemdia_depois_salvar(new, old):
     if old.num_ordem is None and new.numero_ordem == 999999999:
         with reversion.create_revision():
-            problema = 'OrdemDia de PK %s tinha seu valor de numero ordem'\
+            problema = 'OrdemDia de PK %s tinha seu valor de numero ordem' \
                 ' nulo.' % old.pk
             descricao = 'O valor %s foi colocado no lugar.' % new.numero_ordem
             warn(problema + ' => ' + descricao)
@@ -882,19 +989,6 @@ def adjust_registrovotacao_antes_salvar(new, old):
         new.expediente = expediente_materia[0]
 
 
-def adjust_registrovotacao_depois_salvar(new, old):
-    if not new.ordem and not new.expediente:
-        with reversion.create_revision():
-            problema = 'RegistroVotacao de PK %s não possui nenhuma OrdemDia'\
-                ' ou ExpedienteMateria.' % old.pk
-            descricao = 'RevistroVotacao deve ter no mínimo uma ordem do dia'\
-                ' ou expediente vinculado.'
-            warn(problema + ' => ' + descricao)
-            save_relation(obj=new, problema=problema,
-                          descricao=descricao, eh_stub=False)
-            reversion.set_comment('RegistroVotacao sem ordem ou expediente')
-
-
 def adjust_tipoafastamento(new, old):
     if old.ind_afastamento == 1:
         new.indicador = 'A'
@@ -975,8 +1069,9 @@ def vincula_autor(new, old, model_relacionado, campo_relacionado, campo_nome):
             new.autor_related = model_relacionado.objects.get(pk=pk_rel)
         except ObjectDoesNotExist:
             # ignoramos o autor órfão
-            raise ForeignKeyFaltando('{} inexiste para autor'.format(
-                model_relacionado._meta.verbose_name))
+            raise ForeignKeyFaltando(
+                '{} [pk={}] inexistente para autor'.format(
+                    model_relacionado._meta.verbose_name, pk_rel))
         else:
             new.nome = getattr(new.autor_related, campo_nome)
             return True
@@ -1010,8 +1105,8 @@ def adjust_autor(new, old):
 def adjust_comissao(new, old):
     if not old.dat_extincao and not old.dat_fim_comissao:
         new.ativa = True
-    elif old.dat_extincao and date.today() < new.data_extincao or \
-            old.dat_fim_comissao and date.today() < new.data_fim_comissao:
+    elif (old.dat_extincao and date.today() < new.data_extincao or
+          old.dat_fim_comissao and date.today() < new.data_fim_comissao):
         new.ativa = True
     else:
         new.ativa = False
@@ -1043,15 +1138,14 @@ AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
     OrdemDia: adjust_ordemdia_depois_salvar,
     Protocolo: adjust_protocolo_depois_salvar,
-    RegistroVotacao: adjust_registrovotacao_depois_salvar,
 }
 
 # CHECKS ####################################################################
 
 
 def get_ind_excluido(new):
-    legacy_model = legacy_app.get_model(type(new).__name__)
-    old = legacy_model.objects.get(**{legacy_model._meta.pk.name: new.id})
+    model_legado = legacy_app.get_model(type(new).__name__)
+    old = model_legado.objects.get(**{model_legado._meta.pk.name: new.id})
     return getattr(old, 'ind_excluido', False)
 
 

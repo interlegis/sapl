@@ -1,7 +1,11 @@
+from operator import xor
+
 import reversion
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
@@ -428,6 +432,16 @@ class RegistroVotacao(models.Model):
                      'ordem': self.ordem,
                      'votacao': self.tipo_resultado_votacao,
             'materia': self.materia}
+
+    def clean(self):
+        """Exatamente um dos campos ordem ou expediente deve estar preenchido.
+        """
+        # TODO remover esse método quando OrdemDia e ExpedienteMateria
+        # forem reestruturados e os campos ordem e expediente forem unificados
+        if not xor(bool(self.ordem), bool(self.expediente)):
+            raise ValidationError(
+                'RegistroVotacao deve ter exatamente um dos campos '
+                'ordem ou expediente deve estar preenchido')
 
 
 @reversion.register()

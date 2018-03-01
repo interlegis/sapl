@@ -2,7 +2,7 @@ FROM alpine:3.5
 
 ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
 python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev nodejs py3-lxml \
-py3-magic postgresql-client poppler-utils vim
+py3-magic postgresql-client poppler-utils antiword vim
 
 RUN apk --update add fontconfig ttf-dejavu && fc-cache -fv
 

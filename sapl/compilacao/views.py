@@ -27,6 +27,7 @@ from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django.views.generic.list import ListView
 
+from sapl.compilacao.apps import AppConfig
 from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
                                    DispositivoEdicaoAlteracaoForm,
                                    DispositivoEdicaoBasicaForm,
@@ -107,7 +108,7 @@ class IntegracaoTaView(TemplateView):
 
         try:
             if settings.DEBUG or not TipoDispositivo.objects.exists():
-                self.import_pattern()
+                AppConfig.import_pattern()
 
                 if hasattr(self, 'map_funcs'):
                     tipo_ta = TipoTextoArticulado.objects.get(
@@ -194,66 +195,6 @@ class IntegracaoTaView(TemplateView):
         else:
             return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
                                             kwargs={'ta_id': ta.pk}))
-
-    def import_pattern(self):
-
-        from unipath import Path
-
-        compilacao_app = Path(__file__).ancestor(1)
-        # print(compilacao_app)
-        with open(compilacao_app + '/compilacao_data_tables.sql', 'r') as f:
-            lines = f.readlines()
-            lines = [line.rstrip('\n') for line in lines]
-
-            with connection.cursor() as cursor:
-                for line in lines:
-                    line = line.strip()
-                    if not line or line.startswith('#'):
-                        continue
-
-                    try:
-                        cursor.execute(line)
-                    except IntegrityError as e:
-                        if not settings.DEBUG:
-                            logger.error(
-                                string_concat(
-                                    _('Ocorreu erro na importação: '),
-                                    line,
-                                    str(e)))
-                    except Exception as ee:
-                        print(ee)
-
-        integrations_view_names = get_integrations_view_names()
-
-        def cria_sigla(verbose_name):
-            verbose_name = verbose_name.upper().split()
-            if len(verbose_name) == 1:
-                verbose_name = verbose_name[0]
-                sigla = ''
-                for letra in verbose_name:
-                    if letra in 'BCDFGHJKLMNPQRSTVWXYZ':
-                        sigla += letra
-            else:
-                sigla = ''.join([palavra[0] for palavra in verbose_name])
-            return sigla[:3]
-
-        for view in integrations_view_names:
-            try:
-                tipo = TipoTextoArticulado()
-                tipo.sigla = cria_sigla(
-                    view.model._meta.verbose_name
-                    if view.model._meta.verbose_name
-                    else view.model._meta.model_name)
-                tipo.descricao = view.model._meta.verbose_name
-                tipo.content_type = ContentType.objects.get_by_natural_key(
-                    view.model._meta.app_label, view.model._meta.model_name)
-                tipo.save()
-            except IntegrityError as e:
-                if not settings.DEBUG:
-                    logger.error(
-                        string_concat(
-                            _('Ocorreu erro na criação tipo de ta: '),
-                            str(e)))
 
     class Meta:
         abstract = True

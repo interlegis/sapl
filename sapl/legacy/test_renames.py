@@ -3,7 +3,7 @@ import sapl.materia
 import sapl.norma
 import sapl.sessao
 
-from .migration import appconfs, get_renames, legacy_app
+from .migracao import appconfs, get_renames, legacy_app
 
 RENAMING_IGNORED_MODELS = [
     sapl.comissoes.models.Composicao,

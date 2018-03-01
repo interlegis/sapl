@@ -28,7 +28,7 @@ Instalar as seguintes dependências do sistema::
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools \
-    python3-pip curl poppler-utils default-jre
+    python3-pip curl poppler-utils antiword default-jre
 
     sudo -i
     curl -sL https://deb.nodesource.com/setup_6.x | bash -
@@ -187,9 +187,9 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 * Subir o servidor do django::
 
    ./manage.py runserver 0.0.0.0:8001
-   
+
 * Compilar os arquivos de estilização::
-  
+
    ./manage.py compilescss
    ./manage.py collectstatic
 
@@ -211,7 +211,7 @@ Instruções para criação do super usuário e de usuários de testes
 * Os perfis fixos não aceitam customização via admin, porém outros grupos podem ser criados. O SAPL não interferirá no conjunto de permissões definidas em grupos customizados e se comportará diante de usuários segundo seus grupos e suas permissões.
 
 * Para criar os usuários de teste, deve-se seguir os seguintes passos::
-    
+
     ./manage.py shell_plus
     from sapl.rules.apps import cria_usuarios_padrao
     cria_usuarios_padrao()

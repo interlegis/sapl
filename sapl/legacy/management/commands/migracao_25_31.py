@@ -1,6 +1,7 @@
 from django.core import management
 from django.core.management.base import BaseCommand
-from sapl.legacy import migration
+
+from sapl.legacy.migracao import migrar
 
 
 class Command(BaseCommand):
@@ -18,4 +19,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         management.call_command('migrate')
-        migration.migrate(interativo=not options['force'])
+        migrar(interativo=not options['force'])

@@ -1,13 +1,11 @@
+from functools import wraps
+from operator import itemgetter
+from unicodedata import normalize as unicodedata_normalize
 import hashlib
 import logging
 import os
 import re
-from functools import wraps
-from operator import itemgetter
-from unicodedata import normalize as unicodedata_normalize
 
-import django_filters
-import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -21,12 +19,39 @@ from django.db.models import Q
 from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
 from django_filters.filterset import STRICTNESS
+from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
+from unipath.path import Path
+import django_filters
+import magic
+
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
 
+
 sapl_logger = logging.getLogger(BASE_DIR.name)
+
+
+def pil_image(source, exif_orientation=False, **options):
+    return source_generators.pil_image(source, exif_orientation, **options)
+
+
+def clear_thumbnails_cache(queryset, field):
+
+    for r in queryset:
+        assert hasattr(r, field), _(
+            'Objeto da listagem não possui o campo informado')
+
+        if not getattr(r, field):
+            continue
+
+        path = Path(getattr(r, field).path)
+        cache_files = path.parent.walk()
+
+        for cf in cache_files:
+            if cf != path:
+                cf.remove()
 
 
 def normalize(txt):

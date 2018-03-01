@@ -22,6 +22,7 @@ EXTENSOES = {
     'application/msword': '.doc',
     'application/pdf': '.pdf',
     'application/vnd.oasis.opendocument.text': '.odt',
+    'application/vnd.ms-excel': '.xls',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',  # noqa
     'application/xml': '.xml',
     'text/xml': '.xml',
@@ -219,6 +220,7 @@ DUMP_FUNCTIONS = {
     'Folder': partial(dump_folder, enum=enumerate_folder),
     'BTreeFolder2': partial(dump_folder, enum=enumerate_btree),
     'SDE-Document': partial(dump_sde, tipo='sde.document'),
+    'StrDoc': partial(dump_sde, tipo='sde.document'),
     'SDE-Template': partial(dump_sde, tipo='sde.template'),
 
     # explicitamente ignorados
