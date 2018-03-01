@@ -1250,10 +1250,7 @@ class ProposicaoForm(forms.ModelForm):
                             inst.texto_original:
                         inst.texto_original.delete()
             inst.save()
-<<<<<<< HEAD
-=======
 
->>>>>>> HOT-FIX: tirar ipdb do materia/form
             if receber_recibo == True or not inst.texto_original:
                 inst.hash_code = ''
             else:
