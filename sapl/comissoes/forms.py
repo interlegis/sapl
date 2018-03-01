@@ -158,42 +158,14 @@ class ReuniaoForm(ModelForm):
     def clean(self):
         super(ReuniaoForm, self).clean()
 
-        if not self.is_valid():
-            return self.cleaned_data
-
-        instance = self.instance
-
-        num = self.cleaned_data['numero']
-        com = self.cleaned_data['comissao']
-        tipo = self.cleaned_data['tipo']
-        periodo = self.cleaned_data['periodo']
-
-        error = ValidationError(
-            "Número de Reunião já existente "
-            "para a Comissão, Período e Tipo informados. "
-            "Favor escolher um número distinto.")
-
-        reunioes = Reuniao.objects.filter(numero=num,
-                                                comissao=com,
-                                                periodo=periodo,
-                                                tipo=tipo).\
-            values_list('id', flat=True)
-
-        qtd_reunioes = len(reunioes)
-
-        if qtd_reunioes > 0:
-            if instance.pk:  # update
-                if instance.pk not in reunioes or qtd_reunioes > 1:
-                    raise error
-            else:  # create
-                raise error
-
         if self.cleaned_data['hora_fim']:
             if (self.cleaned_data['hora_fim'] <
                     self.cleaned_data['hora_inicio']):
-                msg = _('A hora de término não pode ser menor que a de início')
+                msg = _('A hora de término da reunião não pode ser menor que a de início')
                 raise ValidationError(msg)
         return self.cleaned_data
+
+        
 
 
 

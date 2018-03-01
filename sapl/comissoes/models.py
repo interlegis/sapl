@@ -1,4 +1,3 @@
-
 import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -53,22 +52,18 @@ class Comissao(models.Model):
     secretario = models.CharField(
         max_length=30, blank=True, verbose_name=_('Secretário'))
     telefone_reuniao = models.CharField(
-        max_length=15,
-        blank=True,
+        max_length=15, blank=True,
         verbose_name=_('Tel. Sala Reunião'))
     endereco_secretaria = models.CharField(
-        max_length=100,
-        blank=True,
+        max_length=100, blank=True,
         verbose_name=_('Endereço Secretaria'))
     telefone_secretaria = models.CharField(
-        max_length=15,
-        blank=True,
+        max_length=15, blank=True,
         verbose_name=_('Tel. Secretaria'))
     fax_secretaria = models.CharField(
         max_length=15, blank=True, verbose_name=_('Fax Secretaria'))
     agenda_reuniao = models.CharField(
-        max_length=100,
-        blank=True,
+        max_length=100, blank=True,
         verbose_name=_('Data/Hora Reunião'))
     local_reuniao = models.CharField(
         max_length=100, blank=True, verbose_name=_('Local Reunião'))
@@ -84,7 +79,6 @@ class Comissao(models.Model):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Comissão Ativa?'))
-
     autor = SaplGenericRelation(Autor,
                                 related_query_name='comissao_set',
                                 fields_search=(
@@ -171,8 +165,7 @@ class Participacao(models.Model):  # ComposicaoComissao
                                          null=True,
                                          verbose_name=_('Data Desligamento'))
     motivo_desligamento = models.CharField(
-        max_length=150,
-        blank=True,
+        max_length=150, blank=True,
         verbose_name=_('Motivo Desligamento'))
     observacao = models.CharField(
         max_length=150, blank=True, verbose_name=_('Observação'))
@@ -190,8 +183,7 @@ def get_comissao_media_path(instance, subpath, filename):
 
 
 def pauta_upload_path(instance, filename):
-    return texto_upload_path(
-        instance, filename, subpath='pauta', pk_first=True)
+    return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
 
 
 def ata_upload_path(instance, filename):
@@ -199,8 +191,7 @@ def ata_upload_path(instance, filename):
 
 
 def anexo_upload_path(instance, filename):
-    return texto_upload_path(
-        instance, filename, subpath='anexo', pk_first=True)
+    return texto_upload_path(instance, filename, subpath='anexo', pk_first=True)
 
 
 class Reuniao(models.Model):
@@ -237,20 +228,17 @@ class Reuniao(models.Model):
         max_length=150, blank=True, 
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
-        blank=True,
-        null=True,
+        blank=True, null=True,
         upload_to=pauta_upload_path,
         verbose_name=_('Pauta da Reunião'),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
-        blank=True,
-        null=True,
+        blank=True, null=True,
         upload_to=ata_upload_path,
         verbose_name=_('Ata da Reunião'),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_anexo = models.FileField(
-        blank=True,
-        null=True,
+        blank=True, null=True,
         upload_to=anexo_upload_path,
         verbose_name=_('Anexo da Reunião'))
 
