@@ -294,7 +294,6 @@ def recuperar_materia(request):
         numeracao = tipo.sequencia_numeracao
 
     if numeracao == 'A':
-        import ipdb; ipdb.set_trace()
         numero = MateriaLegislativa.objects.filter(
             ano=ano).aggregate(Max('numero'))
     elif numeracao == 'L':

@@ -17,7 +17,6 @@ from sapl.materia.models import (Anexada, Autoria, DespachoInicial,
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.utils import models_with_gr_for_model
-from django.http import  HttpResponse
 
 
 @pytest.mark.django_db(transaction=False)
