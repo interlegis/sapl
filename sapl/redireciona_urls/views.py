@@ -6,6 +6,7 @@ from sapl.materia.apps import AppConfig as materiaConfig
 from sapl.norma.apps import AppConfig as normaConfig
 from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
 from sapl.sessao.apps import AppConfig as sessaoConfig
+from sapl.audiencia.apps import AppConfig as audienciaConfig
 
 from .exceptions import UnknownUrlNameError
 
@@ -21,6 +22,7 @@ app_materia = materiaConfig.name
 app_sessao = sessaoConfig.name
 app_norma = normaConfig.name
 app_relatorios = relatoriosConfig.name
+app_audiencia = audienciaConfig.name
 
 pesquisar_atas = (app_atas + ':atas')
 presenca_sessao = (app_presenca_sessao + ':presenca_sessao')
@@ -31,6 +33,7 @@ parlamentar_mesa_diretora = (app_parlamentares + ':mesa_diretora')
 comissao_list = (app_comissoes + ':comissao_list')
 comissao_detail = (app_comissoes + ':comissao_detail')
 
+audiencia = (app_audiencia + ':audiencia')
 
 materialegislativa_detail = (app_materia + ':materialegislativa_detail')
 materialegislativa_list = (app_materia + ':pesquisar_materia')
