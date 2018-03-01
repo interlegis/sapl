@@ -17,6 +17,7 @@ from sapl.materia.models import (Anexada, Autoria, DespachoInicial,
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.utils import models_with_gr_for_model
+from django.http import  HttpResponse
 
 
 @pytest.mark.django_db(transaction=False)
@@ -511,7 +512,7 @@ def test_form_errors_proposicao(admin_client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_materia_legislativa_submit(admin_client):
+def test_numeracao_materia_legislativa_por_legislatura(admin_client):
 
     #Criar Legislaturas
     legislatura1 = mommy.make(Legislatura,
@@ -527,24 +528,56 @@ def test_materia_legislativa_submit(admin_client):
                           data_eleicao='2018-10-15'
                       )
 
-    leg = Legislatura.objects.all()
 
-    # Cria uma materia
+    # Cria uma materia na legislatura1
     tipo_materia = mommy.make(TipoMateriaLegislativa, id=1,sequencia_numeracao='L')
     materia = mommy.make(MateriaLegislativa,
                           tipo=tipo_materia,
-                          ano='2017',
+                          ano=2017,
                           numero=1
                           )
 
-    numero = MateriaLegislativa.objects.filter(
-        data_apresentacao__gte=legislatura2.data_inicio,
-        data_apresentacao__lte=legislatura2.data_fim).aggregate(Max('numero'))
-    assert numero['numero__max'] == None
+    url = reverse('sapl.materia:recuperar_materia')
 
-    assert tipo_materia.id == 1
+    # Testa numeração do Materia Legislativa na Legislatura1
+    query_params = '?tipo={}&ano={}'.format(materia.tipo.id, materia.ano)
+    response = admin_client.get(url + query_params, follow=True)
+    response_content = eval(response.content.decode('ascii'))
+    esperado_legislatura1 = eval('{"numero": 2, "ano": "2017"}')
+    assert response_content['numero'] == esperado_legislatura1['numero']
 
-    # Testa POST
-    response = admin_client.get(reverse('sapl.materia:recuperar_materia'),
-                                       {'tipo':materia.tipo,'ano':materia.ano})
-    assert response.status_code == 200
+    # Testa numeração do Materia Legislativa na Legislatura2
+    query_params = '?tipo={}&ano={}'.format(1, '2010')
+    response = admin_client.get(url + query_params, follow=True)
+    response_content = eval(response.content.decode('ascii'))
+    esperado_legislatura2 = eval('{"ano": "2010", "numero": 1}')
+    assert response_content['numero'] == esperado_legislatura2['numero']
+
+
+@pytest.mark.django_db(transaction=False)
+def test_numeracao_materia_legislativa_por_ano(admin_client):
+
+    # Cria uma materia
+    tipo_materia = mommy.make(TipoMateriaLegislativa, id=1,sequencia_numeracao='A')
+    materia = mommy.make(MateriaLegislativa,
+                          tipo=tipo_materia,
+                          ano=2017,
+                          numero=1
+                          )
+
+
+    url = reverse('sapl.materia:recuperar_materia')
+
+    # Testa numeração da Materia Legislativa no ano da materia criada
+    query_params = '?tipo={}&ano={}'.format(materia.tipo.id, materia.ano)
+    response = admin_client.get(url + query_params, follow=True)
+    response_content = eval(response.content.decode('ascii'))
+    esperado_ano = eval('{"numero": 2, "ano": "2017"}')
+    assert response_content['numero'] == esperado_ano['numero']
+
+    # Testa numeração da Materia Legislativa de outro ano
+    query_params = '?tipo={}&ano={}'.format(1, '2010')
+    response = admin_client.get(url + query_params, follow=True)
+    response_content = eval(response.content.decode('ascii'))
+    esperado_outro_ano = eval('{"ano": "2010", "numero": 1}')
+    assert response_content['numero'] == esperado_outro_ano['numero']
