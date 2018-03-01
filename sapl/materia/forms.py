@@ -1208,6 +1208,20 @@ class ProposicaoForm(forms.ModelForm):
                     "Arquivo muito grande. ( > {0}MB )".format(max_size))
             return texto_original
 
+    def gerar_hash(self, inst, receber_recibo):
+
+        inst.save()
+        if receber_recibo == True:
+            inst.hash_code = ''
+        else:
+            if inst.texto_original:
+                inst.hash_code = gerar_hash_arquivo(
+                    inst.texto_original.path, str(inst.pk))
+            elif inst.texto_articulado.exists():
+                ta = inst.texto_articulado.first()
+                # FIXME hash para textos articulados
+                inst.hash_code = 'P' + ta.hash() + '/' + str(inst.pk)
+
 
     def clean(self):
         super(ProposicaoForm, self).clean()
@@ -1249,13 +1263,8 @@ class ProposicaoForm(forms.ModelForm):
                             not cd['texto_original'] and \
                             inst.texto_original:
                         inst.texto_original.delete()
-            inst.save()
 
-            if receber_recibo == True or not inst.texto_original:
-                inst.hash_code = ''
-            else:
-                _hash = gerar_hash_arquivo(inst.texto_original.path, str(inst.pk))
-                inst.hash_code = _hash
+            self.gerar_hash(inst, receber_recibo)
 
             return super().save(commit)
 
@@ -1267,12 +1276,7 @@ class ProposicaoForm(forms.ModelForm):
         inst.numero_proposicao = (
             numero__max + 1) if numero__max else 1
 
-        inst.save()
-        if receber_recibo == True or not inst.texto_original:
-            inst.hash_code = ''
-        else:
-            _hash = gerar_hash_arquivo(inst.texto_original.path, str(inst.pk))
-            inst.hash_code = _hash
+        self.gerar_hash(inst, receber_recibo)
 
         inst.save()
 
