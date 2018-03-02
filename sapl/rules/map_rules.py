@@ -7,6 +7,7 @@ from sapl.norma import models as norma
 from sapl.painel import models as painel
 from sapl.parlamentares import models as parlamentares
 from sapl.protocoloadm import models as protocoloadm
+from sapl.audiencia import models as audiencia
 from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL, RP_LIST,
                         SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_ANONYMOUS,
                         SAPL_GROUP_AUTOR, SAPL_GROUP_COMISSOES,
@@ -59,6 +60,15 @@ rules_group_administrativo = {
         (protocoloadm.TramitacaoAdministrativo, __base__),
     ]
 }
+
+rules_group_audiencia = {
+    'group': SAPL_GROUP_GERAL,
+    'rules': [
+        (audiencia.AudienciaPublica, __base__),
+        (audiencia.TipoAudienciaPublica, __base__),
+    ]
+}
+
 
 rules_group_protocolo = {
     'group': SAPL_GROUP_PROTOCOLO,
@@ -273,7 +283,8 @@ rules_group_geral = {
         (compilacao.TipoDispositivoRelationship, []),
         (compilacao.PerfilEstruturalTextoArticulado, []),
 
-
+        (audiencia.AudienciaPublica, __base__),
+        (audiencia.TipoAudienciaPublica, __base__),
 
 
 
@@ -300,6 +311,7 @@ rules_group_geral['rules'] = (rules_group_geral['rules'] +
                               rules_group_administrativo['rules'] +
                               rules_group_protocolo['rules'] +
                               rules_group_comissoes['rules'] +
+                              rules_group_audiencia['rules'] +
                               rules_group_materia['rules'] +
                               rules_group_norma['rules'] +
                               rules_group_sessao['rules'] +
@@ -308,6 +320,7 @@ rules_group_geral['rules'] = (rules_group_geral['rules'] +
 
 
 rules_patterns = [
+    rules_group_audiencia,
     rules_group_administrativo,
     rules_group_protocolo,
     rules_group_comissoes,

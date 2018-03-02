@@ -66,8 +66,8 @@ class AudienciaPublica(models.Model):
         max_length=5, verbose_name=_('Horário (hh:mm)'))
     hora_fim = models.CharField(
         max_length=5, verbose_name=_('Horário (hh:mm)'))
-    observacao = models.CharField(
-        max_length=200, blank=True, verbose_name=_('Observação'))
+    observacao = models.TextField(
+        max_length=500, blank=True, verbose_name=_('Observação'))
     audiencia_cancelada = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
@@ -102,7 +102,7 @@ class AudienciaPublica(models.Model):
         ordering = ['nome', 'numero', 'tipo']
 
     def __str__(self):
-        return self.nome + '-' + self.numero
+        return self.nome
 
     def delete(self, using=None, keep_parents=False):
         if self.upload_pauta:

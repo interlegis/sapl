@@ -11,7 +11,7 @@ from .forms import AudienciaForm
 from .models import (AudienciaPublica, TipoAudienciaPublica)
 
 def index(request):
-    return HttpResponse("Audiência Pública")
+    return HttpResponse("Audiência  Pública")
 
 class AudienciaCrud(Crud):
     model = AudienciaPublica
