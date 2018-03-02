@@ -317,11 +317,12 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
     exec_legado_em_subconjunto('delete ' + from_autoria, reapontamento)
     # e depois inserimos apenas as sem repetições c ind_primeiro_autor ajustado
     nova_autoria = get_autorias_sem_repeticoes(autoria, reapontamento)
-    exec_legado('''
-        insert into autoria
-        (cod_autor, cod_materia, ind_primeiro_autor, ind_excluido)
-        values {}'''.format(', '.join([str((a, m, i, 0))
-                                       for a, m, i in nova_autoria])))
+    if nova_autoria:
+        exec_legado('''
+            insert into autoria
+            (cod_autor, cod_materia, ind_primeiro_autor, ind_excluido)
+            values {}'''.format(', '.join([str((a, m, i, 0))
+                                           for a, m, i in nova_autoria])))
 
     # Reaponta outras tabelas que referenciam autor
     for tabela, _ in TABELAS_REFERENCIANDO_AUTOR:
