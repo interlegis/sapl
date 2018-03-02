@@ -52,6 +52,7 @@ class AudienciaPublica(models.Model):
         MateriaLegislativa,
         on_delete=models.PROTECT,
         null=True,
+        blank=True,
         verbose_name=_('Matéria Legislativa'))
     tipo = models.ForeignKey(TipoAudienciaPublica,
                              on_delete=models.PROTECT,
@@ -63,15 +64,15 @@ class AudienciaPublica(models.Model):
         max_length=100, verbose_name=_('Tema da Audiência Pública'))
     data = models.DateField(verbose_name=_('Data'))
     hora_inicio = models.CharField(
-        max_length=5, verbose_name=_('Horário (hh:mm)'))
+        max_length=5, verbose_name=_('Horário Início(hh:mm)'))
     hora_fim = models.CharField(
-        max_length=5, verbose_name=_('Horário (hh:mm)'))
+        max_length=5, verbose_name=_('Horário Fim(hh:mm)'))
     observacao = models.TextField(
         max_length=500, blank=True, verbose_name=_('Observação'))
     audiencia_cancelada = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
-        verbose_name=_('Audiência Cancela?'))
+        verbose_name=_('Audiência Cancelada?'))
     url_audio = models.URLField(
         max_length=150, blank=True,
         verbose_name=_('URL Arquivo Áudio (Formatos MP3 / AAC)'))
