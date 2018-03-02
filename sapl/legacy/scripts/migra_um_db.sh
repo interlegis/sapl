@@ -4,7 +4,7 @@
 if [ $# -ge 2 ]; then
 
     # proteje pasta com dumps de alterações acidentais
-    chmod -R -w ~/migracao_sapl/sapl_dumps
+    # chmod -R -w ~/migracao_sapl/sapl_dumps
 
     DATE=$(date +%Y-%m-%d)
     DIR=~/${DATE}_logs_migracao
@@ -37,7 +37,7 @@ if [ $# -ge 2 ]; then
 
     echo "--- MIGRACAO DE DADOS ---" | tee -a $LOG
     echo >> $LOG
-    DATABASE_NAME=$1 ./manage.py migracao_25_31 -f --settings sapl.legacy_migration_settings |& tee -a $LOG
+    DATABASE_NAME=$1 ./manage.py migracao_25_31 --force --dados --settings sapl.legacy_migration_settings 2>&1 | tee -a $LOG
     echo >> $LOG
 else
     echo "USO:"
