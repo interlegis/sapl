@@ -47,6 +47,10 @@ def clear_thumbnails_cache(queryset, field):
             continue
 
         path = Path(getattr(r, field).path)
+
+        if not path.exists():
+           continue
+
         cache_files = path.parent.walk()
 
         for cf in cache_files:

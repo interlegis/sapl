@@ -202,7 +202,7 @@ Instruções para criação do super usuário e de usuários de testes
 
 * Criar super usuário do django-contrib-admin (Será solicitado alguns dados para criação)::
 
-   ./manage.py createsuperuser
+   python3 manage.py createsuperuser
 
 * `Os perfis semânticos do SAPL <https://github.com/interlegis/sapl/blob/master/sapl/rules/__init__.py>`_ são fixos e atualizados a cada execução do comando::
 
