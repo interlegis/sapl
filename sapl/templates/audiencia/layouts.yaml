@@ -1,0 +1,16 @@
+{% load i18n %}
+AudienciaPublica:
+  {% trans 'Audiência Pública' %}:
+    - materia
+    - tipo
+    - numero
+    - nome
+    - tema
+    - data
+    - hora_inicio hora_fim
+    - observacao
+    - audiencia_cancelada
+    - url_audio url_video
+    - upload_pauta
+    - upload_ata
+    - upload_anexo
