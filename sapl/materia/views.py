@@ -295,7 +295,7 @@ def recuperar_materia(request):
 
     if numeracao == 'A':
         numero = MateriaLegislativa.objects.filter(
-            ano=ano).aggregate(Max('numero'))
+            ano=ano, tipo=tipo).aggregate(Max('numero'))
     elif numeracao == 'L':
         legislatura = Legislatura.objects.filter(
             data_inicio__year__lte=ano,
@@ -304,10 +304,11 @@ def recuperar_materia(request):
         data_fim = legislatura.data_fim
         numero = MateriaLegislativa.objects.filter(
             data_apresentacao__gte=data_inicio,
-            data_apresentacao__lte=data_fim).aggregate(
+            data_apresentacao__lte=data_fim,
+            tipo=tipo).aggregate(
             Max('numero'))
     elif numeracao == 'U':
-        numero = MateriaLegislativa.objects.all().aggregate(Max('numero'))
+        numero = MateriaLegislativa.objects.filter(tipo=tipo).aggregate(Max('numero'))
 
     if numeracao is None:
         numero['numero__max'] = 0
