@@ -43,6 +43,7 @@ Protocolo:
 Protocolo:
   {% trans 'Indentificação da Matéria' %}:
   - tipo_materia  numero_paginas
+  - numero_materia ano_materia vincular_materia
   - assunto_ementa
   - autor
   - observacao
