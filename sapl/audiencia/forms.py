@@ -5,8 +5,17 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
+from sapl.materia.models import MateriaLegislativa
 
 class AudienciaForm(forms.ModelForm):
+
+    materia = forms.ModelChoiceField(required=False,
+                                     queryset=MateriaLegislativa.objects.all().select_related(
+                                         "tipo").order_by('tipo', '-ano', 'numero'))
+
+    tipo = forms.ModelChoiceField(required=True,
+                                  queryset=TipoAudienciaPublica.objects.all().order_by('nome'))
+
 
     class Meta:
         model = AudienciaPublica

@@ -35,7 +35,10 @@ class TipoAudienciaPublica(models.Model):
                                      ('I', 'iniciativa', _('Iniciativa Popular')))
 
     nome = models.CharField(
-        max_length=1, verbose_name=_('Tipo de Audiência Pública'), choices=TIPO_AUDIENCIA_CHOICES)
+        max_length=50, verbose_name=_('Nome do Tipo de Audiência Pública'), default='Audiência Pública')
+    tipo = models.CharField(
+        max_length=1, verbose_name=_('Tipo de Audiência Pública'), choices=TIPO_AUDIENCIA_CHOICES, default='A')
+
 
     class Meta:
         verbose_name = _('Tipo de Audiência Pública')
@@ -56,7 +59,9 @@ class AudienciaPublica(models.Model):
         verbose_name=_('Matéria Legislativa'))
     tipo = models.ForeignKey(TipoAudienciaPublica,
                              on_delete=models.PROTECT,
-                             verbose_name=_('Tipo'))
+                             null=True,
+                             blank=True,
+                             verbose_name=_('Tipo de Audiência Pública'))
     numero = models.PositiveIntegerField(blank=True, verbose_name=_('Número'))
     nome = models.CharField(
         max_length=100, verbose_name=_('Nome da Audiência Pública'))
