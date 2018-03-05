@@ -1,0 +1,22 @@
+TipoAudienciaPublica:
+	nome: nome_tipo_audiencia
+  tipo: tipo_audiencia
+
+AudienciaPublica:
+  materia: materia_legislativo
+  tipo: tipo_audiencia
+  numero: numero_audiencia
+  nome: nome_audiencia
+  tema: tema_audiencia
+  data: data_audiencia
+  hora_inicio: hora_inicio_audiencia
+  hora_fim: hora_fim_audiencia
+  observacao: txt_observacao
+  audiencia_cancelada: audiencia_canc
+  ulr_audio: audio_audiencia
+  url_video: video_audiencia
+  upload_pauta: pauta_audiencia
+  upload_ata: ata_audiencia
+  upload_anexo: anexo_audiencia
+
+
