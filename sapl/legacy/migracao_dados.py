@@ -15,9 +15,10 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
-from django.db.models import Count, Max
+from django.db.models import Count, Max, Q
 from django.db.models.base import ModelBase
 from pytz import timezone
+from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import (Autor, ProblemaMigracao, TipoAutor,
@@ -639,6 +640,10 @@ def get_pk_legado(tabela):
     return [r[4] for r in res]
 
 
+DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
+PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
+
+
 class DataMigrator:
 
     def __init__(self):
@@ -649,7 +654,7 @@ class DataMigrator:
         nome_legado = DATABASES['legacy']['NAME']
         match = re.match('sapl_cm_(.*)', nome_legado)
         sigla_casa = match.group(1)
-        with open(os.path.expanduser('~/migracao_sapl/sapl_dumps/tabela_timezones.yaml'), 'r') as arq:
+        with open(PATH_TABELA_TIMEZONES, 'r') as arq:
             tabela_timezones = yaml.load(arq)
         municipio, uf, nome_timezone = tabela_timezones[sigla_casa]
         if nome_timezone:
@@ -712,7 +717,7 @@ class DataMigrator:
             else:
                 info('Migração cancelada.')
                 return 0
-        info('Excluindo entradas antigas do banco.')
+        info('Excluindo entradas antigas do banco destino.')
         call([PROJECT_DIR.child('manage.py'), 'flush',
               '--database=default', '--no-input'], stdout=PIPE)
 
@@ -761,13 +766,23 @@ class DataMigrator:
         if len(campos_pk) == 1:
             # a pk no legado tem um único campo
             nome_pk = model_legado._meta.pk.name
-            old_records = model_legado.objects.all().order_by(nome_pk)
+            if 'ind_excluido' in {f.name for f in model_legado._meta.fields}:
+                # se o model legado tem o campo ind_excluido
+                # enumera apenas os não excluídos
+                old_records = model_legado.objects.filter(~Q(ind_excluido=1))
+            else:
+                old_records = model_legado.objects.all()
+            old_records = old_records.order_by(nome_pk)
 
             def get_id_do_legado(old):
                 return getattr(old, nome_pk)
         else:
             # a pk no legado tem mais de um campo
-            old_records = iter_sql_records('select * from ' + tabela_legado)
+            sql = 'select * from ' + tabela_legado
+            if existe_coluna_no_legado(tabela_legado, 'ind_excluido'):
+                sql += ' where ind_excluido != 1'
+            old_records = iter_sql_records(sql)
+
             get_id_do_legado = None
 
         ajuste_antes_salvar = AJUSTE_ANTES_SALVAR.get(model)
@@ -777,9 +792,6 @@ class DataMigrator:
         with transaction.atomic():
             sql_delete_legado = ''
             for old in old_records:
-                if getattr(old, 'ind_excluido', False):
-                    # não migramos registros marcados como excluídos
-                    continue
                 new = model()
                 try:
                     self.populate_renamed_fields(new, old)
