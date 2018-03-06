@@ -33,7 +33,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
-                    RelatorioPresencaSessaoFilterSet)
+                    RelatorioPresencaSessaoFilterSet,
+                    RelatorioDataFimPrazoTramitacaoFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -350,6 +351,22 @@ class RelatorioHistoricoTramitacaoView(FilterView):
         context = super(RelatorioHistoricoTramitacaoView,
                         self).get_context_data(**kwargs)
         context['title'] = _('Histórico de Tramitações')
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+class RelatorioDataFimPrazoTramitacaoView(FilterView):
+    model = MateriaLegislativa
+    filterset_class = RelatorioDataFimPrazoTramitacaoFilterSet
+    template_name = 'base/RelatorioDataFimPrazoTramitacao_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioDataFimPrazoTramitacaoView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Fim de Prazo de Tramitações')
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
