@@ -15,7 +15,7 @@ from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
 from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
-                        RangeWidgetOverride, autor_label, autor_modal)
+                        RangeWidgetOverride, autor_label, autor_modal, YES_NO_CHOICES)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
@@ -363,6 +363,17 @@ class ProtocoloMateriaForm(ModelForm):
         empty_label='Selecione',
     )
 
+
+    numero_materia = forms.CharField(
+        label=_('Número matéria'), required=False)
+
+    ano_materia = forms.CharField(
+        label=_('Ano matéria'), required=False)
+
+    vincular_materia = forms.ChoiceField(label=_('Vincular a matéria existente?'),
+                                         widget=forms.RadioSelect(),
+                                         choices= YES_NO_CHOICES)
+
     numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
 
     observacao = forms.CharField(required=False,
@@ -378,7 +389,11 @@ class ProtocoloMateriaForm(ModelForm):
                   'autor',
                   'tipo_autor',
                   'assunto_ementa',
-                  'observacao']
+                  'observacao',
+                  'numero_materia',
+                  'ano_materia',
+                  'vincular_materia'
+                  ]
 
     def clean_autor(self):
         autor_field = self.cleaned_data['autor']
@@ -390,6 +405,26 @@ class ProtocoloMateriaForm(ModelForm):
             autor_field = autor
         return autor_field
 
+    def clean(self):
+        super(ProtocoloMateriaForm, self).clean()
+
+        data = self.cleaned_data
+        if self.is_valid():
+            if data['vincular_materia'] == 'True':
+                try:
+                    self.materia = MateriaLegislativa.objects.get(ano=data['ano_materia'],
+                                                                  numero=data['numero_materia'],
+                                                                  tipo=data['tipo_materia'])
+                    if self.materia.numero_protocolo:
+                        raise ValidationError(_('Matéria Legislativa informada já possui o protocolo {}/{} vinculado.'
+                                                .format(self.materia.numero_protocolo, self.materia.ano)))
+                except ObjectDoesNotExist:
+                    raise ValidationError(_('Matéria Legislativa informada não existente.'))
+
+        return data
+
+
+
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
@@ -397,6 +432,10 @@ class ProtocoloMateriaForm(ModelForm):
              ('numero_paginas', 2),
              ('tipo_autor', 3),
              ('autor', 3)])
+        row2 = to_row(
+            [('vincular_materia', 4),
+             ('numero_materia', 4),
+             ('ano_materia', 4),])
         row3 = to_row(
             [('assunto_ementa', 12)])
         row4 = to_row(
@@ -405,7 +444,7 @@ class ProtocoloMateriaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
-                     row1, row3,
+                     row1, row2, row3,
                      row4, form_actions(label='Protocolar Matéria')))
 
         super(ProtocoloMateriaForm, self).__init__(

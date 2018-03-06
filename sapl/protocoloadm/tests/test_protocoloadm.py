@@ -411,5 +411,6 @@ def test_protocolo_materia_invalido():
     assert errors['tipo_materia'] == [_('Este campo é obrigatório.')]
     assert errors['numero_paginas'] == [_('Este campo é obrigatório.')]
     assert errors['autor'] == [_('Este campo é obrigatório.')]
+    assert errors['vincular_materia'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 5
+    assert len(errors) == 6

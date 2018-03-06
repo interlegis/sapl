@@ -468,6 +468,13 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.assunto_ementa = self.request.POST['assunto_ementa']
 
         protocolo.save()
+        data = form.cleaned_data
+        materia = MateriaLegislativa.objects.get(ano=data['ano_materia'],
+                                                 numero=data['numero_materia'],
+                                                 tipo=data['tipo_materia'])
+        materia.numero_protocolo = protocolo.numero
+        materia.save()
+
         return redirect(self.get_success_url(protocolo))
 
     def get_context_data(self, **kwargs):
