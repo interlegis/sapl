@@ -1594,7 +1594,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                     tipo=tipo).aggregate(
                     Max('numero'))
             elif numeracao == 'U':
-                numero = MateriaLegislativa.objects.all(tipo=tipo).aggregate(Max('numero'))
+                numero = MateriaLegislativa.objects.filter(tipo=tipo).aggregate(Max('numero'))
 
             if numeracao is None:
                 numero['numero__max'] = 0
