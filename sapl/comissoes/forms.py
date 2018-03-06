@@ -10,7 +10,6 @@ from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
 
-
 class ParticipacaoCreateForm(forms.ModelForm):
 
     parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
@@ -71,7 +70,8 @@ class ParticipacaoCreateForm(forms.ModelForm):
         composicao = Composicao.objects.get(id=self.initial['parent_pk'])
         participantes = composicao.participacao_set.all()
         participantes_id = [p.parlamentar.id for p in participantes]
-        parlamentares = Parlamentar.objects.all().exclude(id__in=participantes_id).order_by('nome_completo')
+        parlamentares = Parlamentar.objects.all().exclude(
+            id__in=participantes_id).order_by('nome_completo')
         parlamentares = [p for p in parlamentares if p.ativo]
 
         lista = []
@@ -154,18 +154,20 @@ class ReuniaoForm(ModelForm):
     class Meta:
         model = Reuniao
         exclude = ['cod_andamento_reuniao']
+        widgets = {
+            'hora_fim': forms.TimeInput(format='%H:%M'),
+            'hora_inicio': forms.TimeInput(format='%H:%M'),
+        }
 
     def clean(self):
         super(ReuniaoForm, self).clean()
 
-        if self.cleaned_data['hora_fim']:
-            if (self.cleaned_data['hora_fim'] <
-                    self.cleaned_data['hora_inicio']):
-                msg = _('A hora de término da reunião não pode ser menor que a de início')
-                raise ValidationError(msg)
+        if self.errors:
+            return
+
+        if self.cleaned_data['hora_fim'] < self.cleaned_data['hora_inicio']:
+            msg = _('A hora de término da reunião não pode '
+                    'ser menor que a de início')
+            raise ValidationError(msg)
+
         return self.cleaned_data
-
-        
-
-
-

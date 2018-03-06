@@ -1,7 +1,8 @@
-import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
+
 from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
@@ -213,19 +214,19 @@ class Reuniao(models.Model):
     tema = models.CharField(
         max_length=100, verbose_name=_('Tema da Reunião'))
     data = models.DateField(verbose_name=_('Data'))
-    hora_inicio = models.CharField(
-        max_length=5, verbose_name=_('Horário de Início (hh:mm)'))
-    hora_fim = models.CharField(
-        max_length=5, verbose_name=_('Horário de Término (hh:mm)'))
+    hora_inicio = models.TimeField(
+        verbose_name=_('Horário de Início (hh:mm)'))
+    hora_fim = models.TimeField(
+        verbose_name=_('Horário de Término (hh:mm)'))
     local_reuniao = models.CharField(
         max_length=100, blank=True, verbose_name=_('Local da Reunião'))
     observacao = models.TextField(
         max_length=150, blank=True, verbose_name=_('Observação'))
     url_audio = models.URLField(
-        max_length=150, blank=True, 
+        max_length=150, blank=True,
         verbose_name=_('URL do Arquivo de Áudio (Formatos MP3 / AAC)'))
     url_video = models.URLField(
-        max_length=150, blank=True, 
+        max_length=150, blank=True,
         verbose_name=_('URL do Arquivo de Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
         blank=True, null=True,
