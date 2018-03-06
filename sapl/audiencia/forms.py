@@ -1,8 +1,6 @@
 from django import forms
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.materia.models import MateriaLegislativa
@@ -20,6 +18,22 @@ class AudienciaForm(forms.ModelForm):
     class Meta:
         model = AudienciaPublica
         fields = '__all__'
+
+
+    def __init__(self, **kwargs):
+        super(AudienciaForm, self).__init__(**kwargs)
+
+        tipos = []
+
+        if not self.fields['tipo'].queryset:
+            tipos.append(TipoAudienciaPublica.objects.create(nome='Audiência Pública', tipo='A'))
+            tipos.append(TipoAudienciaPublica.objects.create(nome='Plebiscito', tipo='P'))
+            tipos.append(TipoAudienciaPublica.objects.create(nome='Referendo', tipo='R'))
+            tipos.append(TipoAudienciaPublica.objects.create(nome='Iniciativa Popular', tipo='I'))
+
+            for t in tipos:
+                t.save()
+
 
     def clean(self):
         super(AudienciaForm, self).clean()
