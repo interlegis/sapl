@@ -3,9 +3,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
+from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
 
@@ -69,7 +70,8 @@ class ParticipacaoCreateForm(forms.ModelForm):
         composicao = Composicao.objects.get(id=self.initial['parent_pk'])
         participantes = composicao.participacao_set.all()
         participantes_id = [p.parlamentar.id for p in participantes]
-        parlamentares = Parlamentar.objects.all().exclude(id__in=participantes_id).order_by('nome_completo')
+        parlamentares = Parlamentar.objects.all().exclude(
+            id__in=participantes_id).order_by('nome_completo')
         parlamentares = [p for p in parlamentares if p.ativo]
 
         lista = []
@@ -142,3 +144,30 @@ class ComissaoForm(forms.ModelForm):
             nome=nome
         )
         return comissao
+
+
+class ReuniaoForm(ModelForm):
+
+    comissao = forms.ModelChoiceField(queryset=Comissao.objects.all(),
+                                      widget=forms.HiddenInput())
+
+    class Meta:
+        model = Reuniao
+        exclude = ['cod_andamento_reuniao']
+        widgets = {
+            'hora_fim': forms.TimeInput(format='%H:%M'),
+            'hora_inicio': forms.TimeInput(format='%H:%M'),
+        }
+
+    def clean(self):
+        super(ReuniaoForm, self).clean()
+
+        if self.errors:
+            return
+
+        if self.cleaned_data['hora_fim'] < self.cleaned_data['hora_inicio']:
+            msg = _('A hora de término da reunião não pode '
+                    'ser menor que a de início')
+            raise ValidationError(msg)
+
+        return self.cleaned_data

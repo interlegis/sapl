@@ -1263,7 +1263,6 @@ class ProposicaoForm(forms.ModelForm):
                             not cd['texto_original'] and \
                             inst.texto_original:
                         inst.texto_original.delete()
-
             self.gerar_hash(inst, receber_recibo)
 
             return super().save(commit)
