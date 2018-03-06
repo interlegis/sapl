@@ -412,6 +412,8 @@ class ProtocoloMateriaForm(ModelForm):
         if self.is_valid():
             if data['vincular_materia'] == 'True':
                 try:
+                    if not data['ano_materia'] or not data['numero_materia']:
+                            raise ValidationError('Favor informar o número e ano da matéria a ser vinculada')
                     self.materia = MateriaLegislativa.objects.get(ano=data['ano_materia'],
                                                                   numero=data['numero_materia'],
                                                                   tipo=data['tipo_materia'])
