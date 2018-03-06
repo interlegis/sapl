@@ -277,8 +277,8 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
                        kwargs={'pk': self.object.id})
 
     def form_valid(self, form):
-        f = form.save(commit=False)
-
+        protocolo = form.save(commit=False)
+        import ipdb; ipdb.set_trace()
         try:
             numeracao = sapl.base.models.AppConfig.objects.last(
             ).sequencia_numeracao
@@ -288,8 +288,10 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             messages.add_message(self.request, messages.ERROR, msg)
             return self.render_to_response(self.get_context_data())
 
+        tipo = form.cleaned_data['tipo_documento']
+
         if numeracao == 'A':
-            numero = MateriaLegislativa.objects.filter(
+            numero = DocumentoAdministrativo.objects.filter(
                 ano=timezone.now().year, tipo=tipo).aggregate(Max('numero'))
         elif numeracao == 'L':
             legislatura = Legislatura.objects.filter(
@@ -297,25 +299,25 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
                 data_fim__year__gte=timezone.now().year).first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
-            numero = MateriaLegislativa.objects.filter(
-                data_apresentacao__gte=data_inicio,
-                data_apresentacao__lte=data_fim,
+            numero = DocumentoAdministrativo.objects.filter(
+                data__gte=data_inicio,
+                data__lte=data_fim,
                 tipo=tipo).aggregate(
                 Max('numero'))
         elif numeracao == 'U':
-            numero = MateriaLegislativa.objects.filter(tipo=tipo).aggregate(Max('numero'))
+            numero = DocumentoAdministrativo.objects.filter(tipo=tipo).aggregate(Max('numero'))
 
-        f.tipo_processo = '0'  # TODO validar o significado
-        f.anulado = False
-        f.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
-        f.ano = timezone.now().year
-        f.data = timezone.now()
-        f.hora = timezone.now().time()
-        f.timestamp = timezone.now()
-        f.assunto_ementa = self.request.POST['assunto']
+        protocolo.tipo_processo = '0'  # TODO validar o significado
+        protocolo.anulado = False
+        protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+        protocolo.ano = timezone.now().year
+        protocolo.data = timezone.now()
+        protocolo.hora = timezone.now().time()
+        protocolo.timestamp = timezone.now()
+        protocolo.assunto_ementa = self.request.POST['assunto']
 
-        f.save()
-        self.object = f
+        protocolo.save()
+        self.object = protocolo
         return redirect(self.get_success_url())
 
 
