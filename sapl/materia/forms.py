@@ -1578,20 +1578,23 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             tipo = self.instance.tipo.tipo_conteudo_related
             if tipo.sequencia_numeracao:
                 numeracao = tipo.sequencia_numeracao
-
+            ano = timezone.now().year
             if numeracao == 'A':
                 numero = MateriaLegislativa.objects.filter(
-                    ano=timezone.now().year).aggregate(Max('numero'))
+                    ano=ano, tipo=tipo).aggregate(Max('numero'))
             elif numeracao == 'L':
-                legislatura = Legislatura.objects.first()
+                legislatura = Legislatura.objects.filter(
+                    data_inicio__year__lte=ano,
+                    data_fim__year__gte=ano).first()
                 data_inicio = legislatura.data_inicio
                 data_fim = legislatura.data_fim
                 numero = MateriaLegislativa.objects.filter(
                     data_apresentacao__gte=data_inicio,
-                    data_apresentacao__lte=data_fim).aggregate(
+                    data_apresentacao__lte=data_fim,
+                    tipo=tipo).aggregate(
                     Max('numero'))
             elif numeracao == 'U':
-                numero = MateriaLegislativa.objects.all().aggregate(Max('numero'))
+                numero = MateriaLegislativa.objects.filter(tipo=tipo).aggregate(Max('numero'))
 
             if numeracao is None:
                 numero['numero__max'] = 0
@@ -1603,7 +1606,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             materia.numero = max_numero
             materia.tipo = tipo
             materia.ementa = proposicao.descricao
-            materia.ano = timezone.now().year
+            materia.ano = ano
             materia.data_apresentacao = timezone.now()
             materia.em_tramitacao = True
             materia.regime_tramitacao = cd['regime_tramitacao']
