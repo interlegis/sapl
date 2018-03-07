@@ -466,7 +466,46 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Histórico de Tramita'),
+            Fieldset(_('Histórico de Tramitação'),
+                     row1, row2,
+                     form_actions(label='Pesquisar'))
+        )
+
+class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
+
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
+
+    @property
+    def qs(self):
+        parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
+        return parent.distinct().order_by('-ano', 'tipo', 'numero')
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
+                  'tramitacao__status', 'tramitacao__data_fim_prazo']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioDataFimPrazoTramitacaoFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+
+        row1 = to_row([('tramitacao__data_fim_prazo', 12)])
+        row2 = to_row(
+            [('tipo', 4),
+             ('tramitacao__unidade_tramitacao_local', 4),
+             ('tramitacao__status', 4)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Tramitações por fim de prazo'),
                      row1, row2,
                      form_actions(label='Pesquisar'))
         )

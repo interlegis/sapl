@@ -289,9 +289,11 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=timezone.now().year).aggregate(Max('numero'))
+                ano=timezone.now().year, tipo=tipo).aggregate(Max('numero'))
         elif numeracao == 'L':
-            legislatura = Legislatura.objects.first()
+            legislatura = Legislatura.objects.filter(
+                data_inicio__year__lte=timezone.now().year,
+                data_fim__year__gte=timezone.now().year).first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
             numero = Protocolo.objects.filter(
@@ -425,9 +427,11 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=timezone.now().year).aggregate(Max('numero'))
+                ano=timezone.now().year, tipo=tipo).aggregate(Max('numero'))
         elif numeracao == 'L':
-            legislatura = Legislatura.objects.first()
+            legislatura = Legislatura.objects.filter(
+                data_inicio__year__lte=timezone.now().year,
+                data_fim__year__gte=timezone.now().year).first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
             numero = Protocolo.objects.filter(
