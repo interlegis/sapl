@@ -372,7 +372,8 @@ class ProtocoloMateriaForm(ModelForm):
 
     vincular_materia = forms.ChoiceField(label=_('Vincular a matéria existente?'),
                                          widget=forms.RadioSelect(),
-                                         choices= YES_NO_CHOICES)
+                                         choices= YES_NO_CHOICES,
+                                         initial=False)
 
     numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
 
