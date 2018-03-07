@@ -947,7 +947,11 @@ def adjust_parlamentar(new, old):
 def adjust_participacao(new, old):
     composicao = Composicao()
     composicao.comissao_id, composicao.periodo_id = [
-        get_fk_related(Composicao._meta.get_field(name), value)
+        get_fk_related(Composicao._meta.get_field(name),
+                       value,
+                       'composicao_comissao.cod_comp_comissao = {}'.format(
+                           old.pk
+        ))
         for name, value in (('comissao', old.cod_comissao),
                             ('periodo', old.cod_periodo_comp))]
     # check if there is already an "equal" one in the db
