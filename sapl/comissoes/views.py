@@ -3,13 +3,23 @@ from django.core.urlresolvers import reverse
 from django.db.models import F
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import ListView
+from django.views.generic.base import RedirectView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import FormMixin
+
+
+from sapl.base.models import AppConfig as AppsAppConfig
+from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud,
+                           CrudAux, MasterDetailCrud,
+                           PermissionRequiredForAppCrudMixin)
 from sapl.comissoes.forms import ParticipacaoCreateForm, ParticipacaoEditForm
-from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
-from .forms import ComissaoForm
+from .forms import ReuniaoForm, ComissaoForm
+
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
-                     Periodo, TipoComissao)
+                     Periodo, TipoComissao, Reuniao)
+from sapl.comissoes.apps import AppConfig
 
 
 def pegar_url_composicao(pk):
@@ -136,3 +146,44 @@ class MateriasTramitacaoListView(ListView):
             MateriasTramitacaoListView, self).get_context_data(**kwargs)
         context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
         return context
+
+class ReuniaoCrud(MasterDetailCrud):
+    model = Reuniao
+    parent_field = 'comissao'
+    public = [RP_LIST, RP_DETAIL, ]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['nome', 'tema', 'comissao']
+
+        @property
+        def list_url(self):
+            return ''
+
+    class ListView(MasterDetailCrud.ListView):
+        paginate_by = 10
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ReuniaoForm
+
+        def get_initial(self):
+            return {'comissao': self.object.comissao}
+
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ReuniaoForm
+
+        def get_initial(self):
+          comissao = Comissao.objects.get(id=self.kwargs['pk'])
+
+          return {'comissao': comissao}
+
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+        pass
+
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @xframe_options_exempt
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)

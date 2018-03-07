@@ -16,7 +16,8 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,
-                    RelatorioPresencaSessaoView, SaplSearchView)
+                    RelatorioPresencaSessaoView, SaplSearchView,
+                    RelatorioDataFimPrazoTramitacaoView)
 
 app_name = AppConfig.name
 
@@ -83,6 +84,9 @@ urlpatterns = [
     url(r'^sistema/relatorios/historico-tramitacoes$',
         RelatorioHistoricoTramitacaoView.as_view(),
         name='historico_tramitacoes'),
+    url(r'^sistema/relatorios/data-fim-prazo-tramitacoes$',
+        RelatorioDataFimPrazoTramitacaoView.as_view(),
+        name='data_fim_prazo_tramitacoes'),
     url(r'^sistema/relatorios/presenca$',
         RelatorioPresencaSessaoView.as_view(),
         name='presenca_sessao'),

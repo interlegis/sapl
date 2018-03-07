@@ -96,7 +96,7 @@ def get_field_display(obj, fieldname):
 
     if value is None:
         display = ''
-    elif 'date' in str_type_from_value:
+    elif '.date' in str_type_from_value:
         display = formats.date_format(value, "SHORT_DATE_FORMAT")
     elif 'bool' in str_type_from_value:
         display = _('Sim') if value else _('Não')
