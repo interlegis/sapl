@@ -289,7 +289,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=timezone.now().year, tipo=tipo).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
@@ -301,7 +301,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
                 data__lte=data_fim).aggregate(
                 Max('numero'))
         elif numeracao == 'U':
-            numero = Protocolo.objects.filter().aggregate(Max('numero'))
+            numero = Protocolo.objects.all().aggregate(Max('numero'))
 
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
@@ -427,7 +427,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
-                ano=timezone.now().year, tipo=tipo).aggregate(Max('numero'))
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
@@ -439,7 +439,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
                 data__lte=data_fim).aggregate(
                 Max('numero'))
         elif numeracao == 'U':
-            numero = Protocolo.objects.filter().aggregate(Max('numero'))
+            numero = Protocolo.objects.all().aggregate(Max('numero'))
 
         if numeracao is None:
             numero['numero__max'] = 0
