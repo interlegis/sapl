@@ -287,24 +287,19 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             messages.add_message(self.request, messages.ERROR, msg)
             return self.render_to_response(self.get_context_data())
 
-        tipo = form.cleaned_data['tipo_documento']
-
         if numeracao == 'A':
-            numero = DocumentoAdministrativo.objects.filter(
-                ano=timezone.now().year, tipo=tipo).aggregate(Max('numero'))
+            numero = Protocolo.objects.filter(
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
-            legislatura = Legislatura.objects.filter(
-                data_inicio__year__lte=timezone.now().year,
-                data_fim__year__gte=timezone.now().year).first()
+            legislatura = Legislatura.objects.first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
-            numero = DocumentoAdministrativo.objects.filter(
+            numero = Protocolo.objects.filter(
                 data__gte=data_inicio,
-                data__lte=data_fim,
-                tipo=tipo).aggregate(
+                data__lte=data_fim).aggregate(
                 Max('numero'))
         elif numeracao == 'U':
-            numero = DocumentoAdministrativo.objects.filter(tipo=tipo).aggregate(Max('numero'))
+            numero = Protocolo.objects.filter().aggregate(Max('numero'))
 
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
@@ -433,23 +428,19 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         tipo = form.cleaned_data['tipo_materia']
         if tipo.sequencia_numeracao:
             numeracao = tipo.sequencia_numeracao
-
         if numeracao == 'A':
-            numero = MateriaLegislativa.objects.filter(
-                ano=timezone.now().year, tipo=tipo).aggregate(Max('numero'))
+            numero = Protocolo.objects.filter(
+                ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
-            legislatura = Legislatura.objects.filter(
-                data_inicio__year__lte=timezone.now().year,
-                data_fim__year__gte=timezone.now().year).first()
+            legislatura = Legislatura.objects.first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
-            numero = MateriaLegislativa.objects.filter(
-                data_apresentacao__gte=data_inicio,
-                data_apresentacao__lte=data_fim,
-                tipo=tipo).aggregate(
+            numero = Protocolo.objects.filter(
+                data__gte=data_inicio,
+                data__lte=data_fim).aggregate(
                 Max('numero'))
         elif numeracao == 'U':
-            numero = MateriaLegislativa.objects.filter(tipo=tipo).aggregate(Max('numero'))
+            numero = Protocolo.objects.filter().aggregate(Max('numero'))
 
         if numeracao is None:
             numero['numero__max'] = 0
