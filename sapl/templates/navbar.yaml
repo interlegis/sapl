@@ -68,7 +68,7 @@
       url: '/sistema'
       check_permission: base.view_tabelas_auxiliares
     - title: {% trans 'Administração de Usuários' %}
-      url: '/admin'
+      url: {% url 'sapl.base:user_list' %}
       check_permission: user.is_superuser
 
 {% comment %}

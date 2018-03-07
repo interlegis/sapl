@@ -13,7 +13,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
-from django.views.generic import FormView
+from django.views.generic import FormView, ListView, DetailView, UpdateView, CreateView, DeleteView
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
@@ -34,7 +34,7 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioMateriasPorAutorFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
                     RelatorioPresencaSessaoFilterSet,
-                    RelatorioDataFimPrazoTramitacaoFilterSet)
+                    RelatorioDataFimPrazoTramitacaoFilterSet, UsuarioEditForm, UsuarioCreateForm)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -518,6 +518,97 @@ class RelatorioMateriasPorAutorView(FilterView):
         context['show_results'] = show_results_filter_set(qr)
 
         return context
+
+
+class ListarUsuarioView(ListView):
+    model = get_user_model()
+    context_object_name = 'user_list'
+
+    def get_queryset(self):
+        qs = super(ListarUsuarioView, self).get_queryset()
+        return qs.order_by('username')
+
+
+class CreateUsuarioView(CreateView):
+    model = get_user_model()
+    form_class = UsuarioCreateForm
+    success_message = 'Usuário criado com sucesso'
+
+    def get_success_url(self):
+        return reverse('sapl.base:user_list')
+
+    def form_valid(self, form):
+
+        data = form.cleaned_data
+
+        new_user = get_user_model().objects.create(username=data['username'], email=data['email'])
+        new_user.first_name = data['firstname']
+        new_user.last_name = data['lastname']
+        new_user.set_password(data['password1'])
+        new_user.save()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+class DeleteUsuarioView(DeleteView):
+
+    model = get_user_model()
+
+    def get_success_url(self):
+        return reverse('sapl.base:user_list')
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
+
+    def get_queryset(self):
+        qs = super(DeleteUsuarioView, self).get_queryset()
+        return qs.filter(id=self.kwargs['pk'])
+
+
+
+class EditUsuarioView(UpdateView):
+    model = get_user_model()
+    form_class = UsuarioEditForm
+    success_message = 'Usuário criado com sucesso'
+
+    def get_success_url(self):
+        return reverse('sapl.base:user_list')
+
+    def get_initial(self):
+        initial = super(EditUsuarioView, self).get_initial()
+
+        user = get_user_model().objects.get(id=self.kwargs['pk'])
+        roles = [str(g.id) for g in user.groups.all()]
+        initial['roles'] = roles
+        initial['user_active'] = user.is_active
+
+        return initial
+
+    def form_valid(self, form):
+
+        user = form.save(commit=False)
+        data = form.cleaned_data
+
+        # new_user.first_name = data['firstname']
+        # new_user.last_name = data['lastname']
+
+        if data['password1']:
+            user.set_password(data['password1'])
+
+        if data['user_active'] == 'True' and not user.is_active:
+            user.is_active = True
+        elif data['user_active'] == 'False' and user.is_active:
+            user.is_active = False
+
+        user.save()
+
+        for g in user.groups.all():
+            g.user_set.remove(user)
+
+        groups = Group.objects.filter(id__in=data['roles'])
+        for g in groups:
+            g.user_set.add(user)
+
+        return super(EditUsuarioView, self).form_valid(form)
 
 
 class CasaLegislativaCrud(CrudAux):

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block base_content %}
+    <h1>Usuários</h1>
+
+    {% if user_list %}
+    <ul>
+
+      {% for user in user_list %}
+      <li>
+        <a href="{% url 'sapl.base:user_edit' user.pk %}">{{ user.username }}</a> ({{user.email}})
+      </li>
+      {% endfor %}
+
+    </ul>
+    {% else %}
+      <p>Não existem usuários cadastrados</p>
+    {% endif %}
+    <a href="{% url 'sapl.base:user_create' %}">Criar Usuário</a>
+{% endblock base_content %}
