@@ -98,31 +98,31 @@ urlpatterns_compilacao = [
         views.PublicacaoDeleteView.as_view(), name='ta_pub_delete'),
 
 
-    url(r'^config/tipo-textoarticulado$',
-        views.TipoTaListView.as_view(), name='tipo_ta_list'),
-    url(r'^config/tipo-textoarticulado/create$',
-        views.TipoTaCreateView.as_view(), name='tipo_ta_create'),
-    url(r'^config/tipo-textoarticulado/(?P<pk>[0-9]+)$',
-        views.TipoTaDetailView.as_view(), name='tipo_ta_detail'),
-    url(r'^config/tipo-textoarticulado/(?P<pk>[0-9]+)/edit$',
-        views.TipoTaUpdateView.as_view(), name='tipo_ta_edit'),
-    url(r'^config/tipo-textoarticulado/(?P<pk>[0-9]+)/delete$',
-        views.TipoTaDeleteView.as_view(), name='tipo_ta_delete'),
 
 ]
 
 urlpatterns = [
     url(r'^ta/', include(urlpatterns_compilacao)),
 
-    url(r'^ta/config/tipo-nota/',
+    url(r'^sistema/ta/config/tipo-nota/',
         include(TipoNotaCrud.get_urls())),
-    url(r'^ta/config/tipo-vide/',
+    url(r'^sistema/ta/config/tipo-vide/',
         include(TipoVideCrud.get_urls())),
-    url(r'^ta/config/tipo-publicacao/',
+    url(r'^sistema/ta/config/tipo-publicacao/',
         include(TipoPublicacaoCrud.get_urls())),
-    url(r'^ta/config/veiculo-publicacao/',
+    url(r'^sistema/ta/config/veiculo-publicacao/',
         include(VeiculoPublicacaoCrud.get_urls())),
-    url(r'^ta/config/tipo-dispositivo/',
+    url(r'^sistema/ta/config/tipo-dispositivo/',
         include(TipoDispositivoCrud.get_urls())),
 
+    url(r'^sistema/ta/config/tipo-textoarticulado$',
+    views.TipoTaListView.as_view(), name='tipo_ta_list'),
+    url(r'^sistema/ta/config/tipo-textoarticulado/create$',
+    views.TipoTaCreateView.as_view(), name='tipo_ta_create'),
+    url(r'^sistema/ta/config/tipo-textoarticulado/(?P<pk>[0-9]+)$',
+    views.TipoTaDetailView.as_view(), name='tipo_ta_detail'),
+    url(r'^sistema/ta/config/tipo-textoarticulado/(?P<pk>[0-9]+)/edit$',
+    views.TipoTaUpdateView.as_view(), name='tipo_ta_edit'),
+    url(r'^sistema/ta/config/tipo-textoarticulado/(?P<pk>[0-9]+)/delete$',
+    views.TipoTaDeleteView.as_view(), name='tipo_ta_delete'),
 ]
