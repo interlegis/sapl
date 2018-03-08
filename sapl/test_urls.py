@@ -1,17 +1,19 @@
-import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import pytest
+
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from sapl.rules.apps import AppConfig, update_groups
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
+
 
 pytestmark = pytest.mark.django_db
 
@@ -171,6 +173,7 @@ apps_url_patterns_prefixs_and_users = {
     'compilacao': {
         'prefixs': [
             '/ta',
+            '/sistema/ta',
         ]},
     'redireciona_urls': {
         'prefixs': [

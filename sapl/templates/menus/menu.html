@@ -1,0 +1,36 @@
+{% load i18n %}
+{% if menu %}
+    {% for item in menu %}
+      {% if item.children %}
+        <li>
+          {% if item.url %}
+            <a class="{{item.css_class}}" href="{{item.url}}">
+              {{ item.title|safe }}
+              <span class="fa-chevron-down fa"></span>
+            </a>
+          {% else %}
+            <span class="{{item.css_class}}">
+              {{ item.title|safe }}
+            </span>
+          {% endif %}
+          <ul>
+            {% with item.children as menu %}
+              {% include "menus/menu.html" %}
+            {% endwith %}
+          </ul>
+        </li>
+      {% else %}
+        <li class="{{item.active}}">
+          {% if item.url %}
+            <a class="{{item.css_class}}" href="{{item.url}}">
+              {{ item.title|safe }}
+            </a>
+          {% else %}
+            <span class="{{item.css_class}}">
+              {{ item.title|safe }}
+            </span>
+          {% endif %}
+        </li>
+      {% endif %}
+    {% endfor %}
+{% endif %}

@@ -23,8 +23,8 @@
         </div>
           {% if view.extras_url %}
             <div class="actions btn-group btn-group-sm" role="group">
-          {% for url, css_class, text in view.extras_url %}
-            <a href="{{url}}" class="btn btn-default {{css_class}}">
+          {% for href, css_class, text in view.extras_url %}
+            <a href="{{href}}" class="btn btn-default {{css_class}}">
                   {{text}}
                 </a>
               {% endfor %}
