@@ -141,7 +141,6 @@ def get_fk_related(field, value, label=None):
     else:
         msg = 'FK [%s] não encontrada para o valor %s (em %s %s)' % (
             field.name, value, field.model.__name__, label or '---')
-        warn(msg)
         raise ForeignKeyFaltando(msg)
 
 
