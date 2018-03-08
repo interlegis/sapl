@@ -1,5 +1,5 @@
 from django import forms
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
@@ -31,7 +31,12 @@ class AudienciaForm(forms.ModelForm):
 
     class Meta:
         model = AudienciaPublica
-        fields = '__all__'
+        fields = ['tipo', 'numero', 'nome',
+                  'tema', 'data', 'hora_inicio', 'hora_fim',
+                  'observacao', 'audiencia_cancelada', 'url_audio',
+                  'url_video', 'upload_pauta', 'upload_ata',
+                  'upload_anexo', 'tipo_materia', 'numero_materia',
+                  'ano_materia']
 
 
     def __init__(self, **kwargs):
@@ -50,7 +55,9 @@ class AudienciaForm(forms.ModelForm):
 
 
     def clean(self):
-        super(AudienciaForm, self).clean()
+        cleaned_data = super(AudienciaForm, self).clean()
+        if not self.is_valid():
+            return cleaned_data
 
         try:
             materia = MateriaLegislativa.objects.get(

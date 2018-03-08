@@ -34,11 +34,19 @@ class AudienciaCrud(Crud):
 
     class UpdateView(Crud.UpdateView):
         form_class = AudienciaForm
+
+        def get_initial(self):
+            self.initial['tipo_materia'] = self.object.materia.tipo.id
+            self.initial['numero_materia'] = self.object.materia.numero
+            self.initial['ano_materia'] = self.object.materia.ano
+            return self.initial
      
     class DeleteView(Crud.DeleteView):
         pass
 
     class DetailView(Crud.DetailView):
+
+        layout_key = 'AudienciaPublicaDetail'
 
         @xframe_options_exempt
         def get(self, request, *args, **kwargs):

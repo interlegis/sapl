@@ -10,3 +10,15 @@ AudienciaPublica:
   - upload_pauta upload_ata upload_anexo
   - observacao
   - audiencia_cancelada
+
+AudienciaPublicaDetail:
+  {% trans 'Audiência Pública' %}:
+  - nome:10 numero
+  - tema
+  {% trans 'Dados' %}:
+  - materia tipo
+  - data hora_inicio hora_fim
+  - url_audio url_video
+  - upload_pauta upload_ata upload_anexo
+  - observacao
+  - audiencia_cancelada
