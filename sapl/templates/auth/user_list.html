@@ -1,21 +1,33 @@
 {% extends "base.html" %}
-{% load i18n crispy_forms_tags %}
-
+{% load i18n %}
+{% load tz %}
+{% load common_tags %}
 {% block base_content %}
-    <h1>Usuários</h1>
-
-    {% if user_list %}
-    <ul>
-
-      {% for user in user_list %}
-      <li>
-        <a href="{% url 'sapl.base:user_edit' user.pk %}">{{ user.username }}</a> ({{user.email}})
-      </li>
-      {% endfor %}
-
-    </ul>
-    {% else %}
-      <p>Não existem usuários cadastrados</p>
-    {% endif %}
-    <a href="{% url 'sapl.base:user_create' %}">Criar Usuário</a>
+    <fieldset>
+        <h1>Lista de usuários</h1>
+        {% if not user_list %}
+            <p>{{ NO_ENTRIES_MSG }}</p>
+        {% else %}
+            <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th>Nome de Usuário</th>
+                    <th>E-mail do Usuário</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for user in user_list %}
+                    <tr>
+                      <td>
+                         <a href="{% url 'sapl.base:user_edit' user.pk %}">{{ user.username }}</a>
+                      </td>
+                      <td>{{ user.email }}</td>
+                     </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+        <a  class="btn btn-default" href="{% url 'sapl.base:user_create' %}">Criar Usuário</a>
+    </fieldset>
+    {% include 'paginacao.html'%}
 {% endblock base_content %}

@@ -67,6 +67,30 @@ class UsuarioCreateForm(ModelForm):
         if data['password1'] != data['password2']:
                 raise ValidationError('Senhas informadas são diferentes')
 
+    def __init__(self, *args, **kwargs):
+
+        super(UsuarioCreateForm, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('username', 12)])
+
+        row1 = to_row([('firstname', 6),
+                       ('lastname', 6)])
+
+        row2 = to_row([('email', 6),
+                       ('user_active', 6)])
+        row3 = to_row(
+            [('password1', 6),
+             ('password2', 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            row0,
+            row1,
+            row3,
+            row2,
+            'roles',
+            form_actions(label='Confirmar'))
+
 
 class UsuarioEditForm(ModelForm):
     ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
@@ -79,6 +103,25 @@ class UsuarioEditForm(ModelForm):
     class Meta:
         model = get_user_model()
         fields = ['email', 'password1', 'password2', 'user_active', 'roles']
+
+    def __init__(self, *args, **kwargs):
+
+        super(UsuarioEditForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('email', 6),
+                       ('user_active', 6)])
+        row2 = to_row(
+            [('password1', 6),
+             ('password2', 6)])
+
+        row3 = to_row([(form_actions(label='Salvar Alterações'), 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            row1,
+            row2,
+            'roles',
+            row3)
 
     def clean(self):
         super(UsuarioEditForm, self).clean()

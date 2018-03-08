@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -19,7 +20,7 @@ from django_filters.views import FilterView
 from haystack.views import SearchView
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
-from sapl.crud.base import CrudAux
+from sapl.crud.base import (CrudAux, make_pagination)
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
@@ -520,19 +521,32 @@ class RelatorioMateriasPorAutorView(FilterView):
         return context
 
 
-class ListarUsuarioView(ListView):
+class ListarUsuarioView(PermissionRequiredMixin, ListView):
     model = get_user_model()
+    template_name = 'auth/user_list.html'
     context_object_name = 'user_list'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
 
     def get_queryset(self):
         qs = super(ListarUsuarioView, self).get_queryset()
         return qs.order_by('username')
 
+    def get_context_data(self, **kwargs):
+        context = super(ListarUsuarioView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhum usuário cadastrado.'
+        return context
 
-class CreateUsuarioView(CreateView):
+
+class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     model = get_user_model()
     form_class = UsuarioCreateForm
     success_message = 'Usuário criado com sucesso'
+    permission_required = ('base.add_appconfig',)
 
     def get_success_url(self):
         return reverse('sapl.base:user_list')
@@ -545,13 +559,16 @@ class CreateUsuarioView(CreateView):
         new_user.first_name = data['firstname']
         new_user.last_name = data['lastname']
         new_user.set_password(data['password1'])
+        new_user.is_superuser = False
+        new_user.is_staff = False
         new_user.save()
 
         return HttpResponseRedirect(self.get_success_url())
 
-class DeleteUsuarioView(DeleteView):
+class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
 
     model = get_user_model()
+    permission_required = ('base.delete_appconfig',)
 
     def get_success_url(self):
         return reverse('sapl.base:user_list')
@@ -565,10 +582,11 @@ class DeleteUsuarioView(DeleteView):
 
 
 
-class EditUsuarioView(UpdateView):
+class EditUsuarioView(PermissionRequiredMixin, UpdateView):
     model = get_user_model()
     form_class = UsuarioEditForm
-    success_message = 'Usuário criado com sucesso'
+    success_message = 'Usuário editado com sucesso'
+    permission_required = ('base.change_appconfig',)
 
     def get_success_url(self):
         return reverse('sapl.base:user_list')

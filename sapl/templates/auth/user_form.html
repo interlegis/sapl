@@ -5,14 +5,10 @@
 
     <form action="" method="post">
         {% csrf_token %}
-        <table>
-        {{ form }}
-        </table>
-        <input type="submit" name="salvar" value="Salvar alterações" />
+        {%  crispy form %}
         {% if object.pk %}
-        <a href="{% url 'sapl.base:user_delete' object.pk %}">Remover usuário</a>
+            <a class="btn btn-warning" href="{% url 'sapl.base:user_delete' object.pk %}">Remover usuário</a>
         {% endif %}
-
     </form>
 
 {% endblock base_content %}
