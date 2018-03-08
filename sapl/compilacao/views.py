@@ -48,15 +48,15 @@ from sapl.compilacao.models import (STATUS_TA_EDITION, STATUS_TA_PRIVATE,
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT,
                                    get_integrations_view_names)
-from sapl.crud.base import Crud, CrudListView, make_pagination
+from sapl.crud.base import Crud, CrudListView, make_pagination, CrudAux
 from sapl.settings import BASE_DIR
 
 
-TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
-TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
-TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
-VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
-TipoDispositivoCrud = Crud.build(
+TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
+TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
+TipoPublicacaoCrud = CrudAux.build(TipoPublicacao, 'tipo_publicacao')
+VeiculoPublicacaoCrud = CrudAux.build(VeiculoPublicacao, 'veiculo_publicacao')
+TipoDispositivoCrud = CrudAux.build(
     TipoDispositivo, 'tipo_dispositivo')
 
 logger = logging.getLogger(BASE_DIR.name)

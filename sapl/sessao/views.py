@@ -577,6 +577,9 @@ class OradorCrud(OradorCrud):
 class BancadaCrud(Crud):
     model = Bancada
 
+    class ListView(Crud.ListView):
+        template_name = 'crud/list_tabaux.html'
+
     class CreateView(Crud.CreateView):
         form_class = BancadaForm
 
@@ -587,6 +590,9 @@ class BancadaCrud(Crud):
 class BlocoCrud(Crud):
     model = Bloco
 
+    class ListView(Crud.ListView):
+        template_name = 'crud/list_tabaux.html'
+        
     class CreateView(Crud.CreateView):
         form_class = BlocoForm
 

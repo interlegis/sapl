@@ -1,0 +1,181 @@
+{% load i18n common_tags %}
+- title: {% trans 'Configurações Gerais' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Casa Legislativa' %}
+    url: sapl.base:casalegislativa_list
+    css_class: btn btn-link
+  - title: {% trans 'Configurações da Aplicação' %}
+    url: sapl.base:appconfig_list
+    css_class: btn btn-link'
+  - title: {% trans 'Autor' %}
+    url: sapl.base:autor_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Autor' %}
+    url: sapl.base:tipoautor_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Parlamentares' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Legislatura' %}
+    url: sapl.parlamentares:legislatura_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Afastamento' %}
+    url: sapl.parlamentares:tipoafastamento_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Dependente' %}
+    url: sapl.parlamentares:tipodependente_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Situação Militar' %}
+    url: sapl.parlamentares:situacaomilitar_list
+    css_class: btn btn-link
+  - title: {% trans 'Nível de Instrução' %}
+    url: sapl.parlamentares:nivelinstrucao_list
+    css_class: btn btn-link
+  - title: {% trans 'Partido' %}
+    url: sapl.parlamentares:partido_list
+    css_class: btn btn-link
+  - title: {% trans 'Coligação' %}
+    url: sapl.parlamentares:coligacao_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Mesa Diretora' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Sessão Legislativa' %}
+    url: sapl.parlamentares:sessaolegislativa_list
+    css_class: btn btn-link
+  - title: {% trans 'Cargo da Mesa' %}
+    url: sapl.parlamentares:cargomesa_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Comissões' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Cargo de Comissão' %}
+    url: sapl.comissoes:cargocomissao_list
+    css_class: btn btn-link
+  - title: {% trans 'Período de Composição' %}
+    url: sapl.comissoes:periodo_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Comissão' %}
+    url: sapl.comissoes:tipocomissao_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Bancadas Parlamentares' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Bancadas Parlamentares' %}
+    url: sapl.sessao:bancada_list
+    css_class: btn btn-link
+  - title: {% trans 'Cargo de Bancada Parlamentar' %}
+    url: sapl.sessao:cargobancada_list
+    css_class: btn btn-link
+  - title: {% trans 'Frente Parlamentar' %}
+    url: sapl.parlamentares:frente_list
+    css_class: btn btn-link
+  - title: {% trans 'Bloco Parlamentar' %}
+    url: sapl.sessao:bloco_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Proposições' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Tipo de Proposição' %}
+    url: sapl.materia:tipoproposicao_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Matéria Legislativa' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Tipo de Matéria Legislativa' %}
+    url: sapl.materia:tipomaterialegislativa_list
+    css_class: btn btn-link
+  - title: {% trans 'Regime de Tramitação' %}
+    url: sapl.materia:regimetramitacao_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Documento' %}
+    url: sapl.materia:tipodocumento_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de fim de Relatoria' %}
+    url: sapl.materia:tipofimrelatoria_list
+    css_class: btn btn-link
+  - title: {% trans 'Unidade de Tramitação' %}
+    url: sapl.materia:unidadetramitacao_list
+    css_class: btn btn-link
+  - title: {% trans 'Origem' %}
+    url: sapl.materia:origem_list
+    css_class: btn btn-link
+  - title: {% trans 'Status da Tramitação' %}
+    url: sapl.materia:statustramitacao_list
+    css_class: btn btn-link
+  - title: {% trans 'Órgão' %}
+    url: sapl.materia:orgao_list
+    css_class: btn btn-link
+  - title: {% trans 'Assunto Matéria' %}
+    url: sapl.materia:assuntomateria_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Normas Jurídicas' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Tipo de Norma Jurídica' %}
+    url: sapl.norma:tiponormajuridica_list
+    css_class: btn btn-link
+  - title: {% trans 'Assunto de Norma Jurídica' %}
+    url: sapl.norma:assuntonorma_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Vínculo' %}
+    url: sapl.norma:tipovinculonormajuridica_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Textos Articulados' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Tipos de Textos Articulados' %}
+    url: sapl.compilacao:tipo_ta_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipos de Publicação' %}
+    url: sapl.compilacao:tipopublicacao_list
+    css_class: btn btn-link
+  - title: {% trans 'Veículos de Publicação' %}
+    url: sapl.compilacao:veiculopublicacao_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipos de Notas' %}
+    url: sapl.compilacao:tiponota_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipos de Vides' %}
+    url: sapl.compilacao:tipovide_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipos de Dispositivos' %}
+    url: sapl.compilacao:tipodispositivo_list
+    css_class: btn btn-link
+  - title: {% trans 'Relacionamento entre Dispositivos' %}
+    url: /admin/compilacao/tipodispositivorelationship/
+    css_class: btn btn-link
+- title: {% trans 'Módulo Sessão Plenária' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Tipo de Sessão Plenária' %}
+    url: sapl.sessao:tiposessaoplenaria_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Resultado da Votação' %}
+    url: sapl.sessao:tiporesultadovotacao_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Expediente' %}
+    url: sapl.sessao:tipoexpediente_list
+    css_class: btn btn-link
+  - title: {% trans 'Ordenação do Resumo' %}
+    url: sapl.sessao:resumo_ordenacao
+    css_class: btn btn-link
+- title: {% trans 'Módulo LexML' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Provedor' %}
+    url: sapl.lexml:lexmlprovedor_list
+    css_class: btn btn-link
+  - title: {% trans 'Publicador' %}
+    url: sapl.lexml:lexmlpublicador_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Administrativo' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Tipo de Documento' %}
+    url: sapl.protocoloadm:tipodocumentoadministrativo_list
+    css_class: btn btn-link
+  - title: {% trans 'Status de Tramitação' %}
+    url: sapl.protocoloadm:statustramitacaoadministrativo_list
+    css_class: btn btn-link

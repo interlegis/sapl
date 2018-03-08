@@ -20,7 +20,22 @@
       {% block more_buttons %}{% endblock more_buttons %}
     </div>
   {% endblock actions %}
+
+  {% block extra_actions %}{% endblock extra_actions %}
+
+  {% comment %}
+    {% if view.extras_url %}
+      <div class="actions btn-group btn-group-sm" role="group">
+       {% for href, css_class, text in view.extras_url %}
+         <a href="{{href}}" class="btn btn-default {{css_class}}">
+               {{text}}
+             </a>
+       {% endfor %}
+      </div>
+    {% endif %}
+  {% endcomment %}
 </div>
+
 {% block extra_content %} {% endblock %}
 
 {% block container_table_list %}

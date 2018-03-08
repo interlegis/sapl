@@ -2,11 +2,15 @@ from django import template
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 import yaml
-
 from sapl.utils import sapl_logger
 
 
 register = template.Library()
+
+
+@register.inclusion_tag('menus/menu.html', takes_context=True)
+def menu(context, path=None):
+    return nav_run(context, path)
 
 
 @register.inclusion_tag('menus/subnav.html', takes_context=True)

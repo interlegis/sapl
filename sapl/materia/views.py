@@ -2,8 +2,6 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
-import sapl
-import weasyprint
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
@@ -24,6 +22,8 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+import weasyprint
+
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -47,6 +47,7 @@ from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
                         autor_modal, gerar_hash_arquivo, get_base_url,
                         get_mime_type_from_file_extension, montar_row_autor,
                         show_results_filter_set)
+import sapl
 
 from .email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
@@ -67,9 +68,10 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
 
-AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
 
-OrigemCrud = Crud.build(Origem, '')
+AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
+
+OrigemCrud = CrudAux.build(Origem, '')
 
 TipoMateriaCrud = CrudAux.build(
     TipoMateriaLegislativa, 'tipo_materia_legislativa')
@@ -308,7 +310,8 @@ def recuperar_materia(request):
             tipo=tipo).aggregate(
             Max('numero'))
     elif numeracao == 'U':
-        numero = MateriaLegislativa.objects.filter(tipo=tipo).aggregate(Max('numero'))
+        numero = MateriaLegislativa.objects.filter(
+            tipo=tipo).aggregate(Max('numero'))
 
     if numeracao is None:
         numero['numero__max'] = 0
@@ -323,10 +326,10 @@ def recuperar_materia(request):
 StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
 
 
-class OrgaoCrud(Crud):
+class OrgaoCrud(CrudAux):
     model = Orgao
 
-    class CreateView(Crud.CreateView):
+    class CreateView(CrudAux.CreateView):
         form_class = OrgaoForm
 
 
@@ -591,11 +594,10 @@ class UnidadeTramitacaoCrud(CrudAux):
     model = UnidadeTramitacao
     help_topic = 'unidade_tramitacao'
 
-    class BaseMixin(Crud.BaseMixin):
+    class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['comissao', 'orgao', 'parlamentar']
 
-    class ListView(Crud.ListView):
-        template_name = "crud/list.html"
+    class ListView(CrudAux.ListView):
 
         def get_headers(self):
             return [_('Unidade de Tramitação')]
@@ -841,14 +843,17 @@ class ProposicaoCrud(Crud):
                     obj.data_recebimento = 'Não recebida'\
                         if obj.data_envio else 'Não enviada'
                 else:
-                    obj.data_recebimento = timezone.localtime(obj.data_recebimento)
-                    obj.data_recebimento = obj.data_recebimento = formats.date_format(obj.data_recebimento, "DATETIME_FORMAT")
+                    obj.data_recebimento = timezone.localtime(
+                        obj.data_recebimento)
+                    obj.data_recebimento = obj.data_recebimento = formats.date_format(
+                        obj.data_recebimento, "DATETIME_FORMAT")
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
                 else:
 
                     obj.data_envio = timezone.localtime(obj.data_envio)
-                    obj.data_envio = formats.date_format(obj.data_envio, "DATETIME_FORMAT")
+                    obj.data_envio = formats.date_format(
+                        obj.data_envio, "DATETIME_FORMAT")
 
             return [self._as_row(obj) for obj in object_list]
 
