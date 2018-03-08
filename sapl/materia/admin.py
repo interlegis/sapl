@@ -1,17 +1,19 @@
+from django.conf import settings
 from django.contrib import admin
-from sapl.materia.models import Proposicao, TipoMateriaLegislativa
+
 from sapl.base.models import TipoAutor
 from sapl.comissoes.models import TipoComissao
-from sapl.parlamentares.models import TipoAfastamento, SituacaoMilitar, TipoDependente
+from sapl.materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.norma.models import TipoNormaJuridica, TipoVinculoNormaJuridica
-from sapl.sessao.models import TipoSessaoPlenaria, TipoExpediente, TipoResultadoVotacao
+from sapl.parlamentares.models import TipoAfastamento, SituacaoMilitar, TipoDependente
 from sapl.protocoloadm.models import TipoDocumentoAdministrativo
-from sapl.settings import DEBUG
+from sapl.sessao.models import TipoSessaoPlenaria, TipoExpediente, TipoResultadoVotacao
 from sapl.utils import register_all_models_in_admin
+
 
 register_all_models_in_admin(__name__)
 
-if not DEBUG:
+if not settings.DEBUG:
 
     admin.site.unregister(Proposicao)
     admin.site.unregister(TipoAutor)
@@ -19,7 +21,6 @@ if not DEBUG:
     admin.site.unregister(TipoAfastamento)
     admin.site.unregister(SituacaoMilitar)
     admin.site.unregister(TipoDependente)
-
 
     class RestricaoAdmin(admin.ModelAdmin):
 
@@ -31,7 +32,6 @@ if not DEBUG:
 
         def has_delete_permission(self, request, obj=None):
             return False
-
 
     admin.site.register(Proposicao, RestricaoAdmin)
     admin.site.register(TipoAutor, RestricaoAdmin)
