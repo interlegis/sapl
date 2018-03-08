@@ -387,43 +387,44 @@ def checa_registros_votacao_ambiguos_e_remove_nao_usados():
 
 PROPAGACOES_DE_EXCLUSAO = [
     # sessao_legislativa
-    ('composicao_mesa', 'sessao_legislativa', 'cod_sessao_leg'),
+    ('sessao_legislativa', 'composicao_mesa',  'cod_sessao_leg'),
 
     # parlamentar
-    ('dependente', 'parlamentar', 'cod_parlamentar'),
-    ('filiacao', 'parlamentar', 'cod_parlamentar'),
-    ('mandato', 'parlamentar', 'cod_parlamentar'),
+    ('parlamentar', 'dependente', 'cod_parlamentar'),
+    ('parlamentar', 'filiacao', 'cod_parlamentar'),
+    ('parlamentar', 'mandato', 'cod_parlamentar'),
 
     # comissao
-    ('composicao_comissao', 'comissao', 'cod_comissao'),
+    ('comissao', 'composicao_comissao', 'cod_comissao'),
+    ('periodo_comp_comissao', 'composicao_comissao', 'cod_periodo_comp'),
 
     # sessao
-    ('ordem_dia', 'sessao_plenaria', 'cod_sessao_plen'),
-    ('expediente_materia', 'sessao_plenaria', 'cod_sessao_plen'),
-    ('expediente_sessao_plenaria', 'sessao_plenaria', 'cod_sessao_plen'),
-    ('registro_votacao_parlamentar', 'registro_votacao', 'cod_votacao'),
+    ('sessao_plenaria', 'ordem_dia', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'expediente_materia', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'expediente_sessao_plenaria', 'cod_sessao_plen'),
+    ('registro_votacao', 'registro_votacao_parlamentar', 'cod_votacao'),
     # as consultas no código do sapl 2.5
     # votacao_ordem_dia_obter_zsql e votacao_expediente_materia_obter_zsql
     # indicam que os registros de votação de matérias excluídas não são
     # exibidos...
-    ('registro_votacao', 'materia_legislativa', 'cod_materia'),
+    ('materia_legislativa', 'registro_votacao', 'cod_materia'),
     # as exclusões de registro_votacao sem referência
     # nem a ordem_dia nem a expediente_materia são feitas num método à parte
 
     # materia
-    ('tramitacao', 'materia_legislativa', 'cod_materia'),
-    ('autoria', 'materia_legislativa', 'cod_materia'),
-    ('anexada', 'materia_legislativa', 'cod_materia_principal'),
-    ('anexada', 'materia_legislativa', 'cod_materia_anexada'),
-    ('documento_acessorio', 'materia_legislativa', 'cod_materia'),
+    ('materia_legislativa', 'tramitacao', 'cod_materia'),
+    ('materia_legislativa', 'autoria', 'cod_materia'),
+    ('materia_legislativa', 'anexada', 'cod_materia_principal'),
+    ('materia_legislativa', 'anexada', 'cod_materia_anexada'),
+    ('materia_legislativa', 'documento_acessorio', 'cod_materia'),
 
     # documento administrativo
-    ('tramitacao_administrativo', 'documento_administrativo', 'cod_documento'),
+    ('documento_administrativo', 'tramitacao_administrativo', 'cod_documento'),
 ]
 
 
 def propaga_exclusoes():
-    for tabela_filha, tabela_pai, fk in PROPAGACOES_DE_EXCLUSAO:
+    for tabela_pai, tabela_filha, fk in PROPAGACOES_DE_EXCLUSAO:
         [pk_pai] = get_pk_legado(tabela_pai)
         exec_legado('''
             update {} set ind_excluido = 1 where {} not in (
