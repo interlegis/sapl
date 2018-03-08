@@ -701,17 +701,24 @@ class DataMigrator:
 
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
-            models_to_migrate = (model for model in obj.models.values()
-                                 if model in self.field_renames)
-            self._do_migrate(models_to_migrate)
+            models = [model for model in obj.models.values()
+                      if model in self.field_renames]
+
+            if obj.label == 'materia':
+                # Devido à referência TipoProposicao.tipo_conteudo_related
+                # a migração de TipoProposicao precisa ser feita
+                # após TipoMateriaLegislativa e TipoDocumento
+                # (porém antes de Proposicao)
+                models.remove(TipoProposicao)
+                pos_tipo_proposicao = max(
+                    models.index(TipoMateriaLegislativa),
+                    models.index(TipoDocumento)) + 1
+                models.insert(pos_tipo_proposicao, TipoProposicao)
+                assert models.index(TipoProposicao) < models.index(Proposicao)
+
+            self._do_migrate(models)
         elif isinstance(obj, ModelBase):
-            # A migração vai pular TipoProposicao e só vai migrar essa model
-            # antes de migrar Proposicao. Isso deve acontecer por causa da
-            # GenericRelation existente em TipoProposicao.
-            if not obj.__name__ == 'TipoProposicao':
-                if obj.__name__ == 'Proposicao':
-                    self.migrate_model(TipoProposicao)
-                self.migrate_model(obj)
+            self.migrate_model(obj)
         elif hasattr(obj, '__iter__'):
             for item in obj:
                 self._do_migrate(item)
