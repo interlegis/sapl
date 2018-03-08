@@ -82,6 +82,8 @@ class UsuarioCreateForm(ModelForm):
             [('password1', 6),
              ('password2', 6)])
 
+        row4 = to_row([(form_actions(label='Confirmar'), 6)])
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             row0,
@@ -89,8 +91,7 @@ class UsuarioCreateForm(ModelForm):
             row3,
             row2,
             'roles',
-            form_actions(label='Confirmar'))
-
+            row4)
 
 class UsuarioEditForm(ModelForm):
     ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
@@ -98,7 +99,7 @@ class UsuarioEditForm(ModelForm):
     password1 = forms.CharField(required=False, widget=forms.PasswordInput, label='Senha')
     password2 = forms.CharField(required=False, widget=forms.PasswordInput, label='Confirmar senha')
     user_active = forms.ChoiceField(choices=YES_NO_CHOICES, required=True, label="Usuário ativo?", initial='True')
-    roles = forms.MultipleChoiceField(required=False, widget=forms.CheckboxSelectMultiple(), choices=ROLES)
+    roles = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=ROLES)
 
     class Meta:
         model = get_user_model()

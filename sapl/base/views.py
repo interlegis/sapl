@@ -563,6 +563,10 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
         new_user.is_staff = False
         new_user.save()
 
+        groups = Group.objects.filter(id__in=data['roles'])
+        for g in groups:
+            g.user_set.add(new_user)
+
         return HttpResponseRedirect(self.get_success_url())
 
 class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
