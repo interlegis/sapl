@@ -186,7 +186,7 @@ class DocumentoAcessorioCreateForm(forms.ModelForm):
             comissao_pk = int(comissao['parent_pk'])
             reuniao = Reuniao.objects.get(id=reuniao_pk)
             documentos = reuniao.documentoacessorio_set.all()
-        return self.create_documentoacessorio()
+            return self.create_documentoacessorio()
 
 
     def create_documentoacessorio(self):

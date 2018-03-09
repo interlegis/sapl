@@ -17,15 +17,27 @@
   </div>
   {% endif %}
 
+  <fieldset class="form-group">
+		<legend>Selecione a Reunião</legend>
+		<form method="GET">
+			<select name="pk" class="form-control" onChange="form.submit();">
+				{% for r in reuniao_list %}
+					<option value="{{r.id}}" {% if reuniao_pk == r.id %} selected {% endif %}>
+						{{r}}
+					</option>  
+				{% endfor %}
+			</select>
+		</form>
 	</fieldset>
 	<br/>
   {% if user.is_authenticated and perms.comissoes.add_documentoacessorio %}
     <div class="actions btn-group pull-right btn-group-lg" role="group">
-        <a href="" class="btn btn-default">
-        Adicionar Participação em Comissão
+        <a href="{% url 'sapl.comissoes:documentoacessorio_create' reuniao_pk %}" class="btn btn-default">
+        Adicionar Documento Acessório em Reunião
         </a>
     </div>
   {% endif %}
   <br />
 
+ 
 {% endblock base_content %}

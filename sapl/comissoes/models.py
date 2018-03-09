@@ -321,10 +321,6 @@ class DocumentoAcessorio(models.Model):
         if self.arquivo:
             self.arquivo.delete()
 
-        for p in self.proposicao.all():
-            p.conteudo_gerado_related = None
-            p.save()
-
         return models.Model.delete(
             self, using=using, keep_parents=keep_parents)
 
