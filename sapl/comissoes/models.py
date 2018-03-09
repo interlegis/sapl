@@ -281,3 +281,66 @@ class Reuniao(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
+
+@reversion.register()
+class DocumentoAcessorio(models.Model):
+    reuniao = models.ForeignKey(Reuniao, 
+                                related_name='documentoacessorio_set',
+                                on_delete=models.PROTECT)
+    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+
+    data = models.DateField(blank=True, null=True, default=None, verbose_name=_('Data'))
+    autor = models.CharField(
+        max_length=50, blank=True, verbose_name=_('Autor'))
+    ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
+    indexacao = models.TextField(blank=True)
+    arquivo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=anexo_upload_path,
+        verbose_name=_('Texto Integral'),
+        validators=[restringe_tipos_de_arquivo_txt])
+
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
+
+    class Meta:
+        verbose_name = _('Documento Acessório')
+        verbose_name_plural = _('Documentos Acessórios')
+
+    def __str__(self):
+        return _('%(nome)s de %(data)s por %(autor)s') % {
+            'nome': self.nome,
+            'data': self.data,
+            'autor': self.autor}
+
+    def delete(self, using=None, keep_parents=False):
+        if self.arquivo:
+            self.arquivo.delete()
+
+        for p in self.proposicao.all():
+            p.conteudo_gerado_related = None
+            p.save()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.arquivo:
+            arquivo = self.arquivo
+            self.arquivo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.arquivo = arquivo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)

@@ -7,7 +7,8 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
+from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
+                                   Participacao, Reuniao)
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
 
@@ -168,3 +169,43 @@ class ReuniaoForm(ModelForm):
                 msg = _('A hora de término da reunião não pode ser menor que a de início')
                 raise ValidationError(msg)
         return self.cleaned_data
+
+class DocumentoAcessorioCreateForm(forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
+
+    class Meta:
+        model = DocumentoAcessorio
+        exclude = ['reuniao']
+
+    def __init__(self, user=None, **kwargs):
+        super(DocumentoAcessorioCreateForm, self).__init__(**kwargs)
+
+        if self.instance:
+            comissao = kwargs['initial']
+            comissao_pk = int(comissao['parent_pk'])
+            reuniao = Reuniao.objects.get(id=reuniao_pk)
+            documentos = reuniao.documentoacessorio_set.all()
+        return self.create_documentoacessorio()
+
+
+    def create_documentoacessorio(self):
+        reuniao = reuniao.objects.get(id=self.initial['parent_pk'])
+
+    def clean(self):
+        super(DocumentoAcessorioCreateForm, self).clean()
+        return self.cleaned_data
+
+
+class DocumentoAcessorioEditForm(forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
+
+    class Meta:
+        model = DocumentoAcessorio
+        fields = ['nome', 'data', 'autor', 'ementa',
+                  'indexacao', 'arquivo']
+
+    def __init__(self, user=None, **kwargs):
+        super(DocumentoAcessorioEditForm, self).__init__(**kwargs)
+
