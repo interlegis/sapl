@@ -182,12 +182,14 @@ class Participacao(models.Model):  # ComposicaoComissao
 def get_comissao_media_path(instance, subpath, filename):
     return './sapl/comissao/%s/%s/%s' % (instance.numero, subpath, filename)
 
-def pauta_upload_path(instance, filename):
 
+def pauta_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
+
 
 def ata_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
+
 
 def anexo_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='anexo', pk_first=True)
@@ -202,11 +204,15 @@ class Reuniao(models.Model):
         Comissao,
         on_delete=models.PROTECT,
         verbose_name=_('Comissão'))
+    tipo = models.ForeignKey(
+        TipoComissao,
+        on_delete=models.PROTECT,
+        verbose_name=_('Tipo de Comissão'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     nome = models.CharField(
-        max_length=150, verbose_name=_('Nome da Reunião'))
+        max_length=100, verbose_name=_('Nome da Reunião'))
     tema = models.CharField(
-        max_length=150, blank=True, verbose_name=_('Tema da Reunião'))
+        max_length=100, verbose_name=_('Tema da Reunião'))
     data = models.DateField(verbose_name=_('Data'))
     hora_inicio = models.TimeField(
         verbose_name=_('Horário de Início (hh:mm)'))
