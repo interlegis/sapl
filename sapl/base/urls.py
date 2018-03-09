@@ -17,9 +17,17 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,
                     RelatorioPresencaSessaoView, SaplSearchView,
-                    RelatorioDataFimPrazoTramitacaoView)
+                    RelatorioDataFimPrazoTramitacaoView, ListarUsuarioView, EditUsuarioView, CreateUsuarioView,
+                    DeleteUsuarioView)
 
 app_name = AppConfig.name
+
+admin_user = [
+    url(r'^sistema/usuario/$', ListarUsuarioView.as_view(), name='user_list'),
+    url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
+]
 
 alterar_senha = [
     url(r'^sistema/alterar-senha/$',
@@ -111,4 +119,4 @@ urlpatterns = [
 
     url(r'^sistema/search/', SaplSearchView(), name='haystack_search'),
 
-] + recuperar_senha + alterar_senha
+] + recuperar_senha + alterar_senha + admin_user

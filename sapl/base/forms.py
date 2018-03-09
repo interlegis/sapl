@@ -22,7 +22,7 @@ from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
                         ImageThumbnailFileInput, RangeWidgetOverride,
                         autor_label, autor_modal, models_with_gr_for_model,
-                        qs_override_django_filter)
+                        qs_override_django_filter, YES_NO_CHOICES)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -39,6 +39,100 @@ STATUS_USER_CHOICE = [
             ' desvinculado')),
     ('X', _('Excluir Usuário')),
 ]
+
+class UsuarioCreateForm(ModelForm):
+
+    username = forms.CharField(required=True, label="Nome de usuário")
+    firstname = forms.CharField(required=True, label="Nome")
+    lastname = forms.CharField(required=True, label="Sobrenome")
+    password1 = forms.CharField(required=True, widget=forms.PasswordInput, label='Senha')
+    password2 = forms.CharField(required=True, widget=forms.PasswordInput, label='Confirmar senha')
+    user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES, label="Usuário ativo?", initial='True')
+
+    ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+
+    roles = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=ROLES)
+
+    class Meta:
+        model = get_user_model()
+        fields = ['username', 'firstname', 'lastname', 'email', 'password1', 'password2', 'user_active', 'roles']
+
+    def clean(self):
+        super(UsuarioCreateForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data = self.cleaned_data
+        if data['password1'] != data['password2']:
+                raise ValidationError('Senhas informadas são diferentes')
+
+    def __init__(self, *args, **kwargs):
+
+        super(UsuarioCreateForm, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('username', 12)])
+
+        row1 = to_row([('firstname', 6),
+                       ('lastname', 6)])
+
+        row2 = to_row([('email', 6),
+                       ('user_active', 6)])
+        row3 = to_row(
+            [('password1', 6),
+             ('password2', 6)])
+
+        row4 = to_row([(form_actions(label='Confirmar'), 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            row0,
+            row1,
+            row3,
+            row2,
+            'roles',
+            row4)
+
+class UsuarioEditForm(ModelForm):
+    ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+
+    password1 = forms.CharField(required=False, widget=forms.PasswordInput, label='Senha')
+    password2 = forms.CharField(required=False, widget=forms.PasswordInput, label='Confirmar senha')
+    user_active = forms.ChoiceField(choices=YES_NO_CHOICES, required=True, label="Usuário ativo?", initial='True')
+    roles = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=ROLES)
+
+    class Meta:
+        model = get_user_model()
+        fields = ['email', 'password1', 'password2', 'user_active', 'roles']
+
+    def __init__(self, *args, **kwargs):
+
+        super(UsuarioEditForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('email', 6),
+                       ('user_active', 6)])
+        row2 = to_row(
+            [('password1', 6),
+             ('password2', 6)])
+
+        row3 = to_row([(form_actions(label='Salvar Alterações'), 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            row1,
+            row2,
+            'roles',
+            row3)
+
+    def clean(self):
+        super(UsuarioEditForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data = self.cleaned_data
+        if data['password1'] and data['password1'] != data['password2']:
+                raise ValidationError('Senhas informadas são diferentes')
 
 
 class TipoAutorForm(ModelForm):
