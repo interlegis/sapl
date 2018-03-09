@@ -40,6 +40,9 @@ STATUS_USER_CHOICE = [
     ('X', _('Excluir Usuário')),
 ]
 
+def get_roles():
+   return [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+
 class UsuarioCreateForm(ModelForm):
 
     username = forms.CharField(required=True, label="Nome de usuário")
@@ -49,13 +52,14 @@ class UsuarioCreateForm(ModelForm):
     password2 = forms.CharField(required=True, widget=forms.PasswordInput, label='Confirmar senha')
     user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES, label="Usuário ativo?", initial='True')
 
-    ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+    #ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
 
-    roles = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=ROLES)
+    roles = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
 
     class Meta:
         model = get_user_model()
         fields = ['username', 'firstname', 'lastname', 'email', 'password1', 'password2', 'user_active', 'roles']
+
 
     def clean(self):
         super(UsuarioCreateForm, self).clean()
@@ -94,12 +98,14 @@ class UsuarioCreateForm(ModelForm):
             row4)
 
 class UsuarioEditForm(ModelForm):
-    ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+    # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+
+    ROLES = []
 
     password1 = forms.CharField(required=False, widget=forms.PasswordInput, label='Senha')
     password2 = forms.CharField(required=False, widget=forms.PasswordInput, label='Confirmar senha')
     user_active = forms.ChoiceField(choices=YES_NO_CHOICES, required=True, label="Usuário ativo?", initial='True')
-    roles = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=ROLES)
+    roles = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
 
     class Meta:
         model = get_user_model()
@@ -114,6 +120,7 @@ class UsuarioEditForm(ModelForm):
         row2 = to_row(
             [('password1', 6),
              ('password2', 6)])
+
 
         row3 = to_row([(form_actions(label='Salvar Alterações'), 6)])
 
