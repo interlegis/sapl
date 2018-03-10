@@ -1,5 +1,5 @@
-import os
 import re
+from collections import defaultdict
 from datetime import date
 from functools import lru_cache, partial
 from itertools import groupby
@@ -15,7 +15,7 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
-from django.db.models import Count, Max, Q
+from django.db.models import Max, Q
 from django.db.models.base import ModelBase
 from pytz import timezone
 from unipath import Path
@@ -110,16 +110,30 @@ def get_renames():
 def info(msg):
     print('INFO: ' + msg)
 
+ocorrencias = defaultdict(list)
 
-def warn(msg):
-    print('CUIDADO! ' + msg)
+
+def warn(tipo, msg, dados):
+    ocorrencias[tipo].append(dados)
+    print('CUIDADO! ' + msg.format(**dados))
 
 
 class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
 
-    def __init__(self, msg=''):
-        self.msg = msg
+    def __init__(self, field, value, label):
+        self.field = field
+        self.value = value
+        self.label = label
+
+    msg = 'FK [{field}] não encontrada para o valor {value} (em {model} / {label})'  # noqa
+
+    @property
+    def dados(self):
+        return {'field': self.field.name,
+                'value': self.value,
+                'model': self.field.model.__name__,
+                'label': self.label}
 
 
 @lru_cache()
@@ -128,7 +142,7 @@ def _get_all_ids_from_model(model):
     return set(model.objects.values_list('id', flat=True))
 
 
-def get_fk_related(field, value, label=None):
+def get_fk_related(field, value, label='---'):
     if value is None and field.null:
         return None
 
@@ -139,9 +153,7 @@ def get_fk_related(field, value, label=None):
         # consideramos zeros como nulos, se não está entre os ids anteriores
         return None
     else:
-        msg = 'FK [%s] não encontrada para o valor %s (em %s %s)' % (
-            field.name, value, field.model.__name__, label or '---')
-        raise ForeignKeyFaltando(msg)
+        raise ForeignKeyFaltando(field=field, value=value, label=label)
 
 
 def exec_sql(sql, db='default'):
@@ -609,6 +621,7 @@ def get_pk_legado(tabela):
 
 DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
 PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
+DIR_RESULTADOS = DIR_DADOS_MIGRACAO.child('resultados')
 
 
 class DataMigrator:
@@ -618,8 +631,8 @@ class DataMigrator:
         self.choice_valida = {}
 
         # configura timezone de migração
-        nome_legado = DATABASES['legacy']['NAME']
-        match = re.match('sapl_cm_(.*)', nome_legado)
+        self.nome_banco_legado = DATABASES['legacy']['NAME']
+        match = re.match('sapl_cm_(.*)', self.nome_banco_legado)
         sigla_casa = match.group(1)
         with open(PATH_TABELA_TIMEZONES, 'r') as arq:
             tabela_timezones = yaml.load(arq)
@@ -641,7 +654,7 @@ class DataMigrator:
                 if field_type == 'ForeignKey':
                     # not necessarily a model
                     if hasattr(old, '_meta') and old._meta.pk.name != 'id':
-                        label = old.pk
+                        label = 'pk = {}'.format(old.pk)
                     else:
                         label = '-- SEM PK --'
                     fk_field_name = '{}_id'.format(field.name)
@@ -694,7 +707,18 @@ class DataMigrator:
         fill_vinculo_norma_juridica()
         fill_dados_basicos()
         info('Começando migração: %s...' % obj)
-        self._do_migrate(obj)
+        try:
+            ocorrencias.clear()
+            dir_ocorrencias = DIR_RESULTADOS.child(date.today().isoformat())
+            dir_ocorrencias.mkdir(parents=True)
+            self._do_migrate(obj)
+        finally:
+            # grava ocorrências
+            arq_ocorrencias = dir_ocorrencias.child(
+                self.nome_banco_legado + '.yaml')
+            with open(arq_ocorrencias, 'w') as arq:
+                yaml.safe_dump(dict(ocorrencias), arq, allow_unicode=True)
+            info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
 
         # recria tipos de autor padrão que não foram criados pela migração
         cria_models_tipo_autor()
@@ -772,7 +796,7 @@ class DataMigrator:
                     # tentamos preencher uma FK e o ojeto relacionado
                     # não existe
                     # então este é um objeo órfão: simplesmente ignoramos
-                    warn(e.msg)
+                    warn('fk', e.msg, e.dados)
                     continue
                 else:
                     if get_id_do_legado:
@@ -841,10 +865,15 @@ pois não existe protocolo no sistema com este número no ano {ano_original}.
                 nota = nota.strip().format(num_protocolo=old.num_protocolo,
                                            ano_original=ano_original,
                                            ano_novo=ano_novo)
-                warn('PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '
-                     'DocumentoAdministrativo: {}, numero_protocolo: {}, '
-                     'ano doc adm: {}'.format(
-                         old.cod_documento, old.num_protocolo, ano_original))
+                msg = 'PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '\
+                    'DocumentoAdministrativo: {cod_documento}, '\
+                    'numero_protocolo: {num_protocolo}, '\
+                    'ano doc adm: {ano_original}'
+                warn('protocolo_ano_seguinte', msg,
+                     {'cod_documento': old.cod_documento,
+                      'num_protocolo': old.num_protocolo,
+                      'ano_original': ano_original,
+                      'nota': nota})
             else:
                 nota = NOTA_DOCADM + '''
 Não existe no sistema nenhum protocolo com estes dados
@@ -852,9 +881,12 @@ e portanto nenhum protocolo foi vinculado a este documento.'''
                 nota = nota.format(
                     num_protocolo=old.num_protocolo,
                     ano_original=ano_original)
-                warn('Protocolo {} faltando '
-                     '(referenciado no documento administrativo {})'.format(
-                         old.num_protocolo, old.cod_documento))
+                msg = 'Protocolo {num_protocolo} faltando (referenciado ' \
+                    'no documento administrativo {cod_documento})'
+                warn('protocolo_faltando', msg,
+                     {'num_protocolo': old.num_protocolo,
+                      'cod_documento': old.cod_documento,
+                      'nota': nota})
         if protocolo:
             assert len(protocolo) == 1, 'mais de um protocolo encontrado'
             [new.protocolo] = protocolo
@@ -883,18 +915,10 @@ def adjust_ordemdia_antes_salvar(new, old):
 
     if old.num_ordem is None:
         new.numero_ordem = 999999999
-
-
-def adjust_ordemdia_depois_salvar(new, old):
-    if old.num_ordem is None and new.numero_ordem == 999999999:
-        with reversion.create_revision():
-            problema = 'OrdemDia de PK %s tinha seu valor de numero ordem' \
-                ' nulo.' % old.pk
-            descricao = 'O valor %s foi colocado no lugar.' % new.numero_ordem
-            warn(problema + ' => ' + descricao)
-            save_relation(obj=new, problema=problema,
-                          descricao=descricao, eh_stub=False)
-            reversion.set_comment('OrdemDia sem número da ordem.')
+        warn('ordem_dia_num_ordem_nulo',
+             'OrdemDia de PK {pk} tinha numero ordem nulo. '
+             'O valor %s foi colocado no lugar.' % new.numero_ordem,
+             {'pk': old.pk})
 
 
 def adjust_parlamentar(new, old):
@@ -904,7 +928,10 @@ def adjust_parlamentar(new, old):
         # but data includes null values
         #  => transform None to False
         if value is None:
-            warn('nulo convertido para falso')
+            warn('unidade_deliberativa_nulo_p_false',
+                 'nulo convertido para falso na unidade_deliberativa '
+                 'do parlamentar {pk_parlamentar}',
+                 {'pk_parlamentar': old.cod_parlamentar})
             new.unidade_deliberativa = False
     # migra município de residência
     if old.cod_localidade_resid:
@@ -950,19 +977,12 @@ def adjust_normarelacionada(new, old):
 
 
 def adjust_protocolo_antes_salvar(new, old):
-    if old.num_protocolo is None:
+    if new.numero is None:
         new.numero = old.cod_protocolo
-
-
-def adjust_protocolo_depois_salvar(new, old):
-    if old.num_protocolo is None:
-        with reversion.create_revision():
-            problema = 'Número do protocolo de PK %s é nulo' % new.pk
-            descricao = 'Número do protocolo alterado para %s!' % new.numero
-            warn(problema + ' => ' + descricao)
-            save_relation(obj=new, problema=problema,
-                          descricao=descricao, eh_stub=False)
-            reversion.set_comment('Número de protocolo teve que ser alterado')
+        warn('num_protocolo_nulo',
+             'Número do protocolo de PK {cod_protocolo} era nulo '
+             'e foi alterado para sua pk ({cod_protocolo})',
+             {'cod_protocolo': old.cod_protocolo})
 
 
 def adjust_registrovotacao_antes_salvar(new, old):
@@ -982,20 +1002,22 @@ def adjust_tipoafastamento(new, old):
         new.indicador = 'A'
 
 
+MODEL_TIPO_MATERIA_OU_DOCUMENTO = {'M': TipoMateriaLegislativa,
+                                   'D': TipoDocumento}
+
+
 def adjust_tipoproposicao(new, old):
-    if old.ind_mat_ou_doc == 'M':
-        tipo_materia = TipoMateriaLegislativa.objects.filter(
-            pk=old.tip_mat_ou_doc)
-        if tipo_materia:
-            new.tipo_conteudo_related = tipo_materia[0]
-        else:
-            raise ForeignKeyFaltando
-    elif old.ind_mat_ou_doc == 'D':
-        tipo_documento = TipoDocumento.objects.filter(pk=old.tip_mat_ou_doc)
-        if tipo_documento:
-            new.tipo_conteudo_related = tipo_documento[0]
-        else:
-            raise ForeignKeyFaltando
+    "Aponta para o tipo relacionado de matéria ou documento"
+    value = old.tip_mat_ou_doc
+    model_tipo = MODEL_TIPO_MATERIA_OU_DOCUMENTO[old.ind_mat_ou_doc]
+    tipo = model_tipo.objects.filter(pk=value)
+    if tipo:
+        new.tipo_conteudo_related = tipo[0]
+    else:
+        raise ForeignKeyFaltando(
+            field=TipoProposicao.tipo_conteudo_related,
+            value=(model_tipo.__name__, value),
+            label='ind_mat_ou_doc = {}'.format(old.ind_mat_ou_doc))
 
 
 def adjust_statustramitacao(new, old):
@@ -1057,9 +1079,12 @@ def vincula_autor(new, old, model_relacionado, campo_relacionado, campo_nome):
             new.autor_related = model_relacionado.objects.get(pk=pk_rel)
         except ObjectDoesNotExist:
             # ignoramos o autor órfão
+            nome_model_relacionado = model_relacionado._meta.model.__name__
             raise ForeignKeyFaltando(
-                '{} [pk={}] inexistente para autor'.format(
-                    model_relacionado._meta.verbose_name, pk_rel))
+                field=Autor.autor_related,
+                value=(nome_model_relacionado, pk_rel),
+                label='{} [pk={}] inexistente para autor'.format(
+                    nome_model_relacionado, pk_rel))
         else:
             new.nome = getattr(new.autor_related, campo_nome)
             return True
@@ -1124,20 +1149,6 @@ AJUSTE_ANTES_SALVAR = {
 
 AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
-    OrdemDia: adjust_ordemdia_depois_salvar,
-    Protocolo: adjust_protocolo_depois_salvar,
 }
 
 # CHECKS ####################################################################
-
-
-def get_ind_excluido(new):
-    model_legado = legacy_app.get_model(type(new).__name__)
-    old = model_legado.objects.get(**{model_legado._meta.pk.name: new.id})
-    return getattr(old, 'ind_excluido', False)
-
-
-def check_app_no_ind_excluido(app):
-    for model in app.models.values():
-        assert not any(get_ind_excluido(new) for new in model.objects.all())
-    print('OK!')
