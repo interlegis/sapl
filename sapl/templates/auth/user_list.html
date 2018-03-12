@@ -11,7 +11,8 @@
             <table class="table table-striped table-hover">
                 <thead>
                   <tr>
-                    <th>Nome de Usuário</th>
+                    <th>Nome de Login</th>
+                    <th>Nome</th>
                     <th>E-mail do Usuário</th>
                   </tr>
                 </thead>
@@ -21,6 +22,7 @@
                       <td>
                          <a href="{% url 'sapl.base:user_edit' user.pk %}">{{ user.username }}</a>
                       </td>
+                      <td>{{ user.first_name }} {{ user.last_name }}</td>
                       <td>{{ user.email }}</td>
                      </tr>
                   {% endfor %}
@@ -29,5 +31,5 @@
         {% endif %}
         <a  class="btn btn-default" href="{% url 'sapl.base:user_create' %}">Criar Usuário</a>
     </fieldset>
-    {% include 'paginacao.html'%}
+ {% include 'paginacao.html'%}
 {% endblock base_content %}
