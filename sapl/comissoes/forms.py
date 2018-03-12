@@ -182,15 +182,15 @@ class DocumentoAcessorioCreateForm(forms.ModelForm):
         super(DocumentoAcessorioCreateForm, self).__init__(**kwargs)
 
         if self.instance:
-            comissao = kwargs['initial']
-            comissao_pk = int(comissao['parent_pk'])
-            reuniao = Reuniao.objects.get(id=reuniao_pk)
+            reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+            comissao = reuniao.comissao
+            comissao_pk = comissao.id
             documentos = reuniao.documentoacessorio_set.all()
             return self.create_documentoacessorio()
 
 
     def create_documentoacessorio(self):
-        reuniao = reuniao.objects.get(id=self.initial['parent_pk'])
+        reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
 
     def clean(self):
         super(DocumentoAcessorioCreateForm, self).clean()
