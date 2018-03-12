@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+
 from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                AdicionarVariasMateriasOrdemDia, BancadaCrud,
                                BlocoCrud, CargoBancadaCrud,

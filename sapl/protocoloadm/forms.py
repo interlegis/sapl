@@ -10,12 +10,13 @@ from django.db import models
 from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
-from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
-                        RangeWidgetOverride, autor_label, autor_modal, YES_NO_CHOICES)
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
+                        RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
@@ -363,7 +364,6 @@ class ProtocoloMateriaForm(ModelForm):
         empty_label='Selecione',
     )
 
-
     numero_materia = forms.CharField(
         label=_('Número matéria'), required=False)
 
@@ -372,7 +372,7 @@ class ProtocoloMateriaForm(ModelForm):
 
     vincular_materia = forms.ChoiceField(label=_('Vincular a matéria existente?'),
                                          widget=forms.RadioSelect(),
-                                         choices= YES_NO_CHOICES,
+                                         choices=YES_NO_CHOICES,
                                          initial=False)
 
     numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
@@ -414,7 +414,8 @@ class ProtocoloMateriaForm(ModelForm):
             if data['vincular_materia'] == 'True':
                 try:
                     if not data['ano_materia'] or not data['numero_materia']:
-                            raise ValidationError('Favor informar o número e ano da matéria a ser vinculada')
+                        raise ValidationError(
+                            'Favor informar o número e ano da matéria a ser vinculada')
                     self.materia = MateriaLegislativa.objects.get(ano=data['ano_materia'],
                                                                   numero=data['numero_materia'],
                                                                   tipo=data['tipo_materia'])
@@ -426,8 +427,6 @@ class ProtocoloMateriaForm(ModelForm):
 
         return data
 
-
-
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
@@ -438,7 +437,7 @@ class ProtocoloMateriaForm(ModelForm):
         row2 = to_row(
             [('vincular_materia', 4),
              ('numero_materia', 4),
-             ('ano_materia', 4),])
+             ('ano_materia', 4), ])
         row3 = to_row(
             [('assunto_ementa', 12)])
         row4 = to_row(

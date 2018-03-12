@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from reversion.models import Revision
+
 from sapl.base.models import ProblemaMigracao
 from sapl.utils import register_all_models_in_admin
 

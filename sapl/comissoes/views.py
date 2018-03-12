@@ -7,19 +7,17 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 
-
 from sapl.base.models import AppConfig as AppsAppConfig
-from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud,
-                           CrudAux, MasterDetailCrud,
-                           PermissionRequiredForAppCrudMixin)
+from sapl.comissoes.apps import AppConfig
 from sapl.comissoes.forms import ParticipacaoCreateForm, ParticipacaoEditForm
+from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
+                            MasterDetailCrud,
+                            PermissionRequiredForAppCrudMixin)
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
-from .forms import ReuniaoForm, ComissaoForm
-
+from .forms import ComissaoForm, ReuniaoForm
 from .models import (CargoComissao, Comissao, Composicao, Participacao,
-                     Periodo, TipoComissao, Reuniao)
-from sapl.comissoes.apps import AppConfig
+                     Periodo, Reuniao, TipoComissao)
 
 
 def pegar_url_composicao(pk):
@@ -60,6 +58,7 @@ class ParticipacaoCrud(MasterDetailCrud):
         form_class = ParticipacaoEditForm
 
     class DeleteView(MasterDetailCrud.DeleteView):
+
         def get_success_url(self):
             composicao_comissao_pk = self.object.composicao.comissao.pk
             composicao_pk = self.object.composicao.pk
@@ -147,6 +146,7 @@ class MateriasTramitacaoListView(ListView):
         context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
         return context
 
+
 class ReuniaoCrud(MasterDetailCrud):
     model = Reuniao
     parent_field = 'comissao'
@@ -168,19 +168,16 @@ class ReuniaoCrud(MasterDetailCrud):
         def get_initial(self):
             return {'comissao': self.object.comissao}
 
-
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ReuniaoForm
 
         def get_initial(self):
-          comissao = Comissao.objects.get(id=self.kwargs['pk'])
+            comissao = Comissao.objects.get(id=self.kwargs['pk'])
 
-          return {'comissao': comissao}
-
+            return {'comissao': comissao}
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
-
 
     class DetailView(MasterDetailCrud.DetailView):
 

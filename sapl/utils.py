@@ -1,11 +1,13 @@
-from functools import wraps
-from operator import itemgetter
-from unicodedata import normalize as unicodedata_normalize
 import hashlib
 import logging
 import os
 import re
+from functools import wraps
+from operator import itemgetter
+from unicodedata import normalize as unicodedata_normalize
 
+import django_filters
+import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -23,12 +25,9 @@ from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
 from unipath.path import Path
-import django_filters
-import magic
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
-
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -49,7 +48,7 @@ def clear_thumbnails_cache(queryset, field):
         path = Path(getattr(r, field).path)
 
         if not path.exists():
-           continue
+            continue
 
         cache_files = path.parent.walk()
 

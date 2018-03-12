@@ -14,13 +14,15 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
-from django.views.generic import FormView, ListView, DetailView, UpdateView, CreateView, DeleteView
+from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
+                                  ListView, UpdateView)
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
+
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
-from sapl.crud.base import (CrudAux, make_pagination)
+from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
@@ -30,12 +32,13 @@ from sapl.utils import (parlamentares_ativos, sapl_logger,
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
+                    RelatorioDataFimPrazoTramitacaoFilterSet,
                     RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
-                    RelatorioPresencaSessaoFilterSet,
-                    RelatorioDataFimPrazoTramitacaoFilterSet, UsuarioEditForm, UsuarioCreateForm)
+                    RelatorioPresencaSessaoFilterSet, UsuarioCreateForm,
+                    UsuarioEditForm)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -70,6 +73,7 @@ class TipoAutorCrud(CrudAux):
             return vn
 
     class ListView(CrudAux.ListView):
+
         def get_queryset(self):
             qs = CrudAux.ListView.get_queryset(self)
             qs = qs.filter(content_type__isnull=True)
@@ -84,6 +88,7 @@ class TipoAutorCrud(CrudAux):
             return context
 
     class TipoAutorMixin:
+
         def dispatch(self, request, *args, **kwargs):
             object = self.get_object()
             if object.content_type:
@@ -359,6 +364,7 @@ class RelatorioHistoricoTramitacaoView(FilterView):
 
         return context
 
+
 class RelatorioDataFimPrazoTramitacaoView(FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioDataFimPrazoTramitacaoFilterSet
@@ -569,6 +575,7 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
 
         return HttpResponseRedirect(self.get_success_url())
 
+
 class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
 
     model = get_user_model()
@@ -583,7 +590,6 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
     def get_queryset(self):
         qs = super(DeleteUsuarioView, self).get_queryset()
         return qs.filter(id=self.kwargs['pk'])
-
 
 
 class EditUsuarioView(PermissionRequiredMixin, UpdateView):

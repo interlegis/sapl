@@ -1,5 +1,4 @@
 
-import sapl
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -15,6 +14,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
+
+import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination

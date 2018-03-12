@@ -1,6 +1,7 @@
 from unittest import mock
 
 import rtyaml
+
 from sapl.crispy_layout_mixin import read_layout_from_yaml
 
 

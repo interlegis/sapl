@@ -8,6 +8,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.viewsets import GenericViewSet
+
 from sapl.api.forms import (AutorChoiceFilterSet, AutoresPossiveisFilterSet,
                             AutorSearchForFieldFilterSet)
 from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,

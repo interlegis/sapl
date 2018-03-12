@@ -1,7 +1,7 @@
 
 import os
+
 import django_filters
-import sapl
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
@@ -22,7 +22,9 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from sapl.base.models import Autor, TipoAutor, AppConfig
+
+import sapl
+from sapl.base.models import AppConfig, Autor, TipoAutor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
@@ -39,8 +41,8 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
-                        autor_label, autor_modal, models_with_gr_for_model,
-                        qs_override_django_filter, gerar_hash_arquivo)
+                        autor_label, autor_modal, gerar_hash_arquivo,
+                        models_with_gr_for_model, qs_override_django_filter)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -1135,7 +1137,7 @@ class ProposicaoForm(forms.ModelForm):
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
             'tipo': TipoProposicaoSelect(),
-            'hash_code': forms.HiddenInput(),}
+            'hash_code': forms.HiddenInput(), }
 
     def __init__(self, *args, **kwargs):
         self.texto_articulado_proposicao = sapl.base.models.AppConfig.attr(
@@ -1221,7 +1223,6 @@ class ProposicaoForm(forms.ModelForm):
                 ta = inst.texto_articulado.first()
                 # FIXME hash para textos articulados
                 inst.hash_code = 'P' + ta.hash() + '/' + str(inst.pk)
-
 
     def clean(self):
         super(ProposicaoForm, self).clean()

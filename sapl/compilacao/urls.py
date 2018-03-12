@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+
 from sapl.compilacao import views
 from sapl.compilacao.views import (TipoDispositivoCrud, TipoNotaCrud,
                                    TipoPublicacaoCrud, TipoVideCrud,
@@ -116,13 +117,13 @@ urlpatterns = [
         include(TipoDispositivoCrud.get_urls())),
 
     url(r'^sistema/ta/config/tipo-textoarticulado$',
-    views.TipoTaListView.as_view(), name='tipo_ta_list'),
+        views.TipoTaListView.as_view(), name='tipo_ta_list'),
     url(r'^sistema/ta/config/tipo-textoarticulado/create$',
-    views.TipoTaCreateView.as_view(), name='tipo_ta_create'),
+        views.TipoTaCreateView.as_view(), name='tipo_ta_create'),
     url(r'^sistema/ta/config/tipo-textoarticulado/(?P<pk>[0-9]+)$',
-    views.TipoTaDetailView.as_view(), name='tipo_ta_detail'),
+        views.TipoTaDetailView.as_view(), name='tipo_ta_detail'),
     url(r'^sistema/ta/config/tipo-textoarticulado/(?P<pk>[0-9]+)/edit$',
-    views.TipoTaUpdateView.as_view(), name='tipo_ta_edit'),
+        views.TipoTaUpdateView.as_view(), name='tipo_ta_edit'),
     url(r'^sistema/ta/config/tipo-textoarticulado/(?P<pk>[0-9]+)/delete$',
-    views.TipoTaDeleteView.as_view(), name='tipo_ta_delete'),
+        views.TipoTaDeleteView.as_view(), name='tipo_ta_delete'),
 ]

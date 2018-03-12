@@ -1,7 +1,7 @@
-from collections import OrderedDict
-from datetime import timedelta
 import logging
 import sys
+from collections import OrderedDict
+from datetime import timedelta
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -19,8 +19,8 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -48,9 +48,8 @@ from sapl.compilacao.models import (STATUS_TA_EDITION, STATUS_TA_PRIVATE,
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT,
                                    get_integrations_view_names)
-from sapl.crud.base import Crud, CrudListView, make_pagination, CrudAux
+from sapl.crud.base import Crud, CrudAux, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
-
 
 TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
 TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')

@@ -20,6 +20,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
+
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
@@ -592,7 +593,7 @@ class BlocoCrud(Crud):
 
     class ListView(Crud.ListView):
         template_name = 'crud/list_tabaux.html'
-        
+
     class CreateView(Crud.CreateView):
         form_class = BlocoForm
 

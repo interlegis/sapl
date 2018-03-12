@@ -10,7 +10,7 @@ from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
-from sapl.base.models import Autor, SEQUENCIA_NUMERACAO
+from sapl.base.models import SEQUENCIA_NUMERACAO, Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TextoArticulado)

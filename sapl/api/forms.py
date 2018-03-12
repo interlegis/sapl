@@ -7,6 +7,7 @@ from django_filters.filters import DateFilter, MethodFilter, ModelChoiceFilter
 from rest_framework import serializers
 from rest_framework.compat import django_filters
 from rest_framework.filters import FilterSet
+
 from sapl.base.models import Autor, TipoAutor
 from sapl.parlamentares.models import Legislatura
 from sapl.utils import generic_relations_for_model

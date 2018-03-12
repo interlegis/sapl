@@ -1,7 +1,9 @@
 from django.conf.urls import include, url
+
 from sapl.comissoes.views import (CargoCrud, ComissaoCrud, ComposicaoCrud,
                                   MateriasTramitacaoListView, ParticipacaoCrud,
-                                  PeriodoComposicaoCrud, ReuniaoCrud, TipoComissaoCrud)
+                                  PeriodoComposicaoCrud, ReuniaoCrud,
+                                  TipoComissaoCrud)
 
 from .apps import AppConfig
 

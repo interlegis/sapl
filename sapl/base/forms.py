@@ -13,16 +13,17 @@ from django.db import models, transaction
 from django.forms import Form, ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
-                        ImageThumbnailFileInput, RangeWidgetOverride,
-                        autor_label, autor_modal, models_with_gr_for_model,
-                        qs_override_django_filter, YES_NO_CHOICES)
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
+                        ChoiceWithoutValidationField, ImageThumbnailFileInput,
+                        RangeWidgetOverride, autor_label, autor_modal,
+                        models_with_gr_for_model, qs_override_django_filter)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -40,8 +41,10 @@ STATUS_USER_CHOICE = [
     ('X', _('Excluir Usuário')),
 ]
 
+
 def get_roles():
-   return [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+    return [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+
 
 class UsuarioCreateForm(ModelForm):
 
@@ -50,16 +53,18 @@ class UsuarioCreateForm(ModelForm):
     lastname = forms.CharField(required=True, label="Sobrenome")
     password1 = forms.CharField(required=True, widget=forms.PasswordInput, label='Senha')
     password2 = forms.CharField(required=True, widget=forms.PasswordInput, label='Confirmar senha')
-    user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES, label="Usuário ativo?", initial='True')
+    user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES,
+                                    label="Usuário ativo?", initial='True')
 
     #ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
 
-    roles = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
+    roles = forms.MultipleChoiceField(
+        required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'firstname', 'lastname', 'email', 'password1', 'password2', 'user_active', 'roles']
-
+        fields = ['username', 'firstname', 'lastname', 'email',
+                  'password1', 'password2', 'user_active', 'roles']
 
     def clean(self):
         super(UsuarioCreateForm, self).clean()
@@ -69,7 +74,7 @@ class UsuarioCreateForm(ModelForm):
 
         data = self.cleaned_data
         if data['password1'] != data['password2']:
-                raise ValidationError('Senhas informadas são diferentes')
+            raise ValidationError('Senhas informadas são diferentes')
 
     def __init__(self, *args, **kwargs):
 
@@ -97,6 +102,7 @@ class UsuarioCreateForm(ModelForm):
             'roles',
             row4)
 
+
 class UsuarioEditForm(ModelForm):
     # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
 
@@ -104,8 +110,10 @@ class UsuarioEditForm(ModelForm):
 
     password1 = forms.CharField(required=False, widget=forms.PasswordInput, label='Senha')
     password2 = forms.CharField(required=False, widget=forms.PasswordInput, label='Confirmar senha')
-    user_active = forms.ChoiceField(choices=YES_NO_CHOICES, required=True, label="Usuário ativo?", initial='True')
-    roles = forms.MultipleChoiceField(required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
+    user_active = forms.ChoiceField(choices=YES_NO_CHOICES, required=True,
+                                    label="Usuário ativo?", initial='True')
+    roles = forms.MultipleChoiceField(
+        required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
 
     class Meta:
         model = get_user_model()
@@ -120,7 +128,6 @@ class UsuarioEditForm(ModelForm):
         row2 = to_row(
             [('password1', 6),
              ('password2', 6)])
-
 
         row3 = to_row([(form_actions(label='Salvar Alterações'), 6)])
 
@@ -139,7 +146,7 @@ class UsuarioEditForm(ModelForm):
 
         data = self.cleaned_data
         if data['password1'] and data['password1'] != data['password2']:
-                raise ValidationError('Senhas informadas são diferentes')
+            raise ValidationError('Senhas informadas são diferentes')
 
 
 class TipoAutorForm(ModelForm):
@@ -571,6 +578,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
                      row1, row2,
                      form_actions(label='Pesquisar'))
         )
+
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
 

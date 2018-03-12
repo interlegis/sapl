@@ -1,5 +1,6 @@
 import pytest
 from django.utils.translation import ugettext_lazy as _
+
 from sapl.base.forms import CasaLegislativaForm
 
 

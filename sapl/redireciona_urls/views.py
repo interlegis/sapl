@@ -1,5 +1,6 @@
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.views.generic import RedirectView
+
 from sapl.base.apps import AppConfig as atasConfig
 from sapl.comissoes.apps import AppConfig as comissoesConfig
 from sapl.materia.apps import AppConfig as materiaConfig
@@ -634,6 +635,7 @@ class RedirecionaMateriasPorAnoAutorTipo(RedirectView):
         url = has_iframe(url, self.request)
 
         return url
+
 
 class RedirecionaReuniao(RedirectView):
     permanent = True
