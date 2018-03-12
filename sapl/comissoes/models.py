@@ -312,9 +312,8 @@ class DocumentoAcessorio(models.Model):
         verbose_name_plural = _('Documentos Acessórios')
 
     def __str__(self):
-        return _('%(nome)s de %(data)s por %(autor)s') % {
+        return _('%(nome)s por %(autor)s') % {
             'nome': self.nome,
-            'data': self.data,
             'autor': self.autor}
 
     def delete(self, using=None, keep_parents=False):
