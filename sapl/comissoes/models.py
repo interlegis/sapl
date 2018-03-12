@@ -292,7 +292,7 @@ class DocumentoAcessorio(models.Model):
 
     data = models.DateField(blank=True, null=True, default=None, verbose_name=_('Data'))
     autor = models.CharField(
-        max_length=50, blank=True, verbose_name=_('Autor'))
+        max_length=100,  verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(

@@ -12,9 +12,6 @@ from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
 
-
-
-
 class ParticipacaoCreateForm(forms.ModelForm):
 
     parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())

@@ -53,3 +53,19 @@ Reuniao:
   - observacao
   - upload_pauta upload_ata upload_anexo
   - comissao
+
+DocumentoAcessorio:
+  {% trans 'Documento Acessório' %}:
+  - nome data
+  - autor arquivo
+  - indexacao 
+  - ementa
+
+DocumentoAcessorioEdit:
+  {% trans 'Documento Acessório' %}:
+  - nome data
+  - autor arquivo
+  - indexacao 
+  - ementa
+
+
