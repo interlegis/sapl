@@ -256,9 +256,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
     class DetailView(MasterDetailCrud.DetailView):
 
-        @property
-        def layout_key(self):
-            return 'OrdemDiaDetail'
+        layout_key = 'OrdemDiaDetail'
 
     class ListView(MasterDetailCrud.ListView):
         paginate_by = None
@@ -530,9 +528,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
     class DetailView(MasterDetailCrud.DetailView):
 
-        @property
-        def layout_key(self):
-            return 'ExpedienteMateriaDetail'
+        layout_key = 'ExpedienteMateriaDetail'
 
 
 class OradorCrud(MasterDetailCrud):
@@ -638,9 +634,7 @@ class SessaoCrud(Crud):
         list_field_names = ['data_inicio', 'legislatura', 'sessao_legislativa',
                             'tipo']
 
-        @property
-        def list_url(self):
-            return ''
+        list_url = ''
 
         @property
         def search_url(self):

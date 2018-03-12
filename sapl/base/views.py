@@ -683,13 +683,8 @@ class AppConfigCrud(CrudAux):
     class BaseMixin(CrudAux.BaseMixin):
         form_class = ConfiguracoesAppForm
 
-        @property
-        def list_url(self):
-            return ''
-
-        @property
-        def create_url(self):
-            return ''
+        list_url = ''
+        create_url = ''
 
     class CreateView(CrudAux.CreateView):
 

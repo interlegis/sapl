@@ -2,6 +2,7 @@ import os
 import re
 
 from redbaron import RedBaron
+from redbaron.nodes import EndlNode, ReturnNode, StringNode
 
 root = '/home/mazza/work/sapl'
 
@@ -85,3 +86,23 @@ def local(node):
                      node.absolute_bounding_box.top_left.line)
     os.system("echo '%s' | xclip -selection c" % res)
     return res
+
+
+def acha_props_constantes(red):
+    "Enumera nós property que apenas retornam uma constante"
+    for fun in red('def'):
+        if fun.decorators.dumps().strip() == '@property':
+            nos = [n for n in fun.value if not isinstance(n, EndlNode)]
+            if len(nos) == 1:
+                [ret] = nos
+                if (isinstance(ret, ReturnNode)
+                        and isinstance(ret.value, StringNode)):
+                    yield fun
+
+
+def corrige_props_constantes(reds):
+    "Troca nós property que apenas retornam uma constante por um assign"
+    pp = [p for red in reds for p in acha_props_constantes(red)]
+    for p in pp:
+        p.parent.value[p.index_on_parent] = '{} = {}'.format(p.name, p('return')('string').dumps())
+        write(p)

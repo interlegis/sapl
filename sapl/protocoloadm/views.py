@@ -93,9 +93,7 @@ class DocumentoAdministrativoCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'pesq_doc_adm'))
 
-        @property
-        def list_url(self):
-            return ''
+        list_url = ''
 
     class ListView(RedirectView, DocumentoAdministrativoMixin, Crud.ListView):
 

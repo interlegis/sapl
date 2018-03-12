@@ -1055,9 +1055,7 @@ class TramitacaoCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoUpdateForm
 
-        @property
-        def layout_key(self):
-            return 'TramitacaoUpdate'
+        layout_key = 'TramitacaoUpdate'
 
         def form_valid(self, form):
             self.object = form.save()
@@ -1281,9 +1279,7 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
 
     class DetailView(MasterDetailCrud.DetailView):
 
-        @property
-        def layout_key(self):
-            return 'LegislacaoCitadaDetail'
+        layout_key = 'LegislacaoCitadaDetail'
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
@@ -1357,9 +1353,7 @@ class MateriaLegislativaCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
 
-        @property
-        def list_url(self):
-            return ''
+        list_url = ''
 
         @property
         def search_url(self):
@@ -1389,9 +1383,7 @@ class MateriaLegislativaCrud(Crud):
 
     class DetailView(Crud.DetailView):
 
-        @property
-        def layout_key(self):
-            return 'MateriaLegislativaDetail'
+        layout_key = 'MateriaLegislativaDetail'
 
     class ListView(Crud.ListView, RedirectView):
 

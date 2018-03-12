@@ -420,16 +420,12 @@ class ParlamentarCrud(Crud):
     class UpdateView(Crud.UpdateView):
         form_class = ParlamentarForm
 
-        @property
-        def layout_key(self):
-            return 'ParlamentarUpdate'
+        layout_key = 'ParlamentarUpdate'
 
     class CreateView(Crud.CreateView):
         form_class = ParlamentarCreateForm
 
-        @property
-        def layout_key(self):
-            return 'ParlamentarCreate'
+        layout_key = 'ParlamentarCreate'
 
         def form_valid(self, form):
             """
