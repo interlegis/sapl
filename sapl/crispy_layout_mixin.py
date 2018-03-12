@@ -132,6 +132,8 @@ def get_field_display(obj, fieldname):
                     value._meta.app_config.name, obj.content_type.model),
                 args=(value.id,)),
             value)
+    elif 'TextField' in str_type_from_field:
+        display = value.replace('\n', '<br/>')
     else:
         display = str(value)
     return verbose_name, display
