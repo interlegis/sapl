@@ -252,6 +252,21 @@ def reverte_exclusao_de_autores_referenciados_no_legado():
         'update autor set ind_excluido = 0 where cod_autor in {}',
         autores_referenciados)
 
+    # propaga exclusões para autores não referenciados
+    for tabela, fk in [('parlamentar', 'cod_parlamentar'),
+                       ('comissao', 'cod_comissao')]:
+        sql = '''
+            update autor set ind_excluido = 1
+            where {cod_parlamentar} is not null
+            and {cod_parlamentar} not in (
+                select {cod_parlamentar} from {parlamentar}
+                where ind_excluido <> 1)
+            '''.format(parlamentar=tabela, cod_parlamentar=fk)
+        if autores_referenciados:
+            sql += ' and cod_autor not in {}'.format(
+                tuple(autores_referenciados))
+        exec_legado(sql)
+
 
 def get_reapontamento_de_autores_repetidos(autores):
     """ Dada uma lista ordenada de pares (cod_zzz, cod_autor) retorna:
