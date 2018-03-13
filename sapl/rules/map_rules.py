@@ -90,6 +90,7 @@ rules_group_comissoes = {
         (comissoes.Participacao, __base__),
         (materia.Relatoria, __base__),
         (comissoes.Reuniao, __base__),
+        (comissoes.DocumentoAcessorio, __base__),
     ]
 }
 

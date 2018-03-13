@@ -7,7 +7,8 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
+from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
+                                   Participacao, Reuniao)
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
 
@@ -155,20 +156,53 @@ class ReuniaoForm(ModelForm):
     class Meta:
         model = Reuniao
         exclude = ['cod_andamento_reuniao']
-        widgets = {
-            'hora_fim': forms.TimeInput(format='%H:%M'),
-            'hora_inicio': forms.TimeInput(format='%H:%M'),
-        }
 
     def clean(self):
         super(ReuniaoForm, self).clean()
 
-        if self.errors:
-            return
-
-        if self.cleaned_data['hora_fim'] < self.cleaned_data['hora_inicio']:
-            msg = _('A hora de término da reunião não pode '
-                    'ser menor que a de início')
-            raise ValidationError(msg)
-
+        if self.cleaned_data['hora_fim']:
+            if (self.cleaned_data['hora_fim'] <
+                    self.cleaned_data['hora_inicio']):
+                msg = _('A hora de término da reunião não pode ser menor que a de início')
+                raise ValidationError(msg)
         return self.cleaned_data
+
+class DocumentoAcessorioCreateForm(forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
+
+    class Meta:
+        model = DocumentoAcessorio
+        exclude = ['reuniao']
+
+    def __init__(self, user=None, **kwargs):
+        super(DocumentoAcessorioCreateForm, self).__init__(**kwargs)
+
+        if self.instance:
+            reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+            comissao = reuniao.comissao
+            comissao_pk = comissao.id
+            documentos = reuniao.documentoacessorio_set.all()
+            return self.create_documentoacessorio()
+
+
+    def create_documentoacessorio(self):
+        reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+
+    def clean(self):
+        super(DocumentoAcessorioCreateForm, self).clean()
+        return self.cleaned_data
+
+
+class DocumentoAcessorioEditForm(forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
+
+    class Meta:
+        model = DocumentoAcessorio
+        fields = ['nome', 'data', 'autor', 'ementa',
+                  'indexacao', 'arquivo']
+
+    def __init__(self, user=None, **kwargs):
+        super(DocumentoAcessorioEditForm, self).__init__(**kwargs)
+

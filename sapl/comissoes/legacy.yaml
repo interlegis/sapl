@@ -47,7 +47,6 @@ Participacao (ComposicaoComissao):
 Reuniao:
     periodo: periodo_reuniao
     comissao: cod_comissao
-    tipo: tipo_comissao
     numero: num_comissao
     nome: nom_reuniao
     tema: tem_reuniao
