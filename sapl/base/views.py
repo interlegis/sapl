@@ -13,6 +13,7 @@ from django.template.loader import get_template
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
                                   ListView, UpdateView)
 from django.views.generic.base import TemplateView
@@ -561,7 +562,8 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
 
         data = form.cleaned_data
 
-        new_user = get_user_model().objects.create(username=data['username'], email=data['email'])
+        new_user = get_user_model().objects.create(
+            username=data['username'], email=data['email'])
         new_user.first_name = data['firstname']
         new_user.last_name = data['lastname']
         new_user.set_password(data['password1'])
