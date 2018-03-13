@@ -6,11 +6,13 @@ if [ $# -ge 2 ]; then
     # proteje pasta com dumps de alterações acidentais
     # chmod -R -w ~/migracao_sapl/sapl_dumps
 
-    DATE=$(date +%Y-%m-%d)
-    DIR=~/${DATE}_logs_migracao
-    mkdir -p $DIR
+    DIR_MIGRACAO=~/migracao_sapl
 
-    LOG="$DIR/$1.migracao.log"
+    DATE=$(date +%Y-%m-%d)
+    DIR_LOGS=$DIR_MIGRACAO/logs/$DATE
+    mkdir -p $DIR_LOGS
+
+    LOG="$DIR_LOGS/$1.migracao.log"
     rm -f $LOG
 
     echo "########################################" | tee -a $LOG
@@ -20,12 +22,12 @@ if [ $# -ge 2 ]; then
 
     if [ $3 ]; then
         # se há senha do mysql
-        mysql -u $2 -p "$3" -N -s -e "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;"
-        mysql -u $2 -p "$3" < ~/migracao_sapl/sapl_dumps/$1.sql
+        mysql -u$2 -p"$3" -N -s -e "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;"
+        mysql -u$2 -p"$3" < $DIR_MIGRACAO/dumps_mysql/$1.sql
     else
         # se não há senha do mysql
-        mysql -u $2 -N -s -e "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;"
-        mysql -u $2 < ~/migracao_sapl/sapl_dumps/$1.sql
+        mysql -u$2 -N -s -e "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;"
+        mysql -u$2 < $DIR_MIGRACAO/dumps_mysql/$1.sql
     fi;
     echo "O banco legado foi restaurado" |& tee -a $LOG
     echo >> $LOG
