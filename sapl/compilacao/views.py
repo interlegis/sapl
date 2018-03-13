@@ -2235,7 +2235,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             if count_auto_insert:
 
                 ordem = dp.criar_espaco(
-                    espaco_a_criar=count_auto_insert, local=local_add)
+                    espaco_a_criar=count_auto_insert, local='json_add_in')
 
                 dp_pk = dp.pk
                 dp.ordem = ordem
