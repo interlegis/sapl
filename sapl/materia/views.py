@@ -59,7 +59,7 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     ReceberProposicaoForm, RelatoriaForm,
                     TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
-                    filtra_tramitacao_status)
+                    filtra_tramitacao_status, UnidadeTramitacaoForm)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaAssunto,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -612,6 +612,12 @@ class UnidadeTramitacaoCrud(CrudAux):
                     row[0] = (row[2][0], row[0][1])
                 row[1], row[2] = ('', ''), ('', '')
             return context
+
+    class UpdateView(Crud.UpdateView):
+        form_class = UnidadeTramitacaoForm
+
+    class CreateView(Crud.CreateView):
+        form_class = UnidadeTramitacaoForm
 
 
 class ProposicaoCrud(Crud):
