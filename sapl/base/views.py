@@ -93,7 +93,7 @@ class TipoAutorCrud(CrudAux):
             object = self.get_object()
             if object.content_type:
                 raise PermissionDenied()
-            return super().get(request, *args, **kwargs)
+            return super().dispatch(request, *args, **kwargs)
 
     class UpdateView(TipoAutorMixin, CrudAux.UpdateView):
         pass

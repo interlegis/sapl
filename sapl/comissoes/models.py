@@ -182,14 +182,12 @@ class Participacao(models.Model):  # ComposicaoComissao
 def get_comissao_media_path(instance, subpath, filename):
     return './sapl/comissao/%s/%s/%s' % (instance.numero, subpath, filename)
 
-
 def pauta_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
 
+    return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
 
 def ata_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
-
 
 def anexo_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='anexo', pk_first=True)
@@ -204,15 +202,11 @@ class Reuniao(models.Model):
         Comissao,
         on_delete=models.PROTECT,
         verbose_name=_('Comissão'))
-    tipo = models.ForeignKey(
-        TipoComissao,
-        on_delete=models.PROTECT,
-        verbose_name=_('Tipo de Comissão'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     nome = models.CharField(
-        max_length=100, verbose_name=_('Nome da Reunião'))
+        max_length=150, verbose_name=_('Nome da Reunião'))
     tema = models.CharField(
-        max_length=100, verbose_name=_('Tema da Reunião'))
+        max_length=150, blank=True, verbose_name=_('Tema da Reunião'))
     data = models.DateField(verbose_name=_('Data'))
     hora_inicio = models.TimeField(
         verbose_name=_('Horário de Início (hh:mm)'))
@@ -282,6 +276,64 @@ class Reuniao(models.Model):
             self.upload_pauta = upload_pauta
             self.upload_ata = upload_ata
             self.upload_anexo = upload_anexo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
+
+
+@reversion.register()
+class DocumentoAcessorio(models.Model):
+    reuniao = models.ForeignKey(Reuniao, 
+                                related_name='documentoacessorio_set',
+                                on_delete=models.PROTECT)
+    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+
+    data = models.DateField(blank=True, null=True, default=None, verbose_name=_('Data'))
+    autor = models.CharField(
+        max_length=100,  verbose_name=_('Autor'))
+    ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
+    indexacao = models.TextField(blank=True)
+    arquivo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=anexo_upload_path,
+        verbose_name=_('Texto Integral'),
+        validators=[restringe_tipos_de_arquivo_txt])
+
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
+
+    class Meta:
+        verbose_name = _('Documento Acessório')
+        verbose_name_plural = _('Documentos Acessórios')
+
+    def __str__(self):
+        return _('%(nome)s por %(autor)s') % {
+            'nome': self.nome,
+            'autor': self.autor}
+
+    def delete(self, using=None, keep_parents=False):
+        if self.arquivo:
+            self.arquivo.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.arquivo:
+            arquivo = self.arquivo
+            self.arquivo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.arquivo = arquivo
 
         return models.Model.save(self, force_insert=force_insert,
                                  force_update=force_update,

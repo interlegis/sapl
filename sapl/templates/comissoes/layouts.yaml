@@ -46,11 +46,26 @@ ParticipacaoEdit:
 
 Reuniao:
   {% trans 'Reunião' %}:
-  - periodo numero tipo
+  - periodo numero 
   - nome tema local_reuniao
   - data hora_inicio hora_fim 
   - url_video url_audio
   - observacao
   - upload_pauta upload_ata upload_anexo
   - comissao
+
+DocumentoAcessorio:
+  {% trans 'Documento Acessório' %}:
+  - nome data
+  - autor arquivo
+  - indexacao 
+  - ementa
+
+DocumentoAcessorioEdit:
+  {% trans 'Documento Acessório' %}:
+  - nome data
+  - autor arquivo
+  - indexacao 
+  - ementa
+
 

@@ -171,6 +171,7 @@ class ReuniaoForm(ModelForm):
         cleaned_data = self.cleaned_data
 
 
+
         if self.errors:
             return cleaned_data
 
@@ -201,8 +202,16 @@ class DocumentoAcessorioCreateForm(forms.ModelForm):
 
 
 
+
     def create_documentoacessorio(self):
         reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+
+
+
+
+    def create_documentoacessorio(self):
+        reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+
 
     def clean(self):
         super(DocumentoAcessorioCreateForm, self).clean()
