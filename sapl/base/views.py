@@ -12,7 +12,6 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
                                   ListView, UpdateView)
@@ -73,6 +72,7 @@ class TipoAutorCrud(CrudAux):
             return vn
 
     class ListView(CrudAux.ListView):
+        template_name = "base/tipoautor_list.html"
 
         def get_queryset(self):
             qs = CrudAux.ListView.get_queryset(self)
