@@ -65,6 +65,11 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
     def clean(self):
         super(ParticipacaoCreateForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
+
         return self.cleaned_data
 
     def verifica(self):
@@ -123,6 +128,10 @@ class ComissaoForm(forms.ModelForm):
 
     def clean(self):
         super(ComissaoForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
 
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
@@ -162,9 +171,10 @@ class ReuniaoForm(ModelForm):
 
     def clean(self):
         super(ReuniaoForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if self.errors:
-            return
+            return cleaned_data
 
         if self.cleaned_data['hora_fim'] < self.cleaned_data['hora_inicio']:
             msg = _('A hora de término da reunião não pode '

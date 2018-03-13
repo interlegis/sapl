@@ -72,7 +72,9 @@ def test_incluir_comissao_submit(admin_client):
                                   'nome': 'Comissão Teste',
                                   'sigla': 'CT',
                                   'data_criacao': '2016-03-22',
-                                  'salvar': 'salvar'},
+                                  'unidade_deliberativa': True,
+                                  'salvar': 'salvar'
+                                  },
                                  follow=True)
     assert response.status_code == 200
 

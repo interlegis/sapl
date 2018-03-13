@@ -192,10 +192,10 @@ class NormaRelacionadaForm(ModelForm):
 
     def clean(self):
         super(NormaRelacionadaForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if self.errors:
-            return self.errors
-        cleaned_data = self.cleaned_data
+            return cleaned_data
 
         try:
             norma_relacionada = NormaJuridica.objects.get(

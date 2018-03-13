@@ -257,9 +257,10 @@ class FiliacaoForm(ModelForm):
 
     def clean(self):
         super(FiliacaoForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if self.errors:
-            return self.errors
+            return cleaned_data
 
         filiacao = super(FiliacaoForm, self).save(commit=False)
         validacao = validar_datas(self.cleaned_data['data'],
