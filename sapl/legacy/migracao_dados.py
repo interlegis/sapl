@@ -57,12 +57,17 @@ unique_constraints = []
 one_to_one_constraints = []
 primeira_vez = []
 
-# apps do not overlap
-name_sets = [set(m.__name__ for m in ac.get_models()) for ac in appconfs]
-for s1 in name_sets:
-    for s2 in name_sets:
-        if s1 is not s2:
-            assert not s1.intersection(s2)
+# apps quase não têm interseção
+name_sets = [(ac.label, set(m.__name__ for m in ac.get_models()))
+             for ac in appconfs]
+for a1, s1 in name_sets:
+    for a2, s2 in name_sets:
+        if a1 is not a2:
+            # existe uma interseção de nomes entre comissoes e materia
+            if {a1, a2} == {'comissoes', 'materia'}:
+                assert s1.intersection(s2) == {'DocumentoAcessorio'}
+            else:
+                assert not s1.intersection(s2)
 
 legacy_app = apps.get_app_config('legacy')
 
