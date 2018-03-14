@@ -401,10 +401,12 @@ def fabrica_validador_de_tipos_de_arquivo(lista, nome):
         if not os.path.splitext(value.path)[1][:1]:
             raise ValidationError(_(
                 'Não é possível fazer upload de arquivos sem extensão.'))
-
-        mime = magic.from_buffer(value.read(), mime=True)
-        if mime not in lista:
-            raise ValidationError(_('Tipo de arquivo não suportado'))
+        try:
+            mime = magic.from_buffer(value.read(), mime=True)
+            if mime not in lista:
+                raise ValidationError(_('Tipo de arquivo não suportado'))
+        except FileNotFoundError:
+            raise ValidationError(_('Arquivo não encontrado'))
     # o nome é importante para as migrations
     restringe_tipos_de_arquivo.__name__ = nome
     return restringe_tipos_de_arquivo
