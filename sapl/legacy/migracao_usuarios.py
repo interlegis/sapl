@@ -1,6 +1,6 @@
 import yaml
-from django.contrib.auth.models import Group, User
 
+from django.contrib.auth.models import Group, User
 from sapl.hashers import zope_encoded_password_to_django
 from sapl.settings import MEDIA_ROOT
 
@@ -88,10 +88,10 @@ def migrar_usuarios():
         for perfil in perfis:
             if perfil in ADMINISTRADORES:
                 # Manager
-                usuario.is_staff = True
-                usuario.save()
+                usuario.is_superuser = True
             else:
                 usuario.groups.add(PERFIL_LEGADO_PARA_NOVO[perfil])
+        usuario.save()
     # apaga arquivo (importante pois contém senhas)
     ARQUIVO_USUARIOS.remove()
     print('Usuários migrados com sucesso.')
