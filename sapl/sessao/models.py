@@ -320,6 +320,11 @@ class AbstractOrador(models.Model):  # Oradores
         max_length=150, blank=True, verbose_name=_('URL Vídeo'))
     observacao = models.CharField(
         max_length=150, blank=True, verbose_name=_('Observação'))
+    upload_anexo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=anexo_upload_path,
+        verbose_name=_('Anexo do Orador'))
 
     class Meta:
         abstract = True

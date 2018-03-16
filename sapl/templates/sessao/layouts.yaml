@@ -36,6 +36,7 @@ OradorExpediente:
   {% trans 'Orador do Expediente' %}:
   - numero_ordem parlamentar
   - url_discurso observacao
+  - upload_anexo
 
 ExpedienteMateria:
   {% trans 'Matéria do Expediente' %}:
