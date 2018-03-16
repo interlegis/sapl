@@ -37,9 +37,9 @@ if [ $# -ge 2 ]; then
     DATABASE_NAME=$1 ./manage.py migrate --settings sapl.legacy_migration_settings
     echo >> $LOG
 
-    echo "--- MIGRACAO DE DADOS ---" | tee -a $LOG
+    echo "--- MIGRACAO ---" | tee -a $LOG
     echo >> $LOG
-    DATABASE_NAME=$1 ./manage.py migracao_25_31 --force --dados --settings sapl.legacy_migration_settings 2>&1 | tee -a $LOG
+    DATABASE_NAME=$1 ./manage.py migracao_25_31 --force --settings sapl.legacy_migration_settings 2>&1 | tee -a $LOG
     echo >> $LOG
 else
     echo "USO:"
