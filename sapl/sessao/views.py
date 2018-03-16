@@ -154,9 +154,10 @@ def abrir_votacao(request, pk, spk):
         reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk}))
 
 
-def customize_link_materia(context, pk):
+def customize_link_materia(context, pk, has_permission, is_expediente):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
+        obj = context['object_list'][i]
         url_materia = reverse('sapl.materia:materialegislativa_detail',
                               kwargs={'pk': materia.id})
         numeracao = materia.numeracao_set.first()
@@ -199,6 +200,162 @@ def customize_link_materia(context, pk):
         # Na linha abaixo, o segundo argumento é None para não colocar
         # url em toda a string de title_materia
         context['rows'][i][1] = (title_materia, None)
+
+        exist_resultado = obj.registrovotacao_set.filter(
+            materia=obj.materia).exists()
+        if not exist_resultado:
+            if obj.votacao_aberta:
+                url = ''
+                if is_expediente:
+                    if obj.tipo_votacao == 1:
+                        url = reverse('sapl.sessao:votacaosimbolicaexp',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                    elif obj.tipo_votacao == 2:
+                        url = reverse('sapl.sessao:votacaonominalexp',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                    elif obj.tipo_votacao == 3:
+                        url = reverse('sapl.sessao:votacaosecretaexp',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                else:
+                    if obj.tipo_votacao == 1:
+                        url = reverse('sapl.sessao:votacaosimbolica',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                    elif obj.tipo_votacao == 2:
+                        url = reverse('sapl.sessao:votacaonominal',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                    elif obj.tipo_votacao == 3:
+                        url = reverse('sapl.sessao:votacaosecreta',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                if has_permission:
+                    btn_registrar = '''
+                                    <form action="%s">
+                                     <input type="submit" class="btn btn-primary"
+                                      value="Registrar Votação" />
+                                 </form>''' % (
+                        url)
+
+                    resultado = btn_registrar
+                else:
+                    resultado = '''Não há resultado'''
+            else:
+                if is_expediente:
+                    url = reverse('sapl.sessao:abrir_votacao', kwargs={
+                        'pk': obj.pk,
+                        'spk': obj.sessao_plenaria_id
+                    }) + '?tipo_materia=expediente'
+                else:
+                    url = reverse('sapl.sessao:abrir_votacao', kwargs={
+                        'pk': obj.pk,
+                        'spk': obj.sessao_plenaria_id
+                    }) + '?tipo_materia=ordem'
+
+                if has_permission:
+                    btn_abrir = '''
+                                        Matéria não votada<br />
+                                        <a href="%s"
+                                           class="btn btn-primary"
+                                           role="button">Abrir Votação</a>''' % (url)
+                    resultado = btn_abrir
+                else:
+                    resultado = '''Não há resultado'''
+        else:
+            resultado = obj.registrovotacao_set.get(
+                materia_id=obj.materia_id)
+            resultado_descricao = resultado.tipo_resultado_votacao.nome
+            resultado_observacao = resultado.observacao
+
+            if has_permission:
+                url = ''
+                if is_expediente:
+                    if obj.tipo_votacao == 1:
+                        url = reverse(
+                            'sapl.sessao:votacaosimbolicaexpedit',
+                            kwargs={
+                                'pk': obj.sessao_plenaria_id,
+                                'oid': obj.pk,
+                                'mid': obj.materia_id})
+                    elif obj.tipo_votacao == 2:
+                        url = reverse('sapl.sessao:votacaonominalexpedit',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                    elif obj.tipo_votacao == 3:
+                        url = reverse('sapl.sessao:votacaosecretaexpedit',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                else:
+                    if obj.tipo_votacao == 1:
+                        url = reverse('sapl.sessao:votacaosimbolicaedit',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                    elif obj.tipo_votacao == 2:
+                        url = reverse('sapl.sessao:votacaonominaledit',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+                    elif obj.tipo_votacao == 3:
+                        url = reverse('sapl.sessao:votacaosecretaedit',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+
+                resultado = ('<a href="%s">%s<br/>%s</a>' %
+                                 (url,
+                                  resultado_descricao,
+                                  resultado_observacao))
+            else:
+                if obj.tipo_votacao == 2:
+                    if is_expediente:
+                        url = reverse(
+                            'sapl.sessao:votacao_nominal_transparencia',
+                            kwargs={
+                                'pk': obj.sessao_plenaria_id,
+                                'oid': obj.pk,
+                                'mid': obj.materia_id}) + \
+                              '?&materia=expediente'
+                    else:
+                        url = reverse(
+                            'sapl.sessao:votacao_nominal_transparencia',
+                            kwargs={
+                                'pk': obj.sessao_plenaria_id,
+                                'oid': obj.pk,
+                                'mid': obj.materia_id}) + \
+                              '?&materia=ordem'
+
+                    resultado = ('<a href="%s">%s<br/>%s</a>' %
+                                     (url,
+                                      resultado_descricao,
+                                      resultado_observacao))
+                else:
+                    resultado = ('%s<br/>%s' %
+                                     (resultado_descricao,
+                                      resultado_observacao))
+        context['rows'][i][3] = (resultado, None)
     return context
 
 
@@ -261,110 +418,10 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         paginate_by = None
         ordering = ['numero_ordem', 'materia', 'resultado']
-
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            return customize_link_materia(context, self.kwargs['pk'])
-
-        def get_rows(self, object_list):
-            for obj in object_list:
-                exist_resultado = obj.registrovotacao_set.filter(
-                    materia=obj.materia).exists()
-                if not exist_resultado:
-                    if obj.votacao_aberta:
-                        url = ''
-                        if obj.tipo_votacao == 1:
-                            url = reverse('sapl.sessao:votacaosimbolica',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        elif obj.tipo_votacao == 2:
-                            url = reverse('sapl.sessao:votacaonominal',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        elif obj.tipo_votacao == 3:
-                            url = reverse('sapl.sessao:votacaosecreta',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        if self.request.user.has_module_perms(AppConfig.label):
-                            btn_registrar = '''
-                            <a href="%s"
-                               class="btn btn-primary"
-                               role="button">Registrar Votação</a>''' % (
-                                url)
-                            obj.resultado = btn_registrar
-                        else:
-                            obj.resultado = '''Não há resultado'''
-                    else:
-                        url = reverse('sapl.sessao:abrir_votacao', kwargs={
-                            'pk': obj.pk,
-                            'spk': obj.sessao_plenaria_id
-                        }) + '?tipo_materia=ordem'
-
-                        if self.request.user.has_module_perms(AppConfig.label):
-                            btn_abrir = '''
-                                Matéria não votada<br />
-                                <a href="%s"
-                                   class="btn btn-primary"
-                                   role="button">Abrir Votação</a>''' % (url)
-                            obj.resultado = btn_abrir
-                        else:
-                            obj.resultado = '''Não há resultado'''
-                else:
-                    resultado = obj.registrovotacao_set.get(
-                        materia_id=obj.materia_id)
-                    resultado_descricao = resultado.tipo_resultado_votacao.nome
-                    resultado_observacao = resultado.observacao
-
-                    if self.request.user.has_module_perms(AppConfig.label):
-                        url = ''
-                        if obj.tipo_votacao == 1:
-                            url = reverse('sapl.sessao:votacaosimbolicaedit',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        elif obj.tipo_votacao == 2:
-                            url = reverse('sapl.sessao:votacaonominaledit',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        elif obj.tipo_votacao == 3:
-                            url = reverse('sapl.sessao:votacaosecretaedit',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
-                                         (url,
-                                          resultado_descricao,
-                                          resultado_observacao))
-                    else:
-                        if obj.tipo_votacao == 2:
-                            url = reverse(
-                                'sapl.sessao:votacao_nominal_transparencia',
-                                kwargs={
-                                    'pk': obj.sessao_plenaria_id,
-                                    'oid': obj.pk,
-                                    'mid': obj.materia_id}) +\
-                                '?&materia=ordem'
-                            obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
-                                             (url,
-                                              resultado_descricao,
-                                              resultado_observacao))
-                        else:
-                            obj.resultado = ('%s<br/>%s' %
-                                             (resultado_descricao,
-                                              resultado_observacao))
-
-            return [self._as_row(obj) for obj in object_list]
-
+            has_permition = self.request.user.has_module_perms(AppConfig.label)
+            return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
 
 def recuperar_materia(request):
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo_materia'])
@@ -399,106 +456,8 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-
-            return customize_link_materia(context, self.kwargs['pk'])
-
-        def get_rows(self, object_list):
-            for obj in object_list:
-                exist_resultado = obj.registrovotacao_set.filter(
-                    materia=obj.materia).exists()
-
-                if not exist_resultado:
-                    if obj.votacao_aberta:
-                        url = ''
-                        if obj.tipo_votacao == 1:
-                            url = reverse('sapl.sessao:votacaosimbolicaexp',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        elif obj.tipo_votacao == 2:
-                            url = reverse('sapl.sessao:votacaonominalexp',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        elif obj.tipo_votacao == 3:
-                            url = reverse('sapl.sessao:votacaosecretaexp',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-
-                        if self.request.user.has_module_perms(AppConfig.label):
-                            btn_registrar = '''
-                                <form action="%s">
-                                    <input type="submit" class="btn btn-primary"
-                                     value="Registrar Votação" />
-                                </form>
-                                ''' % (url)
-                            obj.resultado = btn_registrar
-                    else:
-                        url = reverse('sapl.sessao:abrir_votacao', kwargs={
-                            'pk': obj.pk,
-                            'spk': obj.sessao_plenaria_id
-                        }) + '?tipo_materia=expediente'
-                        btn_abrir = '''Matéria não votada<br />'''
-
-                        if self.request.user.has_module_perms(AppConfig.label):
-                            btn_abrir += '''
-                            <a href="%s"
-                               class="btn btn-primary"
-                               role="button">Abrir Votação</a>''' % (url)
-
-                        obj.resultado = btn_abrir
-                else:
-                    url = ''
-                    resultado = obj.registrovotacao_set.get(
-                        materia_id=obj.materia_id)
-                    resultado_descricao = resultado.tipo_resultado_votacao.nome
-                    resultado_observacao = resultado.observacao
-                    if self.request.user.has_module_perms(AppConfig.label):
-                        if obj.tipo_votacao == 1:
-                            url = reverse(
-                                'sapl.sessao:votacaosimbolicaexpedit',
-                                kwargs={
-                                    'pk': obj.sessao_plenaria_id,
-                                    'oid': obj.pk,
-                                    'mid': obj.materia_id})
-                        elif obj.tipo_votacao == 2:
-                            url = reverse('sapl.sessao:votacaonominalexpedit',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        elif obj.tipo_votacao == 3:
-                            url = reverse('sapl.sessao:votacaosecretaexpedit',
-                                          kwargs={
-                                              'pk': obj.sessao_plenaria_id,
-                                              'oid': obj.pk,
-                                              'mid': obj.materia_id})
-                        obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
-                                         (url,
-                                          resultado_descricao,
-                                          resultado_observacao))
-                    else:
-                        if obj.tipo_votacao == 2:
-                            url = reverse(
-                                'sapl.sessao:votacao_nominal_transparencia',
-                                kwargs={
-                                    'pk': obj.sessao_plenaria_id,
-                                    'oid': obj.pk,
-                                    'mid': obj.materia_id}) +\
-                                '?&materia=expediente'
-                            obj.resultado = ('<a href="%s">%s<br/>%s</a>' %
-                                             (url,
-                                              resultado_descricao,
-                                              resultado_observacao))
-                        else:
-                            obj.resultado = ('%s<br/>%s' %
-                                             (resultado_descricao,
-                                              resultado_observacao))
-            return [self._as_row(obj) for obj in object_list]
+            has_permition = self.request.user.has_module_perms(AppConfig.label)
+            return customize_link_materia(context, self.kwargs['pk'], has_permition, True)
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
