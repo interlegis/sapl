@@ -1493,7 +1493,7 @@ class AcompanhamentoExcluirView(TemplateView):
 class MateriaLegislativaPesquisaView(FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaFilterSet
-    paginate_by = 10
+    paginate_by = 50
 
     def get_filterset_kwargs(self, filterset_class):
         super(MateriaLegislativaPesquisaView,
