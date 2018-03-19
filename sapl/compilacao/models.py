@@ -1,5 +1,4 @@
 
-import reversion
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -13,6 +12,7 @@ from django.utils import timezone
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
+import reversion
 
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
                                    int_to_roman)
@@ -978,6 +978,11 @@ class Dispositivo(BaseModel, TimestampedMixin):
         blank=True, null=True, default=None,
         related_name='dispositivos_filhos_set',
         verbose_name=_('Dispositivo Pai'))
+    dispositivo_raiz = models.ForeignKey(
+        'self',
+        blank=True, null=True, default=None,
+        related_name='nodes',
+        verbose_name=_('Dispositivo Raiz'))
     dispositivo_vigencia = models.ForeignKey(
         'self',
         blank=True, null=True, default=None,
@@ -989,6 +994,10 @@ class Dispositivo(BaseModel, TimestampedMixin):
         blank=True, null=True, default=None,
         related_name='dispositivos_alterados_set',
         verbose_name=_('Dispositivo Atualizador'))
+
+    contagem_continua = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES, verbose_name=_('Contagem contínua'))
 
     class Meta:
         verbose_name = _('Dispositivo')
@@ -1004,7 +1013,21 @@ class Dispositivo(BaseModel, TimestampedMixin):
              'dispositivo4',
              'dispositivo5',
              'tipo_dispositivo',
+             'dispositivo_raiz',
              'dispositivo_pai',
+             'dispositivo_atualizador',
+             'ta_publicado',
+             'publicacao',),
+            ('ta',
+             'dispositivo0',
+             'dispositivo1',
+             'dispositivo2',
+             'dispositivo3',
+             'dispositivo4',
+             'dispositivo5',
+             'tipo_dispositivo',
+             'contagem_continua',
+             'dispositivo_raiz',
              'dispositivo_atualizador',
              'ta_publicado',
              'publicacao',),
@@ -1027,9 +1050,57 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 'Permissão alteração global do dispositivo de vigência')),
         )
 
+    def clean(self):
+        """
+        Check for instances with null values in unique_together fields.
+        """
+        from django.core.exceptions import ValidationError
+
+        for field_tuple in self._meta.unique_together[:]:
+            unique_filter = {}
+            unique_fields = []
+            null_found = False
+            for field_name in field_tuple:
+                field_value = getattr(self, field_name)
+                if getattr(self, field_name) is None:
+                    unique_filter['%s__isnull' % field_name] = True
+                    null_found = True
+                else:
+                    unique_filter['%s' % field_name] = field_value
+                    unique_fields.append(field_name)
+            if null_found:
+                unique_queryset = self.__class__.objects.filter(
+                    **unique_filter)
+                if self.pk:
+                    unique_queryset = unique_queryset.exclude(pk=self.pk)
+                if not self.contagem_continua and \
+                        'contagem_continua' in field_tuple:
+                    continue
+
+                if unique_queryset.exists():
+                    msg = self.unique_error_message(
+                        self.__class__, tuple(unique_fields))
+                    raise ValidationError(msg)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, clean=True):
+
+        self.dispositivo_raiz = self.get_raiz()
+        self.contagem_continua = self.tipo_dispositivo.contagem_continua
+
+        return super().save(
+            force_insert=force_insert, force_update=force_update, using=using,
+            update_fields=update_fields, clean=clean)
+
     def __str__(self):
         return '%(rotulo)s' % {
             'rotulo': (self.rotulo if self.rotulo else self.tipo_dispositivo)}
+
+    def get_raiz(self):
+        dp = self
+        while dp.dispositivo_pai is not None:
+            dp = dp.dispositivo_pai
+        return dp
 
     def rotulo_padrao(self, local_insert=0, for_insert_in=0):
         """
@@ -1210,7 +1281,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
             if not numero[i]:
                 continue
 
-            if i > profundidade:
+            if i < profundidade:
                 continue
 
             numero[i] -= 1
@@ -1515,12 +1586,6 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 if pp[0].filho_de_insercao_automatica:
                     return True
         return False
-
-    def get_raiz(self):
-        dp = self
-        while dp.dispositivo_pai is not None:
-            dp = dp.dispositivo_pai
-        return dp
 
     def history(self):
         ultimo = self

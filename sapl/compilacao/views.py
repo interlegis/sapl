@@ -1,7 +1,7 @@
-import logging
-import sys
 from collections import OrderedDict
 from datetime import timedelta
+import logging
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -19,8 +19,8 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
@@ -50,6 +50,7 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    get_integrations_view_names)
 from sapl.crud.base import Crud, CrudAux, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
+
 
 TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
 TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
@@ -1661,10 +1662,13 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     base.delete()
 
                     for irmao in irmaos_posteriores:
-                        irmao.transform_in_prior(
-                            profundidade=profundidade_base)
-                        irmao.rotulo = irmao.rotulo_padrao()
-                        irmao.save()
+                        try:
+                            irmao.transform_in_prior(
+                                profundidade=profundidade_base)
+                            irmao.rotulo = irmao.rotulo_padrao()
+                            irmao.save()
+                        except:
+                            break
 
                     irmaos = pai_base.dispositivos_filhos_set.\
                         filter(tipo_dispositivo=base.tipo_dispositivo)
@@ -1766,17 +1770,37 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                             dcc_a_religar = dcc_a_religar.exclude(
                                 ordem__gte=proxima_articulacao.ordem)
 
-                        primeiro_a_religar = 0
+                        primeiro_a_religar = True
+                        profundidade = d.get_profundidade()
                         for dr in dcc_a_religar:
-                            if not primeiro_a_religar:
-                                primeiro_a_religar = dr.dispositivo0
-                                base.delete()
+                            if primeiro_a_religar:
+                                primeiro_a_religar = False
+                                d_pk = d.pk
+                                d.delete()
+                                if base.pk == d_pk:
+                                    base = d
 
-                            dr.dispositivo0 = (
-                                dr.dispositivo0 -
-                                primeiro_a_religar + d.dispositivo0)
+                            dr.transform_in_prior(profundidade=profundidade)
                             dr.rotulo = dr.rotulo_padrao()
-                            dr.save(clean=base != dr)
+                            try:
+                                dr.save(clean=base != dr)
+                            except:
+                                break
+
+                                # Pode não ser religavável
+                                # Exemplo, numa sequencia com variáção:
+                                # Art. 1º
+                                # ...
+                                # Art. 1º-A
+                                # ...
+                                # Art. 2º
+                                # ...
+                                # Ao tentar excluir o Art. 1º-A, o algoritmo
+                                # de religação tentará reduzir Art. 2º para 1º
+                                # e o método clean lançará um erro visto que
+                                # já existe um, por outro lado, não é lógico
+                                # reduzir Art 2º para Art. 1º-A, ou seja,
+                                # em caso de variação não há o que reduzir
 
                 if base.tipo_dispositivo.dispositivo_de_alteracao:
                     dpts = base.dispositivos_alterados_set.all().order_by(
@@ -1785,7 +1809,19 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                         self.remover_dispositivo(dpt, False)
 
                 if base.pk:
-                    base.delete()
+                    """
+                    Um registro a ser excluido em bloco que não é um
+                    dispositivo de contagem contínua, neste ponto, teve todos
+                    os seus filhos excluídos mas ainda não foi e, tão pouco,
+                    foi seus imãos (anterior e posterior) religados
+                    numericamente.
+                    A exclusão em bloco religa apenas dispositivos de contagem
+                    continua internos extra bloco.
+                    Depois do bloco limpo, a função é chamada novamente para
+                    excluir realmente a escolha do usuário
+                    e religar seus irmaos  
+                    """
+                    self.remover_dispositivo(base, False)
 
         return ''
 
@@ -2198,6 +2234,11 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                                                'foi excedido.'), time=6000)
                             return data
 
+            # FIXME - a criação de espaço não está considerando o local correto
+            # quando não existem irmãos ou pais possíveis e jogando o
+            # dispositivo a ser inserido para o final da articulação
+            # e não para onde o usuário decidiu, bem como para logo abaixo
+            # seus filhos serem associados a ele.
             ordem = base.criar_espaco(
                 espaco_a_criar=1, local=local_add)
 
