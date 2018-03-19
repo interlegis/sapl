@@ -187,7 +187,7 @@ class MateriaLegislativa(models.Model):
     em_tramitacao = models.BooleanField(
         verbose_name=_('Em Tramitação?'),
         default=False,
-        choices=EM_TRAMITACAO)
+        choices=YES_NO_CHOICES)
     polemica = models.NullBooleanField(
         blank=True, verbose_name=_('Matéria Polêmica?'))
     objeto = models.CharField(
