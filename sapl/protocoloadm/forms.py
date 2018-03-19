@@ -217,7 +217,7 @@ class AnularProcoloAdmForm(ModelForm):
     def clean(self):
         super(AnularProcoloAdmForm, self).clean()
 
-        cleaned_data = super(AnularProcoloAdmForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if not self.is_valid():
             return cleaned_data
@@ -409,6 +409,9 @@ class ProtocoloMateriaForm(ModelForm):
     def clean(self):
         super(ProtocoloMateriaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         data = self.cleaned_data
         if self.is_valid():
             if data['vincular_materia'] == 'True':
@@ -485,6 +488,9 @@ class TramitacaoAdmForm(ModelForm):
     def clean(self):
         cleaned_data = super(TramitacaoAdmForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         if 'data_encaminhamento' in cleaned_data:
             data_enc_form = cleaned_data['data_encaminhamento']
         if 'data_fim_prazo' in cleaned_data:
@@ -556,6 +562,11 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
                   ]
 
     def clean(self):
+        super(TramitacaoAdmEditForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
         ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
             documento_id=self.instance.documento_id).order_by(
             '-data_tramitacao',
@@ -616,6 +627,9 @@ class DocumentoAdministrativoForm(ModelForm):
 
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 

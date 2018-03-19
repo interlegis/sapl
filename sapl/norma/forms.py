@@ -193,8 +193,8 @@ class NormaRelacionadaForm(ModelForm):
     def clean(self):
         super(NormaRelacionadaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
         cleaned_data = self.cleaned_data
 
         try:
@@ -263,6 +263,10 @@ class NormaPesquisaSimplesForm(forms.Form):
 
     def clean(self):
         super(NormaPesquisaSimplesForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
         cleaned_data = self.cleaned_data
 
         data_inicial = cleaned_data['data_inicial']

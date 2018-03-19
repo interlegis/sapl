@@ -314,6 +314,9 @@ class AutorForm(ModelForm):
     def clean(self):
         super(AutorForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         User = get_user_model()
         cd = self.cleaned_data
 
@@ -834,6 +837,9 @@ class RecuperarSenhaForm(PasswordResetForm):
     def clean(self):
         super(RecuperarSenhaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         email_existente = User.objects.filter(
             email=self.data['email']).exists()
 
@@ -894,6 +900,9 @@ class AlterarSenhaForm(Form):
 
     def clean(self):
         super(AlterarSenhaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         data = self.cleaned_data
 
