@@ -66,6 +66,11 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
     def clean(self):
         super(ParticipacaoCreateForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
+
         return self.cleaned_data
 
     def verifica(self):
@@ -124,6 +129,10 @@ class ComissaoForm(forms.ModelForm):
 
     def clean(self):
         super(ComissaoForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
 
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
@@ -159,6 +168,12 @@ class ReuniaoForm(ModelForm):
 
     def clean(self):
         super(ReuniaoForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+
+
+        if self.errors:
+            return cleaned_data
 
         if self.cleaned_data['hora_fim']:
             if (self.cleaned_data['hora_fim'] <
@@ -186,8 +201,17 @@ class DocumentoAcessorioCreateForm(forms.ModelForm):
             return self.create_documentoacessorio()
 
 
+
+
     def create_documentoacessorio(self):
         reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+
+
+
+
+    def create_documentoacessorio(self):
+        reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+
 
     def clean(self):
         super(DocumentoAcessorioCreateForm, self).clean()

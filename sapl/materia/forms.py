@@ -166,8 +166,10 @@ class MateriaLegislativaForm(ModelForm):
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
-
         cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
 
         data_apresentacao = cleaned_data['data_apresentacao']
         ano = cleaned_data['ano']
@@ -198,6 +200,9 @@ class UnidadeTramitacaoForm(ModelForm):
         super(UnidadeTramitacaoForm, self).clean()
 
         cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
 
         for key in list(cleaned_data.keys()):
             if cleaned_data[key] is None:
@@ -297,7 +302,7 @@ class TramitacaoForm(ModelForm):
             data_tram_form = cleaned_data['data_tramitacao']
 
         if self.errors:
-            return self.errors
+            return cleaned_data
 
         ultima_tramitacao = Tramitacao.objects.filter(
             materia_id=self.instance.materia_id).exclude(
@@ -367,6 +372,12 @@ class TramitacaoUpdateForm(TramitacaoForm):
         }
 
     def clean(self):
+        super(TramitacaoUpdateForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
+
         ultima_tramitacao = Tramitacao.objects.filter(
             materia_id=self.instance.materia_id).order_by(
             '-data_tramitacao',
@@ -423,11 +434,11 @@ class LegislacaoCitadaForm(ModelForm):
 
     def clean(self):
         super(LegislacaoCitadaForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if self.errors:
-            return self.errors
+            return cleaned_data
 
-        cleaned_data = self.cleaned_data
 
         try:
             norma = NormaJuridica.objects.get(
@@ -486,9 +497,10 @@ class NumeracaoForm(ModelForm):
 
     def clean(self):
         super(NumeracaoForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if self.errors:
-            return self.errors
+            return cleaned_data
 
         try:
             MateriaLegislativa.objects.get(
@@ -531,11 +543,11 @@ class AnexadaForm(ModelForm):
 
     def clean(self):
         super(AnexadaForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if self.errors:
-            return self.errors
+            return cleaned_data
 
-        cleaned_data = self.cleaned_data
 
         try:
             materia_anexada = MateriaLegislativa.objects.get(
@@ -724,9 +736,10 @@ class DespachoInicialForm(ModelForm):
 
     def clean(self):
         super(DespachoInicialForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if self.errors:
-            return self.errors
+            return cleaned_data
 
         if DespachoInicial.objects.filter(
             materia=self.instance.materia,
@@ -769,9 +782,10 @@ class AutoriaForm(ModelForm):
 
     def clean(self):
         cd = super(AutoriaForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if self.errors:
-            return self.errors
+            return cleaned_data
 
         autorias = Autoria.objects.filter(
             materia=self.instance.materia, autor=cd['autor'])
@@ -992,6 +1006,10 @@ class TipoProposicaoForm(ModelForm):
 
     def clean(self):
         super(TipoProposicaoForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
 
         cd = self.cleaned_data
 
@@ -1067,7 +1085,7 @@ class TipoProposicaoSelect(Select):
             str(data_has_perfil),
             force_text(option_label))
 
-    def render_options(self, choices, selected_choices):
+    def render_options(self, selected_choices):
         # Normalize to strings.
         selected_choices = set(force_text(v) for v in selected_choices)
         output = []
@@ -1226,6 +1244,10 @@ class ProposicaoForm(forms.ModelForm):
 
     def clean(self):
         super(ProposicaoForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
 
         cd = self.cleaned_data
 
@@ -1318,6 +1340,10 @@ class DevolverProposicaoForm(forms.ModelForm):
 
     def clean(self):
         super(DevolverProposicaoForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
 
         cd = self.cleaned_data
 
@@ -1500,6 +1526,10 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
     def clean(self):
         super(ConfirmarProposicaoForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if self.errors:
+            return cleaned_data
 
         numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
 
