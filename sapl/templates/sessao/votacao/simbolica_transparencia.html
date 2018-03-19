@@ -1,0 +1,63 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block detail_content %}
+<form method="post">
+  {% csrf_token %}
+
+  <fieldset>
+    <legend>Votação Simbolica</legend>
+    <div>
+      Matéria: {{votacao.materia}}
+      <br />
+      Ementa: {{votacao.materia.ementa}}
+    </div>
+
+    <br />
+    <fieldset>
+      <legend>Votos</legend>
+      <div class="row">
+        {% for v in voto_parlamentar %}
+        <div class="col-md-6">{{v.parlamentar}} - 
+          {% if v.voto == '-1'%}
+                 <b>Voto não Registrado</b>
+          {% else %}
+                 <b>{{v.voto}}</b>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <br />
+
+  <br />
+    <div class="row">
+      <div class="col-md-12">
+        <b>Resultado da Votação: </b>
+        {% for tipo in tipos %}
+          {% if resultado_votacao.tipo_resultado == tipo.id %}
+            {{ tipo.nome }}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <br />
+    <div class="row">
+      <div class="col-md-12">
+        Observações
+        <textarea id="observacao" name="observacao" style="width:100%;" rows="7" class="form-control">{{votacao.observacao|safe}}</textarea>
+      </div>
+    </div>
+
+    <br /><br />
+  </fieldset>
+</form>
+{% endblock detail_content %}
+
+{% block foot_js %}
+  <script language="JavaScript">
+    document.getElementById("observacao").disabled = true;
+  </script>
+{% endblock %}
