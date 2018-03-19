@@ -145,6 +145,9 @@ class MateriaSimplificadaForm(ModelForm):
     def clean(self):
         super(MateriaSimplificadaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         cleaned_data = self.cleaned_data
 
         data_apresentacao = cleaned_data['data_apresentacao']
@@ -166,6 +169,9 @@ class MateriaLegislativaForm(ModelForm):
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 
@@ -196,6 +202,9 @@ class UnidadeTramitacaoForm(ModelForm):
 
     def clean(self):
         super(UnidadeTramitacaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 
@@ -255,6 +264,9 @@ class RelatoriaForm(ModelForm):
     def clean(self):
         super(RelatoriaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         cleaned_data = self.cleaned_data
 
         try:
@@ -287,7 +299,12 @@ class TramitacaoForm(ModelForm):
         self.fields['data_tramitacao'].initial = timezone.now().date()
 
     def clean(self):
-        cleaned_data = super(TramitacaoForm, self).clean()
+        super(TramitacaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
 
         if 'data_encaminhamento' in cleaned_data:
             data_enc_form = cleaned_data['data_encaminhamento']
@@ -295,9 +312,6 @@ class TramitacaoForm(ModelForm):
             data_prazo_form = cleaned_data['data_fim_prazo']
         if 'data_tramitacao' in cleaned_data:
             data_tram_form = cleaned_data['data_tramitacao']
-
-        if self.errors:
-            return self.errors
 
         ultima_tramitacao = Tramitacao.objects.filter(
             materia_id=self.instance.materia_id).exclude(
@@ -367,6 +381,11 @@ class TramitacaoUpdateForm(TramitacaoForm):
         }
 
     def clean(self):
+        super(TramitacaoUpdateForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
         ultima_tramitacao = Tramitacao.objects.filter(
             materia_id=self.instance.materia_id).order_by(
             '-data_tramitacao',
@@ -424,8 +443,8 @@ class LegislacaoCitadaForm(ModelForm):
     def clean(self):
         super(LegislacaoCitadaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 
@@ -487,8 +506,8 @@ class NumeracaoForm(ModelForm):
     def clean(self):
         super(NumeracaoForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         try:
             MateriaLegislativa.objects.get(
@@ -532,8 +551,8 @@ class AnexadaForm(ModelForm):
     def clean(self):
         super(AnexadaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 
@@ -725,8 +744,8 @@ class DespachoInicialForm(ModelForm):
     def clean(self):
         super(DespachoInicialForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         if DespachoInicial.objects.filter(
             materia=self.instance.materia,
@@ -770,8 +789,8 @@ class AutoriaForm(ModelForm):
     def clean(self):
         cd = super(AutoriaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         autorias = Autoria.objects.filter(
             materia=self.instance.materia, autor=cd['autor'])
@@ -992,6 +1011,9 @@ class TipoProposicaoForm(ModelForm):
 
     def clean(self):
         super(TipoProposicaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cd = self.cleaned_data
 
@@ -1227,6 +1249,9 @@ class ProposicaoForm(forms.ModelForm):
     def clean(self):
         super(ProposicaoForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         cd = self.cleaned_data
 
         tm, am, nm = (cd.get('tipo_materia', ''),
@@ -1318,6 +1343,9 @@ class DevolverProposicaoForm(forms.ModelForm):
 
     def clean(self):
         super(DevolverProposicaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cd = self.cleaned_data
 
@@ -1500,6 +1528,9 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
     def clean(self):
         super(ConfirmarProposicaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
 
@@ -1825,6 +1856,11 @@ class EtiquetaPesquisaForm(forms.Form):
         )
 
     def clean(self):
+        super(EtiquetaPesquisaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
         cleaned_data = self.cleaned_data
 
         # Verifica se algum campo de data foi preenchido
@@ -1893,7 +1929,12 @@ class FichaPesquisaForm(forms.Form):
         )
 
     def clean(self):
-        cleaned_data = super(FichaPesquisaForm, self).clean()
+        super(FichaPesquisaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
 
         if not self.is_valid():
             return cleaned_data

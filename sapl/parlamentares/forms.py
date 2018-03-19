@@ -258,8 +258,8 @@ class FiliacaoForm(ModelForm):
     def clean(self):
         super(FiliacaoForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         filiacao = super(FiliacaoForm, self).save(commit=False)
         validacao = validar_datas(self.cleaned_data['data'],
@@ -282,6 +282,9 @@ class ComposicaoColigacaoForm(ModelForm):
     def clean(self):
         super(ComposicaoColigacaoForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         cleaned_data = self.cleaned_data
         pk = self.initial['coligacao_id']
         if (ComposicaoColigacao.objects.filter(
@@ -289,10 +292,8 @@ class ComposicaoColigacaoForm(ModelForm):
            partido=cleaned_data.get('partido')).exists()):
             msg = _('Esse partido já foi cadastrado nesta coligação.')
             raise ValidationError(msg)
-        else:
-            if self.errors:
-                return self.errors
-            return self.cleaned_data
+
+        return self.cleaned_data
 
 
 class FrenteForm(ModelForm):
@@ -351,6 +352,9 @@ class VotanteForm(ModelForm):
 
     def clean(self):
         super(VotanteForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cd = self.cleaned_data
 

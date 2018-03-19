@@ -109,6 +109,9 @@ class BancadaForm(ModelForm):
     def clean(self):
         super(BancadaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
                     self.cleaned_data['data_criacao']):
@@ -140,6 +143,9 @@ class BlocoForm(ModelForm):
 
     def clean(self):
         super(BlocoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
@@ -522,6 +528,9 @@ class ResumoOrdenacaoForm(forms.Form):
 
     def clean(self):
         super(ResumoOrdenacaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 
