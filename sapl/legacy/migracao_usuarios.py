@@ -7,7 +7,7 @@ from sapl.settings import MEDIA_ROOT
 PERFIL_LEGADO_PARA_NOVO = {legado: Group.objects.get(name=novo)
                            for legado, novo in [
     ('Autor', 'Autor'),
-    ('Operador', 'Operador Geral'),
+    ('Operador',  'Operador Geral'),
     ('Operador Comissao', 'Operador de Comissões'),
     ('Operador Materia', 'Operador de Matéria'),
     ('Operador Modulo Administrativo', 'Operador Administrativo'),
@@ -44,7 +44,7 @@ def decode_nome(nome):
         return nome
 
 
-def migra_usuarios():
+def migrar_usuarios():
     """
     Lê o arquivo media/usuarios.yaml e importa os usuários nele listados,
     com senhas e perfis.
@@ -82,16 +82,36 @@ def migra_usuarios():
          set(dados['roles']) - IGNORADOS)
         for nome, dados in usuarios.items()]
 
+    admins = []
     for nome, senha, perfis in usuarios:
         usuario = User.objects.get_or_create(username=nome)[0]
         usuario.password = zope_encoded_password_to_django(senha)
         for perfil in perfis:
             if perfil in ADMINISTRADORES:
-                # Manager
-                usuario.is_staff = True
-                usuario.save()
+                # todos os administradores ganham perfil "Operador Geral"
+                usuario.groups.add(PERFIL_LEGADO_PARA_NOVO['Operador'])
+                admins.append(usuario)
             else:
                 usuario.groups.add(PERFIL_LEGADO_PARA_NOVO[perfil])
-    # apaga arquivo (importante pois contém senhas)
-    ARQUIVO_USUARIOS.remove()
+        usuario.save()
+
+    # restringe e configura administradores
+    if len(admins) > 2:
+        admins = (
+            # ususários com admin no nome
+            [u for u in admins if 'admin' in u.username]
+            # senão, o usuário saploper, apenas
+            or [u for u in admins if 'saploper' == u.username]
+            # senão, simplesmente até os dois primeiros da lista
+            or admins[:2]
+        )
+    for admin in admins:
+        admin.is_superuser = True
+        admin.save()
+
     print('Usuários migrados com sucesso.')
+    print('#' * 100)
+    print('Uusários administradores:')
+    for admin in admins:
+        print(admin.username)
+    print('#' * 100)

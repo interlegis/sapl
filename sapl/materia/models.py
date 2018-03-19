@@ -515,7 +515,7 @@ class Numeracao(models.Model):
                                       verbose_name=_('Número'))
     ano_materia = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                                    choices=RANGE_ANOS)
-    data_materia = models.DateField(verbose_name=_('Data'))
+    data_materia = models.DateField(verbose_name=_('Data'), null=True)
 
     class Meta:
         verbose_name = _('Numeração')
@@ -529,7 +529,7 @@ class Numeracao(models.Model):
     def __str__(self):
         return _('%(numero)s/%(ano)s') % {
             'numero': self.numero_materia,
-            'ano': self.data_materia.year}
+            'ano': self.ano_materia}
 
 
 @reversion.register()

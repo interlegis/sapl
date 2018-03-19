@@ -1,7 +1,7 @@
 from django.core import management
 from django.core.management.base import BaseCommand
 
-from sapl.legacy.migracao import migrar
+from sapl.legacy.migracao import migrar, migrar_dados
 
 
 class Command(BaseCommand):
@@ -10,13 +10,24 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '-f',
+            '--force',
             action='store_true',
             default=False,
             dest='force',
             help='Não interativa: pula confirmação de exclusão dos dados',
         )
+        parser.add_argument(
+            '--dados',
+            action='store_true',
+            default=False,
+            dest='dados',
+            help='migra somente dados',
+        )
 
     def handle(self, *args, **options):
         management.call_command('migrate')
-        migrar(interativo=not options['force'])
+        somente_dados, interativo = options['dados'], not options['force']
+        if somente_dados:
+            migrar_dados(interativo=interativo)
+        else:
+            migrar(interativo=interativo)

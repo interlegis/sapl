@@ -1,7 +1,8 @@
 from random import shuffle
 
-from .migracao import (_formatar_lista_para_sql, get_autorias_sem_repeticoes,
-                       get_reapontamento_de_autores_repetidos)
+from .migracao_dados import (_formatar_lista_para_sql,
+                             get_autorias_sem_repeticoes,
+                             get_reapontamento_de_autores_repetidos)
 
 
 def test_unifica_autores_repetidos_no_legado():

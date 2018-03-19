@@ -1,7 +1,7 @@
 import inspect
 
 from sapl.base.models import Autor
-from sapl.legacy.migracao import appconfs
+from sapl.legacy.migracao_dados import appconfs
 
 
 def getsourcelines(model):
@@ -9,10 +9,10 @@ def getsourcelines(model):
             for line in inspect.getsourcelines(model)[0]]
 
 
-def get_models_com_referencia_a_autor():
+def get_models_com_referencia_a(apontado):
 
     def tem_referencia_a_autor(model):
-        return any(getattr(field, 'related_model', None) == Autor
+        return any(getattr(field, 'related_model', None) == apontado
                    for field in model._meta.get_fields())
 
     return [model for app in appconfs for model in app.models.values()
