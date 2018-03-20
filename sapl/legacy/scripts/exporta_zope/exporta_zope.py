@@ -14,7 +14,6 @@ from functools import partial
 
 import magic
 import yaml
-
 import ZODB.DB
 import ZODB.FileStorage
 from ZODB.broken import Broken
@@ -191,7 +190,9 @@ def read_sde(element):
                                  ]
             if meta_type != 'Script (Python)':
                 # ignoramos os scrips python de eventos dos templates
-                yield id, read_sde(obj)
+                yield {'id': id,
+                       'meta_type': meta_type,
+                       'dados': read_sde(obj)}
 
     data = dict(read_properties())
     children = list(read_children())
