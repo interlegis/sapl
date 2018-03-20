@@ -44,8 +44,6 @@ AbstractOrador:
   parlamentar: cod_parlamentar
   sessao_plenaria: cod_sessao_plen
   url_discurso: url_discurso
-  upload_anexo: anexo
-
 
 Orador (Oradores): {}
 
