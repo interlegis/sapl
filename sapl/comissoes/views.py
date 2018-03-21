@@ -72,7 +72,7 @@ class ParticipacaoCrud(MasterDetailCrud):
             composicao_pk = self.object.composicao.pk
             return '{}?pk={}'.format(reverse('sapl.comissoes:composicao_list',
                                              args=[composicao_comissao_pk]),
-                                     )
+                                     composicao_pk)
 
 
 class ComposicaoCrud(MasterDetailCrud):
