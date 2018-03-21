@@ -2234,11 +2234,6 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                                                'foi excedido.'), time=6000)
                             return data
 
-            # FIXME - a criação de espaço não está considerando o local correto
-            # quando não existem irmãos ou pais possíveis e jogando o
-            # dispositivo a ser inserido para o final da articulação
-            # e não para onde o usuário decidiu, bem como para logo abaixo
-            # seus filhos serem associados a ele.
             ordem = base.criar_espaco(
                 espaco_a_criar=1, local=local_add)
 
