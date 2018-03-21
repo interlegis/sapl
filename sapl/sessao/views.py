@@ -355,6 +355,33 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     resultado = ('%s<br/>%s' %
                                      (resultado_descricao,
                                       resultado_observacao))
+
+                if obj.tipo_votacao == 1:
+                    if is_expediente:
+                        url = reverse(
+                            'sapl.sessao:votacao_simbolica_transparencia',
+                            kwargs={
+                                'pk': obj.sessao_plenaria_id,
+                                'oid': obj.pk,
+                                'mid': obj.materia_id}) + \
+                              '?&materia=expediente'
+                    else:
+                        url = reverse(
+                            'sapl.sessao:votacao_simbolica_transparencia',
+                            kwargs={
+                                'pk': obj.sessao_plenaria_id,
+                                'oid': obj.pk,
+                                'mid': obj.materia_id}) + \
+                              '?&materia=ordem'
+
+                    resultado = ('<a href="%s">%s<br/>%s</a>' %
+                                     (url,
+                                      resultado_descricao,
+                                      resultado_observacao))
+                else:
+                    resultado = ('%s<br/>%s' %
+                                     (resultado_descricao,
+                                      resultado_observacao))
         context['rows'][i][3] = (resultado, None)
     return context
 
@@ -2128,6 +2155,43 @@ class VotacaoNominalExpedienteDetailView(DetailView):
         return reverse('sapl.sessao:expedientemateria_list',
                        kwargs={'pk': pk})
 
+
+class VotacaoSimbolicaTransparenciaDetailView(TemplateView):
+    template_name = 'sessao/votacao/simbolica_transparencia.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(VotacaoSimbolicaTransparenciaDetailView,
+                        self).get_context_data(**kwargs)
+
+        materia_votacao = self.request.GET.get('materia', None)
+
+        if materia_votacao == 'ordem':
+            votacao = RegistroVotacao.objects.get(ordem=self.kwargs['oid'])
+        elif materia_votacao == 'expediente':
+            votacao = RegistroVotacao.objects.get(expediente=self.kwargs['oid'])
+        else:
+            raise Http404()
+
+        context['votacao'] = votacao
+
+        registro_votacao = {'numero_votos_sim': votacao.numero_votos_sim,
+            'numero_votos_nao': votacao.numero_votos_nao,
+            'numero_abstencoes': votacao.numero_abstencoes}
+        context.update({'registro_votacao':registro_votacao})
+
+        votacao_existente = {'observacao': sub(
+            '&nbsp;', ' ', strip_tags(votacao.observacao)),
+            'resultado': votacao.tipo_resultado_votacao.nome,
+            'tipo_resultado':
+            votacao.tipo_resultado_votacao_id}
+        context.update({'resultado_votacao': votacao_existente,
+                        'tipos': self.get_tipos_votacao()})
+
+        return context
+
+    def get_tipos_votacao(self):
+        for tipo in TipoResultadoVotacao.objects.all():
+            yield tipo
 
 class VotacaoExpedienteView(SessaoPermissionMixin):
 
