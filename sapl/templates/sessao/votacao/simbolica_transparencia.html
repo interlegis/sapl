@@ -6,7 +6,7 @@
   {% csrf_token %}
 
   <fieldset>
-    <legend>Votação Simbolica</legend>
+    <legend>Votação Simbólica</legend>
     <div>
       Matéria: {{votacao.materia}}
       <br />
@@ -15,21 +15,14 @@
 
     <br />
     <fieldset>
-      <legend>Votos</legend>
-      <div class="row">
-        {% for v in votos %}
-        <div class="col-md-6">{{v.parlamentar}} - 
-          {% if v.voto == '-1'%}
-                 <b>Voto não Registrado</b>
-          {% else %}
-                 <b>{{v.voto}}</b>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-    </fieldset> 
-
-    <br />
+    <legend>Votos</legend>
+    <div class="row">
+      <div class="col-md-4">Sim: {{votacao.numero_votos_sim}} </div>
+      <div class="col-md-4">Não: {{votacao.numero_votos_nao}}</div>
+      <div class="col-md-4">Abstenções: {{votacao.numero_abstencoes}}</div>
+    </div>
+  </fieldset>
+  <br />
 
   <br />
     <div class="row">

@@ -2174,14 +2174,10 @@ class VotacaoSimbolicaTransparenciaDetailView(TemplateView):
 
         context['votacao'] = votacao
 
-        votos = VotoParlamentar.objects.filter(votacao_id=votacao.id)
-
-        list_votos = []
-        for v in votos:
-            parlamentar = Parlamentar.objects.get(id=v.parlamentar_id)
-            list_votos.append({'parlamentar': parlamentar, 'voto': v.voto})
-
-        context.update({'votos': list_votos})
+        registro_votacao = {'numero_votos_sim': votacao.numero_votos_sim,
+            'numero_votos_nao': votacao.numero_votos_nao,
+            'numero_abstencoes': votacao.numero_abstencoes}
+        context.update({'registro_votacao':registro_votacao})
 
         votacao_existente = {'observacao': sub(
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
