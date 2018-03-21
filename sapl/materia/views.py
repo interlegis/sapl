@@ -1695,6 +1695,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     template_name = 'materia/em_lote/tramitacao.html'
     permission_required = ('materia.add_tramitacao', )
 
+    primeira_tramitacao = True
+
     def get_context_data(self, **kwargs):
         context = super(PrimeiraTramitacaoEmLoteView,
                         self).get_context_data(**kwargs)
@@ -1781,10 +1783,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 
-        if status.indicador == 'F':
-            for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+        for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+            if status.indicador == 'F':
                 materia.em_tramitacao = False
-                materia.save()
+            elif self.primeira_tramitacao:
+                materia.em_tramitacao = True
+            materia.save()
 
         msg = _('Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
@@ -1793,6 +1797,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
 class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
     filterset_class = TramitacaoEmLoteFilterSet
+
+    primeira_tramitacao = False
 
     def get_context_data(self, **kwargs):
         context = super(TramitacaoEmLoteView,
