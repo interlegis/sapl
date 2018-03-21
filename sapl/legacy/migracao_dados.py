@@ -796,6 +796,7 @@ class DataMigrator:
 
         # convert old records to new ones
         with transaction.atomic():
+            novos = []
             sql_delete_legado = ''
             for old in old_records:
                 new = model()
@@ -812,12 +813,9 @@ class DataMigrator:
                 else:
                     if get_id_do_legado:
                         new.id = get_id_do_legado(old)
-                    # validação do model
-                    new.clean()
-                    # salva novo registro
-                    with reversion.create_revision():
-                        new.save()
-                        reversion.set_comment('Objeto criado pela migração')
+
+                    new.clean()  # valida model
+                    novos.append(new)  # guarda para salvar
 
                     # acumula deleção do registro no legado
                     sql_delete_legado += 'delete from {} where {};\n'.format(
@@ -827,8 +825,11 @@ class DataMigrator:
                                                getattr(old, campo))
                             for campo in campos_pk))
 
-                    if ajuste_depois_salvar:
-                        ajuste_depois_salvar(new, old)
+            # salva novos registros
+            model.objects.bulk_create(novos)
+
+            if ajuste_depois_salvar:
+                ajuste_depois_salvar()
 
             # se configuramos ids explicitamente devemos reiniciar a sequence
             if get_id_do_legado:
@@ -1067,20 +1068,26 @@ def adjust_normajuridica_antes_salvar(new, old):
         new.esfera_federacao = ''
 
 
-def adjust_normajuridica_depois_salvar(new, old):
+def adjust_normajuridica_depois_salvar():
     # Ajusta relação M2M
+    ligacao = NormaJuridica.assuntos.through
 
-    if not old.cod_assunto:  # it can be null or empty
-        return
+    def gen_ligacoes():
+        from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 
-    # lista de pks separadas por vírgulas (ignorando strings vazias)
-    lista_pks_assunto = [int(pk) for pk in old.cod_assunto.split(',') if pk]
+        assuntos_migrados, normas_migradas = [
+            set(model.objects.values_list('id', flat=True))
+            for model in [AssuntoNorma, NormaJuridica]]
 
-    for pk_assunto in lista_pks_assunto:
-        try:
-            new.assuntos.add(AssuntoNorma.objects.get(pk=pk_assunto))
-        except ObjectDoesNotExist:
-            pass  # ignora assuntos inexistentes
+        for norma, cod_assunto in OldNormaJuridica.objects.filter(
+                pk__in=normas_migradas).values_list('pk', 'cod_assunto'):
+
+            assuntos = [a for a in map(int, cod_assunto.split(','))
+                        if a in assuntos_migrados]
+            for assunto in assuntos:
+                yield ligacao(normajuridica_id=norma, assuntonorma_id=assunto)
+
+    ligacao.objects.bulk_create(gen_ligacoes())
 
 
 def vincula_autor(new, old, model_relacionado, campo_relacionado, campo_nome):
