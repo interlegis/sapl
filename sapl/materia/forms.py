@@ -162,6 +162,11 @@ class MateriaSimplificadaForm(ModelForm):
 
 class MateriaLegislativaForm(ModelForm):
 
+    autor = forms.ModelChoiceField(required=True,
+                                   empty_label='------',
+                                   queryset=Autor.objects.all()
+                                   )
+
     class Meta:
         model = MateriaLegislativa
         exclude = ['texto_articulado', 'autores', 'proposicao',
