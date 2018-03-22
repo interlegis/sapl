@@ -1,4 +1,5 @@
 import re
+import traceback
 from collections import defaultdict
 from datetime import date
 from functools import lru_cache, partial
@@ -724,6 +725,8 @@ class DataMigrator:
             dir_ocorrencias = DIR_RESULTADOS.child(date.today().isoformat())
             dir_ocorrencias.mkdir(parents=True)
             self._do_migrate(obj)
+        except Exception as e:
+            ocorrencias['traceback'] = str(traceback.format_exc())
         finally:
             # grava ocorrências
             arq_ocorrencias = dir_ocorrencias.child(
