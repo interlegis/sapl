@@ -23,6 +23,7 @@ from unipath import Path
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
                                  StatusTramitacao, TipoDocumento,
@@ -1072,22 +1073,23 @@ def adjust_normajuridica_depois_salvar():
     # Ajusta relação M2M
     ligacao = NormaJuridica.assuntos.through
 
-    def gen_ligacoes():
-        from sapl.legacy.models import NormaJuridica as OldNormaJuridica
+    assuntos_migrados, normas_migradas = [
+        set(model.objects.values_list('id', flat=True))
+        for model in [AssuntoNorma, NormaJuridica]]
 
-        assuntos_migrados, normas_migradas = [
-            set(model.objects.values_list('id', flat=True))
-            for model in [AssuntoNorma, NormaJuridica]]
+    def filtra_assuntos_migrados(cod_assunto):
+        return [a for a in map(int, cod_assunto.split(','))
+                if a in assuntos_migrados]
 
+    norma_para_assuntos = [
+        (norma, filtra_assuntos_migrados(cod_assunto))
         for norma, cod_assunto in OldNormaJuridica.objects.filter(
-                pk__in=normas_migradas).values_list('pk', 'cod_assunto'):
+            pk__in=normas_migradas).values_list('pk', 'cod_assunto')]
 
-            assuntos = [a for a in map(int, cod_assunto.split(','))
-                        if a in assuntos_migrados]
-            for assunto in assuntos:
-                yield ligacao(normajuridica_id=norma, assuntonorma_id=assunto)
-
-    ligacao.objects.bulk_create(gen_ligacoes())
+    ligacao.objects.bulk_create(
+        ligacao(normajuridica_id=norma, assuntonorma_id=assunto)
+        for norma, assuntos in norma_para_assuntos
+        for assunto in assuntos)
 
 
 def vincula_autor(new, old, model_relacionado, campo_relacionado, campo_nome):
