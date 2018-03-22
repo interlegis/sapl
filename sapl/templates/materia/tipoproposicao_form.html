@@ -3,6 +3,17 @@
 
 {% block extra_js %}
 
+<!-- HACK: incluir uma div modal em um form de uma tela CRUD automática -->
+<div id="dialog" title="Dados ausentes" style="display: none">
+  <p>Não existem tipos vinculados para a definição de tipos informada.
+      <strong>Isto não permitirá salvar registros nessa tela.</strong></br>
+      Acesse a tela Tabelas Auxiliares presente no submenu Sistema.
+      Em seguida procure a seção entitulada "Matérias Legislativas".
+      Nesta seção terão dois links: TIPO DE MATÉRIA LEGISLATIVA e TIPO DE DOCUMENTO.
+      Cadastre os tipos antes de retornar a esta tela.
+  </p>
+</div>
+
 <script type="text/javascript">
 
 $(document).ready(function(){
@@ -14,6 +25,21 @@ $(document).ready(function(){
     url = url.replace('0', pk) + '?pagination=False'
 
     $.get(url).done(function(data) {
+      if (data === undefined || data.length == 0) {
+        $( "#dialog" ).dialog({
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                OK: function() {
+                    $( this ).dialog( "close" );
+                }
+            }
+        });
+        return;
+      }
+
       var radios = $("#div_id_tipo_conteudo_related_radio .controls").html('');
       data.forEach(function (val, index) {
         var html_radio = '<div class="radio'+(initial_select==val.value?' checked':'')+'"> <label><span class="icons"><span class="first-icon"></span><span class="second-icon"></span></span><input type="radio" name="tipo_conteudo_related" id="id_tipo_conteudo_related_'+index+'" value="'+val.value+'"'+(initial_select?' checked="checked"':'')+' style="display:none;">'+val.text+'</label></div>';
