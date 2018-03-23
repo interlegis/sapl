@@ -22,10 +22,10 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
-TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno'), ('', 'Todos')]
+TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno'), ('', '---------')]
 TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno')]
 
-NATUREZA_PROCESSO = [('', 'Ambos'),
+NATUREZA_PROCESSO = [('', '---------'),
                      ('0', 'Administrativo'),
                      ('1', 'Legislativo')]
 
@@ -34,7 +34,7 @@ def ANO_CHOICES():
     return [('', '---------')] + RANGE_ANOS
 
 
-EM_TRAMITACAO = [('', 'Tanto Faz'),
+EM_TRAMITACAO = [('', '---------'),
                  (0, 'Sim'),
                  (1, 'Não')]
 
@@ -361,7 +361,7 @@ class ProtocoloMateriaForm(ModelForm):
         label=_('Tipo de Matéria'),
         required=True,
         queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione',
+        empty_label='------',
     )
 
     numero_materia = forms.CharField(
@@ -438,7 +438,7 @@ class ProtocoloMateriaForm(ModelForm):
              ('tipo_autor', 3),
              ('autor', 3)])
         row2 = to_row(
-            [('vincular_materia', 4),
+            [(InlineRadios('vincular_materia'), 4),
              ('numero_materia', 4),
              ('ano_materia', 4), ])
         row3 = to_row(
