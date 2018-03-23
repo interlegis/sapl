@@ -55,24 +55,16 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(ParticipacaoCreateForm, self).clean()
+
         if not self.is_valid():
             return cleaned_data
 
         composicao = Composicao.objects.get(id=self.initial['parent_pk'])
-        participantes = composicao.participacao_set.all()
+        cargos_unicos = [c.cargo.nome for c in composicao.participacao_set.filter(cargo__unico=True)]
 
-        cargos = {}
-        for parlamentar in participantes:
-            cargos.update({str(parlamentar.cargo): parlamentar.cargo.unico})
-
-        for cargo, unico in cargos.items():
-            if cleaned_data['cargo'].nome == cargo:
-                if cleaned_data['cargo'].unico:
-                    msg = _('Este cargo é único para esta composição')
-                    raise ValidationError(msg)
-
-        return cleaned_data
-
+        if cleaned_data['cargo'].nome in cargos_unicos:
+            msg = _('Este cargo é único para esta Comissão.')
+            raise ValidationError(msg)
 
 
     def create_participacao(self):
