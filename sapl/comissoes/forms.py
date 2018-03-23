@@ -18,6 +18,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
     class Meta:
         model = Participacao
+        fields = '__all__'
         exclude = ['composicao']
 
     def __init__(self, user=None, **kwargs):
@@ -50,6 +51,21 @@ class ParticipacaoCreateForm(forms.ModelForm):
             ids = [e.id for e in eligible]
             qs = Parlamentar.objects.filter(id__in=ids)
             self.fields['parlamentar'].queryset = qs
+
+
+    def clean(self):
+        cleaned_data = super(ParticipacaoCreateForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
+        composicao = Composicao.objects.get(id=self.initial['parent_pk'])
+        cargos_unicos = [c.cargo.nome for c in composicao.participacao_set.filter(cargo__unico=True)]
+
+        if cleaned_data['cargo'].nome in cargos_unicos:
+            msg = _('Este cargo é único para esta Comissão.')
+            raise ValidationError(msg)
+
 
     def create_participacao(self):
         composicao = Composicao.objects.get(id=self.initial['parent_pk'])
