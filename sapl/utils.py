@@ -452,13 +452,11 @@ class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
 
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
 
-    choices = (('', 'Selecione...'),
-               ('CRE', 'Ordem Crescente'),
-               ('DEC', 'Ordem Decrescente'),)
+    choices = (('DEC', 'Ordem Decrescente'),
+               ('CRE', 'Ordem Crescente'),)
     order_by_mapping = {
-        '': [],
-        'CRE': ['ano', 'numero'],
         'DEC': ['-ano', '-numero'],
+        'CRE': ['ano', 'numero'],
     }
 
     def __init__(self, *args, **kwargs):
