@@ -140,12 +140,6 @@
   - title: {% trans 'Tipos de Vides' %}
     url: sapl.compilacao:tipovide_list
     css_class: btn btn-link
-  - title: {% trans 'Tipos de Dispositivos' %}
-    url: sapl.compilacao:tipodispositivo_list
-    css_class: btn btn-link
-  - title: {% trans 'Relacionamento entre Dispositivos' %}
-    url: /admin/compilacao/tipodispositivorelationship/
-    css_class: btn btn-link
 - title: {% trans 'Módulo Sessão Plenária' %}
   css_class: head_title
   children:
