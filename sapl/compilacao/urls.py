@@ -113,9 +113,6 @@ urlpatterns = [
         include(TipoPublicacaoCrud.get_urls())),
     url(r'^sistema/ta/config/veiculo-publicacao/',
         include(VeiculoPublicacaoCrud.get_urls())),
-    url(r'^sistema/ta/config/tipo-dispositivo/',
-        include(TipoDispositivoCrud.get_urls())),
-
     url(r'^sistema/ta/config/tipo-textoarticulado$',
         views.TipoTaListView.as_view(), name='tipo_ta_list'),
     url(r'^sistema/ta/config/tipo-textoarticulado/create$',
