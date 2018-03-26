@@ -11,8 +11,6 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
-from django.forms.forms import Form
-from django.forms.utils import ErrorDict
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -31,9 +29,8 @@ from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
-from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
-                            ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
-                            Crud, CrudAux, MasterDetailCrud,
+from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
+                            MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 AutoriaMultiCreateForm,
@@ -44,8 +41,8 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
-from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
-                        autor_modal, gerar_hash_arquivo, get_base_url,
+from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal,
+                        gerar_hash_arquivo, get_base_url,
                         get_mime_type_from_file_extension, montar_row_autor,
                         show_results_filter_set)
 
@@ -57,9 +54,10 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     MateriaLegislativaFilterSet, MateriaLegislativaForm,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
                     ReceberProposicaoForm, RelatoriaForm,
-                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
+                    TramitacaoEmLoteFilterSet, UnidadeTramitacaoForm,
+                    filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
-                    filtra_tramitacao_status, UnidadeTramitacaoForm)
+                    filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaAssunto,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -700,11 +698,11 @@ class ProposicaoCrud(Crud):
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
                         Numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
-                                                                ano = p.ano).last().numero + 1
+                                                                   ano=p.ano).last().numero + 1
                         messages.success(request, _(
                             '%s : nº %s de %s <br>Atenção! Este número é apenas um provável '
                             'número que pode não corresponder com a realidade'
-                            %(p.tipo, Numero, p.ano)))
+                            % (p.tipo, Numero, p.ano)))
 
                 elif action == 'return':
                     if not p.data_envio:
@@ -1726,7 +1724,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         qr = self.request.GET.copy()
         context['unidade_destino'] = UnidadeTramitacao.objects.all()
         context['status_tramitacao'] = StatusTramitacao.objects.all()
-        context['turnos_tramitacao'] = TURNO_TRAMITACAO_CHOICES
+        context['turnos_tramitacao'] = Tramitacao.TURNO_CHOICES
         context['urgente_tramitacao'] = YES_NO_CHOICES
         context['unidade_local'] = UnidadeTramitacao.objects.all()
 

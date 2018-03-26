@@ -276,22 +276,6 @@ def create_barcode(value, width=170, height=50):
 
 YES_NO_CHOICES = [(True, _('Sim')), (False, _('Não'))]
 
-TURNO_TRAMITACAO_CHOICES = [
-    ('P', _('Primeiro')),
-    ('S', _('Segundo')),
-    ('U', _('Único')),
-    ('L', _('Suplementar')),
-    ('F', _('Final')),
-    ('A', _('Votação única em Regime de Urgência')),
-    ('B', _('1ª Votação')),
-    ('C', _('2ª e 3ª Votação')),
-]
-
-INDICADOR_AFASTAMENTO = [
-    ('A', _('Afastamento')),
-    ('F', _('Fim de Mandato')),
-]
-
 
 def listify(function):
     @wraps(function)
