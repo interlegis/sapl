@@ -1529,6 +1529,20 @@ class MateriaLegislativaPesquisaView(FilterView):
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', 'tipo__sigla', '-numero')
 
+        qs = qs.prefetch_related("autoria_set",
+                                 "autoria_set__autor",
+                                 "numeracao_set",
+                                 "anexadas",
+                                 "tipo",
+                                 "texto_articulado",
+                                 "tramitacao_set",
+                                 "tramitacao_set__status",
+                                 "tramitacao_set__unidade_tramitacao_local",
+                                 "tramitacao_set__unidade_tramitacao_destino",
+                                 "normajuridica_set",
+                                 "registrovotacao_set",
+                                 "documentoacessorio_set")
+
         kwargs.update({
             'queryset': qs,
         })
