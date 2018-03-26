@@ -21,8 +21,7 @@ from pytz import timezone
 from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
-from sapl.base.models import (Autor, ProblemaMigracao, TipoAutor,
-                              cria_models_tipo_autor)
+from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.materia.models import (AcompanhamentoMateria, Proposicao,
@@ -562,14 +561,6 @@ def iter_sql_records(sql):
         record = Record()
         record.__dict__.update(zip(fieldnames, row))
         yield record
-
-
-def save_relation(obj, nome_campo='', problema='', descricao='',
-                  eh_stub=False, critico=False):
-    link = ProblemaMigracao(
-        content_object=obj, nome_campo=nome_campo, problema=problema,
-        descricao=descricao, eh_stub=eh_stub, critico=critico)
-    link.save()
 
 
 def fill_vinculo_norma_juridica():

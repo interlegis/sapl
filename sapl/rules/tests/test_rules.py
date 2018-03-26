@@ -6,8 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.base.models import (Argumento, CasaLegislativa, Constraint,
-                              ProblemaMigracao)
+from sapl.base.models import CasaLegislativa
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TipoDispositivo,
                                     TipoDispositivoRelationship)
@@ -57,41 +56,26 @@ def test_models_in_rules_patterns(model_item):
 # __falsos_positivos__
 __fp__in__test_permission_of_models_in_rules_patterns = {
     map_rules.RP_ADD: [CasaLegislativa,
-                       ProblemaMigracao,
-                       Argumento,
-                       Constraint,
                        TipoDispositivo,
                        TipoDispositivoRelationship,
                        PerfilEstruturalTextoArticulado],
 
-    map_rules.RP_CHANGE: [ProblemaMigracao,
-                          Argumento,
-                          Constraint,
-                          AcompanhamentoMateria,
+    map_rules.RP_CHANGE: [AcompanhamentoMateria,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
                           PerfilEstruturalTextoArticulado],
 
     map_rules.RP_DELETE: [CasaLegislativa,
-                          ProblemaMigracao,
-                          Argumento,
-                          Constraint,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
                           PerfilEstruturalTextoArticulado],
 
-    map_rules.RP_LIST: [ProblemaMigracao,
-                        Argumento,
-                        Constraint,
-                        AcompanhamentoMateria,
+    map_rules.RP_LIST: [AcompanhamentoMateria,
                         TipoDispositivo,
                         TipoDispositivoRelationship,
                         PerfilEstruturalTextoArticulado],
 
-    map_rules.RP_DETAIL: [ProblemaMigracao,
-                          Argumento,
-                          Constraint,
-                          AcompanhamentoMateria,
+    map_rules.RP_DETAIL: [AcompanhamentoMateria,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
                           PerfilEstruturalTextoArticulado]
