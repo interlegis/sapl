@@ -1086,6 +1086,9 @@ class Dispositivo(BaseModel, TimestampedMixin):
              update_fields=None, clean=True):
 
         self.dispositivo_raiz = self.get_raiz()
+        if self.dispositivo_raiz == self:
+            self.dispositivo_raiz = None
+
         self.contagem_continua = self.tipo_dispositivo.contagem_continua
 
         return super().save(
