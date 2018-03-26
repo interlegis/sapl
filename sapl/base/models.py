@@ -5,7 +5,6 @@ from django.db import models
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
-
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
 
@@ -57,53 +56,6 @@ class CasaLegislativa(models.Model):
     def __str__(self):
         return _('Casa Legislativa de %(municipio)s') % {
             'municipio': self.municipio}
-
-
-@reversion.register()
-class ProblemaMigracao(models.Model):
-    content_type = models.ForeignKey(ContentType,
-                                     verbose_name=_('Tipo de Content'))
-    object_id = models.PositiveIntegerField(verbose_name=_('ID do Objeto'))
-    content_object = GenericForeignKey('content_type', 'object_id')
-    nome_campo = models.CharField(max_length=100,
-                                  blank=True,
-                                  verbose_name=_('Nome do(s) Campo(s)'))
-    problema = models.CharField(max_length=300, verbose_name=_('Problema'))
-    descricao = models.CharField(max_length=300, verbose_name=_('Descrição'))
-    eh_stub = models.BooleanField(verbose_name=_('É stub?'))
-    critico = models.BooleanField(
-        default=False, verbose_name=_('Crítico'))
-
-    class Meta:
-        verbose_name = _('Problema na Migração')
-        verbose_name_plural = _('Problemas na Migração')
-
-
-@reversion.register()
-class Constraint(models.Model):
-    nome_tabela = models.CharField(
-        max_length=50, verbose_name=_('Nome da tabela'))
-    nome_constraint = models.CharField(
-        max_length=100, verbose_name=_('Nome da constraint'))
-    nome_model = models.CharField(
-        max_length=50, verbose_name=_('Nome da model'))
-    tipo_constraint = models.CharField(
-        max_length=50, verbose_name=_('Tipo da constraint'))
-
-    class Meta:
-        verbose_name = _('Constraint removida')
-        verbose_name_plural = _('Constraints removidas')
-
-
-@reversion.register()
-class Argumento(models.Model):
-    constraint = models.ForeignKey(Constraint)
-    argumento = models.CharField(
-        max_length=50, verbose_name=_('Argumento'))
-
-    class Meta:
-        verbose_name = _('Argumento da constraint')
-        verbose_name_plural = _('Argumentos da constraint')
 
 
 @reversion.register()
