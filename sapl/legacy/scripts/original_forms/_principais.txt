@@ -1,7 +1,0 @@
-Comissao
-MateriaLegislativa
-NormaJuridica
-Parlamentar
-Proposicao
-Protocolo
-SessaoPlenaria
