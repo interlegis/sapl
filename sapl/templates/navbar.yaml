@@ -13,6 +13,8 @@
       url: sapl.parlamentares:frente_list
     - title: {% trans 'Parlamentares' %}
       url: sapl.parlamentares:parlamentar_list
+    - title: {% trans 'Audiências Públicas' %}
+      url: sapl.audiencia:audienciapublica_list
 
 - title: {% trans 'Protocolo' %}
   check_permission: protocoloadm.list_protocolo

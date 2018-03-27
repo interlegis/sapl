@@ -47,6 +47,7 @@ else:
 
 # SAPL business apps in dependency order
 SAPL_APPS = (
+    'sapl.audiencia',
     'sapl.base',
     'sapl.crud',
     'sapl.parlamentares',
