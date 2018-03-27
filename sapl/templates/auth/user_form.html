@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block base_content %}
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {%  crispy form %}
+        {% if object.pk %}
+            <a class="btn btn-warning" href="{% url 'sapl.base:user_delete' object.pk %}">Remover usuário</a>
+        {% endif %}
+    </form>
+
+{% endblock base_content %}

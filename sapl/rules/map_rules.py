@@ -99,6 +99,8 @@ rules_group_comissoes = {
         (comissoes.Composicao, __base__),
         (comissoes.Participacao, __base__),
         (materia.Relatoria, __base__),
+        (comissoes.Reuniao, __base__),
+        (comissoes.DocumentoAcessorio, __base__),
     ]
 }
 
@@ -206,9 +208,6 @@ rules_group_geral = {
         ]),
 
         (base.CasaLegislativa, __listdetailchange__ + [RP_ADD]),
-        (base.ProblemaMigracao, []),
-        (base.Argumento, []),
-        (base.Constraint, []),
         (base.TipoAutor, __base__),
         (base.Autor, __base__),
 

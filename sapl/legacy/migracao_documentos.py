@@ -6,7 +6,7 @@ from glob import glob
 import yaml
 
 from sapl.base.models import CasaLegislativa
-from sapl.legacy.migration import exec_legado, warn
+from sapl.legacy.migracao_dados import exec_legado, warn
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
 from sapl.norma.models import NormaJuridica

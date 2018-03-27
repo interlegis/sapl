@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
                                      DocumentoAdministrativoForm,
@@ -411,5 +412,6 @@ def test_protocolo_materia_invalido():
     assert errors['tipo_materia'] == [_('Este campo é obrigatório.')]
     assert errors['numero_paginas'] == [_('Este campo é obrigatório.')]
     assert errors['autor'] == [_('Este campo é obrigatório.')]
+    assert errors['vincular_materia'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 5
+    assert len(errors) == 6

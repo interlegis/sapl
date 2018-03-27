@@ -14,6 +14,7 @@ from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
+
 from sapl import utils
 from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                     PARTICIPACAO_SOCIAL_CHOICES, Dispositivo,
@@ -1176,6 +1177,11 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
                  inst.dispositivo_atualizador)]
 
     def clean(self):
+        super(DispositivoEdicaoAlteracaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
         """os cleans individuais do framework não puderam ser usados devido
             a última validação compor dois valores
         """

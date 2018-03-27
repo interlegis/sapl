@@ -1,5 +1,6 @@
 from math import ceil
 
+import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
@@ -7,7 +8,6 @@ from django import template
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.translation import ugettext as _
-import rtyaml
 
 
 def heads_and_tails(list_of_lists):
@@ -96,7 +96,7 @@ def get_field_display(obj, fieldname):
 
     if value is None:
         display = ''
-    elif 'date' in str_type_from_value:
+    elif '.date' in str_type_from_value:
         display = formats.date_format(value, "SHORT_DATE_FORMAT")
     elif 'bool' in str_type_from_value:
         display = _('Sim') if value else _('Não')
@@ -132,6 +132,8 @@ def get_field_display(obj, fieldname):
                     value._meta.app_config.name, obj.content_type.model),
                 args=(value.id,)),
             value)
+    elif 'TextField' in str_type_from_field:
+        display = value.replace('\n', '<br/>')
     else:
         display = str(value)
     return verbose_name, display

@@ -3,7 +3,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
+from django.db.models import Max
 from model_mommy import mommy
+
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autoria, DespachoInicial,
@@ -14,6 +16,7 @@ from sapl.materia.models import (Anexada, Autoria, DespachoInicial,
                                  Tramitacao, UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
+from sapl.parlamentares.models import Legislatura
 from sapl.utils import models_with_gr_for_model
 
 
@@ -505,3 +508,73 @@ def test_form_errors_proposicao(admin_client):
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['descricao'] ==
             ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_numeracao_materia_legislativa_por_legislatura(admin_client):
+
+    # Criar Legislaturas
+    legislatura1 = mommy.make(Legislatura,
+                              data_inicio='2014-01-01',
+                              data_fim='2018-12-31',
+                              numero=20,
+                              data_eleicao='2013-10-15'
+                              )
+    legislatura2 = mommy.make(Legislatura,
+                              data_inicio='2009-01-01',
+                              data_fim='2013-12-31',
+                              numero=21,
+                              data_eleicao='2018-10-15'
+                              )
+
+    # Cria uma materia na legislatura1
+    tipo_materia = mommy.make(TipoMateriaLegislativa, id=1, sequencia_numeracao='L')
+    materia = mommy.make(MateriaLegislativa,
+                         tipo=tipo_materia,
+                         ano=2017,
+                         numero=1
+                         )
+
+    url = reverse('sapl.materia:recuperar_materia')
+
+    # Testa numeração do Materia Legislativa na Legislatura1
+    query_params = '?tipo={}&ano={}'.format(materia.tipo.id, materia.ano)
+    response = admin_client.get(url + query_params, follow=True)
+    response_content = eval(response.content.decode('ascii'))
+    esperado_legislatura1 = eval('{"numero": 2, "ano": "2017"}')
+    assert response_content['numero'] == esperado_legislatura1['numero']
+
+    # Testa numeração do Materia Legislativa na Legislatura2
+    query_params = '?tipo={}&ano={}'.format(1, '2010')
+    response = admin_client.get(url + query_params, follow=True)
+    response_content = eval(response.content.decode('ascii'))
+    esperado_legislatura2 = eval('{"ano": "2010", "numero": 1}')
+    assert response_content['numero'] == esperado_legislatura2['numero']
+
+
+@pytest.mark.django_db(transaction=False)
+def test_numeracao_materia_legislativa_por_ano(admin_client):
+
+    # Cria uma materia
+    tipo_materia = mommy.make(TipoMateriaLegislativa, id=1, sequencia_numeracao='A')
+    materia = mommy.make(MateriaLegislativa,
+                         tipo=tipo_materia,
+                         ano=2017,
+                         numero=1
+                         )
+
+    url = reverse('sapl.materia:recuperar_materia')
+
+    # Testa numeração da Materia Legislativa no ano da materia criada
+    query_params = '?tipo={}&ano={}'.format(materia.tipo.id, materia.ano)
+    response = admin_client.get(url + query_params, follow=True)
+    response_content = eval(response.content.decode('ascii'))
+    esperado_ano = eval('{"numero": 2, "ano": "2017"}')
+    assert response_content['numero'] == esperado_ano['numero']
+
+    # Testa numeração da Materia Legislativa de outro ano
+    query_params = '?tipo={}&ano={}'.format(1, '2010')
+    response = admin_client.get(url + query_params, follow=True)
+    response_content = eval(response.content.decode('ascii'))
+    esperado_outro_ano = eval('{"ano": "2010", "numero": 1}')
+    assert response_content['numero'] == esperado_outro_ano['numero']

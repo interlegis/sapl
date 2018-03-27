@@ -2,7 +2,6 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
-import sapl
 import weasyprint
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
@@ -12,8 +11,6 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
-from django.forms.forms import Form
-from django.forms.utils import ErrorDict
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -24,15 +21,16 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+
+import sapl
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
-from sapl.crud.base import (ACTION_CREATE, ACTION_DELETE, ACTION_DETAIL,
-                            ACTION_LIST, ACTION_UPDATE, RP_DETAIL, RP_LIST,
-                            Crud, CrudAux, MasterDetailCrud,
+from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
+                            MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 AutoriaMultiCreateForm,
@@ -43,8 +41,8 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
-from sapl.utils import (TURNO_TRAMITACAO_CHOICES, YES_NO_CHOICES, autor_label,
-                        autor_modal, gerar_hash_arquivo, get_base_url,
+from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal,
+                        gerar_hash_arquivo, get_base_url,
                         get_mime_type_from_file_extension, montar_row_autor,
                         show_results_filter_set)
 
@@ -56,7 +54,8 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     MateriaLegislativaFilterSet, MateriaLegislativaForm,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
                     ReceberProposicaoForm, RelatoriaForm,
-                    TramitacaoEmLoteFilterSet, filtra_tramitacao_destino,
+                    TramitacaoEmLoteFilterSet, UnidadeTramitacaoForm,
+                    filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
@@ -67,9 +66,9 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
 
-AssuntoMateriaCrud = Crud.build(AssuntoMateria, 'assunto_materia')
+AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
 
-OrigemCrud = Crud.build(Origem, '')
+OrigemCrud = CrudAux.build(Origem, '')
 
 TipoMateriaCrud = CrudAux.build(
     TipoMateriaLegislativa, 'tipo_materia_legislativa')
@@ -295,17 +294,21 @@ def recuperar_materia(request):
 
     if numeracao == 'A':
         numero = MateriaLegislativa.objects.filter(
-            ano=timezone.now().year).aggregate(Max('numero'))
+            ano=ano, tipo=tipo).aggregate(Max('numero'))
     elif numeracao == 'L':
-        legislatura = Legislatura.objects.first()
+        legislatura = Legislatura.objects.filter(
+            data_inicio__year__lte=ano,
+            data_fim__year__gte=ano).first()
         data_inicio = legislatura.data_inicio
         data_fim = legislatura.data_fim
         numero = MateriaLegislativa.objects.filter(
             data_apresentacao__gte=data_inicio,
-            data_apresentacao__lte=data_fim).aggregate(
+            data_apresentacao__lte=data_fim,
+            tipo=tipo).aggregate(
             Max('numero'))
     elif numeracao == 'U':
-        numero = MateriaLegislativa.objects.all().aggregate(Max('numero'))
+        numero = MateriaLegislativa.objects.filter(
+            tipo=tipo).aggregate(Max('numero'))
 
     if numeracao is None:
         numero['numero__max'] = 0
@@ -320,10 +323,10 @@ def recuperar_materia(request):
 StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
 
 
-class OrgaoCrud(Crud):
+class OrgaoCrud(CrudAux):
     model = Orgao
 
-    class CreateView(Crud.CreateView):
+    class CreateView(CrudAux.CreateView):
         form_class = OrgaoForm
 
 
@@ -588,11 +591,10 @@ class UnidadeTramitacaoCrud(CrudAux):
     model = UnidadeTramitacao
     help_topic = 'unidade_tramitacao'
 
-    class BaseMixin(Crud.BaseMixin):
+    class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['comissao', 'orgao', 'parlamentar']
 
-    class ListView(Crud.ListView):
-        template_name = "crud/list.html"
+    class ListView(CrudAux.ListView):
 
         def get_headers(self):
             return [_('Unidade de Tramitação')]
@@ -608,6 +610,12 @@ class UnidadeTramitacaoCrud(CrudAux):
                     row[0] = (row[2][0], row[0][1])
                 row[1], row[2] = ('', ''), ('', '')
             return context
+
+    class UpdateView(Crud.UpdateView):
+        form_class = UnidadeTramitacaoForm
+
+    class CreateView(Crud.CreateView):
+        form_class = UnidadeTramitacaoForm
 
 
 class ProposicaoCrud(Crud):
@@ -689,6 +697,12 @@ class ProposicaoCrud(Crud):
 
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
+                        Numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
+                                                                   ano=p.ano).last().numero + 1
+                        messages.success(request, _(
+                            '%s : nº %s de %s <br>Atenção! Este número é apenas um provável '
+                            'número que pode não corresponder com a realidade'
+                            % (p.tipo, Numero, p.ano)))
 
                 elif action == 'return':
                     if not p.data_envio:
@@ -838,14 +852,17 @@ class ProposicaoCrud(Crud):
                     obj.data_recebimento = 'Não recebida'\
                         if obj.data_envio else 'Não enviada'
                 else:
-                    obj.data_recebimento = timezone.localtime(obj.data_recebimento)
-                    obj.data_recebimento = obj.data_recebimento = formats.date_format(obj.data_recebimento, "DATETIME_FORMAT")
+                    obj.data_recebimento = timezone.localtime(
+                        obj.data_recebimento)
+                    obj.data_recebimento = obj.data_recebimento = formats.date_format(
+                        obj.data_recebimento, "DATETIME_FORMAT")
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
                 else:
 
                     obj.data_envio = timezone.localtime(obj.data_envio)
-                    obj.data_envio = formats.date_format(obj.data_envio, "DATETIME_FORMAT")
+                    obj.data_envio = formats.date_format(
+                        obj.data_envio, "DATETIME_FORMAT")
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -1048,9 +1065,7 @@ class TramitacaoCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoUpdateForm
 
-        @property
-        def layout_key(self):
-            return 'TramitacaoUpdate'
+        layout_key = 'TramitacaoUpdate'
 
         def form_valid(self, form):
             self.object = form.save()
@@ -1274,9 +1289,7 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
 
     class DetailView(MasterDetailCrud.DetailView):
 
-        @property
-        def layout_key(self):
-            return 'LegislacaoCitadaDetail'
+        layout_key = 'LegislacaoCitadaDetail'
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
@@ -1350,9 +1363,7 @@ class MateriaLegislativaCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'data_apresentacao']
 
-        @property
-        def list_url(self):
-            return ''
+        list_url = ''
 
         @property
         def search_url(self):
@@ -1382,9 +1393,7 @@ class MateriaLegislativaCrud(Crud):
 
     class DetailView(Crud.DetailView):
 
-        @property
-        def layout_key(self):
-            return 'MateriaLegislativaDetail'
+        layout_key = 'MateriaLegislativaDetail'
 
     class ListView(Crud.ListView, RedirectView):
 
@@ -1488,7 +1497,7 @@ class AcompanhamentoExcluirView(TemplateView):
 class MateriaLegislativaPesquisaView(FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaFilterSet
-    paginate_by = 10
+    paginate_by = 50
 
     def get_filterset_kwargs(self, filterset_class):
         super(MateriaLegislativaPesquisaView,
@@ -1517,6 +1526,20 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', 'tipo__sigla', '-numero')
+
+        qs = qs.prefetch_related("autoria_set",
+                                 "autoria_set__autor",
+                                 "numeracao_set",
+                                 "anexadas",
+                                 "tipo",
+                                 "texto_articulado",
+                                 "tramitacao_set",
+                                 "tramitacao_set__status",
+                                 "tramitacao_set__unidade_tramitacao_local",
+                                 "tramitacao_set__unidade_tramitacao_destino",
+                                 "normajuridica_set",
+                                 "registrovotacao_set",
+                                 "documentoacessorio_set")
 
         kwargs.update({
             'queryset': qs,
@@ -1684,6 +1707,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     template_name = 'materia/em_lote/tramitacao.html'
     permission_required = ('materia.add_tramitacao', )
 
+    primeira_tramitacao = True
+
     def get_context_data(self, **kwargs):
         context = super(PrimeiraTramitacaoEmLoteView,
                         self).get_context_data(**kwargs)
@@ -1699,7 +1724,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         qr = self.request.GET.copy()
         context['unidade_destino'] = UnidadeTramitacao.objects.all()
         context['status_tramitacao'] = StatusTramitacao.objects.all()
-        context['turnos_tramitacao'] = TURNO_TRAMITACAO_CHOICES
+        context['turnos_tramitacao'] = Tramitacao.TURNO_CHOICES
         context['urgente_tramitacao'] = YES_NO_CHOICES
         context['unidade_local'] = UnidadeTramitacao.objects.all()
 
@@ -1770,10 +1795,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 
-        if status.indicador == 'F':
-            for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+        for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+            if status.indicador == 'F':
                 materia.em_tramitacao = False
-                materia.save()
+            elif self.primeira_tramitacao:
+                materia.em_tramitacao = True
+            materia.save()
 
         msg = _('Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
@@ -1782,6 +1809,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
 class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
     filterset_class = TramitacaoEmLoteFilterSet
+
+    primeira_tramitacao = False
 
     def get_context_data(self, **kwargs):
         context = super(TramitacaoEmLoteView,

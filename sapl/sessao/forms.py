@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import MateriaLegislativaFilterSet
@@ -108,6 +109,9 @@ class BancadaForm(ModelForm):
     def clean(self):
         super(BancadaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
                     self.cleaned_data['data_criacao']):
@@ -139,6 +143,9 @@ class BlocoForm(ModelForm):
 
     def clean(self):
         super(BlocoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
@@ -521,6 +528,9 @@ class ResumoOrdenacaoForm(forms.Form):
 
     def clean(self):
         super(ResumoOrdenacaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 

@@ -13,13 +13,14 @@ from haystack.constants import Indexable
 from haystack.fields import CharField
 from haystack.indexes import SearchIndex
 from haystack.utils import get_model_ct_tuple
+from textract.exceptions import ExtensionNotSupported
+
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PUBLIC, Dispositivo,
                                     TextoArticulado)
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.settings import BASE_DIR, SOLR_URL
-from textract.exceptions import ExtensionNotSupported
 
 logger = logging.getLogger(BASE_DIR.name)
 

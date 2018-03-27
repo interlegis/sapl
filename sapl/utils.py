@@ -21,12 +21,40 @@ from django.db.models import Q
 from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
 from django_filters.filterset import STRICTNESS
+from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
+from unipath.path import Path
+
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
+
+
+def pil_image(source, exif_orientation=False, **options):
+    return source_generators.pil_image(source, exif_orientation, **options)
+
+
+def clear_thumbnails_cache(queryset, field):
+
+    for r in queryset:
+        assert hasattr(r, field), _(
+            'Objeto da listagem não possui o campo informado')
+
+        if not getattr(r, field):
+            continue
+
+        path = Path(getattr(r, field).path)
+
+        if not path.exists():
+            continue
+
+        cache_files = path.parent.walk()
+
+        for cf in cache_files:
+            if cf != path:
+                cf.remove()
 
 
 def normalize(txt):
@@ -248,22 +276,6 @@ def create_barcode(value, width=170, height=50):
 
 YES_NO_CHOICES = [(True, _('Sim')), (False, _('Não'))]
 
-TURNO_TRAMITACAO_CHOICES = [
-    ('P', _('Primeiro')),
-    ('S', _('Segundo')),
-    ('U', _('Único')),
-    ('L', _('Suplementar')),
-    ('F', _('Final')),
-    ('A', _('Votação única em Regime de Urgência')),
-    ('B', _('1ª Votação')),
-    ('C', _('2ª e 3ª Votação')),
-]
-
-INDICADOR_AFASTAMENTO = [
-    ('A', _('Afastamento')),
-    ('F', _('Fim de Mandato')),
-]
-
 
 def listify(function):
     @wraps(function)
@@ -373,10 +385,12 @@ def fabrica_validador_de_tipos_de_arquivo(lista, nome):
         if not os.path.splitext(value.path)[1][:1]:
             raise ValidationError(_(
                 'Não é possível fazer upload de arquivos sem extensão.'))
-
-        mime = magic.from_buffer(value.read(), mime=True)
-        if mime not in lista:
-            raise ValidationError(_('Tipo de arquivo não suportado'))
+        try:
+            mime = magic.from_buffer(value.read(), mime=True)
+            if mime not in lista:
+                raise ValidationError(_('Tipo de arquivo não suportado'))
+        except FileNotFoundError:
+            raise ValidationError(_('Arquivo não encontrado'))
     # o nome é importante para as migrations
     restringe_tipos_de_arquivo.__name__ = nome
     return restringe_tipos_de_arquivo
@@ -422,13 +436,11 @@ class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
 
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
 
-    choices = (('', 'Selecione...'),
-               ('CRE', 'Ordem Crescente'),
-               ('DEC', 'Ordem Decrescente'),)
+    choices = (('DEC', 'Ordem Decrescente'),
+               ('CRE', 'Ordem Crescente'),)
     order_by_mapping = {
-        '': [],
-        'CRE': ['ano', 'numero'],
         'DEC': ['-ano', '-numero'],
+        'CRE': ['ano', 'numero'],
     }
 
     def __init__(self, *args, **kwargs):

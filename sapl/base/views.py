@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -11,15 +12,17 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
-from django.views.generic import FormView
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
+                                  ListView, UpdateView)
 from django.views.generic.base import TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
+
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
-from sapl.crud.base import CrudAux
+from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
@@ -29,11 +32,13 @@ from sapl.utils import (parlamentares_ativos, sapl_logger,
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
+                    RelatorioDataFimPrazoTramitacaoFilterSet,
                     RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
-                    RelatorioPresencaSessaoFilterSet)
+                    RelatorioPresencaSessaoFilterSet, UsuarioCreateForm,
+                    UsuarioEditForm)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -68,6 +73,8 @@ class TipoAutorCrud(CrudAux):
             return vn
 
     class ListView(CrudAux.ListView):
+        template_name = "base/tipoautor_list.html"
+
         def get_queryset(self):
             qs = CrudAux.ListView.get_queryset(self)
             qs = qs.filter(content_type__isnull=True)
@@ -82,11 +89,12 @@ class TipoAutorCrud(CrudAux):
             return context
 
     class TipoAutorMixin:
+
         def dispatch(self, request, *args, **kwargs):
             object = self.get_object()
             if object.content_type:
                 raise PermissionDenied()
-            return super().get(request, *args, **kwargs)
+            return super().dispatch(request, *args, **kwargs)
 
     class UpdateView(TipoAutorMixin, CrudAux.UpdateView):
         pass
@@ -358,6 +366,23 @@ class RelatorioHistoricoTramitacaoView(FilterView):
         return context
 
 
+class RelatorioDataFimPrazoTramitacaoView(FilterView):
+    model = MateriaLegislativa
+    filterset_class = RelatorioDataFimPrazoTramitacaoFilterSet
+    template_name = 'base/RelatorioDataFimPrazoTramitacao_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioDataFimPrazoTramitacaoView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Fim de Prazo de Tramitações')
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+
 class RelatorioMateriasTramitacaoView(FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioMateriasTramitacaoilterSet
@@ -503,6 +528,119 @@ class RelatorioMateriasPorAutorView(FilterView):
         return context
 
 
+class ListarUsuarioView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'auth/user_list.html'
+    context_object_name = 'user_list'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        qs = super(ListarUsuarioView, self).get_queryset()
+        return qs.order_by('username')
+
+    def get_context_data(self, **kwargs):
+        context = super(ListarUsuarioView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhum usuário cadastrado.'
+        return context
+
+
+class CreateUsuarioView(PermissionRequiredMixin, CreateView):
+    model = get_user_model()
+    form_class = UsuarioCreateForm
+    success_message = 'Usuário criado com sucesso'
+    permission_required = ('base.add_appconfig',)
+
+    def get_success_url(self):
+        return reverse('sapl.base:user_list')
+
+    def form_valid(self, form):
+
+        data = form.cleaned_data
+
+        new_user = get_user_model().objects.create(
+            username=data['username'], email=data['email'])
+        new_user.first_name = data['firstname']
+        new_user.last_name = data['lastname']
+        new_user.set_password(data['password1'])
+        new_user.is_superuser = False
+        new_user.is_staff = False
+        new_user.save()
+
+        groups = Group.objects.filter(id__in=data['roles'])
+        for g in groups:
+            g.user_set.add(new_user)
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
+
+    model = get_user_model()
+    permission_required = ('base.delete_appconfig',)
+
+    def get_success_url(self):
+        return reverse('sapl.base:user_list')
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
+
+    def get_queryset(self):
+        qs = super(DeleteUsuarioView, self).get_queryset()
+        return qs.filter(id=self.kwargs['pk'])
+
+
+class EditUsuarioView(PermissionRequiredMixin, UpdateView):
+    model = get_user_model()
+    form_class = UsuarioEditForm
+    success_message = 'Usuário editado com sucesso'
+    permission_required = ('base.change_appconfig',)
+
+    def get_success_url(self):
+        return reverse('sapl.base:user_list')
+
+    def get_initial(self):
+        initial = super(EditUsuarioView, self).get_initial()
+
+        user = get_user_model().objects.get(id=self.kwargs['pk'])
+        roles = [str(g.id) for g in user.groups.all()]
+        initial['roles'] = roles
+        initial['user_active'] = user.is_active
+
+        return initial
+
+    def form_valid(self, form):
+
+        user = form.save(commit=False)
+        data = form.cleaned_data
+
+        # new_user.first_name = data['firstname']
+        # new_user.last_name = data['lastname']
+
+        if data['password1']:
+            user.set_password(data['password1'])
+
+        if data['user_active'] == 'True' and not user.is_active:
+            user.is_active = True
+        elif data['user_active'] == 'False' and user.is_active:
+            user.is_active = False
+
+        user.save()
+
+        for g in user.groups.all():
+            g.user_set.remove(user)
+
+        groups = Group.objects.filter(id__in=data['roles'])
+        for g in groups:
+            g.user_set.add(user)
+
+        return super(EditUsuarioView, self).form_valid(form)
+
+
 class CasaLegislativaCrud(CrudAux):
     model = CasaLegislativa
 
@@ -547,13 +685,8 @@ class AppConfigCrud(CrudAux):
     class BaseMixin(CrudAux.BaseMixin):
         form_class = ConfiguracoesAppForm
 
-        @property
-        def list_url(self):
-            return ''
-
-        @property
-        def create_url(self):
-            return ''
+        list_url = ''
+        create_url = ''
 
     class CreateView(CrudAux.CreateView):
 

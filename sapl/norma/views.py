@@ -11,6 +11,7 @@ from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -59,9 +60,7 @@ class NormaRelacionadaCrud(MasterDetailCrud):
 
     class DetailView(MasterDetailCrud.DetailView):
 
-        @property
-        def layout_key(self):
-            return 'NormaRelacionadaDetail'
+        layout_key = 'NormaRelacionadaDetail'
 
 
 class NormaPesquisaView(FilterView):
@@ -134,9 +133,7 @@ class NormaCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['tipo', 'numero', 'ano', 'ementa']
 
-        @property
-        def list_url(self):
-            return ''
+        list_url = ''
 
         @property
         def search_url(self):
@@ -158,9 +155,7 @@ class NormaCrud(Crud):
         def cancel_url(self):
             return self.search_url
 
-        @property
-        def layout_key(self):
-            return 'NormaJuridicaCreate'
+        layout_key = 'NormaJuridicaCreate'
 
     class ListView(Crud.ListView, RedirectView):
 
@@ -174,9 +169,7 @@ class NormaCrud(Crud):
     class UpdateView(Crud.UpdateView):
         form_class = NormaJuridicaForm
 
-        @property
-        def layout_key(self):
-            return 'NormaJuridicaCreate'
+        layout_key = 'NormaJuridicaCreate'
 
         def get_initial(self):
             norma = NormaJuridica.objects.get(id=self.kwargs['pk'])

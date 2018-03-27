@@ -8,6 +8,7 @@ from django.db import models
 from django.forms import ModelForm, widgets
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
@@ -192,8 +193,8 @@ class NormaRelacionadaForm(ModelForm):
     def clean(self):
         super(NormaRelacionadaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
         cleaned_data = self.cleaned_data
 
         try:
@@ -262,6 +263,10 @@ class NormaPesquisaSimplesForm(forms.Form):
 
     def clean(self):
         super(NormaPesquisaSimplesForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
         cleaned_data = self.cleaned_data
 
         data_inicial = cleaned_data['data_inicial']

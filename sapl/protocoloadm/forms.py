@@ -10,21 +10,22 @@ from django.db import models
 from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
-from sapl.utils import (RANGE_ANOS, AnoNumeroOrderingFilter,
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
-TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('', 'Ambos')]
-TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado')]
+TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno'), ('', '---------')]
+TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno')]
 
-NATUREZA_PROCESSO = [('', 'Ambos'),
+NATUREZA_PROCESSO = [('', '---------'),
                      ('0', 'Administrativo'),
                      ('1', 'Legislativo')]
 
@@ -33,7 +34,7 @@ def ANO_CHOICES():
     return [('', '---------')] + RANGE_ANOS
 
 
-EM_TRAMITACAO = [('', 'Tanto Faz'),
+EM_TRAMITACAO = [('', '---------'),
                  (0, 'Sim'),
                  (1, 'Não')]
 
@@ -216,7 +217,7 @@ class AnularProcoloAdmForm(ModelForm):
     def clean(self):
         super(AnularProcoloAdmForm, self).clean()
 
-        cleaned_data = super(AnularProcoloAdmForm, self).clean()
+        cleaned_data = self.cleaned_data
 
         if not self.is_valid():
             return cleaned_data
@@ -360,8 +361,19 @@ class ProtocoloMateriaForm(ModelForm):
         label=_('Tipo de Matéria'),
         required=True,
         queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione',
+        empty_label='------',
     )
+
+    numero_materia = forms.CharField(
+        label=_('Número matéria'), required=False)
+
+    ano_materia = forms.CharField(
+        label=_('Ano matéria'), required=False)
+
+    vincular_materia = forms.ChoiceField(label=_('Vincular a matéria existente?'),
+                                         widget=forms.RadioSelect(),
+                                         choices=YES_NO_CHOICES,
+                                         initial=False)
 
     numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
 
@@ -378,7 +390,11 @@ class ProtocoloMateriaForm(ModelForm):
                   'autor',
                   'tipo_autor',
                   'assunto_ementa',
-                  'observacao']
+                  'observacao',
+                  'numero_materia',
+                  'ano_materia',
+                  'vincular_materia'
+                  ]
 
     def clean_autor(self):
         autor_field = self.cleaned_data['autor']
@@ -390,6 +406,30 @@ class ProtocoloMateriaForm(ModelForm):
             autor_field = autor
         return autor_field
 
+    def clean(self):
+        super(ProtocoloMateriaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data = self.cleaned_data
+        if self.is_valid():
+            if data['vincular_materia'] == 'True':
+                try:
+                    if not data['ano_materia'] or not data['numero_materia']:
+                        raise ValidationError(
+                            'Favor informar o número e ano da matéria a ser vinculada')
+                    self.materia = MateriaLegislativa.objects.get(ano=data['ano_materia'],
+                                                                  numero=data['numero_materia'],
+                                                                  tipo=data['tipo_materia'])
+                    if self.materia.numero_protocolo:
+                        raise ValidationError(_('Matéria Legislativa informada já possui o protocolo {}/{} vinculado.'
+                                                .format(self.materia.numero_protocolo, self.materia.ano)))
+                except ObjectDoesNotExist:
+                    raise ValidationError(_('Matéria Legislativa informada não existente.'))
+
+        return data
+
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
@@ -397,6 +437,10 @@ class ProtocoloMateriaForm(ModelForm):
              ('numero_paginas', 2),
              ('tipo_autor', 3),
              ('autor', 3)])
+        row2 = to_row(
+            [(InlineRadios('vincular_materia'), 4),
+             ('numero_materia', 4),
+             ('ano_materia', 4), ])
         row3 = to_row(
             [('assunto_ementa', 12)])
         row4 = to_row(
@@ -405,7 +449,7 @@ class ProtocoloMateriaForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
-                     row1, row3,
+                     row1, row2, row3,
                      row4, form_actions(label='Protocolar Matéria')))
 
         super(ProtocoloMateriaForm, self).__init__(
@@ -443,6 +487,9 @@ class TramitacaoAdmForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(TramitacaoAdmForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         if 'data_encaminhamento' in cleaned_data:
             data_enc_form = cleaned_data['data_encaminhamento']
@@ -515,6 +562,11 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
                   ]
 
     def clean(self):
+        super(TramitacaoAdmEditForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
         ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
             documento_id=self.instance.documento_id).order_by(
             '-data_tramitacao',
@@ -575,6 +627,9 @@ class DocumentoAdministrativoForm(ModelForm):
 
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 

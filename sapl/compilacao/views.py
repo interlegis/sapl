@@ -27,6 +27,7 @@ from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django.views.generic.list import ListView
 
+from sapl.compilacao.apps import AppConfig
 from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
                                    DispositivoEdicaoAlteracaoForm,
                                    DispositivoEdicaoBasicaForm,
@@ -47,15 +48,15 @@ from sapl.compilacao.models import (STATUS_TA_EDITION, STATUS_TA_PRIVATE,
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT,
                                    get_integrations_view_names)
-from sapl.crud.base import Crud, CrudListView, make_pagination
+from sapl.crud.base import Crud, CrudAux, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
 
 
-TipoNotaCrud = Crud.build(TipoNota, 'tipo_nota')
-TipoVideCrud = Crud.build(TipoVide, 'tipo_vide')
-TipoPublicacaoCrud = Crud.build(TipoPublicacao, 'tipo_publicacao')
-VeiculoPublicacaoCrud = Crud.build(VeiculoPublicacao, 'veiculo_publicacao')
-TipoDispositivoCrud = Crud.build(
+TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
+TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
+TipoPublicacaoCrud = CrudAux.build(TipoPublicacao, 'tipo_publicacao')
+VeiculoPublicacaoCrud = CrudAux.build(VeiculoPublicacao, 'veiculo_publicacao')
+TipoDispositivoCrud = CrudAux.build(
     TipoDispositivo, 'tipo_dispositivo')
 
 logger = logging.getLogger(BASE_DIR.name)
@@ -107,7 +108,7 @@ class IntegracaoTaView(TemplateView):
 
         try:
             if settings.DEBUG or not TipoDispositivo.objects.exists():
-                self.import_pattern()
+                AppConfig.import_pattern()
 
                 if hasattr(self, 'map_funcs'):
                     tipo_ta = TipoTextoArticulado.objects.get(
@@ -194,66 +195,6 @@ class IntegracaoTaView(TemplateView):
         else:
             return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
                                             kwargs={'ta_id': ta.pk}))
-
-    def import_pattern(self):
-
-        from unipath import Path
-
-        compilacao_app = Path(__file__).ancestor(1)
-        # print(compilacao_app)
-        with open(compilacao_app + '/compilacao_data_tables.sql', 'r') as f:
-            lines = f.readlines()
-            lines = [line.rstrip('\n') for line in lines]
-
-            with connection.cursor() as cursor:
-                for line in lines:
-                    line = line.strip()
-                    if not line or line.startswith('#'):
-                        continue
-
-                    try:
-                        cursor.execute(line)
-                    except IntegrityError as e:
-                        if not settings.DEBUG:
-                            logger.error(
-                                string_concat(
-                                    _('Ocorreu erro na importação: '),
-                                    line,
-                                    str(e)))
-                    except Exception as ee:
-                        print(ee)
-
-        integrations_view_names = get_integrations_view_names()
-
-        def cria_sigla(verbose_name):
-            verbose_name = verbose_name.upper().split()
-            if len(verbose_name) == 1:
-                verbose_name = verbose_name[0]
-                sigla = ''
-                for letra in verbose_name:
-                    if letra in 'BCDFGHJKLMNPQRSTVWXYZ':
-                        sigla += letra
-            else:
-                sigla = ''.join([palavra[0] for palavra in verbose_name])
-            return sigla[:3]
-
-        for view in integrations_view_names:
-            try:
-                tipo = TipoTextoArticulado()
-                tipo.sigla = cria_sigla(
-                    view.model._meta.verbose_name
-                    if view.model._meta.verbose_name
-                    else view.model._meta.model_name)
-                tipo.descricao = view.model._meta.verbose_name
-                tipo.content_type = ContentType.objects.get_by_natural_key(
-                    view.model._meta.app_label, view.model._meta.model_name)
-                tipo.save()
-            except IntegrityError as e:
-                if not settings.DEBUG:
-                    logger.error(
-                        string_concat(
-                            _('Ocorreu erro na criação tipo de ta: '),
-                            str(e)))
 
     class Meta:
         abstract = True
@@ -1721,10 +1662,13 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     base.delete()
 
                     for irmao in irmaos_posteriores:
-                        irmao.transform_in_prior(
-                            profundidade=profundidade_base)
-                        irmao.rotulo = irmao.rotulo_padrao()
-                        irmao.save()
+                        try:
+                            irmao.transform_in_prior(
+                                profundidade=profundidade_base)
+                            irmao.rotulo = irmao.rotulo_padrao()
+                            irmao.save()
+                        except:
+                            break
 
                     irmaos = pai_base.dispositivos_filhos_set.\
                         filter(tipo_dispositivo=base.tipo_dispositivo)
@@ -1826,17 +1770,37 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                             dcc_a_religar = dcc_a_religar.exclude(
                                 ordem__gte=proxima_articulacao.ordem)
 
-                        primeiro_a_religar = 0
+                        primeiro_a_religar = True
+                        profundidade = d.get_profundidade()
                         for dr in dcc_a_religar:
-                            if not primeiro_a_religar:
-                                primeiro_a_religar = dr.dispositivo0
-                                base.delete()
+                            if primeiro_a_religar:
+                                primeiro_a_religar = False
+                                d_pk = d.pk
+                                d.delete()
+                                if base.pk == d_pk:
+                                    base = d
 
-                            dr.dispositivo0 = (
-                                dr.dispositivo0 -
-                                primeiro_a_religar + d.dispositivo0)
+                            dr.transform_in_prior(profundidade=profundidade)
                             dr.rotulo = dr.rotulo_padrao()
-                            dr.save(clean=base != dr)
+                            try:
+                                dr.save(clean=base != dr)
+                            except:
+                                break
+
+                                # Pode não ser religavável
+                                # Exemplo, numa sequencia com variáção:
+                                # Art. 1º
+                                # ...
+                                # Art. 1º-A
+                                # ...
+                                # Art. 2º
+                                # ...
+                                # Ao tentar excluir o Art. 1º-A, o algoritmo
+                                # de religação tentará reduzir Art. 2º para 1º
+                                # e o método clean lançará um erro visto que
+                                # já existe um, por outro lado, não é lógico
+                                # reduzir Art 2º para Art. 1º-A, ou seja,
+                                # em caso de variação não há o que reduzir
 
                 if base.tipo_dispositivo.dispositivo_de_alteracao:
                     dpts = base.dispositivos_alterados_set.all().order_by(
@@ -1845,7 +1809,19 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                         self.remover_dispositivo(dpt, False)
 
                 if base.pk:
-                    base.delete()
+                    """
+                    Um registro a ser excluido em bloco que não é um
+                    dispositivo de contagem contínua, neste ponto, teve todos
+                    os seus filhos excluídos mas ainda não foi e, tão pouco,
+                    foi seus imãos (anterior e posterior) religados
+                    numericamente.
+                    A exclusão em bloco religa apenas dispositivos de contagem
+                    continua internos extra bloco.
+                    Depois do bloco limpo, a função é chamada novamente para
+                    excluir realmente a escolha do usuário
+                    e religar seus irmaos  
+                    """
+                    self.remover_dispositivo(base, False)
 
         return ''
 
@@ -2295,7 +2271,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             if count_auto_insert:
 
                 ordem = dp.criar_espaco(
-                    espaco_a_criar=count_auto_insert, local=local_add)
+                    espaco_a_criar=count_auto_insert, local='json_add_in')
 
                 dp_pk = dp.pk
                 dp.ordem = ordem

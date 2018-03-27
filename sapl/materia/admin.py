@@ -1,15 +1,18 @@
+from django.conf import settings
 from django.contrib import admin
+
+from sapl.base.models import TipoAutor
+from sapl.comissoes.models import TipoComissao
 from sapl.materia.models import Proposicao
-from sapl.settings import DEBUG
+from sapl.parlamentares.models import (SituacaoMilitar, TipoAfastamento,
+                                       TipoDependente)
 from sapl.utils import register_all_models_in_admin
 
 register_all_models_in_admin(__name__)
 
-if not DEBUG:
+if not settings.DEBUG:
 
-    admin.site.unregister(Proposicao)
-
-    class ProposicaoAdmin(admin.ModelAdmin):
+    class RestricaoAdmin(admin.ModelAdmin):
 
         def has_add_permission(self, request, obj=None):
             return False
@@ -20,4 +23,16 @@ if not DEBUG:
         def has_delete_permission(self, request, obj=None):
             return False
 
-    admin.site.register(Proposicao, ProposicaoAdmin)
+    models = (
+        Proposicao,
+        TipoAutor,
+        TipoComissao,
+        TipoAfastamento,
+        SituacaoMilitar,
+        TipoDependente
+    )
+
+    for model in models:
+        if admin.site.is_registered(model):
+            admin.site.unregister(model)
+        admin.site.register(model, RestricaoAdmin)

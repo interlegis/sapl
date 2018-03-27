@@ -5,13 +5,16 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_confirm,
                                        password_reset_done)
 from django.views.generic.base import TemplateView
+
 from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
 from sapl.settings import EMAIL_SEND_USER
 
 from .apps import AppConfig
 from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
 from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
-                    HelpTopicView, RelatorioAtasView,
+                    CreateUsuarioView, DeleteUsuarioView, EditUsuarioView,
+                    HelpTopicView, ListarUsuarioView, RelatorioAtasView,
+                    RelatorioDataFimPrazoTramitacaoView,
                     RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
@@ -19,6 +22,13 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     RelatorioPresencaSessaoView, SaplSearchView)
 
 app_name = AppConfig.name
+
+admin_user = [
+    url(r'^sistema/usuario/$', ListarUsuarioView.as_view(), name='user_list'),
+    url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
+]
 
 alterar_senha = [
     url(r'^sistema/alterar-senha/$',
@@ -83,6 +93,9 @@ urlpatterns = [
     url(r'^sistema/relatorios/historico-tramitacoes$',
         RelatorioHistoricoTramitacaoView.as_view(),
         name='historico_tramitacoes'),
+    url(r'^sistema/relatorios/data-fim-prazo-tramitacoes$',
+        RelatorioDataFimPrazoTramitacaoView.as_view(),
+        name='data_fim_prazo_tramitacoes'),
     url(r'^sistema/relatorios/presenca$',
         RelatorioPresencaSessaoView.as_view(),
         name='presenca_sessao'),
@@ -107,4 +120,4 @@ urlpatterns = [
 
     url(r'^sistema/search/', SaplSearchView(), name='haystack_search'),
 
-] + recuperar_senha + alterar_senha
+] + recuperar_senha + alterar_senha + admin_user

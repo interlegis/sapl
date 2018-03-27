@@ -1,5 +1,6 @@
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.views.generic import RedirectView
+
 from sapl.base.apps import AppConfig as atasConfig
 from sapl.comissoes.apps import AppConfig as comissoesConfig
 from sapl.materia.apps import AppConfig as materiaConfig
@@ -34,6 +35,7 @@ comissao_list = (app_comissoes + ':comissao_list')
 comissao_detail = (app_comissoes + ':comissao_detail')
 
 audiencia = (app_audiencia + ':audiencia')
+reuniao_detail = (app_comissoes + ':reuniao_detail')
 
 materialegislativa_detail = (app_materia + ':materialegislativa_detail')
 materialegislativa_list = (app_materia + ':pesquisar_materia')
@@ -631,6 +633,55 @@ class RedirecionaMateriasPorAnoAutorTipo(RedirectView):
         if ano:
             args = "?ano=%s" % (ano)
             args += "&salvar=%s" % ('Pesquisar')
+            url = "%s%s" % (url, args)
+
+        url = has_iframe(url, self.request)
+
+        return url
+
+
+class RedirecionaReuniao(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self):
+        pk_reuniao = self.request.GET.get(
+            'cod_comissao',
+            EMPTY_STRING)
+        url = EMPTY_STRING
+        if pk_reuniao:
+            kwargs = {'pk': pk_reuniao}
+            try:
+                url = reverse(reuniao_detail, kwargs=kwargs)
+            except NoReverseMatch:
+                raise UnknownUrlNameError(reuniao_detail)
+
+        else:
+            try:
+                url = reverse(reuniao_list)
+            except NoReverseMatch:
+                raise UnknownUrlNameError(reuniao_list)
+
+            year = self.request.GET.get(
+                'ano_reuniao',
+                EMPTY_STRING)
+            month = self.request.GET.get(
+                'mes_reuniao',
+                EMPTY_STRING)
+            day = self.request.GET.get(
+                'dia_reuniao',
+                EMPTY_STRING)
+            tipo_reuniao = self.request.GET.get(
+                'tip_reuniao',
+                EMPTY_STRING)
+
+            # Remove zeros à esquerda
+            day = day.lstrip("0")
+            month = month.lstrip("0")
+            args = EMPTY_STRING
+            args += "?data_inicio__year=%s" % (year)
+            args += "&data_inicio__month=%s" % (month)
+            args += "&data_inicio__day=%s" % (day)
+            args += "&tipo=%s&salvar=Pesquisar" % (tipo_reuniao)
             url = "%s%s" % (url, args)
 
         url = has_iframe(url, self.request)

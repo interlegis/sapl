@@ -189,6 +189,9 @@ THUMBNAIL_PROCESSORS = (
     'image_cropping.thumbnail_processors.crop_corners',
 ) + thumbnail_settings.THUMBNAIL_PROCESSORS
 
+THUMBNAIL_SOURCE_GENERATORS = (
+    'sapl.utils.pil_image',
+)
 
 # troque no caso de reimplementação da classe User conforme
 # https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#substituting-a-custom-user-model

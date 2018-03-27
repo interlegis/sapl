@@ -5,6 +5,7 @@ from string import digits
 
 from django.apps import apps
 from django.db.models.fields import CharField, TextField
+
 from sapl.materia.models import Orgao, Origem
 from sapl.norma.models import AssuntoNorma
 from sapl.parlamentares.models import Municipio, NivelInstrucao, Partido

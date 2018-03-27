@@ -1,8 +1,0 @@
-Comissao:
-  ind_unidade_deliberativa: unidade_deliberativa
-
-Legislatura:
-  num_legislatura: id
-
-Parlamentar:
-  municipio: municipio_residencia

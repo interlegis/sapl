@@ -1,0 +1,15 @@
+{% extends "crud/list.html" %}
+{% load i18n menus%}
+{% block base_content %}
+  <div class="row container-tabaux">
+    <div class="{% if perms.base.menu_tabelas_auxiliares %}col-sm-9{% endif %}">
+      {{block.super}}
+    </div>
+    {% if perms.base.menu_tabelas_auxiliares %}
+      <div class="col-sm-3 sidebar-tabaux">
+          <h3>{% trans "Tabelas Auxiliares" %}</h3>
+          {% subnav 'menu_tabelas_auxiliares.yaml'%}
+      </div>
+    {% endif %}
+  </div>
+{% endblock base_content %}

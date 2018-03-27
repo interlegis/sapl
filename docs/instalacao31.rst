@@ -28,7 +28,7 @@ Instalar as seguintes dependências do sistema::
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools \
-    python3-pip curl poppler-utils default-jre
+    python3-pip curl poppler-utils antiword default-jre
 
     sudo -i
     curl -sL https://deb.nodesource.com/setup_6.x | bash -
@@ -74,6 +74,12 @@ Clonar o projeto do github, ou fazer um fork e depois clonar
 * Para apenas clonar do repositório do Interlegis::
 
     cd /var/interlegis
+
+    git clone -b 3.1.x --single-branch git://github.com/interlegis/sapl
+
+    O comando acima irá clonar a última versão estável do SAPL (3.1.x)
+    Para clonar todo o repositório utilize o comando abaixo:
+
     git clone git://github.com/interlegis/sapl
 
 * Para fazer um fork e depois clonar, siga as instruções em https://help.github.com/articles/fork-a-repo que basicamente são:
@@ -187,9 +193,9 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 * Subir o servidor do django::
 
    ./manage.py runserver 0.0.0.0:8001
-   
+
 * Compilar os arquivos de estilização::
-  
+
    ./manage.py compilescss
    ./manage.py collectstatic
 
@@ -202,7 +208,7 @@ Instruções para criação do super usuário e de usuários de testes
 
 * Criar super usuário do django-contrib-admin (Será solicitado alguns dados para criação)::
 
-   ./manage.py createsuperuser
+   python3 manage.py createsuperuser
 
 * `Os perfis semânticos do SAPL <https://github.com/interlegis/sapl/blob/master/sapl/rules/__init__.py>`_ são fixos e atualizados a cada execução do comando::
 
@@ -211,7 +217,7 @@ Instruções para criação do super usuário e de usuários de testes
 * Os perfis fixos não aceitam customização via admin, porém outros grupos podem ser criados. O SAPL não interferirá no conjunto de permissões definidas em grupos customizados e se comportará diante de usuários segundo seus grupos e suas permissões.
 
 * Para criar os usuários de teste, deve-se seguir os seguintes passos::
-    
+
     ./manage.py shell_plus
     from sapl.rules.apps import cria_usuarios_padrao
     cria_usuarios_padrao()

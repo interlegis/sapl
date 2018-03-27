@@ -4,6 +4,7 @@ from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from django.core.urlresolvers import reverse
 from django.template import Context, loader
 from django.utils import timezone
+
 from sapl.base.models import CasaLegislativa
 from sapl.settings import EMAIL_SEND_USER
 

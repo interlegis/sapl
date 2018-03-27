@@ -1,5 +1,5 @@
-from datetime import datetime
 import json
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -32,7 +32,6 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
-
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
@@ -421,16 +420,12 @@ class ParlamentarCrud(Crud):
     class UpdateView(Crud.UpdateView):
         form_class = ParlamentarForm
 
-        @property
-        def layout_key(self):
-            return 'ParlamentarUpdate'
+        layout_key = 'ParlamentarUpdate'
 
     class CreateView(Crud.CreateView):
         form_class = ParlamentarCreateForm
 
-        @property
-        def layout_key(self):
-            return 'ParlamentarCreate'
+        layout_key = 'ParlamentarCreate'
 
         def form_valid(self, form):
             """

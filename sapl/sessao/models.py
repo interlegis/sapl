@@ -1,7 +1,11 @@
+from operator import xor
+
 import reversion
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
@@ -316,6 +320,11 @@ class AbstractOrador(models.Model):  # Oradores
         max_length=150, blank=True, verbose_name=_('URL Vídeo'))
     observacao = models.CharField(
         max_length=150, blank=True, verbose_name=_('Observação'))
+    upload_anexo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=anexo_upload_path,
+        verbose_name=_('Anexo do Orador'))
 
     class Meta:
         abstract = True
@@ -408,16 +417,6 @@ class RegistroVotacao(models.Model):
     observacao = models.TextField(
         blank=True, verbose_name=_('Observações'))
 
-    data_hora_criacao = models.DateTimeField(
-        blank=True, null=True,
-        auto_now_add=True,
-        verbose_name=_('Data Criação'))
-
-    data_hora_atualizacao = models.DateTimeField(
-        blank=True, null=True,
-        auto_now=True,
-        verbose_name=_('Data'))
-
     class Meta:
         verbose_name = _('Votação')
         verbose_name_plural = _('Votações')
@@ -428,6 +427,16 @@ class RegistroVotacao(models.Model):
                      'ordem': self.ordem,
                      'votacao': self.tipo_resultado_votacao,
             'materia': self.materia}
+
+    def clean(self):
+        """Exatamente um dos campos ordem ou expediente deve estar preenchido.
+        """
+        # TODO remover esse método quando OrdemDia e ExpedienteMateria
+        # forem reestruturados e os campos ordem e expediente forem unificados
+        if not xor(bool(self.ordem), bool(self.expediente)):
+            raise ValidationError(
+                'RegistroVotacao deve ter exatamente um dos campos '
+                'ordem ou expediente deve estar preenchido')
 
 
 @reversion.register()

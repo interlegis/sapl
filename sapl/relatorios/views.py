@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
@@ -944,16 +945,20 @@ def get_etiqueta_protocolos(prots):
 
         dic['nom_autor'] = str(p.autor or ' ')
 
+        dic['num_materia'] = ''
+        for materia in MateriaLegislativa.objects.filter(
+                numero_protocolo=p.numero, ano=p.ano):
+            dic['num_materia'] = materia.tipo.sigla + ' ' + \
+                str(materia.numero) + '/' + str(materia.ano)
+
         dic['natureza'] = ''
         if p.tipo_processo == 0:
             dic['natureza'] = 'Administrativo'
         if p.tipo_processo == 1:
-            dic['natureza'] = 'Legislativo'
-
-        dic['num_materia'] = ''
-        for materia in MateriaLegislativa.objects.filter(
-                numero_protocolo=p.numero, ano=p.ano):
-            dic['num_materia'] = str(materia)
+            if dic['num_materia']:
+                dic['natureza'] = dic['num_materia']
+            else:
+                dic['natureza'] = 'Legislativo'
 
         dic['num_documento'] = ''
         for documento in DocumentoAdministrativo.objects.filter(

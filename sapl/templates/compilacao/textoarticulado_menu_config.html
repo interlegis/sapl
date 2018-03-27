@@ -1,5 +1,7 @@
 {% load i18n %}
 {% load common_tags %}
+
+{% if user.is_superuser %}
   <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     <i class="fa fa-cog fa-1x fa-fw"></i>
   </button>
@@ -13,6 +15,7 @@
 
     {% if user.is_superuser %}
       <li><a href="{% url 'sapl.compilacao:tipodispositivo_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoDispositivo'%}</a></li>
-      <li><a href="#">TODO: Perfil Estrutural de Textos Articulados</a></li>
+      <li><a href="/admin/compilacao/tipodispositivorelationship/">Relacionamento entre Dispositivos</a></li>
     {% endif %}
   </ul>
+{% endif %}

@@ -2,7 +2,6 @@
 import os
 
 import django_filters
-import sapl
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
@@ -23,7 +22,9 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from sapl.base.models import Autor, TipoAutor
+
+import sapl
+from sapl.base.models import AppConfig, Autor, TipoAutor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
@@ -40,8 +41,8 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
-                        autor_label, autor_modal, models_with_gr_for_model,
-                        qs_override_django_filter, gerar_hash_arquivo)
+                        autor_label, autor_modal, gerar_hash_arquivo,
+                        models_with_gr_for_model, qs_override_django_filter)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -144,6 +145,9 @@ class MateriaSimplificadaForm(ModelForm):
     def clean(self):
         super(MateriaSimplificadaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         cleaned_data = self.cleaned_data
 
         data_apresentacao = cleaned_data['data_apresentacao']
@@ -165,6 +169,9 @@ class MateriaLegislativaForm(ModelForm):
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 
@@ -195,6 +202,9 @@ class UnidadeTramitacaoForm(ModelForm):
 
     def clean(self):
         super(UnidadeTramitacaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 
@@ -254,6 +264,9 @@ class RelatoriaForm(ModelForm):
     def clean(self):
         super(RelatoriaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         cleaned_data = self.cleaned_data
 
         try:
@@ -286,7 +299,12 @@ class TramitacaoForm(ModelForm):
         self.fields['data_tramitacao'].initial = timezone.now().date()
 
     def clean(self):
-        cleaned_data = super(TramitacaoForm, self).clean()
+        super(TramitacaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
 
         if 'data_encaminhamento' in cleaned_data:
             data_enc_form = cleaned_data['data_encaminhamento']
@@ -294,9 +312,6 @@ class TramitacaoForm(ModelForm):
             data_prazo_form = cleaned_data['data_fim_prazo']
         if 'data_tramitacao' in cleaned_data:
             data_tram_form = cleaned_data['data_tramitacao']
-
-        if self.errors:
-            return self.errors
 
         ultima_tramitacao = Tramitacao.objects.filter(
             materia_id=self.instance.materia_id).exclude(
@@ -366,6 +381,11 @@ class TramitacaoUpdateForm(TramitacaoForm):
         }
 
     def clean(self):
+        super(TramitacaoUpdateForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
         ultima_tramitacao = Tramitacao.objects.filter(
             materia_id=self.instance.materia_id).order_by(
             '-data_tramitacao',
@@ -423,8 +443,8 @@ class LegislacaoCitadaForm(ModelForm):
     def clean(self):
         super(LegislacaoCitadaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 
@@ -486,8 +506,8 @@ class NumeracaoForm(ModelForm):
     def clean(self):
         super(NumeracaoForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         try:
             MateriaLegislativa.objects.get(
@@ -531,8 +551,8 @@ class AnexadaForm(ModelForm):
     def clean(self):
         super(AnexadaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         cleaned_data = self.cleaned_data
 
@@ -724,8 +744,8 @@ class DespachoInicialForm(ModelForm):
     def clean(self):
         super(DespachoInicialForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         if DespachoInicial.objects.filter(
             materia=self.instance.materia,
@@ -769,8 +789,8 @@ class AutoriaForm(ModelForm):
     def clean(self):
         cd = super(AutoriaForm, self).clean()
 
-        if self.errors:
-            return self.errors
+        if not self.is_valid():
+            return self.cleaned_data
 
         autorias = Autoria.objects.filter(
             materia=self.instance.materia, autor=cd['autor'])
@@ -992,6 +1012,9 @@ class TipoProposicaoForm(ModelForm):
     def clean(self):
         super(TipoProposicaoForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         cd = self.cleaned_data
 
         content_type = cd['content_type']
@@ -1136,7 +1159,7 @@ class ProposicaoForm(forms.ModelForm):
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
             'tipo': TipoProposicaoSelect(),
-            'hash_code': forms.HiddenInput(),}
+            'hash_code': forms.HiddenInput(), }
 
     def __init__(self, *args, **kwargs):
         self.texto_articulado_proposicao = sapl.base.models.AppConfig.attr(
@@ -1209,9 +1232,25 @@ class ProposicaoForm(forms.ModelForm):
                     "Arquivo muito grande. ( > {0}MB )".format(max_size))
             return texto_original
 
+    def gerar_hash(self, inst, receber_recibo):
+
+        inst.save()
+        if receber_recibo == True:
+            inst.hash_code = ''
+        else:
+            if inst.texto_original:
+                inst.hash_code = gerar_hash_arquivo(
+                    inst.texto_original.path, str(inst.pk))
+            elif inst.texto_articulado.exists():
+                ta = inst.texto_articulado.first()
+                # FIXME hash para textos articulados
+                inst.hash_code = 'P' + ta.hash() + '/' + str(inst.pk)
 
     def clean(self):
         super(ProposicaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cd = self.cleaned_data
 
@@ -1235,6 +1274,7 @@ class ProposicaoForm(forms.ModelForm):
     def save(self, commit=True):
         cd = self.cleaned_data
         inst = self.instance
+        receber_recibo = AppConfig.objects.last().receber_recibo_proposicao
 
         if inst.pk:
             if 'tipo_texto' in cd:
@@ -1249,6 +1289,8 @@ class ProposicaoForm(forms.ModelForm):
                             not cd['texto_original'] and \
                             inst.texto_original:
                         inst.texto_original.delete()
+            self.gerar_hash(inst, receber_recibo)
+
 
             return super().save(commit)
 
@@ -1260,13 +1302,7 @@ class ProposicaoForm(forms.ModelForm):
         inst.numero_proposicao = (
             numero__max + 1) if numero__max else 1
 
-        inst.save()
-        if cd['receber_recibo'] == 'True':
-            inst.hash_code = ''
-        else:
-            _hash = gerar_hash_arquivo(inst.texto_original.path, str(inst.pk))
-
-            inst.hash_code = _hash
+        self.gerar_hash(inst, receber_recibo)
 
         inst.save()
 
@@ -1307,6 +1343,9 @@ class DevolverProposicaoForm(forms.ModelForm):
 
     def clean(self):
         super(DevolverProposicaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         cd = self.cleaned_data
 
@@ -1490,6 +1529,9 @@ class ConfirmarProposicaoForm(ProposicaoForm):
     def clean(self):
         super(ConfirmarProposicaoForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
 
         if not numeracao:
@@ -1565,23 +1607,26 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             except AttributeError:
                 pass
 
-            tipo = proposicao.tipo.tipo_conteudo_related
+            tipo = self.instance.tipo.tipo_conteudo_related
             if tipo.sequencia_numeracao:
                 numeracao = tipo.sequencia_numeracao
-
+            ano = timezone.now().year
             if numeracao == 'A':
                 numero = MateriaLegislativa.objects.filter(
-                    ano=timezone.now().year).aggregate(Max('numero'))
+                    ano=ano, tipo=tipo).aggregate(Max('numero'))
             elif numeracao == 'L':
-                legislatura = Legislatura.objects.first()
+                legislatura = Legislatura.objects.filter(
+                    data_inicio__year__lte=ano,
+                    data_fim__year__gte=ano).first()
                 data_inicio = legislatura.data_inicio
                 data_fim = legislatura.data_fim
                 numero = MateriaLegislativa.objects.filter(
                     data_apresentacao__gte=data_inicio,
-                    data_apresentacao__lte=data_fim).aggregate(
+                    data_apresentacao__lte=data_fim,
+                    tipo=tipo).aggregate(
                     Max('numero'))
             elif numeracao == 'U':
-                numero = MateriaLegislativa.objects.all().aggregate(Max('numero'))
+                numero = MateriaLegislativa.objects.filter(tipo=tipo).aggregate(Max('numero'))
 
             if numeracao is None:
                 numero['numero__max'] = 0
@@ -1593,7 +1638,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             materia.numero = max_numero
             materia.tipo = tipo
             materia.ementa = proposicao.descricao
-            materia.ano = timezone.now().year
+            materia.ano = ano
             materia.data_apresentacao = timezone.now()
             materia.em_tramitacao = True
             materia.regime_tramitacao = cd['regime_tramitacao']
@@ -1811,6 +1856,11 @@ class EtiquetaPesquisaForm(forms.Form):
         )
 
     def clean(self):
+        super(EtiquetaPesquisaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
         cleaned_data = self.cleaned_data
 
         # Verifica se algum campo de data foi preenchido
@@ -1879,7 +1929,12 @@ class FichaPesquisaForm(forms.Form):
         )
 
     def clean(self):
-        cleaned_data = super(FichaPesquisaForm, self).clean()
+        super(FichaPesquisaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
 
         if not self.is_valid():
             return cleaned_data

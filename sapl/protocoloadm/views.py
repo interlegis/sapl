@@ -1,5 +1,4 @@
 
-import sapl
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -15,6 +14,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
+
+import sapl
 from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
@@ -92,9 +93,7 @@ class DocumentoAdministrativoCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'pesq_doc_adm'))
 
-        @property
-        def list_url(self):
-            return ''
+        list_url = ''
 
     class ListView(RedirectView, DocumentoAdministrativoMixin, Crud.ListView):
 
@@ -277,8 +276,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
                        kwargs={'pk': self.object.id})
 
     def form_valid(self, form):
-        f = form.save(commit=False)
-
+        protocolo = form.save(commit=False)
         try:
             numeracao = sapl.base.models.AppConfig.objects.last(
             ).sequencia_numeracao
@@ -292,26 +290,29 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             numero = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
-            legislatura = Legislatura.objects.first()
+            legislatura = Legislatura.objects.filter(
+                data_inicio__year__lte=timezone.now().year,
+                data_fim__year__gte=timezone.now().year).first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
             numero = Protocolo.objects.filter(
-                data__gte=data_inicio, data__lte=data_fim).aggregate(
-                    Max('numero'))
+                data__gte=data_inicio,
+                data__lte=data_fim).aggregate(
+                Max('numero'))
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
-        f.tipo_processo = '0'  # TODO validar o significado
-        f.anulado = False
-        f.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
-        f.ano = timezone.now().year
-        f.data = timezone.now()
-        f.hora = timezone.now().time()
-        f.timestamp = timezone.now()
-        f.assunto_ementa = self.request.POST['assunto']
+        protocolo.tipo_processo = '0'  # TODO validar o significado
+        protocolo.anulado = False
+        protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+        protocolo.ano = timezone.now().year
+        protocolo.data = timezone.now()
+        protocolo.hora = timezone.now().time()
+        protocolo.timestamp = timezone.now()
+        protocolo.assunto_ementa = self.request.POST['assunto']
 
-        f.save()
-        self.object = f
+        protocolo.save()
+        self.object = protocolo
         return redirect(self.get_success_url())
 
 
@@ -414,7 +415,6 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             'pk': protocolo.pk})
 
     def form_valid(self, form):
-
         try:
             numeracao = sapl.base.models.AppConfig.objects.last(
             ).sequencia_numeracao
@@ -424,22 +424,19 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             messages.add_message(self.request, messages.ERROR, msg)
             return self.render_to_response(self.get_context_data())
 
-        # Se TipoMateriaLegislativa tem sequencia própria,
-        # então sobreescreve a sequência global
-        tipo = form.cleaned_data['tipo_materia']
-        if tipo.sequencia_numeracao:
-            numeracao = tipo.sequencia_numeracao
-
         if numeracao == 'A':
             numero = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))
         elif numeracao == 'L':
-            legislatura = Legislatura.objects.first()
+            legislatura = Legislatura.objects.filter(
+                data_inicio__year__lte=timezone.now().year,
+                data_fim__year__gte=timezone.now().year).first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
             numero = Protocolo.objects.filter(
-                data__gte=data_inicio, data__lte=data_fim).aggregate(
-                    Max('numero'))
+                data__gte=data_inicio,
+                data__lte=data_fim).aggregate(
+                Max('numero'))
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
@@ -468,6 +465,14 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.assunto_ementa = self.request.POST['assunto_ementa']
 
         protocolo.save()
+        data = form.cleaned_data
+        if data['vincular_materia'] == 'True':
+            materia = MateriaLegislativa.objects.get(ano=data['ano_materia'],
+                                                     numero=data['numero_materia'],
+                                                     tipo=data['tipo_materia'])
+            materia.numero_protocolo = protocolo.numero
+            materia.save()
+
         return redirect(self.get_success_url(protocolo))
 
     def get_context_data(self, **kwargs):

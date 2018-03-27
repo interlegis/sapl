@@ -13,16 +13,17 @@ from django.db import models, transaction
 from django.forms import Form, ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, ChoiceWithoutValidationField,
-                        ImageThumbnailFileInput, RangeWidgetOverride,
-                        autor_label, autor_modal, models_with_gr_for_model,
-                        qs_override_django_filter)
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
+                        ChoiceWithoutValidationField, ImageThumbnailFileInput,
+                        RangeWidgetOverride, autor_label, autor_modal,
+                        models_with_gr_for_model, qs_override_django_filter)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -39,6 +40,113 @@ STATUS_USER_CHOICE = [
             ' desvinculado')),
     ('X', _('Excluir Usuário')),
 ]
+
+
+def get_roles():
+    return [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+
+
+class UsuarioCreateForm(ModelForm):
+
+    username = forms.CharField(required=True, label="Nome de usuário")
+    firstname = forms.CharField(required=True, label="Nome")
+    lastname = forms.CharField(required=True, label="Sobrenome")
+    password1 = forms.CharField(required=True, widget=forms.PasswordInput, label='Senha')
+    password2 = forms.CharField(required=True, widget=forms.PasswordInput, label='Confirmar senha')
+    user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES,
+                                    label="Usuário ativo?", initial='True')
+
+    #ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+
+    roles = forms.MultipleChoiceField(
+        required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
+
+    class Meta:
+        model = get_user_model()
+        fields = ['username', 'firstname', 'lastname', 'email',
+                  'password1', 'password2', 'user_active', 'roles']
+
+    def clean(self):
+        super(UsuarioCreateForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data = self.cleaned_data
+        if data['password1'] != data['password2']:
+            raise ValidationError('Senhas informadas são diferentes')
+
+    def __init__(self, *args, **kwargs):
+
+        super(UsuarioCreateForm, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('username', 12)])
+
+        row1 = to_row([('firstname', 6),
+                       ('lastname', 6)])
+
+        row2 = to_row([('email', 6),
+                       ('user_active', 6)])
+        row3 = to_row(
+            [('password1', 6),
+             ('password2', 6)])
+
+        row4 = to_row([(form_actions(label='Confirmar'), 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            row0,
+            row1,
+            row3,
+            row2,
+            'roles',
+            row4)
+
+
+class UsuarioEditForm(ModelForm):
+    # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+
+    ROLES = []
+
+    password1 = forms.CharField(required=False, widget=forms.PasswordInput, label='Senha')
+    password2 = forms.CharField(required=False, widget=forms.PasswordInput, label='Confirmar senha')
+    user_active = forms.ChoiceField(choices=YES_NO_CHOICES, required=True,
+                                    label="Usuário ativo?", initial='True')
+    roles = forms.MultipleChoiceField(
+        required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
+
+    class Meta:
+        model = get_user_model()
+        fields = ['email', 'password1', 'password2', 'user_active', 'roles']
+
+    def __init__(self, *args, **kwargs):
+
+        super(UsuarioEditForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('email', 6),
+                       ('user_active', 6)])
+        row2 = to_row(
+            [('password1', 6),
+             ('password2', 6)])
+
+        row3 = to_row([(form_actions(label='Salvar Alterações'), 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            row1,
+            row2,
+            'roles',
+            row3)
+
+    def clean(self):
+        super(UsuarioEditForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data = self.cleaned_data
+        if data['password1'] and data['password1'] != data['password2']:
+            raise ValidationError('Senhas informadas são diferentes')
 
 
 class TipoAutorForm(ModelForm):
@@ -205,6 +313,9 @@ class AutorForm(ModelForm):
 
     def clean(self):
         super(AutorForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         User = get_user_model()
         cd = self.cleaned_data
@@ -466,7 +577,47 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Histórico de Tramita'),
+            Fieldset(_('Histórico de Tramitação'),
+                     row1, row2,
+                     form_actions(label='Pesquisar'))
+        )
+
+
+class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
+
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'widget': RangeWidgetOverride}
+    }}
+
+    @property
+    def qs(self):
+        parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
+        return parent.distinct().order_by('-ano', 'tipo', 'numero')
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
+                  'tramitacao__status', 'tramitacao__data_fim_prazo']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioDataFimPrazoTramitacaoFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+
+        row1 = to_row([('tramitacao__data_fim_prazo', 12)])
+        row2 = to_row(
+            [('tipo', 4),
+             ('tramitacao__unidade_tramitacao_local', 4),
+             ('tramitacao__status', 4)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Tramitações por fim de prazo'),
                      row1, row2,
                      form_actions(label='Pesquisar'))
         )
@@ -686,6 +837,9 @@ class RecuperarSenhaForm(PasswordResetForm):
     def clean(self):
         super(RecuperarSenhaForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         email_existente = User.objects.filter(
             email=self.data['email']).exists()
 
@@ -746,6 +900,9 @@ class AlterarSenhaForm(Form):
 
     def clean(self):
         super(AlterarSenhaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
 
         data = self.cleaned_data
 

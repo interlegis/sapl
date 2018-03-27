@@ -3,9 +3,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
+from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
+                                   Participacao, Reuniao)
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
 
@@ -15,6 +18,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
     class Meta:
         model = Participacao
+        fields = '__all__'
         exclude = ['composicao']
 
     def __init__(self, user=None, **kwargs):
@@ -48,6 +52,21 @@ class ParticipacaoCreateForm(forms.ModelForm):
             qs = Parlamentar.objects.filter(id__in=ids)
             self.fields['parlamentar'].queryset = qs
 
+
+    def clean(self):
+        cleaned_data = super(ParticipacaoCreateForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
+        composicao = Composicao.objects.get(id=self.initial['parent_pk'])
+        cargos_unicos = [c.cargo.nome for c in composicao.participacao_set.filter(cargo__unico=True)]
+
+        if cleaned_data['cargo'].nome in cargos_unicos:
+            msg = _('Este cargo é único para esta Comissão.')
+            raise ValidationError(msg)
+
+
     def create_participacao(self):
         composicao = Composicao.objects.get(id=self.initial['parent_pk'])
         data_inicio_comissao = composicao.periodo.data_inicio
@@ -61,15 +80,12 @@ class ParticipacaoCreateForm(forms.ModelForm):
         qs = q1 | q2 | q3
         return qs
 
-    def clean(self):
-        super(ParticipacaoCreateForm, self).clean()
-        return self.cleaned_data
-
     def verifica(self):
         composicao = Composicao.objects.get(id=self.initial['parent_pk'])
         participantes = composicao.participacao_set.all()
         participantes_id = [p.parlamentar.id for p in participantes]
-        parlamentares = Parlamentar.objects.all().exclude(id__in=participantes_id).order_by('nome_completo')
+        parlamentares = Parlamentar.objects.all().exclude(
+            id__in=participantes_id).order_by('nome_completo')
         parlamentares = [p for p in parlamentares if p.ativo]
 
         lista = []
@@ -121,6 +137,9 @@ class ComissaoForm(forms.ModelForm):
     def clean(self):
         super(ComissaoForm, self).clean()
 
+        if not self.is_valid():
+            return self.cleaned_data
+
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
                     self.cleaned_data['data_criacao']):
@@ -142,3 +161,62 @@ class ComissaoForm(forms.ModelForm):
             nome=nome
         )
         return comissao
+
+
+class ReuniaoForm(ModelForm):
+
+    comissao = forms.ModelChoiceField(queryset=Comissao.objects.all(),
+                                      widget=forms.HiddenInput())
+
+    class Meta:
+        model = Reuniao
+        exclude = ['cod_andamento_reuniao']
+
+    def clean(self):
+        super(ReuniaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if self.cleaned_data['hora_fim']:
+            if (self.cleaned_data['hora_fim'] <
+                    self.cleaned_data['hora_inicio']):
+                msg = _('A hora de término da reunião não pode ser menor que a de início')
+                raise ValidationError(msg)
+        return self.cleaned_data
+
+class DocumentoAcessorioCreateForm(forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
+
+    class Meta:
+        model = DocumentoAcessorio
+        exclude = ['reuniao']
+
+    def __init__(self, user=None, **kwargs):
+        super(DocumentoAcessorioCreateForm, self).__init__(**kwargs)
+
+        if self.instance:
+            reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+            comissao = reuniao.comissao
+            comissao_pk = comissao.id
+            documentos = reuniao.documentoacessorio_set.all()
+            return self.create_documentoacessorio()
+
+
+    def create_documentoacessorio(self):
+        reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+
+
+class DocumentoAcessorioEditForm(forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
+
+    class Meta:
+        model = DocumentoAcessorio
+        fields = ['nome', 'data', 'autor', 'ementa',
+                  'indexacao', 'arquivo']
+
+    def __init__(self, user=None, **kwargs):
+        super(DocumentoAcessorioEditForm, self).__init__(**kwargs)
+

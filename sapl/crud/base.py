@@ -23,6 +23,7 @@ from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
+
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
@@ -935,6 +936,9 @@ class CrudAux(Crud):
         criar essa permissão apenas para o perfil Operador Geral.
     """
     permission_required = ('base.view_tabelas_auxiliares',)
+
+    class ListView(Crud.ListView):
+        template_name = "crud/list_tabaux.html"
 
     class BaseMixin(Crud.BaseMixin):
         subnav_template_name = None
