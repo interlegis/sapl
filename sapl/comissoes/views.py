@@ -13,8 +13,8 @@ from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud,
                            CrudAux, MasterDetailCrud,
                            PermissionRequiredForAppCrudMixin)
-from sapl.comissoes.forms import (ComissaoForm, DocumentoAcessorioCreateForm, 
-                                  DocumentoAcessorioEditForm, ParticipacaoCreateForm, 
+from sapl.comissoes.forms import (ComissaoForm,ComposicaoForm, DocumentoAcessorioCreateForm,
+                                  DocumentoAcessorioEditForm, ParticipacaoCreateForm,
                                   ParticipacaoEditForm, ReuniaoForm)
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
@@ -80,6 +80,10 @@ class ComposicaoCrud(MasterDetailCrud):
     parent_field = 'comissao'
     model_set = 'participacao_set'
     public = [RP_LIST, RP_DETAIL, ]
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ComposicaoForm
+
 
     class ListView(MasterDetailCrud.ListView):
         template_name = "comissoes/composicao_list.html"
@@ -176,7 +180,7 @@ class ReuniaoCrud(MasterDetailCrud):
             context = super().get_context_data(**kwargs)
 
             reuniao_pk = self.take_reuniao_pk()
-            
+
             if reuniao_pk == 0:
                 ultima_reuniao = list(context['reuniao_list'])
                 if len(ultima_reuniao) > 0:
