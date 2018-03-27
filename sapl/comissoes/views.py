@@ -127,6 +127,12 @@ class ComissaoCrud(Crud):
         def form_valid(self, form):
             return super(Crud.CreateView, self).form_valid(form)
 
+    class UpdateView(Crud.UpdateView):
+        form_class = ComissaoForm
+
+        def form_valid(self, form):
+            return super(Crud.UpdateView, self).form_valid(form)
+
 
 class MateriasTramitacaoListView(ListView):
     template_name = "comissoes/materias_em_tramitacao.html"
