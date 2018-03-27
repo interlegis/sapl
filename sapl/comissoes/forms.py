@@ -11,6 +11,33 @@ from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
                                    Participacao, Reuniao)
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
+class ComposicaoForm(forms.ModelForm):
+
+    class Meta:
+        model = Composicao
+        exclude = []
+
+    def clean(self):
+        cleaned_data = super(ComposicaoForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
+        periodo = cleaned_data['periodo']
+        comissao_pk = cleaned_data['comissao'].id
+        intersecao_periodo = Composicao.objects.filter(
+            Q(periodo__data_inicio__lte=periodo.data_fim,
+                periodo__data_fim__gte=periodo.data_fim) |
+            Q(periodo__data_inicio__gte=periodo.data_inicio,
+                periodo__data_fim__lte=periodo.data_inicio),
+            comissao_id=comissao_pk)
+
+        if intersecao_periodo:
+            raise ValidationError('O período informado '
+                                  'choca com períodos já '
+                                  'cadastrados para esta comissão')
+
+        return cleaned_data
 
 class ParticipacaoCreateForm(forms.ModelForm):
 
@@ -219,4 +246,3 @@ class DocumentoAcessorioEditForm(forms.ModelForm):
 
     def __init__(self, user=None, **kwargs):
         super(DocumentoAcessorioEditForm, self).__init__(**kwargs)
-
