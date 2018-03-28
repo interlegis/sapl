@@ -28,7 +28,7 @@
         ul, li {
           list-style-type: none;
         }
-        #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao, #orador {
+        #date, #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao, #orador {
           font-family: Verdana;
         }
       }
@@ -62,7 +62,14 @@
 
     <h2><font color="red"><p align="center"><span id="message"></span></p></font></h2>
 
-    <h2><font color="white"><p align="center"><span id="relogio"></span></p></font></h2>
+    <table style="width:90%">
+      <tr>
+        <td style="text-align:center"><font color="white" size="6"><span id="date"></span></font></td>
+
+        <td style="text-align:center"><font color="white" size="6"><span id="relogio"></span></font></td>
+      </tr>
+    </table>
+
 
     <div class="row container-detail clearfix">
       <div class="row-fluid">
@@ -132,7 +139,11 @@
   </body>
 
   <script type="text/javascript">
-     $(document).ready(function() {
+    var d = new Date();
+    var n = d.toLocaleDateString();
+    document.getElementById("date").innerHTML = n;
+
+      $(document).ready(function() {
          //TODO: replace by a fancy jQuery clock
          function checkTime(i) {
              if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
@@ -269,7 +280,6 @@
 
               if (data['materia_legislativa_texto']){
 
-                //console.debug(presentes_ordem_dia)
                 var votacao = $("#votacao")
 
                 var num_presentes = data["num_presentes"];
@@ -366,11 +376,14 @@
               console.error(err);
            },
            dataType: "json",
-           complete: setTimeout(function() {poll()}, 500),
+           complete: setTimeout(function() {poll()}, 3000),
            timeout: 20000 // TODO: decrease
         })
       })();
-     });
+
+
+
+      });
 
      function show_voto(voto) {
       if (voto == "Sim"){
