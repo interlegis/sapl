@@ -1444,22 +1444,24 @@ class ExpedienteView(FormMixin, DetailView):
             list_conteudo = request.POST.getlist('conteudo')
 
             for tipo, conteudo in zip(list_tipo, list_conteudo):
-                try:
-                    ExpedienteSessao.objects.get(
-                        sessao_plenaria_id=self.object.id,
-                        tipo_id=tipo
-                    ).delete()
-                except:
-                    pass
+
+                ExpedienteSessao.objects.filter(
+                      sessao_plenaria_id=self.object.id,
+                      tipo_id=tipo).delete()
 
                 expediente = ExpedienteSessao()
                 expediente.sessao_plenaria_id = self.object.id
                 expediente.tipo_id = tipo
                 expediente.conteudo = conteudo
                 expediente.save()
+
+                msg = _('Registro salvo com sucesso')
+                messages.add_message(self.request, messages.SUCCESS, msg)
             return self.form_valid(form)
         else:
-            return self.form_valid(form)
+            msg = _('Erro ao salvar registro')
+            messages.add_message(self.request, messages.SUCCESS, msg)
+            return self.form_invalid(form)
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
