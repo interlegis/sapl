@@ -161,6 +161,19 @@ class ComissaoForm(forms.ModelForm):
         model = Comissao
         fields = '__all__'
 
+    def __init__(self, user=None, **kwargs):
+        super(ComissaoForm, self).__init__(**kwargs)
+        inst = self.instance
+        if inst.pk:
+            if inst.tipo.natureza == 'P':
+                self.fields['apelido_temp'].widget.attrs['disabled'] = 'disabled'
+                self.fields['data_instalacao_temp'].widget.attrs['disabled'] = 'disabled'
+                self.fields['data_final_prevista_temp'].widget.attrs['disabled'] = 'disabled'
+                self.fields['data_prorrogada_temp'].widget.attrs['disabled'] = 'disabled'
+                self.fields['data_fim_comissao'].widget.attrs['disabled'] = 'disabled'
+
+
+
     def clean(self):
         super(ComissaoForm, self).clean()
 
@@ -176,18 +189,23 @@ class ComissaoForm(forms.ModelForm):
 
     @transaction.atomic
     def save(self, commit=True):
-        comissao = super(ComissaoForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Comissao)
-        object_id = comissao.pk
-        tipo = TipoAutor.objects.get(descricao__icontains='Comiss')
-        nome = comissao.sigla + ' - ' + comissao.nome
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=nome
-        )
-        return comissao
+        inst = self.instance
+        if not inst.pk:
+            comissao = super(ComissaoForm, self).save(commit)
+            content_type = ContentType.objects.get_for_model(Comissao)
+            object_id = comissao.pk
+            tipo = TipoAutor.objects.get(descricao__icontains='Comiss')
+            nome = comissao.sigla + ' - ' + comissao.nome
+            Autor.objects.create(
+                content_type=content_type,
+                object_id=object_id,
+                tipo=tipo,
+                nome=nome
+            )
+            return comissao
+        else:
+            comissao = super(ComissaoForm, self).save(commit)
+            return comissao
 
 
 class ReuniaoForm(ModelForm):
