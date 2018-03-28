@@ -627,7 +627,7 @@ class DocumentoAdministrativoForm(ModelForm):
 
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
-
+        import ipdb; ipdb.set_trace()
         if not self.is_valid():
             return self.cleaned_data
 
@@ -638,6 +638,14 @@ class DocumentoAdministrativoForm(ModelForm):
 
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
+        numero_documento = self.cleaned_data['numero']
+        tipo_documento = self.data['tipo']
+
+        documento = DocumentoAdministrativo.objects.filter(numero=numero_documento,
+                                               tipo=tipo_documento)
+
+        if documento:
+            raise ValidationError('Documento já existente')
 
         # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
