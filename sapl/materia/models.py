@@ -40,9 +40,6 @@ class TipoProposicao(models.Model):
         error_messages={
             'unique': _('Já existe um Tipo de Proposição com esta descrição.')
         })
-
-    # FIXME - para a rotina de migração - estes campos mudaram
-    # retire o comentário quando resolver
     content_type = models.ForeignKey(ContentType, default=None,
                                      on_delete=models.PROTECT,
                                      verbose_name=_('Definição de Tipo'))
@@ -378,9 +375,6 @@ class AssuntoMateria(models.Model):
 
 @reversion.register()
 class DespachoInicial(models.Model):
-    # TODO M2M?
-    # TODO Despachos não são necessáriamente comissoes, podem ser outros
-    #  órgãos, ex: procuradorias
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     comissao = models.ForeignKey(Comissao, on_delete=models.CASCADE)
 

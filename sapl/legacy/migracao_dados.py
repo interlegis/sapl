@@ -4,6 +4,7 @@ from collections import OrderedDict, defaultdict
 from datetime import date
 from functools import lru_cache, partial
 from itertools import groupby
+from operator import xor
 from subprocess import PIPE, call
 
 import pkg_resources
@@ -70,8 +71,6 @@ for a1, s1 in name_sets:
             else:
                 assert not s1.intersection(s2)
 
-legacy_app = apps.get_app_config('legacy')
-
 
 # RENAMES ###################################################################
 
@@ -110,6 +109,21 @@ def get_renames():
 
     return field_renames, model_renames
 
+
+field_renames, model_renames = get_renames()
+legacy_app = apps.get_app_config('legacy')
+models_novos_para_antigos = {
+    model: legacy_app.get_model(model_renames.get(model, model.__name__))
+    for model in field_renames}
+models_novos_para_antigos[Composicao] = models_novos_para_antigos[Participacao]
+
+
+campos_novos_para_antigos = {
+    model._meta.get_field(nome_novo): nome_antigo
+    for model, renames in field_renames.items()
+    for nome_novo, nome_antigo in renames.items()}
+
+
 # MIGRATION #################################################################
 
 
@@ -124,22 +138,40 @@ def warn(tipo, msg, dados):
     print('CUIDADO! ' + msg.format(**dados))
 
 
+@lru_cache()
+def get_pk_legado(tabela):
+    res = exec_legado(
+        'show index from {} WHERE Key_name = "PRIMARY"'.format(tabela))
+    return [r[4] for r in res]
+
+
+@lru_cache()
+def get_estrutura_legado(model):
+    model_legado = models_novos_para_antigos[model]
+    tabela_legado = model_legado._meta.db_table
+    campos_pk_legado = get_pk_legado(tabela_legado)
+    return model_legado, tabela_legado, campos_pk_legado
+
+
 class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
 
-    def __init__(self, field, value, label):
+    def __init__(self, field, valor, old):
         self.field = field
-        self.value = value
-        self.label = label
+        self.valor = valor
+        self.old = old
 
-    msg = 'FK [{field}] não encontrada para o valor {value} (em {model} / {label})'  # noqa
+    msg = 'FK não encontrada para [{campo} = {valor}] (em {tabela} / pk = {pk})'  # noqa
 
     @property
     def dados(self):
-        return OrderedDict((('field', self.field.name),
-                            ('value', self.value),
-                            ('model', self.field.model.__name__),
-                            ('label', self.label)))
+        campo = campos_novos_para_antigos[self.field]
+        _, tabela, campos_pk = get_estrutura_legado(self.field.model)
+        pk = {c: getattr(self.old, c) for c in campos_pk}
+        return OrderedDict((('campo', campo),
+                            ('valor', self.valor),
+                            ('tabela', tabela),
+                            ('pk', pk)))
 
 
 @lru_cache()
@@ -148,18 +180,17 @@ def _get_all_ids_from_model(model):
     return set(model.objects.values_list('id', flat=True))
 
 
-def get_fk_related(field, value, label={}):
-    if value is None and field.null:
+def get_fk_related(field, old, old_field_name):
+    valor = getattr(old, old_field_name)
+    if valor is None and field.null:
         return None
-
-    # if field.related_model.objects.filter(id=value).exists():
-    if value in _get_all_ids_from_model(field.related_model):
-        return value
-    elif value == 0 and field.null:
+    if valor in _get_all_ids_from_model(field.related_model):
+        return valor
+    elif valor == 0 and field.null:
         # consideramos zeros como nulos, se não está entre os ids anteriores
         return None
     else:
-        raise ForeignKeyFaltando(field=field, value=value, label=label)
+        raise ForeignKeyFaltando(field=field, valor=valor, old=old)
 
 
 def exec_sql(sql, db='default'):
@@ -559,9 +590,16 @@ class Record:
 
 
 def iter_sql_records(tabela):
-    sql = 'select * from ' + tabela
-    if existe_coluna_no_legado(tabela, 'ind_excluido'):
-        sql += ' where ind_excluido != 1'
+    if tabela == 'despacho_inicial':
+        sql = ''' select cod_materia, cod_comissao from despacho_inicial
+        where ind_excluido <> 1
+        group by cod_materia, cod_comissao
+        order by cod_materia, min(num_ordem)
+        '''
+    else:
+        sql = 'select * from ' + tabela
+        if existe_coluna_no_legado(tabela, 'ind_excluido'):
+            sql += ' where ind_excluido <> 1'
     cursor = exec_legado(sql)
     fieldnames = [name[0] for name in cursor.description]
     for row in cursor.fetchall():
@@ -631,12 +669,6 @@ def reinicia_sequence(model, id):
         sequence_name, id))
 
 
-def get_pk_legado(tabela):
-    res = exec_legado(
-        'show index from {} WHERE Key_name = "PRIMARY"'.format(tabela))
-    return [r[4] for r in res]
-
-
 DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
 PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
 DIR_RESULTADOS = DIR_DADOS_MIGRACAO.child('resultados')
@@ -650,7 +682,6 @@ yaml.add_representer(OrderedDict, dict_representer)
 class DataMigrator:
 
     def __init__(self):
-        self.field_renames, self.model_renames = get_renames()
         self.choice_valida = {}
 
         # configura timezone de migração
@@ -665,22 +696,20 @@ class DataMigrator:
         else:
             self.timezone = get_timezone(municipio, uf)
 
-    def populate_renamed_fields(self, new, old, campos_pk_legado):
-        renames = self.field_renames[type(new)]
+    def populate_renamed_fields(self, new, old):
+        renames = field_renames[type(new)]
 
         for field in new._meta.fields:
             old_field_name = renames.get(field.name)
-            field_type = field.get_internal_type()
             if old_field_name:
-                old_value = getattr(old, old_field_name)
+                field_type = field.get_internal_type()
 
                 if field_type == 'ForeignKey':
-                    label = {c: getattr(old, c) for c in campos_pk_legado}
                     fk_field_name = '{}_id'.format(field.name)
-                    value = get_fk_related(field, old_value, label)
+                    value = get_fk_related(field, old, old_field_name)
                     setattr(new, fk_field_name, value)
                 else:
-                    value = old_value
+                    value = getattr(old, old_field_name)
 
                     if (field_type in ['CharField', 'TextField']
                             and value in [None, 'None']):
@@ -733,6 +762,7 @@ class DataMigrator:
             self._do_migrate(obj)
         except Exception as e:
             ocorrencias['traceback'] = str(traceback.format_exc())
+            raise e
         finally:
             # grava ocorrências
             arq_ocorrencias = dir_ocorrencias.child(
@@ -748,7 +778,7 @@ class DataMigrator:
     def _do_migrate(self, obj):
         if isinstance(obj, AppConfig):
             models = [model for model in obj.models.values()
-                      if model in self.field_renames]
+                      if model in field_renames]
 
             if obj.label == 'materia':
                 # Devido à referência TipoProposicao.tipo_conteudo_related
@@ -775,10 +805,8 @@ class DataMigrator:
     def migrate_model(self, model):
         print('Migrando %s...' % model.__name__)
 
-        nome_model = self.model_renames.get(model, model.__name__)
-        model_legado = legacy_app.get_model(nome_model)
-        tabela_legado = model_legado._meta.db_table
-        campos_pk_legado = get_pk_legado(tabela_legado)
+        model_legado, tabela_legado, campos_pk_legado = \
+            get_estrutura_legado(model)
 
         if len(campos_pk_legado) == 1:
             # a pk no legado tem um único campo
@@ -808,7 +836,7 @@ class DataMigrator:
             for old in old_records:
                 new = model()
                 try:
-                    self.populate_renamed_fields(new, old, campos_pk_legado)
+                    self.populate_renamed_fields(new, old)
                     if ajuste_antes_salvar:
                         ajuste_antes_salvar(new, old)
                 except ForeignKeyFaltando as e:
@@ -833,7 +861,9 @@ class DataMigrator:
                             for campo in campos_pk_legado))
 
             # salva novos registros
-            model.objects.bulk_create(novos)
+            with reversion.create_revision():
+                model.objects.bulk_create(novos)
+                reversion.set_comment('Objetos criados pela migração')
 
             if ajuste_depois_salvar:
                 ajuste_depois_salvar()
@@ -962,23 +992,14 @@ def adjust_parlamentar(new, old):
 
 
 def adjust_participacao(new, old):
-    composicao = Composicao()
-    composicao.comissao_id, composicao.periodo_id = [
-        get_fk_related(Composicao._meta.get_field(name),
-                       value,
-                       {'composicao_comissao.cod_comp_comissao': old.pk})
-        for name, value in (('comissao', old.cod_comissao),
-                            ('periodo', old.cod_periodo_comp))]
-    # check if there is already an "equal" one in the db
-    already_created = Composicao.objects.filter(
-        comissao=composicao.comissao, periodo=composicao.periodo)
-    if already_created:
-        assert len(already_created) == 1  # we must never have made 2 copies
-        [composicao] = already_created
-    else:
-        with reversion.create_revision():
-            composicao.save()
-            reversion.set_comment('Objeto criado pela migração')
+    comissao_id, periodo_id = [
+        get_fk_related(Composicao._meta.get_field(name), old, old_field_name)
+        for name, old_field_name in (('comissao', 'cod_comissao'),
+                                     ('periodo', 'cod_periodo_comp'))]
+    with reversion.create_revision():
+        composicao, _ = Composicao.objects.get_or_create(
+            comissao_id=comissao_id, periodo_id=periodo_id)
+        reversion.set_comment('Objeto criado pela migração')
     new.composicao = composicao
 
 
@@ -988,9 +1009,8 @@ def adjust_proposicao_antes_salvar(new, old):
 
 
 def adjust_normarelacionada(new, old):
-    tipo = TipoVinculoNormaJuridica.objects.filter(sigla=old.tip_vinculo)
-    assert len(tipo) == 1
-    new.tipo_vinculo = tipo[0]
+    new.tipo_vinculo = TipoVinculoNormaJuridica.objects.get(
+        sigla=old.tip_vinculo)
 
 
 def adjust_protocolo_antes_salvar(new, old):
@@ -1015,8 +1035,11 @@ def adjust_registrovotacao_antes_salvar(new, old):
 
 
 def adjust_tipoafastamento(new, old):
-    if old.ind_afastamento == 1:
+    assert xor(old.ind_afastamento, old.ind_fim_mandato)
+    if old.ind_afastamento:
         new.indicador = 'A'
+    elif old.ind_fim_mandato:
+        new.indicador = 'F'
 
 
 MODEL_TIPO_MATERIA_OU_DOCUMENTO = {'M': TipoMateriaLegislativa,

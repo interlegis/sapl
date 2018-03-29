@@ -58,9 +58,8 @@ AssuntoMateria:
   dispositivo: des_dispositivo
 
 DespachoInicial:
-  comissao: cod_comissao
   materia: cod_materia
-  numero_ordem: num_ordem
+  comissao: cod_comissao
 
 TipoDocumento:
   descricao: des_tipo_documento
@@ -112,10 +111,6 @@ Parecer:
 
 TipoProposicao:
   descricao: des_tipo_proposicao
-  materia_ou_documento: ind_mat_ou_doc
-  modelo: nom_modelo
-  tipo_documento:
-  tipo_materia:
 
 Proposicao:
   autor: cod_autor
@@ -124,7 +119,7 @@ Proposicao:
   data_recebimento: dat_recebimento
   descricao: txt_descricao
   justificativa_devolucao: txt_justif_devolucao
-  materia: cod_mat_ou_doc
+  materia_de_vinculo: cod_materia
   numero_proposicao: num_proposicao
   tipo: tip_proposicao
 
