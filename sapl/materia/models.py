@@ -686,16 +686,12 @@ class Proposicao(models.Model):
     texto_articulado = GenericRelation(
         TextoArticulado, related_query_name='texto_articulado')
 
-    # FIXME - para a rotina de migração - este campo mudou
-    # retire o comentário quando resolver
     materia_de_vinculo = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
         on_delete=models.CASCADE,
         verbose_name=_('Matéria anexadora'),
         related_name=_('proposicao_set'))
 
-    # FIXME - para a rotina de migração - estes campos mudaram
-    # retire o comentário quando resolver
     content_type = models.ForeignKey(
         ContentType, default=None, blank=True, null=True,
         verbose_name=_('Tipo de Material Gerado'))
