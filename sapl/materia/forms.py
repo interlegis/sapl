@@ -208,7 +208,7 @@ class MateriaLegislativaForm(ModelForm):
             autoria.materia = materia
             autoria.autor = self.cleaned_data['autor']
             autoria.save()
-            
+
         return materia
 
 class UnidadeTramitacaoForm(ModelForm):
