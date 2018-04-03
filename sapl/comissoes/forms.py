@@ -47,6 +47,10 @@ class PeriodoForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(PeriodoForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
         data_inicio = cleaned_data['data_inicio']
         data_fim = cleaned_data['data_fim']
 
