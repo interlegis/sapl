@@ -30,7 +30,7 @@ from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import (AssuntoMateria, MateriaAssunto,
+from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  MateriaLegislativa, Orgao, RegimeTramitacao,
                                  TipoDocumento, TipoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
@@ -162,6 +162,11 @@ class MateriaSimplificadaForm(ModelForm):
 
 class MateriaLegislativaForm(ModelForm):
 
+    autor = forms.ModelChoiceField(required=False,
+                                   empty_label='------',
+                                   queryset=Autor.objects.all()
+                                   )
+
     class Meta:
         model = MateriaLegislativa
         exclude = ['texto_articulado', 'autores', 'proposicao',
@@ -193,6 +198,18 @@ class MateriaLegislativaForm(ModelForm):
 
         return cleaned_data
 
+    def save(self, commit=False):
+        materia = super(MateriaLegislativaForm, self).save(commit)
+        materia.save()
+
+        if self.cleaned_data['autor']:
+            autoria = Autoria()
+            autoria.primeiro_autor = True
+            autoria.materia = materia
+            autoria.autor = self.cleaned_data['autor']
+            autoria.save()
+
+        return materia
 
 class UnidadeTramitacaoForm(ModelForm):
 
