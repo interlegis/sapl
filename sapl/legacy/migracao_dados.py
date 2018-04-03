@@ -131,14 +131,25 @@ for nome_novo, nome_antigo in (('comissao', 'cod_comissao'),
         Composicao._meta.get_field(nome_novo)] = nome_antigo
 
 
-# campos virtuais de Proposicao para funcionarem com get_fk_related
-CampoFalso = namedtuple('CampoFalso', ['model', 'related_model'])
-CAMPOS_FALSOS_PROPOSICAO = {
-    TipoMateriaLegislativa: CampoFalso(Proposicao, MateriaLegislativa),
-    TipoDocumento: CampoFalso(Proposicao, DocumentoAdministrativo)
+# campos virtuais de Proposicao para funcionar com get_fk_related
+class CampoVirtual(namedtuple('CampoVirtual', 'model related_model')):
+    null = True
+
+CAMPOS_VIRTUAIS_PROPOSICAO = {
+    TipoMateriaLegislativa: CampoVirtual(Proposicao, MateriaLegislativa),
+    TipoDocumento: CampoVirtual(Proposicao, DocumentoAdministrativo)
 }
-for campo_falso in CAMPOS_FALSOS_PROPOSICAO.values():
-    campos_novos_para_antigos[campo_falso] = 'cod_mat_ou_doc'
+for campo_virtual in CAMPOS_VIRTUAIS_PROPOSICAO.values():
+    campos_novos_para_antigos[campo_virtual] = 'cod_mat_ou_doc'
+
+# campos virtuais de Autor para funcionar com get_fk_related
+CAMPOS_VIRTUAIS_AUTOR = {related: CampoVirtual(Autor, related)
+                         for related in (Parlamentar, Comissao, Partido)}
+for related, campo_antigo in [(Parlamentar, 'cod_parlamentar'),
+                              (Comissao, 'cod_comissao'),
+                              (Partido, 'cod_partido')]:
+    campo_virtual = CAMPOS_VIRTUAIS_AUTOR[related]
+    campos_novos_para_antigos[campo_virtual] = campo_antigo
 
 
 # MIGRATION #################################################################
@@ -1069,9 +1080,9 @@ def adjust_proposicao_antes_salvar(new, old):
         new.ano = new.data_envio.year
     if old.cod_mat_ou_doc:
         tipo_mat_ou_doc = type(new.tipo.tipo_conteudo_related)
-        campo_falso = CAMPOS_FALSOS_PROPOSICAO[tipo_mat_ou_doc]
-        new.content_type = content_types[campo_falso.related_model]
-        new.object_id = get_fk_related(campo_falso, old)
+        campo_virtual = CAMPOS_VIRTUAIS_PROPOSICAO[tipo_mat_ou_doc]
+        new.content_type = content_types[campo_virtual.related_model]
+        new.object_id = get_fk_related(campo_virtual, old)
 
 
 def adjust_statustramitacao(new, old):
@@ -1133,30 +1144,17 @@ def adjust_normajuridica_depois_salvar():
         for assunto in assuntos)
 
 
-def vincula_autor(new, old, model_relacionado, campo_relacionado, campo_nome):
-    pk_rel = getattr(old, campo_relacionado)
-    if pk_rel:
-        try:
-            new.autor_related = model_relacionado.objects.get(pk=pk_rel)
-        except ObjectDoesNotExist:
-            # ignoramos o autor órfão
-            nome_model_relacionado = model_relacionado._meta.model.__name__
-            raise ForeignKeyFaltando(
-                field=Autor.autor_related,
-                value=[nome_model_relacionado, pk_rel],
-                label={'cod_autor': old.pk})
-        else:
-            new.nome = getattr(new.autor_related, campo_nome)
-            return True
-
-
 def adjust_autor(new, old):
-    for args in [
-            # essa ordem é importante
-            (Parlamentar, 'cod_parlamentar', 'nome_parlamentar'),
-            (Comissao, 'cod_comissao', 'nome'),
-            (Partido, 'cod_partido', 'nome')]:
-        if vincula_autor(new, old, *args):
+    # vincula autor com o objeto relacionado, tentando os três campos antigos
+    # o primeiro campo preenchido será usado, podendo lançar ForeignKeyFaltando
+    for model_relacionado, campo_nome in [(Parlamentar, 'nome_parlamentar'),
+                                          (Comissao, 'nome'),
+                                          (Partido, 'nome')]:
+        field = CAMPOS_VIRTUAIS_AUTOR[model_relacionado]
+        fk_encontrada = get_fk_related(field, old)
+        if fk_encontrada:
+            new.autor_related = model_relacionado.objects.get(id=fk_encontrada)
+            new.nome = getattr(new.autor_related, campo_nome)
             break
 
     if old.col_username:
