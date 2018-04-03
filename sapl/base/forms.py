@@ -18,6 +18,7 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import MateriaLegislativa
+from sapl.parlamentares.models import SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -147,6 +148,35 @@ class UsuarioEditForm(ModelForm):
         data = self.cleaned_data
         if data['password1'] and data['password1'] != data['password2']:
             raise ValidationError('Senhas informadas são diferentes')
+
+class SessaoLegislativaForm(ModelForm):
+
+    class Meta:
+        model = SessaoLegislativa
+        exclude = []
+
+    def clean(self):
+        cleaned_data = super(SessaoLegislativaForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
+        data_inicio = cleaned_data['data_inicio']
+        data_fim = cleaned_data['data_fim']
+
+        if data_inicio > data_fim:
+            raise ValidationError('Data início não pode ser superior à data fim')
+
+        data_inicio_intervalo = cleaned_data['data_inicio_intervalo']
+        data_fim_intervalo = cleaned_data['data_fim_intervalo']
+
+        if data_inicio_intervalo and data_fim_intervalo and \
+            data_inicio_intervalo > data_fim_intervalo:
+                raise ValidationError('Data início de intervalo não pode ser '
+                                      'superior à data fim de intervalo')
+
+
+        return cleaned_data
 
 
 class TipoAutorForm(ModelForm):

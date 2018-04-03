@@ -17,6 +17,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
 
+from sapl.base.forms import SessaoLegislativaForm
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -35,7 +36,6 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
-SessaoLegislativaCrud = CrudAux.build(SessaoLegislativa, 'sessao_legislativa')
 TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
@@ -44,6 +44,14 @@ TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
 
+class SessaoLegislativaCrud(CrudAux):
+    model = SessaoLegislativa
+
+    class CreateView(CrudAux.CreateView):
+        form_class = SessaoLegislativaForm
+
+    class UpdateView(CrudAux.UpdateView):
+        form_class = SessaoLegislativaForm
 
 class VotanteView(MasterDetailCrud):
     model = Votante
