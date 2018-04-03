@@ -168,6 +168,10 @@ def warn(tipo, msg, dados):
 
 @lru_cache()
 def get_pk_legado(tabela):
+    if tabela == 'despacho_inicial':
+        # adaptação para deleção correta no mysql ao final de migrar_model
+        # acompanha o agrupamento de despacho_inicial feito em iter_sql_records
+        return 'cod_materia', 'cod_comissao'
     res = exec_legado(
         'show index from {} WHERE Key_name = "PRIMARY"'.format(tabela))
     return [r[4] for r in res]
