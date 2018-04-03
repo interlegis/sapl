@@ -13,9 +13,9 @@ from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud,
                            CrudAux, MasterDetailCrud,
                            PermissionRequiredForAppCrudMixin)
-from sapl.comissoes.forms import (ComissaoForm,ComposicaoForm, DocumentoAcessorioCreateForm,
+from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm, DocumentoAcessorioCreateForm,
                                   DocumentoAcessorioEditForm, ParticipacaoCreateForm,
-                                  ParticipacaoEditForm, ReuniaoForm)
+                                  ParticipacaoEditForm, ReuniaoForm, PeriodoForm)
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
 
@@ -37,12 +37,19 @@ def pegar_url_reuniao(pk):
     return url
 
 CargoCrud = CrudAux.build(CargoComissao, 'cargo_comissao')
-PeriodoComposicaoCrud = CrudAux.build(Periodo, 'periodo_composicao_comissao')
 
 TipoComissaoCrud = CrudAux.build(
     TipoComissao, 'tipo_comissao', list_field_names=[
         'sigla', 'nome', 'natureza', 'dispositivo_regimental'])
 
+class PeriodoComposicaoCrud(CrudAux):
+    model = Periodo
+
+    class CreateView(CrudAux.CreateView):
+        form_class = PeriodoForm
+
+    class UpdateView(CrudAux.UpdateView):
+        form_class = PeriodoForm
 
 class ParticipacaoCrud(MasterDetailCrud):
     model = Participacao
