@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
-                                   Participacao, Reuniao)
+                                   Participacao, Reuniao, Periodo)
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
 class ComposicaoForm(forms.ModelForm):
@@ -38,6 +38,22 @@ class ComposicaoForm(forms.ModelForm):
                                   'cadastrados para esta comissão')
 
         return cleaned_data
+
+class PeriodoForm(forms.ModelForm):
+
+    class Meta:
+        model = Periodo
+        exclude = []
+
+    def clean(self):
+        cleaned_data = super(PeriodoForm, self).clean()
+        data_inicio = cleaned_data['data_inicio']
+        data_fim = cleaned_data['data_fim']
+
+        if data_fim and data_fim < data_inicio:
+            raise ValidationError('Data início não pode ser superior a data de fim')
+        return cleaned_data
+
 
 class ParticipacaoCreateForm(forms.ModelForm):
 
