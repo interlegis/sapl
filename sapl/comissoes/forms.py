@@ -65,8 +65,9 @@ class ParticipacaoCreateForm(forms.ModelForm):
         parlamentares = Mandato.objects.filter(qs,
                                                parlamentar__ativo=True
                                                ).prefetch_related('parlamentar').\
-            values_list('parlamentar',
-                        flat=True).distinct()
+                                                values_list('parlamentar',
+                                                            flat=True
+                                                            ).distinct()
 
         qs = Parlamentar.objects.filter(id__in=parlamentares).distinct().\
             exclude(id__in=id_part)
@@ -86,12 +87,21 @@ class ParticipacaoCreateForm(forms.ModelForm):
         if not self.is_valid():
             return cleaned_data
 
+        data_designacao = cleaned_data['data_designacao']
+        data_desligamento = cleaned_data['data_desligamento']
+
+        if data_desligamento and \
+           data_designacao > data_desligamento:
+            raise ValidationError(_('Data de designação não pode ser superior '
+                                  'à data de desligamento'))
+
         composicao = Composicao.objects.get(id=self.initial['parent_pk'])
         cargos_unicos = [c.cargo.nome for c in composicao.participacao_set.filter(cargo__unico=True)]
 
         if cleaned_data['cargo'].nome in cargos_unicos:
             msg = _('Este cargo é único para esta Comissão.')
             raise ValidationError(msg)
+        return cleaned_data
 
 
     def create_participacao(self):
@@ -153,6 +163,31 @@ class ParticipacaoEditForm(forms.ModelForm):
         self.initial['nome_parlamentar'] = Parlamentar.objects.get(
             id=self.initial['parlamentar']).nome_parlamentar
         self.fields['nome_parlamentar'].widget.attrs['disabled'] = 'disabled'
+
+    def clean(self):
+        cleaned_data = super(ParticipacaoEditForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
+        data_designacao = cleaned_data['data_designacao']
+        data_desligamento = cleaned_data['data_desligamento']
+
+        if data_desligamento and \
+           data_designacao > data_desligamento:
+            raise ValidationError(_('Data de designação não pode ser superior '
+                                  'à data de desligamento'))
+
+        composicao_id = self.instance.composicao_id
+
+        composicao = Composicao.objects.get(id=composicao_id)
+        cargos_unicos = [c.cargo.nome for c in composicao.participacao_set.filter(cargo__unico=True)]
+
+        if cleaned_data['cargo'].nome in cargos_unicos:
+            msg = _('Este cargo é único para esta Comissão.')
+            raise ValidationError(msg)
+
+        return cleaned_data
 
 
 class ComissaoForm(forms.ModelForm):
