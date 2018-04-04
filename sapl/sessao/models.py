@@ -225,9 +225,9 @@ class SessaoPlenaria(models.Model):
 @reversion.register()
 class AbstractOrdemDia(models.Model):
     TIPO_VOTACAO_CHOICES = Choices(
-        (1, 'simbolica', (('Simbólica'))),
-        (2, 'nominal', (('Nominal'))),
-        (3, 'secreta', (('Secreta'))),
+        (1, 'simbolica', 'Simbólica'),
+        (2, 'nominal', 'Nominal'),
+        (3, 'secreta', 'Secreta'),
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
@@ -380,11 +380,13 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
 
 @reversion.register()
 class TipoResultadoVotacao(models.Model):
+    NATUREZA_CHOICES = Choices(
+        ('A', 'aprovado', 'Aprovado'),
+        ('R', 'rejeitado', 'Rejeitado'))
     nome = models.CharField(max_length=100, verbose_name=_('Nome do Tipo'))
-    natureza = models.CharField(max_length=100,
+    natureza = models.CharField(max_length=1,
                                 blank=True,
-                                choices=(('A', 'Aprovado'),
-                                         ('R', 'Rejeitado')),
+                                choices=NATUREZA_CHOICES,
                                 verbose_name=_('Natureza do Tipo'))
 
     class Meta:
