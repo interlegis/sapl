@@ -11,6 +11,10 @@
       <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
 
     <style type="text/css">
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
       @media screen {
         body {
           background: #1c1b1b;
@@ -18,19 +22,37 @@
         ul, li {
           list-style-type: none;
         }
+        #date, #relogio, #resultado_votacao, #blocoprincipal, #blocoerro {
+          font-family: Verdana;
+        }
       }
+        #votos
+        {
+            text-align:center;
+        }
+        #votosim, #votonao, #votoabstencao
+        {
+            display:inline;
+        }
     </style>
   </head>
-  {% if not error_message %}
-    <body>
+  <body>
+
+  {% if not error_message  %}
+    <div id="blocoprincipal" style="display:block">
       <h1><b><font color="#4FA64D"><p align="center">{{sessao}}</p></font></b></h1>
-      <table style="width:100%">
+      <table style="width:90%">
         <tr>
-          <th style="text-align:center"><font color="white" size="4">Hora Início: {{hora}}</font></th>
-          <th style="text-align:center"><font color="white" size="4">Data Início: {{data}}</font></th>
+            <td style="text-align:center"><font color="white" size="4">Data Início: {{data}}</font></td>
+            <td style="text-align:center"><font color="white" size="4">Hora Início: {{hora}}</font></td>
         </tr>
-      </table>
-      <h1><font color="white"><p align="center"><span id="relogio"></span></p></font></h1>
+
+      <tr>
+        <td style="text-align:center"><font color="white" size="6"><span id="date"></span></font></td>
+
+        <td style="text-align:center"><font color="white" size="6"><span id="relogio"></span></font></td>
+      </tr>
+    </table>
 
       </br>
       </br>
@@ -62,12 +84,14 @@
         {% csrf_token %}
         <div class="row container-detail clearfix" style="text-align:center">
           <div  class="row-fluid">
-            <div class="col-md-12">
+            <div class="col-md-12" id="votos">
+              <div id="votosim">
               <input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim"/>
-              &nbsp
-              <input type="submit" class="btn btn-lg btn-danger" id="voto" name="voto" type="submit" value="Não"/>
-              &nbsp
-              <input type="submit" class="btn btn-lg btn-secondary" id="voto" name="voto" type="submit" value="Abstenção"/>
+              &nbsp;
+              </div>
+                <div id="votonao"><input type="submit" class="btn btn-lg btn-danger" id="voto" name="voto" type="submit" value="Não"/></div>
+              &nbsp;
+                <div id="votoabstencao"><input type="submit" class="btn btn-lg btn-secondary" id="voto" name="voto" type="submit" value="Abstenção"/></div>
             </div>
             </br>
             </br>
@@ -77,20 +101,54 @@
         </div>
 
       </form>
-    </body>
+    </div>
     {% else %}
-      <h2><font color="red"><p align="center" style="font-family:Verdana">{{error_message}}</p></font></h2>
-      </br>
-      </br>
-      </br>
-      <center><button type="button" onclick="javascript:window.close()">Sair</button></center>
+      <div id="blocoerro" style="display:block">
+          <h2><font color="red"><p align="center" style="font-family:Verdana">{{error_message}}</p></font></h2>
+          </br>
+          </br>
+          </br>
+          <center><button type="button" onclick="javascript:window.close()">Sair</button></center>
+      </div>
     {% endif %}
+    </body>
 </html>
 
 <script type="text/javascript">
+  var d = new Date();
+  var n = d.toLocaleDateString();
+  document.getElementById("date").innerHTML = n;
+
+  $(window).on('beforeunload', function () {
+            $("input[type=submit], input[type=button]").prop("disabled", "disabled");
+     });
+  $( "#votosim" ).mouseleave(function(){document.location.reload(true);});
+  $( "#votonao" ).mouseleave(function(){document.location.reload(true);});
+  $( "#votoabstencao" ).mouseleave(function(){document.location.reload(true);});
   $(document).ready(
     function(){
-      setTimeout(function() {window.location.reload(true)}, 3000)
+
+      function checkTime(i) {
+             if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
+                return i;
+         }
+         function startTime() {
+             var today=new Date();
+             var h=today.getHours();
+             var m=today.getMinutes();
+             var s=today.getSeconds();
+             m = checkTime(m);
+             s = checkTime(s);
+             $("#relogio").text(h+":"+m+":"+s)
+             var t = setTimeout(function(){
+                 startTime()
+             }, 500);
+         }
+         startTime();
+
+      setTimeout(function() {
+          document.location.reload(true);
+         }, 30000)
     });
 
 </script>
