@@ -406,7 +406,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
         self.cleaned_data['unidade_tramitacao_local'] = \
             self.instance.unidade_tramitacao_local
 
-        return super(TramitacaoUpdateForm, self).clean()
+        return self.cleaned_data
 
 
 class LegislacaoCitadaForm(ModelForm):
@@ -1052,7 +1052,7 @@ class TipoProposicaoForm(ModelForm):
                        content_type,
                        unique_value.tipo_conteudo_related))"""
 
-        return super().clean()
+        return self.cleaned_data
 
     @transaction.atomic
     def save(self, commit=False):
