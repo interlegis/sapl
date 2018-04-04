@@ -9,7 +9,6 @@ TipoNormaJuridica:
 
 NormaJuridica:
   ano: ano_norma
-  assunto: cod_assunto
   complemento: ind_complemento
   data: dat_norma
   data_publicacao: dat_publicacao

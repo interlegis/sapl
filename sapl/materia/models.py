@@ -40,9 +40,6 @@ class TipoProposicao(models.Model):
         error_messages={
             'unique': _('Já existe um Tipo de Proposição com esta descrição.')
         })
-
-    # FIXME - para a rotina de migração - estes campos mudaram
-    # retire o comentário quando resolver
     content_type = models.ForeignKey(ContentType, default=None,
                                      on_delete=models.PROTECT,
                                      verbose_name=_('Definição de Tipo'))
@@ -378,9 +375,6 @@ class AssuntoMateria(models.Model):
 
 @reversion.register()
 class DespachoInicial(models.Model):
-    # TODO M2M?
-    # TODO Despachos não são necessáriamente comissoes, podem ser outros
-    #  órgãos, ex: procuradorias
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     comissao = models.ForeignKey(Comissao, on_delete=models.CASCADE)
 
@@ -692,16 +686,12 @@ class Proposicao(models.Model):
     texto_articulado = GenericRelation(
         TextoArticulado, related_query_name='texto_articulado')
 
-    # FIXME - para a rotina de migração - este campo mudou
-    # retire o comentário quando resolver
     materia_de_vinculo = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
         on_delete=models.CASCADE,
         verbose_name=_('Matéria anexadora'),
         related_name=_('proposicao_set'))
 
-    # FIXME - para a rotina de migração - estes campos mudaram
-    # retire o comentário quando resolver
     content_type = models.ForeignKey(
         ContentType, default=None, blank=True, null=True,
         verbose_name=_('Tipo de Material Gerado'))

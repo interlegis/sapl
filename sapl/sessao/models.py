@@ -436,7 +436,8 @@ class RegistroVotacao(models.Model):
         if not xor(bool(self.ordem), bool(self.expediente)):
             raise ValidationError(
                 'RegistroVotacao deve ter exatamente um dos campos '
-                'ordem ou expediente deve estar preenchido')
+                'ordem ou expediente preenchido. Ambos estão preenchidos: '
+                '{}, {}'. format(self.ordem, self.expediente))
 
 
 @reversion.register()
