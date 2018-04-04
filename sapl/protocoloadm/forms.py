@@ -248,6 +248,8 @@ class AnularProcoloAdmForm(ModelForm):
                 _("Protocolo %s/%s não pode ser removido pois existem "
                     "documentos vinculados a ele." % (numero, ano)))
 
+        return cleaned_data
+
     class Meta:
         model = Protocolo
         fields = ['numero',
@@ -587,7 +589,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         self.cleaned_data['unidade_tramitacao_local'] = \
             self.instance.unidade_tramitacao_local
 
-        return super(TramitacaoAdmEditForm, self).clean()
+        return self.cleaned_data
 
 
 class DocumentoAdministrativoForm(ModelForm):

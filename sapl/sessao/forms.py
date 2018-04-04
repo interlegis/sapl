@@ -542,3 +542,4 @@ class ResumoOrdenacaoForm(forms.Form):
                     if i > 1:
                         raise ValidationError(_(
                             'Não é possível ter campos repetidos'))
+        return self.cleaned_data

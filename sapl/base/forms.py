@@ -77,6 +77,8 @@ class UsuarioCreateForm(ModelForm):
         if data['password1'] != data['password2']:
             raise ValidationError('Senhas informadas são diferentes')
 
+        return data
+
     def __init__(self, *args, **kwargs):
 
         super(UsuarioCreateForm, self).__init__(*args, **kwargs)
@@ -149,6 +151,8 @@ class UsuarioEditForm(ModelForm):
         if data['password1'] and data['password1'] != data['password2']:
             raise ValidationError('Senhas informadas são diferentes')
 
+        return data
+
 class SessaoLegislativaForm(ModelForm):
 
     class Meta:
@@ -174,7 +178,6 @@ class SessaoLegislativaForm(ModelForm):
             data_inicio_intervalo > data_fim_intervalo:
                 raise ValidationError('Data início de intervalo não pode ser '
                                       'superior à data fim de intervalo')
-
 
         return cleaned_data
 

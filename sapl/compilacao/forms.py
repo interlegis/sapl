@@ -1232,6 +1232,7 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
                                     'de vigência seja inferior a data de fim '
                                     'de vigência do dispositivo em edição.'))
         """
+        return data
 
     def save(self):
         data = self.cleaned_data
