@@ -1,6 +1,6 @@
 dj-database-url==0.4.1
 django-haystack==2.6.0
-django>=1.9,<1.10
+django>=1.10,<1.11
 # TODO O django-admin-bootstrapped 2.5.7 não inseriu a mudança que permite
 # a compatibilidade com Django 1.9+. A linha abaixo será mudada quando uma
 # nova versão do django-admin-bootstrapped for lançada
