@@ -35,7 +35,8 @@ from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
                                        Partido, TipoAfastamento)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
-from sapl.sessao.models import ExpedienteMateria, OrdemDia, RegistroVotacao
+from sapl.sessao.models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
+                                TipoResultadoVotacao)
 from sapl.settings import DATABASES, PROJECT_DIR
 from sapl.utils import normalize
 
@@ -865,6 +866,8 @@ def migrar_model(model):
         sql_delete_legado = ''
         for old in old_records:
             new = model()
+            if get_id_do_legado:
+                new.id = get_id_do_legado(old)
             try:
                 populate_renamed_fields(new, old)
                 if ajuste_antes_salvar:
@@ -876,9 +879,6 @@ def migrar_model(model):
                 warn('fk', e.msg, e.dados)
                 continue
             else:
-                if get_id_do_legado:
-                    new.id = get_id_do_legado(old)
-
                 new.clean()  # valida model
                 novos.append(new)  # guarda para salvar
 
@@ -1187,6 +1187,18 @@ def adjust_comissao(new, old):
         new.ativa = False
 
 
+def adjust_tiporesultadovotacao(new, old):
+    if 'aprova' in new.nome.lower():
+        new.natureza = TipoResultadoVotacao.NATUREZA_CHOICES.aprovado
+    elif 'rejeita' in new.nome.lower():
+        new.natureza = TipoResultadoVotacao.NATUREZA_CHOICES.rejeitado
+    else:
+        warn('natureza_desconhecida_tipo_resultadovotacao',
+             'Não foi possível identificar a natureza do '
+             'tipo de resultado de votação [{pk}: "{nome}"]',
+             {'pk': new.pk, 'nome': new.nome})
+
+
 AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
     TipoAutor: adjust_tipo_autor,
@@ -1207,6 +1219,7 @@ AJUSTE_ANTES_SALVAR = {
     StatusTramitacao: adjust_statustramitacao,
     StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
     Tramitacao: adjust_tramitacao,
+    TipoResultadoVotacao: adjust_tiporesultadovotacao,
 }
 
 AJUSTE_DEPOIS_SALVAR = {
