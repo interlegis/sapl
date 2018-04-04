@@ -1194,13 +1194,7 @@ class ProposicaoForm(forms.ModelForm):
 
         fields = [
             to_column((Fieldset(
-                TipoProposicao._meta.verbose_name, Field('tipo')), 3)),
-            Fieldset(_('Vincular a Matéria Legislativa Existente'),
-                     to_column(('tipo_materia', 4)),
-                     to_column(('numero_materia', 4)),
-                     to_column(('ano_materia', 4))
-                     ),
-
+                TipoProposicao._meta.verbose_name, Field('tipo')), 12)),
             to_column(
                 (Alert('teste',
                        css_class="ementa_materia hidden alert-info",
@@ -1216,6 +1210,12 @@ class ProposicaoForm(forms.ModelForm):
         fields.append(to_column((
             'texto_original', 7 if self.texto_articulado_proposicao else 12)))
 
+        fields.append(to_column((Fieldset(_('Outras informações - Vincular a Matéria Legislativa Existente'),
+                     to_column(('tipo_materia', 12)),
+                     to_column(('numero_materia', 6)),
+                     to_column(('ano_materia', 6))
+                     ), 12)),
+                     )
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(*fields)
 
