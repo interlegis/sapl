@@ -201,7 +201,7 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
         campo = campos_novos_para_antigos[self.field]
         _, tabela, campos_pk = get_estrutura_legado(self.field.model)
         pk = {c: getattr(self.old, c) for c in campos_pk}
-        sql = 'select * from {} where {}'.format(
+        sql = 'select * from {} where {};'.format(
             tabela,
             ' and '.join(['{} = {}'.format(k, v) for k, v in pk.items()]))
         return OrderedDict((('campo', campo),
@@ -494,6 +494,8 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('parlamentar', 'dependente', 'cod_parlamentar'),
     ('parlamentar', 'filiacao', 'cod_parlamentar'),
     ('parlamentar', 'mandato', 'cod_parlamentar'),
+    ('parlamentar', 'composicao_mesa', 'cod_parlamentar'),
+    ('parlamentar', 'composicao_comissao', 'cod_parlamentar'),
 
     # comissao
     ('comissao', 'composicao_comissao', 'cod_comissao'),
@@ -518,6 +520,11 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('materia_legislativa', 'anexada', 'cod_materia_principal'),
     ('materia_legislativa', 'anexada', 'cod_materia_anexada'),
     ('materia_legislativa', 'documento_acessorio', 'cod_materia'),
+    ('materia_legislativa', 'numeracao', 'cod_materia'),
+
+    # norma
+    ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referente'),
+    ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referida'),
 
     # documento administrativo
     ('documento_administrativo', 'tramitacao_administrativo', 'cod_documento'),
@@ -800,7 +807,7 @@ def migrar_dados(interativo=True):
         arq_ocorrencias = dir_ocorrencias.child(
             nome_banco_legado + '.yaml')
         with open(arq_ocorrencias, 'w') as arq:
-            dump = yaml.dump(dict(ocorrencias), allow_unicode=True)
+            dump = yaml.dump(dict(ocorrencias), allow_unicode=True, width=1000)
             arq.write(dump.replace('\n- ', '\n\n- '))
         info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
 
