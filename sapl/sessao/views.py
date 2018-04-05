@@ -1737,6 +1737,12 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
 
             materia_votacao = ordem
 
+            if not ordem.votacao_aberta:
+                msg = _('A votação para esta matéria encontra-se fechada!')
+                messages.add_message(request, messages.ERROR, msg)
+                return HttpResponseRedirect(reverse(
+                    'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
+
         elif self.expediente:
             expediente_id = kwargs['oid']
             if (RegistroVotacao.objects.filter(
@@ -1757,6 +1763,13 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             total = presentes.count()
 
             materia_votacao = expediente
+
+            if not expediente.votacao_aberta:
+                msg = _('A votação para esta matéria encontra-se fechada!')
+                messages.add_message(request, messages.ERROR, msg)
+                return HttpResponseRedirect(reverse(
+                    'sapl.sessao:expedientemateria_list',
+                    kwargs={'pk': kwargs['pk']}))
 
         materia = {'materia': materia_votacao.materia,
                    'ementa': sub(
