@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ARQUIVO=$1
-BANCO=`echo $1 | cut -f1 -d.`
+BANCO=`basename $1 | cut -f1 -d.`
 TMP=__tmp.sql
 
 cat << EOF > $TMP
@@ -17,10 +17,12 @@ cat << EOF > $TMP
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+/*!40000 DROP DATABASE IF EXISTS \`$BANCO\`*/;
+
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ \`$BANCO\` /*!40100 DEFAULT CHARACTER SET latin1 */;
+
+USE \`$BANCO\`;
 EOF
 
-echo "CREATE DATABASE /*!32312 IF NOT EXISTS*/ \`$BANCO\` /*!40100 DEFAULT CHARACTER SET latin1 */;" >> $TMP
-echo >> $TMP
-echo "USE \`$BANCO\`;" >> $TMP
 sed 1,`grep -n '^USE ' $ARQUIVO |cut -f1 -d:`d $ARQUIVO >> $TMP
 mv $TMP $ARQUIVO
