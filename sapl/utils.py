@@ -534,24 +534,14 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
     seguida para armazenar o arquivo.
     """
 
-#    if subpath and '/' not in subpath:
-#        subpath = subpath + '/'
-
-    """ TODO: Verifique possibilidade de otimização do código de normalização
-    do filename...
-    Não use slugify... arquivos,
-    geralmente, possuem [.][alguma extensão]
-    Slugify retira esse ponto...
-    """
-    filename = re.sub('[^a-zA-Z0-9.]', '-', filename).strip('-').lower()
-    filename = re.sub('[-]+', '-', filename)
-
-    prefix = 'public'
+    filename = re.sub('\s', '_', normalize(filename.strip()).lower())
 
     from sapl.materia.models import Proposicao
     from sapl.protocoloadm.models import DocumentoAdministrativo
     if isinstance(instance, (DocumentoAdministrativo, Proposicao)):
         prefix = 'private'
+    else:
+        prefix = 'public'
 
     str_path = ('./sapl/%(prefix)s/%(model_name)s/'
                 '%(subpath)s/%(pk)s/%(filename)s')
