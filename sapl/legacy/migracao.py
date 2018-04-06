@@ -14,12 +14,6 @@ def migrar(interativo=False):
     migrar_documentos()
 
 
-# fonte: https://stackoverflow.com/a/17081026/1877490
-def make_tarfile(output_filename, source_dir):
-    with tarfile.open(output_filename, "w:gz") as tar:
-        tar.add(source_dir, arcname=os.path.basename(source_dir))
-
-
 def gerar_pacote():
     banco = settings.DATABASES['legacy']['NAME']
 
