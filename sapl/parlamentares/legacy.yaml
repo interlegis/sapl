@@ -38,7 +38,6 @@ Parlamentar:
   ativo: ind_ativo
   biografia: txt_biografia
   cep_residencia: num_cep_resid
-  cod_casa: cod_casa
   cpf: num_cpf
   data_nascimento: dat_nascimento
   email: end_email
@@ -58,7 +57,6 @@ Parlamentar:
   telefone: num_tel_parlamentar
   telefone_residencia: num_tel_resid
   titulo_eleitor: num_tit_eleitor
-  unidade_deliberativa: ind_unid_deliberativa
 
 TipoDependente:
   descricao: des_tipo_dependente
@@ -80,10 +78,8 @@ Filiacao:
   partido: cod_partido
 
 TipoAfastamento:
-  afastamento: ind_afastamento
   descricao: des_afastamento
   dispositivo: des_dispositivo
-  fim_mandato: ind_fim_mandato
 
 Mandato:
   coligacao: cod_coligacao

@@ -52,7 +52,6 @@ OradorExpediente (OradoresExpediente): {}
 OrdemDia: {}
 
 PresencaOrdemDia (OrdemDiaPresenca):
-  data_ordem: dat_ordem
   parlamentar: cod_parlamentar
   sessao_plenaria: cod_sessao_plen
 
