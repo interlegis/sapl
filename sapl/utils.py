@@ -550,6 +550,9 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
         str_path = ('./sapl/%(prefix)s/%(model_name)s/'
                     '%(pk)s/%(subpath)s/%(filename)s')
 
+    if subpath is None:
+        subpath = '_'
+
     path = str_path %\
         {
             'prefix': prefix,
