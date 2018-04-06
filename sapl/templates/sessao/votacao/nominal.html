@@ -20,10 +20,7 @@
 			<a href="{% url 'sapl.sessao:sessaoplenaria_detail' object.pk %}" class="btn btn-warning">Voltar</a>
 		{% else %}
 			<fieldset class="form-group">
-				<div class="row">
-					<div class="col-md-12"><input type="button" value="Atualizar Votos" onClick="window.location.href=window.location.href" class="btn btn-primary sm"></div>
-				</div>
-				<br />
+
 
 				<legend>Votos</legend>
 	      <div class="row">
@@ -43,10 +40,6 @@
 
               <legend>Situação da Votação:</legend>
 
-              <div class="row">
-                <div class="col-md-12"><input type="button" value="Computar Votos Informados pelo Operador" onClick="conta_votos()" class="btn btn-primary sm"></div>
-              </div>
-              <br />
               <div id="soma_votos"></div>
 
 	</fieldset>
@@ -108,8 +101,11 @@
                   $("#soma_votos").append("<div class='row'><div class='col-md-12'>Não: " + votos_nao + "</div></div>");
                   $("#soma_votos").append("<div class='row'><div class='col-md-12'>Abstenções: " + votos_abstencao + "</div></div>");
                   $("#soma_votos").append("<div class='row'><div class='col-md-12'>Ainda não votaram: " + nao_votou + "</div></div>");
-
+                        var t = setTimeout(function(){
+                             conta_votos()
+                         }, 500);
                 }
+                conta_votos();
 
                 window.onload = conta_votos();
 

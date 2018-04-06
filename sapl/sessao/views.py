@@ -1691,19 +1691,13 @@ class VotacaoView(SessaoPermissionMixin):
 
 def fechar_votacao_materia(materia):
     if type(materia) == OrdemDia:
-        registro_votacao = RegistroVotacao.objects.filter(ordem=materia)
-        voto_parlamentar = VotoParlamentar.objects.filter(ordem=materia)
+        RegistroVotacao.objects.filter(ordem=materia).delete()
+        VotoParlamentar.objects.filter(ordem=materia).delete()
 
     elif type(materia) == ExpedienteMateria:
-        registro_votacao = RegistroVotacao.objects.filter(
-            expediente=materia)
-        voto_parlamentar = VotoParlamentar.objects.filter(expediente=materia)
-
-    for v in voto_parlamentar:
-        v.delete()
-
-    for r in registro_votacao:
-        r.delete()
+        RegistroVotacao.objects.filter(
+            expediente=materia).delete()
+        VotoParlamentar.objects.filter(expediente=materia).delete()
 
     if materia.resultado:
         materia.resultado = ''
@@ -1743,6 +1737,9 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 return HttpResponseRedirect(reverse(
                     'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
 
+            ordem.votacao_aberta = False
+            ordem.save()
+
         elif self.expediente:
             expediente_id = kwargs['oid']
             if (RegistroVotacao.objects.filter(
@@ -1770,6 +1767,9 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 return HttpResponseRedirect(reverse(
                     'sapl.sessao:expedientemateria_list',
                     kwargs={'pk': kwargs['pk']}))
+
+            expediente.votacao_aberta = False
+            expediente
 
         materia = {'materia': materia_votacao.materia,
                    'ementa': sub(
@@ -1828,17 +1828,13 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 form.add_error(None, 'Não é possível finalizar a votação sem '
                                      'nenhum voto')
                 return self.form_invalid(form)
-
-            if self.ordem:
-                votacao = RegistroVotacao.objects.filter(
-                    ordem_id=ordem_id)
-            elif self.expediente:
-                votacao = RegistroVotacao.objects.filter(
-                    expediente_id=expediente_id)
-
             # Remove todas as votação desta matéria, caso existam
-            for v in votacao:
-                v.delete()
+            if self.ordem:
+                RegistroVotacao.objects.filter(
+                    ordem_id=ordem_id).delete()
+            elif self.expediente:
+                RegistroVotacao.objects.filter(
+                    expediente_id=expediente_id).delete()
 
             votacao = RegistroVotacao()
             votacao.numero_votos_sim = votos_sim
