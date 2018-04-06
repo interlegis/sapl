@@ -23,7 +23,7 @@ def gera_partidos_tse(apps, schema_editor):
         # pega partidos listados em fixtures/pre_popula_partidos.json
         fixture_filename = 'pre_popula_partidos.json'
         fixture_file = os.path.join(fixture_dir, fixture_filename)
-        call_command('loaddata', fixture_file)
+        call_command('loaddata', fixture_file, ignorenonexistent=True)
 
 class Migration(migrations.Migration):
 
