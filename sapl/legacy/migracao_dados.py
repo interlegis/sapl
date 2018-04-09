@@ -1,3 +1,4 @@
+import datetime
 import re
 import traceback
 from collections import OrderedDict, defaultdict, namedtuple
@@ -19,6 +20,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Max, Q
+from pyaml import UnsafePrettyYAMLDumper
 from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
@@ -823,7 +825,7 @@ def move_para_depois_de(lista, movido, referencias):
     return lista
 
 
-def migrar_todos_os_models():
+def get_models_a_migrar():
     models = [model for app in appconfs for model in app.models.values()
               if model in field_renames]
     # Devido à referência TipoProposicao.tipo_conteudo_related
@@ -836,7 +838,11 @@ def migrar_todos_os_models():
     move_para_depois_de(models, Proposicao,
                         [MateriaLegislativa, DocumentoAdministrativo])
 
-    for model in models:
+    return models
+
+
+def migrar_todos_os_models():
+    for model in get_models_a_migrar():
         migrar_model(model)
 
 
@@ -1233,4 +1239,36 @@ AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
 }
 
-# CHECKS ####################################################################
+
+# MARCO ######################################################################
+
+TIME_FORMAT = '%H:%M:%S'
+
+
+def time_representer(dumper, data):
+    return dumper.represent_scalar('!time', data.strftime(TIME_FORMAT))
+UnsafePrettyYAMLDumper.add_representer(datetime.time, time_representer)
+
+
+def time_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    return datetime.datetime.strptime(value, TIME_FORMAT).time()
+yaml.add_constructor(u'!time', time_constructor)
+
+
+DIR_MARCO = Path(DIR_DADOS_MIGRACAO, 'marcos', nome_banco_legado)
+
+
+def grava_marco_base():
+    user_model = get_user_model()
+    models = get_models_a_migrar() + [
+        Composicao, user_model, Group, ContentType]
+    for model in models:
+        info('Gravando marco de [{}]'.format(model.__name__))
+        dir_model = Path(
+            DIR_MARCO, 'dados', model._meta.app_label, model.__name__)
+        dir_model.mkdir(parents=True)
+        for data in model.objects.all().values():
+            nome_arq = Path(dir_model, data['id'])
+            with open(nome_arq, 'w') as arq:
+                pyaml.dump(data, arq)
