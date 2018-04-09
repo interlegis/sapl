@@ -720,6 +720,7 @@ class Proposicao(models.Model):
                 "\d\e d \d\e F \d\e Y"))
 
     class Meta:
+        ordering = ['-data_recebimento']
         verbose_name = _('Proposição')
         verbose_name_plural = _('Proposições')
         unique_together = (('content_type', 'object_id'), )

@@ -437,7 +437,7 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
 class ProposicaoRecebida(PermissionRequiredMixin, ListView):
     template_name = 'materia/prop_recebidas_list.html'
     model = Proposicao
-    ordering = ['data_envio']
+
     paginate_by = 10
     permission_required = 'materia.detail_proposicao_incorporada'
 
