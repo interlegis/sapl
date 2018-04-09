@@ -88,6 +88,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'reversion',
     'whoosh',
+    'speedinfo',
 
 ) + SAPL_APPS
 
@@ -126,8 +127,16 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'speedinfo.middleware.ProfilerMiddleware',
 )
 
+CACHES = {
+    'default': {
+        'BACKEND': 'speedinfo.backends.proxy_cache',
+        'CACHE_BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+    }
+}
 
 REST_FRAMEWORK = {
     "UNICODE_JSON": False,
