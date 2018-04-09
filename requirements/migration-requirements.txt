@@ -1,2 +1,3 @@
 -r dev-requirements.txt
 mysqlclient==1.3.12
+pyaml

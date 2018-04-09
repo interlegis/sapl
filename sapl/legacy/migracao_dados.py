@@ -8,6 +8,7 @@ from operator import xor
 from subprocess import PIPE, call
 
 import pkg_resources
+import pyaml
 import pytz
 import reversion
 import yaml
@@ -807,8 +808,7 @@ def migrar_dados(interativo=True):
         arq_ocorrencias = dir_ocorrencias.child(
             nome_banco_legado + '.yaml')
         with open(arq_ocorrencias, 'w') as arq:
-            dump = yaml.dump(dict(ocorrencias), allow_unicode=True, width=1000)
-            arq.write(dump.replace('\n- ', '\n\n- '))
+            pyaml.dump(ocorrencias, arq, vspacing=1)
         info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
 
     # recria tipos de autor padrão que não foram criados pela migração
