@@ -33,3 +33,5 @@ DEBUG = True
 
 # delisga indexação fulltext em tempo real
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
+
+SHELL_PLUS_DONT_LOAD = ['legacy']
