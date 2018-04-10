@@ -567,6 +567,9 @@ def uniformiza_banco():
     garante_coluna_no_legado('tipo_materia_legislativa',
                              'quorum_minimo_votacao int(11) NULL')
 
+    garante_coluna_no_legado('materia_legislativa',
+                             'txt_resultado TEXT NULL')
+
     # Cria campos cod_presenca_sessao (sendo a nova PK da tabela)
     # e dat_sessao em sessao_plenaria_presenca
     if not existe_coluna_no_legado('sessao_plenaria_presenca',
