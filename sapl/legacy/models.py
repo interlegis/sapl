@@ -433,7 +433,7 @@ class MateriaLegislativa(models.Model):
     cod_regime_tramitacao = models.IntegerField()
     dat_publicacao = models.DateField(blank=True, null=True)
     tip_origem_externa = models.IntegerField(blank=True, null=True)
-    num_origem_externa = models.CharField(max_length=5, blank=True, null=True)
+    num_origem_externa = models.CharField(max_length=10, blank=True, null=True)
     ano_origem_externa = models.SmallIntegerField(blank=True, null=True)
     dat_origem_externa = models.DateField(blank=True, null=True)
     cod_local_origem_externa = models.IntegerField(blank=True, null=True)
