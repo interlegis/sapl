@@ -782,6 +782,12 @@ def populate_renamed_fields(new, old):
 
 
 def migrar_dados(interativo=True):
+    # executa ajustes pré-migração, se existirem
+    arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
+        'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+    if arq_ajustes_pre_migracao.exists():
+        exec_legado(arq_ajustes_pre_migracao.read_file())
+
     uniformiza_banco()
 
     # excluindo database antigo.
