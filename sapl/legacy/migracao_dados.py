@@ -146,6 +146,15 @@ CAMPOS_VIRTUAIS_PROPOSICAO = {
 for campo_virtual in CAMPOS_VIRTUAIS_PROPOSICAO.values():
     campos_novos_para_antigos[campo_virtual] = 'cod_mat_ou_doc'
 
+
+CAMPOS_VIRTUAIS_TIPO_PROPOSICAO = {
+    'M': CampoVirtual(TipoProposicao, TipoMateriaLegislativa),
+    'D': CampoVirtual(TipoProposicao, TipoDocumento)
+}
+for campo_virtual in CAMPOS_VIRTUAIS_TIPO_PROPOSICAO.values():
+    campos_novos_para_antigos[campo_virtual] = 'tip_mat_ou_doc'
+
+
 # campos virtuais de Autor para funcionar com get_fk_related
 CAMPOS_VIRTUAIS_AUTOR = {related: CampoVirtual(Autor, related)
                          for related in (Parlamentar, Comissao, Partido)}
@@ -1074,22 +1083,16 @@ def adjust_tipoafastamento(new, old):
         new.indicador = 'F'
 
 
-TIPO_MATERIA_OU_TIPO_DOCUMENTO = {'M': TipoMateriaLegislativa,
-                                  'D': TipoDocumento}
+def set_generic_fk(new, campo_virtual, old):
+    new.content_type = content_types[campo_virtual.related_model]
+    new.object_id = get_fk_related(campo_virtual, old)
 
 
 def adjust_tipoproposicao(new, old):
     "Aponta para o tipo relacionado de matéria ou documento"
-    value = old.tip_mat_ou_doc
-    model_tipo = TIPO_MATERIA_OU_TIPO_DOCUMENTO[old.ind_mat_ou_doc]
-    tipo = model_tipo.objects.filter(pk=value)
-    if tipo:
-        new.tipo_conteudo_related = tipo[0]
-    else:
-        raise ForeignKeyFaltando(
-            field=TipoProposicao.tipo_conteudo_related,
-            value=(model_tipo.__name__, value),
-            label={'ind_mat_ou_doc': old.ind_mat_ou_doc})
+    if old.tip_mat_ou_doc:
+        campo_virtual = CAMPOS_VIRTUAIS_TIPO_PROPOSICAO[old.ind_mat_ou_doc]
+        set_generic_fk(new, campo_virtual, old)
 
 
 def adjust_proposicao_antes_salvar(new, old):
@@ -1098,8 +1101,7 @@ def adjust_proposicao_antes_salvar(new, old):
     if old.cod_mat_ou_doc:
         tipo_mat_ou_doc = type(new.tipo.tipo_conteudo_related)
         campo_virtual = CAMPOS_VIRTUAIS_PROPOSICAO[tipo_mat_ou_doc]
-        new.content_type = content_types[campo_virtual.related_model]
-        new.object_id = get_fk_related(campo_virtual, old)
+        set_generic_fk(new, campo_virtual, old)
 
 
 def adjust_statustramitacao(new, old):
