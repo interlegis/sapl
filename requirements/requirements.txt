@@ -35,4 +35,4 @@ gunicorn==19.6.0
 django-reversion==2.0.8
 WeasyPrint==0.42
 whoosh==2.7.4
-git+git://github.com/interlegis/django-speedinfo.git
+django-speedinfo==1.3.5
