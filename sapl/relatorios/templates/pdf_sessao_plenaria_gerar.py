@@ -120,7 +120,7 @@ def inf_basicas(inf_basicas_dic):
     data_fim_sessao = dat_fim_sessao + ' <b>- </b> ' if dat_fim_sessao else ''
 
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Encerramento: </b> ' + \
-        dat_fim_sessao + hr_fim_sessao + '</para>\n'
+        dat_fim_sessao +  ' <b>- </b> ' + hr_fim_sessao + '</para>\n'
 
     return tmp
 
