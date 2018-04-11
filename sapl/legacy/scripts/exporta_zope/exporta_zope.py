@@ -40,6 +40,7 @@ EXTENSOES = {
     'image/tiff': '.tiff',
     'application/tiff': '.tiff',
     'audio/x-wav': '.wav',
+    'video/mp4': '.mp4',
 
     # TODO rever...
     'text/richtext': '.rtf',
@@ -273,6 +274,7 @@ def dump_usuarios(sapl, path):
 
 
 def _dump_sapl(data_fs_path, destino='../../../../media'):
+    assert Path(data_fs_path).exists()
     app, close_db = get_app(data_fs_path)
     try:
         sapl = find_sapl(app)
@@ -296,6 +298,7 @@ DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
 def dump_sapl(sigla):
     data_fs_path = DIR_DADOS_MIGRACAO.child('datafs',
                                             'Data_cm_{}.fs'.format(sigla))
+    assert data_fs_path.exists()
     nome_banco_legado = 'sapl_cm_{}'.format(sigla)
     destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
     destino.mkdir(parents=True)
