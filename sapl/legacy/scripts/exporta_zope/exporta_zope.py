@@ -12,10 +12,12 @@ from collections import defaultdict
 from contextlib import contextmanager
 from functools import partial
 
+import git
 import magic
 import yaml
 import ZODB.DB
 import ZODB.FileStorage
+from unipath import Path
 from ZODB.broken import Broken
 
 EXTENSOES = {
@@ -270,7 +272,7 @@ def dump_usuarios(sapl, path):
     save_as_yaml(path, 'usuarios.yaml', users)
 
 
-def dump_sapl(data_fs_path, destino='../../../../media'):
+def _dump_sapl(data_fs_path, destino='../../../../media'):
     app, close_db = get_app(data_fs_path)
     try:
         sapl = find_sapl(app)
@@ -288,9 +290,28 @@ def dump_sapl(data_fs_path, destino='../../../../media'):
         close_db()
 
 
+DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
+
+
+def dump_sapl(sigla):
+    data_fs_path = DIR_DADOS_MIGRACAO.child('datafs',
+                                            'Data_cm_{}.fs'.format(sigla))
+    nome_banco_legado = 'sapl_cm_{}'.format(sigla)
+    destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
+    destino.mkdir(parents=True)
+    repo = git.Repo.init(destino)
+    assert not repo.index.diff(None)  # o repo não tem mudanças pendentes
+    _dump_sapl(data_fs_path, destino)
+    # grava mundaças
+    repo.git.add(A=True)
+    if 'master' not in repo.heads or repo.index.diff('HEAD'):
+        # se de fato existe mudança
+        repo.index.commit('Exporta documentos do zope')
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        data_fs_path = sys.argv[1]
-        dump_sapl(data_fs_path)
+        sigla = sys.argv[1]
+        dump_sapl(sigla)
     else:
-        print('Uso: python exporta_zope <caminho p Data.fs>')
+        print('Uso: python exporta_zope <sigla>')
