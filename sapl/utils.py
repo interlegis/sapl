@@ -716,3 +716,19 @@ def TrocaTag(texto, startTag, endTag, sizeStart, sizeEnd, styleName):
                 i = i + 1
 
     return textoSaida
+
+
+def RemoveTag(texto):
+    textoSaida = ''
+    i = 0
+
+    while (i < len(texto)):
+
+        if (texto[i] == '<'):
+            i = ExtraiTag(texto, i)
+
+        else:
+            textoSaida += texto[i]
+            i = i + 1
+
+    return textoSaida
