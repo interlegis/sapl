@@ -707,12 +707,28 @@ def TrocaTag(texto, startTag, endTag, sizeStart, sizeEnd, styleName):
                 if (texto[i:i + sizeEnd] == endTag):
                     textoSaida += 'blockTable><para>'
                     insideTag = 0
-                    i = i + sizeEnd
+                    i += sizeEnd
                 else:
                     textoSaida += texto[i]
-                    i = i + 1
+                    i += 1
             else:
                 textoSaida += texto[i]
-                i = i + 1
+                i += 1
+
+    return textoSaida
+
+
+def RemoveTag(texto):
+    textoSaida = ''
+    i = 0
+
+    while (i < len(texto)):
+
+        if (texto[i] == '<'):
+            i = ExtraiTag(texto, i)
+
+        else:
+            textoSaida += texto[i]
+            i += 1
 
     return textoSaida

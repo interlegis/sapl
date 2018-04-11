@@ -21,6 +21,7 @@ from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.settings import BASE_DIR, SOLR_URL
+from sapl.utils import RemoveTag
 
 logger = logging.getLogger(BASE_DIR.name)
 
@@ -51,10 +52,17 @@ class TextExtractField(CharField):
         return extracted_data
 
     def whoosh_extraction(self, arquivo):
-        return textract.process(
-            arquivo.path,
-            language='pt-br').decode('utf-8').replace('\n', ' ').replace(
-            '\t', ' ')
+
+        if arquivo.path.endswith('html') or arquivo.path.endswith('xml'):
+            with open(arquivo.path, 'r', encoding="utf8", errors='ignore') as f:
+                content = ' '.join(f.read())
+                return RemoveTag(content)
+
+        else:
+            return textract.process(
+                arquivo.path,
+                language='pt-br').decode('utf-8').replace('\n', ' ').replace(
+                '\t', ' ')
 
     def print_error(self, arquivo):
         msg = 'Erro inesperado processando arquivo: %s' % (
@@ -82,7 +90,8 @@ class TextExtractField(CharField):
             except ExtensionNotSupported as e:
                 print(str(e))
                 logger.error(str(e))
-            except Exception:
+            except Exception as e2:
+                print(str(e2))
                 self.print_error(arquivo)
         return ''
 
