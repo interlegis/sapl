@@ -653,11 +653,12 @@ class SessaoCrud(Crud):
 
         def get_initial(self):
             legislatura = Legislatura.objects.order_by('-data_inicio').first()
+            sessao_legislativa = SessaoLegislativa.objects.filter(legislatura_id=legislatura.id).first()
             if legislatura:
                 return {
                     'legislatura': legislatura,
-                    'sessao_legislativa': legislatura.sessaoplenaria_set.first(
-                    )}
+                    'sessao_legislativa': sessao_legislativa
+                    }
             else:
                 msg = _('Cadastre alguma legislatura antes de adicionar ' +
                         'uma sessão plenária!')
