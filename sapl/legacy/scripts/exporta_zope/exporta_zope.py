@@ -14,6 +14,7 @@ from functools import partial
 
 import git
 import magic
+import pyaml
 import yaml
 import ZODB.DB
 import ZODB.FileStorage
@@ -78,6 +79,9 @@ def guess_extension(caminho):
         raise Exception(msg, e)
 
 
+nomes_arquivos_exportados = {}
+
+
 def dump_file(doc, path):
     name = doc['__name__']
     fullname = os.path.join(path, name)
@@ -112,6 +116,7 @@ def dump_file(doc, path):
         # trocamos a extensão pela adivinhada
         final_name = base + extension
         os.rename(fullname, final_name)
+    nomes_arquivos_exportados[fullname] = final_name
     print(final_name)
 
     return name
@@ -273,9 +278,23 @@ def dump_usuarios(sapl, path):
     save_as_yaml(path, 'usuarios.yaml', users)
 
 
+def grava_nomes_arquivos_exportados(destino):
+    """Grava nomes dos arquivos exportados (originais -> definitivos)
+    """
+    destino = Path(destino)
+
+    def rel(caminho):
+        return str(destino.rel_path_to(caminho))
+
+    with open(destino.child('arquivos_exportados.yaml'), 'w') as arq:
+        nomes = {rel(k): rel(v) for k, v in nomes_arquivos_exportados.items()}
+        pyaml.dump(nomes, arq)
+
+
 def _dump_sapl(data_fs_path, destino='../../../../media'):
     assert Path(data_fs_path).exists()
     app, close_db = get_app(data_fs_path)
+    nomes_arquivos_exportados.clear()  # apaga nomes dos arquivos migrados
     try:
         sapl = find_sapl(app)
         # extrai folhas XSLT
@@ -288,6 +307,7 @@ def _dump_sapl(data_fs_path, destino='../../../../media'):
         with logando_nao_identificados():
             dump_folder(docs, destino)
             dump_propriedades(docs, destino)
+        grava_nomes_arquivos_exportados(destino)
     finally:
         close_db()
 
@@ -298,7 +318,7 @@ DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
 def dump_sapl(sigla):
     data_fs_path = DIR_DADOS_MIGRACAO.child('datafs',
                                             'Data_cm_{}.fs'.format(sigla))
-    assert data_fs_path.exists()
+    assert data_fs_path.exists(), 'Origem não existe: {}'.format(data_fs_path)
     nome_banco_legado = 'sapl_cm_{}'.format(sigla)
     destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
     destino.mkdir(parents=True)
