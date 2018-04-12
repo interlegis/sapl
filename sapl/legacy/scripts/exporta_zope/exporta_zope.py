@@ -42,6 +42,8 @@ EXTENSOES = {
     'application/tiff': '.tiff',
     'audio/x-wav': '.wav',
     'video/mp4': '.mp4',
+    'image/x-icon': '.ico',
+    'application/vnd.oasis.opendocument.text-template': '.ott',
 
     # TODO rever...
     'text/richtext': '.rtf',
