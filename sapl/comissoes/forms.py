@@ -13,9 +13,15 @@ from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
 class ComposicaoForm(forms.ModelForm):
 
+    comissao = forms.CharField(required=False, label='Comissao', widget=forms.HiddenInput())
+
     class Meta:
         model = Composicao
         exclude = []
+
+    def __init__(self, user=None, **kwargs):
+        super(ComposicaoForm, self).__init__(**kwargs)
+        self.fields['comissao'].widget.attrs['disabled'] = 'disabled'
 
     def clean(self):
         cleaned_data = super(ComposicaoForm, self).clean()
@@ -24,7 +30,7 @@ class ComposicaoForm(forms.ModelForm):
             return cleaned_data
 
         periodo = cleaned_data['periodo']
-        comissao_pk = cleaned_data['comissao'].id
+        comissao_pk = self.initial['comissao'].id
         intersecao_periodo = Composicao.objects.filter(
             Q(periodo__data_inicio__lte=periodo.data_fim,
                 periodo__data_fim__gte=periodo.data_fim) |
