@@ -90,6 +90,10 @@ class ComposicaoCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ComposicaoForm
+        
+        def get_initial(self):
+            comissao = Comissao.objects.get(id=self.kwargs['pk'])
+            return {'comissao': comissao}
 
 
     class ListView(MasterDetailCrud.ListView):
