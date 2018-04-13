@@ -2429,8 +2429,18 @@ class SessaoListView(ListView):
         return context
 
 
-class PautaSessaoListView(SessaoListView):
-    template_name = "sessao/pauta_sessao_list.html"
+class PautaSessaoView(TemplateView):
+    model = SessaoPlenaria
+    template_name = "sessao/pauta_inexistente.html"
+
+    def get(self, request, *args, **kwargs):
+        sessao = SessaoPlenaria.objects.order_by("-data_inicio").first()
+
+        if not sessao:
+          return self.render_to_response({})
+
+        return HttpResponseRedirect(
+          reverse('sapl.sessao:pauta_sessao_detail', kwargs={'pk': sessao.pk}))
 
 
 class PautaSessaoDetailView(DetailView):
