@@ -304,7 +304,12 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
-        protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+        if not protocolo.numero:
+            protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+        if protocolo.numero < (numero['numero__max'] + 1):
+            msg = _('Número de protocolo deve ser maior que {}').format(numero['numero__max'])
+            messages.add_message(self.request, messages.ERROR, msg)
+            return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
         protocolo.data = timezone.now()
         protocolo.hora = timezone.now().time()
@@ -415,6 +420,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             'pk': protocolo.pk})
 
     def form_valid(self, form):
+        protocolo = form.save(commit=False)
         try:
             numeracao = sapl.base.models.AppConfig.objects.last(
             ).sequencia_numeracao
@@ -443,10 +449,12 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         if numeracao is None:
             numero['numero__max'] = 0
 
-        protocolo = Protocolo()
-
-        protocolo.numero = (
-            numero['numero__max'] + 1) if numero['numero__max'] else 1
+        if not protocolo.numero:
+            protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+        if protocolo.numero < (numero['numero__max'] + 1):
+            msg = _('Número de protocolo deve ser maior que {}').format(numero['numero__max'])
+            messages.add_message(self.request, messages.ERROR, msg)
+            return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
         protocolo.data = timezone.now().date()
         protocolo.hora = timezone.now().time()

@@ -308,6 +308,8 @@ class ProtocoloDocumentForm(ModelForm):
     observacao = forms.CharField(required=False,
                                  widget=forms.Textarea, label='Observação')
 
+    numero = forms.IntegerField(required=False, label='Número de Protocolo (opcional)')
+
     class Meta:
         model = Protocolo
         fields = ['tipo_protocolo',
@@ -316,6 +318,7 @@ class ProtocoloDocumentForm(ModelForm):
                   'assunto',
                   'interessado',
                   'observacao',
+                  'numero'
                   ]
 
     def __init__(self, *args, **kwargs):
@@ -331,6 +334,8 @@ class ProtocoloDocumentForm(ModelForm):
             [('interessado', 12)])
         row5 = to_row(
             [('observacao', 12)])
+        row6 = to_row(
+            [('numero', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -340,6 +345,11 @@ class ProtocoloDocumentForm(ModelForm):
                      row3,
                      row4,
                      row5,
+                     HTML("&nbsp;"),
+                     ),
+            Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece '
+                       'a partir do número a ser informado)'),
+                     row6,
                      HTML("&nbsp;"),
                      form_actions(label=_('Protocolar Documento'))
                      )
@@ -385,6 +395,8 @@ class ProtocoloMateriaForm(ModelForm):
     assunto_ementa = forms.CharField(required=True,
                                      widget=forms.Textarea, label='Ementa')
 
+    numero = forms.IntegerField(required=False, label='Número de Protocolo (opcional)')
+
     class Meta:
         model = Protocolo
         fields = ['tipo_materia',
@@ -395,7 +407,8 @@ class ProtocoloMateriaForm(ModelForm):
                   'observacao',
                   'numero_materia',
                   'ano_materia',
-                  'vincular_materia'
+                  'vincular_materia',
+                  'numero'
                   ]
 
     def clean_autor(self):
@@ -447,12 +460,24 @@ class ProtocoloMateriaForm(ModelForm):
             [('assunto_ementa', 12)])
         row4 = to_row(
             [('observacao', 12)])
+        row5 = to_row(
+            [('numero', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
-                     row1, row2, row3,
-                     row4, form_actions(label='Protocolar Matéria')))
+                     row1,
+                     row2,
+                     row3,
+                     row4,
+                     HTML("&nbsp;"),
+                     ),
+            Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece'
+                       ' a partir do número a ser informado)'),
+                row5,
+                HTML("&nbsp;"),
+                form_actions(label=_('Protocolar Matéria')))
+        )
 
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
