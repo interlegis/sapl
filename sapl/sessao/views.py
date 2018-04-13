@@ -658,7 +658,9 @@ class SessaoCrud(Crud):
                 return {
                     'legislatura': legislatura,
                     'sessao_legislativa': legislatura.sessaolegislativa_set.filter(
-                                        legislatura_id=legislatura.id).first()
+                                        legislatura_id=legislatura.id,
+                                        data_inicio__year=timezone.now().year
+                                        ).first()
                     }
             else:
                 msg = _('Cadastre alguma legislatura antes de adicionar ' +
