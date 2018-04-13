@@ -309,9 +309,9 @@ def _dump_sapl(data_fs_path, destino='../../../../media'):
         with logando_nao_identificados():
             dump_folder(docs, destino)
             dump_propriedades(docs, destino)
-        grava_nomes_arquivos_exportados(destino)
     finally:
         close_db()
+        grava_nomes_arquivos_exportados(destino)
 
 
 DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
