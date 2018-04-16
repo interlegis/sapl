@@ -229,7 +229,11 @@ label {
 .form-control-static {
   padding-top: 0;
   min-height: auto;
+  img {
+    max-width: 100%;
+  }
 }
+
 
 // #### pagination ########################################
 .pagination {

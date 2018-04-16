@@ -163,6 +163,13 @@ class ParlamentarCreateForm(ParlamentarForm):
         required=True,
     )
 
+    class Meta(ParlamentarForm.Meta):
+        widgets = {
+            'fotografia': forms.ClearableFileInput(),
+            'biografia': forms.Textarea(
+                attrs={'id': 'texto-rico'})
+        }
+
     @transaction.atomic
     def save(self, commit=True):
         parlamentar = super(ParlamentarCreateForm, self).save(commit)

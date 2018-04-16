@@ -42,7 +42,7 @@ Parlamentar:
   - municipio_residencia  uf_residencia
   - telefone_residencia  fax_residencia
   - locais_atuacao
-  - fotografia
+  - fotografia:5
   - biografia
 
 ParlamentarUpdate:
