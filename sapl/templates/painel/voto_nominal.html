@@ -74,8 +74,8 @@
 
       <h2><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h2>
       <table style="width:75%; border:1px;" align="center">
-        <tr><th style="text-align:center"><h4><font color="white">{{materia}}</font></th></tr>
-        <tr><th style="text-align:center"><h4><font color="white">{{ementa}}</font></th></tr>
+          <tr><th style="text-align:center"><h4><font color="white">{{materia}}</font></h4></th></tr>
+          <tr><th style="text-align:center"><h4><font color="white">{{ementa}}</font></h4></th></tr>
         <tr><th style="text-align:center"><font color="#45919D"><span id="resultado_votacao"></span></font></th></tr>
       </table>
 
@@ -85,18 +85,19 @@
         <div class="row container-detail clearfix" style="text-align:center">
           <div  class="row-fluid">
             <div class="col-md-12" id="votos">
-              <div id="votosim">
-              <input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim"/>
-              &nbsp;
-              </div>
+
+               <div id="votosim"><input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim"/></div>
+                &nbsp;
                 <div id="votonao"><input type="submit" class="btn btn-lg btn-danger" id="voto" name="voto" type="submit" value="Não"/></div>
-              &nbsp;
+                &nbsp;
                 <div id="votoabstencao"><input type="submit" class="btn btn-lg btn-secondary" id="voto" name="voto" type="submit" value="Abstenção"/></div>
             </div>
             </br>
             </br>
             </br>
-            <center><button type="button" onclick="javascript:window.close()">Voltar</button></center>
+            </br>
+            </br>
+            <center><button type="button" class="btn btn-lg btn-secondary" onclick="javascript:window.close()">Voltar</button></center>
           </div>
         </div>
 
@@ -108,7 +109,13 @@
           </br>
           </br>
           </br>
-          <center><button type="button" onclick="javascript:window.close()">Sair</button></center>
+          <center><table style="width:30%">
+            <tr>
+                <td style="text-align:center"><button type="button" class="btn btn-lg btn-primary" onclick="javascript:window.location.reload(true)">Atualizar</button></td>
+                <td style="text-align:center"><button type="button" class="btn btn-lg btn-secondary" onclick="javascript:window.close()">Sair</button></td>
+            </tr>
+          </table></center>
+
       </div>
     {% endif %}
     </body>
