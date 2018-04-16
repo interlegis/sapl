@@ -96,7 +96,11 @@ def protocolos(lst_protocolos, dic_cabecalho):
             tmp_data += '\t\t<para style="P2"><b>' + \
                 dic['data'] + '</b></para>\n'
         tmp_data += '\t\t<para style="P2"><b>' + \
-            dic['natureza'] + '</b></para>\n'
+            dic['natureza']
+        if dic['ident_processo']:
+            tmp_data +=  ' - ' + dic['ident_processo'] + '</b></para>\n'
+        else:
+            tmp_data += '</b></para>\n'
 
     tmp_data += '\t</story>\n'
     return tmp_data

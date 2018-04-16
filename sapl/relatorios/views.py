@@ -955,10 +955,7 @@ def get_etiqueta_protocolos(prots):
         if p.tipo_processo == 0:
             dic['natureza'] = 'Administrativo'
         if p.tipo_processo == 1:
-            if dic['num_materia']:
-                dic['natureza'] = dic['num_materia']
-            else:
-                dic['natureza'] = 'Legislativo'
+            dic['natureza'] = 'Legislativo'
 
         dic['num_documento'] = ''
         for documento in DocumentoAdministrativo.objects.filter(
