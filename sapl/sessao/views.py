@@ -1,4 +1,5 @@
 from re import sub
+from operator import itemgetter
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -988,15 +989,16 @@ class MesaView(FormMixin, DetailView):
                 [p.parlamentar for p in parlamentares]) - set(
                 parlamentares_ocupados))
 
-        parlamentares_vagos = [p for p in parlamentares_vagos if p.ativo]
+        org_parlamentares_vagos = sorted(parlamentares_vagos, key=lambda x: x.nome_completo)
+        org_parlamentares_vagos = [p for p in org_parlamentares_vagos if p.ativo]
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
         if not cargos_vagos:
-            parlamentares_vagos = []
+            org_parlamentares_vagos = []
 
         context.update(
             {'composicao_mesa': mesa,
-             'parlamentares': parlamentares_vagos,
+             'parlamentares': org_parlamentares_vagos,
              'cargos_vagos': cargos_vagos})
 
         return self.render_to_response(context)
