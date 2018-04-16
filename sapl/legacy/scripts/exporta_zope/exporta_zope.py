@@ -317,6 +317,10 @@ def _dump_sapl(data_fs_path, destino='../../../../media'):
 DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
 
 
+def repo_execute(repo, cmd):
+    return repo.git.execute(cmd.split())
+
+
 def dump_sapl(sigla):
     data_fs_path = DIR_DADOS_MIGRACAO.child('datafs',
                                             'Data_cm_{}.fs'.format(sigla))
@@ -325,9 +329,10 @@ def dump_sapl(sigla):
     destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
     destino.mkdir(parents=True)
     repo = git.Repo.init(destino)
-    assert not repo.index.diff(None)  # o repo não tem mudanças pendentes
     _dump_sapl(data_fs_path, destino)
     # grava mundaças
+    repo_execute(repo, 'git annex init')
+    repo_execute(repo, 'git annex add sapl_documentos')
     repo.git.add(A=True)
     if 'master' not in repo.heads or repo.index.diff('HEAD'):
         # se de fato existe mudança
