@@ -169,7 +169,7 @@ def expedientes(lst_expedientes):
     for idx, expediente in enumerate(lst_expedientes):
         tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
             expediente['nom_expediente'] + ': </b></para>\n' + \
-            '<para style="P2">' + \
+            '<para style="P3">' + \
             expediente['txt_expediente'] + '</para>\n'
         tmp += '\t\t<para style="P2">\n'
         tmp += '\t\t\t<font color="white"> </font>\n'
