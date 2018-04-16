@@ -6,7 +6,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                ExpedienteMateriaCrud, ExpedienteView,
                                MateriaOrdemDiaCrud, MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
-                               PautaSessaoDetailView, PautaSessaoListView,
+                               PautaSessaoDetailView, PautaSessaoView,
                                PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
                                PresencaOrdemDiaView, PresencaView,
@@ -91,7 +91,7 @@ urlpatterns = [
 
     # PAUTA SESSÃO
     url(r'^sessao/pauta-sessao$',
-        PautaSessaoListView.as_view(), name='list_pauta_sessao'),
+        PautaSessaoView.as_view(), name='pauta_sessao'),
     url(r'^sessao/pauta-sessao/pesquisar-pauta$',
         PesquisarPautaSessaoView.as_view(), name='pesquisar_pauta'),
     url(r'^sessao/pauta-sessao/(?P<pk>\d+)$',
