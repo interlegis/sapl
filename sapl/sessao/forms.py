@@ -345,6 +345,10 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super(SessaoPlenariaFilterSet, self).__init__(*args, **kwargs)
 
+        # pré-popula o campo do formulário com o ano corrente
+        self.form.fields['data_inicio__year'].initial = timezone.now().year
+
+
         row1 = to_row(
             [('data_inicio__year', 3),
              ('data_inicio__month', 3),
