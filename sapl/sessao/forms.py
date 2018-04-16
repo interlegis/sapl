@@ -461,7 +461,7 @@ class OradorExpedienteForm(ModelForm):
         super(OradorExpedienteForm, self).__init__(*args, **kwargs)
 
         self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-            ativo=True).order_by('nome_completo')
+            ativo=True).order_by('nome_parlamentar')
 
     class Meta:
         model = OradorExpediente

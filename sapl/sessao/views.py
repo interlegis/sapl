@@ -2710,6 +2710,9 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
         for m in marcadas:
             try:
                 tipo_votacao = request.POST['tipo_votacao_%s' % m]
+                msg = _('%s adicionado(a) com sucesso!'
+                        % MateriaLegislativa.objects.get(id=m))
+                messages.add_message(request, messages.SUCCESS, msg)
             except MultiValueDictKeyError:
                 msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
                         'o tipo de votação de %s' %
@@ -2779,6 +2782,9 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
         for m in marcadas:
             try:
                 tipo_votacao = request.POST['tipo_votacao_%s' % m]
+                msg = _('%s adicionado(a) com sucesso!'
+                        % MateriaLegislativa.objects.get(id=m))
+                messages.add_message(request, messages.SUCCESS, msg)
             except MultiValueDictKeyError:
                 msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
                         'o tipo de votação de %s' %
