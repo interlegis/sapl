@@ -609,7 +609,7 @@ def get_sessao_plenaria(sessao, casa):
     # Lista dos oradores do Expediente
     lst_oradores_expediente = []
     for orador_expediente in OradorExpediente.objects.filter(
-            sessao_plenaria=sessao):
+            sessao_plenaria=sessao).order_by('numero_ordem'):
         parlamentar = Parlamentar.objects.get(
             id=orador_expediente.parlamentar.id)
         dic_oradores_expediente = {}
@@ -710,7 +710,7 @@ def get_sessao_plenaria(sessao, casa):
     # Lista dos oradores nas Explicações Pessoais
     lst_oradores = []
     for orador in Orador.objects.filter(
-            sessao_plenaria=sessao):
+            sessao_plenaria=sessao).order_by('numero_ordem'):
         for parlamentar in Parlamentar.objects.filter(
                 id=orador.parlamentar.id):
             dic_oradores = {}
