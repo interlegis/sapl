@@ -982,6 +982,7 @@ class MesaView(FormMixin, DetailView):
         cargos = CargoMesa.objects.all()
         cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
+        # FIX-ME: tem formas melhores de fazer isso, poupando linhas.
         parlamentares = Legislatura.objects.first().mandato_set.all()
         parlamentares_ocupados = [m.parlamentar for m in mesa]
         parlamentares_vagos = list(
@@ -989,7 +990,7 @@ class MesaView(FormMixin, DetailView):
                 [p.parlamentar for p in parlamentares]) - set(
                 parlamentares_ocupados))
 
-        org_parlamentares_vagos = sorted(parlamentares_vagos, key=lambda x: x.nome_completo)
+        org_parlamentares_vagos = sorted(parlamentares_vagos, key=lambda x: x.nome_parlamentar)
         org_parlamentares_vagos = [p for p in org_parlamentares_vagos if p.ativo]
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
