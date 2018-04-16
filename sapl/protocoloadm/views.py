@@ -706,9 +706,17 @@ def atualizar_numero_documento(request):
     tipo = TipoDocumentoAdministrativo.objects.get(pk=request.GET['tipo'])
     ano = request.GET['ano']
 
-    numero_max = DocumentoAdministrativo.objects.filter(
-        tipo=tipo, ano=ano).aggregate(Max('numero'))['numero__max']
+    param = {'tipo': tipo}
+    param['ano'] = ano if ano else timezone.now().year
 
-    return JsonResponse(
-        {'numero': numero_max + 1}) if numero_max else JsonResponse(
-        {'numero': 1})
+    doc = DocumentoAdministrativo.objects.filter(**param).order_by(
+        'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
+
+    if doc:
+        response = JsonResponse({'numero': int(doc[0]) + 1,
+                                 'ano': doc[1]})
+    else:
+        response = JsonResponse(
+            {'numero': 1, 'ano': ano})
+
+    return response

@@ -2,23 +2,22 @@
 {% load i18n %}
 {% block extra_js %}
 <script language="Javascript">
-  function recuperar_documento() {
-    var tipo = $("#id_tipo").val()
-    var ano = $("#id_ano").val()
-
-    if (tipo) {
-      $.get("/norma/recuperar-numero-norma",{tipo: tipo,
-                                  ano: ano},
-                                function(data, status) {
-                                  $("#id_numero").val(data.numero);
-                                  $("#id_ano").val(data.ano);
-                                });
+    function atualizar_numero_documento(){
+        var tipo = $("#id_tipo").val()
+        var ano = $("#id_ano").val()
+        if (tipo){
+            $.get(
+                "{% url 'sapl.protocoloadm:atualizar_numero_documento' %}",
+                {tipo: tipo, ano:ano},
+                function(data, status) {
+                    $("#id_numero").val(data.numero);
+                    $("#id_ano").val(data.ano);
+                });
+        }
     }
-  }
-  var fields = ["#id_tipo", "#id_ano"]
-  for (i = 0; i < fields.length; i++) {
-    $(fields[i]).change(recuperar_documento);
-  }
+    var fields = ["#id_tipo", "#id_ano"]
+    for (i = 0; i < fields.length; i++) {
+      $(fields[i]).change(atualizar_numero_documento);
+    }
 </script>
-
-{% endblock extra_js %}
+{% endblock %}
