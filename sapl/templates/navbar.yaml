@@ -43,7 +43,7 @@
     - title: {% trans 'Matérias Legislativas' %}
       url: sapl.materia:pesquisar_materia
     - title: {% trans 'Pautas das Sessões' %}
-      url: sapl.sessao:pesquisar_pauta
+      url: sapl.sessao:pauta_sessao
     - title: {% trans 'Proposições' %}
       url: sapl.materia:proposicao_list
       check_permission: materia.add_proposicao

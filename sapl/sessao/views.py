@@ -990,7 +990,7 @@ class MesaView(FormMixin, DetailView):
                 parlamentares_ocupados))
 
         org_parlamentares_vagos = sorted(parlamentares_vagos, key=lambda x: x.nome_completo)
-
+        org_parlamentares_vagos = [p for p in org_parlamentares_vagos if p.ativo]
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
         if not cargos_vagos:
@@ -1301,7 +1301,7 @@ class ResumoView(DetailView):
         # Oradores Expediente
         oradores = []
         for orador in OradorExpediente.objects.filter(
-                sessao_plenaria_id=self.object.id):
+                sessao_plenaria_id=self.object.id).order_by('numero_ordem'):
             numero_ordem = orador.numero_ordem
             url_discurso = orador.url_discurso
             parlamentar = Parlamentar.objects.get(
@@ -2432,8 +2432,18 @@ class SessaoListView(ListView):
         return context
 
 
-class PautaSessaoListView(SessaoListView):
-    template_name = "sessao/pauta_sessao_list.html"
+class PautaSessaoView(TemplateView):
+    model = SessaoPlenaria
+    template_name = "sessao/pauta_inexistente.html"
+
+    def get(self, request, *args, **kwargs):
+        sessao = SessaoPlenaria.objects.order_by("-data_inicio").first()
+
+        if not sessao:
+          return self.render_to_response({})
+
+        return HttpResponseRedirect(
+          reverse('sapl.sessao:pauta_sessao_detail', kwargs={'pk': sessao.pk}))
 
 
 class PautaSessaoDetailView(DetailView):

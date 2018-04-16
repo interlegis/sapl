@@ -16,25 +16,9 @@
 		</thead>
   </table>
 </fieldset>
-
-<fieldset>
-	<legend>Expedientes</legend>
-	<table class="table">
-		<thead class="thead-default">
-    	{% for e in expedientes %}
-				<tr>
-			    <td>
-						<b>{{e.tipo}}: </b> <br />
-						<p style="text-indent: 50px;">{{e.conteudo|safe|linebreaks}}</p>
-					</td>
-				</tr>
-		  {% endfor %}
-		</thead>
-  </table>
-</fieldset>
-
 <fieldset>
 	<legend>Matérias do Expediente</legend>
+	{% if materia_expediente %}
 	<table class="table table-striped">
 		<thead>
 			<tr>
@@ -55,28 +39,14 @@
 			</tr>
     {% endfor %}
   </table>
-</fieldset>
+  {% else %}
+  <strong>Não existem Matérias de Expediente para essa Sessão Plenária</strong>
+  {% endif %}
 
-<fieldset>
-	<legend>Oradores do Expediente</legend>
-	<table class="table table-striped">
-		<thead class="thead-default">
-			<tr>
-	      <th>Parlamentar</th>
-	      <th>Discurso</th>
-			</tr>
-		</thead>
-    {% for o in oradores %}
-			<tr>
-	      <td><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</td>
-	      <td>{{o.url_discurso}}</td>
-  		</tr>
-    {% endfor %}
-	</table>
 </fieldset>
-
 <fieldset>
 	<legend>Matérias da Ordem do Dia</legend>
+	{% if materias_ordem %}
 	<table class="table table-striped">
 		<thead>
 			<tr>
@@ -97,5 +67,8 @@
 			</tr>
     {% endfor %}
   </table>
+  {% else %}
+  <strong>Não existem Matérias de Ordem do Dia para essa Sessão Plenária</strong>
+  {% endif %}
 </fieldset>
 {% endblock base_content %}
