@@ -127,44 +127,48 @@ def votante_view(request):
                     'parlamentar_id', flat=True).distinct()
 
             if materia_aberta:
-                if materia_aberta.tipo_votacao == VOTACAO_NOMINAL:
-                    context.update({'materia': materia_aberta.materia,
-                                    'ementa': materia_aberta.materia.ementa})
+                if not materia_aberta.registro_aberto:
+                    if materia_aberta.tipo_votacao == VOTACAO_NOMINAL:
+                        context.update({'materia': materia_aberta.materia,
+                                        'ementa': materia_aberta.materia.ementa})
 
-                    parlamentar = votante.parlamentar
-                    parlamentar_presente = False
-                    if parlamentar.id in presentes:
-                        parlamentar_presente = True
+                        parlamentar = votante.parlamentar
+                        parlamentar_presente = False
+                        if parlamentar.id in presentes:
+                            parlamentar_presente = True
+                        else:
+                            context.update({'error_message':
+                                            'Não há presentes na Sessão com a '
+                                            'matéria em votação.'})
+
+                        if parlamentar_presente:
+                            voto = []
+                            if ordem_dia:
+                                voto = VotoParlamentar.objects.filter(
+                                    ordem=ordem_dia)
+                            elif expediente:
+                                voto = VotoParlamentar.objects.filter(
+                                    expediente=expediente)
+
+                            if voto:
+                                try:
+                                    voto = voto.get(parlamentar=parlamentar)
+                                    context.update({'voto_parlamentar': voto.voto})
+                                except ObjectDoesNotExist:
+                                    context.update(
+                                        {'voto_parlamentar': 'Voto não '
+                                         'computado.'})
+                        else:
+                            context.update({'error_message':
+                                            'Você não está presente na '
+                                            'Ordem do Dia/Expediente em votação.'})
                     else:
-                        context.update({'error_message':
-                                        'Não há presentes na Sessão com a '
-                                        'matéria em votação.'})
-
-                    if parlamentar_presente:
-                        voto = []
-                        if ordem_dia:
-                            voto = VotoParlamentar.objects.filter(
-                                ordem=ordem_dia)
-                        elif expediente:
-                            voto = VotoParlamentar.objects.filter(
-                                expediente=expediente)
-
-                        if voto:
-                            try:
-                                voto = voto.get(parlamentar=parlamentar)
-                                context.update({'voto_parlamentar': voto.voto})
-                            except ObjectDoesNotExist:
-                                context.update(
-                                    {'voto_parlamentar': 'Voto não '
-                                     'computado.'})
-                    else:
-                        context.update({'error_message':
-                                        'Você não está presente na '
-                                        'Ordem do Dia/Expediente em votação.'})
+                        context.update(
+                            {'error_message': 'A matéria aberta não é do tipo '
+                             'votação nominal.'})
                 else:
                     context.update(
-                        {'error_message': 'A matéria aberta não é do tipo '
-                         'votação nominal.'})
+                        {'error_message': 'A votação para esta matéria já encerrou.'})
             else:
                 context.update(
                     {'error_message': 'Não há nenhuma matéria aberta.'})
