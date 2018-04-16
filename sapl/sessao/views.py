@@ -988,6 +988,7 @@ class MesaView(FormMixin, DetailView):
                 [p.parlamentar for p in parlamentares]) - set(
                 parlamentares_ocupados))
 
+        parlamentares_vagos = [p for p in parlamentares_vagos if p.ativo]
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
         if not cargos_vagos:
