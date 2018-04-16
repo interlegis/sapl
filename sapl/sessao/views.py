@@ -950,6 +950,7 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
                 ordem_id = request.POST['ordem_id']
                 ordem = OrdemDia.objects.get(id=ordem_id)
                 ordem.votacao_aberta = True
+                ordem.registro_aberto = False
                 ordem.save()
         return self.get(self, request, args, kwargs)
 
@@ -1710,6 +1711,7 @@ def fechar_votacao_materia(materia):
     if materia.resultado:
         materia.resultado = ''
     materia.votacao_aberta = False
+    materia.registro_aberto = False
     materia.save()
 
 
@@ -1745,7 +1747,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 return HttpResponseRedirect(reverse(
                     'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
 
-            ordem.votacao_aberta = False
+            ordem.registro_aberto = True
             ordem.save()
 
         elif self.expediente:
@@ -1776,8 +1778,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     'sapl.sessao:expedientemateria_list',
                     kwargs={'pk': kwargs['pk']}))
 
-            expediente.votacao_aberta = False
-            expediente
+            expediente.registro_aberto = True
+            expediente.save()
 
         materia = {'materia': materia_votacao.materia,
                    'ementa': sub(
