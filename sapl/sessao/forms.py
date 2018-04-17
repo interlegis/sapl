@@ -15,7 +15,7 @@ from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
-from sapl.parlamentares.models import Parlamentar
+from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone)
@@ -464,8 +464,14 @@ class OradorExpedienteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(OradorExpedienteForm, self).__init__(*args, **kwargs)
 
-        self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-            ativo=True).order_by('nome_parlamentar')
+        legislatura_atual = [l for l in Legislatura.objects.all() if l.atual]
+
+        if legislatura_atual:
+            legislatura_atual = legislatura_atual[0]
+            self.fields['parlamentar'].queryset = \
+                Parlamentar.objects.filter(ativo=True,
+                                       mandato__legislatura=legislatura_atual
+                                       ).order_by('nome_parlamentar')
 
     class Meta:
         model = OradorExpediente
