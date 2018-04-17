@@ -617,6 +617,8 @@ def get_sessao_plenaria(sessao, casa):
             orador_expediente.numero_ordem)
         dic_oradores_expediente["nom_parlamentar"] = (
             parlamentar.nome_parlamentar)
+        dic_oradores_expediente["observacao"] = (
+            orador_expediente.observacao)
         partido_sigla = Filiacao.objects.filter(
             parlamentar=parlamentar).first()
         if not partido_sigla:

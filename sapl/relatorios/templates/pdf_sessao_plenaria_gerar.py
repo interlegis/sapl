@@ -215,8 +215,11 @@ def oradores_expediente(lst_oradores_expediente):
     tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
     for orador_expediente in lst_oradores_expediente:
-        tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + str(orador_expediente['num_ordem']) + '</b> - ' + orador_expediente[
-            'nom_parlamentar'] + '/' + str(orador_expediente['sgl_partido']) + '</para>\n'
+        tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + str(orador_expediente[
+        'num_ordem']) + '</b> - ' + orador_expediente[
+        'nom_parlamentar'] + '/' + str(orador_expediente[
+        'sgl_partido']) + ' - ' + str(orador_expediente[
+        'observacao']) + '</para>\n'
     return tmp
 
 

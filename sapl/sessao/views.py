@@ -1306,11 +1306,13 @@ class ResumoView(DetailView):
                 sessao_plenaria_id=self.object.id).order_by('numero_ordem'):
             numero_ordem = orador.numero_ordem
             url_discurso = orador.url_discurso
+            observacao = orador.observacao
             parlamentar = Parlamentar.objects.get(
                 id=orador.parlamentar_id)
             ora = {'numero_ordem': numero_ordem,
                    'url_discurso': url_discurso,
-                   'parlamentar': parlamentar
+                   'parlamentar': parlamentar,
+                   'observacao' : observacao
                    }
             oradores.append(ora)
 
