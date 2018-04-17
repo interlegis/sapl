@@ -231,7 +231,7 @@ class AbstractOrdemDia(models.Model):
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.PROTECT)
+                                        on_delete=models.CASCADE)
     materia = models.ForeignKey(MateriaLegislativa,
                                 on_delete=models.PROTECT,
                                 verbose_name=_('Matéria'))
