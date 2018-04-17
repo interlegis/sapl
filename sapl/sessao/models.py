@@ -255,7 +255,8 @@ class AbstractOrdemDia(models.Model):
         abstract = True
 
     def __str__(self):
-        return '%s - %s' % (self.numero_ordem, self.sessao_plenaria)
+        return 'Ordem do Dia/Expediente: %s - %s em %s' % (
+            self.numero_ordem, self.materia, self.sessao_plenaria)
 
 
 @reversion.register()
