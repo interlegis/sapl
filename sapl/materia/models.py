@@ -167,7 +167,7 @@ class MateriaLegislativa(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Tipo'))
     numero_origem_externa = models.CharField(
-        max_length=5, blank=True, verbose_name=_('Número'))
+        max_length=10, blank=True, verbose_name=_('Número'))
     ano_origem_externa = models.PositiveSmallIntegerField(
         blank=True, null=True, verbose_name=_('Ano'), choices=RANGE_ANOS)
     data_origem_externa = models.DateField(

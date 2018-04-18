@@ -1,12 +1,12 @@
-import mimetypes
 import os
 import re
 from glob import glob
 
 import yaml
+from django.db import transaction
 
 from sapl.base.models import CasaLegislativa
-from sapl.legacy.migracao_dados import exec_legado, warn
+from sapl.legacy.migracao_dados import exec_legado
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
 from sapl.norma.models import NormaJuridica
@@ -16,88 +16,26 @@ from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MEDIA_ROOT
 
-
 # MIGRAÇÃO DE DOCUMENTOS  ###################################################
 
 
-def get_ano(obj):
-    return [obj.ano]
-
-
-def ___(obj):
-    return []
-
-
 DOCS = {
-    CasaLegislativa: [
-        ('logotipo',
-         'props_sapl/{}.*',
-         'public/casa/logotipo/',
-         ___)
-    ],
-    Parlamentar: [
-        ('fotografia',
-         'parlamentar/fotos/{}_foto_parlamentar',
-         'public/parlamentar/{0}/',
-         ___)
-    ],
-    MateriaLegislativa: [
-        ('texto_original',
-         'materia/{}_texto_integral',
-         'public/materialegislativa/{1}/{0}/',
-         get_ano)
-    ],
-    DocumentoAcessorio: [
-        ('arquivo',
-         'materia/{}',
-         'public/documentoacessorio/{1}/{0}/',
-         lambda obj: [obj.materia.ano])
-    ],
-    NormaJuridica: [
-        ('texto_integral',
-         'norma_juridica/{}_texto_integral',
-         'public/normajuridica/{1}/{0}/',
-         get_ano)
-    ],
-    SessaoPlenaria: [
-        ('upload_pauta',
-         'pauta_sessao/{}_pauta_sessao',
-         'public/sessaoplenaria/{0}/pauta/',
-         ___),
-        ('upload_ata',
-         'ata_sessao/{}_ata_sessao',
-         'public/sessaoplenaria/{0}/ata/',
-         ___),
-        ('upload_anexo',
-         'anexo_sessao/{}_texto_anexado',
-         'public/sessaoplenaria/{0}/anexo/',
-         ___)
-    ],
-    Proposicao: [
-        ('texto_original',
-         'proposicao/{}',
-         'private/proposicao/{0}/',
-         get_ano)
-    ],
-    DocumentoAdministrativo: [
-        ('texto_integral',
-         'administrativo/{}_texto_integral',
-         'private/documentoadministrativo/{0}/',
-         get_ano)
-    ],
-    DocumentoAcessorioAdministrativo: [
-        ('arquivo',
-         'administrativo/{}',
-         'private/documentoacessorioadministrativo/{0}/',
-         ___)
-    ],
+    CasaLegislativa: [('logotipo', 'props_sapl/{}.*')],
+    Parlamentar: [('fotografia', 'parlamentar/fotos/{}_foto_parlamentar')],
+    MateriaLegislativa: [('texto_original', 'materia/{}_texto_integral')],
+    DocumentoAcessorio: [('arquivo', 'materia/{}')],
+    NormaJuridica: [('texto_integral', 'norma_juridica/{}_texto_integral')],
+    SessaoPlenaria: [('upload_pauta', 'pauta_sessao/{}_pauta_sessao'),
+                     ('upload_ata', 'ata_sessao/{}_ata_sessao'),
+                     ('upload_anexo', 'anexo_sessao/{}_texto_anexado')],
+    Proposicao: [('texto_original', 'proposicao/{}')],
+    DocumentoAdministrativo: [('texto_integral',
+                               'administrativo/{}_texto_integral')],
+    DocumentoAcessorioAdministrativo: [('arquivo', 'administrativo/{}')],
 }
 
-DOCS = {model: [(campo,
-                 os.path.join('sapl_documentos', origem),
-                 os.path.join('sapl', destino),
-                 get_extra_args)
-                for campo, origem, destino, get_extra_args in campos]
+DOCS = {model: [(campo, os.path.join('sapl_documentos', origem))
+                for campo, origem, in campos]
         for model, campos in DOCS.items()}
 
 
@@ -141,11 +79,13 @@ def migrar_propriedades_da_casa():
     [(casa.municipio, casa.uf)] = exec_legado(sql_localidade)
 
     print('.... Migrando logotipo da casa ....')
-    [(_, origem, destino, __)] = DOCS[CasaLegislativa]
+    [(campo, origem)] = DOCS[CasaLegislativa]
     # a extensão do logo pode ter sido ajustada pelo tipo real do arquivo
     id_logo = os.path.splitext(propriedades['id_logo'])[0]
     [origem] = glob(em_media(origem.format(id_logo)))
-    destino = os.path.join(destino, os.path.basename(origem))
+    destino = os.path.join(
+        CasaLegislativa._meta.get_field(campo).upload_to,
+        os.path.basename(origem))
     mover_documento(origem, destino)
     casa.logotipo = destino
     casa.save()
@@ -153,36 +93,36 @@ def migrar_propriedades_da_casa():
 
 
 def migrar_docs_por_ids(model):
-    for campo, base_origem, base_destino, get_extra_args in DOCS[model]:
+    for campo, base_origem in DOCS[model]:
         print('#### Migrando {} de {} ####'.format(campo, model.__name__))
 
         dir_origem, nome_origem = os.path.split(em_media(base_origem))
         nome_origem = nome_origem.format('(\d+)')
         pat = re.compile('^{}\.\w+$'.format(nome_origem))
-
         if not os.path.isdir(dir_origem):
             print('  >>> O diretório {} não existe! Abortado.'.format(
                 dir_origem))
             continue
 
-        for arq in os.listdir(dir_origem):
-            match = pat.match(arq)
-            if match:
+        matches = [pat.match(arq) for arq in os.listdir(dir_origem)]
+        ids_origens = [(int(m.group(1)),
+                        os.path.join(dir_origem, m.group(0)))
+                       for m in matches if m]
+        objetos = {obj.id: obj for obj in model.objects.all()}
+        upload_to = model._meta.get_field(campo).upload_to
+
+        with transaction.atomic():
+            for id, origem in ids_origens:
                 # associa documento ao objeto
-                origem = os.path.join(dir_origem, match.group(0))
-                id = match.group(1)
-                try:
-                    obj = model.objects.get(pk=id)
-                except model.DoesNotExist:
-                    msg = '  {} (pk={}) não encontrado para documento em [{}]'
-                    print(msg.format(model.__name__, id, origem))
-                else:
-                    destino = os.path.join(
-                        base_destino.format(id, *get_extra_args(obj)),
-                        os.path.basename(origem))
+                obj = objetos.get(id)
+                if obj:
+                    destino = upload_to(obj, os.path.basename(origem))
                     mover_documento(origem, destino)
                     setattr(obj, campo, destino)
                     obj.save()
+                else:
+                    msg = '  {} (pk={}) não encontrado para documento em [{}]'
+                    print(msg.format(model.__name__, id, origem))
 
 
 def migrar_documentos():
@@ -215,5 +155,3 @@ def migrar_documentos():
         print('\n#### Encerrado ####\n\n'
               '{} documentos sobraram sem ser migrados!!!'.format(
                   len(sobrando)))
-        for doc in sobrando:
-            print('  {}'. format(doc))

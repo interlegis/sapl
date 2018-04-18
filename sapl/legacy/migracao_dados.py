@@ -1,3 +1,4 @@
+import datetime
 import re
 import traceback
 from collections import OrderedDict, defaultdict, namedtuple
@@ -8,6 +9,7 @@ from operator import xor
 from subprocess import PIPE, call
 
 import pkg_resources
+import pyaml
 import pytz
 import reversion
 import yaml
@@ -18,6 +20,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Max, Q
+from pyaml import UnsafePrettyYAMLDumper
 from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
@@ -143,6 +146,15 @@ CAMPOS_VIRTUAIS_PROPOSICAO = {
 for campo_virtual in CAMPOS_VIRTUAIS_PROPOSICAO.values():
     campos_novos_para_antigos[campo_virtual] = 'cod_mat_ou_doc'
 
+
+CAMPOS_VIRTUAIS_TIPO_PROPOSICAO = {
+    'M': CampoVirtual(TipoProposicao, TipoMateriaLegislativa),
+    'D': CampoVirtual(TipoProposicao, TipoDocumento)
+}
+for campo_virtual in CAMPOS_VIRTUAIS_TIPO_PROPOSICAO.values():
+    campos_novos_para_antigos[campo_virtual] = 'tip_mat_ou_doc'
+
+
 # campos virtuais de Autor para funcionar com get_fk_related
 CAMPOS_VIRTUAIS_AUTOR = {related: CampoVirtual(Autor, related)
                          for related in (Parlamentar, Comissao, Partido)}
@@ -201,7 +213,7 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
         campo = campos_novos_para_antigos[self.field]
         _, tabela, campos_pk = get_estrutura_legado(self.field.model)
         pk = {c: getattr(self.old, c) for c in campos_pk}
-        sql = 'select * from {} where {}'.format(
+        sql = 'select * from {} where {};'.format(
             tabela,
             ' and '.join(['{} = {}'.format(k, v) for k, v in pk.items()]))
         return OrderedDict((('campo', campo),
@@ -494,6 +506,8 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('parlamentar', 'dependente', 'cod_parlamentar'),
     ('parlamentar', 'filiacao', 'cod_parlamentar'),
     ('parlamentar', 'mandato', 'cod_parlamentar'),
+    ('parlamentar', 'composicao_mesa', 'cod_parlamentar'),
+    ('parlamentar', 'composicao_comissao', 'cod_parlamentar'),
 
     # comissao
     ('comissao', 'composicao_comissao', 'cod_comissao'),
@@ -518,6 +532,11 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('materia_legislativa', 'anexada', 'cod_materia_principal'),
     ('materia_legislativa', 'anexada', 'cod_materia_anexada'),
     ('materia_legislativa', 'documento_acessorio', 'cod_materia'),
+    ('materia_legislativa', 'numeracao', 'cod_materia'),
+
+    # norma
+    ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referente'),
+    ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referida'),
 
     # documento administrativo
     ('documento_administrativo', 'tramitacao_administrativo', 'cod_documento'),
@@ -547,6 +566,9 @@ def uniformiza_banco():
 
     garante_coluna_no_legado('tipo_materia_legislativa',
                              'quorum_minimo_votacao int(11) NULL')
+
+    garante_coluna_no_legado('materia_legislativa',
+                             'txt_resultado TEXT NULL')
 
     # Cria campos cod_presenca_sessao (sendo a nova PK da tabela)
     # e dat_sessao em sessao_plenaria_presenca
@@ -763,6 +785,12 @@ def populate_renamed_fields(new, old):
 
 
 def migrar_dados(interativo=True):
+    # executa ajustes pré-migração, se existirem
+    arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
+        'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+    if arq_ajustes_pre_migracao.exists():
+        exec_legado(arq_ajustes_pre_migracao.read_file())
+
     uniformiza_banco()
 
     # excluindo database antigo.
@@ -800,8 +828,7 @@ def migrar_dados(interativo=True):
         arq_ocorrencias = dir_ocorrencias.child(
             nome_banco_legado + '.yaml')
         with open(arq_ocorrencias, 'w') as arq:
-            dump = yaml.dump(dict(ocorrencias), allow_unicode=True)
-            arq.write(dump.replace('\n- ', '\n\n- '))
+            pyaml.dump(ocorrencias, arq, vspacing=1)
         info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
 
     # recria tipos de autor padrão que não foram criados pela migração
@@ -816,7 +843,7 @@ def move_para_depois_de(lista, movido, referencias):
     return lista
 
 
-def migrar_todos_os_models():
+def get_models_a_migrar():
     models = [model for app in appconfs for model in app.models.values()
               if model in field_renames]
     # Devido à referência TipoProposicao.tipo_conteudo_related
@@ -829,7 +856,11 @@ def migrar_todos_os_models():
     move_para_depois_de(models, Proposicao,
                         [MateriaLegislativa, DocumentoAdministrativo])
 
-    for model in models:
+    return models
+
+
+def migrar_todos_os_models():
+    for model in get_models_a_migrar():
         migrar_model(model)
 
 
@@ -1061,22 +1092,16 @@ def adjust_tipoafastamento(new, old):
         new.indicador = 'F'
 
 
-TIPO_MATERIA_OU_TIPO_DOCUMENTO = {'M': TipoMateriaLegislativa,
-                                  'D': TipoDocumento}
+def set_generic_fk(new, campo_virtual, old):
+    new.content_type = content_types[campo_virtual.related_model]
+    new.object_id = get_fk_related(campo_virtual, old)
 
 
 def adjust_tipoproposicao(new, old):
     "Aponta para o tipo relacionado de matéria ou documento"
-    value = old.tip_mat_ou_doc
-    model_tipo = TIPO_MATERIA_OU_TIPO_DOCUMENTO[old.ind_mat_ou_doc]
-    tipo = model_tipo.objects.filter(pk=value)
-    if tipo:
-        new.tipo_conteudo_related = tipo[0]
-    else:
-        raise ForeignKeyFaltando(
-            field=TipoProposicao.tipo_conteudo_related,
-            value=(model_tipo.__name__, value),
-            label={'ind_mat_ou_doc': old.ind_mat_ou_doc})
+    if old.tip_mat_ou_doc:
+        campo_virtual = CAMPOS_VIRTUAIS_TIPO_PROPOSICAO[old.ind_mat_ou_doc]
+        set_generic_fk(new, campo_virtual, old)
 
 
 def adjust_proposicao_antes_salvar(new, old):
@@ -1085,8 +1110,7 @@ def adjust_proposicao_antes_salvar(new, old):
     if old.cod_mat_ou_doc:
         tipo_mat_ou_doc = type(new.tipo.tipo_conteudo_related)
         campo_virtual = CAMPOS_VIRTUAIS_PROPOSICAO[tipo_mat_ou_doc]
-        new.content_type = content_types[campo_virtual.related_model]
-        new.object_id = get_fk_related(campo_virtual, old)
+        set_generic_fk(new, campo_virtual, old)
 
 
 def adjust_statustramitacao(new, old):
@@ -1226,4 +1250,36 @@ AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
 }
 
-# CHECKS ####################################################################
+
+# MARCO ######################################################################
+
+TIME_FORMAT = '%H:%M:%S'
+
+
+def time_representer(dumper, data):
+    return dumper.represent_scalar('!time', data.strftime(TIME_FORMAT))
+UnsafePrettyYAMLDumper.add_representer(datetime.time, time_representer)
+
+
+def time_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    return datetime.datetime.strptime(value, TIME_FORMAT).time()
+yaml.add_constructor(u'!time', time_constructor)
+
+
+DIR_MARCO = Path(DIR_DADOS_MIGRACAO, 'marcos', nome_banco_legado)
+
+
+def grava_marco_base():
+    user_model = get_user_model()
+    models = get_models_a_migrar() + [
+        Composicao, user_model, Group, ContentType]
+    for model in models:
+        info('Gravando marco de [{}]'.format(model.__name__))
+        dir_model = Path(
+            DIR_MARCO, 'dados', model._meta.app_label, model.__name__)
+        dir_model.mkdir(parents=True)
+        for data in model.objects.all().values():
+            nome_arq = Path(dir_model, data['id'])
+            with open(nome_arq, 'w') as arq:
+                pyaml.dump(data, arq)
