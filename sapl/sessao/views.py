@@ -2596,7 +2596,7 @@ class PesquisarSessaoPlenariaView(FilterView):
             'tipo', 'sessao_legislativa', 'legislatura')
 
         qs = qs.distinct().order_by(
-            '-legislatura__numero', '-data_inicio', '-numero')
+            '-legislatura__numero', '-data_inicio', '-hora_inicio')
 
         kwargs.update({
             'queryset': qs,
