@@ -5,6 +5,8 @@
 # Esse script precisa rodar em python 2
 # e depende apenas do descrito no arquivo requiments.txt
 
+import cStringIO
+import hashlib
 import mimetypes
 import os
 import sys
@@ -16,9 +18,10 @@ import git
 import magic
 import pyaml
 import yaml
+from unipath import Path
+
 import ZODB.DB
 import ZODB.FileStorage
-from unipath import Path
 from ZODB.broken import Broken
 
 EXTENSOES = {
@@ -62,29 +65,25 @@ def br(obj):
         return obj
 
 
-def guess_extension(caminho):
-    mime = magic.from_file(caminho, mime=True)
+def guess_extension(fullname, buffer):
+    mime = magic.from_buffer(buffer, mime=True)
     try:
         return EXTENSOES[mime]
     except KeyError as e:
-        msg = '\n'.join([
-            'Extensão não conhecida para o arquivo:',
-            caminho,
-            'E mimetype:',
-            mime,
-            ' Algumas possibilidades são:', ] +
+        possibilidades = '\n'.join(
             ["    '{}': '{}',".format(mime, ext)
-             for ext in mimetypes.guess_all_extensions(mime)] +
-            ['Atualize o código do dicionário EXTENSOES!']
-        )
+             for ext in mimetypes.guess_all_extensions(mime)])
+        msg = '''Extensão não conhecida para o arquivo: {}
+            e mimetype: {}
+            Algumas possibilidades são:
+            {}
+            Atualize o código do dicionário EXTENSOES!
+            '''.format(fullname, mime, possibilidades)
         print(msg)
         raise Exception(msg, e)
 
 
-nomes_arquivos_exportados = {}
-
-
-def dump_file(doc, path):
+def dump_file(doc, path, salvar):
     name = doc['__name__']
     fullname = os.path.join(path, name)
 
@@ -104,23 +103,11 @@ def dump_file(doc, path):
         doc['data'] = pdata
         pdata = doc
 
-    with open(fullname, 'w') as arq:
-        while pdata:
-            arq.write(pdata.pop('data'))
-            pdata = br(pdata.pop('next', None))
-
-    base, original_extension = os.path.splitext(fullname)
-    extension = guess_extension(fullname)
-    if extension == '.xml' and original_extension in ['.xsl', '.xslt']:
-        # não trocamos as extensões XSL e XSLT
-        final_name = fullname
-    else:
-        # trocamos a extensão pela adivinhada
-        final_name = base + extension
-        os.rename(fullname, final_name)
-    nomes_arquivos_exportados[fullname] = final_name
-    print(final_name)
-
+    output = cStringIO.StringIO()
+    while pdata:
+        output.write(pdata.pop('data'))
+        pdata = br(pdata.pop('next', None))
+    salvar(fullname, output.getvalue())
     return name
 
 
@@ -165,7 +152,7 @@ def logando_nao_identificados():
         print('#' * 80)
 
 
-def dump_folder(folder, path='', enum=enumerate_folder):
+def dump_folder(folder, path, salvar, enum=enumerate_folder):
     name = folder['id']
     path = os.path.join(path, name)
     if not os.path.exists(path):
@@ -175,7 +162,7 @@ def dump_folder(folder, path='', enum=enumerate_folder):
         if dump == '?':
             nao_identificados[meta_type].append(path + '/' + id)
         elif dump:
-            id_interno = dump(obj, path)
+            id_interno = dump(obj, path, salvar)
             assert id == id_interno
     return name
 
@@ -211,18 +198,16 @@ def read_sde(element):
     return data
 
 
-def save_as_yaml(path, name, obj):
+def save_as_yaml(path, name, obj, salvar):
     fullname = os.path.join(path, name)
-    with open(fullname, 'w') as arquivo:
-        yaml.safe_dump(obj, arquivo, allow_unicode=True)
-    print(fullname)
-    return fullname
+    conteudo = yaml.safe_dump(obj, allow_unicode=True)
+    salvar(fullname, conteudo)
 
 
-def dump_sde(strdoc, path, tipo):
+def dump_sde(strdoc, path, salvar, tipo):
     id = strdoc['id']
     sde = read_sde(strdoc)
-    save_as_yaml(path,  '{}.{}.yaml'.format(id, tipo), sde)
+    save_as_yaml(path,  '{}.{}.yaml'.format(id, tipo), sde, salvar)
     return id
 
 
@@ -243,7 +228,7 @@ DUMP_FUNCTIONS = {
 
 
 def get_app(data_fs_path):
-    storage = ZODB.FileStorage.FileStorage(data_fs_path)
+    storage = ZODB.FileStorage.FileStorage(data_fs_path, read_only=True)
     db = ZODB.DB(storage)
     connection = db.open()
     root = connection.root()
@@ -265,60 +250,79 @@ def find_sapl(app):
                 return sapl
 
 
-def dump_propriedades(docs, path, encoding='iso-8859-1'):
+def dump_propriedades(docs, path, salvar, encoding='iso-8859-1'):
     props_sapl = br(docs['props_sapl'])
     ids = [p['id'] for p in props_sapl['_properties']]
     props = {id: props_sapl[id] for id in ids}
     props = {id: p.decode(encoding) if isinstance(p, str) else p
              for id, p in props.items()}
-    save_as_yaml(path, 'sapl_documentos/propriedades.yaml', props)
+    save_as_yaml(path, 'sapl_documentos/propriedades.yaml', props, salvar)
 
 
-def dump_usuarios(sapl, path):
+def dump_usuarios(sapl, path, salvar):
     users = br(br(sapl['acl_users'])['data'])
     users = {k: br(v) for k, v in users['data'].items()}
-    save_as_yaml(path, 'usuarios.yaml', users)
+    save_as_yaml(path, 'usuarios.yaml', users, salvar)
 
 
-def grava_nomes_arquivos_exportados(destino):
-    """Grava nomes dos arquivos exportados (originais -> definitivos)
-    """
-    destino = Path(destino)
-
-    def rel(caminho):
-        return str(destino.rel_path_to(caminho))
-
-    with open(destino.child('arquivos_exportados.yaml'), 'w') as arq:
-        nomes = {rel(k): rel(v) for k, v in nomes_arquivos_exportados.items()}
-        pyaml.dump(nomes, arq)
-
-
-def _dump_sapl(data_fs_path, destino='../../../../media'):
+def _dump_sapl(data_fs_path, destino, salvar):
     assert Path(data_fs_path).exists()
     app, close_db = get_app(data_fs_path)
-    nomes_arquivos_exportados.clear()  # apaga nomes dos arquivos migrados
     try:
         sapl = find_sapl(app)
         # extrai folhas XSLT
-        dump_folder(br(sapl['XSLT']), destino)
+        dump_folder(br(sapl['XSLT']), destino, salvar)
         # extrai usuários com suas senhas e perfis
-        dump_usuarios(sapl, destino)
+        dump_usuarios(sapl, destino, salvar)
 
         # extrai documentos
         docs = br(sapl['sapl_documentos'])
         with logando_nao_identificados():
-            dump_folder(docs, destino)
-            dump_propriedades(docs, destino)
+            dump_folder(docs, destino, salvar)
+            dump_propriedades(docs, destino, salvar)
     finally:
         close_db()
-        grava_nomes_arquivos_exportados(destino)
 
 
 DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
 
 
-def repo_execute(repo, cmd):
-    return repo.git.execute(cmd.split())
+def repo_execute(repo, cmd, *args):
+    return repo.git.execute(cmd.split() + list(args))
+
+
+def get_annex_hashes(repo):
+    hashes = repo_execute(
+        repo, 'git annex find', '--format=${keyname}\n', '--include=*')
+    return {os.path.splitext(h)[0] for h in hashes.splitlines()}
+
+
+def ajusta_extensao(fullname, conteudo):
+    base, extensao = os.path.splitext(fullname)
+    if extensao not in ['.xsl', '.xslt', '.yaml']:
+        # não trocamos as extensões XSL, XSLT e YAML
+        extensao = guess_extension(fullname, conteudo)
+    return base + extensao
+
+
+def build_salvar(repo):
+    """Constroi função salvar que pula arquivos que já estão no annex
+    """
+    hashes = get_annex_hashes(repo)
+
+    def salvar(fullname, conteudo):
+        sha = hashlib.sha256()
+        sha.update(conteudo)
+        if sha.hexdigest() not in hashes:
+            fullname = ajusta_extensao(fullname, conteudo)
+            if os.path.exists(fullname):
+                # destrava arquivo pré-existente (o conteúdo mudou)
+                repo_execute(repo, 'git annex unlock', fullname)
+            with open(fullname, 'w') as arq:
+                arq.write(conteudo)
+            print(fullname)
+
+    return salvar
 
 
 def dump_sapl(sigla):
@@ -329,9 +333,13 @@ def dump_sapl(sigla):
     destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
     destino.mkdir(parents=True)
     repo = git.Repo.init(destino)
-    _dump_sapl(data_fs_path, destino)
-    # grava mundaças
     repo_execute(repo, 'git annex init')
+    repo_execute(repo, 'git config annex.thin true')
+
+    salvar = build_salvar(repo)
+    _dump_sapl(data_fs_path, destino, salvar)
+
+    # grava mundaças
     repo_execute(repo, 'git annex add sapl_documentos')
     repo.git.add(A=True)
     if 'master' not in repo.heads or repo.index.diff('HEAD'):
