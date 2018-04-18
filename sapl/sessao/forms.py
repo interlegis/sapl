@@ -464,14 +464,13 @@ class OradorExpedienteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(OradorExpedienteForm, self).__init__(*args, **kwargs)
 
-        legislatura_atual = [l for l in Legislatura.objects.all() if l.atual]
+        legislatura_vigente = SessaoPlenaria.objects.get(pk=kwargs['initial']['id_sessao']).legislatura
 
-        if legislatura_atual:
-            legislatura_atual = legislatura_atual[0]
+        if legislatura_vigente:
             self.fields['parlamentar'].queryset = \
                 Parlamentar.objects.filter(ativo=True,
-                                       mandato__legislatura=legislatura_atual
-                                       ).order_by('nome_parlamentar')
+                                           mandato__legislatura=legislatura_vigente
+                                          ).order_by('nome_parlamentar')
 
     class Meta:
         model = OradorExpediente
