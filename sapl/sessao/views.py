@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db.models import Max, Q
+from django.db.models import Max, Q, Func
 from django.forms.utils import ErrorList
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
@@ -393,8 +393,13 @@ def get_presencas_generic(model, sessao, legislatura):
 
     presentes = [p.parlamentar for p in presencas]
 
+    # COLLATION pt_BR.utf8
+    nome_c = Func(
+                'parlamentar__nome_parlamentar',
+                function='pt_BR.utf8',
+                template='(%(expressions)s) COLLATE "%(function)s"')
     mandato = Mandato.objects.filter(
-        legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
+        legislatura=legislatura).order_by(nome_c.asc())
 
     for m in mandato:
         if m.parlamentar in presentes:
