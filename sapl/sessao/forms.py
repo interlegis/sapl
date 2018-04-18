@@ -472,6 +472,25 @@ class OradorExpedienteForm(ModelForm):
                                            mandato__legislatura=legislatura_vigente
                                           ).order_by('nome_parlamentar')
 
+    def clean(self):
+        super(OradorExpedienteForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        sessao_id = self.initial['id_sessao']
+        ordem = OradorExpediente.objects.filter(
+                            sessao_plenaria_id=sessao_id,
+                            numero_ordem=cleaned_data['numero_ordem']
+                            ).exists()
+        if ordem:
+            raise ValidationError(_(
+                'Já existe orador nesta posição da ordem de pronunciamento'))
+
+        return self.cleaned_data
+
+
     class Meta:
         model = OradorExpediente
         exclude = ['sessao_plenaria']
