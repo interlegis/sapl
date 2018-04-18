@@ -978,13 +978,12 @@ class MesaView(FormMixin, DetailView):
             return self.render_to_response(context)
 
         mesa = sessao.integrantemesa_set.all() if sessao else []
-
         cargos_ocupados = [m.cargo for m in mesa]
         cargos = CargoMesa.objects.all()
         cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
         # FIX-ME: tem formas melhores de fazer isso, poupando linhas.
-        parlamentares = Legislatura.objects.first().mandato_set.all()
+        parlamentares = Legislatura.objects.get(id=sessao.legislatura_id).mandato_set.all()
         parlamentares_ocupados = [m.parlamentar for m in mesa]
         parlamentares_vagos = list(
             set(
