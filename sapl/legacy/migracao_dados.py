@@ -8,6 +8,7 @@ from itertools import groupby
 from operator import xor
 from subprocess import PIPE, call
 
+import git
 import pkg_resources
 import pyaml
 import pytz
@@ -1256,30 +1257,44 @@ AJUSTE_DEPOIS_SALVAR = {
 TIME_FORMAT = '%H:%M:%S'
 
 
+# permite a gravação de tempos puros pelo pretty-yaml
 def time_representer(dumper, data):
     return dumper.represent_scalar('!time', data.strftime(TIME_FORMAT))
 UnsafePrettyYAMLDumper.add_representer(datetime.time, time_representer)
 
 
+# permite a leitura de tempos puros pelo pyyaml (no padrão gravado acima)
 def time_constructor(loader, node):
     value = loader.construct_scalar(node)
     return datetime.datetime.strptime(value, TIME_FORMAT).time()
 yaml.add_constructor(u'!time', time_constructor)
 
 
-DIR_MARCO = Path(DIR_DADOS_MIGRACAO, 'marcos', nome_banco_legado)
+REPO = git.Repo.init(Path(DIR_DADOS_MIGRACAO, 'repos', nome_banco_legado))
 
 
-def grava_marco_base():
+def gravar_marco():
+    """Grava um dump de todos os dados como arquivos yaml no repo de marco
+    """
+    # prepara ou localiza repositorio
+    dir_dados = Path(REPO.working_dir, 'dados')
+
+    # exporta dados como arquivos yaml
     user_model = get_user_model()
     models = get_models_a_migrar() + [
         Composicao, user_model, Group, ContentType]
     for model in models:
         info('Gravando marco de [{}]'.format(model.__name__))
-        dir_model = Path(
-            DIR_MARCO, 'dados', model._meta.app_label, model.__name__)
+        dir_model = dir_dados.child(model._meta.app_label, model.__name__)
         dir_model.mkdir(parents=True)
         for data in model.objects.all().values():
-            nome_arq = Path(dir_model, data['id'])
+            nome_arq = Path(dir_model, '{}.yaml'.format(data['id']))
             with open(nome_arq, 'w') as arq:
                 pyaml.dump(data, arq)
+
+    # salva mudanças
+    REPO.git.add([dir_dados.name])
+    if 'master' not in REPO.heads or REPO.index.diff('HEAD'):
+        # se de fato existe mudança
+        REPO.index.commit('Grava marco')
+    REPO.git.execute('git tag marco'.split())
