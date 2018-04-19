@@ -18,10 +18,9 @@ import git
 import magic
 import pyaml
 import yaml
-from unipath import Path
-
 import ZODB.DB
 import ZODB.FileStorage
+from unipath import Path
 from ZODB.broken import Broken
 
 EXTENSOES = {
@@ -107,7 +106,11 @@ def dump_file(doc, path, salvar):
     while pdata:
         output.write(pdata.pop('data'))
         pdata = br(pdata.pop('next', None))
-    salvar(fullname, output.getvalue())
+
+    conteudo = output.getvalue()
+    if conteudo:
+        # pula arquivos vazios
+        salvar(fullname, conteudo)
     return name
 
 
