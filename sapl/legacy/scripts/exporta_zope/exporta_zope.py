@@ -14,10 +14,11 @@ from collections import defaultdict
 from contextlib import contextmanager
 from functools import partial
 
+import yaml
+
 import git
 import magic
 import pyaml
-import yaml
 import ZODB.DB
 import ZODB.FileStorage
 from unipath import Path
@@ -155,8 +156,8 @@ def logando_nao_identificados():
     if nao_identificados:
         print('#' * 80)
         print('#' * 80)
-        print(u'FORAM ENCONTRADOS ARQUIVOS DE FORMATO NÃO IDENTIFICADO!!!')
-        print(u'REFAÇA A EXPORTAÇÃO\n')
+        print('FORAM ENCONTRADOS ARQUIVOS DE FORMATO NÃO IDENTIFICADO!!!')
+        print('REFAÇA A EXPORTAÇÃO\n')
         print(nao_identificados)
         print('#' * 80)
         print('#' * 80)
