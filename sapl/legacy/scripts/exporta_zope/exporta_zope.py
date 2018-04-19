@@ -29,6 +29,9 @@ EXTENSOES = {
     'application/vnd.oasis.opendocument.text': '.odt',
     'application/vnd.ms-excel': '.xls',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',  # noqa
+    'application/vnd.oasis.opendocument.text-template': '.ott',
+    'application/vnd.ms-powerpoint': '.ppt',
+
     'application/xml': '.xml',
     'text/xml': '.xml',
     'application/zip': '.zip',
@@ -45,7 +48,9 @@ EXTENSOES = {
     'audio/x-wav': '.wav',
     'video/mp4': '.mp4',
     'image/x-icon': '.ico',
-    'application/vnd.oasis.opendocument.text-template': '.ott',
+    'image/x-ms-bmp': '.bmp',
+    'video/x-ms-asf': '.asf',
+    'audio/mpeg': '.mp3',
 
     # TODO rever...
     'text/richtext': '.rtf',
@@ -53,7 +58,9 @@ EXTENSOES = {
     # sem extensao
     'application/octet-stream': '',  # binário
     'inode/x-empty': '',  # vazio
-    'text/x-unknown-content-type': '',
+    'application/x-empty': '',  # vazio
+    'text/x-unknown-content-type': '',  # desconhecido
+    'application/CDFV2-unknown': '',  # desconhecido
 }
 
 
