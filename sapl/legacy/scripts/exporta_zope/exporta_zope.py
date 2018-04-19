@@ -14,14 +14,14 @@ from collections import defaultdict
 from contextlib import contextmanager
 from functools import partial
 
-import yaml
-
 import git
 import magic
 import pyaml
+import yaml
+from unipath import Path
+
 import ZODB.DB
 import ZODB.FileStorage
-from unipath import Path
 from ZODB.broken import Broken
 
 EXTENSOES = {
@@ -32,10 +32,14 @@ EXTENSOES = {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',  # noqa
     'application/vnd.oasis.opendocument.text-template': '.ott',
     'application/vnd.ms-powerpoint': '.ppt',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',  # noqa
+    'application/vnd.oasis.opendocument.spreadsheet': '.ods',
 
     'application/xml': '.xml',
     'text/xml': '.xml',
     'application/zip': '.zip',
+    'application/x-rar': '.rar',
+
     'image/jpeg': '.jpeg',
     'image/png': '.png',
     'image/gif': '.gif',
