@@ -668,11 +668,12 @@ class DocumentoAdministrativoForm(ModelForm):
         numero_documento = self.cleaned_data['numero']
         tipo_documento = self.data['tipo']
 
-        documento = DocumentoAdministrativo.objects.filter(numero=numero_documento,
-                                               tipo=tipo_documento, ano=ano_protocolo)
-
-        if documento:
-            raise ValidationError('Documento já existente')
+        if not self.instance.pk:
+            documento = DocumentoAdministrativo.objects.filter(numero=numero_documento,
+                                                               tipo=tipo_documento,
+                                                               ano=ano_protocolo)
+            if documento:
+                raise ValidationError('Documento já existente')
 
         # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
