@@ -662,10 +662,17 @@ class DocumentoAdministrativoForm(ModelForm):
 
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
-        numero_documento = self.cleaned_data['numero']
-        tipo_documento = self.data['tipo']
+        numero_documento = int(self.cleaned_data['numero'])
+        tipo_documento = int(self.data['tipo'])
+        ano_documento = int(self.data['ano'])
 
-        if not self.instance.pk:
+        # não permite atualizar para numero/ano/tipo existente
+        if self.instance.pk:
+            mudanca_doc = numero_documento != self.instance.numero \
+                            or ano_documento != self.instance.ano \
+                            or tipo_documento != self.instance.tipo.pk
+
+        if not self.instance.pk or mudanca_doc:
             documento = DocumentoAdministrativo.objects.filter(numero=numero_documento,
                                                                tipo=tipo_documento,
                                                                ano=ano_protocolo)
