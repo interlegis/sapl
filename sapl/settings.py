@@ -116,7 +116,7 @@ HAYSTACK_CONNECTIONS = {
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -127,8 +127,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'speedinfo.middleware.ProfilerMiddleware',
-)
+]
 
 CACHES = {
     'default': {
