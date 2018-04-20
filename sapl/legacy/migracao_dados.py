@@ -31,8 +31,9 @@ from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy import scripts
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
-from sapl.legacy.scripts.exporta_zope.variaveis_comuns import \
-    DIR_DADOS_MIGRACAO
+from sapl.legacy_migration_settings import (DATABASES, DIR_DADOS_MIGRACAO,
+                                            DIR_REPO, NOME_BANCO_LEGADO,
+                                            PROJECT_DIR)
 from sapl.materia.models import (AcompanhamentoMateria, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
@@ -45,7 +46,6 @@ from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
                                 TipoResultadoVotacao)
-from sapl.settings import DATABASES, PROJECT_DIR
 from sapl.utils import normalize
 
 from .timezonesbrasil import get_timezone
@@ -733,8 +733,6 @@ def reinicia_sequence(model, id):
         sequence_name, id))
 
 
-NOME_BANCO_LEGADO = DATABASES['legacy']['NAME']
-DIR_REPO = Path(DIR_DADOS_MIGRACAO, 'repos', NOME_BANCO_LEGADO)
 REPO = git.Repo.init(DIR_REPO)
 
 
