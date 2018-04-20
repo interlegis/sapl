@@ -1,4 +1,5 @@
 import datetime
+import os
 import re
 import traceback
 from collections import OrderedDict, defaultdict, namedtuple
@@ -27,6 +28,7 @@ from unipath import Path
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.legacy import scripts
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.materia.models import (AcompanhamentoMateria, MateriaLegislativa,
@@ -785,7 +787,23 @@ def populate_renamed_fields(new, old):
                 setattr(new, field.name, value)
 
 
+def roda_comando_shell(cmd):
+    res = os.system(cmd)
+    assert res == 0, 'O comando falhou: {}'.format(cmd)
+
+
 def migrar_dados(interativo=True):
+
+    # restaura dump
+    arq_dump = Path(DIR_DADOS_MIGRACAO.child(
+        'dumps_mysql', '{}.sql'.format(NOME_BANCO_LEGADO)))
+    assert arq_dump.exists(), 'Dump do mysql faltando: {}'.format(arq_dump)
+    info('Restaurando dump mysql de [{}]'.format(arq_dump))
+    normaliza_dump_mysql = Path(scripts.__file__).parent.child(
+        'normaliza_dump_mysql.sh')
+    roda_comando_shell('{} {}'.format(normaliza_dump_mysql, arq_dump))
+    roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
+
     # executa ajustes pré-migração, se existirem
     arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
         'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
@@ -1292,4 +1310,4 @@ def gravar_marco():
     if 'master' not in REPO.heads or REPO.index.diff('HEAD'):
         # se de fato existe mudança
         REPO.index.commit('Grava marco')
-    REPO.git.execute('git tag marco'.split())
+    REPO.git.execute('git tag -f marco'.split())
