@@ -730,8 +730,8 @@ def reinicia_sequence(model, id):
 
 
 DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
-PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
-DIR_RESULTADOS = DIR_DADOS_MIGRACAO.child('resultados')
+NOME_BANCO_LEGADO = DATABASES['legacy']['NAME']
+REPO = git.Repo.init(Path(DIR_DADOS_MIGRACAO, 'repos', NOME_BANCO_LEGADO))
 
 
 def dict_representer(dumper, data):
@@ -740,9 +740,9 @@ yaml.add_representer(OrderedDict, dict_representer)
 
 
 # configura timezone de migração
-nome_banco_legado = DATABASES['legacy']['NAME']
-match = re.match('sapl_cm_(.*)', nome_banco_legado)
+match = re.match('sapl_cm_(.*)', NOME_BANCO_LEGADO)
 sigla_casa = match.group(1)
+PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
 with open(PATH_TABELA_TIMEZONES, 'r') as arq:
     tabela_timezones = yaml.load(arq)
 municipio, uf, nome_timezone = tabela_timezones[sigla_casa]
@@ -818,18 +818,16 @@ def migrar_dados(interativo=True):
     info('Começando migração: ...')
     try:
         ocorrencias.clear()
-        dir_ocorrencias = DIR_RESULTADOS.child(date.today().isoformat())
-        dir_ocorrencias.mkdir(parents=True)
         migrar_todos_os_models()
     except Exception as e:
         ocorrencias['traceback'] = str(traceback.format_exc())
         raise e
     finally:
         # grava ocorrências
-        arq_ocorrencias = dir_ocorrencias.child(
-            nome_banco_legado + '.yaml')
+        arq_ocorrencias = Path(REPO.working_dir, 'ocorrencias.yaml')
         with open(arq_ocorrencias, 'w') as arq:
             pyaml.dump(ocorrencias, arq, vspacing=1)
+        REPO.git.add([arq_ocorrencias.name])
         info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
 
     # recria tipos de autor padrão que não foram criados pela migração
@@ -1268,9 +1266,6 @@ def time_constructor(loader, node):
     value = loader.construct_scalar(node)
     return datetime.datetime.strptime(value, TIME_FORMAT).time()
 yaml.add_constructor(u'!time', time_constructor)
-
-
-REPO = git.Repo.init(Path(DIR_DADOS_MIGRACAO, 'repos', nome_banco_legado))
 
 
 def gravar_marco():
