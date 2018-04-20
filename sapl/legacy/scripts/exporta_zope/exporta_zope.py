@@ -340,6 +340,7 @@ def build_salvar(repo):
 
 
 def dump_sapl(sigla):
+    sigla = sigla[-3:]  # ignora prefixo (por ex. 'sapl_cm_')
     data_fs_path = DIR_DADOS_MIGRACAO.child('datafs',
                                             'Data_cm_{}.fs'.format(sigla))
     assert data_fs_path.exists(), 'Origem não existe: {}'.format(data_fs_path)
