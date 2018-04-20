@@ -18,10 +18,9 @@ import git
 import magic
 import pyaml
 import yaml
-from unipath import Path
-
 import ZODB.DB
 import ZODB.FileStorage
+from unipath import Path
 from ZODB.broken import Broken
 
 EXTENSOES = {
@@ -352,14 +351,20 @@ def dump_sapl(sigla):
     repo_execute(repo, 'git config annex.thin true')
 
     salvar = build_salvar(repo)
-    _dump_sapl(data_fs_path, destino, salvar)
-
-    # grava mundaças
-    repo_execute(repo, 'git annex add sapl_documentos')
-    repo.git.add(A=True)
-    if 'master' not in repo.heads or repo.index.diff('HEAD'):
-        # se de fato existe mudança
-        repo.index.commit('Exporta documentos do zope')
+    try:
+        finalizado = False
+        _dump_sapl(data_fs_path, destino, salvar)
+        finalizado = True
+    finally:
+        # grava mundaças
+        repo_execute(repo, 'git annex add sapl_documentos')
+        repo.git.add(A=True)
+        if 'master' not in repo.heads or repo.index.diff('HEAD'):
+            # se de fato existe mudança
+            status = 'completa' if finalizado else 'parcial'
+            repo.index.commit(u'Exportação do zope {}'.format(status))
+            if finalizado:
+                repo.git.execute('git tag -f zope'.split())
 
 
 if __name__ == "__main__":
