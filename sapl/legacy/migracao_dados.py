@@ -31,6 +31,8 @@ from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.legacy import scripts
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
+from sapl.legacy.scripts.exporta_zope.variaveis_comuns import \
+    DIR_DADOS_MIGRACAO
 from sapl.materia.models import (AcompanhamentoMateria, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
@@ -731,9 +733,9 @@ def reinicia_sequence(model, id):
         sequence_name, id))
 
 
-DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
 NOME_BANCO_LEGADO = DATABASES['legacy']['NAME']
-REPO = git.Repo.init(Path(DIR_DADOS_MIGRACAO, 'repos', NOME_BANCO_LEGADO))
+DIR_REPO = Path(DIR_DADOS_MIGRACAO, 'repos', NOME_BANCO_LEGADO)
+REPO = git.Repo.init(DIR_REPO)
 
 
 def dict_representer(dumper, data):

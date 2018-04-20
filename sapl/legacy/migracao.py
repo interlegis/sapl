@@ -6,9 +6,17 @@ from django.conf import settings
 from sapl.legacy.migracao_dados import REPO, gravar_marco, migrar_dados
 from sapl.legacy.migracao_documentos import migrar_documentos
 from sapl.legacy.migracao_usuarios import migrar_usuarios
+from sapl.legacy.scripts.exporta_zope.variaveis_comuns import TAG_ZOPE
+
+
+def adornar_msg(msg):
+    return '\n{1}\n{0}\n{1}'.format(msg, '#' * len(msg))
 
 
 def migrar(interativo=False):
+    assert TAG_ZOPE in {t.name for t in REPO.tags}, adornar_msg(
+        'Antes de migrar '
+        'é necessário fazer a exportação de documentos do zope')
     migrar_dados(interativo=interativo)
     migrar_usuarios(REPO.working_dir)
     migrar_documentos(REPO)

@@ -16,11 +16,12 @@ from functools import partial
 
 import git
 import magic
-import pyaml
 import yaml
+from unipath import Path
+
 import ZODB.DB
 import ZODB.FileStorage
-from unipath import Path
+from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 from ZODB.broken import Broken
 
 EXTENSOES = {
@@ -298,9 +299,6 @@ def _dump_sapl(data_fs_path, destino, salvar):
         close_db()
 
 
-DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
-
-
 def repo_execute(repo, cmd, *args):
     return repo.git.execute(cmd.split() + list(args))
 
@@ -365,7 +363,7 @@ def dump_sapl(sigla):
             status = 'completa' if finalizado else 'parcial'
             repo.index.commit(u'Exportação do zope {}'.format(status))
             if finalizado:
-                repo.git.execute('git tag -f zope'.split())
+                repo.git.execute('git tag -f'.split() + [TAG_ZOPE])
 
 
 if __name__ == "__main__":
