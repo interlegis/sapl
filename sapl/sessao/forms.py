@@ -452,7 +452,7 @@ class OradorForm(ModelForm):
                    sessao_plenaria_id=id_sessao)]
 
         self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-            id__in=ids).order_by('nome_completo')
+            id__in=ids).order_by('nome_parlamentar')
 
     class Meta:
         model = Orador
