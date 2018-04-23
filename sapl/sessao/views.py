@@ -393,6 +393,8 @@ def get_presencas_generic(model, sessao, legislatura):
 
     presentes = [p.parlamentar for p in presencas]
 
+    presentes = sorted(presentes, key=lambda x: x.nome_parlamentar)
+
     mandato = Mandato.objects.filter(
         legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
 
