@@ -12,9 +12,12 @@ from subprocess import PIPE, call
 import git
 import pkg_resources
 import pyaml
+import yaml
+from pyaml import UnsafePrettyYAMLDumper
+from unipath import Path
+
 import pytz
 import reversion
-import yaml
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -22,9 +25,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Max, Q
-from pyaml import UnsafePrettyYAMLDumper
-from unipath import Path
-
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
@@ -48,6 +48,7 @@ from sapl.sessao.models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
                                 TipoResultadoVotacao)
 from sapl.utils import normalize
 
+from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
 from .timezonesbrasil import get_timezone
 
 # BASE ######################################################################
@@ -144,6 +145,7 @@ for nome_novo, nome_antigo in (('comissao', 'cod_comissao'),
 class CampoVirtual(namedtuple('CampoVirtual', 'model related_model')):
     null = True
 
+
 CAMPOS_VIRTUAIS_PROPOSICAO = {
     TipoMateriaLegislativa: CampoVirtual(Proposicao, MateriaLegislativa),
     TipoDocumento: CampoVirtual(Proposicao, DocumentoAdministrativo)
@@ -175,6 +177,7 @@ for related, campo_antigo in [(Parlamentar, 'cod_parlamentar'),
 
 def info(msg):
     print('INFO: ' + msg)
+
 
 ocorrencias = defaultdict(list)
 
@@ -738,6 +741,8 @@ REPO = git.Repo.init(DIR_REPO)
 
 def dict_representer(dumper, data):
     return dumper.represent_dict(data.items())
+
+
 yaml.add_representer(OrderedDict, dict_representer)
 
 
@@ -799,9 +804,7 @@ def migrar_dados(interativo=True):
         'dumps_mysql', '{}.sql'.format(NOME_BANCO_LEGADO)))
     assert arq_dump.exists(), 'Dump do mysql faltando: {}'.format(arq_dump)
     info('Restaurando dump mysql de [{}]'.format(arq_dump))
-    normaliza_dump_mysql = Path(scripts.__file__).parent.child(
-        'normaliza_dump_mysql.sh')
-    roda_comando_shell('{} {}'.format(normaliza_dump_mysql, arq_dump))
+    normaliza_dump_mysql(arq_dump)
     roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
 
     # executa ajustes pré-migração, se existirem
@@ -1276,6 +1279,8 @@ TIME_FORMAT = '%H:%M:%S'
 # permite a gravação de tempos puros pelo pretty-yaml
 def time_representer(dumper, data):
     return dumper.represent_scalar('!time', data.strftime(TIME_FORMAT))
+
+
 UnsafePrettyYAMLDumper.add_representer(datetime.time, time_representer)
 
 
@@ -1283,6 +1288,8 @@ UnsafePrettyYAMLDumper.add_representer(datetime.time, time_representer)
 def time_constructor(loader, node):
     value = loader.construct_scalar(node)
     return datetime.datetime.strptime(value, TIME_FORMAT).time()
+
+
 yaml.add_constructor(u'!time', time_constructor)
 
 
