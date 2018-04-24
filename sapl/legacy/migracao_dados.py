@@ -12,12 +12,9 @@ from subprocess import PIPE, call
 import git
 import pkg_resources
 import pyaml
-import yaml
-from pyaml import UnsafePrettyYAMLDumper
-from unipath import Path
-
 import pytz
 import reversion
+import yaml
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -25,6 +22,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Max, Q
+from pyaml import UnsafePrettyYAMLDumper
+from unipath import Path
+
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
@@ -725,11 +725,6 @@ def fill_dados_basicos():
     appconf.save()
 
 
-def get_last_pk(model):
-    last_value = model.objects.all().aggregate(Max('pk'))
-    return last_value['pk__max'] or 0
-
-
 def reinicia_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
     exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
@@ -903,10 +898,14 @@ def migrar_model(model):
 
         def get_id_do_legado(old):
             return getattr(old, nome_pk)
+
+        ultima_pk_legado = model_legado.objects.all().aggregate(
+            Max('pk'))['pk__max'] or 0
     else:
         # a pk no legado tem mais de um campo
         old_records = iter_sql_records(tabela_legado)
         get_id_do_legado = None
+        ultima_pk_legado = model_legado.objects.count()
 
     ajuste_antes_salvar = AJUSTE_ANTES_SALVAR.get(model)
     ajuste_depois_salvar = AJUSTE_DEPOIS_SALVAR.get(model)
@@ -949,10 +948,13 @@ def migrar_model(model):
         if ajuste_depois_salvar:
             ajuste_depois_salvar()
 
-        # se configuramos ids explicitamente devemos reiniciar a sequence
+        # reiniciamos a sequence logo após a última pk do legado
+        #
+        # É importante que seja do legado (e não da nova base),
+        # pois numa nova versão da migração podemos inserir registros
+        # não migrados antes sem conflito com pks criadas até lá
         if get_id_do_legado:
-            last_pk = get_last_pk(model)
-            reinicia_sequence(model, last_pk + 1)
+            reinicia_sequence(model, ultima_pk_legado + 1)
 
         # apaga registros migrados do legado
         if sql_delete_legado:
