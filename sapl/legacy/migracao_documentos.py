@@ -5,6 +5,7 @@ from os.path import join
 
 import yaml
 from django.db import transaction
+from image_cropping.fields import ImageCropField
 
 from sapl.base.models import CasaLegislativa
 from sapl.legacy.migracao_dados import exec_legado
@@ -44,11 +45,6 @@ def mover_documento(repo, origem, destino):
                        for c in (origem, destino)]
     os.makedirs(os.path.dirname(destino), exist_ok=True)
     repo.git.mv(origem, destino)
-    # conserta link do git annex (antes do commit)
-    # em geral é o mais seguro a fazer,
-    # mas foi especificamente necessário pois o conteúdo das imagens
-    # é acessado antes do commit pelo cropping de imagem
-    repo.git.execute('git annex fix'.split() + [destino])
 
 
 def migrar_logotipo(repo, casa, propriedades):
@@ -69,6 +65,7 @@ def migrar_logotipo(repo, casa, propriedades):
 def migrar_propriedades_da_casa(repo):
     print('#### Migrando propriedades da casa ####')
     caminho = join(repo.working_dir, 'sapl_documentos/propriedades.yaml')
+    repo.git.execute('git annex get'.split() + [caminho])
     with open(caminho, 'r') as arquivo:
         propriedades = yaml.safe_load(arquivo)
     casa = CasaLegislativa.objects.first()
@@ -105,7 +102,8 @@ def migrar_docs_por_ids(repo, model):
     for campo, base_origem in DOCS[model]:
         print('#### Migrando {} de {} ####'.format(campo, model.__name__))
 
-        dir_origem, nome_origem = os.path.split(join(repo.working_dir, base_origem))
+        dir_origem, nome_origem = os.path.split(
+            join(repo.working_dir, base_origem))
         nome_origem = nome_origem.format('(\d+)')
         pat = re.compile('^{}\.\w+$'.format(nome_origem))
         if not os.path.isdir(dir_origem):
@@ -119,6 +117,7 @@ def migrar_docs_por_ids(repo, model):
                        for m in matches if m]
         objetos = {obj.id: obj for obj in model.objects.all()}
         upload_to = model._meta.get_field(campo).upload_to
+        tem_cropping = isinstance(model._meta.get_field(campo), ImageCropField)
 
         with transaction.atomic():
             for id, origem in ids_origens:
@@ -128,6 +127,10 @@ def migrar_docs_por_ids(repo, model):
                     destino = upload_to(obj, os.path.basename(origem))
                     mover_documento(repo, origem, destino)
                     setattr(obj, campo, destino)
+                    if tem_cropping:
+                        # conserta link do git annex (antes do commit)
+                        # pois o conteúdo das imagens é acessado pelo cropping
+                        repo.git.execute('git annex fix'.split() + [destino])
                     obj.save()
                 else:
                     msg = '  {} (pk={}) não encontrado para documento em [{}]'
@@ -143,6 +146,10 @@ def migrar_documentos(repo):
     # restaurar a pasta sapl_documentos ao estado inicial
 
     migrar_propriedades_da_casa(repo)
+
+    # garante que o conteúdo das fotos dos parlamentares esteja presente
+    # (necessário para o cropping de imagem)
+    repo.git.execute('git annex get sapl_documentos/parlamentar'.split())
 
     for model in [
         Parlamentar,
