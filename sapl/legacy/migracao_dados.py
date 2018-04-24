@@ -1294,6 +1294,8 @@ def time_constructor(loader, node):
 
 yaml.add_constructor(u'!time', time_constructor)
 
+TAG_MARCO = 'marco'
+
 
 def gravar_marco():
     """Grava um dump de todos os dados como arquivos yaml no repo de marco
@@ -1319,4 +1321,4 @@ def gravar_marco():
     if 'master' not in REPO.heads or REPO.index.diff('HEAD'):
         # se de fato existe mudança
         REPO.index.commit('Grava marco')
-    REPO.git.execute('git tag -f marco'.split())
+    REPO.git.execute('git tag -f'.split() + [TAG_MARCO])

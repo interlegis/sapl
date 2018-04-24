@@ -1,6 +1,7 @@
 import subprocess
 
-from sapl.legacy.migracao_dados import REPO, gravar_marco, migrar_dados
+from sapl.legacy.migracao_dados import (REPO, TAG_MARCO, gravar_marco, info,
+                                        migrar_dados)
 from sapl.legacy.migracao_documentos import migrar_documentos
 from sapl.legacy.migracao_usuarios import migrar_usuarios
 from sapl.legacy.scripts.exporta_zope.variaveis_comuns import TAG_ZOPE
@@ -12,7 +13,10 @@ def adornar_msg(msg):
 
 
 def migrar(interativo=False):
-    assert TAG_ZOPE in {t.name for t in REPO.tags}, adornar_msg(
+    if TAG_MARCO in REPO.tags:
+        info('A migração já foi feita.')
+        return
+    assert TAG_ZOPE in REPO.tags, adornar_msg(
         'Antes de migrar '
         'é necessário fazer a exportação de documentos do zope')
     migrar_dados(interativo=interativo)
