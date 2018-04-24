@@ -17,12 +17,12 @@ from functools import partial
 import git
 import magic
 import yaml
-from unipath import Path
-
 import ZODB.DB
 import ZODB.FileStorage
-from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
+from unipath import Path
 from ZODB.broken import Broken
+
+from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 
 EXTENSOES = {
     'application/msword': '.doc',
@@ -94,10 +94,7 @@ def guess_extension(fullname, buffer):
         raise Exception(msg, e)
 
 
-def dump_file(doc, path, salvar):
-    name = doc['__name__']
-    fullname = os.path.join(path, name)
-
+def get_conteudo_file(doc):
     # A partir daqui usamos dict.pop('...') nos __Broken_state__
     # para contornar um "vazamento" de memória que ocorre
     # ao percorrer a árvore de objetos
@@ -119,11 +116,21 @@ def dump_file(doc, path, salvar):
         output.write(pdata.pop('data'))
         pdata = br(pdata.pop('next', None))
 
-    conteudo = output.getvalue()
+    return output.getvalue()
+
+
+def dump_file(doc, path, salvar, get_conteudo=get_conteudo_file):
+    name = doc['__name__']
+    fullname = os.path.join(path, name)
+    conteudo = get_conteudo(doc)
     if conteudo:
         # pula arquivos vazios
         salvar(fullname, conteudo)
     return name
+
+
+def get_conteudo_dtml_method(doc):
+    return doc['raw']
 
 
 def enumerate_by_key_list(folder, key_list, type_key):
@@ -229,6 +236,8 @@ def dump_sde(strdoc, path, salvar, tipo):
 DUMP_FUNCTIONS = {
     'File': dump_file,
     'Image': dump_file,
+    'DTML Method': partial(dump_file,
+                           get_conteudo=get_conteudo_dtml_method),
     'Folder': partial(dump_folder, enum=enumerate_folder),
     'BTreeFolder2': partial(dump_folder, enum=enumerate_btree),
     'SDE-Document': partial(dump_sde, tipo='sde.document'),
@@ -311,8 +320,7 @@ def get_annex_hashes(repo):
 
 def ajusta_extensao(fullname, conteudo):
     base, extensao = os.path.splitext(fullname)
-    if extensao not in ['.xsl', '.xslt', '.yaml']:
-        # não trocamos as extensões XSL, XSLT e YAML
+    if extensao not in ['.xsl', '.xslt', '.yaml', '.css']:
         extensao = guess_extension(fullname, conteudo)
     return base + extensao
 
