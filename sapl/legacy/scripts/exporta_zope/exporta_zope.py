@@ -354,6 +354,10 @@ def dump_sapl(sigla):
     destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
     destino.mkdir(parents=True)
     repo = git.Repo.init(destino)
+    if TAG_ZOPE in repo.tags:
+        info('A exportação de documentos já está feita.')
+        return
+
     repo_execute(repo, 'git annex init')
     repo_execute(repo, 'git config annex.thin true')
 

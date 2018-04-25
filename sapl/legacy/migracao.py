@@ -14,7 +14,7 @@ def adornar_msg(msg):
 
 def migrar(interativo=False):
     if TAG_MARCO in REPO.tags:
-        info('A migração já foi feita.')
+        info('A migração já está feita.')
         return
     assert TAG_ZOPE in REPO.tags, adornar_msg(
         'Antes de migrar '
