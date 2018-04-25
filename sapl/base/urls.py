@@ -1,20 +1,22 @@
+import os
+
 from django.conf.urls import include, url
 from django.contrib.auth import views
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_confirm,
                                        password_reset_done)
-from django.views.generic.base import TemplateView
+from django.views.generic.base import RedirectView, TemplateView
 
 from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
-from sapl.settings import EMAIL_SEND_USER
+from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
 from .apps import AppConfig
 from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
 from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     CreateUsuarioView, DeleteUsuarioView, EditUsuarioView,
-                    HelpTopicView, ListarUsuarioView, RelatorioAtasView,
-                    RelatorioDataFimPrazoTramitacaoView,
+                    HelpTopicView, ListarUsuarioView, LogotipoView,
+                    RelatorioAtasView, RelatorioDataFimPrazoTramitacaoView,
                     RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
@@ -119,5 +121,14 @@ urlpatterns = [
     url(r'^logout/$', views.logout, {'next_page': '/login'}, name='logout'),
 
     url(r'^sistema/search/', SaplSearchView(), name='haystack_search'),
+
+    # Folhas XSLT e extras referenciadas por documentos migrados do sapl 2.5
+    url(r'^sapl/XSLT/HTML/(?P<path>.*)$', RedirectView.as_view(
+        url=os.path.join(MEDIA_URL, 'sapl/public/XSLT/HTML/%(path)s'),
+        permanent=False)),
+    # url do logotipo usada em documentos migrados do sapl 2.5
+    url(r'^sapl/sapl_documentos/props_sapl/logo_casa',
+        LogotipoView.as_view(), name='logotipo'),
+
 
 ] + recuperar_senha + alterar_senha + admin_user

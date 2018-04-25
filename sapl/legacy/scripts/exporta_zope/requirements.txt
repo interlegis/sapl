@@ -4,3 +4,5 @@ PyYAML
 Unipath
 GitPython
 pyaml
+python-magic
+ipython

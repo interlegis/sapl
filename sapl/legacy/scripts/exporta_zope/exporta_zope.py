@@ -16,13 +16,13 @@ from functools import partial
 
 import git
 import magic
-import pyaml
 import yaml
-from unipath import Path
-
 import ZODB.DB
 import ZODB.FileStorage
+from unipath import Path
 from ZODB.broken import Broken
+
+from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 
 EXTENSOES = {
     'application/msword': '.doc',
@@ -30,9 +30,16 @@ EXTENSOES = {
     'application/vnd.oasis.opendocument.text': '.odt',
     'application/vnd.ms-excel': '.xls',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',  # noqa
+    'application/vnd.oasis.opendocument.text-template': '.ott',
+    'application/vnd.ms-powerpoint': '.ppt',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',  # noqa
+    'application/vnd.oasis.opendocument.spreadsheet': '.ods',
+
     'application/xml': '.xml',
     'text/xml': '.xml',
     'application/zip': '.zip',
+    'application/x-rar': '.rar',
+
     'image/jpeg': '.jpeg',
     'image/png': '.png',
     'image/gif': '.gif',
@@ -46,7 +53,9 @@ EXTENSOES = {
     'audio/x-wav': '.wav',
     'video/mp4': '.mp4',
     'image/x-icon': '.ico',
-    'application/vnd.oasis.opendocument.text-template': '.ott',
+    'image/x-ms-bmp': '.bmp',
+    'video/x-ms-asf': '.asf',
+    'audio/mpeg': '.mp3',
 
     # TODO rever...
     'text/richtext': '.rtf',
@@ -54,7 +63,9 @@ EXTENSOES = {
     # sem extensao
     'application/octet-stream': '',  # binário
     'inode/x-empty': '',  # vazio
-    'text/x-unknown-content-type': '',
+    'application/x-empty': '',  # vazio
+    'text/x-unknown-content-type': '',  # desconhecido
+    'application/CDFV2-unknown': '',  # desconhecido
 }
 
 
@@ -83,10 +94,7 @@ def guess_extension(fullname, buffer):
         raise Exception(msg, e)
 
 
-def dump_file(doc, path, salvar):
-    name = doc['__name__']
-    fullname = os.path.join(path, name)
-
+def get_conteudo_file(doc):
     # A partir daqui usamos dict.pop('...') nos __Broken_state__
     # para contornar um "vazamento" de memória que ocorre
     # ao percorrer a árvore de objetos
@@ -107,8 +115,22 @@ def dump_file(doc, path, salvar):
     while pdata:
         output.write(pdata.pop('data'))
         pdata = br(pdata.pop('next', None))
-    salvar(fullname, output.getvalue())
+
+    return output.getvalue()
+
+
+def dump_file(doc, path, salvar, get_conteudo=get_conteudo_file):
+    name = doc['__name__']
+    fullname = os.path.join(path, name)
+    conteudo = get_conteudo(doc)
+    if conteudo:
+        # pula arquivos vazios
+        salvar(fullname, conteudo)
     return name
+
+
+def get_conteudo_dtml_method(doc):
+    return doc['raw']
 
 
 def enumerate_by_key_list(folder, key_list, type_key):
@@ -145,8 +167,8 @@ def logando_nao_identificados():
     if nao_identificados:
         print('#' * 80)
         print('#' * 80)
-        print(u'FORAM ENCONTRADOS ARQUIVOS DE FORMATO NÃO IDENTIFICADO!!!')
-        print(u'REFAÇA A EXPORTAÇÃO\n')
+        print('FORAM ENCONTRADOS ARQUIVOS DE FORMATO NÃO IDENTIFICADO!!!')
+        print('REFAÇA A EXPORTAÇÃO\n')
         print(nao_identificados)
         print('#' * 80)
         print('#' * 80)
@@ -214,6 +236,8 @@ def dump_sde(strdoc, path, salvar, tipo):
 DUMP_FUNCTIONS = {
     'File': dump_file,
     'Image': dump_file,
+    'DTML Method': partial(dump_file,
+                           get_conteudo=get_conteudo_dtml_method),
     'Folder': partial(dump_folder, enum=enumerate_folder),
     'BTreeFolder2': partial(dump_folder, enum=enumerate_btree),
     'SDE-Document': partial(dump_sde, tipo='sde.document'),
@@ -284,9 +308,6 @@ def _dump_sapl(data_fs_path, destino, salvar):
         close_db()
 
 
-DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
-
-
 def repo_execute(repo, cmd, *args):
     return repo.git.execute(cmd.split() + list(args))
 
@@ -299,8 +320,7 @@ def get_annex_hashes(repo):
 
 def ajusta_extensao(fullname, conteudo):
     base, extensao = os.path.splitext(fullname)
-    if extensao not in ['.xsl', '.xslt', '.yaml']:
-        # não trocamos as extensões XSL, XSLT e YAML
+    if extensao not in ['.xsl', '.xslt', '.yaml', '.css']:
         extensao = guess_extension(fullname, conteudo)
     return base + extensao
 
@@ -326,6 +346,7 @@ def build_salvar(repo):
 
 
 def dump_sapl(sigla):
+    sigla = sigla[-3:]  # ignora prefixo (por ex. 'sapl_cm_')
     data_fs_path = DIR_DADOS_MIGRACAO.child('datafs',
                                             'Data_cm_{}.fs'.format(sigla))
     assert data_fs_path.exists(), 'Origem não existe: {}'.format(data_fs_path)
@@ -333,18 +354,28 @@ def dump_sapl(sigla):
     destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
     destino.mkdir(parents=True)
     repo = git.Repo.init(destino)
+    if TAG_ZOPE in repo.tags:
+        info('A exportação de documentos já está feita.')
+        return
+
     repo_execute(repo, 'git annex init')
     repo_execute(repo, 'git config annex.thin true')
 
     salvar = build_salvar(repo)
-    _dump_sapl(data_fs_path, destino, salvar)
-
-    # grava mundaças
-    repo_execute(repo, 'git annex add sapl_documentos')
-    repo.git.add(A=True)
-    if 'master' not in repo.heads or repo.index.diff('HEAD'):
-        # se de fato existe mudança
-        repo.index.commit('Exporta documentos do zope')
+    try:
+        finalizado = False
+        _dump_sapl(data_fs_path, destino, salvar)
+        finalizado = True
+    finally:
+        # grava mundaças
+        repo_execute(repo, 'git annex add sapl_documentos')
+        repo.git.add(A=True)
+        if 'master' not in repo.heads or repo.index.diff('HEAD'):
+            # se de fato existe mudança
+            status = 'completa' if finalizado else 'parcial'
+            repo.index.commit(u'Exportação do zope {}'.format(status))
+            if finalizado:
+                repo.git.execute('git tag -f'.split() + [TAG_ZOPE])
 
 
 if __name__ == "__main__":

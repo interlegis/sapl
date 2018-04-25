@@ -1,5 +1,6 @@
-from django.conf import settings
-from django.contrib.auth import get_user_model, update_session_auth_hash
+import os
+
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
@@ -12,14 +13,15 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
-                                  ListView, UpdateView)
-from django.views.generic.base import TemplateView
+from django.utils.translation import string_concat
+from django.views.generic import (CreateView, DeleteView, FormView, ListView,
+                                  UpdateView)
+from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
 
+from sapl import settings
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux, make_pagination
@@ -759,3 +761,14 @@ class AlterarSenha(FormView):
         user.save()
 
         return super().form_valid(form)
+
+
+STATIC_LOGO = os.path.join(settings.STATIC_URL, 'img/logo.png')
+
+
+class LogotipoView(RedirectView):
+
+    def get_redirect_url(self, *args, **kwargs):
+        casa = get_casalegislativa()
+        logo = casa and casa.logotipo and casa.logotipo.name
+        return os.path.join(settings.MEDIA_URL, logo) if logo else STATIC_LOGO

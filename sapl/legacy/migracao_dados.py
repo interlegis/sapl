@@ -1,4 +1,5 @@
 import datetime
+import os
 import re
 import traceback
 from collections import OrderedDict, defaultdict, namedtuple
@@ -8,6 +9,7 @@ from itertools import groupby
 from operator import xor
 from subprocess import PIPE, call
 
+import git
 import pkg_resources
 import pyaml
 import pytz
@@ -26,8 +28,12 @@ from unipath import Path
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.legacy import scripts
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
+from sapl.legacy_migration_settings import (DATABASES, DIR_DADOS_MIGRACAO,
+                                            DIR_REPO, NOME_BANCO_LEGADO,
+                                            PROJECT_DIR)
 from sapl.materia.models import (AcompanhamentoMateria, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
@@ -40,9 +46,9 @@ from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
                                 TipoResultadoVotacao)
-from sapl.settings import DATABASES, PROJECT_DIR
 from sapl.utils import normalize
 
+from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
 from .timezonesbrasil import get_timezone
 
 # BASE ######################################################################
@@ -139,6 +145,7 @@ for nome_novo, nome_antigo in (('comissao', 'cod_comissao'),
 class CampoVirtual(namedtuple('CampoVirtual', 'model related_model')):
     null = True
 
+
 CAMPOS_VIRTUAIS_PROPOSICAO = {
     TipoMateriaLegislativa: CampoVirtual(Proposicao, MateriaLegislativa),
     TipoDocumento: CampoVirtual(Proposicao, DocumentoAdministrativo)
@@ -170,6 +177,7 @@ for related, campo_antigo in [(Parlamentar, 'cod_parlamentar'),
 
 def info(msg):
     print('INFO: ' + msg)
+
 
 ocorrencias = defaultdict(list)
 
@@ -717,31 +725,26 @@ def fill_dados_basicos():
     appconf.save()
 
 
-def get_last_pk(model):
-    last_value = model.objects.all().aggregate(Max('pk'))
-    return last_value['pk__max'] or 0
-
-
 def reinicia_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
     exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
         sequence_name, id))
 
 
-DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
-PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
-DIR_RESULTADOS = DIR_DADOS_MIGRACAO.child('resultados')
+REPO = git.Repo.init(DIR_REPO)
 
 
 def dict_representer(dumper, data):
     return dumper.represent_dict(data.items())
+
+
 yaml.add_representer(OrderedDict, dict_representer)
 
 
 # configura timezone de migração
-nome_banco_legado = DATABASES['legacy']['NAME']
-match = re.match('sapl_cm_(.*)', nome_banco_legado)
+match = re.match('sapl_cm_(.*)', NOME_BANCO_LEGADO)
 sigla_casa = match.group(1)
+PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
 with open(PATH_TABELA_TIMEZONES, 'r') as arq:
     tabela_timezones = yaml.load(arq)
 municipio, uf, nome_timezone = tabela_timezones[sigla_casa]
@@ -784,7 +787,21 @@ def populate_renamed_fields(new, old):
                 setattr(new, field.name, value)
 
 
+def roda_comando_shell(cmd):
+    res = os.system(cmd)
+    assert res == 0, 'O comando falhou: {}'.format(cmd)
+
+
 def migrar_dados(interativo=True):
+
+    # restaura dump
+    arq_dump = Path(DIR_DADOS_MIGRACAO.child(
+        'dumps_mysql', '{}.sql'.format(NOME_BANCO_LEGADO)))
+    assert arq_dump.exists(), 'Dump do mysql faltando: {}'.format(arq_dump)
+    info('Restaurando dump mysql de [{}]'.format(arq_dump))
+    normaliza_dump_mysql(arq_dump)
+    roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
+
     # executa ajustes pré-migração, se existirem
     arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
         'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
@@ -817,18 +834,16 @@ def migrar_dados(interativo=True):
     info('Começando migração: ...')
     try:
         ocorrencias.clear()
-        dir_ocorrencias = DIR_RESULTADOS.child(date.today().isoformat())
-        dir_ocorrencias.mkdir(parents=True)
         migrar_todos_os_models()
     except Exception as e:
         ocorrencias['traceback'] = str(traceback.format_exc())
         raise e
     finally:
         # grava ocorrências
-        arq_ocorrencias = dir_ocorrencias.child(
-            nome_banco_legado + '.yaml')
+        arq_ocorrencias = Path(REPO.working_dir, 'ocorrencias.yaml')
         with open(arq_ocorrencias, 'w') as arq:
             pyaml.dump(ocorrencias, arq, vspacing=1)
+        REPO.git.add([arq_ocorrencias.name])
         info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
 
     # recria tipos de autor padrão que não foram criados pela migração
@@ -883,10 +898,14 @@ def migrar_model(model):
 
         def get_id_do_legado(old):
             return getattr(old, nome_pk)
+
+        ultima_pk_legado = model_legado.objects.all().aggregate(
+            Max('pk'))['pk__max'] or 0
     else:
         # a pk no legado tem mais de um campo
         old_records = iter_sql_records(tabela_legado)
         get_id_do_legado = None
+        ultima_pk_legado = model_legado.objects.count()
 
     ajuste_antes_salvar = AJUSTE_ANTES_SALVAR.get(model)
     ajuste_depois_salvar = AJUSTE_DEPOIS_SALVAR.get(model)
@@ -929,10 +948,13 @@ def migrar_model(model):
         if ajuste_depois_salvar:
             ajuste_depois_salvar()
 
-        # se configuramos ids explicitamente devemos reiniciar a sequence
+        # reiniciamos a sequence logo após a última pk do legado
+        #
+        # É importante que seja do legado (e não da nova base),
+        # pois numa nova versão da migração podemos inserir registros
+        # não migrados antes sem conflito com pks criadas até lá
         if get_id_do_legado:
-            last_pk = get_last_pk(model)
-            reinicia_sequence(model, last_pk + 1)
+            reinicia_sequence(model, ultima_pk_legado + 1)
 
         # apaga registros migrados do legado
         if sql_delete_legado:
@@ -1256,30 +1278,47 @@ AJUSTE_DEPOIS_SALVAR = {
 TIME_FORMAT = '%H:%M:%S'
 
 
+# permite a gravação de tempos puros pelo pretty-yaml
 def time_representer(dumper, data):
     return dumper.represent_scalar('!time', data.strftime(TIME_FORMAT))
+
+
 UnsafePrettyYAMLDumper.add_representer(datetime.time, time_representer)
 
 
+# permite a leitura de tempos puros pelo pyyaml (no padrão gravado acima)
 def time_constructor(loader, node):
     value = loader.construct_scalar(node)
     return datetime.datetime.strptime(value, TIME_FORMAT).time()
+
+
 yaml.add_constructor(u'!time', time_constructor)
 
+TAG_MARCO = 'marco'
 
-DIR_MARCO = Path(DIR_DADOS_MIGRACAO, 'marcos', nome_banco_legado)
 
+def gravar_marco():
+    """Grava um dump de todos os dados como arquivos yaml no repo de marco
+    """
+    # prepara ou localiza repositorio
+    dir_dados = Path(REPO.working_dir, 'dados')
 
-def grava_marco_base():
+    # exporta dados como arquivos yaml
     user_model = get_user_model()
     models = get_models_a_migrar() + [
         Composicao, user_model, Group, ContentType]
     for model in models:
         info('Gravando marco de [{}]'.format(model.__name__))
-        dir_model = Path(
-            DIR_MARCO, 'dados', model._meta.app_label, model.__name__)
+        dir_model = dir_dados.child(model._meta.app_label, model.__name__)
         dir_model.mkdir(parents=True)
         for data in model.objects.all().values():
-            nome_arq = Path(dir_model, data['id'])
+            nome_arq = Path(dir_model, '{}.yaml'.format(data['id']))
             with open(nome_arq, 'w') as arq:
                 pyaml.dump(data, arq)
+
+    # salva mudanças
+    REPO.git.add([dir_dados.name])
+    if 'master' not in REPO.heads or REPO.index.diff('HEAD'):
+        # se de fato existe mudança
+        REPO.index.commit('Grava marco')
+    REPO.git.execute('git tag -f'.split() + [TAG_MARCO])
