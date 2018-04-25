@@ -7,7 +7,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
-
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from sapl.rules.apps import AppConfig, update_groups
 from scripts.lista_urls import lista_urls
@@ -164,7 +163,8 @@ apps_url_patterns_prefixs_and_users = {
             '/logout',
             '/ajuda',
             '/email',
-            '/recuperar-senha'
+            '/recuperar-senha',
+            '/sapl'
         ]},
     'comissoes': {
         'users': {'operador_geral': ['/sistema', '/comissao'],
