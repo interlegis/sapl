@@ -138,12 +138,14 @@ def migrar_docs_por_ids(repo, model):
 
 
 def migrar_documentos(repo):
-    # aqui supomos que uma pasta chamada sapl_documentos está em
+    # aqui supomos que as pastas XSLT e sapl_documentos estão em
     # <repo.working_dir> com o conteúdo exportado do zope
-    # Os arquivos da pasta serão (git) MOVIDOS para a nova estrutura!
+    # Os arquivos das pastas serão (git) MOVIDOS para a nova estrutura!
     #
     # Isto significa que para rodar novamente esta função é preciso
-    # restaurar a pasta sapl_documentos ao estado inicial
+    # restaurar o repo ao estado anterior
+
+    mover_documento(repo, 'XSLT', 'sapl/public/XSLT')
 
     migrar_propriedades_da_casa(repo)
 
