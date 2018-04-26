@@ -31,6 +31,7 @@ def gerar_pacote():
     # backup do banco
     print('Gerando backup do banco... ', end='', flush=True)
     arq_backup = DIR_REPO.child('{}.backup'.format(NOME_BANCO_LEGADO))
+    arq_backup.remove()
     backup_cmd = '''
         pg_dump --host localhost --port 5432 --username postgres --no-password
         --format custom --blobs --verbose --file {} {}'''.format(
@@ -41,5 +42,6 @@ def gerar_pacote():
     # tar de media/sapl
     print('Criando tar de media... ', end='', flush=True)
     arq_tar = DIR_REPO.child('{}.media.tar'.format(NOME_BANCO_LEGADO))
+    arq_tar.remove()
     subprocess.check_output(['tar', 'cfh', arq_tar, '-C', DIR_REPO, 'sapl'])
     print('SUCESSO')
