@@ -15,6 +15,7 @@ import pyaml
 import pytz
 import reversion
 import yaml
+from bs4 import BeautifulSoup
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -44,8 +45,8 @@ from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
                                        Partido, TipoAfastamento)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
-from sapl.sessao.models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
-                                TipoResultadoVotacao)
+from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
+                                RegistroVotacao, TipoResultadoVotacao)
 from sapl.utils import normalize
 
 from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
@@ -1245,6 +1246,21 @@ def adjust_tiporesultadovotacao(new, old):
              {'pk': new.pk, 'nome': new.nome})
 
 
+def remove_style(conteudo):
+    if 'style' not in conteudo:
+        return conteudo  # atalho que acelera muito os casos sem style
+
+    soup = BeautifulSoup(conteudo, 'html.parser')
+    for tag in soup.recursiveChildGenerator():
+        if hasattr(tag, 'attrs'):
+            tag.attrs = {k: v for k, v in tag.attrs.items() if k != 'style'}
+    return str(soup)
+
+
+def adjust_expediente_sessao(new, old):
+    new.conteudo = remove_style(new.conteudo)
+
+
 AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
     TipoAutor: adjust_tipo_autor,
@@ -1266,6 +1282,7 @@ AJUSTE_ANTES_SALVAR = {
     StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
     Tramitacao: adjust_tramitacao,
     TipoResultadoVotacao: adjust_tiporesultadovotacao,
+    ExpedienteSessao: adjust_expediente_sessao,
 }
 
 AJUSTE_DEPOIS_SALVAR = {
