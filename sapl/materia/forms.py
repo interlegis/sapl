@@ -582,8 +582,18 @@ class AnexadaForm(ModelForm):
             msg = _('A matéria a ser anexada não existe no cadastro'
                     ' de matérias legislativas.')
             raise ValidationError(msg)
-        else:
-            cleaned_data['materia_anexada'] = materia_anexada
+
+        materia_principal = self.instance.materia_principal
+        if materia_principal == materia_anexada:
+            raise ValidationError(_('Matéria não pode ser anexada a si mesma'))
+
+        is_anexada = Anexada.objects.filter(materia_principal=materia_principal,
+                                            materia_anexada=materia_anexada
+                                            ).exists()
+        if is_anexada:
+            raise ValidationError(_('Materia já se encontra anexada'))
+
+        cleaned_data['materia_anexada'] = materia_anexada
 
         return cleaned_data
 
