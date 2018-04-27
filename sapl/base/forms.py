@@ -525,6 +525,11 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
         model = SessaoPlenaria
         fields = ['data_inicio']
 
+    @property
+    def qs(self):
+        parent = super(RelatorioAtasFilterSet, self).qs
+        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
+
     def __init__(self, *args, **kwargs):
         super(RelatorioAtasFilterSet, self).__init__(
             *args, **kwargs)
@@ -588,7 +593,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioHistoricoTramitacaoFilterSet, self).qs
-        return parent.distinct().order_by('-ano', 'tipo', 'numero')
+        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
 
     class Meta:
         model = MateriaLegislativa
@@ -628,7 +633,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
-        return parent.distinct().order_by('-ano', 'tipo', 'numero')
+        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
 
     class Meta:
         model = MateriaLegislativa
