@@ -1,5 +1,6 @@
 from re import sub
 from operator import itemgetter
+import unicodedata
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -385,17 +386,17 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         context['rows'][i][3] = (resultado, None)
     return context
 
-
+def remove_accent(string):
+     return ''.join([c for c in unicodedata.normalize('NFD', string)
+                         if unicodedata.category(c) != 'Mn'])
+     
 def get_presencas_generic(model, sessao, legislatura):
     presencas = model.objects.filter(
         sessao_plenaria=sessao)
 
     presentes = [p.parlamentar for p in presencas]
 
-    presentes = sorted(presentes, key=lambda x: x.nome_parlamentar)
-
-    mandato = Mandato.objects.filter(
-        legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
+    presentes = sorted(presentes, key=lambda x: remove_accent(x.nome_parlamentar))
 
     for m in mandato:
         if m.parlamentar in presentes:
