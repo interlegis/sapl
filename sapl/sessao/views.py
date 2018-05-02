@@ -35,7 +35,7 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-from sapl.utils import show_results_filter_set
+from sapl.utils import show_results_filter_set, remover_acentos
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
                     ExpedienteForm, ListMateriaForm, MesaForm,
@@ -386,9 +386,6 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         context['rows'][i][3] = (resultado, None)
     return context
 
-def remove_accent(string):
-     return ''.join([c for c in unicodedata.normalize('NFD', string)
-                         if unicodedata.category(c) != 'Mn'])
      
 def get_presencas_generic(model, sessao, legislatura):
     presencas = model.objects.filter(
@@ -396,7 +393,7 @@ def get_presencas_generic(model, sessao, legislatura):
 
     presentes = [p.parlamentar for p in presencas]
 
-    presentes = sorted(presentes, key=lambda x: remove_accent(x.nome_parlamentar))
+    presentes = sorted(presentes, key=lambda x: remover_acentos(x.nome_parlamentar))
 
     mandato = Mandato.objects.filter(
         legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
