@@ -398,6 +398,9 @@ def get_presencas_generic(model, sessao, legislatura):
 
     presentes = sorted(presentes, key=lambda x: remove_accent(x.nome_parlamentar))
 
+    mandato = Mandato.objects.filter(
+        legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
+
     for m in mandato:
         if m.parlamentar in presentes:
             yield (m.parlamentar, True)
