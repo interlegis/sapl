@@ -2,6 +2,7 @@ import hashlib
 import logging
 import os
 import re
+import unicodedata
 from functools import wraps
 from operator import itemgetter
 from unicodedata import normalize as unicodedata_normalize
@@ -732,3 +733,7 @@ def RemoveTag(texto):
             i += 1
 
     return textoSaida
+
+def remover_acentos(string):
+     return ''.join([c for c in unicodedata.normalize('NFD', string)
+                         if unicodedata.category(c) != 'Mn'])
