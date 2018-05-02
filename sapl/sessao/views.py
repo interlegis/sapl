@@ -1,6 +1,5 @@
 from re import sub
 from operator import itemgetter
-import unicodedata
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
