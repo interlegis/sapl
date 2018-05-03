@@ -78,20 +78,21 @@ def br(obj):
 
 def guess_extension(fullname, buffer):
     mime = magic.from_buffer(buffer, mime=True)
-    try:
-        return EXTENSOES[mime]
-    except KeyError as e:
+    extensao = EXTENSOES.get(mime)
+    if extensao is not None:
+        return extensao
+    else:
         possibilidades = '\n'.join(
             ["    '{}': '{}',".format(mime, ext)
              for ext in mimetypes.guess_all_extensions(mime)])
-        msg = '''Extensão não conhecida para o arquivo: {}
+        print('''Extensão não conhecida para o arquivo: {}
             e mimetype: {}
             Algumas possibilidades são:
             {}
             Atualize o código do dicionário EXTENSOES!
             '''.format(fullname, mime, possibilidades)
-        print(msg)
-        raise Exception(msg, e)
+              )
+        return '.DESCONHECIDO.{}'.format(mime.replace('/', '__'))
 
 
 def get_conteudo_file(doc):
