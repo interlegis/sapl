@@ -28,21 +28,9 @@ def migrar(interativo=False):
     migrar_usuarios(REPO.working_dir)
     migrar_documentos(REPO)
     gravar_marco()
-    gerar_pacote()
 
 
-def gerar_pacote():
-
-    # backup do banco
-    print('Gerando backup do banco... ', end='', flush=True)
-    arq_backup = DIR_REPO.child('{}.backup'.format(NOME_BANCO_LEGADO))
-    arq_backup.remove()
-    backup_cmd = '''
-        pg_dump --host localhost --port 5432 --username postgres --no-password
-        --format custom --blobs --verbose --file {} {}'''.format(
-        arq_backup, NOME_BANCO_LEGADO)
-    subprocess.check_output(backup_cmd.split(), stderr=subprocess.DEVNULL)
-    print('SUCESSO')
+def compactar_media():
 
     # tar de media/sapl
     print('Criando tar de media... ', end='', flush=True)

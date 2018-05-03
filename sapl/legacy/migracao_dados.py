@@ -1,6 +1,7 @@
 import datetime
 import os
 import re
+import subprocess
 import traceback
 from collections import OrderedDict, defaultdict, namedtuple
 from datetime import date
@@ -1332,6 +1333,17 @@ def gravar_marco():
             nome_arq = Path(dir_model, '{}.yaml'.format(data['id']))
             with open(nome_arq, 'w') as arq:
                 pyaml.dump(data, arq)
+
+    # backup do banco
+    print('Gerando backup do banco... ', end='', flush=True)
+    arq_backup = DIR_REPO.child('{}.backup'.format(NOME_BANCO_LEGADO))
+    arq_backup.remove()
+    backup_cmd = '''
+        pg_dump --host localhost --port 5432 --username postgres --no-password
+        --format custom --blobs --verbose --file {} {}'''.format(
+        arq_backup, NOME_BANCO_LEGADO)
+    subprocess.check_output(backup_cmd.split(), stderr=subprocess.DEVNULL)
+    print('SUCESSO')
 
     # salva mudanças
     REPO.git.add([dir_dados.name])
