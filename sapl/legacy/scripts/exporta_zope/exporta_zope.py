@@ -155,7 +155,11 @@ def enumerate_btree(folder):
         obj, meta_type = br(obj), type(obj).__name__
         yield id, obj, meta_type
     # verificação de consistência
-    assert contagem_esperada == contagem_real
+    if contagem_esperada != contagem_real:
+        print('ATENÇÃO: contagens diferentes na btree: '
+              '{} esperada: {} real: {}'.format(folder,
+                                                contagem_esperada,
+                                                contagem_real))
 
 
 nao_identificados = defaultdict(list)
