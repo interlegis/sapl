@@ -51,6 +51,9 @@ class PeriodoComposicaoCrud(CrudAux):
     class UpdateView(CrudAux.UpdateView):
         form_class = PeriodoForm
 
+    # class ListView(CrudAux.ListView):
+
+
 class ParticipacaoCrud(MasterDetailCrud):
     model = Participacao
     parent_field = 'composicao__comissao'
@@ -112,7 +115,9 @@ class ComposicaoCrud(MasterDetailCrud):
             composicao_pk = self.take_composicao_pk()
 
             if composicao_pk == 0:
-                ultima_composicao = context['composicao_list'].last()
+                # Composicao eh ordenada por Periodo, que por sua vez esta em
+                # ordem descrescente de data de inicio (issue #1920)
+                ultima_composicao = context['composicao_list'].first()
                 if ultima_composicao:
                     context['composicao_pk'] = ultima_composicao.pk
                 else:
