@@ -333,7 +333,9 @@ def build_salvar(repo):
     def salvar(fullname, conteudo):
         sha = hashlib.sha256()
         sha.update(conteudo)
-        if sha.hexdigest() not in hashes:
+        if sha.hexdigest() in hashes:
+            print('- hash encontrado - {}'.format(fullname))
+        else:
             fullname = ajusta_extensao(fullname, conteudo)
             if os.path.exists(fullname):
                 # destrava arquivo pré-existente (o conteúdo mudou)
@@ -355,7 +357,7 @@ def dump_sapl(sigla):
     destino.mkdir(parents=True)
     repo = git.Repo.init(destino)
     if TAG_ZOPE in repo.tags:
-        info('A exportação de documentos já está feita.')
+        print('A exportação de documentos já está feita -- abortando')
         return
 
     repo_execute(repo, 'git annex init')
