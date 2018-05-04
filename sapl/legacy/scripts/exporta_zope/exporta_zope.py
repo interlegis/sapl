@@ -78,20 +78,21 @@ def br(obj):
 
 def guess_extension(fullname, buffer):
     mime = magic.from_buffer(buffer, mime=True)
-    try:
-        return EXTENSOES[mime]
-    except KeyError as e:
+    extensao = EXTENSOES.get(mime)
+    if extensao is not None:
+        return extensao
+    else:
         possibilidades = '\n'.join(
             ["    '{}': '{}',".format(mime, ext)
              for ext in mimetypes.guess_all_extensions(mime)])
-        msg = '''Extensão não conhecida para o arquivo: {}
+        print('''Extensão não conhecida para o arquivo: {}
             e mimetype: {}
             Algumas possibilidades são:
             {}
             Atualize o código do dicionário EXTENSOES!
             '''.format(fullname, mime, possibilidades)
-        print(msg)
-        raise Exception(msg, e)
+              )
+        return '.DESCONHECIDO.{}'.format(mime.replace('/', '__'))
 
 
 def get_conteudo_file(doc):
@@ -154,7 +155,11 @@ def enumerate_btree(folder):
         obj, meta_type = br(obj), type(obj).__name__
         yield id, obj, meta_type
     # verificação de consistência
-    assert contagem_esperada == contagem_real
+    if contagem_esperada != contagem_real:
+        print('ATENÇÃO: contagens diferentes na btree: '
+              '{} esperada: {} real: {}'.format(folder,
+                                                contagem_esperada,
+                                                contagem_real))
 
 
 nao_identificados = defaultdict(list)
@@ -333,7 +338,9 @@ def build_salvar(repo):
     def salvar(fullname, conteudo):
         sha = hashlib.sha256()
         sha.update(conteudo)
-        if sha.hexdigest() not in hashes:
+        if sha.hexdigest() in hashes:
+            print('- hash encontrado - {}'.format(fullname))
+        else:
             fullname = ajusta_extensao(fullname, conteudo)
             if os.path.exists(fullname):
                 # destrava arquivo pré-existente (o conteúdo mudou)
@@ -355,7 +362,7 @@ def dump_sapl(sigla):
     destino.mkdir(parents=True)
     repo = git.Repo.init(destino)
     if TAG_ZOPE in repo.tags:
-        info('A exportação de documentos já está feita.')
+        print('A exportação de documentos já está feita -- abortando')
         return
 
     repo_execute(repo, 'git annex init')

@@ -123,11 +123,11 @@ urlpatterns = [
     url(r'^sistema/search/', SaplSearchView(), name='haystack_search'),
 
     # Folhas XSLT e extras referenciadas por documentos migrados do sapl 2.5
-    url(r'^sapl/XSLT/HTML/(?P<path>.*)$', RedirectView.as_view(
+    url(r'^(sapl/)?XSLT/HTML/(?P<path>.*)$', RedirectView.as_view(
         url=os.path.join(MEDIA_URL, 'sapl/public/XSLT/HTML/%(path)s'),
         permanent=False)),
     # url do logotipo usada em documentos migrados do sapl 2.5
-    url(r'^sapl/sapl_documentos/props_sapl/logo_casa',
+    url(r'^(sapl/)?sapl_documentos/props_sapl/logo_casa',
         LogotipoView.as_view(), name='logotipo'),
 
 
