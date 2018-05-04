@@ -1,3 +1,4 @@
+import unicodedata
 from re import sub
 from operator import itemgetter
 
@@ -991,7 +992,9 @@ class MesaView(FormMixin, DetailView):
                 [p.parlamentar for p in parlamentares]) - set(
                 parlamentares_ocupados))
 
-        org_parlamentares_vagos = sorted(parlamentares_vagos, key=lambda x: x.nome_parlamentar)
+        org_parlamentares_vagos = sorted(parlamentares_vagos,
+                                         key=lambda x: unicodedata.normalize('NFKD', x.nome_parlamentar)
+                                         .encode('ASCII', 'ignore').decode())
         org_parlamentares_vagos = [p for p in org_parlamentares_vagos if p.ativo]
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
@@ -1046,8 +1049,10 @@ def atualizar_mesa(request):
     lista_composicao = [(c.id, c.parlamentar.__str__(),
                          c.cargo.__str__()) for c in composicao_mesa]
     lista_parlamentares = [(
-        p.id, p.__str__()) for p in parlamentares_vagos]
+        p.id, unicodedata.normalize('NFKD', p.__str__()).encode('ASCII', 'ignore').decode())
+        for p in parlamentares_vagos if p.ativo]
     lista_cargos = [(c.id, c.__str__()) for c in cargos_vagos]
+    lista_parlamentares.sort(key=itemgetter(1))
 
     return JsonResponse(
         {'lista_composicao': lista_composicao,
