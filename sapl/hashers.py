@@ -46,11 +46,12 @@ ZOPE_SHA1_PREFIX = '{SSHA}'
 def zope_encoded_password_to_django(encoded):
     "Migra um hash de senha do zope para uso com o ZopeSHA1PasswordHasher"
 
-    if encoded.startswith(ZOPE_SHA1_PREFIX):
+    if encoded and encoded.startswith(ZOPE_SHA1_PREFIX):
         data = encoded[len(ZOPE_SHA1_PREFIX):]
         salt = get_salt_from_zope_sha1(data)
         hasher = ZopeSHA1PasswordHasher()
         return super(ZopeSHA1PasswordHasher, hasher).encode(data, salt)
     else:
         # assume it's a plain password and use the default hashing
+        # a None password blocks login, forcing a password reset
         return make_password(encoded)

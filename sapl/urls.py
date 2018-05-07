@@ -21,6 +21,7 @@ from django.views.generic.base import RedirectView, TemplateView
 from django.views.static import serve as view_static_server
 
 import sapl.api.urls
+import sapl.audiencia.urls
 import sapl.base.urls
 import sapl.comissoes.urls
 import sapl.compilacao.urls
@@ -33,7 +34,6 @@ import sapl.protocoloadm.urls
 import sapl.redireciona_urls.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
-import sapl.audiencia.urls
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html'),
@@ -62,9 +62,6 @@ urlpatterns = [
     url(r'^favicon\.ico$', RedirectView.as_view(
         url='/static/img/favicon.ico', permanent=True)),
 
-    # Folhas XSLT e extras referenciadas por documentos migrados do sapl 2.5
-    url(r'^XSLT/HTML/(?P<path>.*)$', RedirectView.as_view(
-        url='/static/XSLT/HTML/%(path)s', permanent=False)),
     url(r'', include(sapl.redireciona_urls.urls)),
 ]
 

@@ -1,4 +1,7 @@
+import datetime
+import os
 import re
+import subprocess
 import traceback
 from collections import OrderedDict, defaultdict, namedtuple
 from datetime import date
@@ -7,10 +10,13 @@ from itertools import groupby
 from operator import xor
 from subprocess import PIPE, call
 
+import git
 import pkg_resources
+import pyaml
 import pytz
 import reversion
 import yaml
+from bs4 import BeautifulSoup
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -18,13 +24,18 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, transaction
 from django.db.models import Max, Q
+from pyaml import UnsafePrettyYAMLDumper
 from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.legacy import scripts
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
+from sapl.legacy_migration_settings import (DATABASES, DIR_DADOS_MIGRACAO,
+                                            DIR_REPO, NOME_BANCO_LEGADO,
+                                            PROJECT_DIR)
 from sapl.materia.models import (AcompanhamentoMateria, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
@@ -35,11 +46,11 @@ from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
                                        Partido, TipoAfastamento)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo)
-from sapl.sessao.models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
-                                TipoResultadoVotacao)
-from sapl.settings import DATABASES, PROJECT_DIR
+from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
+                                RegistroVotacao, TipoResultadoVotacao)
 from sapl.utils import normalize
 
+from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
 from .timezonesbrasil import get_timezone
 
 # BASE ######################################################################
@@ -136,12 +147,22 @@ for nome_novo, nome_antigo in (('comissao', 'cod_comissao'),
 class CampoVirtual(namedtuple('CampoVirtual', 'model related_model')):
     null = True
 
+
 CAMPOS_VIRTUAIS_PROPOSICAO = {
     TipoMateriaLegislativa: CampoVirtual(Proposicao, MateriaLegislativa),
     TipoDocumento: CampoVirtual(Proposicao, DocumentoAdministrativo)
 }
 for campo_virtual in CAMPOS_VIRTUAIS_PROPOSICAO.values():
     campos_novos_para_antigos[campo_virtual] = 'cod_mat_ou_doc'
+
+
+CAMPOS_VIRTUAIS_TIPO_PROPOSICAO = {
+    'M': CampoVirtual(TipoProposicao, TipoMateriaLegislativa),
+    'D': CampoVirtual(TipoProposicao, TipoDocumento)
+}
+for campo_virtual in CAMPOS_VIRTUAIS_TIPO_PROPOSICAO.values():
+    campos_novos_para_antigos[campo_virtual] = 'tip_mat_ou_doc'
+
 
 # campos virtuais de Autor para funcionar com get_fk_related
 CAMPOS_VIRTUAIS_AUTOR = {related: CampoVirtual(Autor, related)
@@ -158,6 +179,7 @@ for related, campo_antigo in [(Parlamentar, 'cod_parlamentar'),
 
 def info(msg):
     print('INFO: ' + msg)
+
 
 ocorrencias = defaultdict(list)
 
@@ -201,7 +223,7 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
         campo = campos_novos_para_antigos[self.field]
         _, tabela, campos_pk = get_estrutura_legado(self.field.model)
         pk = {c: getattr(self.old, c) for c in campos_pk}
-        sql = 'select * from {} where {}'.format(
+        sql = 'select * from {} where {};'.format(
             tabela,
             ' and '.join(['{} = {}'.format(k, v) for k, v in pk.items()]))
         return OrderedDict((('campo', campo),
@@ -494,6 +516,8 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('parlamentar', 'dependente', 'cod_parlamentar'),
     ('parlamentar', 'filiacao', 'cod_parlamentar'),
     ('parlamentar', 'mandato', 'cod_parlamentar'),
+    ('parlamentar', 'composicao_mesa', 'cod_parlamentar'),
+    ('parlamentar', 'composicao_comissao', 'cod_parlamentar'),
 
     # comissao
     ('comissao', 'composicao_comissao', 'cod_comissao'),
@@ -518,6 +542,11 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('materia_legislativa', 'anexada', 'cod_materia_principal'),
     ('materia_legislativa', 'anexada', 'cod_materia_anexada'),
     ('materia_legislativa', 'documento_acessorio', 'cod_materia'),
+    ('materia_legislativa', 'numeracao', 'cod_materia'),
+
+    # norma
+    ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referente'),
+    ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referida'),
 
     # documento administrativo
     ('documento_administrativo', 'tramitacao_administrativo', 'cod_documento'),
@@ -547,6 +576,9 @@ def uniformiza_banco():
 
     garante_coluna_no_legado('tipo_materia_legislativa',
                              'quorum_minimo_votacao int(11) NULL')
+
+    garante_coluna_no_legado('materia_legislativa',
+                             'txt_resultado TEXT NULL')
 
     # Cria campos cod_presenca_sessao (sendo a nova PK da tabela)
     # e dat_sessao em sessao_plenaria_presenca
@@ -695,31 +727,26 @@ def fill_dados_basicos():
     appconf.save()
 
 
-def get_last_pk(model):
-    last_value = model.objects.all().aggregate(Max('pk'))
-    return last_value['pk__max'] or 0
-
-
 def reinicia_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
     exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
         sequence_name, id))
 
 
-DIR_DADOS_MIGRACAO = Path('~/migracao_sapl/').expand()
-PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
-DIR_RESULTADOS = DIR_DADOS_MIGRACAO.child('resultados')
+REPO = git.Repo.init(DIR_REPO)
 
 
 def dict_representer(dumper, data):
     return dumper.represent_dict(data.items())
+
+
 yaml.add_representer(OrderedDict, dict_representer)
 
 
 # configura timezone de migração
-nome_banco_legado = DATABASES['legacy']['NAME']
-match = re.match('sapl_cm_(.*)', nome_banco_legado)
+match = re.match('sapl_cm_(.*)', NOME_BANCO_LEGADO)
 sigla_casa = match.group(1)
+PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
 with open(PATH_TABELA_TIMEZONES, 'r') as arq:
     tabela_timezones = yaml.load(arq)
 municipio, uf, nome_timezone = tabela_timezones[sigla_casa]
@@ -762,7 +789,27 @@ def populate_renamed_fields(new, old):
                 setattr(new, field.name, value)
 
 
+def roda_comando_shell(cmd):
+    res = os.system(cmd)
+    assert res == 0, 'O comando falhou: {}'.format(cmd)
+
+
 def migrar_dados(interativo=True):
+
+    # restaura dump
+    arq_dump = Path(DIR_DADOS_MIGRACAO.child(
+        'dumps_mysql', '{}.sql'.format(NOME_BANCO_LEGADO)))
+    assert arq_dump.exists(), 'Dump do mysql faltando: {}'.format(arq_dump)
+    info('Restaurando dump mysql de [{}]'.format(arq_dump))
+    normaliza_dump_mysql(arq_dump)
+    roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
+
+    # executa ajustes pré-migração, se existirem
+    arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
+        'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+    if arq_ajustes_pre_migracao.exists():
+        exec_legado(arq_ajustes_pre_migracao.read_file())
+
     uniformiza_banco()
 
     # excluindo database antigo.
@@ -789,19 +836,16 @@ def migrar_dados(interativo=True):
     info('Começando migração: ...')
     try:
         ocorrencias.clear()
-        dir_ocorrencias = DIR_RESULTADOS.child(date.today().isoformat())
-        dir_ocorrencias.mkdir(parents=True)
         migrar_todos_os_models()
     except Exception as e:
         ocorrencias['traceback'] = str(traceback.format_exc())
         raise e
     finally:
         # grava ocorrências
-        arq_ocorrencias = dir_ocorrencias.child(
-            nome_banco_legado + '.yaml')
+        arq_ocorrencias = Path(REPO.working_dir, 'ocorrencias.yaml')
         with open(arq_ocorrencias, 'w') as arq:
-            dump = yaml.dump(dict(ocorrencias), allow_unicode=True)
-            arq.write(dump.replace('\n- ', '\n\n- '))
+            pyaml.dump(ocorrencias, arq, vspacing=1)
+        REPO.git.add([arq_ocorrencias.name])
         info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
 
     # recria tipos de autor padrão que não foram criados pela migração
@@ -816,7 +860,7 @@ def move_para_depois_de(lista, movido, referencias):
     return lista
 
 
-def migrar_todos_os_models():
+def get_models_a_migrar():
     models = [model for app in appconfs for model in app.models.values()
               if model in field_renames]
     # Devido à referência TipoProposicao.tipo_conteudo_related
@@ -829,7 +873,11 @@ def migrar_todos_os_models():
     move_para_depois_de(models, Proposicao,
                         [MateriaLegislativa, DocumentoAdministrativo])
 
-    for model in models:
+    return models
+
+
+def migrar_todos_os_models():
+    for model in get_models_a_migrar():
         migrar_model(model)
 
 
@@ -852,10 +900,14 @@ def migrar_model(model):
 
         def get_id_do_legado(old):
             return getattr(old, nome_pk)
+
+        ultima_pk_legado = model_legado.objects.all().aggregate(
+            Max('pk'))['pk__max'] or 0
     else:
         # a pk no legado tem mais de um campo
         old_records = iter_sql_records(tabela_legado)
         get_id_do_legado = None
+        ultima_pk_legado = model_legado.objects.count()
 
     ajuste_antes_salvar = AJUSTE_ANTES_SALVAR.get(model)
     ajuste_depois_salvar = AJUSTE_DEPOIS_SALVAR.get(model)
@@ -898,10 +950,13 @@ def migrar_model(model):
         if ajuste_depois_salvar:
             ajuste_depois_salvar()
 
-        # se configuramos ids explicitamente devemos reiniciar a sequence
+        # reiniciamos a sequence logo após a última pk do legado
+        #
+        # É importante que seja do legado (e não da nova base),
+        # pois numa nova versão da migração podemos inserir registros
+        # não migrados antes sem conflito com pks criadas até lá
         if get_id_do_legado:
-            last_pk = get_last_pk(model)
-            reinicia_sequence(model, last_pk + 1)
+            reinicia_sequence(model, ultima_pk_legado + 1)
 
         # apaga registros migrados do legado
         if sql_delete_legado:
@@ -1061,22 +1116,16 @@ def adjust_tipoafastamento(new, old):
         new.indicador = 'F'
 
 
-TIPO_MATERIA_OU_TIPO_DOCUMENTO = {'M': TipoMateriaLegislativa,
-                                  'D': TipoDocumento}
+def set_generic_fk(new, campo_virtual, old):
+    new.content_type = content_types[campo_virtual.related_model]
+    new.object_id = get_fk_related(campo_virtual, old)
 
 
 def adjust_tipoproposicao(new, old):
     "Aponta para o tipo relacionado de matéria ou documento"
-    value = old.tip_mat_ou_doc
-    model_tipo = TIPO_MATERIA_OU_TIPO_DOCUMENTO[old.ind_mat_ou_doc]
-    tipo = model_tipo.objects.filter(pk=value)
-    if tipo:
-        new.tipo_conteudo_related = tipo[0]
-    else:
-        raise ForeignKeyFaltando(
-            field=TipoProposicao.tipo_conteudo_related,
-            value=(model_tipo.__name__, value),
-            label={'ind_mat_ou_doc': old.ind_mat_ou_doc})
+    if old.tip_mat_ou_doc:
+        campo_virtual = CAMPOS_VIRTUAIS_TIPO_PROPOSICAO[old.ind_mat_ou_doc]
+        set_generic_fk(new, campo_virtual, old)
 
 
 def adjust_proposicao_antes_salvar(new, old):
@@ -1085,8 +1134,7 @@ def adjust_proposicao_antes_salvar(new, old):
     if old.cod_mat_ou_doc:
         tipo_mat_ou_doc = type(new.tipo.tipo_conteudo_related)
         campo_virtual = CAMPOS_VIRTUAIS_PROPOSICAO[tipo_mat_ou_doc]
-        new.content_type = content_types[campo_virtual.related_model]
-        new.object_id = get_fk_related(campo_virtual, old)
+        set_generic_fk(new, campo_virtual, old)
 
 
 def adjust_statustramitacao(new, old):
@@ -1199,6 +1247,21 @@ def adjust_tiporesultadovotacao(new, old):
              {'pk': new.pk, 'nome': new.nome})
 
 
+def remove_style(conteudo):
+    if 'style' not in conteudo:
+        return conteudo  # atalho que acelera muito os casos sem style
+
+    soup = BeautifulSoup(conteudo, 'html.parser')
+    for tag in soup.recursiveChildGenerator():
+        if hasattr(tag, 'attrs'):
+            tag.attrs = {k: v for k, v in tag.attrs.items() if k != 'style'}
+    return str(soup)
+
+
+def adjust_expediente_sessao(new, old):
+    new.conteudo = remove_style(new.conteudo)
+
+
 AJUSTE_ANTES_SALVAR = {
     Autor: adjust_autor,
     TipoAutor: adjust_tipo_autor,
@@ -1220,10 +1283,71 @@ AJUSTE_ANTES_SALVAR = {
     StatusTramitacaoAdministrativo: adjust_statustramitacaoadm,
     Tramitacao: adjust_tramitacao,
     TipoResultadoVotacao: adjust_tiporesultadovotacao,
+    ExpedienteSessao: adjust_expediente_sessao,
 }
 
 AJUSTE_DEPOIS_SALVAR = {
     NormaJuridica: adjust_normajuridica_depois_salvar,
 }
 
-# CHECKS ####################################################################
+
+# MARCO ######################################################################
+
+TIME_FORMAT = '%H:%M:%S'
+
+
+# permite a gravação de tempos puros pelo pretty-yaml
+def time_representer(dumper, data):
+    return dumper.represent_scalar('!time', data.strftime(TIME_FORMAT))
+
+
+UnsafePrettyYAMLDumper.add_representer(datetime.time, time_representer)
+
+
+# permite a leitura de tempos puros pelo pyyaml (no padrão gravado acima)
+def time_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    return datetime.datetime.strptime(value, TIME_FORMAT).time()
+
+
+yaml.add_constructor(u'!time', time_constructor)
+
+TAG_MARCO = 'marco'
+
+
+def gravar_marco():
+    """Grava um dump de todos os dados como arquivos yaml no repo de marco
+    """
+    # prepara ou localiza repositorio
+    dir_dados = Path(REPO.working_dir, 'dados')
+
+    # exporta dados como arquivos yaml
+    user_model = get_user_model()
+    models = get_models_a_migrar() + [
+        Composicao, user_model, Group, ContentType]
+    for model in models:
+        info('Gravando marco de [{}]'.format(model.__name__))
+        dir_model = dir_dados.child(model._meta.app_label, model.__name__)
+        dir_model.mkdir(parents=True)
+        for data in model.objects.all().values():
+            nome_arq = Path(dir_model, '{}.yaml'.format(data['id']))
+            with open(nome_arq, 'w') as arq:
+                pyaml.dump(data, arq)
+
+    # backup do banco
+    print('Gerando backup do banco... ', end='', flush=True)
+    arq_backup = DIR_REPO.child('{}.backup'.format(NOME_BANCO_LEGADO))
+    arq_backup.remove()
+    backup_cmd = '''
+        pg_dump --host localhost --port 5432 --username postgres --no-password
+        --format custom --blobs --verbose --file {} {}'''.format(
+        arq_backup, NOME_BANCO_LEGADO)
+    subprocess.check_output(backup_cmd.split(), stderr=subprocess.DEVNULL)
+    print('SUCESSO')
+
+    # salva mudanças
+    REPO.git.add([dir_dados.name])
+    if 'master' not in REPO.heads or REPO.index.diff('HEAD'):
+        # se de fato existe mudança
+        REPO.index.commit('Grava marco')
+    REPO.git.execute('git tag -f'.split() + [TAG_MARCO])

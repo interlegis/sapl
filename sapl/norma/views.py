@@ -40,10 +40,9 @@ class NormaRelacionadaCrud(MasterDetailCrud):
     model = NormaRelacionada
     parent_field = 'norma_principal'
     help_topic = 'norma_juridica'
-    public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['norma_relacionada']
+        list_field_names = ['norma_relacionada', 'tipo_vinculo']
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = NormaRelacionadaForm

@@ -5,6 +5,8 @@
 # Esse script precisa rodar em python 2
 # e depende apenas do descrito no arquivo requiments.txt
 
+import cStringIO
+import hashlib
 import mimetypes
 import os
 import sys
@@ -12,11 +14,15 @@ from collections import defaultdict
 from contextlib import contextmanager
 from functools import partial
 
+import git
 import magic
 import yaml
 import ZODB.DB
 import ZODB.FileStorage
+from unipath import Path
 from ZODB.broken import Broken
+
+from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 
 EXTENSOES = {
     'application/msword': '.doc',
@@ -24,9 +30,16 @@ EXTENSOES = {
     'application/vnd.oasis.opendocument.text': '.odt',
     'application/vnd.ms-excel': '.xls',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',  # noqa
+    'application/vnd.oasis.opendocument.text-template': '.ott',
+    'application/vnd.ms-powerpoint': '.ppt',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',  # noqa
+    'application/vnd.oasis.opendocument.spreadsheet': '.ods',
+
     'application/xml': '.xml',
     'text/xml': '.xml',
     'application/zip': '.zip',
+    'application/x-rar': '.rar',
+
     'image/jpeg': '.jpeg',
     'image/png': '.png',
     'image/gif': '.gif',
@@ -38,6 +51,11 @@ EXTENSOES = {
     'image/tiff': '.tiff',
     'application/tiff': '.tiff',
     'audio/x-wav': '.wav',
+    'video/mp4': '.mp4',
+    'image/x-icon': '.ico',
+    'image/x-ms-bmp': '.bmp',
+    'video/x-ms-asf': '.asf',
+    'audio/mpeg': '.mp3',
 
     # TODO rever...
     'text/richtext': '.rtf',
@@ -45,7 +63,9 @@ EXTENSOES = {
     # sem extensao
     'application/octet-stream': '',  # binário
     'inode/x-empty': '',  # vazio
-    'text/x-unknown-content-type': '',
+    'application/x-empty': '',  # vazio
+    'text/x-unknown-content-type': '',  # desconhecido
+    'application/CDFV2-unknown': '',  # desconhecido
 }
 
 
@@ -56,29 +76,26 @@ def br(obj):
         return obj
 
 
-def guess_extension(caminho):
-    mime = magic.from_file(caminho, mime=True)
-    try:
-        return EXTENSOES[mime]
-    except KeyError as e:
-        msg = '\n'.join([
-            'Extensão não conhecida para o arquivo:',
-            caminho,
-            'E mimetype:',
-            mime,
-            ' Algumas possibilidades são:', ] +
+def guess_extension(fullname, buffer):
+    mime = magic.from_buffer(buffer, mime=True)
+    extensao = EXTENSOES.get(mime)
+    if extensao is not None:
+        return extensao
+    else:
+        possibilidades = '\n'.join(
             ["    '{}': '{}',".format(mime, ext)
-             for ext in mimetypes.guess_all_extensions(mime)] +
-            ['Atualize o código do dicionário EXTENSOES!']
-        )
-        print(msg)
-        raise Exception(msg, e)
+             for ext in mimetypes.guess_all_extensions(mime)])
+        print('''Extensão não conhecida para o arquivo: {}
+            e mimetype: {}
+            Algumas possibilidades são:
+            {}
+            Atualize o código do dicionário EXTENSOES!
+            '''.format(fullname, mime, possibilidades)
+              )
+        return '.DESCONHECIDO.{}'.format(mime.replace('/', '__'))
 
 
-def dump_file(doc, path):
-    name = doc['__name__']
-    fullname = os.path.join(path, name)
-
+def get_conteudo_file(doc):
     # A partir daqui usamos dict.pop('...') nos __Broken_state__
     # para contornar um "vazamento" de memória que ocorre
     # ao percorrer a árvore de objetos
@@ -95,23 +112,26 @@ def dump_file(doc, path):
         doc['data'] = pdata
         pdata = doc
 
-    with open(fullname, 'w') as arq:
-        while pdata:
-            arq.write(pdata.pop('data'))
-            pdata = br(pdata.pop('next', None))
+    output = cStringIO.StringIO()
+    while pdata:
+        output.write(pdata.pop('data'))
+        pdata = br(pdata.pop('next', None))
 
-    base, original_extension = os.path.splitext(fullname)
-    extension = guess_extension(fullname)
-    if extension == '.xml' and original_extension in ['.xsl', '.xslt']:
-        # não trocamos as extensões XSL e XSLT
-        final_name = fullname
-    else:
-        # trocamos a extensão pela adivinhada
-        final_name = base + extension
-        os.rename(fullname, final_name)
-    print(final_name)
+    return output.getvalue()
 
+
+def dump_file(doc, path, salvar, get_conteudo=get_conteudo_file):
+    name = doc['__name__']
+    fullname = os.path.join(path, name)
+    conteudo = get_conteudo(doc)
+    if conteudo:
+        # pula arquivos vazios
+        salvar(fullname, conteudo)
     return name
+
+
+def get_conteudo_dtml_method(doc):
+    return doc['raw']
 
 
 def enumerate_by_key_list(folder, key_list, type_key):
@@ -135,7 +155,11 @@ def enumerate_btree(folder):
         obj, meta_type = br(obj), type(obj).__name__
         yield id, obj, meta_type
     # verificação de consistência
-    assert contagem_esperada == contagem_real
+    if contagem_esperada != contagem_real:
+        print('ATENÇÃO: contagens diferentes na btree: '
+              '{} esperada: {} real: {}'.format(folder,
+                                                contagem_esperada,
+                                                contagem_real))
 
 
 nao_identificados = defaultdict(list)
@@ -148,14 +172,14 @@ def logando_nao_identificados():
     if nao_identificados:
         print('#' * 80)
         print('#' * 80)
-        print(u'FORAM ENCONTRADOS ARQUIVOS DE FORMATO NÃO IDENTIFICADO!!!')
-        print(u'REFAÇA A EXPORTAÇÃO\n')
+        print('FORAM ENCONTRADOS ARQUIVOS DE FORMATO NÃO IDENTIFICADO!!!')
+        print('REFAÇA A EXPORTAÇÃO\n')
         print(nao_identificados)
         print('#' * 80)
         print('#' * 80)
 
 
-def dump_folder(folder, path='', enum=enumerate_folder):
+def dump_folder(folder, path, salvar, enum=enumerate_folder):
     name = folder['id']
     path = os.path.join(path, name)
     if not os.path.exists(path):
@@ -165,7 +189,7 @@ def dump_folder(folder, path='', enum=enumerate_folder):
         if dump == '?':
             nao_identificados[meta_type].append(path + '/' + id)
         elif dump:
-            id_interno = dump(obj, path)
+            id_interno = dump(obj, path, salvar)
             assert id == id_interno
     return name
 
@@ -201,24 +225,24 @@ def read_sde(element):
     return data
 
 
-def save_as_yaml(path, name, obj):
+def save_as_yaml(path, name, obj, salvar):
     fullname = os.path.join(path, name)
-    with open(fullname, 'w') as arquivo:
-        yaml.safe_dump(obj, arquivo, allow_unicode=True)
-    print(fullname)
-    return fullname
+    conteudo = yaml.safe_dump(obj, allow_unicode=True)
+    salvar(fullname, conteudo)
 
 
-def dump_sde(strdoc, path, tipo):
+def dump_sde(strdoc, path, salvar, tipo):
     id = strdoc['id']
     sde = read_sde(strdoc)
-    save_as_yaml(path,  '{}.{}.yaml'.format(id, tipo), sde)
+    save_as_yaml(path,  '{}.{}.yaml'.format(id, tipo), sde, salvar)
     return id
 
 
 DUMP_FUNCTIONS = {
     'File': dump_file,
     'Image': dump_file,
+    'DTML Method': partial(dump_file,
+                           get_conteudo=get_conteudo_dtml_method),
     'Folder': partial(dump_folder, enum=enumerate_folder),
     'BTreeFolder2': partial(dump_folder, enum=enumerate_btree),
     'SDE-Document': partial(dump_sde, tipo='sde.document'),
@@ -233,7 +257,7 @@ DUMP_FUNCTIONS = {
 
 
 def get_app(data_fs_path):
-    storage = ZODB.FileStorage.FileStorage(data_fs_path)
+    storage = ZODB.FileStorage.FileStorage(data_fs_path, read_only=True)
     db = ZODB.DB(storage)
     connection = db.open()
     root = connection.root()
@@ -255,42 +279,115 @@ def find_sapl(app):
                 return sapl
 
 
-def dump_propriedades(docs, path, encoding='iso-8859-1'):
+def dump_propriedades(docs, path, salvar, encoding='iso-8859-1'):
     props_sapl = br(docs['props_sapl'])
     ids = [p['id'] for p in props_sapl['_properties']]
     props = {id: props_sapl[id] for id in ids}
     props = {id: p.decode(encoding) if isinstance(p, str) else p
              for id, p in props.items()}
-    save_as_yaml(path, 'sapl_documentos/propriedades.yaml', props)
+    save_as_yaml(path, 'sapl_documentos/propriedades.yaml', props, salvar)
 
 
-def dump_usuarios(sapl, path):
+def dump_usuarios(sapl, path, salvar):
     users = br(br(sapl['acl_users'])['data'])
     users = {k: br(v) for k, v in users['data'].items()}
-    save_as_yaml(path, 'usuarios.yaml', users)
+    save_as_yaml(path, 'usuarios.yaml', users, salvar)
 
 
-def dump_sapl(data_fs_path, destino='../../../../media'):
+def _dump_sapl(data_fs_path, destino, salvar):
+    assert Path(data_fs_path).exists()
     app, close_db = get_app(data_fs_path)
     try:
         sapl = find_sapl(app)
         # extrai folhas XSLT
-        dump_folder(br(sapl['XSLT']), destino)
+        dump_folder(br(sapl['XSLT']), destino, salvar)
         # extrai usuários com suas senhas e perfis
-        dump_usuarios(sapl, destino)
+        dump_usuarios(sapl, destino, salvar)
 
         # extrai documentos
         docs = br(sapl['sapl_documentos'])
         with logando_nao_identificados():
-            dump_folder(docs, destino)
-            dump_propriedades(docs, destino)
+            dump_folder(docs, destino, salvar)
+            dump_propriedades(docs, destino, salvar)
     finally:
         close_db()
 
 
+def repo_execute(repo, cmd, *args):
+    return repo.git.execute(cmd.split() + list(args))
+
+
+def get_annex_hashes(repo):
+    hashes = repo_execute(
+        repo, 'git annex find', '--format=${keyname}\n', '--include=*')
+    return {os.path.splitext(h)[0] for h in hashes.splitlines()}
+
+
+def ajusta_extensao(fullname, conteudo):
+    base, extensao = os.path.splitext(fullname)
+    if extensao not in ['.xsl', '.xslt', '.yaml', '.css']:
+        extensao = guess_extension(fullname, conteudo)
+    return base + extensao
+
+
+def build_salvar(repo):
+    """Constroi função salvar que pula arquivos que já estão no annex
+    """
+    hashes = get_annex_hashes(repo)
+
+    def salvar(fullname, conteudo):
+        sha = hashlib.sha256()
+        sha.update(conteudo)
+        if sha.hexdigest() in hashes:
+            print('- hash encontrado - {}'.format(fullname))
+        else:
+            fullname = ajusta_extensao(fullname, conteudo)
+            if os.path.exists(fullname):
+                # destrava arquivo pré-existente (o conteúdo mudou)
+                repo_execute(repo, 'git annex unlock', fullname)
+            with open(fullname, 'w') as arq:
+                arq.write(conteudo)
+            print(fullname)
+
+    return salvar
+
+
+def dump_sapl(sigla):
+    sigla = sigla[-3:]  # ignora prefixo (por ex. 'sapl_cm_')
+    data_fs_path = DIR_DADOS_MIGRACAO.child('datafs',
+                                            'Data_cm_{}.fs'.format(sigla))
+    assert data_fs_path.exists(), 'Origem não existe: {}'.format(data_fs_path)
+    nome_banco_legado = 'sapl_cm_{}'.format(sigla)
+    destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
+    destino.mkdir(parents=True)
+    repo = git.Repo.init(destino)
+    if TAG_ZOPE in repo.tags:
+        print('A exportação de documentos já está feita -- abortando')
+        return
+
+    repo_execute(repo, 'git annex init')
+    repo_execute(repo, 'git config annex.thin true')
+
+    salvar = build_salvar(repo)
+    try:
+        finalizado = False
+        _dump_sapl(data_fs_path, destino, salvar)
+        finalizado = True
+    finally:
+        # grava mundaças
+        repo_execute(repo, 'git annex add sapl_documentos')
+        repo.git.add(A=True)
+        if 'master' not in repo.heads or repo.index.diff('HEAD'):
+            # se de fato existe mudança
+            status = 'completa' if finalizado else 'parcial'
+            repo.index.commit(u'Exportação do zope {}'.format(status))
+            if finalizado:
+                repo.git.execute('git tag -f'.split() + [TAG_ZOPE])
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        data_fs_path = sys.argv[1]
-        dump_sapl(data_fs_path)
+        sigla = sys.argv[1]
+        dump_sapl(sigla)
     else:
-        print('Uso: python exporta_zope <caminho p Data.fs>')
+        print('Uso: python exporta_zope <sigla>')

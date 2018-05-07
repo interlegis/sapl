@@ -127,7 +127,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'speedinfo.middleware.ProfilerMiddleware',
+    # 'speedinfo.middleware.ProfilerMiddleware', # Bug na versão 1.9
 )
 
 CACHES = {
