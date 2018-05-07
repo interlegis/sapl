@@ -1,11 +1,10 @@
-import unicodedata
 from re import sub
 from operator import itemgetter
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.forms.utils import ErrorList
@@ -991,10 +990,8 @@ class MesaView(FormMixin, DetailView):
             set(
                 [p.parlamentar for p in parlamentares]) - set(
                 parlamentares_ocupados))
-
-        org_parlamentares_vagos = sorted(parlamentares_vagos,
-                                         key=lambda x: unicodedata.normalize('NFKD', x.nome_parlamentar)
-                                         .encode('ASCII', 'ignore').decode())
+        org_parlamentares_vagos = parlamentares_vagos
+        org_parlamentares_vagos.sort(key=lambda x: remover_acentos(x.nome_parlamentar))
         org_parlamentares_vagos = [p for p in org_parlamentares_vagos if p.ativo]
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
@@ -1049,10 +1046,10 @@ def atualizar_mesa(request):
     lista_composicao = [(c.id, c.parlamentar.__str__(),
                          c.cargo.__str__()) for c in composicao_mesa]
     lista_parlamentares = [(
-        p.id, unicodedata.normalize('NFKD', p.__str__()).encode('ASCII', 'ignore').decode())
+        p.id, p.nome_parlamentar)
         for p in parlamentares_vagos if p.ativo]
     lista_cargos = [(c.id, c.__str__()) for c in cargos_vagos]
-    lista_parlamentares.sort(key=itemgetter(1))
+    lista_parlamentares.sort(key=lambda x: remover_acentos(x[1]))
 
     return JsonResponse(
         {'lista_composicao': lista_composicao,

@@ -735,5 +735,4 @@ def RemoveTag(texto):
     return textoSaida
 
 def remover_acentos(string):
-     return ''.join([c for c in unicodedata.normalize('NFD', string)
-                         if unicodedata.category(c) != 'Mn'])
+     return unicodedata.normalize('NFKD', string).encode('ASCII', 'ignore').decode()
