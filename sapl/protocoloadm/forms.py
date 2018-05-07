@@ -698,6 +698,24 @@ class DocumentoAdministrativoForm(ModelForm):
                         numero_protocolo, ano_protocolo))
                 raise ValidationError(msg)
 
+            try:
+                protocolo_antigo = self.instance.protocolo.numero
+            except:
+                protocolo_antigo = None
+
+            if str(protocolo_antigo) != numero_protocolo:
+                exist_materia = MateriaLegislativa.objects.filter(
+                                                    numero_protocolo=numero_protocolo,
+                                                    ano=ano_protocolo).exists()
+
+                exist_doc = DocumentoAdministrativo.objects.filter(
+                                                        protocolo_id=numero_protocolo,
+                                                        ano=ano_protocolo).exists()
+                if exist_materia or exist_doc:
+                    raise ValidationError(_('Protocolo %s/%s ja possui'
+                                            ' documento vinculado'
+                                            % (numero_protocolo, ano_protocolo)))
+
         return self.cleaned_data
 
     def save(self, commit=True):
