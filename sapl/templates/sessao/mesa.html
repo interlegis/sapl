@@ -38,7 +38,7 @@
       <label id='parlamentar-cargo-title' style="display: none">Parlamentar | Cargo</label>
       <select class="form-control" name="parlamentar" id="id_parlamentar" style="display: none">
         {% for p in parlamentares %}
-        <option value="{{p.id}}">{{p.nome_completo}}</option>
+        <option value="{{p.id}}">{{p.nome_parlamentar}}</option>
         {% endfor %}
       </select>
       <br />
