@@ -1448,6 +1448,11 @@ class ExpedienteView(FormMixin, DetailView):
         self.object = self.get_object()
         form = ExpedienteForm(request.POST)
 
+        if 'apagar-expediente' in request.POST:
+            ExpedienteSessao.objects.filter(
+                sessao_plenaria_id=self.object.id).delete()
+            return self.form_valid(form)
+
         if form.is_valid():
             list_tipo = request.POST.getlist('tipo')
             list_conteudo = request.POST.getlist('conteudo')
