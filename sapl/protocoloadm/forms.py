@@ -155,6 +155,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         fields = ['tipo',
                   'numero',
                   'protocolo__numero',
+                  'numero_externo',
                   'data',
                   'tramitacaoadministrativo__unidade_tramitacao_destino',
                   'tramitacaoadministrativo__status']
@@ -173,7 +174,8 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
         row2 = to_row(
             [('ano', 4),
-             ('protocolo__numero', 4),
+             ('protocolo__numero', 2),
+             ('numero_externo', 2),
              ('data', 4)])
 
         row3 = to_row(
@@ -645,6 +647,7 @@ class DocumentoAdministrativoForm(ModelForm):
                   'tramitacao',
                   'dias_prazo',
                   'data_fim_prazo',
+                  'numero_externo',
                   'observacao',
                   'texto_integral',
                   'protocolo',
@@ -655,9 +658,6 @@ class DocumentoAdministrativoForm(ModelForm):
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
 
-        if not self.is_valid():
-            return self.cleaned_data
-
         cleaned_data = self.cleaned_data
 
         if not self.is_valid():
@@ -665,14 +665,21 @@ class DocumentoAdministrativoForm(ModelForm):
 
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
-        numero_documento = self.cleaned_data['numero']
-        tipo_documento = self.data['tipo']
+        numero_documento = int(self.cleaned_data['numero'])
+        tipo_documento = int(self.data['tipo'])
+        ano_documento = int(self.data['ano'])
 
-        if not self.instance.pk:
-            documento = DocumentoAdministrativo.objects.filter(numero=numero_documento,
-                                                               tipo=tipo_documento,
-                                                               ano=ano_protocolo)
-            if documento:
+        # não permite atualizar para numero/ano/tipo existente
+        if self.instance.pk:
+            mudanca_doc = numero_documento != self.instance.numero \
+                            or ano_documento != self.instance.ano \
+                            or tipo_documento != self.instance.tipo.pk
+
+        if not self.instance.pk or mudanca_doc:
+            doc_exists = DocumentoAdministrativo.objects.filter(numero=numero_documento,
+                                                                tipo=tipo_documento,
+                                                                ano=ano_protocolo).exists()
+            if doc_exists:
                 raise ValidationError('Documento já existente')
 
         # campos opcionais, mas que se informados devem ser válidos
@@ -721,7 +728,7 @@ class DocumentoAdministrativoForm(ModelForm):
             [('texto_integral', 12)])
 
         row6 = to_row(
-            [('dias_prazo', 6), ('data_fim_prazo', 6)])
+            [('numero_externo', 4), ('dias_prazo', 6), ('data_fim_prazo', 2)])
 
         row7 = to_row(
             [('observacao', 12)])

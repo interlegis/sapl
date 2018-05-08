@@ -3,6 +3,9 @@ import os
 from decouple import Config, RepositoryEnv
 from dj_database_url import parse as db_url
 
+from sapl.legacy.scripts.exporta_zope.variaveis_comuns import \
+    DIR_DADOS_MIGRACAO
+
 from .settings import *  # flake8: noqa
 
 config = Config(RepositoryEnv(BASE_DIR.child('legacy', '.env')))
@@ -33,3 +36,10 @@ DEBUG = True
 
 # delisga indexação fulltext em tempo real
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
+
+SHELL_PLUS_DONT_LOAD = ['legacy']
+
+NOME_BANCO_LEGADO = DATABASES['legacy']['NAME']
+DIR_REPO = Path(DIR_DADOS_MIGRACAO, 'repos', NOME_BANCO_LEGADO)
+
+MEDIA_ROOT = DIR_REPO

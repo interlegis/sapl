@@ -167,7 +167,7 @@ class MateriaLegislativa(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Tipo'))
     numero_origem_externa = models.CharField(
-        max_length=5, blank=True, verbose_name=_('Número'))
+        max_length=10, blank=True, verbose_name=_('Número'))
     ano_origem_externa = models.PositiveSmallIntegerField(
         blank=True, null=True, verbose_name=_('Ano'), choices=RANGE_ANOS)
     data_origem_externa = models.DateField(
@@ -325,9 +325,17 @@ class AcompanhamentoMateria(models.Model):
         verbose_name_plural = _('Acompanhamentos de Matéria')
 
     def __str__(self):
-        # FIXME str should be human readable, using hash is very strange
-        return _('%(materia)s - #%(hash)s') % {
-            'materia': self.materia, 'hash': self.hash}
+        if self.data_cadastro is None:
+            return _('%(materia)s - %(email)s') % {
+                'materia': self.materia,
+                'email': self.email
+            }
+        else:
+            return _('%(materia)s - %(email)s - Registrado em: %(data)s') % {
+                'materia': self.materia,
+                'email': self.email,
+                'data': str(self.data_cadastro.strftime('%d/%m/%Y'))
+            }
 
 
 @reversion.register()

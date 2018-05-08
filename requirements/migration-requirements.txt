@@ -1,2 +1,4 @@
 -r dev-requirements.txt
+GitPython
 mysqlclient==1.3.12
+pyaml

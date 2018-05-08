@@ -105,6 +105,7 @@ class Periodo(models.Model):  # PeriodoCompComissao
     class Meta:
         verbose_name = _('Período de composição de Comissão')
         verbose_name_plural = _('Períodos de composição de Comissão')
+        ordering = ['-data_inicio', '-data_fim']
 
     def __str__(self):
         if self.data_inicio and self.data_fim:
@@ -140,6 +141,7 @@ class Composicao(models.Model):  # IGNORE
     class Meta:
         verbose_name = _('Composição de Comissão')
         verbose_name_plural = _('Composições de Comissão')
+        ordering = ['periodo']
 
     def __str__(self):
         return '%s: %s' % (self.comissao.sigla, self.periodo)

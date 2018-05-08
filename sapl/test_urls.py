@@ -164,7 +164,9 @@ apps_url_patterns_prefixs_and_users = {
             '/logout',
             '/ajuda',
             '/email',
-            '/recuperar-senha'
+            '/recuperar-senha',
+            '/sapl',
+            '/XSLT',
         ]},
     'comissoes': {
         'users': {'operador_geral': ['/sistema', '/comissao'],

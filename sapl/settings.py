@@ -129,6 +129,7 @@ if DEBUG:
     INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
 
+
 CACHES = {
     'default': {
         'BACKEND': 'speedinfo.backends.proxy_cache',

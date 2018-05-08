@@ -11,6 +11,7 @@ DocumentoAdministrativo:
   - interessado  tramitacao
   - texto_integral
   {% trans 'Outras Informações' %}:
+  - numero_externo
   - dias_prazo  data_fim_prazo
   - observacao
 
