@@ -698,10 +698,8 @@ class DocumentoAdministrativoForm(ModelForm):
                         numero_protocolo, ano_protocolo))
                 raise ValidationError(msg)
 
-            try:
-                protocolo_antigo = self.instance.protocolo.numero
-            except:
-                protocolo_antigo = None
+            inst = self.instance.protocolo
+            protocolo_antigo = inst.numero if inst else None
 
             if str(protocolo_antigo) != numero_protocolo:
                 exist_materia = MateriaLegislativa.objects.filter(
