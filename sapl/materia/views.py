@@ -937,7 +937,8 @@ class RelatoriaCrud(MasterDetailCrud):
             except ObjectDoesNotExist:
                 pass
             else:
-                composicao = comissao.composicao_set.last()
+                composicao = comissao.composicao_set.order_by(
+                    '-periodo__data_inicio').first()
                 participacao = Participacao.objects.filter(
                     composicao=composicao)
 
