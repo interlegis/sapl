@@ -1779,7 +1779,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             t = Tramitacao(
                 materia_id=materia_id,
                 data_tramitacao=tz.localize(datetime.strptime(
-                    request.POST['data_tramitacao'], "%d/%m/%Y/ %H:%M:%S")),
+                    request.POST['data_tramitacao'], "%d/%m/%Y")),
                 data_encaminhamento=data_encaminhamento,
                 data_fim_prazo=data_fim_prazo,
                 unidade_tramitacao_local_id=request.POST[

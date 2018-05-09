@@ -915,4 +915,4 @@ class Tramitacao(models.Model):
         return _('%(materia)s | %(status)s | %(data)s') % {
             'materia': self.materia,
             'status': self.status,
-            'data': self.data_tramitacao.strftime("%d/%m/%Y/ %H:%M:%S")}
+            'data': self.data_tramitacao.strftime("%d/%m/%Y/")}
