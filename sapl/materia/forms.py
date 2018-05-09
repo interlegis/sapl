@@ -36,7 +36,7 @@ from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura
-from sapl.protocoloadm.models import Protocolo
+from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
@@ -182,19 +182,39 @@ class MateriaLegislativaForm(ModelForm):
 
         data_apresentacao = cleaned_data['data_apresentacao']
         ano = cleaned_data['ano']
+        protocolo = cleaned_data['numero_protocolo']
+        protocolo_antigo = self.instance.numero_protocolo
+
+        if protocolo:
+            if not Protocolo.objects.filter(numero=protocolo,ano=ano).exists():
+                raise ValidationError(_('Protocolo %s/%s não'
+                                        ' existe' % (protocolo, ano)))
+
+            if protocolo_antigo != protocolo:
+                exist_materia = MateriaLegislativa.objects.filter(
+                                                    numero_protocolo=protocolo,
+                                                    ano=ano).exists()
+
+                exist_doc = DocumentoAdministrativo.objects.filter(
+                                                        protocolo_id=protocolo,
+                                                        ano=ano).exists()
+                if exist_materia or exist_doc:
+                    raise ValidationError(_('Protocolo %s/%s ja possui'
+                                            ' documento vinculado'
+                                             % (protocolo, ano)))
 
         if data_apresentacao.year != ano:
-            raise ValidationError("O ano da matéria não pode ser "
-                                  "diferente do ano na data de apresentação")
+            raise ValidationError(_("O ano da matéria não pode ser "
+                                  "diferente do ano na data de apresentação"))
 
         ano_origem_externa = cleaned_data['ano_origem_externa']
         data_origem_externa = cleaned_data['data_origem_externa']
 
         if ano_origem_externa and data_origem_externa and \
                 ano_origem_externa != data_origem_externa.year:
-            raise ValidationError("O ano de origem externa da matéria não "
+            raise ValidationError(_("O ano de origem externa da matéria não "
                                   "pode ser diferente do ano na data de "
-                                  "origem externa")
+                                  "origem externa"))
 
         return cleaned_data
 
