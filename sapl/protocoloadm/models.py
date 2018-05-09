@@ -263,7 +263,7 @@ class TramitacaoAdministrativo(models.Model):
         verbose_name=_('Status'))
     documento = models.ForeignKey(DocumentoAdministrativo,
                                   on_delete=models.PROTECT)
-    data_tramitacao = models.DateField(
+    data_tramitacao = models.DateTimeField(
         verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
         UnidadeTramitacao,

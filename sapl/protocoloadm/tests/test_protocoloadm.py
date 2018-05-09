@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 import pytest
 from django.core.urlresolvers import reverse
@@ -145,7 +145,7 @@ def test_create_tramitacao(admin_client):
         unidade_tramitacao_destino=unidade_tramitacao_destino_1,
         status=status,
         documento=documento_adm,
-        data_tramitacao=date(2016, 8, 21))
+        data_tramitacao=datetime(2016, 8, 21, 0, 0))
 
     response = admin_client.post(
         reverse(
@@ -155,7 +155,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_local_1.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date(2016, 8, 21)},
+         'data_tramitacao': datetime(2016, 8, 21, 0, 0)},
         follow=True)
 
     msg = force_text(_('A origem da nova tramitação deve ser igual ao '
@@ -173,7 +173,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date(2016, 8, 20)},
+         'data_tramitacao': datetime(2016, 8, 20, 0, 0)},
         follow=True)
 
     msg = _('A data da nova tramitação deve ser ' +
@@ -191,7 +191,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date.today() + timedelta(
+         'data_tramitacao': datetime.today() + timedelta(
              days=1)},
         follow=True)
 
@@ -210,7 +210,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date(2016, 8, 21),
+         'data_tramitacao': datetime(2016, 8, 21, 0, 0),
          'data_encaminhamento': date(2016, 8, 20)},
         follow=True)
 
@@ -229,7 +229,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date(2016, 8, 21),
+         'data_tramitacao': datetime(2016, 8, 21, 0, 0),
          'data_fim_prazo': date(2016, 8, 20)},
         follow=True)
 
@@ -248,12 +248,12 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date(2016, 8, 21)},
+         'data_tramitacao': datetime(2016, 8, 21, 0, 0)},
         follow=True)
 
     tramitacao = TramitacaoAdministrativo.objects.last()
     # Verifica se a tramitacao que obedece as regras de negócios é criada
-    assert tramitacao.data_tramitacao == date(2016, 8, 21)
+    assert tramitacao.data_tramitacao.date() == date(2016, 8, 21)
 
 
 @pytest.mark.django_db(transaction=False)

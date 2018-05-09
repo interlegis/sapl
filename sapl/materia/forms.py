@@ -313,7 +313,7 @@ class TramitacaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
-        self.fields['data_tramitacao'].initial = timezone.now().date()
+        self.fields['data_tramitacao'].initial = timezone.now()
 
     def clean(self):
         super(TramitacaoForm, self).clean()
@@ -345,7 +345,7 @@ class TramitacaoForm(ModelForm):
                             'destino  da última adicionada!')
                     raise ValidationError(msg)
 
-            if cleaned_data['data_tramitacao'] > timezone.now().date():
+            if cleaned_data['data_tramitacao'] > timezone.now():
                 msg = _(
                     'A data de tramitação deve ser ' +
                     'menor ou igual a data de hoje!')
@@ -358,13 +358,13 @@ class TramitacaoForm(ModelForm):
                 raise ValidationError(msg)
 
         if data_enc_form:
-            if data_enc_form < data_tram_form:
+            if data_enc_form < data_tram_form.date():
                 msg = _('A data de encaminhamento deve ser ' +
                         'maior que a data de tramitação!')
                 raise ValidationError(msg)
 
         if data_prazo_form:
-            if data_prazo_form < data_tram_form:
+            if data_prazo_form < data_tram_form.date():
                 msg = _('A data fim de prazo deve ser ' +
                         'maior que a data de tramitação!')
                 raise ValidationError(msg)
@@ -377,7 +377,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
         queryset=UnidadeTramitacao.objects.all(),
         widget=forms.HiddenInput())
 
-    data_tramitacao = forms.DateField(widget=forms.HiddenInput())
+    data_tramitacao = forms.DateTimeField(widget=forms.HiddenInput())
 
     class Meta:
         model = Tramitacao

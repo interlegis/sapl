@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -283,7 +284,7 @@ def test_tramitacao_submit(admin_client):
             'Unidade Destino').pk,
          'urgente': True,
          'status': status_tramitacao.pk,
-         'data_tramitacao': '2016-03-21',
+         'data_tramitacao': '2016-03-21 00:00:00',
          'data_fim_prazo': '2016-03-22',
          'data_encaminhamento': '2016-03-22',
          'texto': 'Texto_Teste',
