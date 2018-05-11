@@ -277,8 +277,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                 else:
                     resultado = '''Não há resultado'''
         else:
-            resultado = obj.registrovotacao_set.get(
-                materia_id=obj.materia_id)
+            resultado = obj.registrovotacao_set.filter(
+                materia_id=obj.materia_id).last()
             resultado_descricao = resultado.tipo_resultado_votacao.nome
             resultado_observacao = resultado.observacao
 
