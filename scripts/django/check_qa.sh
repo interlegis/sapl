@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Verifica se um breakpoint foi esquecido no código
-me="$0"
+me=`basename "$0"`
 
 git_project_root=$(git rev-parse --show-toplevel)
 cd ${git_project_root}
