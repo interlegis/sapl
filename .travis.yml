@@ -1,7 +1,7 @@
 language: python
 
 python:
-  - 3.4.3
+  - 3.5
 
 services:
   - postgresql
@@ -20,7 +20,7 @@ script:
   - ./manage.py migrate
   - ./manage.py bower install
   - py.test --create-db
-  # - ./test_and_check_qa.sh
+  # - ./scripts/django/test_and_check_qa.sh
 
 addons:
     hosts:
