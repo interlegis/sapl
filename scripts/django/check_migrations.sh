@@ -11,6 +11,7 @@
 #          A chamada do django 1.10 INVERTE ISSO.
 #
 # https://docs.djangoproject.com/en/1.10/ref/django-admin/#cmdoption-makemigrations-check
+
 git_project_root=$(git rev-parse --show-toplevel)
 if python ${git_project_root}/manage.py makemigrations --dry-run --exit > /dev/null; then
     NC='\033[0m'
