@@ -321,7 +321,7 @@ class FrenteForm(ModelForm):
         frente = super(FrenteForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Frente)
         object_id = frente.pk
-        tipo = TipoAutor.objects.get(descricao='Frente Parlamentar')
+        tipo = TipoAutor.objects.get(descricao__icontains='Frente')
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,
