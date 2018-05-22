@@ -151,13 +151,14 @@ enumerate_properties = partial(enumerate_by_key_list,
 def enumerate_btree(folder):
     contagem_esperada = folder['_count'].value
     tree = folder['_tree']
+    contagem_real = 0  # para o caso em que não haja itens
     for contagem_real, (id, obj) in enumerate(tree.iteritems(), start=1):
         obj, meta_type = br(obj), type(obj).__name__
         yield id, obj, meta_type
     # verificação de consistência
     if contagem_esperada != contagem_real:
         print('ATENÇÃO: contagens diferentes na btree: '
-              '{} esperada: {} real: {}'.format(folder,
+              '{} esperada: {} real: {}'.format(folder['title'],
                                                 contagem_esperada,
                                                 contagem_real))
 
