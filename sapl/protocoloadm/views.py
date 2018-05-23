@@ -451,10 +451,11 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         if not protocolo.numero:
             protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
-        if protocolo.numero < (numero['numero__max'] + 1):
-            msg = _('Número de protocolo deve ser maior que {}').format(numero['numero__max'])
-            messages.add_message(self.request, messages.ERROR, msg)
-            return self.render_to_response(self.get_context_data())
+        if numero['numero__max']:
+            if protocolo.numero < (numero['numero__max'] + 1):
+                msg = _('Número de protocolo deve ser maior que {}').format(numero['numero__max'])
+                messages.add_message(self.request, messages.ERROR, msg)
+                return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
         protocolo.data = timezone.now().date()
         protocolo.hora = timezone.now().time()
