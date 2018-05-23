@@ -28,6 +28,7 @@ def migrar(interativo=False):
     migrar_usuarios(REPO.working_dir)
     migrar_documentos(REPO)
     gravar_marco()
+    compactar_media()
 
 
 def compactar_media():
