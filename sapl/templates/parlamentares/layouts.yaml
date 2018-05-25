@@ -37,10 +37,10 @@ Parlamentar:
   - situacao_militar  profissao
   - endereco_web
   - email
-  - numero_gab_parlamentar  telefone  fax
+  - numero_gab_parlamentar  telefone
   - endereco_residencia  cep_residencia
   - municipio_residencia  uf_residencia
-  - telefone_residencia  fax_residencia
+  - telefone_residencia
   - locais_atuacao
   - fotografia:5
   - biografia
@@ -54,10 +54,10 @@ ParlamentarUpdate:
   - situacao_militar  profissao
   - endereco_web
   - email
-  - numero_gab_parlamentar  telefone  fax
+  - numero_gab_parlamentar  telefone
   - endereco_residencia  cep_residencia
   - municipio_residencia  uf_residencia
-  - telefone_residencia  fax_residencia
+  - telefone_residencia
   - locais_atuacao
   - fotografia cropping
   - biografia
@@ -73,10 +73,10 @@ ParlamentarCreate:
   - situacao_militar  profissao
   - endereco_web
   - email
-  - numero_gab_parlamentar  telefone  fax
+  - numero_gab_parlamentar  telefone
   - endereco_residencia  cep_residencia
   - municipio_residencia
-  - telefone_residencia  fax_residencia
+  - telefone_residencia
   - locais_atuacao
   - fotografia
   - biografia
