@@ -363,7 +363,7 @@ def dump_sapl(sigla):
     destino.mkdir(parents=True)
     repo = git.Repo.init(destino)
     if TAG_ZOPE in repo.tags:
-        print('A exportação de documentos já está feita -- abortando')
+        print('{}: A exportação de documentos já está feita -- abortando'.format(sigla))
         return
 
     repo_execute(repo, 'git annex init')
