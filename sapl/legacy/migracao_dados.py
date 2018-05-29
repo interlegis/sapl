@@ -1210,10 +1210,9 @@ def adjust_autor(new, old):
             break
 
     if old.col_username:
-        user_model = get_user_model()
-        if not user_model.objects.filter(username=old.col_username).exists():
-            # cria um novo ususaŕio para o autor
-            user = user_model(username=old.col_username)
+        user, created = get_user_model().objects.get_or_create(
+            username=old.col_username)
+        if created:
             # gera uma senha inutilizável, que precisará ser trocada
             user.set_password(None)
             with reversion.create_revision():
@@ -1221,8 +1220,9 @@ def adjust_autor(new, old):
                 reversion.set_comment(
                     'Usuário criado pela migração para o autor {}'.format(
                         old.cod_autor))
-            grupo_autor = Group.objects.get(name="Autor")
-            user.groups.add(grupo_autor)
+        grupo_autor = Group.objects.get(name="Autor")
+        user.groups.add(grupo_autor)
+        new.user = user
 
 
 def adjust_comissao(new, old):
