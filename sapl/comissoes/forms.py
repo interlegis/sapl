@@ -241,6 +241,9 @@ class ComissaoForm(forms.ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
+        if len(self.cleaned_data['nome']) > 50:
+            msg = _('Nome da Comissão deve ter no máximo 50 caracteres.')
+            raise ValidationError(msg)
         if self.cleaned_data['data_extincao']:
             if (self.cleaned_data['data_extincao'] <
                     self.cleaned_data['data_criacao']):
