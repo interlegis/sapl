@@ -2,6 +2,7 @@ import subprocess
 from getpass import getpass
 
 import requests
+from django.core import management
 from unipath import Path
 
 from sapl.legacy.migracao_dados import (REPO, TAG_MARCO, gravar_marco, info,
@@ -24,6 +25,7 @@ def migrar(interativo=False):
     assert TAG_ZOPE in REPO.tags, adornar_msg(
         'Antes de migrar '
         'é necessário fazer a exportação de documentos do zope')
+    management.call_command('migrate')
     migrar_dados(interativo=interativo)
     migrar_usuarios(REPO.working_dir)
     migrar_documentos(REPO)
