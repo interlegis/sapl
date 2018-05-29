@@ -275,35 +275,62 @@ def find_sapl(app):
         id, meta_type = obj['id'], obj['meta_type']
         if id.startswith('cm_') and meta_type == 'Folder':
             cm_zzz = br(app[id])
-            sapl = br(cm_zzz.get('sapl', None))
-            if sapl and 'sapl_documentos' in sapl and 'acl_users' in sapl:
-                return sapl
+            return find_sapl(cm_zzz)
+        elif id == 'sapl' and meta_type in ['SAPL', 'Folder']:
+            sapl = br(app['sapl'])
+            return sapl
 
 
-def dump_propriedades(docs, path, salvar, encoding='iso-8859-1'):
+def detectar_encoding(fonte):
+    desc = magic.from_buffer(fonte)
+    for termo, enc in [('ISO-8859', 'latin1'), ('UTF-8', 'utf-8')]:
+        if termo in desc:
+            return enc
+    return None
+
+
+def autodecode(fonte):
+    if isinstance(fonte, str):
+        enc = detectar_encoding(fonte)
+        return fonte.decode(enc) if enc else fonte
+    else:
+        return fonte
+
+
+def dump_propriedades(docs, path, salvar):
     props_sapl = br(docs['props_sapl'])
     ids = [p['id'] for p in props_sapl['_properties']]
     props = {id: props_sapl[id] for id in ids}
-    props = {id: p.decode(encoding) if isinstance(p, str) else p
-             for id, p in props.items()}
+    props = {id: autodecode(p) for id, p in props.items()}
     save_as_yaml(path, 'sapl_documentos/propriedades.yaml', props, salvar)
 
 
 def dump_usuarios(sapl, path, salvar):
     users = br(br(sapl['acl_users'])['data'])
-    users = {k: br(v) for k, v in users['data'].items()}
+    users = {autodecode(k): br(v) for k, v in users['data'].items()}
     save_as_yaml(path, 'usuarios.yaml', users, salvar)
 
 
-def _dump_sapl(data_fs_path, destino, salvar):
+def _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar):
     assert Path(data_fs_path).exists()
+    assert Path(documentos_fs_path).exists()
+
     app, close_db = get_app(data_fs_path)
     try:
         sapl = find_sapl(app)
-        # extrai folhas XSLT
-        dump_folder(br(sapl['XSLT']), destino, salvar)
         # extrai usuários com suas senhas e perfis
         dump_usuarios(sapl, destino, salvar)
+        # garantindo que a pasta XSLT não está aqui
+        assert 'XSLT' not in sapl
+    finally:
+        close_db()
+
+    app, close_db = get_app(documentos_fs_path)
+    try:
+        sapl = find_sapl(app)
+        # extrai folhas XSLT
+        if 'XSLT' in sapl:
+            dump_folder(br(sapl['XSLT']), destino, salvar)
 
         # extrai documentos
         docs = br(sapl['sapl_documentos'])
@@ -355,9 +382,15 @@ def build_salvar(repo):
 
 def dump_sapl(sigla):
     sigla = sigla[-3:]  # ignora prefixo (por ex. 'sapl_cm_')
-    data_fs_path = DIR_DADOS_MIGRACAO.child('datafs',
-                                            'Data_cm_{}.fs'.format(sigla))
+    data_fs_path, documentos_fs_path = [
+        DIR_DADOS_MIGRACAO.child(
+            'datafs', '{}_cm_{}.fs'.format(prefixo, sigla))
+        for prefixo in ('Data', 'DocumentosSapl')]
+
     assert data_fs_path.exists(), 'Origem não existe: {}'.format(data_fs_path)
+    if not documentos_fs_path.exists():
+        documentos_fs_path = data_fs_path
+
     nome_banco_legado = 'sapl_cm_{}'.format(sigla)
     destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
     destino.mkdir(parents=True)
@@ -372,7 +405,7 @@ def dump_sapl(sigla):
     salvar = build_salvar(repo)
     try:
         finalizado = False
-        _dump_sapl(data_fs_path, destino, salvar)
+        _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar)
         finalizado = True
     finally:
         # grava mundaças
