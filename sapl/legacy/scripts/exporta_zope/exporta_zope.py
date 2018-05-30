@@ -17,12 +17,12 @@ from functools import partial
 import git
 import magic
 import yaml
+from unipath import Path
+
 import ZODB.DB
 import ZODB.FileStorage
-from unipath import Path
-from ZODB.broken import Broken
-
 from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
+from ZODB.broken import Broken
 
 EXTENSOES = {
     'application/msword': '.doc',
@@ -308,6 +308,8 @@ def dump_propriedades(docs, path, salvar):
 def dump_usuarios(sapl, path, salvar):
     users = br(br(sapl['acl_users'])['data'])
     users = {autodecode(k): br(v) for k, v in users['data'].items()}
+    for dados in users.values():
+        dados['name'] = autodecode(dados['name'])
     save_as_yaml(path, 'usuarios.yaml', users, salvar)
 
 
