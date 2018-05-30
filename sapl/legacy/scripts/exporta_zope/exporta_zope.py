@@ -320,8 +320,6 @@ def _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar):
         sapl = find_sapl(app)
         # extrai usuários com suas senhas e perfis
         dump_usuarios(sapl, destino, salvar)
-        # garantindo que a pasta XSLT não está aqui
-        assert 'XSLT' not in sapl
     finally:
         close_db()
 
