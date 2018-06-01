@@ -757,3 +757,63 @@ class DocumentoAdministrativoForm(ModelForm):
                      row6, row7))
         super(DocumentoAdministrativoForm, self).__init__(
             *args, **kwargs)
+
+class DesvincularDocumentoForm(ModelForm):
+
+    numero = forms.CharField(required=True,
+                             label=DocumentoAdministrativo._meta.
+                             get_field('numero').verbose_name
+                             )
+    ano = forms.ChoiceField(required=True,
+                            label=DocumentoAdministrativo._meta.
+                            get_field('ano').verbose_name,
+                            choices=RANGE_ANOS,
+                            widget=forms.Select(attrs={'class': 'selector'}))
+
+    def clean(self):
+        super(DesvincularDocumentoForm, self).clean()
+
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
+        numero = cleaned_data['numero']
+        ano = cleaned_data['ano']
+        tipo = cleaned_data['tipo']
+
+        try:
+            documento = DocumentoAdministrativo.objects.get(numero=numero, ano=ano, tipo=tipo)
+            if not documento.protocolo:
+                raise forms.ValidationError(
+                    _("%s %s/%s não se encontra vinculado a nenhum protocolo" % (tipo, numero, ano)))
+        except ObjectDoesNotExist:
+            raise forms.ValidationError(
+                _("%s %s/%s não existe" % (tipo, numero, ano)))
+
+        return cleaned_data
+
+    class Meta:
+        model = DocumentoAdministrativo
+        fields = ['tipo',
+                  'numero',
+                  'ano',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row(
+            [('numero', 4),
+             ('ano', 4),
+             ('tipo', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Identificação do Documento'),
+                     row1,
+                     HTML("&nbsp;"),
+                     form_actions(label='Desvincular')
+                     )
+        )
+        super(DesvincularDocumentoForm, self).__init__(
+            *args, **kwargs)

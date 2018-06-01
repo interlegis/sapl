@@ -15,7 +15,8 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      TipoDocumentoAdministrativoCrud,
                                      TramitacaoAdmCrud,
                                      atualizar_numero_documento,
-                                     doc_texto_integral)
+                                     doc_texto_integral,
+                                     DesvincularDocumentoView)
 
 from .apps import AppConfig
 
@@ -61,6 +62,8 @@ urlpatterns_protocolo = [
 
     url(r'^protocoloadm/anular-protocolo',
         AnularProtocoloAdmView.as_view(), name='anular_protocolo'),
+    url(r'^protocoloadm/desvincular-documento',
+        DesvincularDocumentoView.as_view(), name='desvincular_documento'),
     url(r'^protocoloadm/protocolar-mat',
         ProtocoloMateriaView.as_view(), name='protocolar_mat'),
 
