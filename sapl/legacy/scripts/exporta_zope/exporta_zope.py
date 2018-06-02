@@ -186,6 +186,9 @@ def dump_folder(folder, path, salvar, enum=enumerate_folder):
     if not os.path.exists(path):
         os.makedirs(path)
     for id, obj, meta_type in enum(folder):
+        # pula pastas *_old (presentes em várias bases)
+        if id.endswith('_old') and meta_type in ['Folder', 'BTreeFolder2']:
+            continue
         dump = DUMP_FUNCTIONS.get(meta_type, '?')
         if dump == '?':
             nao_identificados[meta_type].append(path + '/' + id)
