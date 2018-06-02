@@ -17,12 +17,13 @@ from functools import partial
 import git
 import magic
 import yaml
-from unipath import Path
-
 import ZODB.DB
 import ZODB.FileStorage
-from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
+from unipath import Path
 from ZODB.broken import Broken
+from ZODB.POSException import POSKeyError
+
+from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 
 EXTENSOES = {
     'application/msword': '.doc',
@@ -95,6 +96,9 @@ def guess_extension(fullname, buffer):
         return '.DESCONHECIDO.{}'.format(mime.replace('/', '__'))
 
 
+CONTEUDO_ARQUIVO_CORROMPIDO = 'ARQUIVO CORROMPIDO'
+
+
 def get_conteudo_file(doc):
     # A partir daqui usamos dict.pop('...') nos __Broken_state__
     # para contornar um "vazamento" de memória que ocorre
@@ -105,25 +109,30 @@ def get_conteudo_file(doc):
     #
     # Essa medida descarta quase todos os dados retornados
     # e só funciona na primeira passagem
+    try:
+        pdata = br(doc.pop('data'))
+        if isinstance(pdata, str):
+            # Retrocedemos se pdata ja eh uma str (necessario em Images)
+            doc['data'] = pdata
+            pdata = doc
 
-    pdata = br(doc.pop('data'))
-    if isinstance(pdata, str):
-        # Retrocedemos se pdata ja eh uma str (necessario em Images)
-        doc['data'] = pdata
-        pdata = doc
+        output = cStringIO.StringIO()
+        while pdata:
+            output.write(pdata.pop('data'))
+            pdata = br(pdata.pop('next', None))
 
-    output = cStringIO.StringIO()
-    while pdata:
-        output.write(pdata.pop('data'))
-        pdata = br(pdata.pop('next', None))
-
-    return output.getvalue()
+        return output.getvalue()
+    except POSKeyError:
+        return CONTEUDO_ARQUIVO_CORROMPIDO
 
 
 def dump_file(doc, path, salvar, get_conteudo=get_conteudo_file):
     name = doc['__name__']
     fullname = os.path.join(path, name)
     conteudo = get_conteudo(doc)
+    if conteudo == CONTEUDO_ARQUIVO_CORROMPIDO:
+        fullname = fullname + '.CORROMPIDO'
+        print('ATENÇÃO: arquivo corrompido: {}'.format(fullname))
     if conteudo:
         # pula arquivos vazios
         salvar(fullname, conteudo)
