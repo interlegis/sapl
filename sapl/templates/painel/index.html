@@ -28,7 +28,7 @@
         ul, li {
           list-style-type: none;
         }
-        #date, #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao, #orador {
+        #date, #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #cronometro_consideracoes, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao, #orador {
           font-family: Verdana;
         }
       }
@@ -107,6 +107,9 @@
           </tr>
           <tr>
             <td style="font-family:Verdana; text-align:center;"><font size="5" color="white">Questão de Ordem: <span id="cronometro_ordem"></span></font></td>
+          </tr>
+          <tr>
+            <td style="font-family:Verdana; text-align:center;"><font size="5" color="white">Considerações Finais: <span id="cronometro_consideracoes"></span></font></td>
           </tr>
         </table>
       </div>
@@ -195,9 +198,20 @@
           audioAlertFinish.play();
         });
 
+        $('#cronometro_consideracoes').runner({
+          autostart: false,
+          countdown: true,
+          startAt:  {{ 'consideracoes'|cronometro_to_seconds }} * 1000,
+          stopAt: 0,
+          milliseconds: false
+        }).on('runnerFinish', function(eventObject, info){
+          audioAlertFinish.play();
+        });
+
     var discurso_previous;
     var ordem_previous;
     var aparte_previous;
+    var consideracoes_previous;
 
     var counter = 1;
     (function poll() {
@@ -325,6 +339,16 @@
                 ordem_previous = ordem_current;
               }
 
+              var consideracoes_current = data["cronometro_consideracoes"];
+              if (!consideracoes_previous){
+                consideracoes_previous = ''
+              }
+
+              if (consideracoes_current != consideracoes_previous) {
+                $('#cronometro_consideracoes').runner(consideracoes_current);
+                consideracoes_previous = consideracoes_current;
+              }
+
               if($('#cronometro_discurso').runner('info').formattedTime == 30) {
                   audioAlertFinish.play();
               }
@@ -334,6 +358,10 @@
               }
 
               if($('#cronometro_ordem').runner('info').formattedTime == 30) {
+                  audioAlertFinish.play();
+              }
+
+              if($('#cronometro_consideracoes').runner('info').formattedTime == 30) {
                   audioAlertFinish.play();
               }
 

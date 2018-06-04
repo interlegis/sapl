@@ -70,6 +70,20 @@
 <br/>
 <br/>
 <div class="row">
+    <div class="col-md-12"><h3>Cronômetro de Considerações Finais</h3></div>
+  </div>
+
+  <div class="row">
+    <div class="col-xs-2"><input size="2" id="consideracoes" name="consideracoes" value="" readyonly="true" class="form-control"></div>
+  </div>
+    <br />
+
+  <div class="row">
+    <div class="col-md-6"><button type="button" id="consideracoesStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-6"><button type="button" id="consideracoesReset" class="btn btn-success">Reiniciar</button></div>
+  </div>
+  <br /><br >
+<div class="row">
     <div class="col-md-6"><button type="button" id="sinalSonoro" class="btn btn-success" onclick="document.getElementById('audio').play();">Sinal Sonoro</button></div>
 </div>
 
@@ -102,6 +116,7 @@ $(function() {
 	$('#discurso').prop('disabled', true);
 	$('#aparte').prop('disabled', true);
 	$('#ordem').prop('disabled', true);
+    $('#consideracoes').prop('disabled', true);
 
     $('#discurso').runner({
         autostart: false,
@@ -119,6 +134,8 @@ $(function() {
         $('#aparteReset').prop('disabled', false);
         $('#ordemStart').prop('disabled', false);
         $('#ordemReset').prop('disabled', false);
+        $('#consideracoesStart').prop('disabled', false);
+        $('#consideracoesReset').prop('disabled', false);
 
     });
 
@@ -135,6 +152,8 @@ $(function() {
 			$('#aparteReset').prop('disabled', false);
 			$('#ordemStart').prop('disabled', false);
 			$('#ordemReset').prop('disabled', false);
+            $('#consideracoesStart').prop('disabled', false);
+            $('#consideracoesReset').prop('disabled', false);
 
 		} else {
 
@@ -147,6 +166,8 @@ $(function() {
 			$('#aparteReset').prop('disabled', false);
 			$('#ordemStart').prop('disabled', false);
 			$('#ordemReset').prop('disabled', false);
+            $('#consideracoesStart').prop('disabled', false);
+            $('#consideracoesReset').prop('disabled', false);
 		}
     });
 
@@ -174,6 +195,8 @@ $(function() {
         $('#discursoReset').prop('disabled', false);
         $('#ordemStart').prop('disabled', false);
         $('#ordemReset').prop('disabled', false);
+        $('#consideracoesStart').prop('disabled', false);
+        $('#consideracoesReset').prop('disabled', false);
 
     });
 
@@ -189,6 +212,8 @@ $(function() {
 			$('#discursoReset').prop('disabled', false);
 			$('#ordemStart').prop('disabled', false);
 			$('#ordemReset').prop('disabled', false);
+            $('#consideracoesStart').prop('disabled', false);
+            $('#consideracoesReset').prop('disabled', false);
 		} else {
 
 			$.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
@@ -200,6 +225,8 @@ $(function() {
 			$('#discursoReset').prop('disabled', false);
 			$('#ordemStart').prop('disabled', false);
 			$('#ordemReset').prop('disabled', false);
+            $('#consideracoesStart').prop('disabled', false);
+            $('#consideracoesReset').prop('disabled', false);
 		}
     });
 
@@ -227,6 +254,8 @@ $(function() {
         $('#discursoReset').prop('disabled', false);
         $('#aparteStart').prop('disabled', false);
         $('#aparteReset').prop('disabled', false);
+        $('#consideracoesStart').prop('disabled', false);
+        $('#consideracoesReset').prop('disabled', false);
     });
 
     $('#ordemStart').click(function() {
@@ -241,6 +270,8 @@ $(function() {
 			$('#discursoReset').prop('disabled', false);
 			$('#aparteStart').prop('disabled', false);
 			$('#aparteReset').prop('disabled', false);
+            $('#consideracoesStart').prop('disabled', false);
+            $('#consideracoesReset').prop('disabled', false);
 
 		} else {
 
@@ -253,6 +284,8 @@ $(function() {
 			$('#discursoReset').prop('disabled', false);
 			$('#aparteStart').prop('disabled', false);
 			$('#aparteReset').prop('disabled', false);
+            $('#consideracoesStart').prop('disabled', false);
+            $('#consideracoesReset').prop('disabled', false);
 		}
     });
 
@@ -262,6 +295,65 @@ $(function() {
 
         $('#ordem').runner('stop');
         $('#ordem').runner('reset');
+    });
+
+     $('#consideracoes').runner({
+        autostart: false,
+        countdown: true,
+        startAt: {{cronometro_consideracoes}} * 1000,
+        stopAt: 0,
+        milliseconds: false
+    }).on('runnerFinish', function(eventObject, info){
+        $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
+
+        $('#consideracoesReset').show();
+        $('#consideracoes').runner('stop');
+        $('#consideracoesStart').text('Iniciar');
+        $('#discursoStart').prop('disabled', false);
+        $('#discursoReset').prop('disabled', false);
+        $('#ordemStart').prop('disabled', false);
+        $('#ordemReset').prop('disabled', false);
+        $('#aparteStart').prop('disabled', false);
+        $('#aparteReset').prop('disabled', false);
+
+    });
+
+    $('#consideracoesStart').click(function(){
+        if ($('#consideracoesStart').text() == 'Iniciar') {
+
+            $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'start' } );
+
+            $('#consideracoesReset').hide();
+            $('#consideracoes').runner('start');
+            $('#consideracoesStart').text('Parar');
+            $('#discursoStart').prop('disabled', false);
+            $('#discursoReset').prop('disabled', false);
+            $('#ordemStart').prop('disabled', false);
+            $('#ordemReset').prop('disabled', false);
+            $('#aparteStart').prop('disabled', false);
+            $('#aparteReset').prop('disabled', false);
+        } else {
+
+            $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
+
+            $('#consideracoesReset').show();
+            $('#consideracoes').runner('stop');
+            $('#consideracoesStart').text('Iniciar');
+            $('#discursoStart').prop('disabled', false);
+            $('#discursoReset').prop('disabled', false);
+            $('#ordemStart').prop('disabled', false);
+            $('#ordemReset').prop('disabled', false);
+            $('#aparteStart').prop('disabled', false);
+            $('#aparteReset').prop('disabled', false);
+        }
+    });
+
+    $('#consideracoesReset').click(function() {
+
+        $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'reset' } );
+
+        $('#consideracoes').runner('stop');
+        $('#consideracoes').runner('reset');
     });
 
 });

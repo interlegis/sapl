@@ -113,6 +113,11 @@ class AppConfig(models.Model):
         blank=True,
         null=True)
 
+    cronometro_consideracoes = models.TimeField(
+        verbose_name=_('Cronômetro de Considerações Finais'),
+        blank=True,
+        null=True)
+
     mostrar_brasao_painel = models.BooleanField(
         default=False,
         verbose_name=_('Mostrar brasão da Casa no painel?'))
