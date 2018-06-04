@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView
 from django.views.generic.base import RedirectView, TemplateView
+from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 import sapl
@@ -30,7 +31,7 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
-                    TramitacaoAdmEditForm, TramitacaoAdmForm, DesvincularDocumentoForm)
+                    TramitacaoAdmEditForm, TramitacaoAdmForm, DesvincularDocumentoForm, DesvincularMateriaForm)
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
@@ -722,6 +723,7 @@ def atualizar_numero_documento(request):
 
     return response
 
+
 class DesvincularDocumentoView(PermissionRequiredMixin, CreateView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
     form_class = DesvincularDocumentoForm
@@ -737,4 +739,22 @@ class DesvincularDocumentoView(PermissionRequiredMixin, CreateView):
                                                         tipo=form.cleaned_data['tipo'])
         documento.protocolo = None
         documento.save()
+        return redirect(self.get_success_url())
+
+
+class DesvincularMateriaView(PermissionRequiredMixin, FormView):
+    template_name = 'protocoloadm/anular_protocoloadm.html'
+    form_class = DesvincularMateriaForm
+    form_valid_message = _('Matéria desvinculado com sucesso!')
+    permission_required = ('protocoloadm.action_anular_protocolo', )
+
+    def get_success_url(self):
+        return reverse('sapl.protocoloadm:protocolo')
+
+    def form_valid(self, form):
+        materia = MateriaLegislativa.objects.get(numero=form.cleaned_data['numero'],
+                                                        ano=form.cleaned_data['ano'],
+                                                        tipo=form.cleaned_data['tipo'])
+        materia.numero_protocolo = None
+        materia.save()
         return redirect(self.get_success_url())

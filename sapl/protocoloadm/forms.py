@@ -758,6 +758,7 @@ class DocumentoAdministrativoForm(ModelForm):
         super(DocumentoAdministrativoForm, self).__init__(
             *args, **kwargs)
 
+
 class DesvincularDocumentoForm(ModelForm):
 
     numero = forms.CharField(required=True,
@@ -817,3 +818,57 @@ class DesvincularDocumentoForm(ModelForm):
         )
         super(DesvincularDocumentoForm, self).__init__(
             *args, **kwargs)
+
+
+class DesvincularMateriaForm(forms.Form):
+
+    numero = forms.CharField(required=True,
+                             label=_('Número da Matéria'))
+    ano = forms.ChoiceField(required=True,
+                            label=_('Ano da Matéria'),
+                            choices=RANGE_ANOS,
+                            widget=forms.Select(attrs={'class': 'selector'}))
+    tipo = forms.ModelChoiceField(label=_('Tipo de Matéria'),
+                                  required=True,
+                                  queryset=TipoMateriaLegislativa.objects.all(),
+                                  empty_label='------')
+
+    def clean(self):
+        super(DesvincularMateriaForm, self).clean()
+
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
+        numero = cleaned_data['numero']
+        ano = cleaned_data['ano']
+        tipo = cleaned_data['tipo']
+
+        try:
+            materia = MateriaLegislativa.objects.get(numero=numero, ano=ano, tipo=tipo)
+            if not materia.numero_protocolo:
+                raise forms.ValidationError(
+                    _("%s %s/%s não se encontra vinculada a nenhum protocolo" % (tipo, numero, ano)))
+        except ObjectDoesNotExist:
+            raise forms.ValidationError(
+                _("%s %s/%s não existe" % (tipo, numero, ano)))
+
+        return cleaned_data
+
+    def __init__(self, *args, **kwargs):
+        super(DesvincularMateriaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('numero', 4),
+             ('ano', 4),
+             ('tipo', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Identificação da Matéria'),
+                     row1,
+                     HTML("&nbsp;"),
+                     form_actions(label='Desvincular')
+                     )
+        )
