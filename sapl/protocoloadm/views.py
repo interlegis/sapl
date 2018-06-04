@@ -752,7 +752,6 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
         return reverse('sapl.protocoloadm:protocolo')
 
     def form_valid(self, form):
-        import ipdb; ipdb.set_trace()
         materia = MateriaLegislativa.objects.get(numero=form.cleaned_data['numero'],
                                                         ano=form.cleaned_data['ano'],
                                                         tipo=form.cleaned_data['tipo'])
