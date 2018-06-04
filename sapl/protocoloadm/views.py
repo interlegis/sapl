@@ -30,7 +30,7 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
-                    TramitacaoAdmEditForm, TramitacaoAdmForm)
+                    TramitacaoAdmEditForm, TramitacaoAdmForm, DesvincularDocumentoForm)
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
@@ -721,3 +721,20 @@ def atualizar_numero_documento(request):
             {'numero': 1, 'ano': ano})
 
     return response
+
+class DesvincularDocumentoView(PermissionRequiredMixin, CreateView):
+    template_name = 'protocoloadm/anular_protocoloadm.html'
+    form_class = DesvincularDocumentoForm
+    form_valid_message = _('Documento desvinculado com sucesso!')
+    permission_required = ('protocoloadm.action_anular_protocolo', )
+
+    def get_success_url(self):
+        return reverse('sapl.protocoloadm:protocolo')
+
+    def form_valid(self, form):
+        documento = DocumentoAdministrativo.objects.get(numero=form.cleaned_data['numero'],
+                                                        ano=form.cleaned_data['ano'],
+                                                        tipo=form.cleaned_data['tipo'])
+        documento.protocolo = None
+        documento.save()
+        return redirect(self.get_success_url())
