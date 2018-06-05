@@ -28,10 +28,10 @@ Instalar as seguintes dependências do sistema::
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools \
-    python3-pip curl poppler-utils antiword default-jre
+    python3-pip curl poppler-utils antiword default-jre python3-venv
 
     sudo -i
-    curl -sL https://deb.nodesource.com/setup_6.x | bash -
+    curl -sL https://deb.nodesource.com/setup_8.x | bash -
     exit
     sudo apt-get install nodejs
 
@@ -184,6 +184,8 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 * Instalar as dependências do ``bower``::
 
     eval $(echo "sudo chown -R $USER:$USER /home/$USER/")
+    sudo chown -R $USER:$GROUP ~/.npm
+    sudo chown -R $USER:$GROUP ~/.config
     ./manage.py bower install
 
 * Atualizar e/ou criar as tabelas da base de dados para refletir o modelo da versão clonada::
