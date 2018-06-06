@@ -1,5 +1,6 @@
 from re import sub
 from operator import itemgetter
+import weasyprint
 from weasyprint import HTML, CSS
 
 from django.contrib import messages
@@ -9,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.forms.utils import ErrorList
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
@@ -21,6 +22,7 @@ from django.views.generic import FormView, ListView, TemplateView
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
+from django.template import RequestContext, loader
 from django_filters.views import FilterView
 
 from sapl.base.models import AppConfig as AppsAppConfig
@@ -1191,6 +1193,8 @@ def get_turno(turno):
 class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
+    permission_required = ('sessao.can_access_impressos', )
+
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1438,7 +1442,8 @@ class ResumoView(DetailView):
                  'nono_ordenacao': dict_ord_template['mat_o_d'],
                  'decimo_ordenacao': dict_ord_template['oradores_expli']})
 
-        return self.render_to_response(context)
+        return gerar_pdf_impressos(self.request, context,
+                                   'sessao/impressos/resumo_pdf.html')
 
 
 class ExpedienteView(FormMixin, DetailView):
@@ -2874,3 +2879,21 @@ def mudar_ordem_materia_sessao(request):
     materia_1.save()
 
     return
+
+class ImpressosView(PermissionRequiredMixin, TemplateView):
+    template_name = 'sessao/impressos/resumo.html'
+    permission_required = ('sessao.can_access_impressos', )
+
+def gerar_pdf_impressos(request, context, template_name):
+    template = loader.get_template(template_name)
+    html = template.render(RequestContext(request, context))
+
+    pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()
+                          ).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = (
+        'inline; filename="relatorio_impressos.pdf"')
+    response['Content-Transfer-Encoding'] = 'binary'
+
+    return response
