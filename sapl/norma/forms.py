@@ -83,16 +83,19 @@ class NormaJuridicaForm(ModelForm):
         label='Matéria',
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione'
+        empty_label='Selecione',
+        widget=forms.Select(attrs={'autocomplete': 'off'})
     )
     numero_materia = forms.CharField(
         label='Número Matéria',
-        required=False
+        required=False,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'})
     )
     ano_materia = forms.ChoiceField(
         label='Ano Matéria',
         required=False,
         choices=ANO_CHOICES,
+        widget=forms.Select(attrs={'autocomplete': 'off'})
     )
 
     class Meta:

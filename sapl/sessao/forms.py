@@ -179,15 +179,17 @@ class ExpedienteMateriaForm(ModelForm):
         required=True,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
-    )
+        widget=forms.Select(attrs={'autocomplete': 'off'}))
 
     numero_materia = forms.CharField(
-        label='Número Matéria', required=True)
+        label='Número Matéria', required=True,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
     ano_materia = forms.CharField(
         label='Ano Matéria',
         initial=int(data_atual.year),
-        required=True)
+        required=True,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
     data_ordem = forms.CharField(
         label='Data Sessão',
