@@ -261,6 +261,8 @@ class FiliacaoForm(ModelForm):
         fields = ['partido',
                   'data',
                   'data_desfiliacao']
+        widgets = {'data': forms.DateInput(attrs={'autocomplete': 'off'}),
+                   'data_desfiliacao': forms.DateInput(attrs={'autocomplete': 'off'})}
 
     def clean(self):
         super(FiliacaoForm, self).clean()
