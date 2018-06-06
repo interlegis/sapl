@@ -1,7 +1,6 @@
 <fieldset>
   <legend>Matérias do Expediente</legend>
   <table class="table table-striped table-hover">
-  {% if m %}
     <thead>
       <tr>
         <th>Matéria</th>
@@ -40,7 +39,4 @@
       {% endfor %}
     </tbody>
   </table>
-  {% else %}
-    <strong>Não existem Matérias de Expediente para essa Sessão Plenária</strong>
-  {% endif %}
 </fieldset>

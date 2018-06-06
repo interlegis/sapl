@@ -2,24 +2,24 @@
 <html>
 
 <head>
-    <title>Impressos</title>
-    <meta charset="utf-8">
+  <title>Resumo</title>
+  <meta charset="utf-8">
 </head>
 
 <style type="text/css">
-    .text_pdf{
-        font-family: verdana;
-        font-size: 77%;
-    }
-    .alert_message{
-        font-family: verdana;
-        font-size: 77%;
-        color: red;
+  .text_pdf{
+    font-family: verdana;
+    font-size: 77%;
+  }
+  .alert_message{
+    font-family: verdana;
+    font-size: 77%;
+    color: red;
 
     @media print {
     p {page-break-inside: avoid;}
 }
-    }
+  }
 </style>
 
 <body style="margin-left:80px;margin-right:80px; margin-top: -50px">
@@ -29,15 +29,15 @@
 {% load crispy_forms_tags %}
 
 {% block title %}
-    <h1 class="page-header">
-        Resumo <small>({{sessaoplenaria}})</small>
-        <br/>
-    </h1>
+  <h1 class="page-header">
+    Resumo <small>({{sessaoplenaria}})</small>
+    <br/>
+  </h1>
 {% endblock %}
 
 {% block detail_content %}
 
-    {% include 'sessao/blocos_resumo/'|add:primeiro_ordenacao %}
+  {% include 'sessao/blocos_resumo/'|add:primeiro_ordenacao %}
     <br /><br /><br />
 
     {% include 'sessao/blocos_resumo/'|add:segundo_ordenacao %}
@@ -69,5 +69,3 @@
 
 
 {% endblock detail_content %}
-
-</body>

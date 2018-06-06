@@ -1,14 +1,21 @@
 <fieldset>
   <legend>Oradores das Explicações Pessoais</legend>
-    <div class="row">
-      <div class="col-md-6">Parlamentar</div>
-      <div class="col-md-6">Discurso</div>
-    </div>
-    <div class="row">
-      {% for o in oradores_explicacoes %}
-        <div class="col-md-6"><b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_atual }}</div>
-        <div class="col-md-6">{{o.url_discurso}}</div>
-        </br>
-    {% endfor %}
-    </div>
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Parlamentar</th>
+        <th>Discurso</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in oradores %}
+        <tr>
+          <td>
+           <b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_atual }}</div></
+          </td>
+          <td>{{o.url_discurso}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </fieldset>

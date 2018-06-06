@@ -1,16 +1,23 @@
 <fieldset>
   <legend>Oradores do Expediente</legend>
-  <div class="row">
-    <div class="col-md-4">Parlamentar</div>
-    <div class="col-md-4">Discurso</div>
-    <div class="col-md-4">Observação</div>
-  </div>
-  <div class="row">
-    {% for o in oradores %}
-        <div class="col-md-4"><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</div>
-        <div class="col-md-4">{{o.url_discurso}}</div>
-        <div class="col-md-4">{{o.observacao}}</div>
-        </br>
-    {% endfor %}
-  </div>
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Parlamentar</th>
+        <th>Discurso</th>
+        <th>Observação</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in oradores %}
+        <tr>
+          <td>
+           <b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</
+          </td>
+          <td>{{o.url_discurso}}</td>
+          <td><b>{{o.observacao}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </fieldset>
