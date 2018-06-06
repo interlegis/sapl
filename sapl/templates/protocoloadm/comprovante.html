@@ -61,13 +61,13 @@
 			<th>Data / Horário</th>
 			<td>{{ protocolo.data|date:"d/m/Y" }} - {{ protocolo.timestamp|date:"H:i:s" }}</td>
 		</tr>
-		{% if protocolo.tipo_processo == 0 %}
+		{% if protocolo.tipo_processo == 1 %}
 			<tr>
 				<th>Ementa</th>
 				<td>{{ protocolo.assunto_ementa }}</td>
 			</tr>
 			<tr>
-				<th>Interessado</th>
+				<th>Autor</th>
 				<td>{{ protocolo.interessado }}</td>
 			</tr>
 		{% endif %}
@@ -84,6 +84,10 @@
 		<tr>
 			<th>Número Páginas</th>
 			<td>{{ protocolo.numero_paginas }}</td>
+		</tr>
+		<tr>
+			<th>Comprovante emitido por</th>
+			<td>{{ request.user.username }}</td>
 		</tr>
 	</table>
 {% endblock detail_content %}
