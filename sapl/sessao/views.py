@@ -1,5 +1,6 @@
 from re import sub
 from operator import itemgetter
+from weasyprint import HTML, CSS
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
