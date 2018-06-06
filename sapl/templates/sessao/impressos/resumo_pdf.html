@@ -28,13 +28,6 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}
-  <h1 class="page-header">
-    Resumo <small>({{sessaoplenaria}})</small>
-    <br/>
-  </h1>
-{% endblock %}
-
 {% block detail_content %}
 
   {% include 'sessao/blocos_resumo/'|add:primeiro_ordenacao %}

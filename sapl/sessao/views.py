@@ -1191,7 +1191,7 @@ def get_turno(turno):
 
 
 class ResumoView(DetailView):
-    template_name = 'sessao/resumo.html'
+    template_name = 'impressos/sessao/resumo.html'
     model = SessaoPlenaria
     permission_required = ('sessao.can_access_impressos', )
 
@@ -2880,10 +2880,6 @@ def mudar_ordem_materia_sessao(request):
 
     return
 
-class ImpressosView(PermissionRequiredMixin, TemplateView):
-    template_name = 'sessao/impressos/resumo.html'
-    permission_required = ('sessao.can_access_impressos', )
-
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
     html = template.render(RequestContext(request, context))
@@ -2893,7 +2889,7 @@ def gerar_pdf_impressos(request, context, template_name):
 
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = (
-        'inline; filename="relatorio_impressos.pdf"')
+        'inline; filename="resumo_sessao.pdf"')
     response['Content-Transfer-Encoding'] = 'binary'
 
     return response
