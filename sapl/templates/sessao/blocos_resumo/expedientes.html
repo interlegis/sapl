@@ -1,7 +1,9 @@
+{% load common_tags %}
 <fieldset>
   <legend>Expedientes</legend>
     <table class="table">
       <thead class="thead-default">
+      {% if e %}
         {% for e in expedientes %}
           <tr>
             <td>
@@ -12,6 +14,9 @@
             </td>
           </tr>
         {% endfor %}
+      {% else %}
+        <strong>A lista de presença de ordem está vazia para essa Sessão Plenária</strong>
+      {% endif %}
       </thead>
     </table>
 </fieldset>

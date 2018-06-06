@@ -3,8 +3,12 @@
 <fieldset>
   <legend>Lista de Presença na Sessão</legend>
     <div class="row">
+    {% if presenca_sessao %}
       {% for p in presenca_sessao %}
         <div class="col-md-12">{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }}</div>
       {% endfor %}
+    {% else %}
+     <strong>A lista de presença está vazia para essa Sessão Plenária</strong>
+    {% endif %}
     </div>
 </fieldset>
