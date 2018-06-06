@@ -29,7 +29,7 @@ function commit_and_push {
 }
 
 case "$1" in
-    --dryrun)
+    --dry-run)
         echo "Dry run"
         bump_version
         echo "done."
@@ -37,7 +37,7 @@ case "$1" in
 
         exit 0
         ;;
-    --a)
+    --publish)
        echo "generating release"
        bump_version
        commit_and_push

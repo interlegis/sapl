@@ -4,5 +4,5 @@
 if git diff --cached --name-status | grep -q '^M.*models\.py$'; then
   # se a checagem de migrations falhar impedimos o commit
   set -e
-  ./check_migrations.sh
+  ./scripts/django/check_migrations.sh
 fi

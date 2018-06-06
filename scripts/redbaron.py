@@ -1,10 +1,14 @@
 import os
 import re
+import subprocess
 
 from redbaron import RedBaron
 from redbaron.nodes import EndlNode, ReturnNode, StringNode
 
-root = '/home/mazza/work/sapl'
+git_project_root = subprocess.Popen(
+    ["git", "rev-parse", "--show-toplevel"],
+     stdout=subprocess.PIPE
+     ).communicate()[0].decode('utf-8').replace('\n', '')
 
 
 def ignorado(path, name):
@@ -13,13 +17,13 @@ def ignorado(path, name):
         'relatorios/templates.*',
         '.*/migrations',
     ]:
-        if re.match(os.path.join(root, pattern), path):
+        if re.match(os.path.join(git_project_root, pattern), path):
             return True
     return name.startswith('ipython_log.py') or name == 'manage.py'
 
 
 filenames = [os.path.join(path, name)
-             for path, subdirs, files in os.walk(root)
+             for path, subdirs, files in os.walk(git_project_root)
              for name in files
              if name.endswith('.py') and not ignorado(path, name)]
 
@@ -37,7 +41,7 @@ def build_red(filename):
 
 
 def write(node):
-    red = node.root
+    red = node.git_project_root
     with open(red.__filename__, "w") as source_code:
         source_code.write(red.dumps())
 
@@ -82,7 +86,7 @@ def fix(n):
 
 
 def local(node):
-    res = '%s:%s' % (node.root.__filename__,
+    res = '%s:%s' % (node.git_project_root.__filename__,
                      node.absolute_bounding_box.top_left.line)
     os.system("echo '%s' | xclip -selection c" % res)
     return res

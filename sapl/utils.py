@@ -688,7 +688,7 @@ def ExtraiTag(texto, posicao):
             return i + 1
 
 
-def TrocaTag(texto, startTag, endTag, sizeStart, sizeEnd, styleName):
+def TrocaTag(texto, startTag, endTag, sizeStart, sizeEnd, styleName, subinitiTag, subendTag):
     textoSaida = ''
     insideTag = 0
     i = 0
@@ -697,16 +697,19 @@ def TrocaTag(texto, startTag, endTag, sizeStart, sizeEnd, styleName):
     if '<tbody>' in texto:
         texto = texto.replace('<tbody>', '')
         texto = texto.replace('</tbody>', '')
+    if '<p>' in texto:
+        texto = texto.replace('<p>', '')
+        texto = texto.replace('</p>', '')
     while (i < len(texto)):
         shard = texto[i:i + sizeStart]
         if (shard == startTag):
             i = ExtraiTag(texto, i)
-            textoSaida += '</para><blockTable style = "' + styleName + '">'
+            textoSaida += subinitiTag + styleName + '">'
             insideTag = 1
         else:
             if (insideTag == 1):
                 if (texto[i:i + sizeEnd] == endTag):
-                    textoSaida += 'blockTable><para>'
+                    textoSaida += subendTag
                     insideTag = 0
                     i += sizeEnd
                 else:
