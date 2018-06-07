@@ -162,6 +162,11 @@ class MateriaSimplificadaForm(ModelForm):
 
 class MateriaLegislativaForm(ModelForm):
 
+    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
+                                  required=False,
+                                  queryset=TipoAutor.objects.all(),
+                                  empty_label=_('------'), )
+
     autor = forms.ModelChoiceField(required=False,
                                    empty_label='------',
                                    queryset=Autor.objects.all()
@@ -219,12 +224,17 @@ class MateriaLegislativaForm(ModelForm):
         return cleaned_data
 
     def save(self, commit=False):
+        if not self.instance.pk:
+            primeiro_autor = True
+        else:
+            primeiro_autor = False
+            
         materia = super(MateriaLegislativaForm, self).save(commit)
         materia.save()
 
         if self.cleaned_data['autor']:
             autoria = Autoria()
-            autoria.primeiro_autor = True
+            autoria.primeiro_autor = primeiro_autor
             autoria.materia = materia
             autoria.autor = self.cleaned_data['autor']
             autoria.save()
