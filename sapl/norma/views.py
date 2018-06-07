@@ -171,12 +171,13 @@ class NormaCrud(Crud):
         layout_key = 'NormaJuridicaCreate'
 
         def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
             norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
             if norma.materia:
-                self.initial['tipo_materia'] = norma.materia.tipo
-                self.initial['ano_materia'] = norma.materia.ano
-                self.initial['numero_materia'] = norma.materia.numero
-            return self.initial.copy()
+                initial['tipo_materia'] = norma.materia.tipo
+                initial['ano_materia'] = norma.materia.ano
+                initial['numero_materia'] = norma.materia.numero
+            return initial
 
 
 def recuperar_norma(request):
