@@ -162,6 +162,11 @@ class MateriaSimplificadaForm(ModelForm):
 
 class MateriaLegislativaForm(ModelForm):
 
+    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
+                                  required=False,
+                                  queryset=TipoAutor.objects.all(),
+                                  empty_label=_('------'), )
+
     autor = forms.ModelChoiceField(required=False,
                                    empty_label='------',
                                    queryset=Autor.objects.all()
@@ -171,6 +176,15 @@ class MateriaLegislativaForm(ModelForm):
         model = MateriaLegislativa
         exclude = ['texto_articulado', 'autores', 'proposicao',
                    'anexadas', 'data_ultima_atualizacao']
+
+    def __init__(self, *args, **kwargs):
+        super(MateriaLegislativaForm, self).__init__(*args, **kwargs)
+
+        if self.instance and self.instance.pk:
+            self.fields['tipo_autor'] = forms.CharField(required=False,
+                                                        widget=forms.TextInput(attrs={'disabled': 'disabled'}))
+            self.fields['autor'] = forms.CharField(required=False,
+                                                   widget=forms.TextInput(attrs={'disabled': 'disabled'}))
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
@@ -219,12 +233,17 @@ class MateriaLegislativaForm(ModelForm):
         return cleaned_data
 
     def save(self, commit=False):
+        if not self.instance.pk:
+            primeiro_autor = True
+        else:
+            primeiro_autor = False
+            
         materia = super(MateriaLegislativaForm, self).save(commit)
         materia.save()
 
         if self.cleaned_data['autor']:
             autoria = Autoria()
-            autoria.primeiro_autor = True
+            autoria.primeiro_autor = primeiro_autor
             autoria.materia = materia
             autoria.autor = self.cleaned_data['autor']
             autoria.save()
