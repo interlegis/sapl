@@ -125,7 +125,11 @@ class NormaJuridicaForm(ModelForm):
 
         if not self.is_valid():
             return cleaned_data
-
+        norma = NormaJuridica.objects.filter(ano=cleaned_data['ano'],
+                                     numero=cleaned_data['numero'],
+                                     tipo=cleaned_data['tipo']).exists()
+        if norma:
+            raise ValidationError("Já existe uma norma de mesmo Tipo, Ano e Número no sistema")
         if (cleaned_data['tipo_materia'] and
             cleaned_data['numero_materia'] and
                 cleaned_data['ano_materia']):
