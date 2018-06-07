@@ -16,7 +16,7 @@ from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import FormView, ListView, TemplateView
+from django.views.generic import FormView, ListView, TemplateView, CreateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
@@ -418,14 +418,15 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         form_class = OrdemDiaForm
 
         def get_initial(self):
-            self.initial['data_ordem'] = SessaoPlenaria.objects.get(
+            initial = super(CreateView, self).get_inital()
+            initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = OrdemDia.objects.filter(
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                     Max('numero_ordem'))['numero_ordem__max']
-            self.initial['numero_ordem'] = (
+            initial['numero_ordem'] = (
                 max_numero_ordem if max_numero_ordem else 0) + 1
-            return self.initial
+            return initial
 
         def get_success_url(self):
             return reverse('sapl.sessao:ordemdia_list',
@@ -435,10 +436,11 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         form_class = OrdemDiaForm
 
         def get_initial(self):
-            self.initial['tipo_materia'] = self.object.materia.tipo.id
-            self.initial['numero_materia'] = self.object.materia.numero
-            self.initial['ano_materia'] = self.object.materia.ano
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo_materia'] = self.object.materia.tipo.id
+            initial['numero_materia'] = self.object.materia.numero
+            initial['ano_materia'] = self.object.materia.ano
+            return initial
 
     class DetailView(MasterDetailCrud.DetailView):
 
@@ -492,14 +494,15 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         form_class = ExpedienteMateriaForm
 
         def get_initial(self):
-            self.initial['data_ordem'] = SessaoPlenaria.objects.get(
+            initial = super(CreateView, self).get_initial()
+            initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = ExpedienteMateria.objects.filter(
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                     Max('numero_ordem'))['numero_ordem__max']
-            self.initial['numero_ordem'] = (
+            initial['numero_ordem'] = (
                 max_numero_ordem if max_numero_ordem else 0) + 1
-            return self.initial
+            return initial
 
         def get_success_url(self):
             return reverse('sapl.sessao:expedientemateria_list',
@@ -509,10 +512,11 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         form_class = ExpedienteMateriaForm
 
         def get_initial(self):
-            self.initial['tipo_materia'] = self.object.materia.tipo.id
-            self.initial['numero_materia'] = self.object.materia.numero
-            self.initial['ano_materia'] = self.object.materia.ano
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo_materia'] = self.object.materia.tipo.id
+            initial['numero_materia'] = self.object.materia.numero
+            initial['ano_materia'] = self.object.materia.ano
+            return initial
 
     class DetailView(MasterDetailCrud.DetailView):
 
@@ -1146,9 +1150,10 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
         return reverse('sapl.base:sistema')
 
     def get_initial(self):
+        initial = super(ResumoOrdenacaoView, self).get_initial()
         ordenacao = ResumoOrdenacao.objects.first()
         if ordenacao:
-            return {'primeiro': ordenacao.primeiro,
+            initial.update({'primeiro': ordenacao.primeiro,
                     'segundo': ordenacao.segundo,
                     'terceiro': ordenacao.terceiro,
                     'quarto': ordenacao.quarto,
@@ -1157,8 +1162,8 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
                     'setimo': ordenacao.setimo,
                     'oitavo': ordenacao.oitavo,
                     'nono': ordenacao.nono,
-                    'decimo': ordenacao.decimo}
-        return self.initial.copy()
+                    'decimo': ordenacao.decimo})
+        return initial
 
     def form_valid(self, form):
         ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
