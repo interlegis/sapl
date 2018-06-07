@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
@@ -51,11 +51,12 @@ class NormaRelacionadaCrud(MasterDetailCrud):
         form_class = NormaRelacionadaForm
 
         def get_initial(self):
-            self.initial['tipo'] = self.object.norma_relacionada.tipo.id
-            self.initial['numero'] = self.object.norma_relacionada.numero
-            self.initial['ano'] = self.object.norma_relacionada.ano
-            self.initial['ementa'] = self.object.norma_relacionada.ementa
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo'] = self.object.norma_relacionada.tipo.id
+            initial['numero'] = self.object.norma_relacionada.numero
+            initial['ano'] = self.object.norma_relacionada.ano
+            initial['ementa'] = self.object.norma_relacionada.ementa
+            return initial
 
     class DetailView(MasterDetailCrud.DetailView):
 

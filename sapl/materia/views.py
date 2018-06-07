@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template import RequestContext, loader
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import FormView, ListView, TemplateView, CreateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
@@ -1013,18 +1013,19 @@ class TramitacaoCrud(MasterDetailCrud):
                 'pk': self.kwargs['pk']})
 
         def get_initial(self):
+            initial = super(CreateView, self).get_initial()
             local = MateriaLegislativa.objects.get(
                 pk=self.kwargs['pk']).tramitacao_set.order_by(
                 '-data_tramitacao',
                 '-id').first()
 
             if local:
-                self.initial['unidade_tramitacao_local'
+                initial['unidade_tramitacao_local'
                              ] = local.unidade_tramitacao_destino.pk
             else:
-                self.initial['unidade_tramitacao_local'] = ''
-            self.initial['data_tramitacao'] = timezone.now().date()
-            return self.initial
+                initial['unidade_tramitacao_local'] = ''
+            initial['data_tramitacao'] = timezone.now().date()
+            return initial
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -1154,9 +1155,10 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             super(MasterDetailCrud.CreateView, self).__init__(**kwargs)
 
         def get_initial(self):
-            self.initial['data'] = timezone.now().date()
+            initial = super(CreateView, self).get_initial()
+            initial['data'] = timezone.now().date()
 
-            return self.initial
+            return initial
 
         def get_context_data(self, **kwargs):
             context = super(
@@ -1283,10 +1285,11 @@ class LegislacaoCitadaCrud(MasterDetailCrud):
         form_class = LegislacaoCitadaForm
 
         def get_initial(self):
-            self.initial['tipo'] = self.object.norma.tipo.id
-            self.initial['numero'] = self.object.norma.numero
-            self.initial['ano'] = self.object.norma.ano
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo'] = self.object.norma.tipo.id
+            initial['numero'] = self.object.norma.numero
+            initial['ano'] = self.object.norma.ano
+            return initial
 
     class DetailView(MasterDetailCrud.DetailView):
 
@@ -1319,10 +1322,11 @@ class AnexadaCrud(MasterDetailCrud):
         form_class = AnexadaForm
 
         def get_initial(self):
-            self.initial['tipo'] = self.object.materia_anexada.tipo.id
-            self.initial['numero'] = self.object.materia_anexada.numero
-            self.initial['ano'] = self.object.materia_anexada.ano
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo'] = self.object.materia_anexada.tipo.id
+            initial['numero'] = self.object.materia_anexada.numero
+            initial['ano'] = self.object.materia_anexada.ano
+            return initial
 
     class DetailView(MasterDetailCrud.DetailView):
 
@@ -1344,16 +1348,18 @@ class MateriaAssuntoCrud(MasterDetailCrud):
         form_class = MateriaAssuntoForm
 
         def get_initial(self):
-            self.initial['materia'] = self.kwargs['pk']
-            return self.initial
+            initial = super(CreateView, self).get_initial()
+            initial['materia'] = self.kwargs['pk']
+            return initial
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = MateriaAssuntoForm
 
         def get_initial(self):
-            self.initial['materia'] = self.get_object().materia
-            self.initial['assunto'] = self.get_object().assunto
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['materia'] = self.get_object().materia
+            initial['assunto'] = self.get_object().assunto
+            return initial
 
 
 class MateriaLegislativaCrud(Crud):

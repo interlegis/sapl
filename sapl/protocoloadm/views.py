@@ -11,7 +11,7 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView
+from django.views.generic import ListView, CreateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
@@ -610,18 +610,19 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         form_class = TramitacaoAdmForm
 
         def get_initial(self):
+            initial = super(CreateView, self).get_initial()
             local = DocumentoAdministrativo.objects.get(
                 pk=self.kwargs['pk']).tramitacaoadministrativo_set.order_by(
                 '-data_tramitacao',
                 '-id').first()
 
             if local:
-                self.initial['unidade_tramitacao_local'
+                initial['unidade_tramitacao_local'
                              ] = local.unidade_tramitacao_destino.pk
             else:
-                self.initial['unidade_tramitacao_local'] = ''
-            self.initial['data_tramitacao'] = timezone.now().date()
-            return self.initial
+                initial['unidade_tramitacao_local'] = ''
+            initial['data_tramitacao'] = timezone.now().date()
+            return initial
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
