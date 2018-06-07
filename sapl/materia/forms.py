@@ -177,6 +177,15 @@ class MateriaLegislativaForm(ModelForm):
         exclude = ['texto_articulado', 'autores', 'proposicao',
                    'anexadas', 'data_ultima_atualizacao']
 
+    def __init__(self, *args, **kwargs):
+        super(MateriaLegislativaForm, self).__init__(*args, **kwargs)
+
+        if self.instance and self.instance.pk:
+            self.fields['tipo_autor'] = forms.CharField(required=False,
+                                                        widget=forms.TextInput(attrs={'disabled': 'disabled'}))
+            self.fields['autor'] = forms.CharField(required=False,
+                                                   widget=forms.TextInput(attrs={'disabled': 'disabled'}))
+
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
 
