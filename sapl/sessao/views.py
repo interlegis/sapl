@@ -418,15 +418,14 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         form_class = OrdemDiaForm
 
         def get_initial(self):
-            initial = super(CreateView, self).get_inital()
-            initial['data_ordem'] = SessaoPlenaria.objects.get(
+            self.initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = OrdemDia.objects.filter(
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                     Max('numero_ordem'))['numero_ordem__max']
-            initial['numero_ordem'] = (
+            self.initial['numero_ordem'] = (
                 max_numero_ordem if max_numero_ordem else 0) + 1
-            return initial
+            return self.initial
 
         def get_success_url(self):
             return reverse('sapl.sessao:ordemdia_list',
