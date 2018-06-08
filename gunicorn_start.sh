@@ -41,6 +41,7 @@ test -d $RUNDIR || mkdir -p $RUNDIR
 exec gunicorn ${DJANGO_WSGI_MODULE}:application \
   --name $NAME \
   --workers $NUM_WORKERS \
+  --max-requests 1000
   --user $USER \
   --access-logfile - \
   --error-logfile - \
