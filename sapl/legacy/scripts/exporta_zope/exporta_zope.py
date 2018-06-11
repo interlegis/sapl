@@ -17,13 +17,13 @@ from functools import partial
 import git
 import magic
 import yaml
+from unipath import Path
+
 import ZODB.DB
 import ZODB.FileStorage
-from unipath import Path
+from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 from ZODB.broken import Broken
 from ZODB.POSException import POSKeyError
-
-from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 
 EXTENSOES = {
     'application/msword': '.doc',
@@ -427,8 +427,8 @@ def dump_sapl(sigla):
             # se de fato existe mudança
             status = 'completa' if finalizado else 'parcial'
             repo.index.commit(u'Exportação do zope {}'.format(status))
-            if finalizado:
-                repo.git.execute('git tag -f'.split() + [TAG_ZOPE])
+        if finalizado:
+            repo.git.execute('git tag -f'.split() + [TAG_ZOPE])
 
 
 if __name__ == "__main__":
