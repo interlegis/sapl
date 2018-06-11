@@ -329,6 +329,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                   resultado_descricao,
                                   resultado_observacao))
             else:
+
                 if obj.tipo_votacao == 2:
                     if is_expediente:
                         url = reverse(
@@ -351,12 +352,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                      (url,
                                       resultado_descricao,
                                       resultado_observacao))
-                else:
-                    resultado = ('%s<br/>%s' %
-                                     (resultado_descricao,
-                                      resultado_observacao))
 
-                if obj.tipo_votacao == 1:
+                elif obj.tipo_votacao == 1:
                     if is_expediente:
                         url = reverse(
                             'sapl.sessao:votacao_simbolica_transparencia',
@@ -375,9 +372,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                               '?&materia=ordem'
 
                     resultado = ('<a href="%s">%s<br/>%s</a>' %
-                                     (url,
-                                      resultado_descricao,
-                                      resultado_observacao))
+                                 (url,
+                                  resultado_descricao,
+                                  resultado_observacao))
                 else:
                     resultado = ('%s<br/>%s' %
                                      (resultado_descricao,
