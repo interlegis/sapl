@@ -131,7 +131,7 @@ def dump_file(doc, path, salvar, get_conteudo=get_conteudo_file):
     fullname = os.path.join(path, name)
     conteudo = get_conteudo(doc)
     if conteudo == CONTEUDO_ARQUIVO_CORROMPIDO:
-        fullname = fullname + '.CORROMPIDO'
+        fullname = fullname + '_CORROMPIDO'
         print('ATENÇÃO: arquivo corrompido: {}'.format(fullname))
     if conteudo:
         # pula arquivos vazios
