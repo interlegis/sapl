@@ -247,7 +247,6 @@ class RelatorioAtasView(FilterView):
         if not self.filterset.form.is_valid():
             return context
 
-        context['object_list'] = context['object_list'].exclude(upload_ata='')
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
