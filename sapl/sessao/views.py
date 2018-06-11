@@ -354,8 +354,6 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                       resultado_observacao))
 
                 elif obj.tipo_votacao == 1:
-                    import ipdb;
-                    ipdb.set_trace()
                     if is_expediente:
                         url = reverse(
                             'sapl.sessao:votacao_simbolica_transparencia',
