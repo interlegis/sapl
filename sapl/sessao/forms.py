@@ -481,10 +481,7 @@ class OradorExpedienteForm(ModelForm):
             return self.cleaned_data
 
         sessao_id = self.initial['id_sessao']
-        try:
-            numero = self.initial['numero']
-        except KeyError:
-            numero = None
+        numero = self.initial.get('numero') # Retorna None se inexistente
         ordem = OradorExpediente.objects.filter(
                             sessao_plenaria_id=sessao_id,
                             numero_ordem=cleaned_data['numero_ordem']
