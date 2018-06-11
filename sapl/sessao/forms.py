@@ -465,7 +465,6 @@ class OradorExpedienteForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(OradorExpedienteForm, self).__init__(*args, **kwargs)
-
         legislatura_vigente = SessaoPlenaria.objects.get(pk=kwargs['initial']['id_sessao']).legislatura
 
         if legislatura_vigente:
@@ -482,30 +481,16 @@ class OradorExpedienteForm(ModelForm):
             return self.cleaned_data
 
         sessao_id = self.initial['id_sessao']
+        try:
+            numero = self.initial['numero']
+        except KeyError:
+            numero = None
         ordem = OradorExpediente.objects.filter(
                             sessao_plenaria_id=sessao_id,
                             numero_ordem=cleaned_data['numero_ordem']
                             ).exists()
-        if ordem:
-            raise ValidationError(_(
-                'Já existe orador nesta posição da ordem de pronunciamento'))
 
-        return self.cleaned_data
-
-
-    def clean(self):
-        super(OradorExpedienteForm, self).clean()
-        cleaned_data = self.cleaned_data
-
-        if not self.is_valid():
-            return self.cleaned_data
-
-        sessao_id = self.initial['id_sessao']
-        ordem = OradorExpediente.objects.filter(
-                            sessao_plenaria_id=sessao_id,
-                            numero_ordem=cleaned_data['numero_ordem']
-                            ).exists()
-        if ordem:
+        if ordem and (cleaned_data['numero_ordem'] != numero):
             raise ValidationError(_(
                 'Já existe orador nesta posição da ordem de pronunciamento'))
 
