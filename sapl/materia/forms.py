@@ -182,9 +182,9 @@ class MateriaLegislativaForm(ModelForm):
 
         if self.instance and self.instance.pk:
             self.fields['tipo_autor'] = forms.CharField(required=False,
-                                                        widget=forms.TextInput(attrs={'disabled': 'disabled'}))
+                                                        widget=forms.HiddenInput())
             self.fields['autor'] = forms.CharField(required=False,
-                                                   widget=forms.TextInput(attrs={'disabled': 'disabled'}))
+                                                   widget=forms.HiddenInput())
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
