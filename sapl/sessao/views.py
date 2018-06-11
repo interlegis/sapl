@@ -382,7 +382,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         context['rows'][i][3] = (resultado, None)
     return context
 
-     
+
 def get_presencas_generic(model, sessao, legislatura):
     presencas = model.objects.filter(
         sessao_plenaria=sessao)
@@ -542,6 +542,14 @@ class OradorExpedienteCrud(OradorCrud):
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
                            kwargs={'pk': self.kwargs['pk']})
+
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = OradorExpedienteForm
+
+        def get_initial(self):
+            return {'id_sessao': self.object.sessao_plenaria.id,
+                    'numero': self.object.numero_ordem}
 
 
 class OradorCrud(OradorCrud):
