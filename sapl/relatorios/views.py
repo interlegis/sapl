@@ -795,7 +795,8 @@ def relatorio_sessao_plenaria(request, pk):
 
     for idx in range(len(lst_expedientes)):
         txt_expedientes = lst_expedientes[idx]['txt_expediente']
-        txt_expedientes = TrocaTag(txt_expedientes, '<table', 'table>', 6, 6, 'expedientes')
+        txt_expedientes = TrocaTag(txt_expedientes, '<table', 'table>', 6, 6,
+        'expedientes', '</para><blockTable style = "', 'blockTable><para>')
         lst_expedientes[idx]['txt_expediente'] = txt_expedientes
 
     pdf = pdf_sessao_plenaria_gerar.principal(

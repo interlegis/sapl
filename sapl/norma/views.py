@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
@@ -40,10 +40,9 @@ class NormaRelacionadaCrud(MasterDetailCrud):
     model = NormaRelacionada
     parent_field = 'norma_principal'
     help_topic = 'norma_juridica'
-    public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['norma_relacionada']
+        list_field_names = ['norma_relacionada', 'tipo_vinculo']
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = NormaRelacionadaForm
@@ -52,11 +51,12 @@ class NormaRelacionadaCrud(MasterDetailCrud):
         form_class = NormaRelacionadaForm
 
         def get_initial(self):
-            self.initial['tipo'] = self.object.norma_relacionada.tipo.id
-            self.initial['numero'] = self.object.norma_relacionada.numero
-            self.initial['ano'] = self.object.norma_relacionada.ano
-            self.initial['ementa'] = self.object.norma_relacionada.ementa
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo'] = self.object.norma_relacionada.tipo.id
+            initial['numero'] = self.object.norma_relacionada.numero
+            initial['ano'] = self.object.norma_relacionada.ano
+            initial['ementa'] = self.object.norma_relacionada.ementa
+            return initial
 
     class DetailView(MasterDetailCrud.DetailView):
 
@@ -172,12 +172,13 @@ class NormaCrud(Crud):
         layout_key = 'NormaJuridicaCreate'
 
         def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
             norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
             if norma.materia:
-                self.initial['tipo_materia'] = norma.materia.tipo
-                self.initial['ano_materia'] = norma.materia.ano
-                self.initial['numero_materia'] = norma.materia.numero
-            return self.initial.copy()
+                initial['tipo_materia'] = norma.materia.tipo
+                initial['ano_materia'] = norma.materia.ano
+                initial['numero_materia'] = norma.materia.numero
+            return initial
 
 
 def recuperar_norma(request):

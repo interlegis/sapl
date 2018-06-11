@@ -23,7 +23,7 @@ MateriaLegislativa:
   {% trans 'Identificação Básica' %}:
   - tipo ano numero
   - data_apresentacao  numero_protocolo  tipo_apresentacao
-  - autor
+  - tipo_autor autor
   - texto_original
   {% trans 'Outras Informações' %}:
   - apelido  dias_prazo  polemica

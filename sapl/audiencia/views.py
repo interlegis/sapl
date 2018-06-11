@@ -1,15 +1,10 @@
-from django.shortcuts import render
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
-from django.db.models import F
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.generic import ListView
-from sapl.comissoes.forms import ParticipacaoCreateForm, ParticipacaoEditForm
-from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, MasterDetailCrud
-from sapl.materia.models import MateriaLegislativa
+from django.views.generic import UpdateView
+from sapl.crud.base import RP_DETAIL, RP_LIST, Crud
 
 from .forms import AudienciaForm
-from .models import (AudienciaPublica, TipoAudienciaPublica)
+from .models import AudienciaPublica
 
 def index(request):
     return HttpResponse("Audiência  Pública")
@@ -36,10 +31,11 @@ class AudienciaCrud(Crud):
         form_class = AudienciaForm
 
         def get_initial(self):
-            self.initial['tipo_materia'] = self.object.materia.tipo.id
-            self.initial['numero_materia'] = self.object.materia.numero
-            self.initial['ano_materia'] = self.object.materia.ano
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo_materia'] = self.object.materia.tipo.id
+            initial['numero_materia'] = self.object.materia.numero
+            initial['ano_materia'] = self.object.materia.ano
+            return initial
      
     class DeleteView(Crud.DeleteView):
         pass

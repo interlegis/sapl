@@ -525,6 +525,11 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
         model = SessaoPlenaria
         fields = ['data_inicio']
 
+    @property
+    def qs(self):
+        parent = super(RelatorioAtasFilterSet, self).qs
+        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
+
     def __init__(self, *args, **kwargs):
         super(RelatorioAtasFilterSet, self).__init__(
             *args, **kwargs)
@@ -588,7 +593,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioHistoricoTramitacaoFilterSet, self).qs
-        return parent.distinct().order_by('-ano', 'tipo', 'numero')
+        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
 
     class Meta:
         model = MateriaLegislativa
@@ -628,7 +633,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
-        return parent.distinct().order_by('-ano', 'tipo', 'numero')
+        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
 
     class Meta:
         model = MateriaLegislativa
@@ -829,6 +834,7 @@ class ConfiguracoesAppForm(ModelForm):
                   'cronometro_discurso',
                   'cronometro_aparte',
                   'cronometro_ordem',
+                  'cronometro_consideracoes',
                   'mostrar_brasao_painel',
                   'receber_recibo_proposicao']
 
@@ -837,6 +843,8 @@ class ConfiguracoesAppForm(ModelForm):
         self.fields['cronometro_discurso'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_aparte'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
+        self.fields['cronometro_consideracoes'].widget.attrs['class'] = 'cronometro'
+
 
     def clean_mostrar_brasao_painel(self):
         mostrar_brasao_painel = self.cleaned_data.get(

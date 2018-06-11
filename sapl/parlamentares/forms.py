@@ -261,6 +261,8 @@ class FiliacaoForm(ModelForm):
         fields = ['partido',
                   'data',
                   'data_desfiliacao']
+        widgets = {'data': forms.DateInput(attrs={'autocomplete': 'off'}),
+                   'data_desfiliacao': forms.DateInput(attrs={'autocomplete': 'off'})}
 
     def clean(self):
         super(FiliacaoForm, self).clean()
@@ -321,7 +323,7 @@ class FrenteForm(ModelForm):
         frente = super(FrenteForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Frente)
         object_id = frente.pk
-        tipo = TipoAutor.objects.get(descricao='Frente Parlamentar')
+        tipo = TipoAutor.objects.get(descricao__icontains='Frente')
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,

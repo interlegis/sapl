@@ -1,8 +1,8 @@
 import yaml
 from django.contrib.auth.models import Group, User
+from unipath import Path
 
 from sapl.hashers import zope_encoded_password_to_django
-from sapl.settings import MEDIA_ROOT
 
 PERFIL_LEGADO_PARA_NOVO = {legado: Group.objects.get(name=novo)
                            for legado, novo in [
@@ -44,9 +44,9 @@ def decode_nome(nome):
         return nome
 
 
-def migrar_usuarios():
+def migrar_usuarios(dir_repo):
     """
-    Lê o arquivo media/usuarios.yaml e importa os usuários nele listados,
+    Lê o arquivo <dir_repo>/usuarios.yaml e importa os usuários nele listados,
     com senhas e perfis.
     Os usuários são criados se necessário e seus perfis ajustados.
 
@@ -68,7 +68,7 @@ def migrar_usuarios():
       Também podemos assumir que essa é uma tarefa de um administrador
     """
 
-    ARQUIVO_USUARIOS = MEDIA_ROOT.child('usuarios.yaml')
+    ARQUIVO_USUARIOS = Path(dir_repo).child('usuarios.yaml')
     with open(ARQUIVO_USUARIOS, 'r') as f:
         usuarios = yaml.load(f)
     # conferimos de que só há um nome de usuário

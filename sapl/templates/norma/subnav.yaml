@@ -2,8 +2,9 @@
 
 - title: {% trans 'Início' %}
   url: normajuridica_detail
-- title: {% trans 'Normas Relacionadas' %}
+- title: {% trans 'Alterações em Outras Normas' %}
   url: normarelacionada_list
+  check_permission: norma.list_normarelacionada
 
 #  Opção adicionada para chamar o TextoArticulado da norma.
 #   para integração foram necessárias apenas criar a url norma_ta em urls.py

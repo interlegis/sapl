@@ -464,6 +464,7 @@ def get_dados_painel(request, pk):
         'cronometro_aparte': get_cronometro_status(request, 'aparte'),
         'cronometro_discurso': get_cronometro_status(request, 'discurso'),
         'cronometro_ordem': get_cronometro_status(request, 'ordem'),
+        'cronometro_consideracoes': get_cronometro_status(request, 'consideracoes'),
         'status_painel': sessao.painel_aberto,
         'brasao': brasao
     }

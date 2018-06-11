@@ -26,7 +26,8 @@ class Cronometro(models.Model):
     CRONOMETRO_TYPES = (
         ('A', _('Aparte')),
         ('D', _('Discurso')),
-        ('O', _('Ordem do dia'))
+        ('O', _('Ordem do dia')),
+        ('C', _('Considerações finais'))
     )
 
     CRONOMETRO_STATUS = (

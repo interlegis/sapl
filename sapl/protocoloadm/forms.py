@@ -155,6 +155,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         fields = ['tipo',
                   'numero',
                   'protocolo__numero',
+                  'numero_externo',
                   'data',
                   'tramitacaoadministrativo__unidade_tramitacao_destino',
                   'tramitacaoadministrativo__status']
@@ -173,7 +174,8 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
         row2 = to_row(
             [('ano', 4),
-             ('protocolo__numero', 4),
+             ('protocolo__numero', 2),
+             ('numero_externo', 2),
              ('data', 4)])
 
         row3 = to_row(
@@ -645,6 +647,7 @@ class DocumentoAdministrativoForm(ModelForm):
                   'tramitacao',
                   'dias_prazo',
                   'data_fim_prazo',
+                  'numero_externo',
                   'observacao',
                   'texto_integral',
                   'protocolo',
@@ -655,9 +658,6 @@ class DocumentoAdministrativoForm(ModelForm):
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
 
-        if not self.is_valid():
-            return self.cleaned_data
-
         cleaned_data = self.cleaned_data
 
         if not self.is_valid():
@@ -665,14 +665,22 @@ class DocumentoAdministrativoForm(ModelForm):
 
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
-        numero_documento = self.cleaned_data['numero']
-        tipo_documento = self.data['tipo']
+        numero_documento = int(self.cleaned_data['numero'])
+        tipo_documento = int(self.data['tipo'])
+        ano_documento = int(self.data['ano'])
 
-        documento = DocumentoAdministrativo.objects.filter(numero=numero_documento,
-                                               tipo=tipo_documento, ano=ano_protocolo)
+        # não permite atualizar para numero/ano/tipo existente
+        if self.instance.pk:
+            mudanca_doc = numero_documento != self.instance.numero \
+                            or ano_documento != self.instance.ano \
+                            or tipo_documento != self.instance.tipo.pk
 
-        if documento:
-            raise ValidationError('Documento já existente')
+        if not self.instance.pk or mudanca_doc:
+            doc_exists = DocumentoAdministrativo.objects.filter(numero=numero_documento,
+                                                                tipo=tipo_documento,
+                                                                ano=ano_protocolo).exists()
+            if doc_exists:
+                raise ValidationError('Documento já existente')
 
         # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
@@ -689,6 +697,22 @@ class DocumentoAdministrativoForm(ModelForm):
                     'Existe mais de um Protocolo com este ano e número.' % (
                         numero_protocolo, ano_protocolo))
                 raise ValidationError(msg)
+
+            inst = self.instance.protocolo
+            protocolo_antigo = inst.numero if inst else None
+
+            if str(protocolo_antigo) != numero_protocolo:
+                exist_materia = MateriaLegislativa.objects.filter(
+                                                    numero_protocolo=numero_protocolo,
+                                                    ano=ano_protocolo).exists()
+
+                exist_doc = DocumentoAdministrativo.objects.filter(
+                                                        protocolo_id=numero_protocolo,
+                                                        ano=ano_protocolo).exists()
+                if exist_materia or exist_doc:
+                    raise ValidationError(_('Protocolo %s/%s ja possui'
+                                            ' documento vinculado'
+                                            % (numero_protocolo, ano_protocolo)))
 
         return self.cleaned_data
 
@@ -720,7 +744,7 @@ class DocumentoAdministrativoForm(ModelForm):
             [('texto_integral', 12)])
 
         row6 = to_row(
-            [('dias_prazo', 6), ('data_fim_prazo', 6)])
+            [('numero_externo', 4), ('dias_prazo', 6), ('data_fim_prazo', 2)])
 
         row7 = to_row(
             [('observacao', 12)])
@@ -733,3 +757,118 @@ class DocumentoAdministrativoForm(ModelForm):
                      row6, row7))
         super(DocumentoAdministrativoForm, self).__init__(
             *args, **kwargs)
+
+
+class DesvincularDocumentoForm(ModelForm):
+
+    numero = forms.CharField(required=True,
+                             label=DocumentoAdministrativo._meta.
+                             get_field('numero').verbose_name
+                             )
+    ano = forms.ChoiceField(required=True,
+                            label=DocumentoAdministrativo._meta.
+                            get_field('ano').verbose_name,
+                            choices=RANGE_ANOS,
+                            widget=forms.Select(attrs={'class': 'selector'}))
+
+    def clean(self):
+        super(DesvincularDocumentoForm, self).clean()
+
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
+        numero = cleaned_data['numero']
+        ano = cleaned_data['ano']
+        tipo = cleaned_data['tipo']
+
+        try:
+            documento = DocumentoAdministrativo.objects.get(numero=numero, ano=ano, tipo=tipo)
+            if not documento.protocolo:
+                raise forms.ValidationError(
+                    _("%s %s/%s não se encontra vinculado a nenhum protocolo" % (tipo, numero, ano)))
+        except ObjectDoesNotExist:
+            raise forms.ValidationError(
+                _("%s %s/%s não existe" % (tipo, numero, ano)))
+
+        return cleaned_data
+
+    class Meta:
+        model = DocumentoAdministrativo
+        fields = ['tipo',
+                  'numero',
+                  'ano',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row(
+            [('numero', 4),
+             ('ano', 4),
+             ('tipo', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Identificação do Documento'),
+                     row1,
+                     HTML("&nbsp;"),
+                     form_actions(label='Desvincular')
+                     )
+        )
+        super(DesvincularDocumentoForm, self).__init__(
+            *args, **kwargs)
+
+
+class DesvincularMateriaForm(forms.Form):
+
+    numero = forms.CharField(required=True,
+                             label=_('Número da Matéria'))
+    ano = forms.ChoiceField(required=True,
+                            label=_('Ano da Matéria'),
+                            choices=RANGE_ANOS,
+                            widget=forms.Select(attrs={'class': 'selector'}))
+    tipo = forms.ModelChoiceField(label=_('Tipo de Matéria'),
+                                  required=True,
+                                  queryset=TipoMateriaLegislativa.objects.all(),
+                                  empty_label='------')
+
+    def clean(self):
+        super(DesvincularMateriaForm, self).clean()
+
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
+        numero = cleaned_data['numero']
+        ano = cleaned_data['ano']
+        tipo = cleaned_data['tipo']
+
+        try:
+            materia = MateriaLegislativa.objects.get(numero=numero, ano=ano, tipo=tipo)
+            if not materia.numero_protocolo:
+                raise forms.ValidationError(
+                    _("%s %s/%s não se encontra vinculada a nenhum protocolo" % (tipo, numero, ano)))
+        except ObjectDoesNotExist:
+            raise forms.ValidationError(
+                _("%s %s/%s não existe" % (tipo, numero, ano)))
+
+        return cleaned_data
+
+    def __init__(self, *args, **kwargs):
+        super(DesvincularMateriaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('numero', 4),
+             ('ano', 4),
+             ('tipo', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Identificação da Matéria'),
+                     row1,
+                     HTML("&nbsp;"),
+                     form_actions(label='Desvincular')
+                     )
+        )

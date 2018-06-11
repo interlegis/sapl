@@ -11,8 +11,9 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView
+from django.views.generic import ListView, CreateView
 from django.views.generic.base import RedirectView, TemplateView
+from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 import sapl
@@ -30,7 +31,7 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
-                    TramitacaoAdmEditForm, TramitacaoAdmForm)
+                    TramitacaoAdmEditForm, TramitacaoAdmForm, DesvincularDocumentoForm, DesvincularMateriaForm)
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
@@ -451,10 +452,11 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         if not protocolo.numero:
             protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
-        if protocolo.numero < (numero['numero__max'] + 1):
-            msg = _('Número de protocolo deve ser maior que {}').format(numero['numero__max'])
-            messages.add_message(self.request, messages.ERROR, msg)
-            return self.render_to_response(self.get_context_data())
+        if numero['numero__max']:
+            if protocolo.numero < (numero['numero__max'] + 1):
+                msg = _('Número de protocolo deve ser maior que {}').format(numero['numero__max'])
+                messages.add_message(self.request, messages.ERROR, msg)
+                return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
         protocolo.data = timezone.now().date()
         protocolo.hora = timezone.now().time()
@@ -608,18 +610,19 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         form_class = TramitacaoAdmForm
 
         def get_initial(self):
+            initial = super(CreateView, self).get_initial()
             local = DocumentoAdministrativo.objects.get(
                 pk=self.kwargs['pk']).tramitacaoadministrativo_set.order_by(
                 '-data_tramitacao',
                 '-id').first()
 
             if local:
-                self.initial['unidade_tramitacao_local'
+                initial['unidade_tramitacao_local'
                              ] = local.unidade_tramitacao_destino.pk
             else:
-                self.initial['unidade_tramitacao_local'] = ''
-            self.initial['data_tramitacao'] = timezone.now().date()
-            return self.initial
+                initial['unidade_tramitacao_local'] = ''
+            initial['data_tramitacao'] = timezone.now().date()
+            return initial
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -720,3 +723,39 @@ def atualizar_numero_documento(request):
             {'numero': 1, 'ano': ano})
 
     return response
+
+
+class DesvincularDocumentoView(PermissionRequiredMixin, CreateView):
+    template_name = 'protocoloadm/anular_protocoloadm.html'
+    form_class = DesvincularDocumentoForm
+    form_valid_message = _('Documento desvinculado com sucesso!')
+    permission_required = ('protocoloadm.action_anular_protocolo', )
+
+    def get_success_url(self):
+        return reverse('sapl.protocoloadm:protocolo')
+
+    def form_valid(self, form):
+        documento = DocumentoAdministrativo.objects.get(numero=form.cleaned_data['numero'],
+                                                        ano=form.cleaned_data['ano'],
+                                                        tipo=form.cleaned_data['tipo'])
+        documento.protocolo = None
+        documento.save()
+        return redirect(self.get_success_url())
+
+
+class DesvincularMateriaView(PermissionRequiredMixin, FormView):
+    template_name = 'protocoloadm/anular_protocoloadm.html'
+    form_class = DesvincularMateriaForm
+    form_valid_message = _('Matéria desvinculado com sucesso!')
+    permission_required = ('protocoloadm.action_anular_protocolo', )
+
+    def get_success_url(self):
+        return reverse('sapl.protocoloadm:protocolo')
+
+    def form_valid(self, form):
+        materia = MateriaLegislativa.objects.get(numero=form.cleaned_data['numero'],
+                                                        ano=form.cleaned_data['ano'],
+                                                        tipo=form.cleaned_data['tipo'])
+        materia.numero_protocolo = None
+        materia.save()
+        return redirect(self.get_success_url())

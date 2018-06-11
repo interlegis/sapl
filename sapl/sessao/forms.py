@@ -124,7 +124,7 @@ class BancadaForm(ModelForm):
         bancada = super(BancadaForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Bancada)
         object_id = bancada.pk
-        tipo = TipoAutor.objects.get(descricao='Bancada Parlamentar')
+        tipo = TipoAutor.objects.get(descricao__icontains='Bancada')
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,
@@ -159,7 +159,7 @@ class BlocoForm(ModelForm):
         bloco = super(BlocoForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Bloco)
         object_id = bloco.pk
-        tipo = TipoAutor.objects.get(descricao='Bloco Parlamentar')
+        tipo = TipoAutor.objects.get(descricao__icontains='Bloco')
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,
@@ -179,15 +179,17 @@ class ExpedienteMateriaForm(ModelForm):
         required=True,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
-    )
+        widget=forms.Select(attrs={'autocomplete': 'off'}))
 
     numero_materia = forms.CharField(
-        label='Número Matéria', required=True)
+        label='Número Matéria', required=True,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
     ano_materia = forms.CharField(
         label='Ano Matéria',
         initial=int(data_atual.year),
-        required=True)
+        required=True,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
     data_ordem = forms.CharField(
         label='Data Sessão',
@@ -452,7 +454,7 @@ class OradorForm(ModelForm):
                    sessao_plenaria_id=id_sessao)]
 
         self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-            id__in=ids).order_by('nome_completo')
+            id__in=ids).order_by('nome_parlamentar')
 
     class Meta:
         model = Orador
@@ -464,14 +466,32 @@ class OradorExpedienteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(OradorExpedienteForm, self).__init__(*args, **kwargs)
 
-        legislatura_atual = [l for l in Legislatura.objects.all() if l.atual]
+        legislatura_vigente = SessaoPlenaria.objects.get(pk=kwargs['initial']['id_sessao']).legislatura
 
-        if legislatura_atual:
-            legislatura_atual = legislatura_atual[0]
+        if legislatura_vigente:
             self.fields['parlamentar'].queryset = \
                 Parlamentar.objects.filter(ativo=True,
-                                       mandato__legislatura=legislatura_atual
-                                       ).order_by('nome_parlamentar')
+                                           mandato__legislatura=legislatura_vigente
+                                          ).order_by('nome_parlamentar')
+
+    def clean(self):
+        super(OradorExpedienteForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        sessao_id = self.initial['id_sessao']
+        ordem = OradorExpediente.objects.filter(
+                            sessao_plenaria_id=sessao_id,
+                            numero_ordem=cleaned_data['numero_ordem']
+                            ).exists()
+        if ordem:
+            raise ValidationError(_(
+                'Já existe orador nesta posição da ordem de pronunciamento'))
+
+        return self.cleaned_data
+
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()

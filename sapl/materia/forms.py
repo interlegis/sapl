@@ -36,7 +36,7 @@ from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura
-from sapl.protocoloadm.models import Protocolo
+from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField,
@@ -162,6 +162,11 @@ class MateriaSimplificadaForm(ModelForm):
 
 class MateriaLegislativaForm(ModelForm):
 
+    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
+                                  required=False,
+                                  queryset=TipoAutor.objects.all(),
+                                  empty_label=_('------'), )
+
     autor = forms.ModelChoiceField(required=False,
                                    empty_label='------',
                                    queryset=Autor.objects.all()
@@ -171,6 +176,15 @@ class MateriaLegislativaForm(ModelForm):
         model = MateriaLegislativa
         exclude = ['texto_articulado', 'autores', 'proposicao',
                    'anexadas', 'data_ultima_atualizacao']
+
+    def __init__(self, *args, **kwargs):
+        super(MateriaLegislativaForm, self).__init__(*args, **kwargs)
+
+        if self.instance and self.instance.pk:
+            self.fields['tipo_autor'] = forms.CharField(required=False,
+                                                        widget=forms.TextInput(attrs={'disabled': 'disabled'}))
+            self.fields['autor'] = forms.CharField(required=False,
+                                                   widget=forms.TextInput(attrs={'disabled': 'disabled'}))
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
@@ -182,29 +196,54 @@ class MateriaLegislativaForm(ModelForm):
 
         data_apresentacao = cleaned_data['data_apresentacao']
         ano = cleaned_data['ano']
+        protocolo = cleaned_data['numero_protocolo']
+        protocolo_antigo = self.instance.numero_protocolo
+
+        if protocolo:
+            if not Protocolo.objects.filter(numero=protocolo,ano=ano).exists():
+                raise ValidationError(_('Protocolo %s/%s não'
+                                        ' existe' % (protocolo, ano)))
+
+            if protocolo_antigo != protocolo:
+                exist_materia = MateriaLegislativa.objects.filter(
+                                                    numero_protocolo=protocolo,
+                                                    ano=ano).exists()
+
+                exist_doc = DocumentoAdministrativo.objects.filter(
+                                                        protocolo_id=protocolo,
+                                                        ano=ano).exists()
+                if exist_materia or exist_doc:
+                    raise ValidationError(_('Protocolo %s/%s ja possui'
+                                            ' documento vinculado'
+                                             % (protocolo, ano)))
 
         if data_apresentacao.year != ano:
-            raise ValidationError("O ano da matéria não pode ser "
-                                  "diferente do ano na data de apresentação")
+            raise ValidationError(_("O ano da matéria não pode ser "
+                                  "diferente do ano na data de apresentação"))
 
         ano_origem_externa = cleaned_data['ano_origem_externa']
         data_origem_externa = cleaned_data['data_origem_externa']
 
         if ano_origem_externa and data_origem_externa and \
                 ano_origem_externa != data_origem_externa.year:
-            raise ValidationError("O ano de origem externa da matéria não "
+            raise ValidationError(_("O ano de origem externa da matéria não "
                                   "pode ser diferente do ano na data de "
-                                  "origem externa")
+                                  "origem externa"))
 
         return cleaned_data
 
     def save(self, commit=False):
+        if not self.instance.pk:
+            primeiro_autor = True
+        else:
+            primeiro_autor = False
+            
         materia = super(MateriaLegislativaForm, self).save(commit)
         materia.save()
 
         if self.cleaned_data['autor']:
             autoria = Autoria()
-            autoria.primeiro_autor = True
+            autoria.primeiro_autor = primeiro_autor
             autoria.materia = materia
             autoria.autor = self.cleaned_data['autor']
             autoria.save()
@@ -582,8 +621,18 @@ class AnexadaForm(ModelForm):
             msg = _('A matéria a ser anexada não existe no cadastro'
                     ' de matérias legislativas.')
             raise ValidationError(msg)
-        else:
-            cleaned_data['materia_anexada'] = materia_anexada
+
+        materia_principal = self.instance.materia_principal
+        if materia_principal == materia_anexada:
+            raise ValidationError(_('Matéria não pode ser anexada a si mesma'))
+
+        is_anexada = Anexada.objects.filter(materia_principal=materia_principal,
+                                            materia_anexada=materia_anexada
+                                            ).exists()
+        if is_anexada:
+            raise ValidationError(_('Materia já se encontra anexada'))
+
+        cleaned_data['materia_anexada'] = materia_anexada
 
         return cleaned_data
 

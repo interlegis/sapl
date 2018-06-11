@@ -192,7 +192,7 @@ class ColigacaoCrud(CrudAux):
     help_topic = 'coligacao'
 
     class ListView(CrudAux.ListView):
-        ordering = ('-numero_votos', 'nome')
+        ordering = ('legislatura', '-nome')
 
         def get_context_data(self, **kwargs):
             context = super(ColigacaoCrud.ListView, self).get_context_data(
