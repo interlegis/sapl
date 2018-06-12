@@ -626,12 +626,13 @@ def uniformiza_banco():
     ''')
 
     update_specs = '''
-vinculo_norma_juridica| ind_excluido = ''           | trim(ind_excluido) = '0'
-unidade_tramitacao    | cod_parlamentar = NULL      | cod_parlamentar = 0
-parlamentar           | cod_nivel_instrucao = NULL  | cod_nivel_instrucao = 0
-parlamentar           | tip_situacao_militar = NULL | tip_situacao_militar = 0
-mandato               | tip_afastamento = NULL      | tip_afastamento = 0
-relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
+vinculo_norma_juridica   | ind_excluido = ''           | trim(ind_excluido) = '0'
+unidade_tramitacao       | cod_parlamentar = NULL      | cod_parlamentar = 0
+parlamentar              | cod_nivel_instrucao = NULL  | cod_nivel_instrucao = 0
+parlamentar              | tip_situacao_militar = NULL | tip_situacao_militar = 0
+mandato                  | tip_afastamento = NULL      | tip_afastamento = 0
+relatoria                | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
+sessao_plenaria_presenca | dat_sessao = NULL           | dat_sessao = 0
     '''.strip().splitlines()
 
     for spec in update_specs:
@@ -794,7 +795,7 @@ def roda_comando_shell(cmd):
     assert res == 0, 'O comando falhou: {}'.format(cmd)
 
 
-def migrar_dados(interativo=True):
+def migrar_dados(interativo=False):
 
     # restaura dump
     arq_dump = Path(DIR_DADOS_MIGRACAO.child(
