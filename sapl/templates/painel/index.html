@@ -290,9 +290,15 @@
                   $('#oradores_list').append(
                       '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
                   oradores.append('</span>');
+
+                  votacao.append('<span id="votacao">');
+                  $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
+                  votacao.append('</span>');
+
+
               }
 
-              if (data['materia_legislativa_texto']){
+              if (data['materia_legislativa_texto'] && data["status_painel"] == true){
 
                 var votacao = $("#votacao")
 
@@ -366,16 +372,21 @@
               }
 
               if (data['materia_legislativa_texto']){
-                $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
+                if (data["status_painel"] == true){
+                  $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
+                }
+                else{
+                  $("#materia_legislativa_texto").text('A Matéria em votação só aparecerá quando o painel estiver aberto');
+                }
               }
               else{
                 $("#materia_legislativa_texto").text('Não há nehuma matéria votada ou para votação');
               }
 
-              if (data['observacao_materia']){
+              if (data['observacao_materia'] && data["status_painel"] == true){
                 var texto = data['observacao_materia'];
                 if(texto.length > 151) {
-                    $("#observacao_materia").text(texto.substr(0, 145).concat('(...)'));
+                  $("#observacao_materia").text(texto.substr(0, 145).concat('(...)'));
                 }
                 else{
                     $("#observacao_materia").text(texto);
