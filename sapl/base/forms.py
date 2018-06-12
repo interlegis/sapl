@@ -730,6 +730,11 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
+    @property
+    def qs(self):
+        parent = super(RelatorioMateriasPorAutorFilterSet, self).qs
+        return parent.distinct().order_by('-ano', '-numero')
+
     class Meta:
         model = MateriaLegislativa
         fields = ['tipo', 'data_apresentacao']
