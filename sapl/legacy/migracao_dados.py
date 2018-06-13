@@ -795,7 +795,7 @@ def roda_comando_shell(cmd):
     assert res == 0, 'O comando falhou: {}'.format(cmd)
 
 
-def migrar_dados(interativo=False):
+def migrar_dados():
 
     # restaura dump
     arq_dump = Path(DIR_DADOS_MIGRACAO.child(
@@ -814,17 +814,6 @@ def migrar_dados(interativo=False):
     uniformiza_banco()
 
     # excluindo database antigo.
-    if interativo:
-        info('Todos os dados do banco serão excluidos. '
-             'Recomendamos que faça backup do banco sapl '
-             'antes de continuar.')
-        info('Deseja continuar? [s/n]')
-        resposta = input()
-        if resposta.lower() in ['s', 'sim', 'y', 'yes']:
-            pass
-        else:
-            info('Migração cancelada.')
-            return 0
     info('Excluindo entradas antigas do banco destino.')
     call([PROJECT_DIR.child('manage.py'), 'flush',
           '--database=default', '--no-input'], stdout=PIPE)

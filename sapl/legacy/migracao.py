@@ -26,7 +26,7 @@ def migrar(interativo=False):
         'Antes de migrar '
         'é necessário fazer a exportação de documentos do zope')
     management.call_command('migrate')
-    migrar_dados(interativo=interativo)
+    migrar_dados()
     migrar_usuarios(REPO.working_dir)
     migrar_documentos(REPO)
     gravar_marco()
