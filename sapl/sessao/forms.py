@@ -179,15 +179,17 @@ class ExpedienteMateriaForm(ModelForm):
         required=True,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
-    )
+        widget=forms.Select(attrs={'autocomplete': 'off'}))
 
     numero_materia = forms.CharField(
-        label='Número Matéria', required=True)
+        label='Número Matéria', required=True,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
     ano_materia = forms.CharField(
         label='Ano Matéria',
         initial=int(data_atual.year),
-        required=True)
+        required=True,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
     data_ordem = forms.CharField(
         label='Data Sessão',
@@ -463,7 +465,6 @@ class OradorExpedienteForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(OradorExpedienteForm, self).__init__(*args, **kwargs)
-
         legislatura_vigente = SessaoPlenaria.objects.get(pk=kwargs['initial']['id_sessao']).legislatura
 
         if legislatura_vigente:
@@ -480,11 +481,13 @@ class OradorExpedienteForm(ModelForm):
             return self.cleaned_data
 
         sessao_id = self.initial['id_sessao']
+        numero = self.initial.get('numero') # Retorna None se inexistente
         ordem = OradorExpediente.objects.filter(
                             sessao_plenaria_id=sessao_id,
                             numero_ordem=cleaned_data['numero_ordem']
                             ).exists()
-        if ordem:
+
+        if ordem and (cleaned_data['numero_ordem'] != numero):
             raise ValidationError(_(
                 'Já existe orador nesta posição da ordem de pronunciamento'))
 

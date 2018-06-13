@@ -16,8 +16,9 @@ DJANGODIR=/var/interlegis/sapl/                    # Django project directory (*
 SOCKFILE=/var/interlegis/sapl/run/gunicorn.sock    # we will communicate using this unix socket (*)
 USER=`whoami`                                   # the user to run as (*)
 GROUP=`whoami`                                  # the group to run as (*)
-NUM_WORKERS=9                                   # how many worker processes should Gunicorn spawn (*)
+NUM_WORKERS=4                                   # how many worker processes should Gunicorn spawn (*)
                                                 # NUM_WORKERS = 2 * CPUS + 1
+MAX_REQUESTS=100                                # number of requests before restarting worker
 DJANGO_SETTINGS_MODULE=sapl.settings            # which settings file should Django use (*)
 DJANGO_WSGI_MODULE=sapl.wsgi                    # WSGI module name (*)
 
@@ -41,6 +42,7 @@ test -d $RUNDIR || mkdir -p $RUNDIR
 exec gunicorn ${DJANGO_WSGI_MODULE}:application \
   --name $NAME \
   --workers $NUM_WORKERS \
+  --max-requests $MAX_REQUESTS \
   --user $USER \
   --access-logfile - \
   --error-logfile - \

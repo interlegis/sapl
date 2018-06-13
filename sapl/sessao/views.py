@@ -16,7 +16,7 @@ from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import FormView, ListView, TemplateView
+from django.views.generic import FormView, ListView, TemplateView, CreateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
@@ -329,6 +329,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                   resultado_descricao,
                                   resultado_observacao))
             else:
+
                 if obj.tipo_votacao == 2:
                     if is_expediente:
                         url = reverse(
@@ -351,12 +352,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                      (url,
                                       resultado_descricao,
                                       resultado_observacao))
-                else:
-                    resultado = ('%s<br/>%s' %
-                                     (resultado_descricao,
-                                      resultado_observacao))
 
-                if obj.tipo_votacao == 1:
+                elif obj.tipo_votacao == 1:
                     if is_expediente:
                         url = reverse(
                             'sapl.sessao:votacao_simbolica_transparencia',
@@ -375,9 +372,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                               '?&materia=ordem'
 
                     resultado = ('<a href="%s">%s<br/>%s</a>' %
-                                     (url,
-                                      resultado_descricao,
-                                      resultado_observacao))
+                                 (url,
+                                  resultado_descricao,
+                                  resultado_observacao))
                 else:
                     resultado = ('%s<br/>%s' %
                                      (resultado_descricao,
@@ -385,7 +382,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         context['rows'][i][3] = (resultado, None)
     return context
 
-     
+
 def get_presencas_generic(model, sessao, legislatura):
     presencas = model.objects.filter(
         sessao_plenaria=sessao)
@@ -435,10 +432,11 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         form_class = OrdemDiaForm
 
         def get_initial(self):
-            self.initial['tipo_materia'] = self.object.materia.tipo.id
-            self.initial['numero_materia'] = self.object.materia.numero
-            self.initial['ano_materia'] = self.object.materia.ano
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo_materia'] = self.object.materia.tipo.id
+            initial['numero_materia'] = self.object.materia.numero
+            initial['ano_materia'] = self.object.materia.ano
+            return initial
 
     class DetailView(MasterDetailCrud.DetailView):
 
@@ -492,14 +490,15 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         form_class = ExpedienteMateriaForm
 
         def get_initial(self):
-            self.initial['data_ordem'] = SessaoPlenaria.objects.get(
+            initial = super(CreateView, self).get_initial()
+            initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = ExpedienteMateria.objects.filter(
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                     Max('numero_ordem'))['numero_ordem__max']
-            self.initial['numero_ordem'] = (
+            initial['numero_ordem'] = (
                 max_numero_ordem if max_numero_ordem else 0) + 1
-            return self.initial
+            return initial
 
         def get_success_url(self):
             return reverse('sapl.sessao:expedientemateria_list',
@@ -509,10 +508,11 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         form_class = ExpedienteMateriaForm
 
         def get_initial(self):
-            self.initial['tipo_materia'] = self.object.materia.tipo.id
-            self.initial['numero_materia'] = self.object.materia.numero
-            self.initial['ano_materia'] = self.object.materia.ano
-            return self.initial
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo_materia'] = self.object.materia.tipo.id
+            initial['numero_materia'] = self.object.materia.numero
+            initial['ano_materia'] = self.object.materia.ano
+            return initial
 
     class DetailView(MasterDetailCrud.DetailView):
 
@@ -542,6 +542,14 @@ class OradorExpedienteCrud(OradorCrud):
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
                            kwargs={'pk': self.kwargs['pk']})
+
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = OradorExpedienteForm
+
+        def get_initial(self):
+            return {'id_sessao': self.object.sessao_plenaria.id,
+                    'numero': self.object.numero_ordem}
 
 
 class OradorCrud(OradorCrud):
@@ -1146,9 +1154,10 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
         return reverse('sapl.base:sistema')
 
     def get_initial(self):
+        initial = super(ResumoOrdenacaoView, self).get_initial()
         ordenacao = ResumoOrdenacao.objects.first()
         if ordenacao:
-            return {'primeiro': ordenacao.primeiro,
+            initial.update({'primeiro': ordenacao.primeiro,
                     'segundo': ordenacao.segundo,
                     'terceiro': ordenacao.terceiro,
                     'quarto': ordenacao.quarto,
@@ -1157,8 +1166,8 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
                     'setimo': ordenacao.setimo,
                     'oitavo': ordenacao.oitavo,
                     'nono': ordenacao.nono,
-                    'decimo': ordenacao.decimo}
-        return self.initial.copy()
+                    'decimo': ordenacao.decimo})
+        return initial
 
     def form_valid(self, form):
         ordenacao = ResumoOrdenacao.objects.get_or_create()[0]

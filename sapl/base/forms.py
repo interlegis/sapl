@@ -528,7 +528,8 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioAtasFilterSet, self).qs
-        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
+        return parent.distinct().prefetch_related('tipo').exclude(
+            upload_ata='').order_by('-data_inicio', 'tipo', 'numero')
 
     def __init__(self, *args, **kwargs):
         super(RelatorioAtasFilterSet, self).__init__(
@@ -728,6 +729,11 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
     }}
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
+
+    @property
+    def qs(self):
+        parent = super(RelatorioMateriasPorAutorFilterSet, self).qs
+        return parent.distinct().order_by('-ano', '-numero')
 
     class Meta:
         model = MateriaLegislativa
