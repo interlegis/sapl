@@ -332,6 +332,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                   resultado_descricao,
                                   resultado_observacao))
             else:
+
                 if obj.tipo_votacao == 2:
                     if is_expediente:
                         url = reverse(
@@ -354,12 +355,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                      (url,
                                       resultado_descricao,
                                       resultado_observacao))
-                else:
-                    resultado = ('%s<br/>%s' %
-                                     (resultado_descricao,
-                                      resultado_observacao))
 
-                if obj.tipo_votacao == 1:
+                elif obj.tipo_votacao == 1:
                     if is_expediente:
                         url = reverse(
                             'sapl.sessao:votacao_simbolica_transparencia',
@@ -378,9 +375,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                               '?&materia=ordem'
 
                     resultado = ('<a href="%s">%s<br/>%s</a>' %
-                                     (url,
-                                      resultado_descricao,
-                                      resultado_observacao))
+                                 (url,
+                                  resultado_descricao,
+                                  resultado_observacao))
                 else:
                     resultado = ('%s<br/>%s' %
                                      (resultado_descricao,
@@ -388,7 +385,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         context['rows'][i][3] = (resultado, None)
     return context
 
-     
+
 def get_presencas_generic(model, sessao, legislatura):
     presencas = model.objects.filter(
         sessao_plenaria=sessao)
@@ -421,15 +418,14 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         form_class = OrdemDiaForm
 
         def get_initial(self):
-            initial = super(CreateView, self).get_inital()
-            initial['data_ordem'] = SessaoPlenaria.objects.get(
+            self.initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = OrdemDia.objects.filter(
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                     Max('numero_ordem'))['numero_ordem__max']
-            initial['numero_ordem'] = (
+            self.initial['numero_ordem'] = (
                 max_numero_ordem if max_numero_ordem else 0) + 1
-            return initial
+            return self.initial
 
         def get_success_url(self):
             return reverse('sapl.sessao:ordemdia_list',
@@ -549,6 +545,14 @@ class OradorExpedienteCrud(OradorCrud):
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
                            kwargs={'pk': self.kwargs['pk']})
+
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = OradorExpedienteForm
+
+        def get_initial(self):
+            return {'id_sessao': self.object.sessao_plenaria.id,
+                    'numero': self.object.numero_ordem}
 
 
 class OradorCrud(OradorCrud):
