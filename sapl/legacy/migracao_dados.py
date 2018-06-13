@@ -796,36 +796,36 @@ def roda_comando_shell(cmd):
 
 
 def migrar_dados():
-
-    # restaura dump
-    arq_dump = Path(DIR_DADOS_MIGRACAO.child(
-        'dumps_mysql', '{}.sql'.format(NOME_BANCO_LEGADO)))
-    assert arq_dump.exists(), 'Dump do mysql faltando: {}'.format(arq_dump)
-    info('Restaurando dump mysql de [{}]'.format(arq_dump))
-    normaliza_dump_mysql(arq_dump)
-    roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
-
-    # executa ajustes pré-migração, se existirem
-    arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
-        'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
-    if arq_ajustes_pre_migracao.exists():
-        exec_legado(arq_ajustes_pre_migracao.read_file())
-
-    uniformiza_banco()
-
-    # excluindo database antigo.
-    info('Excluindo entradas antigas do banco destino.')
-    call([PROJECT_DIR.child('manage.py'), 'flush',
-          '--database=default', '--no-input'], stdout=PIPE)
-
-    # apaga tipos de autor padrão (criados no flush acima)
-    TipoAutor.objects.all().delete()
-
-    fill_vinculo_norma_juridica()
-    fill_dados_basicos()
-    info('Começando migração: ...')
     try:
         ocorrencias.clear()
+
+        # restaura dump
+        arq_dump = Path(DIR_DADOS_MIGRACAO.child(
+            'dumps_mysql', '{}.sql'.format(NOME_BANCO_LEGADO)))
+        assert arq_dump.exists(), 'Dump do mysql faltando: {}'.format(arq_dump)
+        info('Restaurando dump mysql de [{}]'.format(arq_dump))
+        normaliza_dump_mysql(arq_dump)
+        roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
+
+        # executa ajustes pré-migração, se existirem
+        arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
+            'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+        if arq_ajustes_pre_migracao.exists():
+            exec_legado(arq_ajustes_pre_migracao.read_file())
+
+        uniformiza_banco()
+
+        # excluindo database antigo.
+        info('Excluindo entradas antigas do banco destino.')
+        call([PROJECT_DIR.child('manage.py'), 'flush',
+              '--database=default', '--no-input'], stdout=PIPE)
+
+        # apaga tipos de autor padrão (criados no flush acima)
+        TipoAutor.objects.all().delete()
+
+        fill_vinculo_norma_juridica()
+        fill_dados_basicos()
+        info('Começando migração: ...')
         migrar_todos_os_models()
     except Exception as e:
         ocorrencias['traceback'] = str(traceback.format_exc())
