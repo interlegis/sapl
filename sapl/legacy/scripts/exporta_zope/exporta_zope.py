@@ -146,8 +146,16 @@ def get_conteudo_dtml_method(doc):
 def enumerate_by_key_list(folder, key_list, type_key):
     for entry in folder.get(key_list, []):
         id, meta_type = entry['id'], entry[type_key]
-        obj = br(folder.get(id, None))
-        yield id, obj, meta_type
+        try:
+            obj = br(folder.get(id, None))
+        except POSKeyError:
+            print('#' * 80)
+            print('#' * 80)
+            print('ATENÇÃO: DIRETÓRIO corrompido: {}'.format(id))
+            print('#' * 80)
+            print('#' * 80)
+        else:
+            yield id, obj, meta_type
 
 
 enumerate_folder = partial(enumerate_by_key_list,
