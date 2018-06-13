@@ -315,10 +315,7 @@ def get_presentes(pk, response, materia):
 
     presentes_list = []
     for p in presentes:
-        now_year = timezone.now().year
-        # Recupera a legislatura vigente
-        legislatura = Legislatura.objects.get(data_inicio__year__lte=now_year,
-                                              data_fim__year__gte=now_year)
+        legislatura = sessao.legislatura
         # Recupera os mandatos daquele parlamentar
         mandatos = p.parlamentar.mandato_set.filter(legislatura=legislatura)
 
