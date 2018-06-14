@@ -1199,11 +1199,9 @@ def get_turno(turno):
         return ''
 
 
-class ResumoView(DetailView):
-    template_name = 'impressos/sessao/resumo.html'
+class ResumoView( DetailView):
+    template_name = 'impressos/sessao/resumo_pdf.html'
     model = SessaoPlenaria
-    permission_required = ('sessao.can_access_impressos', )
-
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
