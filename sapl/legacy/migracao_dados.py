@@ -800,6 +800,7 @@ def roda_comando_shell(cmd):
 def migrar_dados():
     try:
         ocorrencias.clear()
+        ocorrencias.default_factory = list
 
         # restaura dump
         arq_dump = Path(DIR_DADOS_MIGRACAO.child(
@@ -833,7 +834,8 @@ def migrar_dados():
         ocorrencias['traceback'] = str(traceback.format_exc())
         raise e
     finally:
-        # grava ocorrências
+        # congela e grava ocorrências
+        ocorrencias.default_factory = None
         arq_ocorrencias = Path(REPO.working_dir, 'ocorrencias.yaml')
         with open(arq_ocorrencias, 'w') as arq:
             pyaml.dump(ocorrencias, arq, vspacing=1)
