@@ -8,6 +8,7 @@ from django.db import transaction
 from image_cropping.fields import ImageCropField
 
 from sapl.base.models import CasaLegislativa
+from sapl.comissoes.models import Reuniao
 from sapl.legacy.migracao_dados import exec_legado
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
@@ -26,6 +27,8 @@ DOCS = {
     MateriaLegislativa: [('texto_original', 'materia/{}_texto_integral')],
     DocumentoAcessorio: [('arquivo', 'materia/{}')],
     NormaJuridica: [('texto_integral', 'norma_juridica/{}_texto_integral')],
+    Reuniao: [('upload_pauta', 'reuniao_comissao/{}_pauta'),
+              ('upload_ata', 'reuniao_comissao/{}_ata')],
     SessaoPlenaria: [('upload_pauta', 'pauta_sessao/{}_pauta_sessao'),
                      ('upload_ata', 'ata_sessao/{}_ata_sessao'),
                      ('upload_anexo', 'anexo_sessao/{}_texto_anexado')],
@@ -40,9 +43,12 @@ DOCS = {model: [(campo, join('sapl_documentos', origem))
         for model, campos in DOCS.items()}
 
 
-def mover_documento(repo, origem, destino):
+def mover_documento(repo, origem, destino, ignora_origem_ausente=False):
     origem, destino = [join(repo.working_dir, c) if not os.path.isabs(c) else c
                        for c in (origem, destino)]
+    if ignora_origem_ausente and not os.path.exists(origem):
+        print('Origem ignorada ao mover documento: {}'.format(origem))
+        return
     os.makedirs(os.path.dirname(destino), exist_ok=True)
     repo.git.mv(origem, destino)
 
@@ -52,7 +58,8 @@ def migrar_logotipo(repo, casa, propriedades):
     [(campo, origem)] = DOCS[CasaLegislativa]
     # a extensão do logo pode ter sido ajustada pelo tipo real do arquivo
     nome_nas_propriedades = os.path.splitext(propriedades['id_logo'])[0]
-    arquivos = glob(join(repo.working_dir, origem.format(nome_nas_propriedades)))
+    arquivos = glob(
+        join(repo.working_dir, origem.format(nome_nas_propriedades)))
     if arquivos:
         assert len(arquivos) == 1, 'Há mais de um logotipo para a casa'
         [logo] = arquivos
@@ -145,7 +152,8 @@ def migrar_documentos(repo):
     # Isto significa que para rodar novamente esta função é preciso
     # restaurar o repo ao estado anterior
 
-    mover_documento(repo, 'XSLT', 'sapl/public/XSLT')
+    mover_documento(repo, 'XSLT', 'sapl/public/XSLT',
+                    ignora_origem_ausente=True)
 
     migrar_propriedades_da_casa(repo)
 
