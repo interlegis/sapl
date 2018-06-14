@@ -1,8 +1,12 @@
 <fieldset>
 	<legend>Identificação Básica</legend>
 		<div class="row">
+		{% if basica %}
 		  {% for b in basica %}
 		  <div class="col-md-4">{{b}}</div>
 		  {% endfor %}
+		{% else %}
+			<div class="col-md-12"><strong>Não há identificação básica para essa sessão.</strong></div>
+		{% endif %}
 		</div>
 </fieldset>

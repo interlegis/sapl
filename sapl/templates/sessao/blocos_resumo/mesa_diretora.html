@@ -1,10 +1,14 @@
 <fieldset>
   <legend>Mesa Diretora</legend>
     <div class="row">
+    {% if mesa %}
       {% for m in mesa %}
         <div class="col-md-12"><b>{{m.cargo}}:
           </b>{{m.parlamentar.nome_parlamentar}} / {{ m.parlamentar.filiacao_atual }}
         </div>
       {% endfor %}
+    {% else %}
+    	<div class="col-md-12"><strong>A lista da Mesa Diretora está vazia.</strong></div>
+		{% endif %}
   </div>
 </fieldset>

@@ -1,5 +1,6 @@
 <fieldset>
   <legend>Oradores das Explicações Pessoais</legend>
+  {% if oradores %}
   <table class="table table-striped table-hover">
     <thead>
       <tr>
@@ -11,11 +12,14 @@
       {% for o in oradores %}
         <tr>
           <td>
-           <b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_atual }}</div></
+           <b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_atual }}</
           </td>
           <td>{{o.url_discurso}}</td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
+  {% else %}
+    <div class="col-md-12"><strong>Não há oradores de Explicações Pessoais para essa Sessão.</strong></div>
+  {% endif %}
 </fieldset>

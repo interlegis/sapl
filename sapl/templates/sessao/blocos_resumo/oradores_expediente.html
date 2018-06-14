@@ -1,5 +1,6 @@
 <fieldset>
   <legend>Oradores do Expediente</legend>
+  {% if oradores %}
   <table class="table table-striped table-hover">
     <thead>
       <tr>
@@ -20,4 +21,7 @@
       {% endfor %}
     </tbody>
   </table>
+  {% else %}
+    <div class="col-md-12"><strong>Não há oradores de expediente para essa Sessão.</strong></div>
+  {% endif %}
 </fieldset>

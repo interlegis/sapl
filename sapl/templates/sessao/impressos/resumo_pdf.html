@@ -17,8 +17,7 @@
     color: red;
 
     @media print {
-    p {page-break-inside: avoid;}
-}
+    p {page-break-before: avoid;}
   }
 </style>
 
@@ -29,37 +28,45 @@
 {% load crispy_forms_tags %}
 
 {% block detail_content %}
-
+  <div style="page-break-before: avoid;">
   {% include 'sessao/blocos_resumo/'|add:primeiro_ordenacao %}
     <br /><br /><br />
-
+  </div>
+  <div style="page-break-before: avoid;">
     {% include 'sessao/blocos_resumo/'|add:segundo_ordenacao %}
     <br /><br /><br />
-
+  </div>
+  <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:terceiro_ordenacao %}
     <br /><br /><br />
-
+  </div>
+  <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:quarto_ordenacao %}
     <br /><br /><br />
-
+  </div>
+  <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:quinto_ordenacao %}
     <br /><br /><br />
-
+  </div>
+  <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:sexto_ordenacao %}
     <br /><br /><br />
-
+  </div>
+  <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:setimo_ordenacao %}
     <br /><br /><br />
-
+  </div>
+  <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:oitavo_ordenacao %}
     <br /><br /><br />
-
+  <div style="page-break-inside: avoid;">
+  </div>
     {% include 'sessao/blocos_resumo/'|add:nono_ordenacao %}
     <br /><br /><br />
-
+  </div>
+  <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:decimo_ordenacao %}
     <br /><br /><br />
-
+  </div>  
 {% endblock detail_content %}
-
 </body>

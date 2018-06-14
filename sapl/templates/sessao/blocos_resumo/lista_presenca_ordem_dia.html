@@ -1,10 +1,11 @@
 {% load common_tags %}
-
 <fieldset>
 	<legend>Lista de Presença na Ordem do Dia</legend>
-		<div class="row">
-		  {% for p in presenca_ordem %}
-		  <div class="col-md-12">{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }}</div>
-		  {% endfor %}
-		</div>
+	{%if presenca_ordem %}
+	  {% for p in presenca_ordem %}
+	  	<div class="col-md-12">{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }}</div>
+	  {% endfor %}
+	{% else %}
+		<div class="col-md-12"><strong>A lista de presença dessa Sessão está vazia.</strong></div>
+	{% endif %}
 </fieldset>
