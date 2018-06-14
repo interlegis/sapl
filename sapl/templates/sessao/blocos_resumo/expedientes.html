@@ -1,12 +1,17 @@
 {% load common_tags %}
-{% if e %}
+{% if expedientes %}
 <fieldset class="form-group">
 	{% for e in expedientes %}
-	  <legend>{{e.tipo}}</legend>
-	  <text-indent rows="5" cols="45" name="conteudo" id="conteudo" class="form-control">
-	  {% autoescape off %}
-	  	{{e.conteudo|safe}}</text-indent>
-	  {% endautoescape %}
+      {% if e.conteudo %}
+        <legend>{{e.tipo}}</legend>
+        <text-indent rows="5" cols="45" name="conteudo" id="conteudo" class="form-control">
+        {% autoescape off %}
+          {{e.conteudo|safe}}</text-indent>
+        {% endautoescape %}
+      {% else %}
+        <legend>{{e.tipo}}</legend>
+        <div class="col-md-12"><strong>Não há textos descritos para {{e.tipo}}.</strong></div>
+      {% endif %}
 	  <br />
 	{% endfor %}
 {% else %}
