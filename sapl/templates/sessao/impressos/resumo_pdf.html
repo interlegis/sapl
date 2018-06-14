@@ -1,10 +1,16 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
 <!DOCTYPE html>
 <html>
 
+{% block main_header %}
 <head>
   <title>Resumo</title>
   <meta charset="utf-8">
 </head>
+{% endblock main_header %}
 
 <style type="text/css">
   .text_pdf{
@@ -22,10 +28,6 @@
 </style>
 
 <body style="margin-left:80px;margin-right:80px; margin-top: -50px">
-
-{% extends "crud/detail.html" %}
-{% load i18n %}
-{% load crispy_forms_tags %}
 
 {% block detail_content %}
   <div style="page-break-before: avoid;">
