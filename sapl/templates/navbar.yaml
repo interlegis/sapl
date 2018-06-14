@@ -54,9 +54,6 @@
     - title: {% trans 'Tramitação em Lote' %}
       url: sapl.materia:primeira_tramitacao_em_lote
       check_permission: materia.list_tramitacao {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
-    - title: {% trans 'Excluir Tramitação em Lote' %}
-      url: sapl.materia:excluir_tramitacao_em_lote
-      check_permission: materia.list_tramitacao {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
 
 - title: {% trans 'Normas Jurídicas' %}
   children:

@@ -23,8 +23,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoFimRelatoriaCrud, TipoMateriaCrud,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
-                                proposicao_texto, recuperar_materia,
-                                ExcluirTramitacaoEmLoteView)
+                                proposicao_texto, recuperar_materia)
 from sapl.norma.views import NormaPesquisaSimplesView
 
 from .apps import AppConfig
@@ -91,8 +90,6 @@ urlpatterns_materia = [
         name='primeira_tramitacao_em_lote'),
     url(r'^materia/tramitacao-em-lote', TramitacaoEmLoteView.as_view(),
         name='tramitacao_em_lote'),
-    url(r'^materia/excluir-tramitacao-em-lote', ExcluirTramitacaoEmLoteView.as_view(),
-        name='excluir_tramitacao_em_lote'),
 ]
 
 
