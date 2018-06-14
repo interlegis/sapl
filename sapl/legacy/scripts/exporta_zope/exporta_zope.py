@@ -17,13 +17,13 @@ from functools import partial
 import git
 import magic
 import yaml
-from unipath import Path
-
 import ZODB.DB
 import ZODB.FileStorage
-from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
+from unipath import Path
 from ZODB.broken import Broken
 from ZODB.POSException import POSKeyError
+
+from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 
 EXTENSOES = {
     'application/msword': '.doc',
@@ -291,8 +291,10 @@ def get_app(data_fs_path):
 
 
 def find_sapl(app):
-    for obj in app['_objects']:
-        id, meta_type = obj['id'], obj['meta_type']
+    ids_meta_types = [(obj['id'], obj['meta_type']) for obj in app['_objects']]
+    # estar ordenado é muito importante para que a busca dê prioridade
+    # a um id "cm_zzz" antes do id "sapl"
+    for id, meta_type in sorted(ids_meta_types):
         if id.startswith('cm_') and meta_type == 'Folder':
             cm_zzz = br(app[id])
             return find_sapl(cm_zzz)
