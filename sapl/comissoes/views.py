@@ -8,20 +8,20 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 
-
 from sapl.base.models import AppConfig as AppsAppConfig
-from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud,
-                           CrudAux, MasterDetailCrud,
-                           PermissionRequiredForAppCrudMixin)
-from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm, DocumentoAcessorioCreateForm,
-                                  DocumentoAcessorioEditForm, ParticipacaoCreateForm,
-                                  ParticipacaoEditForm, ReuniaoForm, PeriodoForm)
+from sapl.comissoes.apps import AppConfig
+from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
+                                  DocumentoAcessorioCreateForm,
+                                  DocumentoAcessorioEditForm,
+                                  ParticipacaoCreateForm, ParticipacaoEditForm,
+                                  PeriodoForm, ReuniaoForm)
+from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
+                            MasterDetailCrud,
+                            PermissionRequiredForAppCrudMixin)
 from sapl.materia.models import MateriaLegislativa, Tramitacao
 
-
 from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
-                     Participacao, Periodo, TipoComissao, Reuniao)
-from sapl.comissoes.apps import AppConfig
+                     Participacao, Periodo, Reuniao, TipoComissao)
 
 
 def pegar_url_composicao(pk):
@@ -29,6 +29,7 @@ def pegar_url_composicao(pk):
     comp_pk = participacao.composicao.pk
     url = reverse('sapl.comissoes:composicao_detail', kwargs={'pk': comp_pk})
     return url
+
 
 def pegar_url_reuniao(pk):
     documentoacessorio = DocumentoAcessorio.objects.get(id=pk)
@@ -41,6 +42,7 @@ CargoCrud = CrudAux.build(CargoComissao, 'cargo_comissao')
 TipoComissaoCrud = CrudAux.build(
     TipoComissao, 'tipo_comissao', list_field_names=[
         'sigla', 'nome', 'natureza', 'dispositivo_regimental'])
+
 
 class PeriodoComposicaoCrud(CrudAux):
     model = Periodo
@@ -77,6 +79,7 @@ class ParticipacaoCrud(MasterDetailCrud):
         form_class = ParticipacaoEditForm
 
     class DeleteView(MasterDetailCrud.DeleteView):
+
         def get_success_url(self):
             composicao_comissao_pk = self.object.composicao.comissao.pk
             composicao_pk = self.object.composicao.pk
@@ -93,11 +96,10 @@ class ComposicaoCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ComposicaoForm
-        
+
         def get_initial(self):
             comissao = Comissao.objects.get(id=self.kwargs['pk'])
             return {'comissao': comissao}
-
 
     class ListView(MasterDetailCrud.ListView):
         template_name = "comissoes/composicao_list.html"
@@ -180,6 +182,7 @@ class MateriasTramitacaoListView(ListView):
         context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
         return context
 
+
 class ReuniaoCrud(MasterDetailCrud):
     model = Reuniao
     parent_field = 'comissao'
@@ -187,7 +190,7 @@ class ReuniaoCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = [ 'nome', 'tema', 'data']
+        list_field_names = ['data', 'nome', 'tema']
 
     class ListView(MasterDetailCrud.ListView):
         paginate_by = 10
@@ -228,9 +231,9 @@ class ReuniaoCrud(MasterDetailCrud):
         form_class = ReuniaoForm
 
         def get_initial(self):
-          comissao = Comissao.objects.get(id=self.kwargs['pk'])
+            comissao = Comissao.objects.get(id=self.kwargs['pk'])
 
-          return {'comissao': comissao}
+            return {'comissao': comissao}
 
 
 class DocumentoAcessorioCrud(MasterDetailCrud):
@@ -256,6 +259,7 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioEditForm
 
     class DeleteView(MasterDetailCrud.DeleteView):
+
         def delete(self, *args, **kwargs):
             obj = self.get_object()
             obj.delete()

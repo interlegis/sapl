@@ -29,7 +29,7 @@ from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
-from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.legacy import scripts
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
@@ -58,6 +58,8 @@ from .timezonesbrasil import get_timezone
 appconfs = [apps.get_app_config(n) for n in [
     'parlamentares',
     'comissoes',
+    # base precisa vir depois dos apps parlamentares e comissoes
+    # pois Autor os referencia
     'base',
     'materia',
     'norma',
@@ -99,7 +101,7 @@ def get_renames():
                 model_name, old_name = match.groups()
             else:
                 old_name = None
-            model = getattr(app.models_module, model_name)
+            model = app.get_model(model_name)
             if old_name:
                 model_renames[model] = old_name
             field_renames[model] = renames
@@ -212,6 +214,10 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
 
     def __init__(self, field, valor, old):
+        if (field.related_model.__name__ == 'Comissao'
+                and old.__class__.__name__ == 'ReuniaoComissao'
+                and valor == 1):
+            __import__('pdb').set_trace()
         self.field = field
         self.valor = valor
         self.old = old
@@ -1237,6 +1243,17 @@ def adjust_tiporesultadovotacao(new, old):
              {'pk': new.pk, 'nome': new.nome})
 
 
+def str_to_time(fonte):
+    if not fonte.strip():
+        return None
+    tempo = datetime.datetime.strptime(fonte, '%H:%M')
+    return tempo.time() if tempo else None
+
+
+def adjust_reuniao_comissao(new, old):
+    new.hora_inicio = str_to_time(old.hr_inicio_reuniao)
+
+
 def remove_style(conteudo):
     if 'style' not in conteudo:
         return conteudo  # atalho que acelera muito os casos sem style
@@ -1274,6 +1291,7 @@ AJUSTE_ANTES_SALVAR = {
     Tramitacao: adjust_tramitacao,
     TipoResultadoVotacao: adjust_tiporesultadovotacao,
     ExpedienteSessao: adjust_expediente_sessao,
+    Reuniao: adjust_reuniao_comissao,
 }
 
 AJUSTE_DEPOIS_SALVAR = {
