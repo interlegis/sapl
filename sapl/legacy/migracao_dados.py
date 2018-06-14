@@ -87,15 +87,24 @@ for a1, s1 in name_sets:
 # RENAMES ###################################################################
 
 MODEL_RENAME_PATTERN = re.compile('(.+) \((.+)\)')
+MODEL_RENAME_INCLUDE_PATTERN = re.compile('<(.+)>')
 
 
 def get_renames():
     field_renames = {}
     model_renames = {}
+    includes = {}
     for app in appconfs:
         app_rename_data = yaml.load(
             pkg_resources.resource_string(app.module.__name__, 'legacy.yaml'))
         for model_name, renames in app_rename_data.items():
+            # armazena ou substitui includes
+            if MODEL_RENAME_INCLUDE_PATTERN.match(model_name):
+                includes[model_name] = renames
+                continue
+            elif isinstance(renames, str):
+                renames = includes[renames]
+            # detecta mudança de nome
             match = MODEL_RENAME_PATTERN.match(model_name)
             if match:
                 model_name, old_name = match.groups()
@@ -105,19 +114,6 @@ def get_renames():
             if old_name:
                 model_renames[model] = old_name
             field_renames[model] = renames
-
-    # collect renames from parent classes
-    for model, renames in field_renames.items():
-        if any(parent in field_renames for parent in model.__mro__[1:]):
-            renames = {}
-            for parent in reversed(model.__mro__):
-                if parent in field_renames:
-                    renames.update(field_renames[parent])
-            field_renames[model] = renames
-
-    # remove abstract classes
-    field_renames = {m: r for m, r in field_renames.items()
-                     if not m._meta.abstract}
 
     return field_renames, model_renames
 

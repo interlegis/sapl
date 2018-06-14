@@ -15,7 +15,7 @@ SessaoPlenaria:
   url_audio: url_audio
   url_video: url_video
 
-AbstractOrdemDia:
+<AbstractOrdemDia>:
   data_ordem: dat_ordem
   materia: cod_materia
   numero_ordem: num_ordem
@@ -24,7 +24,7 @@ AbstractOrdemDia:
   sessao_plenaria: cod_sessao_plen
   tipo_votacao: tip_votacao
 
-ExpedienteMateria: {}
+ExpedienteMateria: <AbstractOrdemDia>
 
 TipoExpediente:
   nome: nom_expediente
@@ -39,17 +39,17 @@ IntegranteMesa (MesaSessaoPlenaria):
   parlamentar: cod_parlamentar
   sessao_plenaria: cod_sessao_plen
 
-AbstractOrador:
+<AbstractOrador>:
   numero_ordem: num_ordem
   parlamentar: cod_parlamentar
   sessao_plenaria: cod_sessao_plen
   url_discurso: url_discurso
 
-Orador (Oradores): {}
+Orador (Oradores): <AbstractOrador>
 
-OradorExpediente (OradoresExpediente): {}
+OradorExpediente (OradoresExpediente): <AbstractOrador>
 
-OrdemDia: {}
+OrdemDia: <AbstractOrdemDia>
 
 PresencaOrdemDia (OrdemDiaPresenca):
   parlamentar: cod_parlamentar
