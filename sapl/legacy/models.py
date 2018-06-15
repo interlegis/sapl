@@ -779,6 +779,20 @@ class Relatoria(models.Model):
         db_table = 'relatoria'
 
 
+class ReuniaoComissao(models.Model):
+    cod_reuniao = models.AutoField(primary_key=True)
+    cod_comissao = models.IntegerField()
+    num_reuniao = models.IntegerField()
+    dat_inicio_reuniao = models.DateField()
+    hr_inicio_reuniao = models.CharField(max_length=5, blank=True, null=True)
+    txt_observacao = models.TextField(blank=True, null=True)
+    ind_excluido = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'reuniao_comissao'
+
+
 class SessaoLegislativa(models.Model):
     cod_sessao_leg = models.AutoField(primary_key=True)
     num_legislatura = models.IntegerField()
