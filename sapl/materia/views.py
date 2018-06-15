@@ -1991,5 +1991,9 @@ class ExcluirTramitacaoEmLoteView(PermissionRequiredMixin, FormView):
                                                            unidade_tramitacao_local=form.cleaned_data['unidade_tramitacao_local'],
                                                            unidade_tramitacao_destino=form.cleaned_data['unidade_tramitacao_destino'],
                                                            status=form.cleaned_data['status'])
-        tramitacao_set.delete()
+        for tramitacao in tramitacao_set:
+            materia = tramitacao.materia
+            if tramitacao == materia.tramitacao_set.last():
+                tramitacao.delete()
+
         return redirect(self.get_success_url())
