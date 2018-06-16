@@ -379,12 +379,6 @@ def repo_execute(repo, cmd, *args):
     return repo.git.execute(cmd.split() + list(args))
 
 
-def get_annex_hashes(repo):
-    hashes = repo_execute(
-        repo, 'git annex find', '--format=${keyname}\n', '--include=*')
-    return {os.path.splitext(h)[0] for h in hashes.splitlines()}
-
-
 def ajusta_extensao(fullname, conteudo):
     base, extensao = os.path.splitext(fullname)
     if extensao not in ['.xsl', '.xslt', '.yaml', '.css']:
@@ -393,23 +387,15 @@ def ajusta_extensao(fullname, conteudo):
 
 
 def build_salvar(repo):
-    """Constroi função salvar que pula arquivos que já estão no annex
-    """
-    hashes = get_annex_hashes(repo)
 
     def salvar(fullname, conteudo):
-        sha = hashlib.sha256()
-        sha.update(conteudo)
-        if sha.hexdigest() in hashes:
-            print('- hash encontrado - {}'.format(fullname))
-        else:
-            fullname = ajusta_extensao(fullname, conteudo)
-            if exists(fullname):
-                # destrava arquivo pré-existente (o conteúdo mudou)
-                repo_execute(repo, 'git annex unlock', fullname)
-            with open(fullname, 'w') as arq:
-                arq.write(conteudo)
-            print(fullname)
+        fullname = ajusta_extensao(fullname, conteudo)
+        if exists(fullname):
+            # destrava arquivo pré-existente (o conteúdo mudou)
+            repo_execute(repo, 'git annex unlock', fullname)
+        with open(fullname, 'w') as arq:
+            arq.write(conteudo)
+        print(fullname)
 
     return salvar
 
