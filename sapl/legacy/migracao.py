@@ -51,6 +51,9 @@ def salva_conteudo_do_sde(proposicao, conteudo):
         proposicao, 'proposicao_sde_{}.xml'.format(proposicao.pk))
     caminho_absoluto = Path(REPO.working_dir, caminho_relativo)
     caminho_absoluto.parent.mkdir(parents=True)
+    # ajusta caminhos para folhas de estilo
+    conteudo = conteudo.replace(b'"XSLT/HTML', b'"/XSLT/HTML')
+    conteudo = conteudo.replace(b"'XSLT/HTML", b"'/XSLT/HTML")
     with open(caminho_absoluto, 'wb') as arq:
         arq.write(conteudo)
     proposicao.texto_original = caminho_relativo
