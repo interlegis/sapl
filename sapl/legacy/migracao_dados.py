@@ -1357,6 +1357,7 @@ def gravar_marco():
 
     # salva mudanças
     REPO.git.add([dir_dados.name])
+    REPO.git.add([arq_backup.name])
     if 'master' not in REPO.heads or REPO.index.diff('HEAD'):
         # se de fato existe mudança
         REPO.index.commit('Grava marco')
