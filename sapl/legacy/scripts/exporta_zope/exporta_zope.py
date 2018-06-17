@@ -217,7 +217,7 @@ def dump_folder(folder, path, salvar, mtimes, enum=enumerate_folder):
                 # se o objeto for mais recente que o da última exportação
                 mtime = obj._p_mtime
                 fullname = os.path.join(path, id)
-                if mtime > mtimes.get(fullname):
+                if mtime > mtimes.get(fullname, 0):
                     id_interno = dump(br(obj), path, salvar)
                     assert id == id_interno
                     mtimes[fullname] = mtime
