@@ -241,7 +241,7 @@ class AbstractOrdemDia(models.Model):
     numero_ordem = models.PositiveIntegerField(verbose_name=_('Nº Ordem'))
     resultado = models.TextField(blank=True, verbose_name=_('Resultado'))
     tipo_votacao = models.PositiveIntegerField(
-        verbose_name=_('Tipo de votação'), choices=TIPO_VOTACAO_CHOICES)
+        verbose_name=_('Tipo de votação'), choices=TIPO_VOTACAO_CHOICES, default=1)
     votacao_aberta = models.NullBooleanField(
         blank=True,
         choices=YES_NO_CHOICES,
