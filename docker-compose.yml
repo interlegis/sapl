@@ -1,5 +1,5 @@
 sapldb:
-  image: postgres:9.6.8-alpine
+  image: postgres
   restart: always
   environment:
     POSTGRES_PASSWORD: sapl
