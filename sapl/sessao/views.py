@@ -2824,7 +2824,8 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                 ordem_dia.tipo_votacao = tipo_votacao
                 ordem_dia.save()
 
-        return self.get(request, self.kwargs)
+        return HttpResponseRedirect(
+            reverse('sapl.sessao:ordemdia_list', kwargs=self.kwargs))
 
 
 @csrf_exempt
