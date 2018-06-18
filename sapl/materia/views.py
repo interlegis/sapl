@@ -1037,10 +1037,16 @@ class TramitacaoCrud(MasterDetailCrud):
                 '-id').first()
 
             if ultima_tramitacao:
-                context['form'].fields[
-                    'unidade_tramitacao_local'].choices = [
-                    (ultima_tramitacao.unidade_tramitacao_destino.pk,
-                     ultima_tramitacao.unidade_tramitacao_destino)]
+                if ultima_tramitacao.unidade_tramitacao_destino:
+                    context['form'].fields[
+                        'unidade_tramitacao_local'].choices = [
+                        (ultima_tramitacao.unidade_tramitacao_destino.pk,
+                         ultima_tramitacao.unidade_tramitacao_destino)]
+                else:
+                    msg = _('Unidade de tramitação destino '
+                            ' da última tramitação não pode ser vazia!')
+                    messages.add_message(self.request, messages.ERROR, msg)
+
             return context
 
         def form_valid(self, form):
