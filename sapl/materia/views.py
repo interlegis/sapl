@@ -57,7 +57,8 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     TramitacaoEmLoteFilterSet, UnidadeTramitacaoForm,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
-                    filtra_tramitacao_status)
+                    filtra_tramitacao_status,
+                    ExcluirTramitacaoEmLote)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaAssunto,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -1972,3 +1973,27 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
 
         return gerar_pdf_impressos(self.request, context,
                                    'materia/impressos/ficha_pdf.html')
+
+
+class ExcluirTramitacaoEmLoteView(PermissionRequiredMixin, FormView):
+
+    template_name = 'materia/em_lote/excluir_tramitacao.html'
+    permission_required = ('materia.add_tramitacao',)
+    form_class = ExcluirTramitacaoEmLote
+    form_valid_message = _('Tramitações excluídas com sucesso!')
+
+    def get_success_url(self):
+        return reverse('sapl.materia:excluir_tramitacao_em_lote')
+
+    def form_valid(self, form):
+
+        tramitacao_set = Tramitacao.objects.filter(data_tramitacao=form.cleaned_data['data_tramitacao'],
+                                                           unidade_tramitacao_local=form.cleaned_data['unidade_tramitacao_local'],
+                                                           unidade_tramitacao_destino=form.cleaned_data['unidade_tramitacao_destino'],
+                                                           status=form.cleaned_data['status'])
+        for tramitacao in tramitacao_set:
+            materia = tramitacao.materia
+            if tramitacao == materia.tramitacao_set.last():
+                tramitacao.delete()
+
+        return redirect(self.get_success_url())
