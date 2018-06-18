@@ -1,5 +1,5 @@
 sapldb:
-  image: postgres
+  image: postgres:9.6.8-alpine
   restart: always
   environment:
     POSTGRES_PASSWORD: sapl
@@ -11,8 +11,7 @@ sapldb:
   ports:
     - "5432:5432"
 sapl:
-  # image: interlegis/sapl:3.1.88
-  build: .
+  image: interlegis/sapl:3.1.89
   restart: always
   environment:
     ADMIN_PASSWORD: interlegis
