@@ -650,7 +650,7 @@ class MesaDiretoraView(FormView):
         sessao_atual = sessoes.filter(data_inicio__year__lte=year).exclude(
             data_inicio__gt=timezone.now()).order_by('-data_inicio').first()
 
-        mesa = sessao_atual.composicaomesa_set.all() if sessao_atual else []
+        mesa = sessao_atual.composicaomesa_set.all().order_by('cargo_id') if sessao_atual else []
 
         cargos_ocupados = [m.cargo for m in mesa]
         cargos = CargoMesa.objects.all()
@@ -710,7 +710,7 @@ def altera_field_mesa(request):
 
     # Atualiza os componentes da view após a mudança
     composicao_mesa = ComposicaoMesa.objects.filter(
-        sessao_legislativa=sessao_selecionada)
+        sessao_legislativa=sessao_selecionada).order_by('cargo_id')
 
     cargos_ocupados = [m.cargo for m in composicao_mesa]
     cargos = CargoMesa.objects.all()
@@ -879,7 +879,7 @@ def altera_field_mesa_public_view(request):
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
 
     composicao_mesa = ComposicaoMesa.objects.filter(
-        sessao_legislativa=sessao_selecionada)
+        sessao_legislativa=sessao_selecionada).order_by('cargo_id')
 
     cargos_ocupados = [(m.cargo.id,
                         m.cargo.__str__()) for m in composicao_mesa]

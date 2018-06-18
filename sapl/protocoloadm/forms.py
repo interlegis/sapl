@@ -291,7 +291,8 @@ class ProtocoloDocumentForm(ModelForm):
 
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label=_('Tipo de Protocolo'),
-                                       choices=TIPOS_PROTOCOLO_CREATE,)
+                                       choices=TIPOS_PROTOCOLO_CREATE,
+                                       initial=0,)
 
     tipo_documento = forms.ModelChoiceField(
         label=_('Tipo de Documento'),
