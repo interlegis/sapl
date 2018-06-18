@@ -462,12 +462,14 @@ class ParlamentarCrud(Crud):
                         return l.id
                 if legislaturas:
                     return legislaturas[0].id
-                return 0
+                return -1
 
         def get_queryset(self):
             queryset = super().get_queryset()
             legislatura_id = self.take_legislatura_id()
-            if legislatura_id != 0:
+            # Pelo menos uma casa legislativa criou uma
+            # legislatura de numero zero, o que é um absurdo
+            if legislatura_id >= 0:
                 return queryset.filter(
                     mandato__legislatura_id=legislatura_id).annotate(
                         mandato_titular=F('mandato__titular'))
