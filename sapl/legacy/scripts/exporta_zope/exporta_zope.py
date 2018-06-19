@@ -433,8 +433,8 @@ def dump_sapl(sigla):
     finally:
         # grava mundaças
         repo_execute(repo, 'git annex add sapl_documentos')
-        repo.git.add(A=True)
         arq_mtimes.write_file(yaml.safe_dump(mtimes, allow_unicode=True))
+        repo.git.add(A=True)
         # atualiza repo
         if 'master' not in repo.heads or repo.index.diff('HEAD'):
             # se de fato existe mudança
