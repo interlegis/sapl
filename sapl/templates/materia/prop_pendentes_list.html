@@ -14,7 +14,7 @@
             {% with 'Data Envio,Tipo,Descrição,Autor' as list %}
             {% for name in  list|split:"," %}
             <th>
-                  <a onClick="sortObj({{object_list}}, request.GET.o)" title="{% trans 'Clique para alterar a ordem a listagem'%}" href="?o={% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}-{%endif%}{{forloop.counter}}">
+                  <a title="{% trans 'Clique para alterar a ordem a listagem'%}" href="?o={% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}-{%endif%}{{forloop.counter}}">
                   {{ name }}
                   {% if 'o' in request.GET %}
                     {% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}
