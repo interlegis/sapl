@@ -96,7 +96,9 @@ def proposicao_texto(request, pk):
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
                 proposicao.autor.user_id != request.user.id):
-            raise Http404
+            messages.error(request, _('Você não tem permissão para acessar o texto original.'))
+            return redirect(reverse('sapl.materia:proposicao_detail',
+                                    kwargs={'pk':pk}))
 
         arquivo = proposicao.texto_original
 
