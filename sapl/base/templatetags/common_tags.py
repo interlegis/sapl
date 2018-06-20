@@ -47,22 +47,19 @@ def split(value, arg):
 @register.filter
 def sort_by_keys(value, key):
     transformed = []
-    key_descricao = ''
     id_props = [x.id for x in value]
     qs = Proposicao.objects.filter(pk__in=id_props)
+    key_descricao = {'1': 'data_envio',
+                        '-1': '-data_envio',
+                        '2': 'tipo',
+                        '-2': '-tipo',
+                        '3': 'descricao',
+                        '-3': '-descricao',
+                        '4': 'autor',
+                        '-4': '-autor'
+                        }
 
-    if key[0] == '-':
-        key_descricao = '-'
-    if key == '1' or key == '-1':
-        key_descricao += 'data_envio'
-    elif key == '2' or key == '-2':
-        key_descricao += 'tipo'
-    elif key == '3' or key == '-3':
-        key_descricao += 'descricao'
-    else:
-        key_descricao += 'autor'
-
-    transformed = qs.order_by(key_descricao)
+    transformed = qs.order_by(key_descricao[key])
     return transformed
 
 
