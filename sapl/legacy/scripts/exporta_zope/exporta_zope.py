@@ -79,7 +79,7 @@ def br(obj):
 
 
 def guess_extension(fullname, buffer):
-    mime = magic.from_buffer(buffer, mime=True)
+    mime = magic.from_buffer(buffer[:1024], mime=True)
     extensao = EXTENSOES.get(mime)
     if extensao is not None:
         return extensao
