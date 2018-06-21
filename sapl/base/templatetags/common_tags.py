@@ -3,12 +3,17 @@ from django import template
 from django.template.defaultfilters import stringfilter
 
 from sapl.base.models import AppConfig
-from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
+from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposicao
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
 from sapl.utils import filiacao_data
 
 register = template.Library()
+
+
+@register.simple_tag
+def define(arg):
+  return arg
 
 
 @register.simple_tag
@@ -32,6 +37,30 @@ def model_verbose_name(class_name):
 def model_verbose_name_plural(class_name):
     model = get_class(class_name)
     return model._meta.verbose_name_plural
+
+
+@register.filter
+def split(value, arg):
+    return value.split(arg)
+
+
+@register.filter
+def sort_by_keys(value, key):
+    transformed = []
+    id_props = [x.id for x in value]
+    qs = Proposicao.objects.filter(pk__in=id_props)
+    key_descricao = {'1': 'data_envio',
+                        '-1': '-data_envio',
+                        '2': 'tipo',
+                        '-2': '-tipo',
+                        '3': 'descricao',
+                        '-3': '-descricao',
+                        '4': 'autor',
+                        '-4': '-autor'
+                        }
+
+    transformed = qs.order_by(key_descricao[key])
+    return transformed
 
 
 @register.filter
