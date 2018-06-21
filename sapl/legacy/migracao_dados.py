@@ -855,12 +855,17 @@ def move_para_depois_de(lista, movido, referencias):
     return lista
 
 
+TABELAS_LEGADO = [t for (t,) in exec_legado('show tables')]
+EXISTE_REUNIAO_NO_LEGADO = 'reuniao_comissao' in TABELAS_LEGADO
+
+
 def get_models_a_migrar():
     models = [model for app in appconfs for model in app.models.values()
               if model in field_renames]
     # retira reuniões quando não existe na base legada
     # (só existe no sapl 3.0)
-    if 'reuniao_comissao' not in list(exec_legado('show tables')):
+    tabelas_legado = [t for (t,) in exec_legado('show tables')]
+    if not EXISTE_REUNIAO_NO_LEGADO:
         models.remove(Reuniao)
     # Devido à referência TipoProposicao.tipo_conteudo_related
     # a migração de TipoProposicao precisa ser feita
