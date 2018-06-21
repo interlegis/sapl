@@ -74,7 +74,7 @@
           <td>
             {% if href %}
             <a href="{{ href }}">{{ value|safe|default:"" }}</a>
-            {% elif valu != 'core.Cep.None' %}
+            {% elif value != 'core.Cep.None' %}
               {% if value|url %}
                 <a href="{{ value|safe }}"> {{ value|safe|default:"" }} </a></div>
               {% else %}
