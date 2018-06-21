@@ -649,6 +649,7 @@ sessao_plenaria_presenca | dat_sessao = NULL           | dat_sessao = 0
 
     unifica_autores_repetidos_no_legado('cod_parlamentar')
     unifica_autores_repetidos_no_legado('cod_comissao')
+    unifica_autores_repetidos_no_legado('col_username')
 
     # é importante reverter a exclusão de autores somente depois, para que a
     # unificação possa dar prioridade às informações dos autores não excluídos
