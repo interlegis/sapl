@@ -567,8 +567,8 @@ def propaga_exclusoes():
 def uniformiza_banco():
     exec_legado('SET SESSION sql_mode = "";')  # desliga checagens do mysql
 
-    checa_registros_votacao_ambiguos_e_remove_nao_usados()
     propaga_exclusoes()
+    checa_registros_votacao_ambiguos_e_remove_nao_usados()
 
     garante_coluna_no_legado('proposicao',
                              'num_proposicao int(11) NULL')
