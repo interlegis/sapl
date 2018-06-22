@@ -53,7 +53,7 @@ def mover_documento(repo, origem, destino, ignora_origem_ausente=False):
         print('Origem ignorada ao mover documento: {}'.format(origem))
         return
     os.makedirs(os.path.dirname(destino), exist_ok=True)
-    repo.git.mv(origem, destino)
+    os.rename(origem, destino)
 
 
 def migrar_logotipo(repo, casa, propriedades):
@@ -166,6 +166,10 @@ def migrar_documentos(repo):
 
     for model in DOCS:
         migrar_docs_por_ids(repo, model)
+
+    # versiona modificações
+    repo.git.add('-A', '.')
+    repo.index.commit('Migração dos documentos completa')
 
     sobrando = [join(dir, file)
                 for (dir, _, files) in os.walk(join(repo.working_dir,
