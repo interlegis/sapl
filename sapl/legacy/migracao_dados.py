@@ -53,6 +53,22 @@ from sapl.utils import normalize
 from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
 from .timezonesbrasil import get_timezone
 
+
+
+# YAML SETUP  ###############################################################
+def dict_representer(dumper, data):
+    return dumper.represent_dict(data.items())
+
+yaml.add_representer(OrderedDict, dict_representer)
+
+
+# importante para preservar a ordem ao ler yaml no python 3.5
+def dict_constructor(loader, node):
+        return OrderedDict(loader.construct_pairs(node))
+
+yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                     dict_constructor)
+
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
 appconfs = [apps.get_app_config(n) for n in [
@@ -738,13 +754,6 @@ def reinicia_sequence(model, id):
 
 
 REPO = git.Repo.init(DIR_REPO)
-
-
-def dict_representer(dumper, data):
-    return dumper.represent_dict(data.items())
-
-
-yaml.add_representer(OrderedDict, dict_representer)
 
 
 # configura timezone de migração
