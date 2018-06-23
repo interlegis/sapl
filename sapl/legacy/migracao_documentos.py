@@ -163,7 +163,9 @@ def migrar_documentos(repo):
 
     # garante que o conteúdo das fotos dos parlamentares esteja presente
     # (necessário para o cropping de imagem)
-    repo.git.execute('git annex get sapl_documentos/parlamentar'.split())
+    if os.path.exists(
+            os.path.join(repo.working_dir, 'sapl_documentos/parlamentar')):
+        repo.git.execute('git annex get sapl_documentos/parlamentar'.split())
 
     for model in DOCS:
         migrar_docs_por_ids(repo, model)
