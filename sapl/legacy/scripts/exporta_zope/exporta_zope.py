@@ -144,17 +144,21 @@ def get_conteudo_dtml_method(doc):
     return doc['raw']
 
 
+def print_msg_poskeyerror(id):
+    print('#' * 80)
+    print('#' * 80)
+    print('ATENÇÃO: DIRETÓRIO corrompido: {}'.format(id))
+    print('#' * 80)
+    print('#' * 80)
+
+
 def enumerate_by_key_list(folder, key_list, type_key):
     for entry in folder.get(key_list, []):
         id, meta_type = entry['id'], entry[type_key]
         try:
             obj = folder.get(id, None)
         except POSKeyError:
-            print('#' * 80)
-            print('#' * 80)
-            print('ATENÇÃO: DIRETÓRIO corrompido: {}'.format(id))
-            print('#' * 80)
-            print('#' * 80)
+            print_msg_poskeyerror(id)
         else:
             yield id, obj, meta_type
 
@@ -170,9 +174,12 @@ def enumerate_btree(folder):
     contagem_esperada = folder['_count'].value
     tree = folder['_tree']
     contagem_real = 0  # para o caso em que não haja itens
-    for contagem_real, (id, obj) in enumerate(tree.iteritems(), start=1):
-        meta_type = type(obj).__name__
-        yield id, obj, meta_type
+    try:
+        for contagem_real, (id, obj) in enumerate(tree.iteritems(), start=1):
+            meta_type = type(obj).__name__
+            yield id, obj, meta_type
+    except POSKeyError:
+        print_msg_poskeyerror(folder['id'])
     # verificação de consistência
     if contagem_esperada != contagem_real:
         print('ATENÇÃO: contagens diferentes na btree: '
