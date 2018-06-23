@@ -140,6 +140,7 @@ def migrar_docs_por_ids(repo, model):
                     if tem_cropping:
                         # conserta link do git annex (antes do commit)
                         # pois o conteúdo das imagens é acessado pelo cropping
+                        repo.git.add(destino)
                         repo.git.execute('git annex fix'.split() + [destino])
                     obj.save()
                 else:
