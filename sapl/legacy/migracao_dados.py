@@ -29,7 +29,7 @@ from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
-from sapl.comissoes.models import Comissao, Composicao, Participacao
+from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.legacy import scripts
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
@@ -58,6 +58,8 @@ from .timezonesbrasil import get_timezone
 appconfs = [apps.get_app_config(n) for n in [
     'parlamentares',
     'comissoes',
+    # base precisa vir depois dos apps parlamentares e comissoes
+    # pois Autor os referencia
     'base',
     'materia',
     'norma',
@@ -85,37 +87,33 @@ for a1, s1 in name_sets:
 # RENAMES ###################################################################
 
 MODEL_RENAME_PATTERN = re.compile('(.+) \((.+)\)')
+MODEL_RENAME_INCLUDE_PATTERN = re.compile('<(.+)>')
 
 
 def get_renames():
     field_renames = {}
     model_renames = {}
+    includes = {}
     for app in appconfs:
         app_rename_data = yaml.load(
             pkg_resources.resource_string(app.module.__name__, 'legacy.yaml'))
         for model_name, renames in app_rename_data.items():
+            # armazena ou substitui includes
+            if MODEL_RENAME_INCLUDE_PATTERN.match(model_name):
+                includes[model_name] = renames
+                continue
+            elif isinstance(renames, str):
+                renames = includes[renames]
+            # detecta mudança de nome
             match = MODEL_RENAME_PATTERN.match(model_name)
             if match:
                 model_name, old_name = match.groups()
             else:
                 old_name = None
-            model = getattr(app.models_module, model_name)
+            model = app.get_model(model_name)
             if old_name:
                 model_renames[model] = old_name
             field_renames[model] = renames
-
-    # collect renames from parent classes
-    for model, renames in field_renames.items():
-        if any(parent in field_renames for parent in model.__mro__[1:]):
-            renames = {}
-            for parent in reversed(model.__mro__):
-                if parent in field_renames:
-                    renames.update(field_renames[parent])
-            field_renames[model] = renames
-
-    # remove abstract classes
-    field_renames = {m: r for m, r in field_renames.items()
-                     if not m._meta.abstract}
 
     return field_renames, model_renames
 
@@ -212,6 +210,10 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
 
     def __init__(self, field, valor, old):
+        if (field.related_model.__name__ == 'Comissao'
+                and old.__class__.__name__ == 'ReuniaoComissao'
+                and valor == 1):
+            __import__('pdb').set_trace()
         self.field = field
         self.valor = valor
         self.old = old
@@ -626,12 +628,13 @@ def uniformiza_banco():
     ''')
 
     update_specs = '''
-vinculo_norma_juridica| ind_excluido = ''           | trim(ind_excluido) = '0'
-unidade_tramitacao    | cod_parlamentar = NULL      | cod_parlamentar = 0
-parlamentar           | cod_nivel_instrucao = NULL  | cod_nivel_instrucao = 0
-parlamentar           | tip_situacao_militar = NULL | tip_situacao_militar = 0
-mandato               | tip_afastamento = NULL      | tip_afastamento = 0
-relatoria             | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
+vinculo_norma_juridica   | ind_excluido = ''           | trim(ind_excluido) = '0'
+unidade_tramitacao       | cod_parlamentar = NULL      | cod_parlamentar = 0
+parlamentar              | cod_nivel_instrucao = NULL  | cod_nivel_instrucao = 0
+parlamentar              | tip_situacao_militar = NULL | tip_situacao_militar = 0
+mandato                  | tip_afastamento = NULL      | tip_afastamento = 0
+relatoria                | tip_fim_relatoria = NULL    | tip_fim_relatoria = 0
+sessao_plenaria_presenca | dat_sessao = NULL           | dat_sessao = 0
     '''.strip().splitlines()
 
     for spec in update_specs:
@@ -794,54 +797,45 @@ def roda_comando_shell(cmd):
     assert res == 0, 'O comando falhou: {}'.format(cmd)
 
 
-def migrar_dados(interativo=True):
-
-    # restaura dump
-    arq_dump = Path(DIR_DADOS_MIGRACAO.child(
-        'dumps_mysql', '{}.sql'.format(NOME_BANCO_LEGADO)))
-    assert arq_dump.exists(), 'Dump do mysql faltando: {}'.format(arq_dump)
-    info('Restaurando dump mysql de [{}]'.format(arq_dump))
-    normaliza_dump_mysql(arq_dump)
-    roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
-
-    # executa ajustes pré-migração, se existirem
-    arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
-        'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
-    if arq_ajustes_pre_migracao.exists():
-        exec_legado(arq_ajustes_pre_migracao.read_file())
-
-    uniformiza_banco()
-
-    # excluindo database antigo.
-    if interativo:
-        info('Todos os dados do banco serão excluidos. '
-             'Recomendamos que faça backup do banco sapl '
-             'antes de continuar.')
-        info('Deseja continuar? [s/n]')
-        resposta = input()
-        if resposta.lower() in ['s', 'sim', 'y', 'yes']:
-            pass
-        else:
-            info('Migração cancelada.')
-            return 0
-    info('Excluindo entradas antigas do banco destino.')
-    call([PROJECT_DIR.child('manage.py'), 'flush',
-          '--database=default', '--no-input'], stdout=PIPE)
-
-    # apaga tipos de autor padrão (criados no flush acima)
-    TipoAutor.objects.all().delete()
-
-    fill_vinculo_norma_juridica()
-    fill_dados_basicos()
-    info('Começando migração: ...')
+def migrar_dados():
     try:
         ocorrencias.clear()
+        ocorrencias.default_factory = list
+
+        # restaura dump
+        arq_dump = Path(DIR_DADOS_MIGRACAO.child(
+            'dumps_mysql', '{}.sql'.format(NOME_BANCO_LEGADO)))
+        assert arq_dump.exists(), 'Dump do mysql faltando: {}'.format(arq_dump)
+        info('Restaurando dump mysql de [{}]'.format(arq_dump))
+        normaliza_dump_mysql(arq_dump)
+        roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
+
+        # executa ajustes pré-migração, se existirem
+        arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
+            'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+        if arq_ajustes_pre_migracao.exists():
+            exec_legado(arq_ajustes_pre_migracao.read_file())
+
+        uniformiza_banco()
+
+        # excluindo database antigo.
+        info('Excluindo entradas antigas do banco destino.')
+        call([PROJECT_DIR.child('manage.py'), 'flush',
+              '--database=default', '--no-input'], stdout=PIPE)
+
+        # apaga tipos de autor padrão (criados no flush acima)
+        TipoAutor.objects.all().delete()
+
+        fill_vinculo_norma_juridica()
+        fill_dados_basicos()
+        info('Começando migração: ...')
         migrar_todos_os_models()
     except Exception as e:
         ocorrencias['traceback'] = str(traceback.format_exc())
         raise e
     finally:
-        # grava ocorrências
+        # congela e grava ocorrências
+        ocorrencias.default_factory = None
         arq_ocorrencias = Path(REPO.working_dir, 'ocorrencias.yaml')
         with open(arq_ocorrencias, 'w') as arq:
             pyaml.dump(ocorrencias, arq, vspacing=1)
@@ -863,6 +857,10 @@ def move_para_depois_de(lista, movido, referencias):
 def get_models_a_migrar():
     models = [model for app in appconfs for model in app.models.values()
               if model in field_renames]
+    # retira reuniões quando não existe na base legada
+    # (só existe no sapl 3.0)
+    if 'reuniao_comissao' not in list(exec_legado('show tables')):
+        models.remove(Reuniao)
     # Devido à referência TipoProposicao.tipo_conteudo_related
     # a migração de TipoProposicao precisa ser feita
     # após TipoMateriaLegislativa e TipoDocumento
@@ -1247,6 +1245,17 @@ def adjust_tiporesultadovotacao(new, old):
              {'pk': new.pk, 'nome': new.nome})
 
 
+def str_to_time(fonte):
+    if not fonte.strip():
+        return None
+    tempo = datetime.datetime.strptime(fonte, '%H:%M')
+    return tempo.time() if tempo else None
+
+
+def adjust_reuniao_comissao(new, old):
+    new.hora_inicio = str_to_time(old.hr_inicio_reuniao)
+
+
 def remove_style(conteudo):
     if 'style' not in conteudo:
         return conteudo  # atalho que acelera muito os casos sem style
@@ -1284,6 +1293,7 @@ AJUSTE_ANTES_SALVAR = {
     Tramitacao: adjust_tramitacao,
     TipoResultadoVotacao: adjust_tiporesultadovotacao,
     ExpedienteSessao: adjust_expediente_sessao,
+    Reuniao: adjust_reuniao_comissao,
 }
 
 AJUSTE_DEPOIS_SALVAR = {

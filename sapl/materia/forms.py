@@ -32,7 +32,8 @@ from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  MateriaLegislativa, Orgao, RegimeTramitacao,
-                                 TipoDocumento, TipoProposicao)
+                                 TipoDocumento, TipoProposicao, StatusTramitacao,
+                                 UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura
@@ -1817,7 +1818,19 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if numeracao == 'A':
             nm = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))
-        elif numeracao == 'U':
+        elif numeracao == 'L':
+            legislatura = Legislatura.objects.filter(
+                data_inicio__year__lte=timezone.now().year,
+                data_fim__year__gte=timezone.now().year).first()
+            data_inicio = legislatura.data_inicio
+            data_fim = legislatura.data_fim
+            nm = MateriaLegislativa.objects.filter(
+                data_apresentacao__gte=data_inicio,
+                data_apresentacao__lte=data_fim,
+                tipo=tipo).aggregate(Max('numero'))
+
+        else:
+            # numeracao == 'U' ou não informada
             nm = Protocolo.objects.all().aggregate(Max('numero'))
 
         protocolo = Protocolo()
@@ -2031,4 +2044,68 @@ class FichaSelecionaForm(forms.Form):
                 row1,
                 form_actions(label='Gerar Impresso')
             )
+        )
+
+
+class ExcluirTramitacaoEmLote(forms.Form):
+
+    data_tramitacao = forms.DateField(required=True,
+                             label=_('Data da Tramitação'))
+
+    unidade_tramitacao_local = forms.ModelChoiceField(label=_('Unidade Local'),
+                                  required=True,
+                                  queryset=UnidadeTramitacao.objects.all(),
+                                  empty_label='------')
+
+    unidade_tramitacao_destino = forms.ModelChoiceField(label=_('Unidade Destino'),
+                                  required=True,
+                                  queryset=UnidadeTramitacao.objects.all(),
+                                  empty_label='------')
+
+    status = forms.ModelChoiceField(label=_('Status'),
+                                  required=True,
+                                  queryset=StatusTramitacao.objects.all(),
+                                  empty_label='------')
+
+    def clean(self):
+        super(ExcluirTramitacaoEmLote, self).clean()
+
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
+        data_tramitacao = cleaned_data['data_tramitacao']
+        unidade_tramitacao_local = cleaned_data['unidade_tramitacao_local']
+        unidade_tramitacao_destino = cleaned_data['unidade_tramitacao_destino']
+        status = cleaned_data['status']
+
+        tramitacao_set = Tramitacao.objects.filter(data_tramitacao=data_tramitacao,
+                                                           unidade_tramitacao_local=unidade_tramitacao_local,
+                                                           unidade_tramitacao_destino=unidade_tramitacao_destino,
+                                                           status=status)
+        if not tramitacao_set.exists():
+            raise forms.ValidationError(
+                _("Não existem tramitações com os dados informados."))
+
+        return cleaned_data
+
+    def __init__(self, *args, **kwargs):
+        super(ExcluirTramitacaoEmLote, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('data_tramitacao', 6),
+             ('status', 6),])
+        row2 = to_row(
+            [('unidade_tramitacao_local', 6),
+             ('unidade_tramitacao_destino', 6)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Dados das Tramitações'),
+                     row1,
+                     row2,
+                     HTML("&nbsp;"),
+                     form_actions(label='Excluir')
+                     )
         )

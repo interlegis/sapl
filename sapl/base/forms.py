@@ -529,7 +529,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
     def qs(self):
         parent = super(RelatorioAtasFilterSet, self).qs
         return parent.distinct().prefetch_related('tipo').exclude(
-            upload_ata='').order_by('-legislatura', 'tipo', 'numero')
+            upload_ata='').order_by('-data_inicio', 'tipo', 'numero')
 
     def __init__(self, *args, **kwargs):
         super(RelatorioAtasFilterSet, self).__init__(

@@ -44,6 +44,6 @@ exec gunicorn ${DJANGO_WSGI_MODULE}:application \
   --workers $NUM_WORKERS \
   --max-requests $MAX_REQUESTS \
   --user $USER \
-  --access-logfile - \
-  --error-logfile - \
+  --access-logfile /var/log/sapl/access.log \
+  --error-logfile /var/log/sapl/error.log \
   --bind=unix:$SOCKFILE

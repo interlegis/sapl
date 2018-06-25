@@ -995,7 +995,7 @@ class MesaView(FormMixin, DetailView):
 
             return self.render_to_response(context)
 
-        mesa = sessao.integrantemesa_set.all() if sessao else []
+        mesa = sessao.integrantemesa_set.all().order_by('cargo_id') if sessao else []
         cargos_ocupados = [m.cargo for m in mesa]
         cargos = CargoMesa.objects.all()
         cargos_vagos = list(set(cargos) - set(cargos_ocupados))
@@ -1046,7 +1046,7 @@ def atualizar_mesa(request):
 
     # Atualiza os componentes da view após a mudança
     composicao_mesa = IntegranteMesa.objects.filter(
-        sessao_plenaria=sessao.id)
+        sessao_plenaria=sessao.id).order_by('cargo_id')
 
     cargos_ocupados = [m.cargo for m in composicao_mesa]
     cargos = CargoMesa.objects.all()
@@ -2828,7 +2828,8 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                 ordem_dia.tipo_votacao = tipo_votacao
                 ordem_dia.save()
 
-        return self.get(request, self.kwargs)
+        return HttpResponseRedirect(
+            reverse('sapl.sessao:ordemdia_list', kwargs=self.kwargs))
 
 
 @csrf_exempt

@@ -21,6 +21,7 @@ import ZODB.DB
 import ZODB.FileStorage
 from unipath import Path
 from ZODB.broken import Broken
+from ZODB.POSException import POSKeyError
 
 from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 
@@ -95,6 +96,9 @@ def guess_extension(fullname, buffer):
         return '.DESCONHECIDO.{}'.format(mime.replace('/', '__'))
 
 
+CONTEUDO_ARQUIVO_CORROMPIDO = 'ARQUIVO CORROMPIDO'
+
+
 def get_conteudo_file(doc):
     # A partir daqui usamos dict.pop('...') nos __Broken_state__
     # para contornar um "vazamento" de memória que ocorre
@@ -105,25 +109,30 @@ def get_conteudo_file(doc):
     #
     # Essa medida descarta quase todos os dados retornados
     # e só funciona na primeira passagem
+    try:
+        pdata = br(doc.pop('data'))
+        if isinstance(pdata, str):
+            # Retrocedemos se pdata ja eh uma str (necessario em Images)
+            doc['data'] = pdata
+            pdata = doc
 
-    pdata = br(doc.pop('data'))
-    if isinstance(pdata, str):
-        # Retrocedemos se pdata ja eh uma str (necessario em Images)
-        doc['data'] = pdata
-        pdata = doc
+        output = cStringIO.StringIO()
+        while pdata:
+            output.write(pdata.pop('data'))
+            pdata = br(pdata.pop('next', None))
 
-    output = cStringIO.StringIO()
-    while pdata:
-        output.write(pdata.pop('data'))
-        pdata = br(pdata.pop('next', None))
-
-    return output.getvalue()
+        return output.getvalue()
+    except POSKeyError:
+        return CONTEUDO_ARQUIVO_CORROMPIDO
 
 
 def dump_file(doc, path, salvar, get_conteudo=get_conteudo_file):
     name = doc['__name__']
     fullname = os.path.join(path, name)
     conteudo = get_conteudo(doc)
+    if conteudo == CONTEUDO_ARQUIVO_CORROMPIDO:
+        fullname = fullname + '_CORROMPIDO'
+        print('ATENÇÃO: arquivo corrompido: {}'.format(fullname))
     if conteudo:
         # pula arquivos vazios
         salvar(fullname, conteudo)
@@ -137,8 +146,16 @@ def get_conteudo_dtml_method(doc):
 def enumerate_by_key_list(folder, key_list, type_key):
     for entry in folder.get(key_list, []):
         id, meta_type = entry['id'], entry[type_key]
-        obj = br(folder.get(id, None))
-        yield id, obj, meta_type
+        try:
+            obj = br(folder.get(id, None))
+        except POSKeyError:
+            print('#' * 80)
+            print('#' * 80)
+            print('ATENÇÃO: DIRETÓRIO corrompido: {}'.format(id))
+            print('#' * 80)
+            print('#' * 80)
+        else:
+            yield id, obj, meta_type
 
 
 enumerate_folder = partial(enumerate_by_key_list,
@@ -186,6 +203,9 @@ def dump_folder(folder, path, salvar, enum=enumerate_folder):
     if not os.path.exists(path):
         os.makedirs(path)
     for id, obj, meta_type in enum(folder):
+        # pula pastas *_old (presentes em várias bases)
+        if id.endswith('_old') and meta_type in ['Folder', 'BTreeFolder2']:
+            continue
         dump = DUMP_FUNCTIONS.get(meta_type, '?')
         if dump == '?':
             nao_identificados[meta_type].append(path + '/' + id)
@@ -271,39 +291,68 @@ def get_app(data_fs_path):
 
 
 def find_sapl(app):
-    for obj in app['_objects']:
-        id, meta_type = obj['id'], obj['meta_type']
+    ids_meta_types = [(obj['id'], obj['meta_type']) for obj in app['_objects']]
+    # estar ordenado é muito importante para que a busca dê prioridade
+    # a um id "cm_zzz" antes do id "sapl"
+    for id, meta_type in sorted(ids_meta_types):
         if id.startswith('cm_') and meta_type == 'Folder':
             cm_zzz = br(app[id])
-            sapl = br(cm_zzz.get('sapl', None))
-            if sapl and 'sapl_documentos' in sapl and 'acl_users' in sapl:
-                return sapl
+            return find_sapl(cm_zzz)
+        elif id == 'sapl' and meta_type in ['SAPL', 'Folder']:
+            sapl = br(app['sapl'])
+            return sapl
 
 
-def dump_propriedades(docs, path, salvar, encoding='iso-8859-1'):
+def detectar_encoding(fonte):
+    desc = magic.from_buffer(fonte)
+    for termo, enc in [('ISO-8859', 'latin1'), ('UTF-8', 'utf-8')]:
+        if termo in desc:
+            return enc
+    return None
+
+
+def autodecode(fonte):
+    if isinstance(fonte, str):
+        enc = detectar_encoding(fonte)
+        return fonte.decode(enc) if enc else fonte
+    else:
+        return fonte
+
+
+def dump_propriedades(docs, path, salvar):
     props_sapl = br(docs['props_sapl'])
     ids = [p['id'] for p in props_sapl['_properties']]
     props = {id: props_sapl[id] for id in ids}
-    props = {id: p.decode(encoding) if isinstance(p, str) else p
-             for id, p in props.items()}
+    props = {id: autodecode(p) for id, p in props.items()}
     save_as_yaml(path, 'sapl_documentos/propriedades.yaml', props, salvar)
 
 
 def dump_usuarios(sapl, path, salvar):
     users = br(br(sapl['acl_users'])['data'])
-    users = {k: br(v) for k, v in users['data'].items()}
+    users = {autodecode(k): br(v) for k, v in users['data'].items()}
+    for dados in users.values():
+        dados['name'] = autodecode(dados['name'])
     save_as_yaml(path, 'usuarios.yaml', users, salvar)
 
 
-def _dump_sapl(data_fs_path, destino, salvar):
+def _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar):
     assert Path(data_fs_path).exists()
+    assert Path(documentos_fs_path).exists()
+
     app, close_db = get_app(data_fs_path)
     try:
         sapl = find_sapl(app)
-        # extrai folhas XSLT
-        dump_folder(br(sapl['XSLT']), destino, salvar)
         # extrai usuários com suas senhas e perfis
         dump_usuarios(sapl, destino, salvar)
+    finally:
+        close_db()
+
+    app, close_db = get_app(documentos_fs_path)
+    try:
+        sapl = find_sapl(app)
+        # extrai folhas XSLT
+        if 'XSLT' in sapl:
+            dump_folder(br(sapl['XSLT']), destino, salvar)
 
         # extrai documentos
         docs = br(sapl['sapl_documentos'])
@@ -355,9 +404,15 @@ def build_salvar(repo):
 
 def dump_sapl(sigla):
     sigla = sigla[-3:]  # ignora prefixo (por ex. 'sapl_cm_')
-    data_fs_path = DIR_DADOS_MIGRACAO.child('datafs',
-                                            'Data_cm_{}.fs'.format(sigla))
+    data_fs_path, documentos_fs_path = [
+        DIR_DADOS_MIGRACAO.child(
+            'datafs', '{}_cm_{}.fs'.format(prefixo, sigla))
+        for prefixo in ('Data', 'DocumentosSapl')]
+
     assert data_fs_path.exists(), 'Origem não existe: {}'.format(data_fs_path)
+    if not documentos_fs_path.exists():
+        documentos_fs_path = data_fs_path
+
     nome_banco_legado = 'sapl_cm_{}'.format(sigla)
     destino = DIR_DADOS_MIGRACAO.child('repos', nome_banco_legado)
     destino.mkdir(parents=True)
@@ -372,7 +427,7 @@ def dump_sapl(sigla):
     salvar = build_salvar(repo)
     try:
         finalizado = False
-        _dump_sapl(data_fs_path, destino, salvar)
+        _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar)
         finalizado = True
     finally:
         # grava mundaças
@@ -382,8 +437,8 @@ def dump_sapl(sigla):
             # se de fato existe mudança
             status = 'completa' if finalizado else 'parcial'
             repo.index.commit(u'Exportação do zope {}'.format(status))
-            if finalizado:
-                repo.git.execute('git tag -f'.split() + [TAG_ZOPE])
+        if finalizado:
+            repo.git.execute('git tag -f'.split() + [TAG_ZOPE])
 
 
 if __name__ == "__main__":

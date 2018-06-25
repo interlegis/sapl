@@ -50,7 +50,8 @@ RUN rm -rf /var/interlegis/sapl/sapl/.env && \
 
 RUN chmod +x /var/interlegis/sapl/start.sh && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
-    ln -sf /dev/stderr /var/log/nginx/error.log
+    ln -sf /dev/stderr /var/log/nginx/error.log && \
+    mkdir /var/log/sapl/
 
 VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 

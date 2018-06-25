@@ -95,16 +95,7 @@ def migrar_usuarios(dir_repo):
                 usuario.groups.add(PERFIL_LEGADO_PARA_NOVO[perfil])
         usuario.save()
 
-    # restringe e configura administradores
-    if len(admins) > 2:
-        admins = (
-            # ususários com admin no nome
-            [u for u in admins if 'admin' in u.username]
-            # senão, o usuário saploper, apenas
-            or [u for u in admins if 'saploper' == u.username]
-            # senão, simplesmente até os dois primeiros da lista
-            or admins[:2]
-        )
+    # configura administradores
     for admin in admins:
         admin.is_superuser = True
         admin.save()

@@ -184,12 +184,15 @@ class Participacao(models.Model):  # ComposicaoComissao
 def get_comissao_media_path(instance, subpath, filename):
     return './sapl/comissao/%s/%s/%s' % (instance.numero, subpath, filename)
 
+
 def pauta_upload_path(instance, filename):
 
     return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
 
+
 def ata_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
+
 
 def anexo_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='anexo', pk_first=True)
@@ -198,6 +201,7 @@ def anexo_upload_path(instance, filename):
 class Reuniao(models.Model):
     periodo = models. ForeignKey(
         Periodo,
+        null=True,
         on_delete=models.PROTECT,
         verbose_name=_('Periodo da Composicão da Comissão'))
     comissao = models.ForeignKey(
@@ -211,8 +215,10 @@ class Reuniao(models.Model):
         max_length=150, blank=True, verbose_name=_('Tema da Reunião'))
     data = models.DateField(verbose_name=_('Data'))
     hora_inicio = models.TimeField(
+        null=True,
         verbose_name=_('Horário de Início (hh:mm)'))
     hora_fim = models.TimeField(
+        null=True,
         verbose_name=_('Horário de Término (hh:mm)'))
     local_reuniao = models.CharField(
         max_length=100, blank=True, verbose_name=_('Local da Reunião'))
@@ -287,12 +293,13 @@ class Reuniao(models.Model):
 
 @reversion.register()
 class DocumentoAcessorio(models.Model):
-    reuniao = models.ForeignKey(Reuniao, 
+    reuniao = models.ForeignKey(Reuniao,
                                 related_name='documentoacessorio_set',
                                 on_delete=models.PROTECT)
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
 
-    data = models.DateField(blank=True, null=True, default=None, verbose_name=_('Data'))
+    data = models.DateField(blank=True, null=True,
+                            default=None, verbose_name=_('Data'))
     autor = models.CharField(
         max_length=100,  verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))

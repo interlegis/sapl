@@ -57,7 +57,8 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     TramitacaoEmLoteFilterSet, UnidadeTramitacaoForm,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
-                    filtra_tramitacao_status)
+                    filtra_tramitacao_status,
+                    ExcluirTramitacaoEmLote)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaAssunto,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -95,7 +96,9 @@ def proposicao_texto(request, pk):
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
                 proposicao.autor.user_id != request.user.id):
-            raise Http404
+            messages.error(request, _('Você não tem permissão para acessar o texto original.'))
+            return redirect(reverse('sapl.materia:proposicao_detail',
+                                    kwargs={'pk':pk}))
 
         arquivo = proposicao.texto_original
 
@@ -1036,10 +1039,16 @@ class TramitacaoCrud(MasterDetailCrud):
                 '-id').first()
 
             if ultima_tramitacao:
-                context['form'].fields[
-                    'unidade_tramitacao_local'].choices = [
-                    (ultima_tramitacao.unidade_tramitacao_destino.pk,
-                     ultima_tramitacao.unidade_tramitacao_destino)]
+                if ultima_tramitacao.unidade_tramitacao_destino:
+                    context['form'].fields[
+                        'unidade_tramitacao_local'].choices = [
+                        (ultima_tramitacao.unidade_tramitacao_destino.pk,
+                         ultima_tramitacao.unidade_tramitacao_destino)]
+                else:
+                    msg = _('Unidade de tramitação destino '
+                            ' da última tramitação não pode ser vazia!')
+                    messages.add_message(self.request, messages.ERROR, msg)
+
             return context
 
         def form_valid(self, form):
@@ -1939,16 +1948,16 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
             tipo=tipo,
             data_apresentacao__range=(data_inicial, data_final))
         context['quantidade'] = len(materia_list)
-        materia_list = materia_list[:20]
+        materia_list = materia_list[:100]
 
         context['form'].fields['materia'].choices = [
             (m.id, str(m)) for m in materia_list]
 
-        if context['quantidade'] > 20:
+        if context['quantidade'] > 100:
             messages.info(self.request, _('Sua pesquisa retornou mais do que '
-                                          '20 impressos. Por questões de '
+                                          '100 impressos. Por questões de '
                                           'performance, foram retornados '
-                                          'apenas os 20 primeiros. Caso '
+                                          'apenas os 100 primeiros. Caso '
                                           'queira outros, tente fazer uma '
                                           'pesquisa mais específica'))
 
@@ -1972,3 +1981,27 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
 
         return gerar_pdf_impressos(self.request, context,
                                    'materia/impressos/ficha_pdf.html')
+
+
+class ExcluirTramitacaoEmLoteView(PermissionRequiredMixin, FormView):
+
+    template_name = 'materia/em_lote/excluir_tramitacao.html'
+    permission_required = ('materia.add_tramitacao',)
+    form_class = ExcluirTramitacaoEmLote
+    form_valid_message = _('Tramitações excluídas com sucesso!')
+
+    def get_success_url(self):
+        return reverse('sapl.materia:excluir_tramitacao_em_lote')
+
+    def form_valid(self, form):
+
+        tramitacao_set = Tramitacao.objects.filter(data_tramitacao=form.cleaned_data['data_tramitacao'],
+                                                           unidade_tramitacao_local=form.cleaned_data['unidade_tramitacao_local'],
+                                                           unidade_tramitacao_destino=form.cleaned_data['unidade_tramitacao_destino'],
+                                                           status=form.cleaned_data['status'])
+        for tramitacao in tramitacao_set:
+            materia = tramitacao.materia
+            if tramitacao == materia.tramitacao_set.last():
+                tramitacao.delete()
+
+        return redirect(self.get_success_url())
