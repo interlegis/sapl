@@ -1818,7 +1818,19 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if numeracao == 'A':
             nm = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))
-        elif numeracao == 'U':
+        elif numeracao == 'L':
+            legislatura = Legislatura.objects.filter(
+                data_inicio__year__lte=timezone.now().year,
+                data_fim__year__gte=timezone.now().year).first()
+            data_inicio = legislatura.data_inicio
+            data_fim = legislatura.data_fim
+            nm = MateriaLegislativa.objects.filter(
+                data_apresentacao__gte=data_inicio,
+                data_apresentacao__lte=data_fim,
+                tipo=tipo).aggregate(Max('numero'))
+
+        else:
+            # numeracao == 'U' ou não informada
             nm = Protocolo.objects.all().aggregate(Max('numero'))
 
         protocolo = Protocolo()
