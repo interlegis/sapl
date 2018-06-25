@@ -219,7 +219,11 @@ def dump_folder(folder, path, salvar, mtimes, enum=enumerate_folder):
             nao_identificados[meta_type].append(path + '/' + id)
         elif dump:
             if isinstance(dump, partial) and dump.func == dump_folder:
-                dump(br(obj), path, salvar, mtimes)
+                try:
+                    dump(br(obj), path, salvar, mtimes)
+                except POSKeyError as e:
+                    print_msg_poskeyerror(id)
+                    continue
             else:
                 # se o objeto for mais recente que o da última exportação
                 mtime = obj._p_mtime
