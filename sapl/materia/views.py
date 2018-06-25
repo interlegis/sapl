@@ -1948,16 +1948,16 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
             tipo=tipo,
             data_apresentacao__range=(data_inicial, data_final))
         context['quantidade'] = len(materia_list)
-        materia_list = materia_list[:20]
+        materia_list = materia_list[:100]
 
         context['form'].fields['materia'].choices = [
             (m.id, str(m)) for m in materia_list]
 
-        if context['quantidade'] > 20:
+        if context['quantidade'] > 100:
             messages.info(self.request, _('Sua pesquisa retornou mais do que '
-                                          '20 impressos. Por questões de '
+                                          '100 impressos. Por questões de '
                                           'performance, foram retornados '
-                                          'apenas os 20 primeiros. Caso '
+                                          'apenas os 100 primeiros. Caso '
                                           'queira outros, tente fazer uma '
                                           'pesquisa mais específica'))
 
