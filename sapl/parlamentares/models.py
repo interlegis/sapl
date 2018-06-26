@@ -112,6 +112,8 @@ class Partido(models.Model):
         upload_to=logo_upload_path,
         verbose_name=_('Logo Partido'),
         validators=[restringe_tipos_de_arquivo_img])
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
 
     class Meta:
         verbose_name = _('Partido')
