@@ -125,7 +125,7 @@ class NormaJuridicaForm(ModelForm):
 
         if not self.is_valid():
             return cleaned_data
-        if not self.instance or self.instance.numero != cleaned_data['numero']:
+        if self.instance.numero != cleaned_data['numero']:
             norma = NormaJuridica.objects.filter(ano=cleaned_data['ano'],
                                          numero=cleaned_data['numero'],
                                          tipo=cleaned_data['tipo']).exists()
