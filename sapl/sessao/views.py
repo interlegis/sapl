@@ -1199,8 +1199,8 @@ def get_turno(turno):
         return ''
 
 
-class ResumoView( DetailView):
-    template_name = 'impressos/sessao/resumo_pdf.html'
+class ResumoView(DetailView):
+    template_name = 'sessao/impressos/resumo_pdf.html'
     model = SessaoPlenaria
 
     def get(self, request, *args, **kwargs):
