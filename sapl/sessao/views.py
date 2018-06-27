@@ -1199,8 +1199,8 @@ def get_turno(turno):
         return ''
 
 
-class ResumoView( DetailView):
-    template_name = 'impressos/sessao/resumo_pdf.html'
+class ResumoView(DetailView):
+    template_name = 'sessao/impressos/resumo_pdf.html'
     model = SessaoPlenaria
 
     def get(self, request, *args, **kwargs):
@@ -1450,7 +1450,7 @@ class ResumoView( DetailView):
                  'decimo_ordenacao': dict_ord_template['oradores_expli']})
 
         return gerar_pdf_impressos(self.request, context,
-                                   'sessao/impressos/resumo_pdf.html')
+                                   self.template_name)
 
 
 class ExpedienteView(FormMixin, DetailView):
