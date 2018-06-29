@@ -22,6 +22,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.commands.flush import Command as FlushCommand
 from django.db import connections, transaction
 from django.db.models import Max, Q
 from pyaml import UnsafePrettyYAMLDumper
@@ -54,7 +55,6 @@ from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
 from .timezonesbrasil import get_timezone
 
 
-
 # YAML SETUP  ###############################################################
 def dict_representer(dumper, data):
     return dumper.represent_dict(data.items())
@@ -64,7 +64,7 @@ yaml.add_representer(OrderedDict, dict_representer)
 
 # importante para preservar a ordem ao ler yaml no python 3.5
 def dict_constructor(loader, node):
-        return OrderedDict(loader.construct_pairs(node))
+    return OrderedDict(loader.construct_pairs(node))
 
 yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
                      dict_constructor)
@@ -830,8 +830,8 @@ def migrar_dados():
 
         # excluindo database antigo.
         info('Excluindo entradas antigas do banco destino.')
-        call([PROJECT_DIR.child('manage.py'), 'flush',
-              '--database=default', '--no-input'], stdout=PIPE)
+        flush = FlushCommand()
+        flush.handle(database='default', interactive=False, verbosity=0)
 
         # apaga tipos de autor padrão (criados no flush acima)
         TipoAutor.objects.all().delete()
