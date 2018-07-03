@@ -1,5 +1,5 @@
 {% extends "crud/detail.html" %}
-{% load i18n %}
+{% load i18n sass_tags %}
 {% load crispy_forms_tags %}
 
 <!DOCTYPE html>
@@ -13,19 +13,27 @@
 {% endblock main_header %}
 
 <style type="text/css">
+  hr {
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: inset;
+    border-width: 1px;
+  }
+
   @media print{
 
     margin-bottom: 40px;
     counter-increment: page;
 
     .footer {
-      position: absolute;
-      right: 0;
+      position: fixed;
       bottom: 0;
-      left: 0;
       padding: 1rem;
       background-color: #efefef;
-      text-align: center;
+      align-content: space-between;
     }
   }
 </style>
@@ -71,14 +79,41 @@
   </div>
   <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:decimo_ordenacao %}
-  </div>  
+  </div>
 {% endblock detail_content %}
 
 {% block footer_container %}
-<footer id="footer" class="footer">
+<hr>
+<footer id="footer" class="footer page__row">
   <div class="container">
     <div class="row">
-      resumo
+      <div class="col-md-4">
+
+      </div>
+      <div class="col-md-4">
+
+      </div>
+      <div class="col-md-4">
+        {% if nome %}
+        <address>
+          <small>
+            <strong>
+              <span class="org">{{ nome }}</span>
+            </strong>
+            <br>
+            <span class="street-address">{{ endereco }}</span>
+            <br> CEP: <span class="postal-code">{{ cep }}</span> |
+              {% if telefone %}
+                Telefone: <span>{{ telefone }}</span>
+              {% else %}
+                Telefone: Não informado.
+              {% endif %}
+            <br>
+          </small>
+        </address>
+
+        {% endif %}
+      </div>
     </div>
   </div>
 </footer>
