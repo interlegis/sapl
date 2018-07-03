@@ -1195,8 +1195,8 @@ def adjust_normajuridica_depois_salvar():
         for model in [AssuntoNorma, NormaJuridica]]
 
     def filtra_assuntos_migrados(cod_assunto):
-        return [a for a in map(int, cod_assunto.split(','))
-                if a in assuntos_migrados]
+        cods = {int(a) for a in cod_assunto.split(',') if a}
+        return cods.intersection(assuntos_migrados)
 
     norma_para_assuntos = [
         (norma, filtra_assuntos_migrados(cod_assunto))
@@ -1206,7 +1206,7 @@ def adjust_normajuridica_depois_salvar():
     ligacao.objects.bulk_create(
         ligacao(normajuridica_id=norma, assuntonorma_id=assunto)
         for norma, assuntos in norma_para_assuntos
-        for assunto in assuntos)
+        for assunto in sorted(assuntos))
 
 
 def adjust_autor(new, old):
