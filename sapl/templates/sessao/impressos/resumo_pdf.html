@@ -13,17 +13,20 @@
 {% endblock main_header %}
 
 <style type="text/css">
-  .text_pdf{
-    font-family: verdana;
-    font-size: 77%;
-  }
-  .alert_message{
-    font-family: verdana;
-    font-size: 77%;
-    color: red;
+  @media print{
 
-    @media print {
-    p {page-break-before: avoid;}
+    margin-bottom: 40px;
+    counter-increment: page;
+
+    .footer {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 1rem;
+      background-color: #efefef;
+      text-align: center;
+    }
   }
 </style>
 
@@ -68,7 +71,17 @@
   </div>
   <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:decimo_ordenacao %}
-    <br /><br /><br />
   </div>  
 {% endblock detail_content %}
+
+{% block footer_container %}
+<footer id="footer" class="footer">
+  <div class="container">
+    <div class="row">
+      resumo
+    </div>
+  </div>
+</footer>
+{% endblock footer_container %}
+
 </body>
