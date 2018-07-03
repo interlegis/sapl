@@ -270,7 +270,7 @@ class UnidadeTramitacaoForm(ModelForm):
                 del cleaned_data[key]
 
         if len(cleaned_data) != 1:
-            msg = _('Somente um campo deve preenchido!')
+            msg = _('Somente um campo deve ser preenchido!')
             raise ValidationError(msg)
         return cleaned_data
 
