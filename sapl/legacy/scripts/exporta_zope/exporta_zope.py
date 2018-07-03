@@ -13,6 +13,7 @@ import sys
 from collections import defaultdict
 from contextlib import contextmanager
 from functools import partial
+from os.path import exists
 
 import git
 import magic
@@ -78,7 +79,8 @@ def br(obj):
 
 
 def guess_extension(fullname, buffer):
-    mime = magic.from_buffer(buffer, mime=True)
+    # um corte de apenas 1024 impediu a detecção correta de .docx
+    mime = magic.from_buffer(buffer[:4096], mime=True)
     extensao = EXTENSOES.get(mime)
     if extensao is not None:
         return extensao
@@ -143,17 +145,21 @@ def get_conteudo_dtml_method(doc):
     return doc['raw']
 
 
+def print_msg_poskeyerror(id):
+    print('#' * 80)
+    print('#' * 80)
+    print('ATENÇÃO: DIRETÓRIO corrompido: {}'.format(id))
+    print('#' * 80)
+    print('#' * 80)
+
+
 def enumerate_by_key_list(folder, key_list, type_key):
     for entry in folder.get(key_list, []):
         id, meta_type = entry['id'], entry[type_key]
         try:
-            obj = br(folder.get(id, None))
+            obj = folder.get(id, None)
         except POSKeyError:
-            print('#' * 80)
-            print('#' * 80)
-            print('ATENÇÃO: DIRETÓRIO corrompido: {}'.format(id))
-            print('#' * 80)
-            print('#' * 80)
+            print_msg_poskeyerror(id)
         else:
             yield id, obj, meta_type
 
@@ -169,9 +175,12 @@ def enumerate_btree(folder):
     contagem_esperada = folder['_count'].value
     tree = folder['_tree']
     contagem_real = 0  # para o caso em que não haja itens
-    for contagem_real, (id, obj) in enumerate(tree.iteritems(), start=1):
-        obj, meta_type = br(obj), type(obj).__name__
-        yield id, obj, meta_type
+    try:
+        for contagem_real, (id, obj) in enumerate(tree.iteritems(), start=1):
+            meta_type = type(obj).__name__
+            yield id, obj, meta_type
+    except POSKeyError:
+        print_msg_poskeyerror(folder['id'])
     # verificação de consistência
     if contagem_esperada != contagem_real:
         print('ATENÇÃO: contagens diferentes na btree: '
@@ -197,10 +206,10 @@ def logando_nao_identificados():
         print('#' * 80)
 
 
-def dump_folder(folder, path, salvar, enum=enumerate_folder):
+def dump_folder(folder, path, salvar, mtimes, enum=enumerate_folder):
     name = folder['id']
     path = os.path.join(path, name)
-    if not os.path.exists(path):
+    if not exists(path):
         os.makedirs(path)
     for id, obj, meta_type in enum(folder):
         # pula pastas *_old (presentes em várias bases)
@@ -210,8 +219,20 @@ def dump_folder(folder, path, salvar, enum=enumerate_folder):
         if dump == '?':
             nao_identificados[meta_type].append(path + '/' + id)
         elif dump:
-            id_interno = dump(obj, path, salvar)
-            assert id == id_interno
+            if isinstance(dump, partial) and dump.func == dump_folder:
+                try:
+                    dump(br(obj), path, salvar, mtimes)
+                except POSKeyError as e:
+                    print_msg_poskeyerror(id)
+                    continue
+            else:
+                # se o objeto for mais recente que o da última exportação
+                mtime = obj._p_mtime
+                fullname = os.path.join(path, id)
+                if mtime > mtimes.get(fullname, 0):
+                    id_interno = dump(br(obj), path, salvar)
+                    assert id == id_interno
+                    mtimes[fullname] = mtime
     return name
 
 
@@ -223,7 +244,7 @@ def read_sde(element):
 
     def read_properties():
         for id, obj, meta_type in enumerate_properties(element):
-            yield id, decode_iso8859(obj)
+            yield id, decode_iso8859(br(obj))
 
     def read_children():
         for id, obj, meta_type in enumerate_folder(element):
@@ -237,7 +258,7 @@ def read_sde(element):
                 # ignoramos os scrips python de eventos dos templates
                 yield {'id': id,
                        'meta_type': meta_type,
-                       'dados': read_sde(obj)}
+                       'dados': read_sde(br(obj))}
 
     data = dict(read_properties())
     children = list(read_children())
@@ -335,9 +356,12 @@ def dump_usuarios(sapl, path, salvar):
     save_as_yaml(path, 'usuarios.yaml', users, salvar)
 
 
-def _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar):
-    assert Path(data_fs_path).exists()
-    assert Path(documentos_fs_path).exists()
+def _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar, mtimes):
+    assert exists(data_fs_path)
+    assert exists(documentos_fs_path)
+    # precisamos trabalhar com strings e não Path's para as comparações de mtimes
+    data_fs_path, documentos_fs_path, destino = map(str, (
+        data_fs_path, documentos_fs_path, destino))
 
     app, close_db = get_app(data_fs_path)
     try:
@@ -352,12 +376,12 @@ def _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar):
         sapl = find_sapl(app)
         # extrai folhas XSLT
         if 'XSLT' in sapl:
-            dump_folder(br(sapl['XSLT']), destino, salvar)
+            dump_folder(br(sapl['XSLT']), destino, salvar, mtimes)
 
         # extrai documentos
         docs = br(sapl['sapl_documentos'])
         with logando_nao_identificados():
-            dump_folder(docs, destino, salvar)
+            dump_folder(docs, destino, salvar, mtimes)
             dump_propriedades(docs, destino, salvar)
     finally:
         close_db()
@@ -365,12 +389,6 @@ def _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar):
 
 def repo_execute(repo, cmd, *args):
     return repo.git.execute(cmd.split() + list(args))
-
-
-def get_annex_hashes(repo):
-    hashes = repo_execute(
-        repo, 'git annex find', '--format=${keyname}\n', '--include=*')
-    return {os.path.splitext(h)[0] for h in hashes.splitlines()}
 
 
 def ajusta_extensao(fullname, conteudo):
@@ -381,23 +399,15 @@ def ajusta_extensao(fullname, conteudo):
 
 
 def build_salvar(repo):
-    """Constroi função salvar que pula arquivos que já estão no annex
-    """
-    hashes = get_annex_hashes(repo)
 
     def salvar(fullname, conteudo):
-        sha = hashlib.sha256()
-        sha.update(conteudo)
-        if sha.hexdigest() in hashes:
-            print('- hash encontrado - {}'.format(fullname))
-        else:
-            fullname = ajusta_extensao(fullname, conteudo)
-            if os.path.exists(fullname):
-                # destrava arquivo pré-existente (o conteúdo mudou)
-                repo_execute(repo, 'git annex unlock', fullname)
-            with open(fullname, 'w') as arq:
-                arq.write(conteudo)
-            print(fullname)
+        fullname = ajusta_extensao(fullname, conteudo)
+        if exists(fullname):
+            # destrava arquivo pré-existente (o conteúdo mudou)
+            repo_execute(repo, 'git annex unlock', fullname)
+        with open(fullname, 'w') as arq:
+            arq.write(conteudo)
+        print(fullname)
 
     return salvar
 
@@ -409,8 +419,8 @@ def dump_sapl(sigla):
             'datafs', '{}_cm_{}.fs'.format(prefixo, sigla))
         for prefixo in ('Data', 'DocumentosSapl')]
 
-    assert data_fs_path.exists(), 'Origem não existe: {}'.format(data_fs_path)
-    if not documentos_fs_path.exists():
+    assert exists(data_fs_path), 'Origem não existe: {}'.format(data_fs_path)
+    if not exists(documentos_fs_path):
         documentos_fs_path = data_fs_path
 
     nome_banco_legado = 'sapl_cm_{}'.format(sigla)
@@ -427,12 +437,17 @@ def dump_sapl(sigla):
     salvar = build_salvar(repo)
     try:
         finalizado = False
-        _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar)
+        arq_mtimes = Path(repo.working_dir, 'mtimes.yaml')
+        mtimes = yaml.load(
+            arq_mtimes.read_file()) if arq_mtimes.exists() else {}
+        _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar, mtimes)
         finalizado = True
     finally:
         # grava mundaças
         repo_execute(repo, 'git annex add sapl_documentos')
+        arq_mtimes.write_file(yaml.safe_dump(mtimes, allow_unicode=True))
         repo.git.add(A=True)
+        # atualiza repo
         if 'master' not in repo.heads or repo.index.diff('HEAD'):
             # se de fato existe mudança
             status = 'completa' if finalizado else 'parcial'

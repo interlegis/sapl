@@ -9,7 +9,7 @@ from image_cropping.fields import ImageCropField
 
 from sapl.base.models import CasaLegislativa
 from sapl.comissoes.models import Reuniao
-from sapl.legacy.migracao_dados import exec_legado
+from sapl.legacy.migracao_dados import EXISTE_REUNIAO_NO_LEGADO, exec_legado
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
 from sapl.norma.models import NormaJuridica
@@ -36,9 +36,9 @@ DOCS = {
 }
 
 # acrescenta reuniões (que só existem no sapl 3.0)
-if 'reuniao_comissao' in set(exec_legado('show tables')):
+if EXISTE_REUNIAO_NO_LEGADO:
     DOCS[Reuniao] = [('upload_pauta', 'reuniao_comissao/{}_pauta'),
-                     ('upload_ata', 'reuniao_comissao/{}_ata')],
+                     ('upload_ata', 'reuniao_comissao/{}_ata')]
 
 
 DOCS = {model: [(campo, join('sapl_documentos', origem))
@@ -53,7 +53,7 @@ def mover_documento(repo, origem, destino, ignora_origem_ausente=False):
         print('Origem ignorada ao mover documento: {}'.format(origem))
         return
     os.makedirs(os.path.dirname(destino), exist_ok=True)
-    repo.git.mv(origem, destino)
+    os.rename(origem, destino)
 
 
 def migrar_logotipo(repo, casa, propriedades):
@@ -140,6 +140,7 @@ def migrar_docs_por_ids(repo, model):
                     if tem_cropping:
                         # conserta link do git annex (antes do commit)
                         # pois o conteúdo das imagens é acessado pelo cropping
+                        repo.git.add(destino)
                         repo.git.execute('git annex fix'.split() + [destino])
                     obj.save()
                 else:
@@ -162,10 +163,16 @@ def migrar_documentos(repo):
 
     # garante que o conteúdo das fotos dos parlamentares esteja presente
     # (necessário para o cropping de imagem)
-    repo.git.execute('git annex get sapl_documentos/parlamentar'.split())
+    if os.path.exists(
+            os.path.join(repo.working_dir, 'sapl_documentos/parlamentar')):
+        repo.git.execute('git annex get sapl_documentos/parlamentar'.split())
 
     for model in DOCS:
         migrar_docs_por_ids(repo, model)
+
+    # versiona modificações
+    repo.git.add('-A', '.')
+    repo.index.commit('Migração dos documentos completa')
 
     sobrando = [join(dir, file)
                 for (dir, _, files) in os.walk(join(repo.working_dir,

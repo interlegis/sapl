@@ -22,6 +22,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.commands.flush import Command as FlushCommand
 from django.db import connections, transaction
 from django.db.models import Max, Q
 from pyaml import UnsafePrettyYAMLDumper
@@ -52,6 +53,21 @@ from sapl.utils import normalize
 
 from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
 from .timezonesbrasil import get_timezone
+
+
+# YAML SETUP  ###############################################################
+def dict_representer(dumper, data):
+    return dumper.represent_dict(data.items())
+
+yaml.add_representer(OrderedDict, dict_representer)
+
+
+# importante para preservar a ordem ao ler yaml no python 3.5
+def dict_constructor(loader, node):
+    return OrderedDict(loader.construct_pairs(node))
+
+yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                     dict_constructor)
 
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
@@ -567,8 +583,8 @@ def propaga_exclusoes():
 def uniformiza_banco():
     exec_legado('SET SESSION sql_mode = "";')  # desliga checagens do mysql
 
-    checa_registros_votacao_ambiguos_e_remove_nao_usados()
     propaga_exclusoes()
+    checa_registros_votacao_ambiguos_e_remove_nao_usados()
 
     garante_coluna_no_legado('proposicao',
                              'num_proposicao int(11) NULL')
@@ -649,6 +665,7 @@ sessao_plenaria_presenca | dat_sessao = NULL           | dat_sessao = 0
 
     unifica_autores_repetidos_no_legado('cod_parlamentar')
     unifica_autores_repetidos_no_legado('cod_comissao')
+    unifica_autores_repetidos_no_legado('col_username')
 
     # é importante reverter a exclusão de autores somente depois, para que a
     # unificação possa dar prioridade às informações dos autores não excluídos
@@ -739,13 +756,6 @@ def reinicia_sequence(model, id):
 REPO = git.Repo.init(DIR_REPO)
 
 
-def dict_representer(dumper, data):
-    return dumper.represent_dict(data.items())
-
-
-yaml.add_representer(OrderedDict, dict_representer)
-
-
 # configura timezone de migração
 match = re.match('sapl_cm_(.*)', NOME_BANCO_LEGADO)
 sigla_casa = match.group(1)
@@ -820,8 +830,8 @@ def migrar_dados():
 
         # excluindo database antigo.
         info('Excluindo entradas antigas do banco destino.')
-        call([PROJECT_DIR.child('manage.py'), 'flush',
-              '--database=default', '--no-input'], stdout=PIPE)
+        flush = FlushCommand()
+        flush.handle(database='default', interactive=False, verbosity=0)
 
         # apaga tipos de autor padrão (criados no flush acima)
         TipoAutor.objects.all().delete()
@@ -854,12 +864,17 @@ def move_para_depois_de(lista, movido, referencias):
     return lista
 
 
+TABELAS_LEGADO = [t for (t,) in exec_legado('show tables')]
+EXISTE_REUNIAO_NO_LEGADO = 'reuniao_comissao' in TABELAS_LEGADO
+
+
 def get_models_a_migrar():
     models = [model for app in appconfs for model in app.models.values()
               if model in field_renames]
     # retira reuniões quando não existe na base legada
     # (só existe no sapl 3.0)
-    if 'reuniao_comissao' not in list(exec_legado('show tables')):
+    tabelas_legado = [t for (t,) in exec_legado('show tables')]
+    if not EXISTE_REUNIAO_NO_LEGADO:
         models.remove(Reuniao)
     # Devido à referência TipoProposicao.tipo_conteudo_related
     # a migração de TipoProposicao precisa ser feita
@@ -1180,8 +1195,8 @@ def adjust_normajuridica_depois_salvar():
         for model in [AssuntoNorma, NormaJuridica]]
 
     def filtra_assuntos_migrados(cod_assunto):
-        return [a for a in map(int, cod_assunto.split(','))
-                if a in assuntos_migrados]
+        cods = {int(a) for a in cod_assunto.split(',') if a}
+        return cods.intersection(assuntos_migrados)
 
     norma_para_assuntos = [
         (norma, filtra_assuntos_migrados(cod_assunto))
@@ -1191,7 +1206,7 @@ def adjust_normajuridica_depois_salvar():
     ligacao.objects.bulk_create(
         ligacao(normajuridica_id=norma, assuntonorma_id=assunto)
         for norma, assuntos in norma_para_assuntos
-        for assunto in assuntos)
+        for assunto in sorted(assuntos))
 
 
 def adjust_autor(new, old):
@@ -1357,6 +1372,7 @@ def gravar_marco():
 
     # salva mudanças
     REPO.git.add([dir_dados.name])
+    REPO.git.add([arq_backup.name])
     if 'master' not in REPO.heads or REPO.index.diff('HEAD'):
         # se de fato existe mudança
         REPO.index.commit('Grava marco')
