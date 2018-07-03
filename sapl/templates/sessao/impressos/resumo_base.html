@@ -34,11 +34,11 @@
 <body style="margin-left:80px;margin-right:80px; margin-top: -50px">
 
 {% block detail_content %}
-  <div style="page-break-before: avoid;">
+  <div style="page-break-inside: avoid;">
   {% include 'sessao/blocos_resumo/'|add:primeiro_ordenacao %}
     <br /><br /><br />
   </div>
-  <div style="page-break-before: avoid;">
+  <div style="page-break-inside: avoid;">
     {% include 'sessao/blocos_resumo/'|add:segundo_ordenacao %}
     <br /><br /><br />
   </div>
