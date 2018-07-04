@@ -16,7 +16,7 @@ DJANGODIR=/var/interlegis/sapl/                    # Django project directory (*
 SOCKFILE=/var/interlegis/sapl/run/gunicorn.sock    # we will communicate using this unix socket (*)
 USER=`whoami`                                   # the user to run as (*)
 GROUP=`whoami`                                  # the group to run as (*)
-NUM_WORKERS=9                                   # how many worker processes should Gunicorn spawn (*)
+NUM_WORKERS=3                                   # how many worker processes should Gunicorn spawn (*)
                                                 # NUM_WORKERS = 2 * CPUS + 1
 TIMEOUT=60
 MAX_REQUESTS=100                                # number of requests before restarting worker
@@ -42,6 +42,7 @@ test -d $RUNDIR || mkdir -p $RUNDIR
 # Programs meant to be run under supervisor should not daemonize themselves (do not use --daemon)
 exec gunicorn ${DJANGO_WSGI_MODULE}:application \
   --name $NAME \
+  --log-level debug \
   --timeout $TIMEOUT \
   --workers $NUM_WORKERS \
   --max-requests $MAX_REQUESTS \
