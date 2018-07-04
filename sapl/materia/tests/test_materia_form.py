@@ -169,3 +169,95 @@ def test_valida_campos_obrigatorios_devolver_proposicao_form():
     assert errors['__all__'] == [_('Adicione uma Justificativa para devolução.')]
 
     assert len(errors) == 1
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_relatoria_form():
+    form = forms.RelatoriaForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+    assert errors['parlamentar'] == [_('Este campo é obrigatório.')]
+    assert errors['data_designacao_relator'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 2
+
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_tramitacao_form():
+    form = forms.TramitacaoForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['unidade_tramitacao_local'] == [_('Este campo é obrigatório.')]
+    assert errors['texto'] == [_('Este campo é obrigatório.')]
+    assert errors['status'] == [_('Este campo é obrigatório.')]
+    assert errors['data_tramitacao'] == [_('Este campo é obrigatório.')]
+    assert errors['unidade_tramitacao_destino'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 5
+
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_tramitacao_update_form():
+    form = forms.TramitacaoUpdateForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['unidade_tramitacao_local'] == [_('Este campo é obrigatório.')]
+    assert errors['texto'] == [_('Este campo é obrigatório.')]
+    assert errors['status'] == [_('Este campo é obrigatório.')]
+    assert errors['data_tramitacao'] == [_('Este campo é obrigatório.')]
+    assert errors['unidade_tramitacao_destino'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 5
+
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_legislacao_citada_form():
+    form = forms.LegislacaoCitadaForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+    assert errors['tipo'] == [_('Este campo é obrigatório.')]
+    assert errors['ano'] == [_('Este campo é obrigatório.')]
+    assert errors['numero'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 3
+
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_numeracao_form():
+    form = forms.NumeracaoForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['tipo_materia'] == [_('Este campo é obrigatório.')]
+    assert errors['ano_materia'] == [_('Este campo é obrigatório.')]
+    assert errors['numero_materia'] == [_('Este campo é obrigatório.')]
+    assert errors['data_materia'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 4
+
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_anexada_form():
+    form = forms.AnexadaForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['tipo'] == [_('Este campo é obrigatório.')]
+    assert errors['ano'] == [_('Este campo é obrigatório.')]
+    assert errors['numero'] == [_('Este campo é obrigatório.')]
+    assert errors['data_anexacao'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 4
