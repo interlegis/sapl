@@ -64,7 +64,7 @@ def test_incluir_parlamentar_errors(admin_client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_incluir_comissao_submit():
+def test_incluir_comissao_submit(admin_client):
     tipo = mommy.make(TipoComissao,
                       sigla='T',
                       nome='Teste')
