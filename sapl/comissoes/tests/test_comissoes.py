@@ -1,9 +1,11 @@
 import pytest
 from django.core.urlresolvers import reverse
+from django.utils.translation import ugettext as _
 from model_mommy import mommy
 
 from sapl.comissoes.models import Comissao, Composicao, Periodo, TipoComissao
 from sapl.parlamentares.models import Filiacao, Parlamentar, Partido
+from sapl.comissoes import forms
 
 
 def make_composicao(comissao):
@@ -62,7 +64,7 @@ def test_incluir_parlamentar_errors(admin_client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_incluir_comissao_submit(admin_client):
+def test_incluir_comissao_submit():
     tipo = mommy.make(TipoComissao,
                       sigla='T',
                       nome='Teste')
@@ -96,3 +98,15 @@ def test_incluir_comissao_errors(admin_client):
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors['data_criacao'] ==
             ['Este campo é obrigatório.'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_periodo_invalidas():
+
+    form = forms.PeriodoForm(data={'data_inicio': '10/11/2017',
+                                   'data_fim': '09/11/2017'
+                                  })
+    assert not form.is_valid()
+    assert form.errors['__all__'] == [_('A Data Final não pode ser menor que '
+                                        'a Data Inicial')]
+    

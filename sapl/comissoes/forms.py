@@ -61,7 +61,8 @@ class PeriodoForm(forms.ModelForm):
         data_fim = cleaned_data['data_fim']
 
         if data_fim and data_fim < data_inicio:
-            raise ValidationError('Data início não pode ser superior a data de fim')
+            raise ValidationError('A Data Final não pode ser menor que '
+                                        'a Data Inicial')
         return cleaned_data
 
 
