@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 from model_mommy import mommy
 
-from sapl.comissoes.models import Comissao, Composicao, Periodo, TipoComissao
+from sapl.comissoes.models import Comissao, Composicao, Periodo, TipoComissao, Reuniao
 from sapl.parlamentares.models import Filiacao, Parlamentar, Partido
 from sapl.comissoes import forms
 
@@ -109,4 +109,23 @@ def test_periodo_invalidas():
     assert not form.is_valid()
     assert form.errors['__all__'] == [_('A Data Final não pode ser menor que '
                                         'a Data Inicial')]
-    
+  
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_reuniao_form():
+    form = forms.ReuniaoForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['comissao'] == [_('Este campo é obrigatório.')]
+    assert errors['periodo'] == [_('Este campo é obrigatório.')]
+    assert errors['numero'] == [_('Este campo é obrigatório.')]
+    assert errors['nome'] == [_('Este campo é obrigatório.')]
+    assert errors['data'] == [_('Este campo é obrigatório.')]
+    assert errors['hora_inicio'] == [_('Este campo é obrigatório.')]
+    assert errors['hora_fim'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 7
+  
