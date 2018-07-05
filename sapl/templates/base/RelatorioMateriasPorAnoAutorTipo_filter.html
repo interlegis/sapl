@@ -12,7 +12,8 @@
       <a href="{% url 'sapl.base:materia_por_ano_autor_tipo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
     </div>
     <br /><br /><br /><br />
-
+    <h1>Autorias</h1>
+      <br/><br/>
     {% for r in relatorio %}
        <h3>{{r.autor}}</h3><br/>
        <table class="table table-bordered table-hover">
@@ -35,7 +36,30 @@
        <br/>
     {% endfor %}
     <br/><br/>
-
+    <h1>Coautorias</h1>
+      <br/><br/>
+    {% for r in corelatorio %}
+       <h3>{{r.autor}}</h3><br/>
+       <table class="table table-bordered table-hover">
+         <thead class="thead-default" >
+           <tr class="active">
+             <th>Natureza da Propositura</th>
+             <th>Quantidade</th>
+           </tr>
+         </thead>
+         <tbody>
+           {% for i in r.materia %}
+             <tr>
+               <td>{{i.0}}</td><td>{{i.1}}</td>
+             </tr>
+           {% endfor %}
+         </tbody>
+       </table>
+       <h3>Total: {{r.total}}</h3><br/>
+       <br/>
+       <br/>
+    {% endfor %}
+    <br/><br/>
     <table class="table table-bordered table-hover">
       <thead class="thead-default" >
         <tr class="active"><th colspan="2" class="text-center">QUADRO GERAL</th></tr>

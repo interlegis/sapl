@@ -420,9 +420,9 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
     filterset_class = RelatorioMateriasPorAnoAutorTipoFilterSet
     template_name = 'base/RelatorioMateriasPorAnoAutorTipo_filter.html'
 
-    def get_materias_autor_ano(self, ano):
+    def get_materias_autor_ano(self, ano, primeiro_autor):
 
-        autorias = Autoria.objects.filter(materia__ano=ano).values(
+        autorias = Autoria.objects.filter(materia__ano=ano, primeiro_autor=primeiro_autor).values(
             'autor',
             'materia__tipo__sigla',
             'materia__tipo__descricao').annotate(
@@ -488,7 +488,8 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
 
         if 'ano' in self.request.GET and self.request.GET['ano']:
             ano = int(self.request.GET['ano'])
-            context['relatorio'] = self.get_materias_autor_ano(ano)
+            context['relatorio'] = self.get_materias_autor_ano(ano, True)
+            context['corelatorio'] = self.get_materias_autor_ano(ano, False)
         else:
             context['relatorio'] = []
 

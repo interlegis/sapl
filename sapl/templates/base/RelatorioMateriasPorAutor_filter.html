@@ -36,7 +36,8 @@
         <tr class="active">
           <th>Matéria</th>
           <th>Ementa</th>
-          <th>Autor(es)</th>
+          <th>Autor</th>
+          <th>Coautor(es)</th>
         </tr>
       </thead>
       <tbody>
@@ -48,7 +49,16 @@
             <td>{{materia.ementa}}</td>
             <td>
               {% for autor in materia.autoria_set.all %}
+                  {% if autor.primeiro_autor %}
                 {{autor.autor}}<br />
+                  {% endif %}
+              {% endfor %}
+            </td>
+            <td>
+              {% for autor in materia.autoria_set.all %}
+                  {% if not autor.primeiro_autor %}
+                {{autor.autor}}<br />
+                  {% endif %}
               {% endfor %}
             </td>
           </tr>
