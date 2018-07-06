@@ -70,15 +70,15 @@
 				<th>Autor</th>
 				<td>{{ protocolo.autor }}</td>
 			</tr>
-                {% else %}
-                        <tr>   
-                                <th>Assunto</th>
-                                <td>{{ protocolo.assunto_ementa }}</td>
-                        </tr>
-                        <tr>
-                                <th>Interessado</th>
-                                <td>{{ protocolo.interessado }}</td>
-                        </tr>
+        {% else %}
+            <tr>
+                    <th>Assunto</th>
+                    <td>{{ protocolo.assunto_ementa }}</td>
+            </tr>
+            <tr>
+                    <th>Interessado</th>
+                    <td>{{ protocolo.interessado }}</td>
+            </tr>
 		{% endif %}
 		<tr>
 			<th>Natureza</th>
