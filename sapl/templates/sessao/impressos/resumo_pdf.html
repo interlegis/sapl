@@ -1,5 +1,5 @@
 {% extends "crud/detail.html" %}
-{% load i18n sass_tags %}
+{% load i18n sass_tags common_tags %}
 {% load crispy_forms_tags %}
 
 <!DOCTYPE html>
@@ -13,6 +13,11 @@
 {% endblock main_header %}
 
 <style type="text/css">
+  .text_pdf{
+    font-family: verdana;
+    font-size: 77%;
+  }
+
   hr {
     display: block;
     margin-top: 0.5em;
@@ -28,6 +33,8 @@
     margin-bottom: 40px;
     counter-increment: page;
 
+    p {page-break-before: avoid;}
+
     .footer {
       position: fixed;
       bottom: 0;
@@ -38,7 +45,7 @@
   }
 </style>
 
-<body style="margin-left:80px;margin-right:80px; margin-top: -50px">
+<body id="text_pdf" style="margin-left:80px;margin-right:80px; margin-top: -50px">
 
 {% block detail_content %}
   <div style="page-break-inside: avoid;">
@@ -93,7 +100,7 @@
       <div class="col-md-4">
 
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4" style="align-content: flex-end">
         {% if nome %}
         <address>
           <small>
