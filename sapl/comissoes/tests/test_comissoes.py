@@ -109,7 +109,20 @@ def test_periodo_invalidas():
     assert not form.is_valid()
     assert form.errors['__all__'] == [_('A Data Final não pode ser menor que '
                                         'a Data Inicial')]
-  
+
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_periodo_form():
+    form = forms.PeriodoForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['data_inicio'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 1
+    
 
 @pytest.mark.django_db(transaction=False)
 def test_valida_campos_obrigatorios_reuniao_form():
