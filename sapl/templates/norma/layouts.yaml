@@ -45,7 +45,7 @@ LegislacaoCitada:
 
 LegislacaoCitadaDetail:
   {% trans 'Legislação Citada' %}:
-  - norma
+  - norma|fk_urlize_for_detail
   - disposicoes  parte  livro  titulo
   - capitulo  secao  subsecao  artigo
   - paragrafo  inciso  alinea  item
