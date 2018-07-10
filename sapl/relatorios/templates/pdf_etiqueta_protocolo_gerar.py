@@ -98,7 +98,11 @@ def protocolos(lst_protocolos, dic_cabecalho):
         tmp_data += '\t\t<para style="P2"><b>' + \
             dic['natureza']
         if dic['ident_processo']:
-            tmp_data +=  ' - ' + dic['ident_processo'] + '</b></para>\n'
+            # Limita o tamanho do texto para não "explodir" as etiquetas
+            descricao = dic['ident_processo'][:60]
+            if len(dic['ident_processo']) > 60:
+                descricao += '...'
+            tmp_data += ' - ' + descricao + '</b></para>\n'
         else:
             tmp_data += '</b></para>\n'
 
