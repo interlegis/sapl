@@ -85,10 +85,16 @@ def votacao_aberta(request):
 def votante_view(request):
     # Pega o votante relacionado ao usuário
     template_name = 'painel/voto_nominal.html'
+    context = {}
     try:
         votante = Votante.objects.get(user=request.user)
     except ObjectDoesNotExist:
-        raise Http404()
+        msg = _("Usuário não cadastrado como votante na tela de parlamentares. Contate a administração de sua Casa Legislativa!")
+        context.update({
+            'error_message':msg
+        })
+
+        return render(request, template_name, context)
 
     context = {'head_title': str(_('Votação Individual'))}
 
