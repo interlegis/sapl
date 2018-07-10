@@ -36,6 +36,8 @@ create_env() {
     echo "EMAIL_SEND_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "DEFAULT_FROM_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "SERVER_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
+    echo "SOLR_URL = ""${SOLR_URL-'http://saplsolr:8983/solr/sapl'}" >> $FILENAME
+
     
     echo "[ENV FILE] done."
 }
@@ -50,6 +52,43 @@ create_env
 yes yes | python3 manage.py migrate
 #python3 manage.py collectstatic --no-input
 # python3 manage.py rebuild_index --noinput &
+
+
+## SOLR
+
+CORE_EXISTS=$(curl -s 'http://saplsolr:8983/solr/admin/cores?action=STATUS&core=sapl' | jq '.status.sapl != null')
+
+if [ CORE_EXISTS = false ]; then
+
+    echo "CREATING CORE sapl..."
+
+    mkdir solr_data/sapl && cp -r solr/sapl_configset/* solr_data/sapl/
+
+    CREATE_CORE=$(curl -s "http://saplsolr:8983/solr/admin/cores?action=CREATE&name=sapl")
+    RESULT_CODE=$(echo $CREATE_CORE | jq '.error.code')
+    RESULT_MSG=$(echo $CREATE_CORE | jq '.error.msg')
+
+    if [ $RESULT_CODE -eq 500 ]; then
+        echo "Erro ao criar core sapl ["$RESULT_CODE"], mensagem:"$RESULT_MSG
+    else
+        echo "Solr core criado com sucesso."
+    fi
+else
+    echo "Core solr existente."
+fi
+
+NUM_DOCS=$(curl -s 'http://saplsolr:8983/solr/admin/cores?action=STATUS&core=sapl' | jq -r '.status.sapl.index.numDocs')
+echo "Documentos indexados:"$NUM_DOCS
+
+if [ $NUM_DOCS -eq 0 ]; then
+   echo "Reconstruindo índice textual totalmente..."
+   yes | python3 manage.py rebuild_index &
+   echo "Reconstrução completa."
+else
+   echo "Atualizando o índice textual..."
+   yes | python3 manage.py update_index &
+fi
+
 
 echo "Criando usuário admin..."
 
