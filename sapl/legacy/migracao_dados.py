@@ -513,9 +513,10 @@ def checa_registros_votacao_ambiguos_e_remove_nao_usados():
 
     # interrompe migração se houver registros ambíguos
     ambiguos = ordem.intersection(expediente)
-    assert not ambiguos, '''Existe(m) RegistroVotacao ambíguo(s): {}
-    Corrija os dados originais antes de migrar!'''.format(
-        ambiguos)
+    if ambiguos:
+        warn('registro_votacao_ambiguos',
+             'Existe(m) RegistroVotacao ambíguo(s): {cod_votacao}',
+             {'cod_votacao': ambiguos})
 
     # exclui registros não usados (zumbis)
     todos = set(primeira_coluna(exec_legado(
@@ -1109,6 +1110,18 @@ def adjust_protocolo_antes_salvar(new, old):
              {'cod_protocolo': old.cod_protocolo})
 
 
+ARQUIVO_COMO_RESOLVER_REGISTRO_VOTACAO_AMBIGUO = \
+    'como_resolver_registro_votacao_ambiguo.yaml'
+
+
+def get_como_resolver_registro_votacao_ambiguo():
+    path = DIR_REPO.child(ARQUIVO_COMO_RESOLVER_REGISTRO_VOTACAO_AMBIGUO)
+    if path.exists():
+        return yaml.load(path.read_file())
+    else:
+        return {}
+
+
 def adjust_registrovotacao_antes_salvar(new, old):
     ordem_dia = OrdemDia.objects.filter(
         pk=old.cod_ordem, materia=old.cod_materia)
@@ -1119,6 +1132,19 @@ def adjust_registrovotacao_antes_salvar(new, old):
         new.ordem = ordem_dia[0]
     if not ordem_dia and expediente_materia:
         new.expediente = expediente_materia[0]
+    # registro de votação ambíguo
+    if ordem_dia and expediente_materia:
+        como_resolver = get_como_resolver_registro_votacao_ambiguo()
+        campo = como_resolver[new.id]
+        if campo.startswith('ordem'):
+            new.ordem = ordem_dia[0]
+        elif campo.startswith('expediente'):
+            new.expediente = expediente_materia[0]
+        else:
+            raise Exception('''
+                Registro de Votação ambíguo: {}
+                Resolva criando o arquivo {}'''.format(
+                new.id, ARQUIVO_COMO_RESOLVER_REGISTRO_VOTACAO_AMBIGUO))
 
 
 def adjust_tipoafastamento(new, old):
@@ -1195,8 +1221,10 @@ def adjust_normajuridica_depois_salvar():
         for model in [AssuntoNorma, NormaJuridica]]
 
     def filtra_assuntos_migrados(cod_assunto):
+        if not cod_assunto:
+            return []
         cods = {int(a) for a in cod_assunto.split(',') if a}
-        return cods.intersection(assuntos_migrados)
+        return sorted(cods.intersection(assuntos_migrados))
 
     norma_para_assuntos = [
         (norma, filtra_assuntos_migrados(cod_assunto))
@@ -1206,7 +1234,7 @@ def adjust_normajuridica_depois_salvar():
     ligacao.objects.bulk_create(
         ligacao(normajuridica_id=norma, assuntonorma_id=assunto)
         for norma, assuntos in norma_para_assuntos
-        for assunto in sorted(assuntos))
+        for assunto in assuntos)
 
 
 def adjust_autor(new, old):

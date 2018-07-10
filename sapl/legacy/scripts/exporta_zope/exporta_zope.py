@@ -395,13 +395,18 @@ def ajusta_extensao(fullname, conteudo):
     base, extensao = os.path.splitext(fullname)
     if extensao not in ['.xsl', '.xslt', '.yaml', '.css']:
         extensao = guess_extension(fullname, conteudo)
-    return base + extensao
+    return base + extensao, extensao
 
 
 def build_salvar(repo):
 
     def salvar(fullname, conteudo):
-        fullname = ajusta_extensao(fullname, conteudo)
+        fullname, extensao = ajusta_extensao(fullname, conteudo)
+
+        # ajusta caminhos XSLT p conteúdos relacionados ao SDE
+        if extensao in ['.xsl', '.xslt', '.xml']:
+            conteudo = conteudo.replace('"XSLT/HTML', '"/XSLT/HTML')
+
         if exists(fullname):
             # destrava arquivo pré-existente (o conteúdo mudou)
             repo_execute(repo, 'git annex unlock', fullname)
