@@ -4,10 +4,9 @@
 
   {% block actions %}
     <div class="actions btn-group pull-right" role="group">
-      <!--
       <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-default">
           Pesquisa Textual
-      </a> -->
+      </a>
 
       {% if perms.materia.add_materialegislativa %}
       <a href="{% url 'sapl.materia:materialegislativa_create' %}" class="btn btn-default">

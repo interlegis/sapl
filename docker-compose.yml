@@ -1,32 +1,57 @@
-sapldb:
-  image: postgres
-  restart: always
-  environment:
-    POSTGRES_PASSWORD: sapl
-    POSTGRES_USER: sapl
-    POSTGRES_DB: sapl
-    PGDATA : /var/lib/postgresql/data/
-  volumes:
-    - sapldb_data:/var/lib/postgresql/data/
-  ports:
-    - "5432:5432"
-sapl:
-  image: interlegis/sapl:3.1.104
-  restart: always
-  environment:
-    ADMIN_PASSWORD: interlegis
-    ADMIN_EMAIL: email@dominio.net
-    DEBUG: 'False'
-    USE_TLS: 'False'
-    EMAIL_PORT: 587
-    EMAIL_HOST: smtp.dominio.net
-    EMAIL_HOST_USER: usuariosmtp
-    EMAIL_HOST_PASSWORD: senhasmtp
-    TZ: America/Sao_Paulo
-  volumes:
-    - sapl_data:/var/interlegis/sapl/data
-    - sapl_media:/var/interlegis/sapl/media
-  links:
-    - sapldb
-  ports:
-    - "80:80"
+version: '2'
+services:
+    sapldb:
+      image: postgres:9.6.8-alpine
+      restart: always
+      environment:
+        POSTGRES_PASSWORD: sapl
+        POSTGRES_USER: sapl
+        POSTGRES_DB: sapl
+        PGDATA : /var/lib/postgresql/data/
+      volumes:
+        - sapldb_data:/var/lib/postgresql/data/
+      ports:
+        - "5432:5432"
+
+    saplsolr:
+      image: solr:7.4-alpine
+      restart: always
+      volumes:
+        - solr_data:/opt/solr/server/solr
+        - solr_configsets:/opt/solr/server/solr/configsets
+      ports:
+        - "8983:8983"
+
+    sapl:
+      image: interlegis/sapl:3.1.106-ALPHA
+      # build: .
+      restart: always
+      environment:
+        ADMIN_PASSWORD: interlegis
+        ADMIN_EMAIL: email@dominio.net
+        DEBUG: 'False'
+        USE_TLS: 'False'
+        EMAIL_PORT: 587
+        EMAIL_HOST: smtp.dominio.net
+        EMAIL_HOST_USER: usuariosmtp
+        EMAIL_HOST_PASSWORD: senhasmtp
+        SOLR_URL: http://saplsolr:8983/solr/sapl
+        TZ: America/Sao_Paulo
+      volumes:
+        - sapl_data:/var/interlegis/sapl/data
+        - sapl_media:/var/interlegis/sapl/media
+        - sapl_root:/var/interlegis/sapl
+      volumes_from:
+        - saplsolr
+      depends_on:
+        - sapldb
+        - saplsolr
+      ports:
+        - "80:80"
+volumes:
+  sapldb_data:
+  sapl_data:
+  sapl_media:
+  sapl_root:
+  solr_data:
+  solr_configsets:

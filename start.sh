@@ -36,6 +36,8 @@ create_env() {
     echo "EMAIL_SEND_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "DEFAULT_FROM_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "SERVER_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
+    echo "SOLR_URL = ""${SOLR_URL-'http://saplsolr:8983/solr/sapl'}" >> $FILENAME
+
     
     echo "[ENV FILE] done."
 }
@@ -46,10 +48,14 @@ create_env
 
 /bin/sh busy-wait.sh $DATABASE_URL
 
+## SOLR
+python3 docker_solr_init.py sapl saplsolr &
+
 # manage.py migrate --noinput nao funcionava
 yes yes | python3 manage.py migrate
 #python3 manage.py collectstatic --no-input
 # python3 manage.py rebuild_index --noinput &
+
 
 echo "Criando usuário admin..."
 
