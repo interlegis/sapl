@@ -708,10 +708,10 @@ class DocumentoAdministrativoForm(ModelForm):
                                                     ano=ano_protocolo).exists()
 
                 exist_doc = DocumentoAdministrativo.objects.filter(
-                                                        protocolo_id=numero_protocolo,
-                                                        ano=ano_protocolo).exists()
+                                                        protocolo__numero=numero_protocolo,
+                                                        protocolo__ano=ano_protocolo).exists()
                 if exist_materia or exist_doc:
-                    raise ValidationError(_('Protocolo %s/%s ja possui'
+                    raise ValidationError(_('Protocolo %s/%s já possui'
                                             ' documento vinculado'
                                             % (numero_protocolo, ano_protocolo)))
 
