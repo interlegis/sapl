@@ -96,15 +96,28 @@ INSTALLED_APPS = (
 # FTS = Full Text Search
 # Desabilita a indexação textual até encontramos uma solução para a issue
 # https://github.com/interlegis/sapl/issues/2055
-#HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
+#HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'  # Disable auto index
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
 SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
-
+USE_SOLR = config('USE_SOLR', cast=bool, default=False)
 SOLR_URL = config('SOLR_URL', cast=str, default='')
-if SOLR_URL:
+SOLR_HOST = config('SOLR_HOST', cast=str, default='localhost')
+SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
+if USE_SOLR:
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
-    SEARCH_URL = ('URL', config('SOLR_URL', cast=str))
+    if SOLR_URL:
+        SEARCH_URL = ('URL', SOLR_URL)
+#     elif SOLR_HOST and SOLR_COLLECTION:
+#         SEARCH_URL = ('URL', 'http://{}:8983/solr/{}'.format(SOLR_HOST, SOLR_COLLECTION))
+#     # elif SOLR_HOST:
+#     #     SEARCH_URL = ('URL', 'http://{}:8983/solr/sapl'.format(SOLR_HOST))
+#     # elif SOLR_CORE:
+#     #     SEARCH_URL = ('URL', 'http://localhost:8983/solr/sapl'.format(SOLR_COLLECTION))
+#     else:
+#         SEARCH_URL = ('URL', 'http://localhost:8983/solr/sapl')
+#
+    print("Solr URL: {}".format(SEARCH_URL[1]))
     # ...or for multicore...
     # 'URL': 'http://127.0.0.1:8983/solr/mysite',
 

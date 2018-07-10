@@ -217,7 +217,7 @@ class MateriaLegislativaForm(ModelForm):
                                                         ano=ano).exists()
 
                 if exist_materia or exist_doc:
-                    raise ValidationError(_('Protocolo %s/%s ja possui'
+                    raise ValidationError(_('Protocolo %s/%s já possui'
                                             ' documento vinculado'
                                              % (protocolo, ano)))
 

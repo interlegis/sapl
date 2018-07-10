@@ -2,7 +2,7 @@ FROM alpine:3.7
 
 ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
 python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev nodejs py3-lxml \
-py3-magic postgresql-client poppler-utils antiword vim openssh-client
+py3-magic postgresql-client poppler-utils antiword vim curl jq openssh-client
 
 RUN apk update --update-cache && apk upgrade
 
