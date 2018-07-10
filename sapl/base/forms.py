@@ -44,7 +44,9 @@ STATUS_USER_CHOICE = [
 
 
 def get_roles():
-    return [(g.id, g.name) for g in Group.objects.all().order_by('name')]
+    roles = [(g.id, g.name) for g in Group.objects.all().order_by('name')
+              if g.name != 'Votante' and g.name != 'Autor']
+    return roles
 
 
 class UsuarioCreateForm(ModelForm):
