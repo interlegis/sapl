@@ -141,10 +141,6 @@ models_novos_para_antigos = {
     for model in field_renames}
 models_novos_para_antigos[Composicao] = models_novos_para_antigos[Participacao]
 
-content_types = {model: ContentType.objects.get(
-    app_label=model._meta.app_label, model=model._meta.model_name)
-    for model in field_renames}
-
 campos_novos_para_antigos = {
     model._meta.get_field(nome_novo): nome_antigo
     for model, renames in field_renames.items()
@@ -1156,7 +1152,9 @@ def adjust_tipoafastamento(new, old):
 
 
 def set_generic_fk(new, campo_virtual, old):
-    new.content_type = content_types[campo_virtual.related_model]
+    model = campo_virtual.related_model
+    new.content_type = ContentType.objects.get(
+        app_label=model._meta.app_label, model=model._meta.model_name)
     new.object_id = get_fk_related(campo_virtual, old)
 
 
