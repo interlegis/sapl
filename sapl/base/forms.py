@@ -51,11 +51,14 @@ def get_roles():
 
 class UsuarioCreateForm(ModelForm):
 
-    username = forms.CharField(required=True, label="Nome de usuário")
-    firstname = forms.CharField(required=True, label="Nome")
-    lastname = forms.CharField(required=True, label="Sobrenome")
-    password1 = forms.CharField(required=True, widget=forms.PasswordInput, label='Senha')
-    password2 = forms.CharField(required=True, widget=forms.PasswordInput, label='Confirmar senha')
+    username = forms.CharField(required=True, label="Nome de usuário",
+                               max_length=30)
+    firstname = forms.CharField(required=True, label="Nome", max_length=30)
+    lastname = forms.CharField(required=True, label="Sobrenome", max_length=30)
+    password1 = forms.CharField(required=True, widget=forms.PasswordInput,
+                                label='Senha', max_length=128)
+    password2 = forms.CharField(required=True, widget=forms.PasswordInput,
+                                label='Confirmar senha', max_length=128)
     user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES,
                                     label="Usuário ativo?", initial='True')
 
