@@ -84,6 +84,18 @@
       <h2>Nenhuma norma encontrada com essas especificações</h2>
     {% endif %}
   {% endif %}
+
+   <script type="text/javascript">
+     $(document).ready(function() {
+        var numeroField = $("#id_numero");
+        numeroField.keyup(function() {
+            var numero = numeroField.val();
+            if (numero.startsWith("0")) {
+               numeroField.val(numero.replace(/^0+/, ''));
+            }
+        });
+     });
+   </script>
 {% endblock detail_content %}
 
 {% block table_content %}

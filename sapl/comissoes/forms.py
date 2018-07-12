@@ -100,7 +100,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
             exclude(id__in=id_part)
         eligible = self.verifica()
         result = list(set(qs) & set(eligible))
-        if not cmp(result, eligible):  # se igual a 0 significa que o qs e o eli são iguais!
+        if result == eligible:
             self.fields['parlamentar'].queryset = qs
         else:
             ids = [e.id for e in eligible]

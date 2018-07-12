@@ -41,6 +41,15 @@
   for (i = 0; i < fields.length; i++) {
     $(fields[i]).change(recuperar_norma);
   }
+
+  var numeroField = $("#id_numero");
+
+  numeroField.keyup(function() {
+      var numero = numeroField.val();
+         if (numero.startsWith("0")) {
+            numeroField.val(numero.replace(/^0+/, ''));
+         }
+  });
 </script>
 
 {% endblock %}
