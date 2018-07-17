@@ -83,11 +83,11 @@
                     {% for rv in m.registrovotacao_set.all %}
                         {% if rv.ordem %}
                           <a href="{% url 'sapl.sessao:ordemdia_list' rv.ordem.sessao_plenaria_id %}">
-                            {{ rv.ordem.data_ordem }}
+                            {{ rv.ordem.sessao_plenaria.data_inicio }}
                           </a>
                         {% elif rv.expediente %}
                           <a href="{% url 'sapl.sessao:expedientemateria_list' rv.expediente.sessao_plenaria_id %}">
-                            {{ rv.expediente.data_ordem }}
+                            {{ rv.expediente.sessao_plenaria.data_inicio }}
                           </a>
                         {% endif %}
                         </br>
