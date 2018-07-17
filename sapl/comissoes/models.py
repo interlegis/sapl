@@ -223,7 +223,7 @@ class Reuniao(models.Model):
     local_reuniao = models.CharField(
         max_length=100, blank=True, verbose_name=_('Local da Reunião'))
     observacao = models.TextField(
-        max_length=150, blank=True, verbose_name=_('Observação'))
+        blank=True, verbose_name=_('Observação'))
     url_audio = models.URLField(
         max_length=150, blank=True,
         verbose_name=_('URL do Arquivo de Áudio (Formatos MP3 / AAC)'))
