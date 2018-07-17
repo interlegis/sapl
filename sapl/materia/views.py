@@ -860,7 +860,7 @@ class ProposicaoCrud(Crud):
                 else:
                     obj.data_recebimento = timezone.localtime(
                         obj.data_recebimento)
-                    obj.data_recebimento = obj.data_recebimento = formats.date_format(
+                    obj.data_recebimento = formats.date_format(
                         obj.data_recebimento, "DATETIME_FORMAT")
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'

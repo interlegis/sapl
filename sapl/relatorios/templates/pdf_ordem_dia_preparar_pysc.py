@@ -155,6 +155,6 @@ if context.REQUEST['cod_sessao_plen'] != '':
     caminho = context.pdf_ordem_dia_gerar(
         sessao, imagem, dat_ordem, splen, pauta, cabecalho, rodape)
     if caminho == 'aviso':
-        return response.redirect('mensagem_emitir_proc')
+        response.redirect('mensagem_emitir_proc')
     else:
         response.redirect(caminho)
