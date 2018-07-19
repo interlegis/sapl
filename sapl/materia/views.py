@@ -940,10 +940,8 @@ class RelatoriaCrud(MasterDetailCrud):
             try:
                 comissao = Comissao.objects.get(
                     pk=context['form'].initial['comissao'])
-            except AttributeError:
-                msg = _('Unidade de destino '
-                        ' da última tramitação não pode ser vazia!')
-                messages.add_message(self.request, messages.ERROR, msg)
+            except:
+                pass
 
             else:
                 composicao = comissao.composicao_set.order_by(
