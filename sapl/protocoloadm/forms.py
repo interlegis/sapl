@@ -875,15 +875,12 @@ class DesvincularMateriaForm(forms.Form):
                      )
         )
 
+
 def pega_ultima_tramitacao_adm():
-    ultimas_tramitacoes = TramitacaoAdministrativo.objects.values(
+    return TramitacaoAdministrativo.objects.values(
         'materia_id').annotate(data_encaminhamento=Max(
             'data_encaminhamento'),
-        id=Max('id')).values_list('id')
-
-    lista = [item for sublist in ultimas_tramitacoes for item in sublist]
-
-    return lista
+        id=Max('id')).values_list('id', flat=True)
 
 
 def filtra_tramitacao_adm_status(status):

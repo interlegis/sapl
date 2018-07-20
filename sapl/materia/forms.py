@@ -766,14 +766,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
 
 def pega_ultima_tramitacao():
-    ultimas_tramitacoes = Tramitacao.objects.values(
+    return Tramitacao.objects.values(
         'materia_id').annotate(data_encaminhamento=Max(
             'data_encaminhamento'),
-        id=Max('id')).values_list('id')
-
-    lista = [item for sublist in ultimas_tramitacoes for item in sublist]
-
-    return lista
+        id=Max('id')).values_list('id', flat=True)
 
 
 def filtra_tramitacao_status(status):
