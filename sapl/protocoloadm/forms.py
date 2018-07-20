@@ -7,6 +7,7 @@ from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
 from django.db import models
+from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -873,3 +874,34 @@ class DesvincularMateriaForm(forms.Form):
                      form_actions(label='Desvincular')
                      )
         )
+
+
+def pega_ultima_tramitacao_adm():
+    return TramitacaoAdministrativo.objects.values(
+        'materia_id').annotate(data_encaminhamento=Max(
+            'data_encaminhamento'),
+        id=Max('id')).values_list('id', flat=True)
+
+
+def filtra_tramitacao_adm_status(status):
+    lista = pega_ultima_tramitacao_adm()
+    return TramitacaoAdministrativo.objects.filter(
+        id__in=lista,
+        status=status).distinct().values_list('materia_id', flat=True)
+
+
+def filtra_tramitacao_adm_destino(destino):
+    lista = pega_ultima_tramitacao_adm()
+    return TramitacaoAdministrativo.objects.filter(
+        id__in=lista,
+        unidade_tramitacao_destino=destino).distinct().values_list(
+            'materia_id', flat=True)
+
+
+def filtra_tramitacao_adm_destino_and_status(status, destino):
+    lista = pega_ultima_tramitacao_adm()
+    return TramitacaoAdministrativo.objects.filter(
+        id__in=lista,
+        status=status,
+        unidade_tramitacao_destino=destino).distinct().values_list(
+            'materia_id', flat=True)
