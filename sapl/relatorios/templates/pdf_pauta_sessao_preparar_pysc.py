@@ -184,6 +184,6 @@ if context.REQUEST['data'] != '':
     caminho = context.pdf_pauta_sessao_gerar(
         rodape, sessao, imagem, inf_basicas_dic, lst_votacao, lst_expediente_materia)
     if caminho == 'aviso':
-        return response.redirect('mensagem_emitir_proc')
+        response.redirect('mensagem_emitir_proc')
     else:
         response.redirect(caminho)

@@ -100,6 +100,6 @@ sessao = session.id
 caminho = context.pdf_norma_gerar(
     sessao, imagem, data, normas, cabecalho, rodape, filtro)
 if caminho == 'aviso':
-    return response.redirect('mensagem_emitir_proc')
+    response.redirect('mensagem_emitir_proc')
 else:
     response.redirect(caminho)

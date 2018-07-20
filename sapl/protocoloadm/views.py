@@ -31,7 +31,8 @@ from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
-                    TramitacaoAdmEditForm, TramitacaoAdmForm, DesvincularDocumentoForm, DesvincularMateriaForm)
+                    TramitacaoAdmEditForm, TramitacaoAdmForm, DesvincularDocumentoForm, DesvincularMateriaForm,
+                    filtra_tramitacao_adm_destino_and_status, filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status)
 from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
@@ -307,7 +308,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         protocolo.anulado = False
         if not protocolo.numero:
             protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
-        if protocolo.numero < (numero['numero__max'] + 1):
+        elif protocolo.numero < (numero['numero__max'] + 1) if numero['numero__max'] else 0:
             msg = _('Número de protocolo deve ser maior que {}').format(numero['numero__max'])
             messages.add_message(self.request, messages.ERROR, msg)
             return self.render_to_response(self.get_context_data())
@@ -543,12 +544,33 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
 
         kwargs = {'data': self.request.GET or None}
 
+        status_tramitacao = self.request.GET.get('tramitacao__status')
+        unidade_destino = self.request.GET.get(
+            'tramitacao__unidade_tramitacao_destino')
+
         qs = self.get_queryset()
 
-        qs = qs.distinct()
+        if status_tramitacao and unidade_destino:
+            lista = filtra_tramitacao_adm_destino_and_status(status_tramitacao,
+                                                         unidade_destino)
+            qs = qs.filter(id__in=lista).distinct()
+
+        elif status_tramitacao:
+            lista = filtra_tramitacao_adm_status(status_tramitacao)
+            qs = qs.filter(id__in=lista).distinct()
+
+        elif unidade_destino:
+            lista = filtra_tramitacao_adm_destino(unidade_destino)
+            qs = qs.filter(id__in=lista).distinct()
 
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', '-numero')
+
+        qs = qs.prefetch_related("documentoacessorioadministrativo_set",
+                                 "tramitacaoadministrativo_set",
+                                 "tramitacaoadministrativo_set__status",
+                                 "tramitacaoadministrativo_set__unidade_tramitacao_local",
+                                 "tramitacaoadministrativo_set__unidade_tramitacao_destino")
 
         kwargs.update({
             'queryset': qs,

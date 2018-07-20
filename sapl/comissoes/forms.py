@@ -61,7 +61,8 @@ class PeriodoForm(forms.ModelForm):
         data_fim = cleaned_data['data_fim']
 
         if data_fim and data_fim < data_inicio:
-            raise ValidationError('Data início não pode ser superior a data de fim')
+            raise ValidationError('A Data Final não pode ser menor que '
+                                        'a Data Inicial')
         return cleaned_data
 
 
@@ -99,7 +100,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
             exclude(id__in=id_part)
         eligible = self.verifica()
         result = list(set(qs) & set(eligible))
-        if not cmp(result, eligible):  # se igual a 0 significa que o qs e o eli são iguais!
+        if result == eligible:
             self.fields['parlamentar'].queryset = qs
         else:
             ids = [e.id for e in eligible]

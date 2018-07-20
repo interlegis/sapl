@@ -25,6 +25,7 @@ from django_filters.filterset import STRICTNESS
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 from reversion.admin import VersionAdmin
+from reversion_compare.admin import CompareVersionAdmin
 from unipath.path import Path
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
@@ -228,7 +229,7 @@ def register_all_models_in_admin(module_name):
     appname = appname[1] if appname[0] == 'sapl' else appname[0]
     app = apps.get_app_config(appname)
     for model in app.get_models():
-        class CustomModelAdmin(VersionAdmin):
+        class CustomModelAdmin(CompareVersionAdmin):
             list_display = [f.name for f in model._meta.fields
                             if f.name != 'id']
 
@@ -355,6 +356,7 @@ TIPOS_TEXTO_PERMITIDOS = (
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/xml',
+    'application/octet-stream',
     'text/xml',
     'text/html',
 )

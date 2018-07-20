@@ -7,6 +7,7 @@ from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
 from django.db import models
+from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -708,10 +709,10 @@ class DocumentoAdministrativoForm(ModelForm):
                                                     ano=ano_protocolo).exists()
 
                 exist_doc = DocumentoAdministrativo.objects.filter(
-                                                        protocolo_id=numero_protocolo,
-                                                        ano=ano_protocolo).exists()
+                                                        protocolo__numero=numero_protocolo,
+                                                        protocolo__ano=ano_protocolo).exists()
                 if exist_materia or exist_doc:
-                    raise ValidationError(_('Protocolo %s/%s ja possui'
+                    raise ValidationError(_('Protocolo %s/%s já possui'
                                             ' documento vinculado'
                                             % (numero_protocolo, ano_protocolo)))
 
@@ -873,3 +874,34 @@ class DesvincularMateriaForm(forms.Form):
                      form_actions(label='Desvincular')
                      )
         )
+
+
+def pega_ultima_tramitacao_adm():
+    return TramitacaoAdministrativo.objects.values(
+        'materia_id').annotate(data_encaminhamento=Max(
+            'data_encaminhamento'),
+        id=Max('id')).values_list('id', flat=True)
+
+
+def filtra_tramitacao_adm_status(status):
+    lista = pega_ultima_tramitacao_adm()
+    return TramitacaoAdministrativo.objects.filter(
+        id__in=lista,
+        status=status).distinct().values_list('materia_id', flat=True)
+
+
+def filtra_tramitacao_adm_destino(destino):
+    lista = pega_ultima_tramitacao_adm()
+    return TramitacaoAdministrativo.objects.filter(
+        id__in=lista,
+        unidade_tramitacao_destino=destino).distinct().values_list(
+            'materia_id', flat=True)
+
+
+def filtra_tramitacao_adm_destino_and_status(status, destino):
+    lista = pega_ultima_tramitacao_adm()
+    return TramitacaoAdministrativo.objects.filter(
+        id__in=lista,
+        status=status,
+        unidade_tramitacao_destino=destino).distinct().values_list(
+            'materia_id', flat=True)

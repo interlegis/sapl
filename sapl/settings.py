@@ -87,6 +87,7 @@ INSTALLED_APPS = (
     'sass_processor',
     'rest_framework',
     'reversion',
+    'reversion_compare',
     'whoosh',
     'speedinfo',
 

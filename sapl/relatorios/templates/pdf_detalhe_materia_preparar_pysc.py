@@ -279,6 +279,6 @@ caminho = context.pdf_detalhe_materia_gerar(imagem, rodape, inf_basicas_dic, ori
                                             lst_des_iniciais, dic_tramitacoes, lst_relatorias, lst_numeracoes,
                                             lst_legis_citadas, lst_acessorios, sessao=session.id)
 if caminho == 'aviso':
-    return response.redirect('mensagem_emitir_proc')
+    response.redirect('mensagem_emitir_proc')
 else:
     response.redirect(caminho)

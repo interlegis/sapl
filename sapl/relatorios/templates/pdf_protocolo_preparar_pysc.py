@@ -121,6 +121,6 @@ sessao = session.id
 caminho = context.pdf_protocolo_gerar(
     sessao, imagem, data, protocolos, cabecalho, rodape, filtro)
 if caminho == 'aviso':
-    return response.redirect('mensagem_emitir_proc')
+    response.redirect('mensagem_emitir_proc')
 else:
     response.redirect(caminho)

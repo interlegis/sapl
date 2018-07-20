@@ -700,12 +700,15 @@ class ProposicaoCrud(Crud):
 
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
-                        Numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
-                                                                   ano=p.ano).last().numero + 1
-                        messages.success(request, _(
-                            '%s : nº %s de %s <br>Atenção! Este número é apenas um provável '
-                            'número que pode não corresponder com a realidade'
-                            % (p.tipo, Numero, p.ano)))
+                        try:
+                            Numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
+                                                                       ano=p.ano).last().numero + 1
+                            messages.success(request, _(
+                                '%s : nº %s de %s <br>Atenção! Este número é apenas um provável '
+                                'número que pode não corresponder com a realidade'
+                                % (p.tipo, Numero, p.ano)))
+                        except ValueError:
+                            pass
 
                 elif action == 'return':
                     if not p.data_envio:
@@ -857,7 +860,7 @@ class ProposicaoCrud(Crud):
                 else:
                     obj.data_recebimento = timezone.localtime(
                         obj.data_recebimento)
-                    obj.data_recebimento = obj.data_recebimento = formats.date_format(
+                    obj.data_recebimento = formats.date_format(
                         obj.data_recebimento, "DATETIME_FORMAT")
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
@@ -937,8 +940,9 @@ class RelatoriaCrud(MasterDetailCrud):
             try:
                 comissao = Comissao.objects.get(
                     pk=context['form'].initial['comissao'])
-            except ObjectDoesNotExist:
+            except:
                 pass
+
             else:
                 composicao = comissao.composicao_set.order_by(
                     '-periodo__data_inicio').first()
@@ -1775,17 +1779,47 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        if request.POST['data_encaminhamento']:
+        if request.POST['status'] == '':
+            msg = _('Campo Status deve ser preenchido.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        if request.POST['unidade_tramitacao_local'] == '':
+            msg = _('Campo Unidade Local deve ser preenchido.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        if request.POST['data_tramitacao'] == '':
+            msg = _('Campo Data da Tramitação deve ser preenchido.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        if request.POST['unidade_tramitacao_destino'] == '':
+            msg = _('Campo Unidade Destino deve ser preenchido.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        if request.POST['urgente'] == '':
+            msg = _('Campo Urgente deve ser preenchido.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        if request.POST['texto'] == '':
+            msg = _('Campo Texto da Ação deve ser preenchido.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        if request.POST['data_encaminhamento'] == '':
+            data_encaminhamento = None
+        else:
             data_encaminhamento = tz.localize(datetime.strptime(
                 request.POST['data_encaminhamento'], "%d/%m/%Y"))
-        else:
-            data_encaminhamento = None
 
-        if request.POST['data_fim_prazo']:
+        if request.POST['data_fim_prazo'] == '':
+            data_fim_prazo = None
+        else:
             data_fim_prazo = tz.localize(datetime.strptime(
                 request.POST['data_fim_prazo'], "%d/%m/%Y"))
-        else:
-            data_fim_prazo = None
 
         # issue https://github.com/interlegis/sapl/issues/1123
         # TODO: usar Form

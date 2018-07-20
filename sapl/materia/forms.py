@@ -186,6 +186,7 @@ class MateriaLegislativaForm(ModelForm):
                                                         widget=forms.HiddenInput())
             self.fields['autor'] = forms.CharField(required=False,
                                                    widget=forms.HiddenInput())
+            self.fields['numero_protocolo'].widget.attrs['readonly'] = True
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
@@ -213,10 +214,15 @@ class MateriaLegislativaForm(ModelForm):
                 exist_doc = DocumentoAdministrativo.objects.filter(
                                                         protocolo_id=protocolo,
                                                         ano=ano).exists()
+
                 if exist_materia or exist_doc:
                     raise ValidationError(_('Protocolo %s/%s ja possui'
                                             ' documento vinculado'
                                              % (protocolo, ano)))
+
+                p = Protocolo.objects.get(numero=protocolo,ano=ano)
+                if p.tipo_materia != cleaned_data['tipo']:
+                    raise ValidationError(_('Tipo do Protocolo deve ser o mesmo do Tipo Matéria'))
 
         if data_apresentacao.year != ano:
             raise ValidationError(_("O ano da matéria não pode ser "
@@ -270,7 +276,7 @@ class UnidadeTramitacaoForm(ModelForm):
                 del cleaned_data[key]
 
         if len(cleaned_data) != 1:
-            msg = _('Somente um campo deve preenchido!')
+            msg = _('Somente um campo deve ser preenchido!')
             raise ValidationError(msg)
         return cleaned_data
 
@@ -766,14 +772,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
 
 def pega_ultima_tramitacao():
-    ultimas_tramitacoes = Tramitacao.objects.values(
+    return Tramitacao.objects.values(
         'materia_id').annotate(data_encaminhamento=Max(
             'data_encaminhamento'),
-        id=Max('id')).values_list('id')
-
-    lista = [item for sublist in ultimas_tramitacoes for item in sublist]
-
-    return lista
+        id=Max('id')).values_list('id', flat=True)
 
 
 def filtra_tramitacao_status(status):
