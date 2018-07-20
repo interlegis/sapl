@@ -38,11 +38,10 @@
 			<a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}"> {{materia}} </a>
 		{% endif %}
 			</br>
-			{% if not protocolo.anulado %}<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-primary">Criar Matéria</a>{% endif %}
+			{% if not protocolo.anulado%}{% if not materia %}<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-primary">Criar Matéria</a>&nbsp;&nbsp;&nbsp;&nbsp;{% endif %}{% endif %}
 	{% endif %}
 
 
-	&nbsp;&nbsp;&nbsp;&nbsp;
 	<a target="popup" class="btn btn-primary" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.pk%}','Comprovante','width=800, height=800')">Comprovante
 	</a>
 {% endblock detail_content %}

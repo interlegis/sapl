@@ -186,6 +186,7 @@ class MateriaLegislativaForm(ModelForm):
                                                         widget=forms.HiddenInput())
             self.fields['autor'] = forms.CharField(required=False,
                                                    widget=forms.HiddenInput())
+            self.fields['numero_protocolo'].widget.attrs['readonly'] = True
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
@@ -213,10 +214,15 @@ class MateriaLegislativaForm(ModelForm):
                 exist_doc = DocumentoAdministrativo.objects.filter(
                                                         protocolo_id=protocolo,
                                                         ano=ano).exists()
+
                 if exist_materia or exist_doc:
                     raise ValidationError(_('Protocolo %s/%s ja possui'
                                             ' documento vinculado'
                                              % (protocolo, ano)))
+
+                p = Protocolo.objects.get(numero=protocolo,ano=ano)
+                if p.tipo_materia != cleaned_data['tipo']:
+                    raise ValidationError(_('Tipo do Protocolo deve ser o mesmo do Tipo Matéria'))
 
         if data_apresentacao.year != ano:
             raise ValidationError(_("O ano da matéria não pode ser "
