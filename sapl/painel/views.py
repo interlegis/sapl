@@ -82,10 +82,118 @@ def votacao_aberta(request):
     return votacoes_abertas.first(), None
 
 
+def votacao(context,context_vars):
+
+    parlamentar = context_vars['votante'].parlamentar
+    parlamentar_presente = False
+    if parlamentar.id in context_vars['presentes']:
+        parlamentar_presente = True
+        context_vars.update({'parlamentar': parlamentar})
+    else:
+        context.update({'error_message':
+                        'Não há presentes na Sessão com a '
+                        'matéria em votação.'})
+
+    if parlamentar_presente:
+        voto = []
+        if context_vars['ordem_dia']:
+            voto = VotoParlamentar.objects.filter(
+                ordem=context_vars['ordem_dia'])
+        elif context_vars['expediente']:
+            voto = VotoParlamentar.objects.filter(
+                expediente=context_vars['expediente'])
+
+        if voto:
+            try:
+                voto = voto.get(parlamentar=parlamentar)
+                context.update({'voto_parlamentar': voto.voto})
+            except ObjectDoesNotExist:
+                context.update(
+                    {'voto_parlamentar': 'Voto não '
+                     'computado.'})
+            else:
+                context.update({'error_message':
+                                'Você não está presente na '
+                                'Ordem do Dia/Expediente em votação.'})
+    return context, context_vars
+
+def sessao_votacao(context,context_vars):
+    pk = sessao.pk
+    context.update({'sessao_id': pk})
+    context.update({'sessao': context_vars['sessao'],
+                    'data': context_vars['sessao'].data_inicio,
+                    'hora': context_vars['sessao'].hora_inicio})
+
+    # Inicializa presentes
+    presentes = []
+    ordem_dia = get_materia_aberta(pk)
+    expediente = get_materia_expediente_aberta(pk)
+    errors = {'materia':'Não há nenhuma matéria aberta.',
+            'registro':'A votação para esta matéria já encerrou.',
+            'nominal':'A matéria aberta não é do tipo votação nominal.'}
+
+    materia_aberta = None
+    if ordem_dia:
+        materia_aberta = ordem_dia
+        presentes = PresencaOrdemDia.objects.filter(
+            sessao_plenaria_id=pk).values_list(
+            'parlamentar_id', flat=True).distinct()
+    elif expediente:
+        materia_aberta = expediente
+        presentes = SessaoPlenariaPresenca.objects.filter(
+            sessao_plenaria_id=pk).values_list(
+            'parlamentar_id', flat=True).distinct()
+
+    context_vars.update({'ordem_dia': ordem_dia,
+                        'expediente':expediente,
+                        'presentes': presentes})
+
+    # Verifica votação aberta
+    # Se aberta, verifica se é nominal. ID nominal == 2
+    registro = materia_aberta.registro_aberto
+    tipo = materia_aberta.tipo_votacao
+    erro = None
+    if not materia_aberta:
+        erro = 'materia'
+    elif registro_aberto:
+        erro = 'registro'
+    elif not tipo:
+        erro = 'tipo'
+
+    if not erro:
+        context.update({'materia': materia_aberta.materia,
+                        'ementa': materia_aberta.materia.ementa})
+        context, context_vars = votacao(context, context_vars)
+    else:
+        context.update({'error_message': errors[erro]})
+
+    return context, context_vars
+
+
+def can_vote(context, context_vars, request):
+    context.update({'permissao': True})
+
+    # Pega sessão
+    sessao, msg = votacao_aberta(request)
+    context_vars.update({'sessao':sessao})
+    if sessao and not msg:
+        context, context_vars = sessao_votacao(context, context_vars)
+    elif not sessao and msg:
+        return HttpResponseRedirect('/')
+
+    else:
+        context.update(
+            {'error_message': 'Não há nenhuma sessão com matéria aberta.'})
+    return context, context_vars
+
+
 def votante_view(request):
     # Pega o votante relacionado ao usuário
+    import ipdb; ipdb.set_trace()
     template_name = 'painel/voto_nominal.html'
     context = {}
+    context_vars = {}
+
     try:
         votante = Votante.objects.get(user=request.user)
     except ObjectDoesNotExist:
@@ -95,96 +203,12 @@ def votante_view(request):
         })
 
         return render(request, template_name, context)
-
+    context_vars = {'votante': votante}
     context = {'head_title': str(_('Votação Individual'))}
 
     # Verifica se usuário possui permissão para votar
     if 'parlamentares.can_vote' in request.user.get_all_permissions():
-        context.update({'permissao': True})
-
-        # Pega sessão
-        sessao, msg = votacao_aberta(request)
-
-        if sessao and not msg:
-            pk = sessao.pk
-            context.update({'sessao_id': pk})
-            context.update({'sessao': sessao,
-                            'data': sessao.data_inicio,
-                            'hora': sessao.hora_inicio})
-
-            # Inicializa presentes
-            presentes = []
-
-            # Verifica votação aberta
-            # Se aberta, verifica se é nominal. ID nominal == 2
-            ordem_dia = get_materia_aberta(pk)
-            expediente = get_materia_expediente_aberta(pk)
-
-            materia_aberta = None
-            if ordem_dia:
-                materia_aberta = ordem_dia
-                presentes = PresencaOrdemDia.objects.filter(
-                    sessao_plenaria_id=pk).values_list(
-                    'parlamentar_id', flat=True).distinct()
-            elif expediente:
-                materia_aberta = expediente
-                presentes = SessaoPlenariaPresenca.objects.filter(
-                    sessao_plenaria_id=pk).values_list(
-                    'parlamentar_id', flat=True).distinct()
-
-            if materia_aberta:
-                if not materia_aberta.registro_aberto:
-                    if materia_aberta.tipo_votacao == VOTACAO_NOMINAL:
-                        context.update({'materia': materia_aberta.materia,
-                                        'ementa': materia_aberta.materia.ementa})
-
-                        parlamentar = votante.parlamentar
-                        parlamentar_presente = False
-                        if parlamentar.id in presentes:
-                            parlamentar_presente = True
-                        else:
-                            context.update({'error_message':
-                                            'Não há presentes na Sessão com a '
-                                            'matéria em votação.'})
-
-                        if parlamentar_presente:
-                            voto = []
-                            if ordem_dia:
-                                voto = VotoParlamentar.objects.filter(
-                                    ordem=ordem_dia)
-                            elif expediente:
-                                voto = VotoParlamentar.objects.filter(
-                                    expediente=expediente)
-
-                            if voto:
-                                try:
-                                    voto = voto.get(parlamentar=parlamentar)
-                                    context.update({'voto_parlamentar': voto.voto})
-                                except ObjectDoesNotExist:
-                                    context.update(
-                                        {'voto_parlamentar': 'Voto não '
-                                         'computado.'})
-                        else:
-                            context.update({'error_message':
-                                            'Você não está presente na '
-                                            'Ordem do Dia/Expediente em votação.'})
-                    else:
-                        context.update(
-                            {'error_message': 'A matéria aberta não é do tipo '
-                             'votação nominal.'})
-                else:
-                    context.update(
-                        {'error_message': 'A votação para esta matéria já encerrou.'})
-            else:
-                context.update(
-                    {'error_message': 'Não há nenhuma matéria aberta.'})
-
-        elif not sessao and msg:
-            return HttpResponseRedirect('/')
-
-        else:
-            context.update(
-                {'error_message': 'Não há nenhuma sessão com matéria aberta.'})
+        context, context_vars = can_vote(context, context_vars, request)
 
     else:
         context.update({'permissao': False,
@@ -192,36 +216,36 @@ def votante_view(request):
 
     # Salva o voto
     if request.method == 'POST':
-        if ordem_dia:
+        if context_vars['ordem_dia']:
             try:
                 voto = VotoParlamentar.objects.get(
-                    parlamentar=parlamentar,
-                    ordem=ordem_dia)
+                    parlamentar=context_vars['parlamentar'],
+                    ordem=context_vars['ordem_dia'])
             except ObjectDoesNotExist:
                 voto = VotoParlamentar.objects.create(
-                    parlamentar=parlamentar,
+                    parlamentar=context_vars['parlamentar'],
                     voto=request.POST['voto'],
                     user=request.user,
                     ip=get_client_ip(request),
-                    ordem=ordem_dia)
+                    ordem=context_vars['ordem_dia'])
             else:
                 voto.voto = request.POST['voto']
                 voto.ip = get_client_ip(request)
                 voto.user = request.user
                 voto.save()
 
-        elif expediente:
+        elif context_vars['expediente']:
             try:
                 voto = VotoParlamentar.objects.get(
-                    parlamentar=parlamentar,
-                    expediente=expediente)
+                    parlamentar=context_vars['parlamentar'],
+                    expediente=context_vars['expediente'])
             except ObjectDoesNotExist:
                 voto = VotoParlamentar.objects.create(
-                    parlamentar=parlamentar,
+                    parlamentar=context_vars['parlamentar'],
                     voto=request.POST['voto'],
                     user=request.user,
                     ip=get_client_ip(request),
-                    expediente=expediente)
+                    expediente=context_vars['expediente'])
             else:
                 voto.voto = request.POST['voto']
                 voto.ip = get_client_ip(request)
