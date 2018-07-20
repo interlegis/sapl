@@ -356,6 +356,7 @@ TIPOS_TEXTO_PERMITIDOS = (
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/xml',
+    'application/octet-stream',
     'text/xml',
     'text/html',
 )
