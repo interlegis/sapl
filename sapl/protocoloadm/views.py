@@ -307,7 +307,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         protocolo.anulado = False
         if not protocolo.numero:
             protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
-        if protocolo.numero < (numero['numero__max'] + 1):
+        elif protocolo.numero < (numero['numero__max'] + 1) if numero['numero__max'] else 0:
             msg = _('Número de protocolo deve ser maior que {}').format(numero['numero__max'])
             messages.add_message(self.request, messages.ERROR, msg)
             return self.render_to_response(self.get_context_data())
