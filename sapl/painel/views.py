@@ -105,20 +105,20 @@ def votacao(context,context_vars):
 
         if voto:
             try:
-                voto = voto.get(parlamentar=parlamentar)
+                voto = voto.get(parlamentar=context_vars['parlamentar'])
                 context.update({'voto_parlamentar': voto.voto})
             except ObjectDoesNotExist:
                 context.update(
                     {'voto_parlamentar': 'Voto não '
                      'computado.'})
-            else:
-                context.update({'error_message':
-                                'Você não está presente na '
-                                'Ordem do Dia/Expediente em votação.'})
+    else:
+        context.update({'error_message':
+                        'Você não está presente na '
+                        'Ordem do Dia/Expediente em votação.'})
     return context, context_vars
 
 def sessao_votacao(context,context_vars):
-    pk = sessao.pk
+    pk = context_vars['sessao'].pk
     context.update({'sessao_id': pk})
     context.update({'sessao': context_vars['sessao'],
                     'data': context_vars['sessao'].data_inicio,
@@ -128,9 +128,9 @@ def sessao_votacao(context,context_vars):
     presentes = []
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
-    errors = {'materia':'Não há nenhuma matéria aberta.',
+    errors_msgs = {'materia':'Não há nenhuma matéria aberta.',
             'registro':'A votação para esta matéria já encerrou.',
-            'nominal':'A matéria aberta não é do tipo votação nominal.'}
+            'tipo':'A matéria aberta não é do tipo votação nominal.'}
 
     materia_aberta = None
     if ordem_dia:
@@ -150,14 +150,12 @@ def sessao_votacao(context,context_vars):
 
     # Verifica votação aberta
     # Se aberta, verifica se é nominal. ID nominal == 2
-    registro = materia_aberta.registro_aberto
-    tipo = materia_aberta.tipo_votacao
     erro = None
     if not materia_aberta:
         erro = 'materia'
-    elif registro_aberto:
+    elif materia_aberta.registro_aberto:
         erro = 'registro'
-    elif not tipo:
+    elif materia_aberta.tipo_votacao != VOTACAO_NOMINAL:
         erro = 'tipo'
 
     if not erro:
@@ -165,7 +163,7 @@ def sessao_votacao(context,context_vars):
                         'ementa': materia_aberta.materia.ementa})
         context, context_vars = votacao(context, context_vars)
     else:
-        context.update({'error_message': errors[erro]})
+        context.update({'error_message': errors_msgs[erro]})
 
     return context, context_vars
 
@@ -180,7 +178,6 @@ def can_vote(context, context_vars, request):
         context, context_vars = sessao_votacao(context, context_vars)
     elif not sessao and msg:
         return HttpResponseRedirect('/')
-
     else:
         context.update(
             {'error_message': 'Não há nenhuma sessão com matéria aberta.'})
@@ -189,7 +186,6 @@ def can_vote(context, context_vars, request):
 
 def votante_view(request):
     # Pega o votante relacionado ao usuário
-    import ipdb; ipdb.set_trace()
     template_name = 'painel/voto_nominal.html'
     context = {}
     context_vars = {}
