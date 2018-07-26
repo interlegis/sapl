@@ -201,15 +201,17 @@ def recuperar_norma(request):
 def recuperar_numero_norma(request):
     tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
-
     param = {'tipo': tipo}
     param['ano'] = ano if ano else timezone.now().year
-    norma = NormaJuridica.objects.filter(**param).extra(
-            {'numero_id': "CAST(numero as INTEGER)"}).order_by(
-            'tipo', 'ano','numero_id').values_list('numero', 'ano').last()
+    norma = NormaJuridica.objects.filter(**param).order_by(
+            'tipo', 'ano').values_list('numero', 'ano').last()
     if norma:
-        response = JsonResponse({'numero': int(norma[0]) + 1,
+        try:
+            response = JsonResponse({'numero': int(norma[0]) + 1,
                                  'ano': norma[1]})
+        except ValueError:
+            response = JsonResponse({'numero': int(norma[0][0:-1]) + 1,
+                                     'ano': norma[1]})
     else:
         response = JsonResponse(
             {'numero': 1, 'ano': ano})
