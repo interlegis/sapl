@@ -278,25 +278,28 @@ def test_urlpatterns(url_item, admin_client):
     """ % (app_name, url)
 
     app_name = app_name[5:]
+    if app_name != 'redireciona_urls':
+        assert app_name in apps_url_patterns_prefixs_and_users, """
+            A app (%s) da url (%s) não consta na lista de prefixos do teste
+        """ % (app_name, url)
 
-    assert app_name in apps_url_patterns_prefixs_and_users, """
-        A app (%s) da url (%s) não consta na lista de prefixos do teste
-    """ % (app_name, url)
+        if app_name in apps_url_patterns_prefixs_and_users:
+            prefixs = apps_url_patterns_prefixs_and_users[app_name]['prefixs']
 
-    if app_name in apps_url_patterns_prefixs_and_users:
-        prefixs = apps_url_patterns_prefixs_and_users[app_name]['prefixs']
+            isvalid = False
+            for prefix in prefixs:
+                if url.startswith(prefix):
+                    isvalid = True
+                    break
 
-        isvalid = False
-        for prefix in prefixs:
-            if url.startswith(prefix):
-                isvalid = True
-                break
-
-        assert isvalid, """
-            O prefixo da url (%s) não está no padrão de sua app (%s).
-            Os prefixos permitidos são:
-            %s
-            """ % (url, app_name, prefixs)
+            assert isvalid, """
+                O prefixo da url (%s) não está no padrão de sua app (%s).
+                Os prefixos permitidos são:
+                %s
+                """ % (url, app_name, prefixs)
+    else:
+        # ignorando app de redirecionamento de urls no padrão do SAPL 2.5
+        pass
 
 
 urls_publicas_excecoes = {

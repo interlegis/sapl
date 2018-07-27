@@ -1,14 +1,14 @@
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.views.generic import RedirectView
 
+from sapl.audiencia.apps import AppConfig as audienciaConfig
 from sapl.base.apps import AppConfig as atasConfig
 from sapl.comissoes.apps import AppConfig as comissoesConfig
 from sapl.materia.apps import AppConfig as materiaConfig
 from sapl.norma.apps import AppConfig as normaConfig
+from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.apps import AppConfig as parlamentaresConfig
 from sapl.sessao.apps import AppConfig as sessaoConfig
-from sapl.audiencia.apps import AppConfig as audienciaConfig
-
 from .exceptions import UnknownUrlNameError
 
 EMPTY_STRING = ''
@@ -122,6 +122,33 @@ class RedirecionaComissao(RedirectView):
 
     def get_redirect_url(self):
         url = EMPTY_STRING
+        pk_comissao = self.request.GET.get('cod_comissao', EMPTY_STRING)
+
+        if pk_comissao:
+            kwargs = {'pk': pk_comissao}
+
+            try:
+                url = reverse(comissao_detail, kwargs=kwargs)
+            except NoReverseMatch:
+                raise UnknownUrlNameError(comissao_detail)
+        else:
+            try:
+                url = reverse(comissao_list)
+            except NoReverseMatch:
+                raise UnknownUrlNameError(comissao_list)
+
+        url = has_iframe(url, self.request)
+
+        return url
+
+
+class RedirecionaComposicaoComissao(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self):
+        url = EMPTY_STRING
+        pk_composicao = self.request.GET.get(
+            'cod_periodo_comp_sel', EMPTY_STRING)
         pk_comissao = self.request.GET.get('cod_comissao', EMPTY_STRING)
 
         if pk_comissao:
@@ -412,6 +439,24 @@ class RedirecionaNormasJuridicasDetail(RedirectView):
             url = reverse(norma_juridica_detail, kwargs=kwargs)
         else:
             url = reverse(norma_juridica_pesquisa)
+
+        url = has_iframe(url, self.request)
+
+        return url
+
+
+class RedirecionaNormasJuridicasTextoIntegral(RedirectView):
+    permanent = False
+
+    def get_redirect_url(self, **kwargs):
+        # import ipdb;ipdb.set_trace()
+        url = EMPTY_STRING
+        try:
+            norma = NormaJuridica.objects.get(pk=kwargs['norma_id'])
+            if norma:
+                url = norma.texto_integral.url
+        except Exception as e:
+            raise e
 
         url = has_iframe(url, self.request)
 
