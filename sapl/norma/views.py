@@ -1,4 +1,5 @@
 
+import re
 import weasyprint
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -206,12 +207,8 @@ def recuperar_numero_norma(request):
     norma = NormaJuridica.objects.filter(**param).order_by(
             'tipo', 'ano').values_list('numero', 'ano').last()
     if norma:
-        try:
-            response = JsonResponse({'numero': int(norma[0]) + 1,
+        response = JsonResponse({'numero': int(re.sub("[^0-9].*", '', norma[0])) + 1,
                                  'ano': norma[1]})
-        except ValueError:
-            response = JsonResponse({'numero': int(norma[0][0:-1]) + 1,
-                                     'ano': norma[1]})
     else:
         response = JsonResponse(
             {'numero': 1, 'ano': ano})
