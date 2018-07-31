@@ -668,6 +668,11 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
                                       label='Ano da Matéria',
                                       choices=RANGE_ANOS)
 
+    @property
+    def qs(self):
+        parent = super(RelatorioMateriasTramitacaoilterSet, self).qs
+        return parent.distinct().order_by('-ano', 'tipo', '-numero')
+
     class Meta:
         model = MateriaLegislativa
         fields = ['ano', 'tipo', 'tramitacao__unidade_tramitacao_local',
@@ -733,7 +738,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioMateriasPorAutorFilterSet, self).qs
-        return parent.distinct().order_by('-ano', '-numero')
+        return parent.distinct().order_by('autoria__autor', '-autoria__primeiro_autor', 'tipo', '-ano', '-numero').filter(autoria__primeiro_autor='True')
 
     class Meta:
         model = MateriaLegislativa
