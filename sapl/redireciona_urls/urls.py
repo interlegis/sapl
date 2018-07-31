@@ -49,7 +49,7 @@ urlpatterns = [
     url(r'^consultas/norma_juridica/norma_juridica_mostrar_proc',
         RedirecionaNormasJuridicasDetail.as_view(),
         name='redireciona_norma_juridica_detail'),
-    url(r'^sapl_documentos/normajuridica/(?P<norma_id>[0-9]+)_texto_integral',
+    url(r'^sapl_documentos/norma_juridica/(?P<norma_id>[0-9]+)_texto_integral',
         RedirecionaNormasJuridicasTextoIntegral.as_view(),
         name='redireciona_norma_juridica_texto_integral'),
     url(r'^relatorios_administrativos/relatorios_administrativos_index_html$',
