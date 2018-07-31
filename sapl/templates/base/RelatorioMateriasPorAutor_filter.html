@@ -29,11 +29,6 @@
           </tr>
         {% endfor %}
       </tbody>
-{% comment %}
-    </table>
-
-    <table class="table table-bordered table-hover">
-{% endcomment %}
 
     {% for materia in object_list %}
         {% ifchanged materia.autoria_set.first.autor %}
@@ -68,85 +63,6 @@
 
     {% endfor %}
     </table>
-
-{% comment %}
-
-    <table class="table table-bordered table-hover">
-      <thead class="thead-default" >
-        <tr class="active">
-          <th>Matéria</th>
-          <th>Ementa</th>
-          <th>Autor</th>
-          <th>Coautor(es)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for materia in object_list %}
-          <tr>
-            <td><a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}">
-              {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
-            </a></td>
-            <td>{{materia.ementa}}</td>
-            <td>
-              {% for autor in materia.autoria_set.all %}
-                  {% if autor.primeiro_autor %}
-               {% ifchanged materia.autoria_set.first.autor %}
-                 {{autor.autor}}<br />
-
-               {% endifchanged %}
-                  {% endif %}
-              {% endfor %}
-            </td>
-            <td>
-              {% for autor in materia.autoria_set.all %}
-                  {% if not autor.primeiro_autor %}
-                {{autor.autor}}<br />
-                  {% endif %}
-              {% endfor %}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-
-
-
-    <table class="table table-bordered table-hover">
-      <thead class="thead-default" >
-        <tr class="active">
-          <th>Matéria</th>
-          <th>Ementa</th>
-          <th>Autor</th>
-          <th>Coautor(es)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for materia in object_list %}
-          <tr>
-            <td><a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}">
-              {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
-            </a></td>
-            <td>{{materia.ementa}}</td>
-            <td>
-              {% for autor in materia.autoria_set.all %}
-                  {% if autor.primeiro_autor %}
-                {{autor.autor}}<br />
-                  {% endif %}
-              {% endfor %}
-            </td>
-            <td>
-              {% for autor in materia.autoria_set.all %}
-                  {% if not autor.primeiro_autor %}
-                {{autor.autor}}<br />
-                  {% endif %}
-              {% endfor %}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-{% endcomment %}
 
   {% endif %}
 
