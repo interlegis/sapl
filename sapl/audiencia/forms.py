@@ -77,9 +77,11 @@ class AudienciaForm(forms.ModelForm):
                     msg = _('A hora de fim não pode ser anterior a hora de ínicio')
                     raise ValidationError(msg)
 
-        return self.cleaned_data
+        return cleaned_data
 
     @transaction.atomic()
     def save(self, commit=True):
-        audiencia = super(AudienciaForm, self).save(commit)
+        audiencia = super(AudienciaForm, self).save(False)
+        audiencia.materia = self.cleaned_data['materia']
+        audiencia.save()
         return audiencia
