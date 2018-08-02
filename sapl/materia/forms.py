@@ -675,6 +675,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         widget=forms.HiddenInput())
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
+    indexacao = django_filters.CharFilter(lookup_expr='icontains')
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
                                                 label='Em tramitação',
@@ -751,7 +752,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
             [('em_tramitacao', 6),
              ('o', 6)])
         row9 = to_row(
-            [('materiaassunto__assunto', 12)])
+            [('materiaassunto__assunto', 6), ('indexacao', 6)])
         row10 = to_row(
             [('ementa', 12)])
 
