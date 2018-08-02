@@ -45,7 +45,7 @@ STATUS_USER_CHOICE = [
 
 def get_roles():
     roles = [(g.id, g.name) for g in Group.objects.all().order_by('name')
-              if g.name != 'Votante' and g.name != 'Autor']
+             if g.name != 'Votante']
     return roles
 
 
@@ -61,8 +61,6 @@ class UsuarioCreateForm(ModelForm):
                                 label='Confirmar senha', max_length=128)
     user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES,
                                     label="Usuário ativo?", initial='True')
-
-    #ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
 
     roles = forms.MultipleChoiceField(
         required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
