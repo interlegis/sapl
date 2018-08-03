@@ -15,7 +15,7 @@ from django.db import connection, transaction
 from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.http.response import (HttpResponse, HttpResponseRedirect,
-                                  JsonResponse)
+                                  JsonResponse, Http404)
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
@@ -210,8 +210,12 @@ class CompMixin(PermissionRequiredMixin):
 
     @property
     def ta(self):
-        ta = TextoArticulado.objects.get(
-            pk=self.kwargs.get('ta_id', self.kwargs.get('pk', 0)))
+        try:
+            ta = TextoArticulado.objects.get(
+                pk=self.kwargs.get('ta_id', self.kwargs.get('pk', 0)))
+        except TextoArticulado.DoesNotExist:
+            raise Http404()
+
         return ta
 
     def get_context_data(self, **kwargs):
@@ -1488,7 +1492,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
         if base == base_anterior:
             data['pk'] = base.pk
             self.set_message(data, 'danger', _(
-                'Base Inicial não pode ser removida'), modal=True)
+                'Base Inicial não pode ser removida!'), modal=True)
         else:
             if base != base.get_raiz():
                 data['pai'] = [base.get_raiz().pk]
