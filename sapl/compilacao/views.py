@@ -51,7 +51,6 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
 from sapl.crud.base import Crud, CrudAux, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
 
-
 TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
 TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
 TipoPublicacaoCrud = CrudAux.build(TipoPublicacao, 'tipo_publicacao')
@@ -104,7 +103,7 @@ class IntegracaoTaView(TemplateView):
               ) % self.model._meta.verbose_name_plural)
         return redirect('/')
 
-    def get(self, request,  *args, **kwargs):
+    def get(self, request, *args, **kwargs):
 
         try:
             if settings.DEBUG or not TipoDispositivo.objects.exists():
@@ -1237,9 +1236,9 @@ class TextEditView(CompMixin, TemplateView):
                 'filhos': [],
                 'alts': [],
                 'pai': None,
-                'st': None,                        # dispositivo substituido
-                'sq': None,                        # dispositivo subsequente
-                'da': None,                        # dispositivo atualizador
+                'st': None,  # dispositivo substituido
+                'sq': None,  # dispositivo subsequente
+                'da': None,  # dispositivo atualizador
                 'td': tds[d.tipo_dispositivo_id],  # tipo do dispositivo
                 'na': self.nota_alteracao(d, lista_ta_publicado)\
                 if d.ta_id == ta_id else None
@@ -1480,30 +1479,36 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
         ).first()
 
         data = {}
-        if base_anterior:
-            data = self.get_json_for_refresh(base_anterior)
-        else:
+        if not base_anterior or base == base.get_raiz():
             base_anterior = base.get_nivel_zero_anterior()
-            data = self.get_json_for_refresh(base_anterior)
+            if not base_anterior:
+                base_anterior = base
+        data = self.get_json_for_refresh(base_anterior)
 
-        data['pai'] = [base.get_raiz().pk]
+        if base == base_anterior:
+            data['pk'] = base.pk
+            self.set_message(data, 'danger', _(
+                'Base Inicial não pode ser removida'), modal=True)
+        else:
+            if base != base.get_raiz():
+                data['pai'] = [base.get_raiz().pk]
 
-        if ta_base.id != int(self.kwargs['ta_id']):
-            data['pai'] = [base.dispositivo_atualizador.pk]
-            data['pk'] = base.dispositivo_atualizador.pk
+            if ta_base.id != int(self.kwargs['ta_id']):
+                data['pai'] = [base.dispositivo_atualizador.pk]
+                data['pk'] = base.dispositivo_atualizador.pk
 
-        try:
-            with transaction.atomic():
-                message = str(self.remover_dispositivo(base, bloco))
-                if message:
-                    self.set_message(data, 'warning', message, modal=True)
-                else:
-                    self.set_message(data, 'success', _(
-                        'Exclusão efetuada com sucesso!'), modal=True)
-                ta_base.reagrupar_ordem_de_dispositivos()
-        except Exception as e:
-            data['pk'] = self.kwargs['dispositivo_id']
-            self.set_message(data, 'danger', str(e), modal=True)
+            try:
+                with transaction.atomic():
+                    message = str(self.remover_dispositivo(base, bloco))
+                    if message:
+                        self.set_message(data, 'warning', message, modal=True)
+                    else:
+                        self.set_message(data, 'success', _(
+                            'Exclusão efetuada com sucesso!'), modal=True)
+                    ta_base.reagrupar_ordem_de_dispositivos()
+            except Exception as e:
+                data['pk'] = self.kwargs['dispositivo_id']
+                self.set_message(data, 'danger', str(e), modal=True)
 
         return data
 
