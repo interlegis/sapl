@@ -72,7 +72,7 @@ class NormaPesquisaView(FilterView):
     def get_queryset(self):
         qs = super().get_queryset()
 
-        qs.select_related('tipo', 'materia')
+        qs = qs.extra({'norma_i': "CAST(regexp_replace(numero,'[^0-9]','', 'g') AS INTEGER)", 'norma_letra': "regexp_replace(numero,'[^a-zA-Z]','', 'g')"}).order_by('-data', '-norma_i', '-norma_letra')
 
         return qs
 
