@@ -1,5 +1,4 @@
-from django.conf.urls import include, url
-from sapl.api.apps import AppConfig
+from django.conf.urls import url
 from sapl.api.base.views import AutorListView, AutoresPossiveisListView,\
     AutoresProvaveisListView
 
