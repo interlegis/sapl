@@ -6,15 +6,17 @@ from sapl.crud.base import RP_DETAIL, RP_LIST, Crud
 from .forms import AudienciaForm
 from .models import AudienciaPublica
 
+
 def index(request):
     return HttpResponse("Audiência  Pública")
+
 
 class AudienciaCrud(Crud):
     model = AudienciaPublica
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['materia', 'tipo', 'numero', 'nome',
+        list_field_names = ['numero', 'nome', 'tipo', 'materia',
                             'data']
         ordering = 'nome', 'numero', 'tipo', 'data'
 
