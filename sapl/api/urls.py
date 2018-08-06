@@ -3,8 +3,11 @@ from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
 import sapl.api.base.urls
-from sapl.api.views import MateriaLegislativaViewSet, SessaoPlenariaViewSet,\
-    ModelChoiceView
+from sapl.api.materia.serializers import MateriaLegislativaViewSet
+import sapl.api.materia.urls
+import sapl.api.sessao.urls
+from sapl.api.sessao.views import SessaoPlenariaViewSet
+from sapl.api.views import ModelChoiceView
 
 from .apps import AppConfig
 
@@ -27,6 +30,8 @@ if settings.DEBUG:
         url(r'^docs', include('rest_framework_docs.urls')), ]
 
 urlpatterns = [
+    url(r'^api/', include(sapl.api.materia.urls)),
+    url(r'^api/', include(sapl.api.sessao.urls)),
     url(r'^api/', include(sapl.api.base.urls)),
     url(r'^api/', include(urlpatterns_api)),
     url(r'^api/', include(urlpatterns_router))
