@@ -3,8 +3,8 @@ from sapl.api.apps import AppConfig
 from sapl.api.base.views import AutorListView, AutoresPossiveisListView,\
     AutoresProvaveisListView
 
-
-app_name = AppConfig.name
+# Não adicione app_name
+# app_name = AppConfig.name
 
 
 urlpatterns = [
