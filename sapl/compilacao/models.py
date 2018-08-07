@@ -1557,25 +1557,30 @@ class Dispositivo(BaseModel, TimestampedMixin):
             irmao.clean()
             irmao.save()
 
-    def get_proximo_nivel_zero(self):
-        proxima_articulacao = Dispositivo.objects.order_by('ordem').filter(
-            ordem__gt=self.ordem,
-            nivel=0,
-            ta_id=self.ta_id).first()
-        return proxima_articulacao
+        def get_niveis(self):
+            ## Próximo nível zero:
+            proxima_articulacao = Dispositivo.objects.order_by('ordem').filter(
+                ordem__gt=self.ordem,
+                nivel=0,
+                ta_id=self.ta_id).first()
+            if proxima_articulacao: 
+                return proxima_articulacao
 
-    def get_nivel_zero_anterior(self):
-        anterior_articulacao = Dispositivo.objects.order_by('ordem').filter(
-            ordem__lt=self.ordem,
-            nivel=0,
-            ta_id=self.ta_id).last()
-        return anterior_articulacao
+            ## Nível zero anterior:
+            anterior_articulacao = Dispositivo.objects.order_by('ordem').filter(
+                ordem__lt=self.ordem,
+                nivel=0,
+                ta_id=self.ta_id).last()
+            if anterior_articulacao:
+                return anterior_articulacao
 
-    def get_niveis_zero(self):
-        niveis_zero = Dispositivo.objects.order_by('ordem').filter(
-            nivel=0,
-            ta_id=self.ta_id)
-        return niveis_zero
+            ## Nível zero:
+            niveis_zero = Dispositivo.objects.order_by('ordem').filter(
+                nivel=0,
+                ta_id=self.ta_id)
+            if niveis_zero:
+                return niveis_zero
+
 
     # metodo obsoleto, foi acrescentado o campo auto_inserido no modelo
     def is_relative_auto_insert__obsoleto(self, perfil_pk=None):

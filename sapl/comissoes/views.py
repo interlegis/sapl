@@ -24,18 +24,17 @@ from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
                      Participacao, Periodo, Reuniao, TipoComissao)
 
 
-def pegar_url_composicao(pk):
+def pegar_url(pk):
     participacao = Participacao.objects.get(id=pk)
-    comp_pk = participacao.composicao.pk
-    url = reverse('sapl.comissoes:composicao_detail', kwargs={'pk': comp_pk})
-    return url
-
-
-def pegar_url_reuniao(pk):
+    if participacao:
+        comp_pk = participacao.composicao.pk
+        url = reverse('sapl.comissoes:composicao_detail', kwargs={'pk': comp_pk})
+        return url
     documentoacessorio = DocumentoAcessorio.objects.get(id=pk)
-    r_pk = documentoacessorio.reuniao.pk
-    url = reverse('sapl.comissoes:reuniao_detail', kwargs={'pk': r_pk})
-    return url
+    if documentoacessorio:
+        r_pk = documentoacessorio.reuniao.pk
+        url = reverse('sapl.comissoes:reuniao_detail', kwargs={'pk': r_pk})
+        return url
 
 CargoCrud = CrudAux.build(CargoComissao, 'cargo_comissao')
 
@@ -52,8 +51,6 @@ class PeriodoComposicaoCrud(CrudAux):
 
     class UpdateView(CrudAux.UpdateView):
         form_class = PeriodoForm
-
-    # class ListView(CrudAux.ListView):
 
 
 class ParticipacaoCrud(MasterDetailCrud):
