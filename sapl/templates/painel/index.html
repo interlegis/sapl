@@ -398,7 +398,7 @@
                 $("#observacao_materia").text('');
               }
 
-              if (data['tipo_resultado']){
+              if (data['tipo_resultado'] && data['status_painel'] == true){
                 $("#resultado_votacao").text(data["tipo_resultado"]);
                 $("#resultado_votacao").css("color", "#45919D");
                 var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
