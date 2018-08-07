@@ -24,7 +24,7 @@ class AudienciaForm(forms.ModelForm):
     numero_materia = forms.CharField(
         label='Número Matéria', required=False)
 
-    ano_materia = forms.ChoiceField(
+    ano_materia = forms.CharField(
         label='Ano Matéria',
         required=False)
 
@@ -73,24 +73,24 @@ class AudienciaForm(forms.ModelForm):
                     ano=ano_materia,
                     tipo=tipo_materia)
             except ObjectDoesNotExist:
-                msg = _('A matéria a ser inclusa não existe no cadastro'
-                        ' de matérias legislativas.')
+                msg = _('A matéria %s nº %s/%s não existe no cadastro'
+                        ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
                 raise ValidationError(msg)
             else:
                 cleaned_data['materia'] = materia
 
-        elif ((materia and not (ano_materia or tipo_materia)) or
-              (ano_materia and not (tipo_materia or materia)) or
-              (tipo_materia and not (materia or ano_materia))):
-            msg = _('Preencha todos os campos relacionados à Matéria Legislativa')
-            raise ValidationError(msg)
+        else:
+            campos = [materia, tipo_materia, ano_materia]
+            if campos.count(None) + campos.count('') < len(campos):
+                msg = _('Preencha todos os campos relacionados à Matéria Legislativa')
+                raise ValidationError(msg)
 
         if not cleaned_data['numero']:
-            try:
-                ultima_audiencia = AudienciaPublica.objects.filter().order_by('numero').last()
-                cleaned_data['numero'] = ultima_audiencia.numero + 1
 
-            except ObjectDoesNotExist:
+            ultima_audiencia = AudienciaPublica.objects.all().order_by('numero').last()
+            if ultima_audiencia:
+                cleaned_data['numero'] = ultima_audiencia.numero + 1
+            else:
                 cleaned_data['numero'] = 1
 
 
