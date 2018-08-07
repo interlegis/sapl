@@ -15,11 +15,7 @@ def test_valida_campos_obrigatorios_audiencia_form():
     assert errors['nome'] == [_('Este campo é obrigatório.')]
     assert errors['tema'] == [_('Este campo é obrigatório.')]
     assert errors['tipo'] == [_('Este campo é obrigatório.')]
-    assert errors['tipo_materia'] == [_('Este campo é obrigatório.')]
-    assert errors['numero_materia'] == [_('Este campo é obrigatório.')]
-    assert errors['ano_materia'] == [_('Este campo é obrigatório.')]
     assert errors['data'] == [_('Este campo é obrigatório.')]
     assert errors['hora_inicio'] == [_('Este campo é obrigatório.')]
-    assert errors['hora_fim'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 9
+    assert len(errors) == 5
