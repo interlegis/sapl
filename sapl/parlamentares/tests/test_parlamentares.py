@@ -233,7 +233,7 @@ def test_legislatura_form_invalido():
 
     assert len(errors) == 4
 
-
+@pytest.mark.django_db(transaction=False)
 def test_legislatura_form_datas_invalidas():
 
     legislatura_form = LegislaturaForm(data={'numero': '1',
@@ -245,7 +245,7 @@ def test_legislatura_form_datas_invalidas():
     assert not legislatura_form.is_valid()
 
     expected = \
-        _("A data início deve ser menor que a data fim, "
+        _("A data início deve ser menor que a data fim "
           "e a data eleição deve ser menor que a data início")
     assert legislatura_form.errors['__all__'] == [expected]
 
