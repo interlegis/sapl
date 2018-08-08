@@ -131,13 +131,16 @@ class LegislaturaForm(ModelForm):
 
         ultima_legislatura = Legislatura.objects.filter(data_inicio__lte=data_inicio
                                                         ).order_by('-data_inicio').first()
-        #proxima_legislatura = Legislatura.objects.filter(data_fim__gt=data_fim
-        #                                                 ).order_by('data_fim').first()
+        proxima_legislatura = Legislatura.objects.filter(data_fim__gt=data_fim
+                                                         ).order_by('data_fim').first()
 
         if ultima_legislatura and ultima_legislatura.numero >= numero:
-                raise ValidationError(_("Número deve ser maior que o da legislatura anterior"))
-        else:
-            pass
+            raise ValidationError(_("Número deve ser maior que o da legislatura anterior"))
+        elif proxima_legislatura and proxima_legislatura.numero <= numero:
+            msg_erro = "O Número deve ser menor que {}, pois existe uma " \
+            "legislatura afrente cronologicamente desta que está sendo criada!"
+            msg_erro.format(proxima_legislatura.numero)
+            raise ValidationError(_(msg_erro))
 
         valida_datas = validar_datas_legislatura(data_eleicao,
                                                  data_inicio,
