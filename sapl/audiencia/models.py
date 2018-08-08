@@ -71,7 +71,7 @@ class AudienciaPublica(models.Model):
     hora_inicio = models.CharField(
         max_length=5, verbose_name=_('Horário Início(hh:mm)'))
     hora_fim = models.CharField(
-        max_length=5, verbose_name=_('Horário Fim(hh:mm)'))
+        max_length=5, blank=True, verbose_name=_('Horário Fim(hh:mm)'))
     observacao = models.TextField(
         max_length=500, blank=True, verbose_name=_('Observação'))
     audiencia_cancelada = models.BooleanField(

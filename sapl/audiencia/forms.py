@@ -16,18 +16,21 @@ class AudienciaForm(forms.ModelForm):
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Tipo Matéria'),
-        required=True,
+        required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
     )
 
     numero_materia = forms.CharField(
-        label='Número Matéria', required=True)
+        label='Número Matéria', required=False)
 
     ano_materia = forms.CharField(
         label='Ano Matéria',
-        initial=int(data_atual.year),
-        required=True)
+        required=False)
+
+    materia = forms.ModelChoiceField(required=False,
+                                     widget=forms.HiddenInput(),
+                                     queryset=MateriaLegislativa.objects.all())
 
     class Meta:
         model = AudienciaPublica
@@ -36,7 +39,7 @@ class AudienciaForm(forms.ModelForm):
                   'observacao', 'audiencia_cancelada', 'url_audio',
                   'url_video', 'upload_pauta', 'upload_ata',
                   'upload_anexo', 'tipo_materia', 'numero_materia',
-                  'ano_materia']
+                  'ano_materia', 'materia']
 
 
     def __init__(self, **kwargs):
@@ -59,17 +62,38 @@ class AudienciaForm(forms.ModelForm):
         if not self.is_valid():
             return cleaned_data
 
-        try:
-            materia = MateriaLegislativa.objects.get(
-                numero=self.cleaned_data['numero_materia'],
-                ano=self.cleaned_data['ano_materia'],
-                tipo=self.cleaned_data['tipo_materia'])
-        except ObjectDoesNotExist:
-            msg = _('A matéria a ser inclusa não existe no cadastro'
-                    ' de matérias legislativas.')
-            raise ValidationError(msg)
+        materia = cleaned_data['numero_materia']
+        ano_materia = cleaned_data['ano_materia']
+        tipo_materia = cleaned_data['tipo_materia']
+
+        if materia and ano_materia and tipo_materia:
+            try:
+                materia = MateriaLegislativa.objects.get(
+                    numero=materia,
+                    ano=ano_materia,
+                    tipo=tipo_materia)
+            except ObjectDoesNotExist:
+                msg = _('A matéria %s nº %s/%s não existe no cadastro'
+                        ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
+                raise ValidationError(msg)
+            else:
+                cleaned_data['materia'] = materia
+
         else:
-            cleaned_data['materia'] = materia
+            campos = [materia, tipo_materia, ano_materia]
+            if campos.count(None) + campos.count('') < len(campos):
+                msg = _('Preencha todos os campos relacionados à Matéria Legislativa')
+                raise ValidationError(msg)
+
+        if not cleaned_data['numero']:
+
+            ultima_audiencia = AudienciaPublica.objects.all().order_by('numero').last()
+            if ultima_audiencia:
+                cleaned_data['numero'] = ultima_audiencia.numero + 1
+            else:
+                cleaned_data['numero'] = 1
+
+
 
         if self.cleaned_data['hora_inicio'] and self.cleaned_data['hora_fim']:
             if (self.cleaned_data['hora_fim'] <
@@ -78,10 +102,3 @@ class AudienciaForm(forms.ModelForm):
                     raise ValidationError(msg)
 
         return cleaned_data
-
-    @transaction.atomic()
-    def save(self, commit=True):
-        audiencia = super(AudienciaForm, self).save(False)
-        audiencia.materia = self.cleaned_data['materia']
-        audiencia.save()
-        return audiencia
