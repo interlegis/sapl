@@ -46,7 +46,7 @@ def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
         msg_error = _('A data início deve ser menor que a ' +
                       'data fim, e a data eleição deve ser ' +
                       'menor que a data início')
-        return [False, msg_error]
+        return (False, msg_error)
 
     # Verifica se há alguma data cadastrada no intervalo de tempo desejado
     if Legislatura.objects.filter(
@@ -54,15 +54,15 @@ def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
         or Legislatura.objects.filter(
             data_fim__range=[inicio, fim]).exclude(pk=pk).exists():
         msg_error = _('Já existe uma legislatura neste intervalo de datas')
-        return [False, msg_error]
+        return (False, msg_error)
 
     # Verifica se há alguma outra data de eleição cadastrada
     if Legislatura.objects.filter(
             data_eleicao=eleicao).exclude(pk=pk).exists():
         msg_error = _('Esta data de eleição já foi cadastrada')
-        return [False, msg_error]
+        return (False, msg_error)
 
-    return [True, '']
+    return (True, None)
 
 
 class MandatoForm(ModelForm):
@@ -120,11 +120,23 @@ class LegislaturaForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
+        #        import ipdb; ipdb.set_trace()
+
+        numero = data['numero']
         data_inicio = data['data_inicio']
         data_fim = data['data_fim']
         data_eleicao = data['data_eleicao']
 
         pk = self.instance.pk
+
+
+        ultima_legislatura = Legislatura.objects.filter(data_inicio__lte=data_inicio
+                                                        ).order_by('-data_inicio').first()
+
+        if ultima_legislatura and ultima_legislatura.numero >= numero:
+                raise ValidationError(_("Número deve ser maior que o da legislatura anterior"))
+        else:
+            pass
 
         valida_datas = validar_datas_legislatura(data_eleicao,
                                                  data_inicio,
