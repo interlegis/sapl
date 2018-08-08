@@ -35,6 +35,8 @@ NormaJuridicaCreate:
   - indexacao
   - observacao
   - assuntos
+  {% trans 'Anexos da Norma Jurídica' %}:
+  - anexo_arquivo
 
 LegislacaoCitada:
   {% trans 'Legislação Citada' %}:

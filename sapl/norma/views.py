@@ -21,7 +21,7 @@ from sapl.utils import show_results_filter_set
 
 from .forms import (NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm)
-from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica)
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')

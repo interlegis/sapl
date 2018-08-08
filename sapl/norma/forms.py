@@ -14,7 +14,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS, RangeWidgetOverride
 
-from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica)
 
 
@@ -97,7 +97,15 @@ class NormaJuridicaForm(ModelForm):
         choices=ANO_CHOICES,
         widget=forms.Select(attrs={'autocomplete': 'off'})
     )
-
+    # anexos_adicionados = forms.ListField(
+    #     label='Anexos adcionados',
+    #     required=False,
+    #     widget=forms.TextInput(attrs={'readonly': 'readonly'})
+    # )
+    anexo_arquivo = forms.FileField(
+        label='Anexo Norma Jurídica',
+        required=False
+    )
     class Meta:
         model = NormaJuridica
         fields = ['tipo',
@@ -117,8 +125,10 @@ class NormaJuridicaForm(ModelForm):
                   'indexacao',
                   'observacao',
                   'texto_integral',
+                  'anexo_arquivo',
                   'assuntos']
         widgets = {'assuntos': widgets.CheckboxSelectMultiple}
+
 
     def clean(self):
         cleaned_data = super(NormaJuridicaForm, self).clean()
@@ -171,10 +181,19 @@ class NormaJuridicaForm(ModelForm):
         return texto_integral
 
     def save(self, commit=False):
+
         norma = self.instance
         norma.timestamp = timezone.now()
         norma.materia = self.cleaned_data['materia']
         norma = super(NormaJuridicaForm, self).save(commit=True)
+
+        if self.cleaned_data['anexo_arquivo']:
+            anexo = AnexoNormaJuridica()
+            anexo.anexo_arquivo = self.cleaned_data['anexo_arquivo']
+            anexo.norma = norma
+            anexo.ano = timezone.now().year
+            anexo.save()
+
         return norma
 
 

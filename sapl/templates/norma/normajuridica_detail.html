@@ -58,6 +58,22 @@
                 </div>
               {% endfor %}
             {% endif %}
+
         </div>
       </div>
+      <hr />
+      <div class="row-fluid">
+        <div class="col-sm-12">
+          &nbsp;<p class="control-label">Anexos Norma Jurídica</p>
+      {% if object.get_anexos_norma_juridica|length > 0 %}
+        {% for p in object.get_anexos_norma_juridica %}
+          <div class="form-control-static">
+           <a href="/media/{{p.anexo_arquivo}}">
+            {{ p.anexo_arquivo | to_str | split:"/" | get_last_item_from_list:-1 }}
+           </a>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
 {% endblock detail_content %}
