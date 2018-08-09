@@ -64,6 +64,16 @@ def sort_by_keys(value, key):
 
 
 @register.filter
+def paginacao_limite_inferior(pagina):
+    return (int(pagina) - 1) * 10 
+
+
+@register.filter
+def paginacao_limite_superior(pagina):
+    return int(pagina) * 10
+
+
+@register.filter
 def lookup(d, key):
     return d[key] if key in d else []
 
