@@ -172,7 +172,6 @@ class NormaJuridicaForm(ModelForm):
         return texto_integral
 
     def save(self, commit=False):
-        import ipdb; ipdb.set_trace()
         norma = self.instance
         norma.timestamp = timezone.now()
         norma.materia = self.cleaned_data['materia']
