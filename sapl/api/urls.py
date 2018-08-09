@@ -3,10 +3,8 @@ from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
 import sapl.api.base.urls
-from sapl.api.materia.serializers import MateriaLegislativaViewSet
 import sapl.api.materia.urls
 import sapl.api.sessao.urls
-from sapl.api.sessao.views import SessaoPlenariaViewSet
 from sapl.api.views import ModelChoiceView
 
 from .apps import AppConfig
@@ -16,8 +14,9 @@ app_name = AppConfig.name
 
 
 router = DefaultRouter()
-router.register(r'materia', MateriaLegislativaViewSet)
-router.register(r'sessao-plenaria', SessaoPlenariaViewSet)
+router.registry += sapl.api.materia.urls.router.registry + \
+    sapl.api.sessao.urls.router.registry
+
 urlpatterns_router = router.urls
 
 urlpatterns_api = [

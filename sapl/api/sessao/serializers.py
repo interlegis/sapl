@@ -4,7 +4,7 @@ from sapl.base.models import CasaLegislativa
 from sapl.sessao.models import SessaoPlenaria, OrdemDia
 
 
-class SessaoPlenariaSerializer(serializers.ModelSerializer):
+class SessaoPlenariaOldSerializer(serializers.ModelSerializer):
 
     codReuniao = serializers.SerializerMethodField('get_pk_sessao')
     codReuniaoPrincipal = serializers.SerializerMethodField('get_pk_sessao')
@@ -57,7 +57,7 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
         )
 
     def __init__(self, *args, **kwargs):
-        super(SessaoPlenariaSerializer, self).__init__(args, kwargs)
+        super(SessaoPlenariaOldSerializer, self).__init__(args, kwargs)
 
     def get_pk_sessao(self, obj):
         return obj.pk
@@ -120,3 +120,19 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
     def casa(self):
         casa = CasaLegislativa.objects.first()
         return casa
+
+
+class SessaoPlenariaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SessaoPlenaria
+        fields = ('tipo',
+                  'sessao_legislativa',
+                  'legislatura',
+                  'data_inicio',
+                  'hora_inicio',
+                  'hora_fim',
+                  'url_video',
+                  'iniciada',
+                  'finalizada'
+                  )
