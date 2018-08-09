@@ -17,7 +17,6 @@ urlpatterns = [
 
     # Integração com Compilação
     url(r'^norma/(?P<pk>[0-9]+)/ta$', NormaTaView.as_view(), name='norma_ta'),
-
     url(r'^sistema/norma/tipo/', include(TipoNormaCrud.get_urls())),
     url(r'^sistema/norma/assunto/', include(AssuntoNormaCrud.get_urls())),
     url(r'^sistema/norma/vinculo/', include(
