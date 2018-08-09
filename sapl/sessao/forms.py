@@ -75,6 +75,8 @@ class SessaoPlenariaForm(ModelForm):
         sl = self.cleaned_data['sessao_legislativa']
         leg = self.cleaned_data['legislatura']
         tipo = self.cleaned_data['tipo']
+        abertura = self.cleaned_data['data_inicio']
+        encerramento = self.cleaned_data['data_fim']
 
         error = ValidationError(
             "Número de Sessão Plenária já existente "
@@ -95,6 +97,91 @@ class SessaoPlenariaForm(ModelForm):
                     raise error
             else:  # create
                 raise error
+
+
+        # Condições da verificação
+        abertura_entre_leg = leg.data_inicio < abertura < leg.data_fim
+        abertura_entre_sl = sl.data_inicio < abertura < sl.data_fim
+        if encerramento is not None:
+            encerramento_entre_leg = leg.data_inicio < encerramento < leg.data_fim
+            encerramento_entre_sl = sl.data_inicio < encerramento < sl.data_fim
+
+        # Verificação das datas de abertura e encerramento da Sessão
+        # Verificações com a data de encerramento preenchidas
+        if encerramento is not None:
+            # Verifica se a data de encerramento é anterior a data de abertura
+            if encerramento < abertura:
+                raise ValidationError("A data de encerramento não pode ser "
+                                      "anterior a data de abertura.")
+            # Verifica se a data de abertura está entre a data de início e fim da legislatura
+            if abertura_entre_leg and encerramento_entre_leg:
+                if abertura_entre_sl and encerramento_entre_sl:
+                    pass
+                elif abertura_entre_sl and not encerramento_entre_sl:
+                    raise ValidationError("A data de encerramento deve estar entre "
+                                          "as datas de início e fim da Sessão Legislativa.")
+                elif not abertura_entre_sl and encerramento_entre_sl:
+                    raise ValidationError("A data de abertura deve estar entre as "
+                                          "datas de início e fim da Sessão Legislativa.")
+                elif not abertura_entre_sl and not encerramento_entre_sl:
+                    raise ValidationError("A data de abertura e de encerramento devem estar "
+                                          "entre as datas de início e fim da Sessão Legislativa.")
+            elif abertura_entre_leg and not encerramento_entre_leg:
+                if abertura_entre_sl and encerramento_entre_sl:
+                    raise ValidationError("A data de encerramento deve estar entre "
+                                          "as datas de início e fim da Legislatura.")
+                elif abertura_entre_sl and not encerramento_entre_sl:
+                    raise ValidationError("A data de encerramento deve estar entre "
+                                          "as datas de início e fim tanto da "
+                                          "Legislatura quanto da Sessão Legislativa.")
+                elif not abertura_entre_sl and encerramento_entre_sl:
+                    raise ValidationError("As datas de abertura e encerramento devem "
+                                          "estar entre as "
+                                          "datas de início e fim tanto Legislatura "
+                                          "quanto da Sessão Legislativa.")
+                elif not abertura_entre_sl and not encerramento_entre_sl:
+                    raise ValidationError("As datas de abertura e encerramento devem "
+                                          "estar entre as "
+                                          "datas de início e fim tanto Legislatura "
+                                          "quanto da Sessão Legislativa.")
+            elif not abertura_entre_leg and not encerramento_entre_leg:
+                if abertura_entre_sl and encerramento_entre_sl:
+                    raise ValidationError("As datas de abertura e encerramento devem "
+                                          "estar entre as "
+                                          "datas de início e fim da Legislatura.")
+                elif abertura_entre_sl and not encerramento_entre_sl:
+                    raise ValidationError("As datas de abertura e encerramento devem "
+                                          "estar entre as "
+                                          "datas de início e fim tanto Legislatura "
+                                          "quanto da Sessão Legislativa.")
+                elif not abertura_entre_sl and encerramento_entre_sl:
+                    raise ValidationError("As datas de abertura e encerramento devem "
+                                          "estar entre as "
+                                          "datas de início e fim tanto Legislatura "
+                                          "quanto da Sessão Legislativa.")
+                elif not abertura_entre_sl and not encerramento_entre_sl:
+                    raise ValidationError("As datas de abertura e encerramento devem "
+                                          "estar entre as "
+                                          "datas de início e fim tanto Legislatura "
+                                          "quanto da Sessão Legislativa.")
+
+
+        # Verificações com a data de encerramento vazia
+        else:
+            if abertura_entre_leg:
+                if abertura_entre_sl:
+                    pass
+                else:
+                    raise ValidationError("A data de abertura da sessão deve estar "
+                                          "entre a data de início e fim da Sessão Legislativa.")
+            else:
+                if abertura_entre_sl:
+                    raise ValidationError("A data de abertura da sessão deve estar "
+                                          "entre a data de início e fim da Legislatura.")
+                else:
+                    raise ValidationError("A data de abertura da sessão deve estar "
+                                          "entre a data de início e fim tanto da "
+                                          "Legislatura quanto da Sessão Legislativa.")
 
         return self.cleaned_data
 

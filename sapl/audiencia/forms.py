@@ -98,7 +98,7 @@ class AudienciaForm(forms.ModelForm):
         if self.cleaned_data['hora_inicio'] and self.cleaned_data['hora_fim']:
             if (self.cleaned_data['hora_fim'] <
                 self.cleaned_data['hora_inicio']):
-                    msg = _('A hora de fim não pode ser anterior a hora de ínicio')
+                    msg = _('A hora de fim não pode ser anterior a hora de início')
                     raise ValidationError(msg)
 
         return cleaned_data
