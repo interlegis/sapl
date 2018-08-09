@@ -101,18 +101,24 @@ class NormaPesquisaView(FilterView):
 class AnexoNormaJuridicaCrud(MasterDetailCrud):
     model = AnexoNormaJuridica
     parent_field = 'norma'
-    help_topic = 'anexo_normajuridica'
+    help_topic = 'anexonormajuridica'
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['anexo_arquivo']
+        list_field_names = ['id','anexo_arquivo']
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = AnexoNormaJuridicaForm
+        layout_key = 'AnexoNormaJuridica'
+        def get_initial(self):
+            norma_id = str(self.request).split("/")[-3]
+            self.initial = super(MasterDetailCrud.CreateView, self).get_initial()
+            self.initial['norma'] = NormaJuridica.objects.get(id=norma_id)
+            return self.initial
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = AnexoNormaJuridicaForm
-
+        layout_key = 'AnexoNormaJuridica'
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
             initial['norma'] = self.object.norma
@@ -121,8 +127,8 @@ class AnexoNormaJuridicaCrud(MasterDetailCrud):
             return initial
 
     class DetailView(MasterDetailCrud.DetailView):
-
-        layout_key = 'AnexoNormaJuridicaDetail'
+        form_class = AnexoNormaJuridicaForm
+        layout_key = 'AnexoNormaJuridica'
 
 
 class NormaTaView(IntegracaoTaView):
