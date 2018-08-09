@@ -19,7 +19,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.utils import show_results_filter_set
 
-from .forms import (NormaFilterSet, NormaJuridicaForm,
+from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm)
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica)
@@ -97,6 +97,32 @@ class NormaPesquisaView(FilterView):
         context['show_results'] = show_results_filter_set(qr)
 
         return context
+
+class AnexoNormaJuridicaCrud(MasterDetailCrud):
+    model = AnexoNormaJuridica
+    parent_field = 'norma'
+    help_topic = 'anexo_normajuridica'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['anexo_arquivo']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AnexoNormaJuridicaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AnexoNormaJuridicaForm
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['norma'] = self.object.norma
+            initial['anexo_arquivo'] = self.object.anexo_arquivo
+            initial['ano'] = self.object.ano
+            return initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        layout_key = 'AnexoNormaJuridicaDetail'
 
 
 class NormaTaView(IntegracaoTaView):

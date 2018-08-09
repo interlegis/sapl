@@ -97,11 +97,6 @@ class NormaJuridicaForm(ModelForm):
         choices=ANO_CHOICES,
         widget=forms.Select(attrs={'autocomplete': 'off'})
     )
-    # anexos_adicionados = forms.ListField(
-    #     label='Anexos adcionados',
-    #     required=False,
-    #     widget=forms.TextInput(attrs={'readonly': 'readonly'})
-    # )
     anexo_arquivo = forms.FileField(
         label='Anexo Norma Jurídica',
         required=False
@@ -186,7 +181,6 @@ class NormaJuridicaForm(ModelForm):
         norma.timestamp = timezone.now()
         norma.materia = self.cleaned_data['materia']
         norma = super(NormaJuridicaForm, self).save(commit=True)
-
         if self.cleaned_data['anexo_arquivo']:
             anexo = AnexoNormaJuridica()
             anexo.anexo_arquivo = self.cleaned_data['anexo_arquivo']
@@ -195,6 +189,15 @@ class NormaJuridicaForm(ModelForm):
             anexo.save()
 
         return norma
+
+class AnexoNormaJuridicaForm(ModelForm):
+    # class Meta:
+    #     model = AnexoNormaJuridica
+    #     fields = ['norma', 'anexo_arquivo']
+
+    def __init__(self, *args, **kwargs):
+        super(AnexoNormaJuridicaForm, self).__init__(*args, **kwargs)
+
 
 
 class NormaRelacionadaForm(ModelForm):
