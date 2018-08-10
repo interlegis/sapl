@@ -318,18 +318,32 @@ class FrenteForm(ModelForm):
         model = Frente
         fields = '__all__'
 
+    def clean(self):
+        frente = super(FrenteForm, self).clean()
+        cd = self.cleaned_data
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if cd['data_criacao'] >= cd['data_extincao']:
+            raise ValidationError(_("Data Dissolução não pode ser anterior a Data Criação"))
+
+        return cd
+
     @transaction.atomic
     def save(self, commit=True):
         frente = super(FrenteForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Frente)
-        object_id = frente.pk
-        tipo = TipoAutor.objects.get(descricao__icontains='Frente')
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=frente.nome
-        )
+        
+        if not self.instance.pk:
+            frente = super(FrenteForm, self).save(commit)
+            content_type = ContentType.objects.get_for_model(Frente)
+            object_id = frente.pk
+            tipo = TipoAutor.objects.get(descricao__icontains='Frente')
+            Autor.objects.create(
+                content_type=content_type,
+                object_id=object_id,
+                tipo=tipo,
+                nome=frente.nome
+            )
         return frente
 
 
