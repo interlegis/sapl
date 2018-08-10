@@ -130,6 +130,13 @@ class BancadaForm(ModelForm):
                 raise ValidationError(_("Data fim da bancada fora do intervalo de"
                                         " legislatura informada"))
 
+        if self.cleaned_data['data_extincao']:
+            if (self.cleaned_data['data_extincao'] <
+                    self.cleaned_data['data_criacao']):
+                msg = _('Data de extinção não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        return self.cleaned_data
+
     @transaction.atomic
     def save(self, commit=True):
         bancada = super(BancadaForm, self).save(commit)

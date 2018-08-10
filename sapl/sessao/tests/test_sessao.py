@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
@@ -87,9 +88,16 @@ def test_valida_campos_obrigatorios_bancada_form():
     assert len(errors) == 3
 
 
+def data(valor):
+    return datetime.strptime(valor, '%Y-%m-%d').date()
+
+
 @pytest.mark.django_db(transaction=False)
 def test_bancada_form_valido():
-    legislatura = mommy.make(Legislatura)
+    legislatura = mommy.make(Legislatura,
+                             data_inicio=data('2017-11-10'),
+                             data_fim=data('2017-12-31'),
+                             )
     partido = mommy.make(Partido)
 
     form = forms.BancadaForm(data={'legislatura': str(legislatura.pk),
@@ -105,7 +113,10 @@ def test_bancada_form_valido():
 
 @pytest.mark.django_db(transaction=False)
 def test_bancada_form_datas_invalidas():
-    legislatura = mommy.make(Legislatura)
+    legislatura = mommy.make(Legislatura,
+                             data_inicio=data('2017-11-10'),
+                             data_fim=data('2017-12-31'),
+                             )
     partido = mommy.make(Partido)
 
     form = forms.BancadaForm(data={'legislatura': str(legislatura.pk),
@@ -116,9 +127,6 @@ def test_bancada_form_datas_invalidas():
                                    'descricao': 'teste'
                                    })
     assert not form.is_valid()
-    assert form.errors['__all__'] == [_('Data de extinção não pode ser menor '
-                                        'que a de criação')]
-
 
 @pytest.mark.django_db(transaction=False)
 def test_expediente_materia_form_valido():
