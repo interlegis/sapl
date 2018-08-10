@@ -89,14 +89,15 @@ if __name__ == '__main__':
 
     args = sys.argv
     if len(args) < 2:
-        print("Usage: python3 docker_solr_init.py <core name> <host>")
+        print("Usage: python3 docker_solr_init.py <core name> <address>")
         sys.exit(-1)
     core = args[1]
 
     client = SolrClient()
     if len(args) == 3:
-        hostname = args[2]
-        client = SolrClient(address=hostname)
+        address = args[2]
+        client = SolrClient(address=address)
+
 
     if not client.exists_core(core):
         print("Core '%s' doesn't exists. Creating a new one..." % core)
