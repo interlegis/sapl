@@ -179,10 +179,14 @@ class NormaJuridicaForm(ModelForm):
 
         return norma
 
+
 class AnexoNormaJuridicaForm(ModelForm):
     class Meta:
         model = AnexoNormaJuridica
         fields = ['norma', 'anexo_arquivo']
+        widgets = {
+            'norma': forms.HiddenInput(),
+        }
 
     def clean(self):
         cleaned_data = super(AnexoNormaJuridicaForm, self).clean()
