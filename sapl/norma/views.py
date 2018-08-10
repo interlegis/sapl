@@ -19,9 +19,9 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.utils import show_results_filter_set
 
-from .forms import (NormaFilterSet, NormaJuridicaForm,
+from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm)
-from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica)
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
@@ -97,6 +97,38 @@ class NormaPesquisaView(FilterView):
         context['show_results'] = show_results_filter_set(qr)
 
         return context
+
+class AnexoNormaJuridicaCrud(MasterDetailCrud):
+    model = AnexoNormaJuridica
+    parent_field = 'norma'
+    help_topic = 'anexonormajuridica'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['id','anexo_arquivo']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AnexoNormaJuridicaForm
+        layout_key = 'AnexoNormaJuridica'
+        def get_initial(self):
+            norma_id = str(self.request).split("/")[-3]
+            self.initial = super(MasterDetailCrud.CreateView, self).get_initial()
+            self.initial['norma'] = NormaJuridica.objects.get(id=norma_id)
+            return self.initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AnexoNormaJuridicaForm
+        layout_key = 'AnexoNormaJuridica'
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['norma'] = self.object.norma
+            initial['anexo_arquivo'] = self.object.anexo_arquivo
+            initial['ano'] = self.object.ano
+            return initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+        form_class = AnexoNormaJuridicaForm
+        layout_key = 'AnexoNormaJuridica'
 
 
 class NormaTaView(IntegracaoTaView):

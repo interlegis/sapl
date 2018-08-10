@@ -135,6 +135,7 @@ rules_group_norma = {
     'rules': [
         (norma.NormaJuridica, __base__),
         (norma.NormaRelacionada, __base__),
+        (norma.AnexoNormaJuridica, __base__),
 
         # Publicacao está com permissão apenas para norma e não para matéria
         # e proposições apenas por análise do contexto, não é uma limitação

@@ -45,6 +45,15 @@ def split(value, arg):
 
 
 @register.filter
+def to_str(arg):
+    return str(arg)
+
+@register.filter
+def get_last_item_from_list(list,arg):
+    return list[arg]
+
+
+@register.filter
 def sort_by_keys(value, key):
     transformed = []
     id_props = [x.id for x in value]
