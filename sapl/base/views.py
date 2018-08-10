@@ -393,7 +393,7 @@ class RelatorioMateriasTramitacaoView(FilterView):
         context = super(RelatorioMateriasTramitacaoView,
                         self).get_context_data(**kwargs)
 
-        context['title'] = _('Matérias por Ano, Autor e Tipo')
+        context['title'] = _('Matérias em Tramitação')
 
         qs = context['object_list']
         qs = qs.filter(em_tramitacao=True)
