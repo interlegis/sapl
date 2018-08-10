@@ -39,24 +39,33 @@
               {% define object_list as list %}
           {% endif %}
 
+          {% if 'page' in request.GET %}
+                {% define request.GET.page as pagina %}
+          {% else %}
+                {% define '1' as pagina %}
+          {% endif %}
+
           {% for prop in list %}
-            <tr>
-              <td>
-                 <a href="{% url 'sapl.materia:proposicao_detail' prop.pk %}">{{ prop.data_envio|localtime|date:"d/m/Y H:i:s" }}</a>
-              </td>
-              <td>{{ prop.tipo.descricao }}</td>
-              <td>{{ prop.descricao }}</td>
-              <td>{{ prop.autor }}</td>
-              <td>
-                {% if not AppConfig.receber_recibo_proposicao %}
-                  {%if prop.hash_code %}
-                    <a href="{% url 'sapl.materia:proposicao-confirmar' prop.hash_code|strip_hash prop.pk %}">{{ prop.hash_code }}</a>
-                  {% else %}
-                    {{ prop.hash_code }}
+
+            {% if forloop.counter > pagina|paginacao_limite_inferior and forloop.counter <= pagina|paginacao_limite_superior %}
+              <tr>
+                <td>
+                   <a href="{% url 'sapl.materia:proposicao_detail' prop.pk %}">{{ prop.data_envio|localtime|date:"d/m/Y H:i:s" }}</a>
+                </td>
+                <td>{{ prop.tipo.descricao }}</td>
+                <td>{{ prop.descricao }}</td>
+                <td>{{ prop.autor }}</td>
+                <td>
+                  {% if not AppConfig.receber_recibo_proposicao %}
+                    {%if prop.hash_code %}
+                      <a href="{% url 'sapl.materia:proposicao-confirmar' prop.hash_code|strip_hash prop.pk %}">{{ prop.hash_code }}</a>
+                    {% else %}
+                      {{ prop.hash_code }}
+                    {% endif %}
                   {% endif %}
-                {% endif %}
-              </td>
-             </tr>
+                </td>
+               </tr>
+             {% endif %}
           {% endfor %}
         </tbody>
       </table>

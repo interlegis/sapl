@@ -426,6 +426,10 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(ProposicaoPendente, self).get_context_data(**kwargs)
+        context['object_list'] = Proposicao.objects.filter(
+            data_envio__isnull=False,
+            data_recebimento__isnull=True,
+            data_devolucao__isnull=True)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['AppConfig'] = sapl.base.models.AppConfig.objects.all().last()
@@ -434,6 +438,8 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
         context['NO_ENTRIES_MSG'] = 'Nenhuma proposição pendente.'
 
         context['subnav_template_name'] = 'materia/subnav_prop.yaml'
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&o=' + qr['o']) if 'o' in qr.keys() else ''
         return context
 
 
