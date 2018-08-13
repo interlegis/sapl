@@ -10,6 +10,7 @@ from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
 from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import Q
 from django.forms import Form, ModelForm
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
@@ -174,8 +175,24 @@ class SessaoLegislativaForm(ModelForm):
         numero = cleaned_data['numero']
         data_inicio_leg = legislatura.data_inicio
         data_fim_leg = legislatura.data_fim
+        pk = self.initial['id']
 
-        sessoes_legislativas = SessaoLegislativa.objects.filter(legislatura=legislatura)
+        # Querys para verificar se existem Sessões Legislativas no período selecionado no form
+        # Caso onde a data_inicio e data_fim são iguais a de alguma sessão já criada
+        primeiro_caso = Q(data_inicio=data_inicio, data_fim=data_fim)
+        # Caso onde a data_inicio está entre o início e o fim de uma Sessão já existente
+        segundo_caso = Q(data_inicio__lt=data_inicio, data_fim__range=(data_inicio, data_fim))
+        # Caso onde a data_fim está entre o início e o fim de uma Sessão já existente
+        terceiro_caso = Q(data_inicio__range=(data_inicio, data_fim), data_fim__gt=data_fim)
+        sessoes_existentes = SessaoLegislativa.objects.filter(primeiro_caso|segundo_caso|terceiro_caso).\
+            exclude(pk=pk)
+
+        if sessoes_existentes:
+            raise ValidationError('Já existe registrado uma Sessão Legislativa que coincide com a data '
+                                  'inserida, favor verificar as Sessões existentes antes de criar uma '
+                                  'nova Sessão Legislativa')
+
+        sessoes_legislativas = SessaoLegislativa.objects.filter(legislatura=legislatura).exclude(pk=pk)
 
         if sessoes_legislativas:
             numeracoes = [n.numero for n in sessoes_legislativas]
