@@ -170,6 +170,36 @@ class SessaoLegislativaForm(ModelForm):
 
         data_inicio = cleaned_data['data_inicio']
         data_fim = cleaned_data['data_fim']
+        legislatura = cleaned_data['legislatura']
+        numero = cleaned_data['numero']
+        data_inicio_leg = legislatura.data_inicio
+        data_fim_leg = legislatura.data_fim
+
+        sessoes_legislativas = SessaoLegislativa.objects.filter(legislatura=legislatura)
+
+        if sessoes_legislativas:
+            numeracoes = [n.numero for n in sessoes_legislativas]
+            numeracoes = sorted(numeracoes)
+            ult = max(numeracoes)
+
+        else:
+            ult = SessaoLegislativa.objects.latest('data_fim')
+            ult = ult.numero
+
+        if numero <= ult:
+            raise ValidationError('O número da Sessão Legislativa não pode ser menor ou igual '
+                                  'que o de Sessões Legislativas passadas')
+
+
+        if data_inicio < data_inicio_leg or \
+            data_inicio > data_fim_leg:
+            raise ValidationError('A data de início da Sessão Legislativa deve estar compreendida '
+                                  'entre a data início e fim da Legislatura selecionada')
+
+        if data_fim > data_fim_leg or \
+            data_fim < data_inicio_leg:
+            raise ValidationError('A data de fim da Sessão Legislativa deve estar compreendida '
+                                  'entre a data início e fim da Legislatura selecionada')
 
         if data_inicio > data_fim:
             raise ValidationError('Data início não pode ser superior à data fim')
@@ -182,6 +212,23 @@ class SessaoLegislativaForm(ModelForm):
                 raise ValidationError('Data início de intervalo não pode ser '
                                       'superior à data fim de intervalo')
 
+        if data_inicio_intervalo:
+            if data_inicio_intervalo < data_inicio or \
+                    data_inicio_intervalo < data_inicio_leg or \
+                    data_inicio_intervalo > data_fim or \
+                    data_inicio_intervalo > data_inicio_leg:
+                raise ValidationError('A data de início do intervalo deve estar compreendida entre '
+                                      'as datas de início e fim tanto da Legislatura quanto da '
+                                      'própria Sessão Legislativa')
+
+        if data_fim_intervalo:
+            if data_fim_intervalo > data_fim or \
+                    data_fim_intervalo > data_fim_leg or \
+                    data_fim_intervalo < data_inicio or \
+                    data_fim_intervalo < data_inicio_leg:
+                raise ValidationError('A data de fim do intervalo deve estar compreendida entre '
+                                      'as datas de início e fim tanto da Legislatura quanto da '
+                                      'própria Sessão Legislativa')
         return cleaned_data
 
 
