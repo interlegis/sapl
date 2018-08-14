@@ -443,7 +443,7 @@ class Mandato(models.Model):
         db_index=True,
         default=True,
         choices=YES_NO_CHOICES,
-        verbose_name=_('Vereador Titular'))
+        verbose_name=_('Parlamentar Titular'))
 
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
