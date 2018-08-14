@@ -100,14 +100,13 @@ class MandatoForm(ModelForm):
                                         " legislatura informada"))
 
         data_expedicao_diploma = data['data_expedicao_diploma']
-        if data_expedicao_diploma:
-            if data_expedicao_diploma > data_inicio_mandato:
+        if (data_expedicao_diploma and
+                data_expedicao_diploma > data_inicio_mandato):
                 raise ValidationError(_("A data da expedição do diploma deve ser anterior "
                                         "a data de início do mandato"))
 
         coligacao = data['coligacao']
-        if coligacao:
-            if not coligacao.legislatura == legislatura:
+        if coligacao and not coligacao.legislatura == legislatura:
                 raise ValidationError(_("A coligação selecionada não está cadastrada "
                                         "na mesma legislatura que o presente mandato, "
                                         "favor verificar a coligação ou fazer o cadastro "
