@@ -8,7 +8,6 @@ from datetime import date
 from functools import lru_cache, partial
 from itertools import groupby
 from operator import xor
-from subprocess import PIPE, call
 
 import git
 import pkg_resources
@@ -31,12 +30,10 @@ from unipath import Path
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
-from sapl.legacy import scripts
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
-from sapl.legacy_migration_settings import (DATABASES, DIR_DADOS_MIGRACAO,
-                                            DIR_REPO, NOME_BANCO_LEGADO,
-                                            PROJECT_DIR)
+from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
+                                            NOME_BANCO_LEGADO)
 from sapl.materia.models import (AcompanhamentoMateria, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
@@ -222,10 +219,6 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
 
     def __init__(self, field, valor, old):
-        if (field.related_model.__name__ == 'Comissao'
-                and old.__class__.__name__ == 'ReuniaoComissao'
-                and valor == 1):
-            __import__('pdb').set_trace()
         self.field = field
         self.valor = valor
         self.old = old
@@ -542,7 +535,6 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('sessao_plenaria', 'ordem_dia', 'cod_sessao_plen'),
     ('sessao_plenaria', 'expediente_materia', 'cod_sessao_plen'),
     ('sessao_plenaria', 'expediente_sessao_plenaria', 'cod_sessao_plen'),
-    ('registro_votacao', 'registro_votacao_parlamentar', 'cod_votacao'),
     # as consultas no código do sapl 2.5
     # votacao_ordem_dia_obter_zsql e votacao_expediente_materia_obter_zsql
     # indicam que os registros de votação de matérias excluídas não são
@@ -558,30 +550,38 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('materia_legislativa', 'anexada', 'cod_materia_anexada'),
     ('materia_legislativa', 'documento_acessorio', 'cod_materia'),
     ('materia_legislativa', 'numeracao', 'cod_materia'),
+    ('materia_legislativa', 'expediente_materia', 'cod_materia'),
 
     # norma
     ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referente'),
     ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referida'),
+    ('norma_juridica', 'legislacao_citada', 'cod_norma'),
 
     # documento administrativo
     ('documento_administrativo', 'tramitacao_administrativo', 'cod_documento'),
 ]
 
+PROPAGACOES_DE_EXCLUSAO_REGISTROS_VOTACAO = [
+    ('registro_votacao', 'registro_votacao_parlamentar', 'cod_votacao'),
+]
 
-def propaga_exclusoes():
-    for tabela_pai, tabela_filha, fk in PROPAGACOES_DE_EXCLUSAO:
+
+def propaga_exclusoes(propagacoes):
+    for tabela_pai, tabela_filha, fk in propagacoes:
         [pk_pai] = get_pk_legado(tabela_pai)
-        exec_legado('''
+        sql = '''
             update {} set ind_excluido = 1 where {} not in (
                 select {} from {} where ind_excluido != 1)
-            '''.format(tabela_filha, fk, pk_pai, tabela_pai))
+            '''.format(tabela_filha, fk, pk_pai, tabela_pai)
+        exec_legado(sql)
 
 
 def uniformiza_banco():
     exec_legado('SET SESSION sql_mode = "";')  # desliga checagens do mysql
 
-    propaga_exclusoes()
+    propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO)
     checa_registros_votacao_ambiguos_e_remove_nao_usados()
+    propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO_REGISTROS_VOTACAO)
 
     garante_coluna_no_legado('proposicao',
                              'num_proposicao int(11) NULL')
@@ -870,7 +870,6 @@ def get_models_a_migrar():
               if model in field_renames]
     # retira reuniões quando não existe na base legada
     # (só existe no sapl 3.0)
-    tabelas_legado = [t for (t,) in exec_legado('show tables')]
     if not EXISTE_REUNIAO_NO_LEGADO:
         models.remove(Reuniao)
     # Devido à referência TipoProposicao.tipo_conteudo_related
