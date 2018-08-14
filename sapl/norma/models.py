@@ -148,8 +148,7 @@ class NormaJuridica(models.Model):
 
 
     def __str__(self):
-        return _('%(tipo)s nº %(numero)s de %(data)s') % {
-            'tipo': self.tipo,
+        return _('nº %(numero)s de %(data)s') % {
             'numero': self.numero,
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 

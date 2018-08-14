@@ -193,11 +193,10 @@ class AnexoNormaJuridicaForm(ModelForm):
         if not self.is_valid():
             return cleaned_data
         anexo_arquivo = self.cleaned_data.get('anexo_arquivo', False)
-        if anexo_arquivo:
-            if anexo_arquivo.size > MAX_DOC_UPLOAD_SIZE:
-                max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
-                raise ValidationError(
-                    "Arquivo muito grande. ( > {0}MB )".format(max_size))
+        if anexo_arquivo and anexo_arquivo.size > MAX_DOC_UPLOAD_SIZE:
+            max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+            raise ValidationError(
+                 "Arquivo muito grande. ( > {0}MB )".format(max_size))
         return cleaned_data
 
     def save(self, commit=False):
