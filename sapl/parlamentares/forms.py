@@ -99,6 +99,19 @@ class MandatoForm(ModelForm):
                 raise ValidationError(_("Data fim mandato fora do intervalo de"
                                         " legislatura informada"))
 
+        data_expedicao_diploma = data['data_expedicao_diploma']
+        if (data_expedicao_diploma and
+                data_expedicao_diploma > data_inicio_mandato):
+                raise ValidationError(_("A data da expedição do diploma deve ser anterior "
+                                        "a data de início do mandato"))
+
+        coligacao = data['coligacao']
+        if coligacao and not coligacao.legislatura == legislatura:
+                raise ValidationError(_("A coligação selecionada não está cadastrada "
+                                        "na mesma legislatura que o presente mandato, "
+                                        "favor verificar a coligação ou fazer o cadastro "
+                                        "de uma nova coligação na legislatura correspondente"))
+
         existe_mandato = Mandato.objects.filter(
             parlamentar=data['parlamentar'],
             legislatura=data['legislatura']).exists()
