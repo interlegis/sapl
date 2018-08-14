@@ -449,7 +449,6 @@ class RedirecionaNormasJuridicasTextoIntegral(RedirectView):
     permanent = False
 
     def get_redirect_url(self, **kwargs):
-        # import ipdb;ipdb.set_trace()
         url = EMPTY_STRING
         try:
             norma = NormaJuridica.objects.get(pk=kwargs['norma_id'])
