@@ -238,7 +238,7 @@ def recuperar_numero_norma(request):
     param = {'tipo': tipo}
     param['ano'] = ano if ano else timezone.now().year
     norma = NormaJuridica.objects.filter(**param).order_by(
-            'tipo', 'ano').values_list('numero', 'ano').last()
+            'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
     if norma:
         response = JsonResponse({'numero': int(re.sub("[^0-9].*", '', norma[0])) + 1,
                                  'ano': norma[1]})
