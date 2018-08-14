@@ -707,12 +707,12 @@ class ProposicaoCrud(Crud):
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
                         try:
-                            Numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
+                            numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
                                                                        ano=p.ano).last().numero + 1
                             messages.success(request, _(
                                 '%s : nº %s de %s <br>Atenção! Este número é apenas um provável '
                                 'número que pode não corresponder com a realidade'
-                                % (p.tipo, Numero, p.ano)))
+                                % (p.tipo, numero, p.ano)))
                         except ValueError:
                             pass
 
