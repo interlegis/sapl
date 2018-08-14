@@ -110,15 +110,16 @@ class AnexoNormaJuridicaCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = AnexoNormaJuridicaForm
         layout_key = 'AnexoNormaJuridica'
+
         def get_initial(self):
-            norma_id = str(self.request).split("/")[-3]
-            self.initial = super(MasterDetailCrud.CreateView, self).get_initial()
-            self.initial['norma'] = NormaJuridica.objects.get(id=norma_id)
-            return self.initial
+            initial = super(MasterDetailCrud.CreateView, self).get_initial()
+            initial['norma'] = NormaJuridica.objects.get(id=self.kwargs['pk'])
+            return initial
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = AnexoNormaJuridicaForm
         layout_key = 'AnexoNormaJuridica'
+
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
             initial['norma'] = self.object.norma
