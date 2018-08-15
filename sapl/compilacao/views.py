@@ -1391,7 +1391,7 @@ class ActionsCommonsMixin:
                 pkfilho = dp.pk
                 dp = dp.dispositivo_pai
 
-                proxima_articulacao = dp.get_proximo_nivel_zero()
+                proxima_articulacao = dp.select_next_root()
 
                 if proxima_articulacao is not None:
                     parents = Dispositivo.objects.filter(
@@ -1484,7 +1484,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
         data = {}
         if not base_anterior or base == base.get_raiz():
-            base_anterior = base.get_nivel_zero_anterior()
+            base_anterior = base.select_prev_root()
             if not base_anterior:
                 base_anterior = base
         data = self.get_json_for_refresh(base_anterior)
@@ -1545,7 +1545,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     print(e)
             base.delete()
         else:
-            proxima_articulacao = base.get_proximo_nivel_zero()
+            proxima_articulacao = base.select_next_root()
             if not bloco:
                 # tranferir filhos para primeiro pai possível acima da base
                 # de exclusão
@@ -1703,7 +1703,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
                     base_adicao = {}
 
-                    nivel_zero_anterior = base.get_nivel_zero_anterior()
+                    nivel_zero_anterior = base.select_prev_root()
                     if nivel_zero_anterior:
                         nivel_zero_anterior = nivel_zero_anterior.ordem
                     else:
@@ -2383,7 +2383,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
             if dp.nivel == 0:
 
-                proxima_articulacao = dp.get_proximo_nivel_zero()
+                proxima_articulacao = dp.select_next_root()
 
                 if not proxima_articulacao:
                     filhos_continuos = list(Dispositivo.objects.filter(

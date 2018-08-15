@@ -29,7 +29,7 @@
       </a>
       <ul class="dropdown-menu">
         <li>
-          {%for parent in object.get_niveis_zero %}
+          {%for parent in object.select_roots %}
             <a href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
               {{parent.dispositivo0}} - {{parent|nomenclatura}}
             </a>
