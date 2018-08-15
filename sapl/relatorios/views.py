@@ -826,9 +826,10 @@ def get_protocolos(prots):
 
         dic['titulo'] = str(protocolo.numero) + '/' + str(protocolo.ano)
 
-        dic['data'] = protocolo.data.strftime(
-            "%d/%m/%Y") + ' - <b>Horário:</b>' + protocolo.hora.strftime(
-            "%H:%m")
+        ts = timezone.localtime(protocolo.timestamp)
+
+        dic['data'] = ts.strftime("%d/%m/%Y") + ' - <b>Horário:</b>' + \
+            ts.strftime("%H:%m")
 
         dic['txt_assunto'] = protocolo.assunto_ementa
 
