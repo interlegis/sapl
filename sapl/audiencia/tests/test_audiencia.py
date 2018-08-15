@@ -3,6 +3,7 @@ from django.utils.translation import ugettext as _
 from model_mommy import mommy
 
 from sapl.audiencia import forms
+from sapl.audiencia.models import TipoAudienciaPublica
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 
 @pytest.mark.django_db(transaction=False)
@@ -37,4 +38,4 @@ def test_audiencia_form_hora_invalida():
                                   	})
     assert not form.is_valid()
 
-    assert form.errors['__all__'] == ["A hora de fim não pode ser anterior a hora de início"]
+  
