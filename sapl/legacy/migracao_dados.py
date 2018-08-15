@@ -8,7 +8,6 @@ from datetime import date
 from functools import lru_cache, partial
 from itertools import groupby
 from operator import xor
-from subprocess import PIPE, call
 
 import git
 import pkg_resources
@@ -31,12 +30,10 @@ from unipath import Path
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
-from sapl.legacy import scripts
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
-from sapl.legacy_migration_settings import (DATABASES, DIR_DADOS_MIGRACAO,
-                                            DIR_REPO, NOME_BANCO_LEGADO,
-                                            PROJECT_DIR)
+from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
+                                            NOME_BANCO_LEGADO)
 from sapl.materia.models import (AcompanhamentoMateria, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
@@ -141,10 +138,6 @@ models_novos_para_antigos = {
     for model in field_renames}
 models_novos_para_antigos[Composicao] = models_novos_para_antigos[Participacao]
 
-content_types = {model: ContentType.objects.get(
-    app_label=model._meta.app_label, model=model._meta.model_name)
-    for model in field_renames}
-
 campos_novos_para_antigos = {
     model._meta.get_field(nome_novo): nome_antigo
     for model, renames in field_renames.items()
@@ -226,10 +219,6 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
 
     def __init__(self, field, valor, old):
-        if (field.related_model.__name__ == 'Comissao'
-                and old.__class__.__name__ == 'ReuniaoComissao'
-                and valor == 1):
-            __import__('pdb').set_trace()
         self.field = field
         self.valor = valor
         self.old = old
@@ -546,7 +535,6 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('sessao_plenaria', 'ordem_dia', 'cod_sessao_plen'),
     ('sessao_plenaria', 'expediente_materia', 'cod_sessao_plen'),
     ('sessao_plenaria', 'expediente_sessao_plenaria', 'cod_sessao_plen'),
-    ('registro_votacao', 'registro_votacao_parlamentar', 'cod_votacao'),
     # as consultas no código do sapl 2.5
     # votacao_ordem_dia_obter_zsql e votacao_expediente_materia_obter_zsql
     # indicam que os registros de votação de matérias excluídas não são
@@ -562,30 +550,38 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('materia_legislativa', 'anexada', 'cod_materia_anexada'),
     ('materia_legislativa', 'documento_acessorio', 'cod_materia'),
     ('materia_legislativa', 'numeracao', 'cod_materia'),
+    ('materia_legislativa', 'expediente_materia', 'cod_materia'),
 
     # norma
     ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referente'),
     ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referida'),
+    ('norma_juridica', 'legislacao_citada', 'cod_norma'),
 
     # documento administrativo
     ('documento_administrativo', 'tramitacao_administrativo', 'cod_documento'),
 ]
 
+PROPAGACOES_DE_EXCLUSAO_REGISTROS_VOTACAO = [
+    ('registro_votacao', 'registro_votacao_parlamentar', 'cod_votacao'),
+]
 
-def propaga_exclusoes():
-    for tabela_pai, tabela_filha, fk in PROPAGACOES_DE_EXCLUSAO:
+
+def propaga_exclusoes(propagacoes):
+    for tabela_pai, tabela_filha, fk in propagacoes:
         [pk_pai] = get_pk_legado(tabela_pai)
-        exec_legado('''
+        sql = '''
             update {} set ind_excluido = 1 where {} not in (
                 select {} from {} where ind_excluido != 1)
-            '''.format(tabela_filha, fk, pk_pai, tabela_pai))
+            '''.format(tabela_filha, fk, pk_pai, tabela_pai)
+        exec_legado(sql)
 
 
 def uniformiza_banco():
     exec_legado('SET SESSION sql_mode = "";')  # desliga checagens do mysql
 
-    propaga_exclusoes()
+    propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO)
     checa_registros_votacao_ambiguos_e_remove_nao_usados()
+    propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO_REGISTROS_VOTACAO)
 
     garante_coluna_no_legado('proposicao',
                              'num_proposicao int(11) NULL')
@@ -808,7 +804,7 @@ def roda_comando_shell(cmd):
     assert res == 0, 'O comando falhou: {}'.format(cmd)
 
 
-def migrar_dados():
+def migrar_dados(apagar_do_legado=False):
     try:
         ocorrencias.clear()
         ocorrencias.default_factory = list
@@ -840,7 +836,7 @@ def migrar_dados():
         fill_vinculo_norma_juridica()
         fill_dados_basicos()
         info('Começando migração: ...')
-        migrar_todos_os_models()
+        migrar_todos_os_models(apagar_do_legado)
     except Exception as e:
         ocorrencias['traceback'] = str(traceback.format_exc())
         raise e
@@ -874,7 +870,6 @@ def get_models_a_migrar():
               if model in field_renames]
     # retira reuniões quando não existe na base legada
     # (só existe no sapl 3.0)
-    tabelas_legado = [t for (t,) in exec_legado('show tables')]
     if not EXISTE_REUNIAO_NO_LEGADO:
         models.remove(Reuniao)
     # Devido à referência TipoProposicao.tipo_conteudo_related
@@ -890,12 +885,12 @@ def get_models_a_migrar():
     return models
 
 
-def migrar_todos_os_models():
+def migrar_todos_os_models(apagar_do_legado):
     for model in get_models_a_migrar():
-        migrar_model(model)
+        migrar_model(model, apagar_do_legado)
 
 
-def migrar_model(model):
+def migrar_model(model, apagar_do_legado):
     print('Migrando %s...' % model.__name__)
 
     model_legado, tabela_legado, campos_pk_legado = \
@@ -949,12 +944,13 @@ def migrar_model(model):
                 novos.append(new)  # guarda para salvar
 
                 # acumula deleção do registro no legado
-                sql_delete_legado += 'delete from {} where {};\n'.format(
-                    tabela_legado,
-                    ' and '.join(
-                        '{} = "{}"'.format(campo,
-                                           getattr(old, campo))
-                        for campo in campos_pk_legado))
+                if apagar_do_legado:
+                    sql_delete_legado += 'delete from {} where {};\n'.format(
+                        tabela_legado,
+                        ' and '.join(
+                            '{} = "{}"'.format(campo,
+                                               getattr(old, campo))
+                            for campo in campos_pk_legado))
 
         # salva novos registros
         with reversion.create_revision():
@@ -973,7 +969,7 @@ def migrar_model(model):
             reinicia_sequence(model, ultima_pk_legado + 1)
 
         # apaga registros migrados do legado
-        if sql_delete_legado:
+        if apagar_do_legado and sql_delete_legado:
             exec_legado(sql_delete_legado)
 
 
@@ -1156,7 +1152,9 @@ def adjust_tipoafastamento(new, old):
 
 
 def set_generic_fk(new, campo_virtual, old):
-    new.content_type = content_types[campo_virtual.related_model]
+    model = campo_virtual.related_model
+    new.content_type = ContentType.objects.get(
+        app_label=model._meta.app_label, model=model._meta.model_name)
     new.object_id = get_fk_related(campo_virtual, old)
 
 
