@@ -550,9 +550,16 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
 
         qs = self.get_queryset()
 
+        qs = qs.prefetch_related("documentoacessorioadministrativo_set",
+                                 "tramitacaoadministrativo_set",
+                                 "tipo",
+                                 "tramitacaoadministrativo_set__status",
+                                 "tramitacaoadministrativo_set__unidade_tramitacao_local",
+                                 "tramitacaoadministrativo_set__unidade_tramitacao_destino")
+
         if status_tramitacao and unidade_destino:
             lista = filtra_tramitacao_adm_destino_and_status(status_tramitacao,
-                                                         unidade_destino)
+                                                             unidade_destino)
             qs = qs.filter(id__in=lista).distinct()
 
         elif status_tramitacao:
@@ -566,11 +573,6 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', '-numero')
 
-        qs = qs.prefetch_related("documentoacessorioadministrativo_set",
-                                 "tramitacaoadministrativo_set",
-                                 "tramitacaoadministrativo_set__status",
-                                 "tramitacaoadministrativo_set__unidade_tramitacao_local",
-                                 "tramitacaoadministrativo_set__unidade_tramitacao_destino")
 
         kwargs.update({
             'queryset': qs,
@@ -607,10 +609,10 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
 
         self.filterset.form.fields['o'].label = _('Ordenação')
 
+        length = self.object_list.count()
         context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
                                         filter_url=url,
-                                        numero_res=len(self.object_list)
+                                        numero_res=length
                                         )
 
         context['show_results'] = show_results_filter_set(

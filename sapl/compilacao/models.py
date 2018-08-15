@@ -69,8 +69,15 @@ class BaseModel(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None, clean=True):
-        if clean:
+        # método clean não pode ser chamado no caso do save que está sendo
+        # executado é o save de revision_pre_delete_signal
+        import inspect
+        funcs = list(filter(lambda x: x == 'revision_pre_delete_signal',
+                            map(lambda x: x[3], inspect.stack())))
+
+        if clean and not funcs:
             self.clean()
+
         return models.Model.save(
             self,
             force_insert=force_insert,
@@ -1458,7 +1465,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 tipo_dispositivo_id=self.tipo_dispositivo.pk))
 
         else:  # contagem continua restrita a articulacao
-            proxima_articulacao = self.get_proximo_nivel_zero()
+            proxima_articulacao = self.select_next_root()
 
             if proxima_articulacao is None:
                 irmaos = list(Dispositivo.objects.filter(
@@ -1550,25 +1557,15 @@ class Dispositivo(BaseModel, TimestampedMixin):
             irmao.clean()
             irmao.save()
 
-    def get_proximo_nivel_zero(self):
-        proxima_articulacao = Dispositivo.objects.order_by('ordem').filter(
-            ordem__gt=self.ordem,
-            nivel=0,
-            ta_id=self.ta_id).first()
-        return proxima_articulacao
+    def select_roots(self):
+        return Dispositivo.objects.order_by(
+            'ordem').filter(nivel=0, ta_id=self.ta_id)
 
-    def get_nivel_zero_anterior(self):
-        anterior_articulacao = Dispositivo.objects.order_by('ordem').filter(
-            ordem__lt=self.ordem,
-            nivel=0,
-            ta_id=self.ta_id).last()
-        return anterior_articulacao
+    def select_next_root(self):
+        return self.select_roots().filter(ordem__gt=self.ordem).first()
 
-    def get_niveis_zero(self):
-        niveis_zero = Dispositivo.objects.order_by('ordem').filter(
-            nivel=0,
-            ta_id=self.ta_id)
-        return niveis_zero
+    def select_prev_root(self):
+        return self.select_roots().filter(ordem__lt=self.ordem).last()
 
     # metodo obsoleto, foi acrescentado o campo auto_inserido no modelo
     def is_relative_auto_insert__obsoleto(self, perfil_pk=None):

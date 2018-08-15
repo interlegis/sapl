@@ -45,6 +45,15 @@ def split(value, arg):
 
 
 @register.filter
+def to_str(arg):
+    return str(arg)
+
+@register.filter
+def get_last_item_from_list(list,arg):
+    return list[arg]
+
+
+@register.filter
 def sort_by_keys(value, key):
     transformed = []
     id_props = [x.id for x in value]
@@ -61,6 +70,16 @@ def sort_by_keys(value, key):
 
     transformed = qs.order_by(key_descricao[key])
     return transformed
+
+
+@register.filter
+def paginacao_limite_inferior(pagina):
+    return (int(pagina) - 1) * 10 
+
+
+@register.filter
+def paginacao_limite_superior(pagina):
+    return int(pagina) * 10
 
 
 @register.filter

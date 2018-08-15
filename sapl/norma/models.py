@@ -141,9 +141,14 @@ class NormaJuridica(models.Model):
             norma_relacionada=self.id)
         return (principais, relacionadas)
 
+    def get_anexos_norma_juridica(self):
+        anexos = AnexoNormaJuridica.objects.filter(
+            norma=self.id)
+        return anexos
+
+
     def __str__(self):
-        return _('%(tipo)s nº %(numero)s de %(data)s') % {
-            'tipo': self.tipo,
+        return _('nº %(numero)s de %(data)s') % {
             'numero': self.numero,
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
@@ -252,3 +257,28 @@ class NormaRelacionada(models.Model):
                  ' - Relacionada: %(norma_relacionada)s') % {
             'norma_principal': self.norma_principal,
             'norma_relacionada': self.norma_relacionada}
+
+
+@reversion.register()
+class AnexoNormaJuridica(models.Model):
+    norma = models.ForeignKey(
+        NormaJuridica,
+        related_name='norma',
+        on_delete=models.PROTECT,
+        verbose_name=_('Norma Juridica'))
+    anexo_arquivo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=norma_upload_path,
+        verbose_name=_('Arquivo Anexo'),
+        validators=[restringe_tipos_de_arquivo_txt])
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                           choices=RANGE_ANOS)
+
+    class Meta:
+        verbose_name = _('Anexo da Norma Juridica')
+        verbose_name_plural = _('Anexos da Norma Juridica')
+
+    def __str__(self):
+        return _('Anexo: %(anexo)s da norma %(norma)s') % {
+            'anexo': self.anexo_arquivo, 'norma': self.norma}

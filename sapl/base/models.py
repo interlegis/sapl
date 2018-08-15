@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
+
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
 
@@ -178,7 +179,8 @@ class Autor(models.Model):
                                 on_delete=models.SET_NULL,
                                 null=True)
 
-    tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo do Autor'))
+    tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo do Autor'),
+                             on_delete=models.PROTECT)
 
     content_type = models.ForeignKey(
         ContentType,
@@ -188,7 +190,7 @@ class Autor(models.Model):
     autor_related = GenericForeignKey('content_type', 'object_id')
 
     nome = models.CharField(
-        max_length=60, blank=True, verbose_name=_('Nome do Autor'))
+        max_length=120, blank=True, verbose_name=_('Nome do Autor'))
 
     cargo = models.CharField(max_length=50, blank=True)
 
@@ -199,23 +201,17 @@ class Autor(models.Model):
         ordering = ('nome',)
 
     def __str__(self):
-
         if self.autor_related:
             return str(self.autor_related)
         else:
-            if str(self.cargo):
-                return _('%(nome)s - %(cargo)s') % {
-                    'nome': self.nome, 'cargo': self.cargo}
-            else:
-                return str(self.nome)
-        """if str(self.tipo) == 'Parlamentar' and self.parlamentar:
-            return self.parlamentar.nome_parlamentar
-        elif str(self.tipo) == 'Comissao' and self.comissao:
-            return str(self.comissao)
-        elif str(self.tipo) == 'Partido' and self.partido:
-            return str(self.partido)
-        else:
-        """
+            if self.nome:
+                if self.cargo:
+                    return '{} - {}'.format(self.nome, self.cargo)
+                else:
+                    return str(self.nome)
+        if self.user:
+            return str(self.user.username)
+        return '?'
 
 
 def cria_models_tipo_autor(app_config=None, verbosity=2, interactive=True,

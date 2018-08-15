@@ -16,6 +16,7 @@ PERFIL_LEGADO_PARA_NOVO = {legado: Group.objects.get(name=novo)
     ('Operador Protocolo', 'Operador de Protocolo Administrativo'),
     ('Operador Sessao Plenaria', 'Operador de Sessão Plenária'),
     ('Parlamentar', 'Votante'),
+    ('Operador Painel', 'Operador de Painel Eletrônico'),
 ]
 }
 

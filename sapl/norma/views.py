@@ -1,4 +1,5 @@
 
+import re
 import weasyprint
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -18,9 +19,9 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.utils import show_results_filter_set
 
-from .forms import (NormaFilterSet, NormaJuridicaForm,
+from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm)
-from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica)
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
@@ -71,7 +72,7 @@ class NormaPesquisaView(FilterView):
     def get_queryset(self):
         qs = super().get_queryset()
 
-        qs.select_related('tipo', 'materia')
+        qs = qs.extra({'norma_i': "CAST(regexp_replace(numero,'[^0-9]','', 'g') AS INTEGER)", 'norma_letra': "regexp_replace(numero,'[^a-zA-Z]','', 'g')"}).order_by('-data', '-norma_i', '-norma_letra')
 
         return qs
 
@@ -96,6 +97,39 @@ class NormaPesquisaView(FilterView):
         context['show_results'] = show_results_filter_set(qr)
 
         return context
+
+class AnexoNormaJuridicaCrud(MasterDetailCrud):
+    model = AnexoNormaJuridica
+    parent_field = 'norma'
+    help_topic = 'anexonormajuridica'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['id','anexo_arquivo']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AnexoNormaJuridicaForm
+        layout_key = 'AnexoNormaJuridica'
+
+        def get_initial(self):
+            initial = super(MasterDetailCrud.CreateView, self).get_initial()
+            initial['norma'] = NormaJuridica.objects.get(id=self.kwargs['pk'])
+            return initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AnexoNormaJuridicaForm
+        layout_key = 'AnexoNormaJuridica'
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['norma'] = self.object.norma
+            initial['anexo_arquivo'] = self.object.anexo_arquivo
+            initial['ano'] = self.object.ano
+            return initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+        form_class = AnexoNormaJuridicaForm
+        layout_key = 'AnexoNormaJuridica'
 
 
 class NormaTaView(IntegracaoTaView):
@@ -201,14 +235,12 @@ def recuperar_norma(request):
 def recuperar_numero_norma(request):
     tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
-
     param = {'tipo': tipo}
     param['ano'] = ano if ano else timezone.now().year
-    norma = NormaJuridica.objects.filter(**param).extra(
-            {'numero_id': "CAST(numero as INTEGER)"}).order_by(
-            'tipo', 'ano','numero_id').values_list('numero', 'ano').last()
+    norma = NormaJuridica.objects.filter(**param).order_by(
+            'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
     if norma:
-        response = JsonResponse({'numero': int(norma[0]) + 1,
+        response = JsonResponse({'numero': int(re.sub("[^0-9].*", '', norma[0])) + 1,
                                  'ano': norma[1]})
     else:
         response = JsonResponse(

@@ -851,7 +851,9 @@ class CrudDeleteView(PermissionRequiredContainerCrudMixin,
                          é referenciado por outros registros:<br>\
                          <ul>'
             for i in err.protected_objects:
-                error_msg += '<li>' + i.__str__() + '</li>'
+                error_msg += '<li>{} - {}</li>'.format(
+                    i._meta.verbose_name, i
+                )
             error_msg += '</ul>'
 
             messages.add_message(request,

@@ -675,6 +675,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         widget=forms.HiddenInput())
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
+    indexacao = django_filters.CharFilter(lookup_expr='icontains')
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
                                                 label='Em tramitação',
@@ -751,7 +752,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
             [('em_tramitacao', 6),
              ('o', 6)])
         row9 = to_row(
-            [('materiaassunto__assunto', 12)])
+            [('materiaassunto__assunto', 6), ('indexacao', 6)])
         row10 = to_row(
             [('ementa', 12)])
 
@@ -1294,12 +1295,11 @@ class ProposicaoForm(forms.ModelForm):
 
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)
-        if texto_original:
-            if texto_original.size > MAX_DOC_UPLOAD_SIZE:
-                max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
-                raise ValidationError(
+        if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
+            max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+            raise ValidationError(
                     "Arquivo muito grande. ( > {0}MB )".format(max_size))
-            return texto_original
+        return texto_original
 
     def gerar_hash(self, inst, receber_recibo):
 

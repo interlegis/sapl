@@ -87,8 +87,7 @@ class FrenteList(MasterDetailCrud):
     CreateView, UpdateView, DeleteView = None, None, None
 
     class BaseMixin(Crud.PublicMixin, MasterDetailCrud.BaseMixin):
-        list_field_names = ['nome', 'data_criacao']
-
+        list_field_names = ['nome', 'data_criacao', 'data_extincao']
         @classmethod
         def url_name(cls, suffix):
             return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
@@ -282,13 +281,18 @@ class FrenteCrud(CrudAux):
     model = Frente
     help_topic = 'tipo_situa_militar'
     public = [RP_DETAIL, RP_LIST]
-    list_field_names = ['nome', 'data_criacao', 'parlamentares']
+    list_field_names = ['nome', 'data_criacao', 'data_extincao', 'parlamentares']
+
 
     class CreateView(Crud.CreateView):
         form_class = FrenteForm
 
         def form_valid(self, form):
             return super(Crud.CreateView, self).form_valid(form)
+
+    class UpdateView(Crud.UpdateView):
+        form_class = FrenteForm
+
 
 
 class MandatoCrud(MasterDetailCrud):

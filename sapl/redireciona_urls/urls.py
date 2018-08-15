@@ -2,20 +2,22 @@ from django.conf.urls import url
 
 from .apps import AppConfig
 from .views import (RedirecionaAtasList, RedirecionaComissao,
+                    RedirecionaComposicaoComissao,
                     RedirecionaHistoricoTramitacoesList,
                     RedirecionaMateriaLegislativaDetail,
                     RedirecionaMateriaLegislativaList,
                     RedirecionaMateriasPorAnoAutorTipo,
                     RedirecionaMateriasPorAutor, RedirecionaMesaDiretoraView,
                     RedirecionaNormasJuridicasDetail,
-                    RedirecionaNormasJuridicasList, RedirecionaParlamentar,
-                    RedirecionaPautaSessao, RedirecionaPresencaParlamentares,
+                    RedirecionaNormasJuridicasList,
+                    RedirecionaNormasJuridicasTextoIntegral,
+                    RedirecionaParlamentar, RedirecionaPautaSessao,
+                    RedirecionaPresencaParlamentares,
                     RedirecionaRelatoriosList,
                     RedirecionaRelatoriosMateriasEmTramitacaoList,
                     RedirecionaSAPLIndex, RedirecionaSessaoPlenaria)
 
 app_name = AppConfig.name
-
 urlpatterns = [
     url(r'^default_index_html$',
         RedirecionaSAPLIndex.as_view(),
@@ -26,6 +28,9 @@ urlpatterns = [
     url(r'^consultas/comissao/comissao_',
         RedirecionaComissao.as_view(),
         name='redireciona_comissao'),
+    url(r'^consultas/comissao/composicao/composicao_index_html',
+        RedirecionaComposicaoComissao.as_view(),
+        name='redireciona_composicaio_comissao'),
     url(r'^consultas/pauta_sessao/pauta_sessao_',
         RedirecionaPautaSessao.as_view(),
         name='redireciona_pauta_sessao_'),
@@ -44,6 +49,9 @@ urlpatterns = [
     url(r'^consultas/norma_juridica/norma_juridica_mostrar_proc',
         RedirecionaNormasJuridicasDetail.as_view(),
         name='redireciona_norma_juridica_detail'),
+    url(r'^sapl_documentos/norma_juridica/(?P<norma_id>[0-9]+)_texto_integral',
+        RedirecionaNormasJuridicasTextoIntegral.as_view(),
+        name='redireciona_norma_juridica_texto_integral'),
     url(r'^relatorios_administrativos/relatorios_administrativos_index_html$',
         RedirecionaRelatoriosList.as_view(),
         name='redireciona_relatorios_list'),
@@ -51,6 +59,9 @@ urlpatterns = [
         RedirecionaRelatoriosMateriasEmTramitacaoList.as_view(),
         name='redireciona_relatorio_materia_por_tramitacao'),
     url(r'tramitacaoMaterias/materia_mostrar_proc$',
+        RedirecionaMateriaLegislativaDetail.as_view(),
+        name='redireciona_materialegislativa_detail_tramitacao'),
+    url(r'consultas/materia/materia_mostrar_proc$',
         RedirecionaMateriaLegislativaDetail.as_view(),
         name='redireciona_materialegislativa_detail'),
     url(r'^generico/materia_pesquisar_',

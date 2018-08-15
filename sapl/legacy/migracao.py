@@ -18,7 +18,7 @@ def adornar_msg(msg):
     return '\n{1}\n{0}\n{1}'.format(msg, '#' * len(msg))
 
 
-def migrar(interativo=False):
+def migrar(apagar_do_legado=False):
     if TAG_MARCO in REPO.tags:
         info('A migração já está feita.')
         return
@@ -26,7 +26,7 @@ def migrar(interativo=False):
         'Antes de migrar '
         'é necessário fazer a exportação de documentos do zope')
     management.call_command('migrate')
-    migrar_dados()
+    migrar_dados(apagar_do_legado)
     migrar_usuarios(REPO.working_dir)
     migrar_documentos(REPO)
     gravar_marco()

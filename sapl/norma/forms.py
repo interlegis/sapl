@@ -14,7 +14,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import RANGE_ANOS, RangeWidgetOverride
 
-from .models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica)
 
 
@@ -120,6 +120,7 @@ class NormaJuridicaForm(ModelForm):
                   'assuntos']
         widgets = {'assuntos': widgets.CheckboxSelectMultiple}
 
+
     def clean(self):
         cleaned_data = super(NormaJuridicaForm, self).clean()
 
@@ -163,11 +164,10 @@ class NormaJuridicaForm(ModelForm):
 
     def clean_texto_integral(self):
         texto_integral = self.cleaned_data.get('texto_integral', False)
-        if texto_integral:
-            if texto_integral.size > MAX_DOC_UPLOAD_SIZE:
-                max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
-                raise ValidationError(
-                    "Arquivo muito grande. ( > {0}MB )".format(max_size))
+        if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
+            max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+            raise ValidationError(
+                  "Arquivo muito grande. ( > {0}MB )".format(max_size))
         return texto_integral
 
     def save(self, commit=False):
@@ -175,7 +175,38 @@ class NormaJuridicaForm(ModelForm):
         norma.timestamp = timezone.now()
         norma.materia = self.cleaned_data['materia']
         norma = super(NormaJuridicaForm, self).save(commit=True)
+
         return norma
+
+
+class AnexoNormaJuridicaForm(ModelForm):
+    class Meta:
+        model = AnexoNormaJuridica
+        fields = ['norma', 'anexo_arquivo']
+        widgets = {
+            'norma': forms.HiddenInput(),
+        }
+
+    def clean(self):
+        cleaned_data = super(AnexoNormaJuridicaForm, self).clean()
+        if not self.is_valid():
+            return cleaned_data
+        anexo_arquivo = self.cleaned_data.get('anexo_arquivo', False)
+        if anexo_arquivo and anexo_arquivo.size > MAX_DOC_UPLOAD_SIZE:
+            max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+            raise ValidationError(
+                 "Arquivo muito grande. ( > {0}MB )".format(max_size))
+        return cleaned_data
+
+    def save(self, commit=False):
+        anexo = self.instance
+        anexo.ano = self.cleaned_data['norma'].ano
+        anexo = super(AnexoNormaJuridicaForm, self).save(commit=True)
+        anexo.norma = self.cleaned_data['norma']
+        anexo.anexo_arquivo = self.cleaned_data['anexo_arquivo']
+        anexo.save()
+        return anexo
+
 
 
 class NormaRelacionadaForm(ModelForm):

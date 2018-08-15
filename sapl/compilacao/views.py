@@ -15,7 +15,7 @@ from django.db import connection, transaction
 from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.http.response import (HttpResponse, HttpResponseRedirect,
-                                  JsonResponse)
+                                  JsonResponse, Http404)
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
@@ -50,7 +50,6 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    get_integrations_view_names)
 from sapl.crud.base import Crud, CrudAux, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
-
 
 TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
 TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
@@ -104,7 +103,7 @@ class IntegracaoTaView(TemplateView):
               ) % self.model._meta.verbose_name_plural)
         return redirect('/')
 
-    def get(self, request,  *args, **kwargs):
+    def get(self, request, *args, **kwargs):
 
         try:
             if settings.DEBUG or not TipoDispositivo.objects.exists():
@@ -211,8 +210,12 @@ class CompMixin(PermissionRequiredMixin):
 
     @property
     def ta(self):
-        ta = TextoArticulado.objects.get(
-            pk=self.kwargs.get('ta_id', self.kwargs.get('pk', 0)))
+        try:
+            ta = TextoArticulado.objects.get(
+                pk=self.kwargs.get('ta_id', self.kwargs.get('pk', 0)))
+        except TextoArticulado.DoesNotExist:
+            raise Http404()
+
         return ta
 
     def get_context_data(self, **kwargs):
@@ -1237,9 +1240,9 @@ class TextEditView(CompMixin, TemplateView):
                 'filhos': [],
                 'alts': [],
                 'pai': None,
-                'st': None,                        # dispositivo substituido
-                'sq': None,                        # dispositivo subsequente
-                'da': None,                        # dispositivo atualizador
+                'st': None,  # dispositivo substituido
+                'sq': None,  # dispositivo subsequente
+                'da': None,  # dispositivo atualizador
                 'td': tds[d.tipo_dispositivo_id],  # tipo do dispositivo
                 'na': self.nota_alteracao(d, lista_ta_publicado)\
                 if d.ta_id == ta_id else None
@@ -1388,7 +1391,7 @@ class ActionsCommonsMixin:
                 pkfilho = dp.pk
                 dp = dp.dispositivo_pai
 
-                proxima_articulacao = dp.get_proximo_nivel_zero()
+                proxima_articulacao = dp.select_next_root()
 
                 if proxima_articulacao is not None:
                     parents = Dispositivo.objects.filter(
@@ -1480,30 +1483,36 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
         ).first()
 
         data = {}
-        if base_anterior:
-            data = self.get_json_for_refresh(base_anterior)
+        if not base_anterior or base == base.get_raiz():
+            base_anterior = base.select_prev_root()
+            if not base_anterior:
+                base_anterior = base
+        data = self.get_json_for_refresh(base_anterior)
+
+        if base == base_anterior:
+            data['pk'] = base.pk
+            self.set_message(data, 'danger', _(
+                'Base Inicial não pode ser removida!'), modal=True)
         else:
-            base_anterior = base.get_nivel_zero_anterior()
-            data = self.get_json_for_refresh(base_anterior)
+            if base != base.get_raiz():
+                data['pai'] = [base.get_raiz().pk]
 
-        data['pai'] = [base.get_raiz().pk]
+            if ta_base.id != int(self.kwargs['ta_id']):
+                data['pai'] = [base.dispositivo_atualizador.pk]
+                data['pk'] = base.dispositivo_atualizador.pk
 
-        if ta_base.id != int(self.kwargs['ta_id']):
-            data['pai'] = [base.dispositivo_atualizador.pk]
-            data['pk'] = base.dispositivo_atualizador.pk
-
-        try:
-            with transaction.atomic():
-                message = str(self.remover_dispositivo(base, bloco))
-                if message:
-                    self.set_message(data, 'warning', message, modal=True)
-                else:
-                    self.set_message(data, 'success', _(
-                        'Exclusão efetuada com sucesso!'), modal=True)
-                ta_base.reagrupar_ordem_de_dispositivos()
-        except Exception as e:
-            data['pk'] = self.kwargs['dispositivo_id']
-            self.set_message(data, 'danger', str(e), modal=True)
+            try:
+                with transaction.atomic():
+                    message = str(self.remover_dispositivo(base, bloco))
+                    if message:
+                        self.set_message(data, 'warning', message, modal=True)
+                    else:
+                        self.set_message(data, 'success', _(
+                            'Exclusão efetuada com sucesso!'), modal=True)
+                    ta_base.reagrupar_ordem_de_dispositivos()
+            except Exception as e:
+                data['pk'] = self.kwargs['dispositivo_id']
+                self.set_message(data, 'danger', str(e), modal=True)
 
         return data
 
@@ -1536,7 +1545,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     print(e)
             base.delete()
         else:
-            proxima_articulacao = base.get_proximo_nivel_zero()
+            proxima_articulacao = base.select_next_root()
             if not bloco:
                 # tranferir filhos para primeiro pai possível acima da base
                 # de exclusão
@@ -1694,7 +1703,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
                     base_adicao = {}
 
-                    nivel_zero_anterior = base.get_nivel_zero_anterior()
+                    nivel_zero_anterior = base.select_prev_root()
                     if nivel_zero_anterior:
                         nivel_zero_anterior = nivel_zero_anterior.ordem
                     else:
@@ -2374,7 +2383,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
             if dp.nivel == 0:
 
-                proxima_articulacao = dp.get_proximo_nivel_zero()
+                proxima_articulacao = dp.select_next_root()
 
                 if not proxima_articulacao:
                     filhos_continuos = list(Dispositivo.objects.filter(

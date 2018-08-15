@@ -94,7 +94,10 @@ INSTALLED_APPS = (
 ) + SAPL_APPS
 
 # FTS = Full Text Search
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+# Desabilita a indexação textual até encontramos uma solução para a issue
+# https://github.com/interlegis/sapl/issues/2055
+#HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
 SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
 SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
 
@@ -218,7 +221,7 @@ EMAIL_SEND_USER = config('EMAIL_SEND_USER', cast=str, default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
 SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 
-MAX_DOC_UPLOAD_SIZE = 20 * 1024 * 1024  # 20MB
+MAX_DOC_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 
 # Internationalization

@@ -45,7 +45,7 @@ STATUS_USER_CHOICE = [
 
 def get_roles():
     roles = [(g.id, g.name) for g in Group.objects.all().order_by('name')
-              if g.name != 'Votante' and g.name != 'Autor']
+             if g.name != 'Votante']
     return roles
 
 
@@ -61,8 +61,6 @@ class UsuarioCreateForm(ModelForm):
                                 label='Confirmar senha', max_length=128)
     user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES,
                                     label="Usuário ativo?", initial='True')
-
-    #ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
 
     roles = forms.MultipleChoiceField(
         required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
@@ -673,6 +671,11 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
                                       label='Ano da Matéria',
                                       choices=RANGE_ANOS)
 
+    @property
+    def qs(self):
+        parent = super(RelatorioMateriasTramitacaoilterSet, self).qs
+        return parent.distinct().order_by('-ano', 'tipo', '-numero')
+
     class Meta:
         model = MateriaLegislativa
         fields = ['ano', 'tipo', 'tramitacao__unidade_tramitacao_local',
@@ -738,7 +741,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioMateriasPorAutorFilterSet, self).qs
-        return parent.distinct().order_by('-ano', '-numero')
+        return parent.distinct().filter(autoria__primeiro_autor=True).order_by('autoria__autor', '-autoria__primeiro_autor', 'tipo', '-ano', '-numero')
 
     class Meta:
         model = MateriaLegislativa

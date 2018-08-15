@@ -24,6 +24,11 @@ NormaJuridica:
   - observacao
   - assuntos
 
+AnexoNormaJuridica:
+  {% trans 'Adicionar Anexos à Norma Jurídica' %}:
+  - anexo_arquivo
+  - norma
+
 NormaJuridicaCreate:
   {% trans 'Identificação Básica' %}:
   - tipo  ano numero
