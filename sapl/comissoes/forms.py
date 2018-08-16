@@ -75,7 +75,7 @@ class PeriodoForm(forms.ModelForm):
 
         if len(legislatura) > 1:
             raise ValidationError('O período informado '
-                                  'deve estar contido em uma única '
+                                  'deve estar contido apenas em uma única '
                                   'legislatura existente')
 
         return cleaned_data
