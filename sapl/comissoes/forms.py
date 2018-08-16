@@ -250,6 +250,31 @@ class ComissaoForm(forms.ModelForm):
                     self.cleaned_data['data_criacao']):
                 msg = _('Data de extinção não pode ser menor que a de criação')
                 raise ValidationError(msg)
+        if self.cleaned_data['data_final_prevista_temp']:
+            if (self.cleaned_data['data_final_prevista_temp'] <
+                    self.cleaned_data['data_criacao']):
+                msg = _('Data Prevista para Término não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        if self.cleaned_data['data_prorrogada_temp']:
+            if (self.cleaned_data['data_prorrogada_temp'] <
+                    self.cleaned_data['data_criacao']):
+                msg = _('Data Novo Prazo não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        if self.cleaned_data['data_instalacao_temp']:
+            if (self.cleaned_data['data_instalacao_temp'] <
+                    self.cleaned_data['data_criacao']):
+                msg = _('Data de Instalação não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        if self.cleaned_data['data_final_prevista_temp'] and self.cleaned_data['data_instalacao_temp']:
+            if (self.cleaned_data['data_final_prevista_temp'] <
+                    self.cleaned_data['data_instalacao_temp']):
+                msg = _('Data Prevista para Término não pode ser menor que a de Instalação')
+                raise ValidationError(msg)
+        if self.cleaned_data['data_prorrogada_temp'] and self.cleaned_data['data_instalacao_temp']:
+            if (self.cleaned_data['data_prorrogada_temp'] <
+                    self.cleaned_data['data_instalacao_temp']):
+                msg = _('Data Novo Prazo não pode ser menor que a de Instalação')
+                raise ValidationError(msg)
         return self.cleaned_data
 
     @transaction.atomic
