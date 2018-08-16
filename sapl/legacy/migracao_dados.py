@@ -1160,7 +1160,7 @@ def set_generic_fk(new, campo_virtual, old):
 
 def adjust_tipoproposicao(new, old):
     "Aponta para o tipo relacionado de matéria ou documento"
-    if old.tip_mat_ou_doc:
+    if old.tip_mat_ou_doc is not None:
         campo_virtual = CAMPOS_VIRTUAIS_TIPO_PROPOSICAO[old.ind_mat_ou_doc]
         set_generic_fk(new, campo_virtual, old)
 
@@ -1168,7 +1168,7 @@ def adjust_tipoproposicao(new, old):
 def adjust_proposicao_antes_salvar(new, old):
     if new.data_envio:
         new.ano = new.data_envio.year
-    if old.cod_mat_ou_doc:
+    if old.cod_mat_ou_doc is not None:
         tipo_mat_ou_doc = type(new.tipo.tipo_conteudo_related)
         campo_virtual = CAMPOS_VIRTUAIS_PROPOSICAO[tipo_mat_ou_doc]
         set_generic_fk(new, campo_virtual, old)
