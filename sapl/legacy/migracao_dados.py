@@ -577,8 +577,6 @@ def propaga_exclusoes(propagacoes):
 
 
 def uniformiza_banco():
-    exec_legado('SET SESSION sql_mode = "";')  # desliga checagens do mysql
-
     propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO)
     checa_registros_votacao_ambiguos_e_remove_nao_usados()
     propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO_REGISTROS_VOTACAO)
@@ -816,6 +814,10 @@ def migrar_dados(apagar_do_legado=False):
         info('Restaurando dump mysql de [{}]'.format(arq_dump))
         normaliza_dump_mysql(arq_dump)
         roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
+
+        # desliga checagens do mysql
+        # e possibilita inserir valor zero em campos de autoincremento
+        exec_legado('SET SESSION sql_mode = "NO_AUTO_VALUE_ON_ZERO";')
 
         # executa ajustes pré-migração, se existirem
         arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
