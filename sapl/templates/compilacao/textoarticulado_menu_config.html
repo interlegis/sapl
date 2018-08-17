@@ -13,8 +13,5 @@
     {% if perms.compilacao.list_tiponota %}<li><a href="{% url 'sapl.compilacao:tiponota_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoNota'%}</a></li>{% endif %}
     {% if perms.compilacao.list_tipovide %}<li><a href="{% url 'sapl.compilacao:tipovide_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoVide'%}</a></li>{% endif %}
 
-    {% if user.is_superuser %}
-      <li><a href="/admin/compilacao/tipodispositivorelationship/">Relacionamento entre Dispositivos</a></li>
-    {% endif %}
   </ul>
 {% endif %}
