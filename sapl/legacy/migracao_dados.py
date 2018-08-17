@@ -1017,9 +1017,16 @@ pois não existe protocolo no sistema com este número no ano {ano_original}.
                       'ano_original': ano_original,
                       'nota': nota})
             else:
+                # Se não achamos mesmo no ano anteriro
+                # colocamos no número externo
+                new.numero_externo = old.num_protocolo
+
                 nota = NOTA_DOCADM + '''
 Não existe no sistema nenhum protocolo com estes dados
-e portanto nenhum protocolo foi vinculado a este documento.'''
+e portanto nenhum protocolo foi vinculado a este documento.
+
+Colocamos então o número de protocolo no campo "número externo".
+'''
                 nota = nota.format(
                     num_protocolo=old.num_protocolo,
                     ano_original=ano_original)
