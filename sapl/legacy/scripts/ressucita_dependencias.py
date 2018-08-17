@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 import yaml
 from unipath import Path
 
@@ -24,14 +26,36 @@ fks_legado = '''
   ordem_dia                     cod_sessao_plen        sessao_plenaria
   proposicao                    cod_materia            materia_legislativa
   proposicao                    cod_autor              autor
+  tramitacao                    cod_status             status_tramitacao
+  expediente_sessao_plenaria    cod_expediente         tipo_expediente
+  proposicao                    tip_proposicao         tipo_proposicao
 '''
 fks_legado = [l.split() for l in fks_legado.strip().splitlines()]
 fks_legado = {(o, c): t for (o, c, t) in fks_legado}
 
 
+def get_tabela_campo_valor_proposicao(fk):
+    [(ind_mat_ou_doc, tip_mat_ou_doc)] = exec_legado('''
+        select ind_mat_ou_doc, tip_mat_ou_doc
+        from tipo_proposicao where tip_proposicao = {}
+        '''.format(fk['pk']['tip_proposicao']))
+    if ind_mat_ou_doc == 'M':
+        return 'tipo_materia_legislativa', 'tip_materia', tip_mat_ou_doc
+    elif ind_mat_ou_doc == 'D':
+        return 'tipo_materia_legislativa', 'tip_documento', tip_mat_ou_doc
+    else:
+        raise(Exception('ind_mat_ou_doc inválido'))
+
+
 def get_excluido(fk):
-    campo, valor, tabela_origem = [fk[k] for k in ('campo', 'valor', 'tabela')]
-    tabela_alvo = fks_legado[(tabela_origem, campo)]
+    tabela_origem = fk['tabela']
+
+    if tabela_origem == 'tipo_proposicao':
+        tabela_alvo, campo, valor = get_tabela_campo_valor_proposicao(fk)
+    else:
+        campo, valor = [fk[k] for k in ('campo', 'valor')]
+        tabela_alvo = fks_legado[(tabela_origem, campo)]
+
     sql = 'select ind_excluido, t.* from {} t where {} = {}'.format(
         tabela_alvo, campo, valor)
     res = list(exec_legado(sql))
@@ -56,8 +80,8 @@ def get_dependencias_a_ressucitar():
     return desexcluir, criar
 
 
-SQLS_CRIACAO = {
-    'tipo_proposicao': '''
+SQLS_CRIACAO = [
+    ('tipo_proposicao', '''
         insert into tipo_materia_legislativa (
         tip_materia, sgl_tipo_materia, des_tipo_materia, ind_num_automatica,
         quorum_minimo_votacao, ind_excluido)
@@ -67,8 +91,16 @@ SQLS_CRIACAO = {
         tip_proposicao, des_tipo_proposicao, ind_mat_ou_doc, tip_mat_ou_doc,
         nom_modelo, ind_excluido)
         values ({}, "DESCONHECIDO", "M", 0, "DESCONHECIDO", 0);
-''',
-}
+        ''',
+     ),
+    ('tipo_resultado_votacao', '''
+        insert into tipo_resultado_votacao (
+        tip_resultado_votacao, nom_resultado, ind_excluido)
+        values ({}, "DESCONHECIDO", 0);
+        '''
+     ),
+]
+SQLS_CRIACAO = {k: dedent(v.strip()) for k, v in SQLS_CRIACAO}
 
 
 def criar_sessao_legislativa(campo, valor):
@@ -98,7 +130,7 @@ def get_sql_criar(tabela_alvo, campo, valor):
 
 
 TEMPLATE_RESSUCITADOS = '''
-/* RESSUCITADOS * /
+/* RESSUCITADOS */
 
 {}
 '''
