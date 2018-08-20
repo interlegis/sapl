@@ -1,0 +1,27 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block sections_nav %}{% endblock sections_nav %}
+    {% block title %}
+       <h1 class="page-header">
+          {{ object|safe|linebreaksbr }}
+       </h1>
+    {% endblock %}
+{% block base_content %}
+  <form action="" method="post">{% csrf_token %}
+    <br>
+    <div class="panel panel-danger">
+      <div class="panel-heading  text-center">
+        {% blocktrans %}
+          ATENÇÃO: Retornar a proposição cancela o envio da mesma para protocolo e invalida o recibo já emitido.<br />
+          Será necessário novo envio e impressão de novo recibo para recebimento pela Casa Legislativa.<br />
+          Confirma retorno da proposição para o Parlamentar/Gabinete?
+        {% endblocktrans %}<br>
+      </div>
+      <div class="panel-body text-center">
+        <a href="{% url 'sapl.materia:proposicao_detail' object.pk %}" class="btn btn-inverse">{% trans 'Cancelar'  %}</a>
+        <a href="{% url 'sapl.materia:proposicao_detail' object.pk %}?action=return" class="btn btn-default btn-excluir">{% trans 'Confirmar' %}</a>
+      </div>
+    </div>
+  </form>
+{% endblock %}

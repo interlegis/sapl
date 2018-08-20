@@ -509,6 +509,31 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
         return context
 
 
+class RetornarProposicao(UpdateView):
+    app_label = sapl.protocoloadm.apps.AppConfig.label
+    template_name = "materia/proposicao_confirm_return.html"
+    model = Proposicao
+    fields = ['data_envio', 'descricao' ]
+    permission_required = ('materia.detail_proposicao_enviada', )
+
+    def dispatch(self, request, *args, **kwargs):
+
+        try:
+            p = Proposicao.objects.get(id=kwargs['pk'])
+        except:
+            raise Http404()
+
+        if p.autor.user != request.user:
+             messages.error(
+                 request,
+                 'Usuário sem acesso a esta opção.' % 
+                     request.user)
+             return redirect('/')
+
+        return super(RetornarProposicao, self).dispatch(
+            request, *args, **kwargs)
+
+
 class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
     app_label = sapl.protocoloadm.apps.AppConfig.label
     template_name = "materia/confirmar_proposicao.html"
