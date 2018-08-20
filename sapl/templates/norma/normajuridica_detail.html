@@ -42,7 +42,7 @@
                 <div class="form-control-static">
                  <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
                   <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
-                   {{ p.norma_relacionada }}
+                   {{ p.norma_relacionada.epigrafe }}
                  </a>
                 </div>
               {% endfor %}
@@ -53,7 +53,7 @@
                 <div class="form-control-static">
                   <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
                   <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
-                  {{ r.norma_principal }}
+                  {{ r.norma_principal.epigrafe }}
                   </a>
                 </div>
               {% endfor %}

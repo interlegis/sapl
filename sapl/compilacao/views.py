@@ -137,6 +137,7 @@ class IntegracaoTaView(TemplateView):
                         'observacao': 'observacao',
                         'numero': 'numero',
                         'ano': 'ano',
+                        'tipo': 'tipo',
                     }
 
                 Caso o model de integração não possua um dos campos,
@@ -562,7 +563,7 @@ class TaDetailView(CompMixin, DetailView):
                 'Metadados para o Texto Articulado de %s\n'
                 '<small>%s</small>') % (
                 self.get_object().content_object._meta.verbose_name_plural,
-                self.get_object().content_object)
+                self.get_object().content_object.epigrafe)
         else:
             return self.get_object()
 
