@@ -12,6 +12,7 @@ from sapl.protocoloadm.views import (AnularProtocoloAdmView,
                                      ProtocoloMostrarView,
                                      ProtocoloPesquisaView,
                                      StatusTramitacaoAdministrativoCrud,
+                                     recuperar_materia_protocolo,
                                      TipoDocumentoAdministrativoCrud,
                                      TramitacaoAdmCrud,
                                      atualizar_numero_documento,
@@ -77,6 +78,8 @@ urlpatterns_protocolo = [
 
     url(r'^protocoloadm/atualizar_numero_documento$',
         atualizar_numero_documento, name='atualizar_numero_documento'),
+    url(r'^protocoloadm/recuperar-materia',
+        recuperar_materia_protocolo, name='recuperar_materia_protocolo'),
 
 
 ]
