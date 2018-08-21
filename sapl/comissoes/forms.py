@@ -45,6 +45,7 @@ class ComposicaoForm(forms.ModelForm):
 
         return cleaned_data
 
+
 class PeriodoForm(forms.ModelForm):
 
     class Meta:
@@ -63,7 +64,18 @@ class PeriodoForm(forms.ModelForm):
         if data_fim and data_fim < data_inicio:
             raise ValidationError('A Data Final não pode ser menor que '
                                         'a Data Inicial')
+        
+        legislatura = Legislatura.objects.filter(data_inicio__lte=data_inicio, 
+                                                 data_fim__gte=data_fim)
+
+        if not legislatura:
+            raise ValidationError('O período informado '
+                                  'deve estar contido em uma única '
+                                  'legislatura existente')
+
+
         return cleaned_data
+
 
 
 class ParticipacaoCreateForm(forms.ModelForm):
