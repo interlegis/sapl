@@ -7,24 +7,43 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sapl.settings")
 
 
+def get_enviroment_admin_password(username):
+    password = os.environ.get('ADMIN_PASSWORD')
+    if not password:
+        print(
+            "[SUPERUSER] Environment variable $ADMIN_PASSWORD"
+            " for user %s was not set. Leaving..." % username)
+        sys.exit('MISSING_ADMIN_PASSWORD')
+
+
+def create_user_interlegis():
+    from django.contrib.auth.models import User
+
+    password = get_enviroment_admin_password('interlegis')
+    print("[SUPERUSER INTERLEGIS] Creating interlegis superuser...")
+    user, created = User.objects.get_or_create(username='interlegis')
+    if not created:
+        print("[SUPERUSER INTERLEGIS] User interlegis already exists."
+              " Updating password.")
+    user.is_superuser = True
+    user.is_staff = True
+    user.set_password(password)
+    user.save()
+    print("[SUPERUSER INTERLEGIS] Done.")
+
+
 def create_superuser():
     from django.contrib.auth.models import User
 
     username = "admin"
-    password = os.environ[
-        'ADMIN_PASSWORD'] if 'ADMIN_PASSWORD' in os.environ else None
-    email = os.environ['ADMIN_EMAIL'] if 'ADMIN_EMAIL' in os.environ else ''
+    email = os.environ.get('ADMIN_EMAIL', '')
 
     if User.objects.filter(username=username).exists():
         print("[SUPERUSER] User %s already exists."
               " Exiting without change." % username)
         sys.exit('ADMIN_USER_EXISTS')
     else:
-        if not password:
-            print(
-                "[SUPERUSER] Environment variable $ADMIN_PASSWORD"
-                " for user %s was not set. Leaving..." % username)
-            sys.exit('MISSING_ADMIN_PASSWORD')
+        password = get_enviroment_admin_password(username)
 
         print("[SUPERUSER] Creating superuser...")
 
@@ -39,4 +58,5 @@ def create_superuser():
 
 if __name__ == '__main__':
     django.setup()
+    create_user_interlegis()  # must come before create_superuser
     create_superuser()
