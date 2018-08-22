@@ -942,7 +942,7 @@ def get_etiqueta_protocolos(prots):
 
         tz_hora = timezone.localtime(p.timestamp)
 
-        dic['data'] = '<b>Data: </b>' + p.data.strftime(
+        dic['data'] = '<b>Data: </b>' + tz_hora.strftime(
             "%d/%m/%Y") + ' - <b>Horário: </b>' + tz_hora.strftime("%H:%M")
         dic['txt_assunto'] = p.assunto_ementa
         dic['txt_interessado'] = p.interessado
