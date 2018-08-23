@@ -558,6 +558,19 @@ p {
   }
 }
 
+.btn-cancel-iframe {
+  position: relative;
+  text-align: right;
+  opacity: 0.5;
+  &:hover {
+    opacity: 1;
+  }
+  a {
+    padding: 10px;
+    display: inline-block;
+  }
+}
+
 
 @media (max-width: 1199px) {
   .masthead {
