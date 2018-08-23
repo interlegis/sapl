@@ -1,10 +1,10 @@
-FROM alpine:3.5
+FROM alpine:3.7
 
 ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
 python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev nodejs py3-lxml \
 py3-magic postgresql-client poppler-utils antiword vim
 
-RUN apk update && apk upgrade
+RUN apk update --update-cache && apk upgrade
 
 RUN apk --update add fontconfig ttf-dejavu && fc-cache -fv
 
@@ -18,7 +18,7 @@ RUN apk add --no-cache python3 nginx tzdata && \
 RUN mkdir -p /var/interlegis/sapl && \
     apk add --update --no-cache $BUILD_PACKAGES && \
     npm install -g bower && \
-    npm cache clean
+    npm cache verify
 
 WORKDIR /var/interlegis/sapl/
 
@@ -29,8 +29,7 @@ COPY config/nginx/sapl.conf /etc/nginx/conf.d
 COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
 
 RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
-    rm -r /root/.cache && \
-    rm -r /tmp/*
+    rm -r /root/.cache
 
 COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
