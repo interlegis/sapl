@@ -5,6 +5,11 @@ from unipath import Path
 
 from sapl.legacy.migracao_dados import DIR_REPO, exec_legado
 
+
+def stripsplit(ll):
+    return [l.split() for l in ll.strip().splitlines()]
+
+
 fks_legado = '''
   autor                         cod_parlamentar        parlamentar
   autor                         tip_autor              tipo_autor
@@ -32,8 +37,28 @@ fks_legado = '''
   tramitacao                    cod_unid_tram_dest     unidade_tramitacao
   tramitacao                    cod_unid_tram_local    unidade_tramitacao
 '''
-fks_legado = [l.split() for l in fks_legado.strip().splitlines()]
+fks_legado = stripsplit(fks_legado)
 fks_legado = {(o, c): t for (o, c, t) in fks_legado}
+
+
+urls = '''
+autor                  /sistema/autor
+cargo_comissao         /sistema/comissao/cargo
+legislatura            /sistema/parlamentar/legislatura
+materia_legislativa    /materia
+norma_juridica         /norma
+parlamentar            /parlamentar
+sessao_legislativa     /sistema/mesa-diretora/sessao-legislativa
+sessao_plenaria        /sessao
+status_tramitacao      /sistema/materia/status-tramitacao
+tipo_autor             /sistema/autor/tipo
+tipo_expediente        /sistema/sessao-plenaria/tipo-expediente
+tipo_proposicao        /sistema/proposicao/tipo
+tipo_resultado_votacao /sistema/sessao-plenaria/tipo-resultado-votacao
+unidade_tramitacao     /sistema/materia/unidade-tramitacao
+registro_votacao       ?????????
+'''
+urls = dict(stripsplit(urls))
 
 
 def get_tabela_campo_valor_proposicao(fk):
@@ -102,16 +127,17 @@ SQLS_CRIACAO = [
         tip_proposicao, des_tipo_proposicao, ind_mat_ou_doc, tip_mat_ou_doc,
         nom_modelo, ind_excluido)
         values ({}, "DESCONHECIDO", "M", 0, "DESCONHECIDO", 0);
-        ''',
+        ''', ['tipo_materia_legislativa', 0]
      ),
     ('tipo_resultado_votacao', '''
         insert into tipo_resultado_votacao (
         tip_resultado_votacao, nom_resultado, ind_excluido)
         values ({}, "DESCONHECIDO", 0);
-        '''
+        ''', []
      ),
 ]
-SQLS_CRIACAO = {k: dedent(v.strip()) for k, v in SQLS_CRIACAO}
+SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
+                for k, sql, extras in SQLS_CRIACAO}
 
 
 def criar_sessao_legislativa(campo, valor):
@@ -127,35 +153,51 @@ ind_excluido) values ({}, {}, 0, "O",
         '''.format(valor, num_legislatura)
 
 
+def get_link(tabela_alvo, valor):
+    return '{}/{}'.format(urls[tabela_alvo], valor)
+
+
 def get_sql_desexcluir(tabela_alvo, campo, valor):
-    return 'update {} set ind_excluido = 0 where {} = {};'.format(
+    sql = 'update {} set ind_excluido = 0 where {} = {};'.format(
         tabela_alvo, campo, valor)
+    return sql, [get_link(tabela_alvo, valor)]
 
 
 def get_sql_criar(tabela_alvo, campo, valor):
     if tabela_alvo == 'sessao_legislativa':
-        return criar_sessao_legislativa(campo, valor)
+        sql = criar_sessao_legislativa(campo, valor)
     else:
-        sql = SQLS_CRIACAO[tabela_alvo]
-        return sql.format(valor)
+        sql, extras = SQLS_CRIACAO[tabela_alvo]
+        sql = sql.format(valor)
+    links = [get_link(tabela_alvo, valor)]
+    for tabela_extra, valor_extra in extras:
+        links.insert(0, get_link(tabela_extra, valor_extra))
+    return sql, links
 
 
 TEMPLATE_RESSUCITADOS = '''
-/* RESSUCITADOS */
+/* RESSUCITADOS
+
+{}
+
+*/
 
 {}
 '''
 
 
 def get_sqls_desexcluir_criar(desexcluir, criar):
-    sqls = [get_sql(tabela_alvo, campo, valor)
-            for conjunto, get_sql in ((desexcluir, get_sql_desexcluir),
-                                      (criar, get_sql_criar))
-            for tabela_alvo, campo, valor in conjunto]
-    if not sqls:
+    sqls_links = [get_sql(tabela_alvo, campo, valor)
+                  for conjunto, get_sql in ((desexcluir, get_sql_desexcluir),
+                                            (criar, get_sql_criar))
+                  for tabela_alvo, campo, valor in conjunto]
+    if not sqls_links:
         return ''
     else:
-        return TEMPLATE_RESSUCITADOS.format('\n'.join(sorted(sqls)))
+        sqls, links = zip(*sqls_links)
+        links = [l for ll in links for l in ll]  # flatten
+        sqls, links = ['\n'.join(sorted(s)) for s in [sqls, links]]
+        return TEMPLATE_RESSUCITADOS.format(links, sqls)
 
 
 def print_ressucitar():
