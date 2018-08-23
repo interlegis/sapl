@@ -853,6 +853,8 @@ def migrar_dados(apagar_do_legado=False):
             pyaml.dump(ocorrencias, arq, vspacing=1)
         REPO.git.add([arq_ocorrencias.name])
         info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
+        if not ocorrencias:
+            info('NÃO HOUVE OCORRÊNCIAS !!!')
 
     # recria tipos de autor padrão que não foram criados pela migração
     cria_models_tipo_autor()
@@ -1292,10 +1294,12 @@ def adjust_tiporesultadovotacao(new, old):
     elif 'rejeita' in new.nome.lower():
         new.natureza = TipoResultadoVotacao.NATUREZA_CHOICES.rejeitado
     else:
-        warn('natureza_desconhecida_tipo_resultadovotacao',
-             'Não foi possível identificar a natureza do '
-             'tipo de resultado de votação [{pk}: "{nome}"]',
-             {'pk': new.pk, 'nome': new.nome})
+        if new.nome != 'DESCONHECIDO':
+            # ignoramos a natureza de item criado pela migração
+            warn('natureza_desconhecida_tipo_resultadovotacao',
+                 'Não foi possível identificar a natureza do '
+                 'tipo de resultado de votação [{pk}: "{nome}"]',
+                 {'pk': new.pk, 'nome': new.nome})
 
 
 def str_to_time(fonte):
