@@ -29,6 +29,8 @@ fks_legado = '''
   tramitacao                    cod_status             status_tramitacao
   expediente_sessao_plenaria    cod_expediente         tipo_expediente
   proposicao                    tip_proposicao         tipo_proposicao
+  tramitacao                    cod_unid_tram_dest     unidade_tramitacao
+  tramitacao                    cod_unid_tram_local    unidade_tramitacao
 '''
 fks_legado = [l.split() for l in fks_legado.strip().splitlines()]
 fks_legado = {(o, c): t for (o, c, t) in fks_legado}
@@ -47,6 +49,12 @@ def get_tabela_campo_valor_proposicao(fk):
         raise(Exception('ind_mat_ou_doc inválido'))
 
 
+CAMPOS_ORIGEM_PARA_ALVO = {
+    'cod_unid_tram_dest': 'cod_unid_tramitacao',
+    'cod_unid_tram_local': 'cod_unid_tramitacao',
+}
+
+
 def get_excluido(fk):
     tabela_origem = fk['tabela']
 
@@ -55,6 +63,9 @@ def get_excluido(fk):
     else:
         campo, valor = [fk[k] for k in ('campo', 'valor')]
         tabela_alvo = fks_legado[(tabela_origem, campo)]
+
+    # troca nome de campo pelo correspondente na tabela alvo
+    campo = CAMPOS_ORIGEM_PARA_ALVO.get(campo, campo)
 
     sql = 'select ind_excluido, t.* from {} t where {} = {}'.format(
         tabela_alvo, campo, valor)
