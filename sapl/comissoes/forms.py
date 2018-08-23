@@ -45,6 +45,7 @@ class ComposicaoForm(forms.ModelForm):
 
         return cleaned_data
 
+
 class PeriodoForm(forms.ModelForm):
 
     class Meta:
@@ -63,7 +64,18 @@ class PeriodoForm(forms.ModelForm):
         if data_fim and data_fim < data_inicio:
             raise ValidationError('A Data Final não pode ser menor que '
                                         'a Data Inicial')
+        
+        legislatura = Legislatura.objects.filter(data_inicio__lte=data_inicio, 
+                                                 data_fim__gte=data_fim)
+
+        if not legislatura:
+            raise ValidationError('O período informado '
+                                  'deve estar contido em uma única '
+                                  'legislatura existente')
+
+
         return cleaned_data
+
 
 
 class ParticipacaoCreateForm(forms.ModelForm):
@@ -245,10 +257,35 @@ class ComissaoForm(forms.ModelForm):
         if len(self.cleaned_data['nome']) > 100:
             msg = _('Nome da Comissão deve ter no máximo 50 caracteres.')
             raise ValidationError(msg)
-        if self.cleaned_data['data_extincao']:
-            if (self.cleaned_data['data_extincao'] <
-                    self.cleaned_data['data_criacao']):
+        if (self.cleaned_data['data_extincao'] and
+            self.cleaned_data['data_extincao'] <
+                self.cleaned_data['data_criacao']):
                 msg = _('Data de extinção não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        if (self.cleaned_data['data_final_prevista_temp'] and
+            self.cleaned_data['data_final_prevista_temp'] <
+                self.cleaned_data['data_criacao']):
+                msg = _('Data Prevista para Término não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        if (self.cleaned_data['data_prorrogada_temp'] and
+            self.cleaned_data['data_prorrogada_temp'] <
+                self.cleaned_data['data_criacao']):
+                msg = _('Data Novo Prazo não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        if (self.cleaned_data['data_instalacao_temp'] and
+            self.cleaned_data['data_instalacao_temp'] <
+                self.cleaned_data['data_criacao']):
+                msg = _('Data de Instalação não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        if (self.cleaned_data['data_final_prevista_temp'] and self.cleaned_data['data_instalacao_temp'] and
+            self.cleaned_data['data_final_prevista_temp'] <
+                self.cleaned_data['data_instalacao_temp']):
+                msg = _('Data Prevista para Término não pode ser menor que a de Instalação')
+                raise ValidationError(msg)
+        if (self.cleaned_data['data_prorrogada_temp'] and self.cleaned_data['data_instalacao_temp'] and
+            self.cleaned_data['data_prorrogada_temp'] <
+                self.cleaned_data['data_instalacao_temp']):
+                msg = _('Data Novo Prazo não pode ser menor que a de Instalação')
                 raise ValidationError(msg)
         return self.cleaned_data
 

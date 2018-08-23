@@ -1,6 +1,7 @@
 
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -45,6 +46,24 @@ TipoDocumentoAdministrativoCrud = CrudAux.build(
 # FIXME precisa de uma chave diferente para o layout
 # ProtocoloMateriaCrud = Crud.build(Protocolo, '')
 
+@permission_required('protocoloadm.add_protocolo')
+def recuperar_materia_protocolo(request):
+    tipo = request.GET.get('tipo')
+    ano = request.GET.get('ano')
+    numero = request.GET.get('numero')
+    try:
+        materia = MateriaLegislativa.objects.get(
+            tipo=tipo, ano=ano,numero=numero)
+        autoria = materia.autoria_set.first()
+        content = {'ementa': materia.ementa.strip(),
+                    'ano':materia.ano, 'numero':materia.numero}
+        if autoria:
+            content.update({'autor': autoria.autor.pk,
+                            'tipo_autor':autoria.autor.tipo.pk})
+        response = JsonResponse(content)
+    except Exception as e:
+        response = JsonResponse({'error':e})
+    return response
 
 def doc_texto_integral(request, pk):
     can_see = True

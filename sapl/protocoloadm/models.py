@@ -55,6 +55,8 @@ class Protocolo(models.Model):
                                            null=False,
                                            choices=RANGE_ANOS,
                                            verbose_name=_('Ano do Protocolo'))
+    # TODO: Remover esses dois campos após migração,
+    # TODO: pois timestamp supre a necessidade
     data = models.DateField()
     hora = models.TimeField()
     # TODO transformar campo timestamp em auto_now_add

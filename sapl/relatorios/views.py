@@ -826,9 +826,10 @@ def get_protocolos(prots):
 
         dic['titulo'] = str(protocolo.numero) + '/' + str(protocolo.ano)
 
-        dic['data'] = protocolo.data.strftime(
-            "%d/%m/%Y") + ' - <b>Horário:</b>' + protocolo.hora.strftime(
-            "%H:%m")
+        ts = timezone.localtime(protocolo.timestamp)
+
+        dic['data'] = ts.strftime("%d/%m/%Y") + ' - <b>Horário:</b>' + \
+            ts.strftime("%H:%m")
 
         dic['txt_assunto'] = protocolo.assunto_ementa
 
@@ -941,7 +942,7 @@ def get_etiqueta_protocolos(prots):
 
         tz_hora = timezone.localtime(p.timestamp)
 
-        dic['data'] = '<b>Data: </b>' + p.data.strftime(
+        dic['data'] = '<b>Data: </b>' + tz_hora.strftime(
             "%d/%m/%Y") + ' - <b>Horário: </b>' + tz_hora.strftime("%H:%M")
         dic['txt_assunto'] = p.assunto_ementa
         dic['txt_interessado'] = p.interessado

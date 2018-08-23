@@ -9,8 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
 
-TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensivo')),
-                                 ('R', _('Restritivo')))
+TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensiva')),
+                                 ('R', _('Restritiva')))
 
 SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano')),
                        ('L', _('Sequencial por legislatura')),
@@ -70,7 +70,7 @@ class AppConfig(models.Model):
 
     documentos_administrativos = models.CharField(
         max_length=1,
-        verbose_name=_('Ostensivo/Restritivo'),
+        verbose_name=_('Visibilidade dos Documentos Administrativos'),
         choices=TIPO_DOCUMENTO_ADMINISTRATIVO, default='O')
 
     sequencia_numeracao = models.CharField(

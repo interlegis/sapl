@@ -34,9 +34,10 @@ class AudienciaCrud(Crud):
 
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
-            initial['tipo_materia'] = self.object.materia.tipo.id
-            initial['numero_materia'] = self.object.materia.numero
-            initial['ano_materia'] = self.object.materia.ano
+            if self.object.materia:
+                initial['tipo_materia'] = self.object.materia.tipo.id
+                initial['numero_materia'] = self.object.materia.numero
+                initial['ano_materia'] = self.object.materia.ano
             return initial
      
     class DeleteView(Crud.DeleteView):

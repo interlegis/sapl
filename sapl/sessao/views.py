@@ -460,9 +460,10 @@ def recuperar_materia(request):
                                                  ano=ano,
                                                  numero=numero)
         response = JsonResponse({'ementa': materia.ementa,
-                                 'id': materia.id})
+                                 'id': materia.id,
+                                 'indexacao': materia.indexacao})
     except ObjectDoesNotExist:
-        response = JsonResponse({'ementa': '', 'id': 0})
+        response = JsonResponse({'ementa': '', 'id': 0, 'indexacao':''})
 
     return response
 

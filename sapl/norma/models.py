@@ -1,9 +1,9 @@
-import reversion
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
@@ -146,9 +146,15 @@ class NormaJuridica(models.Model):
             norma=self.id)
         return anexos
 
-
     def __str__(self):
         return _('nº %(numero)s de %(data)s') % {
+            'numero': self.numero,
+            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+
+    @property
+    def epigrafe(self):
+        return _('%(tipo)s nº %(numero)s de %(data)s') % {
+            'tipo': self.tipo,
             'numero': self.numero,
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 

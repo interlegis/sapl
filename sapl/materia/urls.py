@@ -24,7 +24,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
                                 proposicao_texto, recuperar_materia,
-                                ExcluirTramitacaoEmLoteView)
+                                ExcluirTramitacaoEmLoteView, RetornarProposicao)
 from sapl.norma.views import NormaPesquisaSimplesView
 
 from .apps import AppConfig
@@ -120,6 +120,8 @@ urlpatterns_proposicao = [
 
     url(r'^proposicao/texto/(?P<pk>\d+)$', proposicao_texto,
         name='proposicao_texto'),
+    url(r'^proposicao/(?P<pk>\d+)/retornar', RetornarProposicao.as_view(),
+        name='retornar-proposicao'),
 ]
 
 urlpatterns_sistema = [

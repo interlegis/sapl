@@ -2,7 +2,6 @@ from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
-import weasyprint
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML
 from django.contrib import messages
@@ -17,10 +16,11 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template import RequestContext, loader
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView, ListView, TemplateView, CreateView, UpdateView
+from django.views.generic import ListView, TemplateView, CreateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+import weasyprint
 
 import sapl
 from sapl.base.models import Autor, CasaLegislativa
@@ -67,6 +67,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
 from .signals import tramitacao_signal
 
+
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
 
 OrigemCrud = CrudAux.build(Origem, '')
@@ -96,9 +97,10 @@ def proposicao_texto(request, pk):
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
                 proposicao.autor.user_id != request.user.id):
-            messages.error(request, _('Você não tem permissão para acessar o texto original.'))
+            messages.error(request, _(
+                'Você não tem permissão para acessar o texto original.'))
             return redirect(reverse('sapl.materia:proposicao_detail',
-                                    kwargs={'pk':pk}))
+                                    kwargs={'pk': pk}))
 
         arquivo = proposicao.texto_original
 
@@ -221,6 +223,7 @@ class MateriaTaView(IntegracaoTaView):
         'observacao': None,
         'numero': 'numero',
         'ano': 'ano',
+        'tipo': 'tipo',
     }
     map_funcs = {
         'publicacao_func': False,
@@ -251,6 +254,7 @@ class ProposicaoTaView(IntegracaoTaView):
         'observacao': None,
         'numero': 'numero_proposicao',
         'ano': 'ano',
+        'tipo': 'tipo',
     }
     map_funcs = {
         'publicacao_func': False
@@ -507,6 +511,31 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
         context = super(ReceberProposicao, self).get_context_data(**kwargs)
         context['subnav_template_name'] = 'materia/subnav_prop.yaml'
         return context
+
+
+class RetornarProposicao(UpdateView):
+    app_label = sapl.protocoloadm.apps.AppConfig.label
+    template_name = "materia/proposicao_confirm_return.html"
+    model = Proposicao
+    fields = ['data_envio', 'descricao' ]
+    permission_required = ('materia.detail_proposicao_enviada', )
+
+    def dispatch(self, request, *args, **kwargs):
+
+        try:
+            p = Proposicao.objects.get(id=kwargs['pk'])
+        except:
+            raise Http404()
+
+        if p.autor.user != request.user:
+             messages.error(
+                 request,
+                 'Usuário sem acesso a esta opção.' % 
+                     request.user)
+             return redirect('/')
+
+        return super(RetornarProposicao, self).dispatch(
+            request, *args, **kwargs)
 
 
 class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
@@ -994,7 +1023,8 @@ class RelatoriaCrud(MasterDetailCrud):
             except ObjectDoesNotExist:
                 pass
             else:
-                composicao = comissao.composicao_set.last()
+                composicao = comissao.composicao_set.order_by(
+                    '-periodo__data_inicio').first()
                 participacao = Participacao.objects.filter(
                     composicao=composicao)
 
@@ -1034,7 +1064,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
             if local:
                 initial['unidade_tramitacao_local'
-                             ] = local.unidade_tramitacao_destino.pk
+                        ] = local.unidade_tramitacao_destino.pk
             else:
                 initial['unidade_tramitacao_local'] = ''
             initial['data_tramitacao'] = timezone.now().date()
@@ -2035,10 +2065,13 @@ class ExcluirTramitacaoEmLoteView(PermissionRequiredMixin, FormView):
 
     def form_valid(self, form):
 
-        tramitacao_set = Tramitacao.objects.filter(data_tramitacao=form.cleaned_data['data_tramitacao'],
-                                                           unidade_tramitacao_local=form.cleaned_data['unidade_tramitacao_local'],
-                                                           unidade_tramitacao_destino=form.cleaned_data['unidade_tramitacao_destino'],
-                                                           status=form.cleaned_data['status'])
+        tramitacao_set = Tramitacao.objects.filter(
+            data_tramitacao=form.cleaned_data['data_tramitacao'],
+            unidade_tramitacao_local=form.cleaned_data[
+                'unidade_tramitacao_local'],
+            unidade_tramitacao_destino=form.cleaned_data[
+                'unidade_tramitacao_destino'],
+            status=form.cleaned_data['status'])
         for tramitacao in tramitacao_set:
             materia = tramitacao.materia
             if tramitacao == materia.tramitacao_set.last():

@@ -1,14 +1,15 @@
 
-import reversion
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Concat
+from django.template import defaultfilters
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import SEQUENCIA_NUMERACAO, Autor
 from sapl.comissoes.models import Comissao
@@ -18,6 +19,7 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
+
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
@@ -242,6 +244,16 @@ class MateriaLegislativa(models.Model):
         return _('%(tipo)s nº %(numero)s de %(ano)s') % {
             'tipo': self.tipo, 'numero': self.numero, 'ano': self.ano}
 
+    @property
+    def epigrafe(self):
+        return _('%(tipo)s nº %(numero)s de %(data)s') % {
+            'tipo': self.tipo,
+            'numero': self.numero,
+            'data': defaultfilters.date(
+                self.data_apresentacao,
+                "d \d\e F \d\e Y"
+            )}
+
     def data_entrada_protocolo(self):
         '''
            hack: recuperar a data de entrada do protocolo sem gerar
@@ -425,7 +437,8 @@ class DocumentoAcessorio(models.Model):
                              verbose_name=_('Tipo'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
 
-    data = models.DateField(blank=True, null=True, default=None, verbose_name=_('Data'))
+    data = models.DateField(blank=True, null=True,
+                            default=None, verbose_name=_('Data'))
     autor = models.CharField(
         max_length=50, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
@@ -755,6 +768,16 @@ class Proposicao(models.Model):
             return '%s %s/%s' % (Proposicao._meta.verbose_name,
                                  self.id,
                                  descricao)
+
+    @property
+    def epigrafe(self):
+        return _('%(tipo)s nº %(numero)s de %(data)s') % {
+            'tipo': self.tipo,
+            'numero': self.numero,
+            'data': defaultfilters.date(
+                self.data_envio if self.data_envio else timezone.now(),
+                "d \d\e F \d\e Y"
+            )}
 
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:

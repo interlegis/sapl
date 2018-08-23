@@ -237,7 +237,10 @@ class TextoArticulado(TimestampedMixin):
 
     def __str__(self):
         if self.content_object:
-            return str(self.content_object)
+            assert hasattr(self.content_object, 'epigrafe'), _(
+                'Modelos integrados aos Textos Articulados devem possuir a '
+                'property "epigrafe"')
+            return str(self.content_object.epigrafe)
         else:
             return _('%(tipo)s nº %(numero)s de %(data)s') % {
                 'tipo': self.tipo_ta,
