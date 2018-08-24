@@ -334,7 +334,6 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
         protocolo.assunto_ementa = self.request.POST['assunto']
-
         protocolo.save()
         self.object = protocolo
         return redirect(self.get_success_url())
