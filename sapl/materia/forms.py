@@ -1839,11 +1839,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         protocolo = Protocolo()
         protocolo.numero = (nm['numero__max'] + 1) if nm['numero__max'] else 1
         protocolo.ano = timezone.now().year
-        protocolo.data = timezone.now()
-        protocolo.hora = timezone.now().time()
 
-        # TODO transformar campo timestamp em auto_now_add
-        protocolo.timestamp = timezone.now()
         protocolo.tipo_protocolo = '1'
 
         protocolo.interessado = str(proposicao.autor)
