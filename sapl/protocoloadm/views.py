@@ -280,6 +280,7 @@ class AnularProtocoloAdmView(PermissionRequiredMixin, CreateView):
             form.cleaned_data['justificativa_anulacao'])
         protocolo.user_anulacao = form.cleaned_data['user_anulacao']
         protocolo.ip_anulacao = form.cleaned_data['ip_anulacao']
+        protocolo.timestamp_anulacao = timezone.now()
         protocolo.save()
         return redirect(self.get_success_url())
 
