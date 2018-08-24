@@ -34,8 +34,9 @@ from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
-from sapl.materia.models import (AcompanhamentoMateria, MateriaLegislativa,
-                                 Proposicao, StatusTramitacao, TipoDocumento,
+from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
+                                 MateriaLegislativa, Proposicao,
+                                 StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
@@ -157,7 +158,7 @@ class CampoVirtual(namedtuple('CampoVirtual', 'model related_model')):
 
 CAMPOS_VIRTUAIS_PROPOSICAO = {
     TipoMateriaLegislativa: CampoVirtual(Proposicao, MateriaLegislativa),
-    TipoDocumento: CampoVirtual(Proposicao, DocumentoAdministrativo)
+    TipoDocumento: CampoVirtual(Proposicao, DocumentoAcessorio)
 }
 for campo_virtual in CAMPOS_VIRTUAIS_PROPOSICAO.values():
     campos_novos_para_antigos[campo_virtual] = 'cod_mat_ou_doc'
@@ -887,7 +888,7 @@ def get_models_a_migrar():
                         [TipoMateriaLegislativa, TipoDocumento])
     assert models.index(TipoProposicao) < models.index(Proposicao)
     move_para_depois_de(models, Proposicao,
-                        [MateriaLegislativa, DocumentoAdministrativo])
+                        [MateriaLegislativa, DocumentoAcessorio])
 
     return models
 
