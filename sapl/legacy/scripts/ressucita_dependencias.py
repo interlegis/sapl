@@ -36,40 +36,52 @@ fks_legado = '''
   proposicao                    tip_proposicao         tipo_proposicao
   tramitacao                    cod_unid_tram_dest     unidade_tramitacao
   tramitacao                    cod_unid_tram_local    unidade_tramitacao
+  documento_acessorio           tip_documento          tipo_documento
+  relatoria                     cod_parlamentar        parlamentar
+  relatoria                     cod_materia            materia_legislativa
+  unidade_tramitacao            cod_orgao              orgao
+  norma_juridica                cod_materia            materia_legislativa
+  sessao_plenaria               tip_sessao             tipo_sessao_plenaria
+  mesa_sessao_plenaria          cod_cargo              cargo_mesa
 '''
 fks_legado = stripsplit(fks_legado)
 fks_legado = {(o, c): t for (o, c, t) in fks_legado}
 
 
 urls = '''
-autor                  /sistema/autor
-cargo_comissao         /sistema/comissao/cargo
-legislatura            /sistema/parlamentar/legislatura
-materia_legislativa    /materia
-norma_juridica         /norma
-parlamentar            /parlamentar
-sessao_legislativa     /sistema/mesa-diretora/sessao-legislativa
-sessao_plenaria        /sessao
-status_tramitacao      /sistema/materia/status-tramitacao
-tipo_autor             /sistema/autor/tipo
-tipo_expediente        /sistema/sessao-plenaria/tipo-expediente
-tipo_proposicao        /sistema/proposicao/tipo
-tipo_resultado_votacao /sistema/sessao-plenaria/tipo-resultado-votacao
-unidade_tramitacao     /sistema/materia/unidade-tramitacao
-registro_votacao       ?????????
+autor                    /sistema/autor
+cargo_comissao           /sistema/comissao/cargo
+legislatura              /sistema/parlamentar/legislatura
+materia_legislativa      /materia
+norma_juridica           /norma
+parlamentar              /parlamentar
+sessao_legislativa       /sistema/mesa-diretora/sessao-legislativa
+sessao_plenaria          /sessao
+status_tramitacao        /sistema/materia/status-tramitacao
+tipo_autor               /sistema/autor/tipo
+tipo_expediente          /sistema/sessao-plenaria/tipo-expediente
+tipo_proposicao          /sistema/proposicao/tipo
+tipo_resultado_votacao   /sistema/sessao-plenaria/tipo-resultado-votacao
+unidade_tramitacao       /sistema/materia/unidade-tramitacao
+tipo_documento           /sistema/materia/tipo-documento
+orgao                    /sistema/materia/orgao
+tipo_sessao_plenaria     /sistema/sessao-plenaria/tipo
+cargo_mesa               /sistema/mesa-diretora/cargo-mesa
+documento_administrativo /docadm
+tipo_materia_legislativa /sistema/materia/tipo
+registro_votacao         ?????????
 '''
 urls = dict(stripsplit(urls))
 
 
-def get_tabela_campo_valor_proposicao(fk):
-    [(ind_mat_ou_doc, tip_mat_ou_doc)] = exec_legado('''
-        select ind_mat_ou_doc, tip_mat_ou_doc
-        from tipo_proposicao where tip_proposicao = {}
-        '''.format(fk['pk']['tip_proposicao']))
+def get_tabela_campo_tipo_proposicao(tip_proposicao):
+    [(ind_mat_ou_doc,)] = exec_legado('''
+        select ind_mat_ou_doc from tipo_proposicao where tip_proposicao = {};
+        '''.format(tip_proposicao))
     if ind_mat_ou_doc == 'M':
-        return 'tipo_materia_legislativa', 'tip_materia', tip_mat_ou_doc
+        return 'tipo_materia_legislativa', 'tip_materia'
     elif ind_mat_ou_doc == 'D':
-        return 'tipo_materia_legislativa', 'tip_documento', tip_mat_ou_doc
+        return 'tipo_documento', 'tip_documento'
     else:
         raise(Exception('ind_mat_ou_doc inválido'))
 
@@ -81,12 +93,25 @@ CAMPOS_ORIGEM_PARA_ALVO = {
 
 
 def get_excluido(fk):
-    tabela_origem = fk['tabela']
+    tabela_origem, campo, valor = [fk[k] for k in ('tabela', 'campo', 'valor')]
 
     if tabela_origem == 'tipo_proposicao':
-        tabela_alvo, campo, valor = get_tabela_campo_valor_proposicao(fk)
+        tip_proposicao = fk['pk']['tip_proposicao']
+        tabela_alvo, campo = get_tabela_campo_tipo_proposicao(tip_proposicao)
+    elif tabela_origem == 'proposicao' and campo == 'cod_mat_ou_doc':
+        [(ind_mat_ou_doc,)] = exec_legado('''
+            select ind_mat_ou_doc from
+                proposicao p inner join tipo_proposicao t
+                on p.tip_proposicao = t.tip_proposicao
+            where cod_proposicao = {};
+        '''.format(fk['pk']['cod_proposicao']))
+        if ind_mat_ou_doc == 'M':
+            tabela_alvo, campo = 'materia_legislativa', 'cod_materia'
+        elif ind_mat_ou_doc == 'D':
+            tabela_alvo, campo = 'documento_acessorio', 'cod_documento'
+        else:
+            raise(Exception('ind_mat_ou_doc inválido'))
     else:
-        campo, valor = [fk[k] for k in ('campo', 'valor')]
         tabela_alvo = fks_legado[(tabela_origem, campo)]
 
     # troca nome de campo pelo correspondente na tabela alvo
@@ -133,11 +158,14 @@ SQLS_CRIACAO = [
         insert into tipo_resultado_votacao (
         tip_resultado_votacao, nom_resultado, ind_excluido)
         values ({}, "DESCONHECIDO", 0);
-        ''', []
-     ),
+        '''),
+    ('tipo_autor', '''
+        insert into tipo_autor (tip_autor, des_tipo_autor, ind_excluido)
+        values ({}, "DESCONHECIDO", 0);
+     ''')
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
-                for k, sql, extras in SQLS_CRIACAO}
+                for k, sql, *extras in SQLS_CRIACAO}
 
 
 def criar_sessao_legislativa(campo, valor):
@@ -186,7 +214,7 @@ TEMPLATE_RESSUCITADOS = '''
 '''
 
 
-def get_sqls_desexcluir_criar(desexcluir, criar):
+def get_sqls_desexcluir_criar(desexcluir, criar, slug):
     sqls_links = [get_sql(tabela_alvo, campo, valor)
                   for conjunto, get_sql in ((desexcluir, get_sql_desexcluir),
                                             (criar, get_sql_criar))
@@ -194,12 +222,13 @@ def get_sqls_desexcluir_criar(desexcluir, criar):
     if not sqls_links:
         return ''
     else:
+        url_base = 'sapl.{}.leg.br'.format(slug.replace('-', '.'))
         sqls, links = zip(*sqls_links)
-        links = [l for ll in links for l in ll]  # flatten
+        links = [url_base + l for ll in links for l in ll]  # flatten
         sqls, links = ['\n'.join(sorted(s)) for s in [sqls, links]]
         return TEMPLATE_RESSUCITADOS.format(links, sqls)
 
 
-def print_ressucitar():
+def print_ressucitar(slug):
     desexcluir, criar = get_dependencias_a_ressucitar()
-    print(get_sqls_desexcluir_criar(desexcluir, criar))
+    print(get_sqls_desexcluir_criar(desexcluir, criar, slug))
