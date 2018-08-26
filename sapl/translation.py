@@ -50,6 +50,12 @@ class ExpressaoTextualManage(object):
                 'base').get_model('ExpressaoTextual')
 
             exprs = ExpressaoTextual.objects.values_list('value', 'custom')
+            try:
+                expr = list(exprs)
+            except:
+                ExpressaoTextual = None
+                self.__catalog['preprocess'].append(item)
+                return None
 
             for value, custom in exprs:
                 if value not in self.__catalog['indice']:
