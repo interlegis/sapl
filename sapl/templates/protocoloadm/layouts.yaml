@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n_sapl %}
 TipoDocumentoAdministrativo:
   {% trans 'Tipo Documento Administrativo' %}:
   - sigla:4  descricao

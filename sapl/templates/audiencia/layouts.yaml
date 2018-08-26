@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n_sapl %}
 AudienciaPublica:
   {% trans 'Audiência Pública' %}:
   - nome:10 numero

@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import pytest
 from django.core.urlresolvers import reverse
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from model_mommy import mommy
 
 from sapl.materia.models import UnidadeTramitacao

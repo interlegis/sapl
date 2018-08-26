@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from model_mommy import mommy
 
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa

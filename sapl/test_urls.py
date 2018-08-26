@@ -5,7 +5,7 @@ from django.contrib.auth.management import _get_all_permissions
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin

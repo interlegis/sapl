@@ -17,7 +17,7 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)

@@ -1,5 +1,5 @@
 {% extends "crud/list.html" %}
-{% load i18n common_tags crispy_forms_tags%}
+{% load i18n_sapl common_tags crispy_forms_tags%}
 
 {% block base_content %}
   {% if user.is_authenticated and perms.comissoes.add_composicao %}

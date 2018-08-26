@@ -7,7 +7,7 @@ from django.db import models
 from django.db.models.functions import Concat
 from django.template import defaultfilters
 from django.utils import formats, timezone
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 

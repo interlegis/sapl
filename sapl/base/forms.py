@@ -11,7 +11,7 @@ from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.forms import Form, ModelForm
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
 
 from sapl.base.models import Autor, TipoAutor

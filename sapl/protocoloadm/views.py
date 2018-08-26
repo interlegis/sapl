@@ -11,7 +11,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from django.views.generic import ListView, CreateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView

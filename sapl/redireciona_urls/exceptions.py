@@ -1,4 +1,4 @@
-from django.utils.translation import ugettext as _
+from sapl.translation import ugettext_lazy as _
 
 
 class UnknownUrlNameError(Exception):

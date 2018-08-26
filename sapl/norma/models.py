@@ -1,12 +1,12 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.template import defaultfilters
-from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
+from sapl.translation import ugettext_lazy as _
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         restringe_tipos_de_arquivo_txt, texto_upload_path)
 
@@ -82,7 +82,7 @@ class NormaJuridica(models.Model):
     tipo = models.ForeignKey(
         TipoNormaJuridica,
         on_delete=models.PROTECT,
-        verbose_name=_('Tipo da Norma Juridica'))
+        verbose_name=_('Tipo da Norma Jurídica'))
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
         on_delete=models.PROTECT, verbose_name=_('Matéria'))
@@ -271,7 +271,7 @@ class AnexoNormaJuridica(models.Model):
         NormaJuridica,
         related_name='norma',
         on_delete=models.PROTECT,
-        verbose_name=_('Norma Juridica'))
+        verbose_name=_('Norma Jurídica'))
     anexo_arquivo = models.FileField(
         blank=True,
         null=True,
@@ -282,8 +282,8 @@ class AnexoNormaJuridica(models.Model):
                                            choices=RANGE_ANOS)
 
     class Meta:
-        verbose_name = _('Anexo da Norma Juridica')
-        verbose_name_plural = _('Anexos da Norma Juridica')
+        verbose_name = _('Anexo da Norma Jurídica')
+        verbose_name_plural = _('Anexos da Norma Jurídica')
 
     def __str__(self):
         return _('Anexo: %(anexo)s da norma %(norma)s') % {

@@ -1,13 +1,14 @@
-import reversion
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import ugettext_lazy as _
+import reversion
 
+from sapl.translation import ugettext_lazy as _
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
+
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensiva')),
                                  ('R', _('Restritiva')))
@@ -24,7 +25,7 @@ class CasaLegislativa(models.Model):
 
     codigo = models.CharField(max_length=100,
                               blank=True,
-                              verbose_name=_('Codigo'))
+                              verbose_name=_('Código'))
     nome = models.CharField(max_length=100, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=100, verbose_name=_('Sigla'))
     endereco = models.CharField(max_length=100, verbose_name=_('Endereço'))
@@ -57,6 +58,27 @@ class CasaLegislativa(models.Model):
     def __str__(self):
         return _('Casa Legislativa de %(municipio)s') % {
             'municipio': self.municipio}
+
+
+class ExpressaoTextual(models.Model):
+    bind = models.BooleanField(
+        verbose_name=_('Expressão encontrada no SAPL'),
+        choices=YES_NO_CHOICES, default=False)
+
+    value = models.TextField(
+        unique=True,
+        verbose_name=_('Expressão Oficial'), blank=False, null=False)
+
+    custom = models.TextField(
+        verbose_name=_('Expressão Customizada'), blank=True, default='')
+
+    class Meta:
+        verbose_name = _('Expressão Textual do SAPL')
+        verbose_name_plural = _('Expressões Textuais do SAPL')
+        ordering = ('value',)
+
+    def __str__(self):
+        return self.value
 
 
 @reversion.register()
@@ -126,6 +148,20 @@ class AppConfig(models.Model):
     receber_recibo_proposicao = models.BooleanField(
         verbose_name=_('Protocolar proposição somente com recibo?'),
         choices=YES_NO_CHOICES, default=True)
+
+    """normajuridica_verbose_name = models.CharField(
+        max_length=100,
+        blank=False,
+        null=False,
+        default=_('Norma Jurídica'),
+        verbose_name=_('Customizar a expressão Norma Jurídica'))
+
+    verbose_name_plural = models.CharField(
+        max_length=100,
+        blank=False,
+        null=False,
+        default=_('Norma Jurídica'),
+        verbose_name=_('Customizar a expressão Norma Jurídica'))"""
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')
