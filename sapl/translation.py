@@ -113,6 +113,9 @@ class ExpressaoTextualManage(object):
         # Falso negativo: expressões dentro de função lambda, mesmo sendo
         # atributo de uma classe.
 
+        # ação: se passa por um <module> antes de sair do SAPL,
+        # não é string criada a partir de um objeto de classe
+
         PROJECT_DIR = settings.PROJECT_DIR
 
         trace = traceback.extract_stack()
@@ -171,9 +174,9 @@ class ExpressaoTextualManage(object):
                         p._proxy____args = (ex.custom,)
                         print(p._proxy____args)
                     except:
-                        print('text')"""
+                        print('text')
 
-        ExpressaoTextual.objects.filter(bind=False).delete()
+        ExpressaoTextual.objects.filter(bind=False).delete()"""
 
 
 sapl_expressions = ExpressaoTextualManage()
