@@ -503,6 +503,9 @@ def checa_registros_votacao_ambiguos_e_remove_nao_usados():
 
     # interrompe migração se houver registros ambíguos
     ambiguos = ordem.intersection(expediente)
+    como_resolver = get_como_resolver_registro_votacao_ambiguo()
+    ambiguos = ambiguos - set(como_resolver)
+
     if ambiguos:
         warn('registro_votacao_ambiguos',
              'Existe(m) RegistroVotacao ambíguo(s): {cod_votacao}',
