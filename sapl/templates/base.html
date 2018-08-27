@@ -262,8 +262,7 @@
         $(document).ready(function(){
           let iframe_set_backend = {{ request|has_iframe|lower }}
           if (iframe_set_backend && !inIframe() ) {
-            let href = location.href
-            location.href = href + '?iframe=0'
+            location.href = location.origin + '?iframe=0'
           }          
         });
       </script>
