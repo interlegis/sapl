@@ -1,5 +1,5 @@
 import pytest
-from sapl.translation import ugettext as _
+from django.utils.translation import ugettext as _
 from model_mommy import mommy
 
 from sapl.audiencia import forms
