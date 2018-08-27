@@ -75,8 +75,11 @@ class ExpressaoTextualManage(object):
                         'proxy': [value, ],
                         'value': text,
                         'custom': None}
-                    et = ExpressaoTextual(value=text, bind=True)
-                    et.save()
+                    try:
+                        et = ExpressaoTextual(value=text, bind=True)
+                        et.save()
+                    except:
+                        pass
 
             self.__catalog['preprocess'] = []
 
@@ -94,8 +97,11 @@ class ExpressaoTextualManage(object):
                 'proxy': [item, ],
                 'value': text,
                 'custom': None}
-            et = ExpressaoTextual(value=text, bind=True)
-            et.save()
+            try:
+                et = ExpressaoTextual(value=text, bind=True)
+                et.save()
+            except:
+                pass
 
         else:
             try:
@@ -167,60 +173,6 @@ class ExpressaoTextualManage(object):
 
         ExpressaoTextual.objects.filter(bind=False).delete()
 
-
-"""
-        if sys.argv[1] == 'makemigrations':
-            return
-        # apps.apps.get_app_config('base').ready()
-        ExpressaoTextual = apps.apps.get_app_config(
-            'base').get_model('ExpressaoTextual')
-
-        try:
-            # modelo não existe no momento do migrate
-            ExpressaoTextual.objects.update(bind=False)
-        except:
-            return
-
-        expressoes = ExpressaoTextual.objects.all()
-
-        for app in apps.apps.get_app_configs():
-            if app.name not in settings.SAPL_APPS or app == self:
-                continue
-
-            for m in app.get_models():
-                try:
-                    exp = expressoes.get(value=m._meta.verbose_name)
-                except:
-                    exp = ExpressaoTextual(
-                        value=m._meta.verbose_name, custom='')
-                exp.bind = True
-                exp.save()
-                if exp.custom:
-                    m._meta.verbose_name = exp.custom
-
-                try:
-                    exp = expressoes.get(value=m._meta.verbose_name_plural)
-                except:
-                    exp = ExpressaoTextual(
-                        value=m._meta.verbose_name_plural, custom='')
-                exp.bind = True
-                exp.save()
-                if exp.custom:
-                    m._meta.verbose_name_plural = exp.custom
-
-                for f in m._meta.fields:
-                    try:
-                        exp = expressoes.get(value=f.verbose_name)
-                    except:
-                        exp = ExpressaoTextual(
-                            value=f.verbose_name, custom='')
-                    exp.bind = True
-                    exp.save()
-                    if exp.custom:
-                        f.verbose_name = exp.custom
-
-        ExpressaoTextual.objects.filter(bind=False).delete()
-"""
 
 sapl_expressions = ExpressaoTextualManage()
 

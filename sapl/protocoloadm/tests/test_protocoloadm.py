@@ -1,10 +1,11 @@
 from datetime import date, timedelta
 
-import pytest
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+import pytest
 
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
@@ -191,7 +192,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date.today() + timedelta(
+         'data_tramitacao': timezone.now().date() + timedelta(
              days=1)},
         follow=True)
 

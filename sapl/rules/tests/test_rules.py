@@ -1,21 +1,22 @@
-import pytest
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.utils import six
-from sapl.translation import ugettext_lazy as _
+import pytest
 
-from sapl.base.models import CasaLegislativa
+from sapl.base.models import CasaLegislativa, ExpressaoTextual
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TipoDispositivo,
                                     TipoDispositivoRelationship)
 from sapl.materia.models import AcompanhamentoMateria
 from sapl.rules import SAPL_GROUPS, map_rules
 from sapl.test_urls import create_perms_post_migrate
+from sapl.translation import ugettext_lazy as _
 from scripts.lista_permissions_in_decorators import \
     lista_permissions_in_decorators
 from scripts.lista_urls import lista_urls
+
 
 sapl_appconfs = [apps.get_app_config(n[5:]) for n in settings.SAPL_APPS]
 
@@ -58,27 +59,32 @@ __fp__in__test_permission_of_models_in_rules_patterns = {
     map_rules.RP_ADD: [CasaLegislativa,
                        TipoDispositivo,
                        TipoDispositivoRelationship,
-                       PerfilEstruturalTextoArticulado],
+                       PerfilEstruturalTextoArticulado,
+                       ExpressaoTextual],
 
     map_rules.RP_CHANGE: [AcompanhamentoMateria,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
-                          PerfilEstruturalTextoArticulado],
+                          PerfilEstruturalTextoArticulado,
+                          ExpressaoTextual],
 
     map_rules.RP_DELETE: [CasaLegislativa,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
-                          PerfilEstruturalTextoArticulado],
+                          PerfilEstruturalTextoArticulado,
+                          ExpressaoTextual],
 
     map_rules.RP_LIST: [AcompanhamentoMateria,
                         TipoDispositivo,
                         TipoDispositivoRelationship,
-                        PerfilEstruturalTextoArticulado],
+                        PerfilEstruturalTextoArticulado,
+                        ExpressaoTextual],
 
     map_rules.RP_DETAIL: [AcompanhamentoMateria,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
-                          PerfilEstruturalTextoArticulado]
+                          PerfilEstruturalTextoArticulado,
+                          ExpressaoTextual]
 
 }
 
