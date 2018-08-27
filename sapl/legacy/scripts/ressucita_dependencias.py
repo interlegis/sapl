@@ -1,5 +1,6 @@
 from textwrap import dedent
 
+import texttable
 import yaml
 from unipath import Path
 
@@ -36,6 +37,8 @@ fks_legado = '''
   proposicao                    tip_proposicao         tipo_proposicao
   tramitacao                    cod_unid_tram_dest     unidade_tramitacao
   tramitacao                    cod_unid_tram_local    unidade_tramitacao
+  tramitacao_administrativo     cod_unid_tram_dest     unidade_tramitacao
+  tramitacao_administrativo     cod_unid_tram_local    unidade_tramitacao
   documento_acessorio           tip_documento          tipo_documento
   relatoria                     cod_parlamentar        parlamentar
   relatoria                     cod_materia            materia_legislativa
@@ -43,6 +46,7 @@ fks_legado = '''
   norma_juridica                cod_materia            materia_legislativa
   sessao_plenaria               tip_sessao             tipo_sessao_plenaria
   mesa_sessao_plenaria          cod_cargo              cargo_mesa
+  norma_juridica                tip_norma              tipo_norma_juridica
 '''
 fks_legado = stripsplit(fks_legado)
 fks_legado = {(o, c): t for (o, c, t) in fks_legado}
@@ -69,6 +73,7 @@ tipo_sessao_plenaria     /sistema/sessao-plenaria/tipo
 cargo_mesa               /sistema/mesa-diretora/cargo-mesa
 documento_administrativo /docadm
 tipo_materia_legislativa /sistema/materia/tipo
+tipo_norma_juridica      /sistema/norma/tipo
 registro_votacao         ?????????
 '''
 urls = dict(stripsplit(urls))
@@ -123,10 +128,89 @@ def get_excluido(fk):
     return tabela_origem, campo, valor, tabela_alvo, res
 
 
-def get_dependencias_a_ressucitar():
+def get_desc_materia(cod_materia):
+    sql = '''
+        select t.sgl_tipo_materia, t.des_tipo_materia,
+            m.num_ident_basica, m.ano_ident_basica
+        from materia_legislativa m inner join tipo_materia_legislativa t
+            on m.tip_id_basica = t.tip_materia
+        where cod_materia = {};
+    '''.format(cod_materia)
+    return list(exec_legado(sql))[0]
+
+
+def get_link_proposicao(cod_proposicao, slug):
+    url_base = get_url(slug)
+    return 'http://{}/cadastros/proposicao/proposicao_mostrar_proc?cod_proposicao={}'.format(  # noqa
+        url_base, cod_proposicao)
+
+
+def get_apaga_materias_de_proposicoes(fks, slug):
+    refs_materias = [['id proposicao', 'sigla tipo matéria',
+                      'tipo matéria', 'número matéria', 'ano matéria']]
+    sqls = []
+    cods_proposicoes = []
+
+    for fk in fks:
+        cod_proposicao = fk['pk']['cod_proposicao']
+        cods_proposicoes.append(cod_proposicao)
+        assert fk['campo'] == 'cod_materia'
+        up = 'update proposicao set cod_materia = NULL where cod_proposicao = {};'  # noqa
+        refs_materias.append(
+            [cod_proposicao, *get_desc_materia(fk['valor'])])
+        sqls.append(up.format(cod_proposicao))
+
+    table = texttable.Texttable()
+    table.set_cols_width([10, 10, 50, 10, 10])
+    table.set_deco(table.VLINES | table.HEADER)
+    table.add_rows(refs_materias)
+
+    links = '\n'.join([get_link_proposicao(p, slug)
+                       for p in cods_proposicoes])
+    sqls = '\n'.join(sqls)
+
+    return '''
+/* REFERÊNCIAS A MATÉRIAS APAGADAS DE PROPOSIÇÕES
+
+ATENÇÃO
+
+As seguintes proposições apontaram no passado para matérias
+e esses apontamentos foram em algum momento retirados.
+
+Elas foram migradas da forma com estão agora: sem apontar para nenhuma matéria.
+Entretanto, talvez você deseje rever esses apontamentos.
+
+Segue então uma lista dos apontamentos anteriores que detectamos.
+
+{}
+
+Para facilitar sua conferência, seguem os links para as proposições envolvidas:
+
+{}
+
+*/
+
+{}
+
+    '''.format(table.draw(), links, sqls)
+
+
+def get_dependencias_a_ressucitar(slug):
     ocorrencias = yaml.load(
         Path(DIR_REPO.child('ocorrencias.yaml').read_file()))
-    fks_faltando = ocorrencias['fk']
+    fks_faltando = ocorrencias.get('fk')
+    if not fks_faltando:
+        return [], []
+
+    proposicoes_para_materia = [
+        fk for fk in fks_faltando
+        if fk['tabela'] == 'proposicao' and fk['campo'] == 'cod_materia']
+
+    print(get_apaga_materias_de_proposicoes(proposicoes_para_materia, slug))
+
+    fks_faltando = [fk for fk in fks_faltando
+                    if fk not in proposicoes_para_materia]
+
     excluidos = [get_excluido(fk) for fk in fks_faltando]
     desexcluir, criar = [
         set([(tabela_alvo, campo, valor)
@@ -214,15 +298,19 @@ TEMPLATE_RESSUCITADOS = '''
 '''
 
 
+def get_url(slug):
+    return 'sapl.{}.leg.br'.format(slug.replace('-', '.'))
+
+
 def get_sqls_desexcluir_criar(desexcluir, criar, slug):
-    sqls_links = [get_sql(tabela_alvo, campo, valor)
-                  for conjunto, get_sql in ((desexcluir, get_sql_desexcluir),
-                                            (criar, get_sql_criar))
-                  for tabela_alvo, campo, valor in conjunto]
+    sqls_links = [get_sql(*args)
+                  for itens, get_sql in ((desexcluir, get_sql_desexcluir),
+                                         (criar, get_sql_criar))
+                  for args in itens]
     if not sqls_links:
         return ''
     else:
-        url_base = 'sapl.{}.leg.br'.format(slug.replace('-', '.'))
+        url_base = get_url(slug)
         sqls, links = zip(*sqls_links)
         links = [url_base + l for ll in links for l in ll]  # flatten
         sqls, links = ['\n'.join(sorted(s)) for s in [sqls, links]]
@@ -230,5 +318,5 @@ def get_sqls_desexcluir_criar(desexcluir, criar, slug):
 
 
 def print_ressucitar(slug):
-    desexcluir, criar = get_dependencias_a_ressucitar()
+    desexcluir, criar = get_dependencias_a_ressucitar(slug)
     print(get_sqls_desexcluir_criar(desexcluir, criar, slug))

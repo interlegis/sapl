@@ -2,3 +2,4 @@
 GitPython
 mysqlclient==1.3.12
 pyaml
+texttable
