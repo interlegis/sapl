@@ -280,6 +280,7 @@ class AnularProtocoloAdmView(PermissionRequiredMixin, CreateView):
             form.cleaned_data['justificativa_anulacao'])
         protocolo.user_anulacao = form.cleaned_data['user_anulacao']
         protocolo.ip_anulacao = form.cleaned_data['ip_anulacao']
+        protocolo.timestamp_anulacao = timezone.now()
         protocolo.save()
         return redirect(self.get_success_url())
 
@@ -332,11 +333,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             messages.add_message(self.request, messages.ERROR, msg)
             return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
-        protocolo.data = timezone.now()
-        protocolo.hora = timezone.now().time()
-        protocolo.timestamp = timezone.now()
         protocolo.assunto_ementa = self.request.POST['assunto']
-
         protocolo.save()
         self.object = protocolo
         return redirect(self.get_success_url())
@@ -418,10 +415,14 @@ class ComprovanteProtocoloView(PermissionRequiredMixin, TemplateView):
         autenticacao = _("** NULO **")
 
         if not protocolo.anulado:
+            if protocolo.timestamp:
+                data = protocolo.timestamp.strftime("%Y/%m/%d")
+            else:
+                data = protocolo.data.strftime("%Y/%m/%d")
+
             # data is not i18n sensitive 'Y-m-d' is the right format.
             autenticacao = str(protocolo.tipo_processo) + \
-                protocolo.data.strftime("%Y/%m/%d") + \
-                str(protocolo.numero).zfill(6)
+                data + str(protocolo.numero).zfill(6)
 
         context.update({"protocolo": protocolo,
                         "barcode": barcode,
@@ -478,9 +479,6 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
                 messages.add_message(self.request, messages.ERROR, msg)
                 return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
-        protocolo.data = timezone.now().date()
-        protocolo.hora = timezone.now().time()
-        protocolo.timestamp = timezone.now()
 
         protocolo.tipo_protocolo = 0
         protocolo.tipo_processo = '1'  # TODO validar o significado

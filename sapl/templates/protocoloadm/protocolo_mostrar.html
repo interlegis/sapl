@@ -9,7 +9,11 @@
         <a href="{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}"><img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a></br>
 
 	<strong>Assunto: </strong> {{ protocolo.assunto_ementa|default:"Não informado" }}</br>
-	<strong>Data Protocolo: </strong> {{ protocolo.timestamp|localtime|date:"d/m/Y" }} - Horário: {{ protocolo.timestamp|localtime|date:"G:i:s" }}</br>
+	{% if p.timestamp%}
+      <strong>Data Protocolo:</strong> {{ p.timestamp|localtime|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ p.timestamp|localtime|date:"G:i:s" }}</br>
+    {% else %}
+      <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ p.hora|date:"G:i:s" }}</br>
+    {% endif %}
 
 	{% if protocolo.tipo_processo == 0 %}
 		<strong>Interessado:</strong> {{ protocolo.interessado|default_if_none:"Não informado" }}</br>

@@ -1,5 +1,6 @@
 import reversion
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
@@ -57,10 +58,11 @@ class Protocolo(models.Model):
                                            verbose_name=_('Ano do Protocolo'))
     # TODO: Remover esses dois campos após migração,
     # TODO: pois timestamp supre a necessidade
-    data = models.DateField()
-    hora = models.TimeField()
-    # TODO transformar campo timestamp em auto_now_add
-    timestamp = models.DateTimeField()
+    data = models.DateField(null=True, blank=True)
+    hora = models.TimeField(null=True, blank=True)
+    # Não foi utilizado auto_now_add=True em timestamp porque
+    # ele usa datetime.now que não é timezone aware.
+    timestamp = models.DateTimeField(default=timezone.now)
     tipo_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
     tipo_processo = models.PositiveIntegerField()

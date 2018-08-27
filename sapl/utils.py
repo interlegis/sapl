@@ -224,14 +224,14 @@ class RangeWidgetOverride(forms.MultiWidget):
         return '<div class="row">%s</div>' % html
 
 
-def register_all_models_in_admin(module_name):
+def register_all_models_in_admin(module_name, exclude_list=[]):
     appname = module_name.split('.')
     appname = appname[1] if appname[0] == 'sapl' else appname[0]
     app = apps.get_app_config(appname)
     for model in app.get_models():
         class CustomModelAdmin(CompareVersionAdmin):
             list_display = [f.name for f in model._meta.fields
-                            if f.name != 'id']
+                            if f.name != 'id' and f.name not in exclude_list]
 
         if not admin.site.is_registered(model):
             admin.site.register(model, CustomModelAdmin)
