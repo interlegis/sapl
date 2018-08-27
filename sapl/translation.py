@@ -104,22 +104,24 @@ class ExpressaoTextualManage(object):
                 pass
 
         else:
-            try:
-                p = item._proxy____args
-                trace = traceback.extract_stack()
-                trace.reverse()
-                while len(trace) > 0 and trace[0].filename != __file__:
-                    trace.pop(0)
-
-                while len(trace) > 0 and trace[0].filename == __file__:
-                    trace.pop(0)
-
-                if trace:
-                    if trace[0].name == '<module>':
-                        msg['proxy'].append(item)
-            except:
-                pass
+            if hasattr(item, '_proxy____args'):
+                if not self._source_from_object():
+                    msg['proxy'].append(item)
         return msg
+
+    def _source_from_object(self):
+        # Falso negativo: expressões dentro de função lambda, mesmo sendo
+        # atributo de uma classe.
+
+        PROJECT_DIR = settings.PROJECT_DIR
+
+        trace = traceback.extract_stack()
+        trace.reverse()
+        while len(trace) > 0 and trace[0].filename.startswith(PROJECT_DIR):
+            trace.pop(0)
+            if trace[0].name == '<module>':
+                return False
+        return True
 
     def rebuild_expressao(self, et):
         catalog = self.__catalog
@@ -131,7 +133,7 @@ class ExpressaoTextualManage(object):
             except:
                 pass
 
-    def rebuild(self):
+    """def rebuild(self):
         global ExpressaoTextual
         ExpressaoTextual.objects.update(bind=False)
 
@@ -169,7 +171,7 @@ class ExpressaoTextualManage(object):
                         p._proxy____args = (ex.custom,)
                         print(p._proxy____args)
                     except:
-                        print('text')
+                        print('text')"""
 
         ExpressaoTextual.objects.filter(bind=False).delete()
 
