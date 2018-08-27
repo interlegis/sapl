@@ -136,47 +136,13 @@ class ExpressaoTextualManage(object):
             except:
                 pass
 
-    """def rebuild(self):
+    def reset(self):
+        # Serviço SAPL deve ser reiniciado depois de rodar um reset
         global ExpressaoTextual
-        ExpressaoTextual.objects.update(bind=False)
-
-        catalog = self.__catalog
-
-        while catalog['preprocess']:
-            proxy = catalog['preprocess'].pop(0)
-            value = force_text(proxy).strip()
-            if not value:
-                continue
-
-            if value in catalog['indice']:
-                catalog['indice'][value]['proxy'].append(proxy)
-            else:
-                catalog['indice'][value] = {
-                    'proxy': [proxy, ],
-                    'value': value,
-                    'custom': None}
-
-        for key, exp in catalog['indice'].items():
-            try:
-                ex = ExpressaoTextual.objects.get(value=exp['value'])
-            except:
-                value = exp['value'].strip()
-                if not value:
-                    continue
-                ex = ExpressaoTextual(value=exp['value'], custom='')
-            ex.bind = True
-            ex.save()
-
-            if ex.custom:
-                catalog['indice'][exp['value']]['custom'] = ex.custom
-                for p in catalog['indice'][exp['value']]['proxy']:
-                    try:
-                        p._proxy____args = (ex.custom,)
-                        print(p._proxy____args)
-                    except:
-                        print('text')
-
-        ExpressaoTextual.objects.filter(bind=False).delete()"""
+        if apps.apps.models_ready:
+            ExpressaoTextual = apps.apps.get_app_config(
+                'base').get_model('ExpressaoTextual')
+            ExpressaoTextual.objects.filter(custom__exact='').delete()
 
 
 sapl_expressions = ExpressaoTextualManage()
