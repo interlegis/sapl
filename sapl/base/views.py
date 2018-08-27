@@ -23,7 +23,7 @@ from haystack.views import SearchView
 from sapl import settings
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor, ExpressaoTextual
-from sapl.crud.base import CrudAux, make_pagination, Crud
+from sapl.crud.base import CrudAux, make_pagination, Crud, ListWithSearchForm
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa)
 from sapl.rules.apps import AppConfig as RulesAppConfig
@@ -86,6 +86,8 @@ class ExpressaoTextualCrud(Crud):
 
     class ListView(Crud.ListView):
         paginate_by = 30
+        form_search_class = ListWithSearchForm
+        lookup_search = 'value__icontains'
 
 
 class TipoAutorCrud(CrudAux):
