@@ -86,7 +86,7 @@ class AppConfig(models.Model):
     esfera_federacao = models.CharField(
         max_length=1,
         blank=True,
-        null=True,
+        default = "",
         verbose_name=_('Esfera Federação'),
         choices=ESFERA_FEDERACAO_CHOICES)
 
