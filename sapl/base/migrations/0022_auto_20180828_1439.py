@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('base', '0021_appconfig_esfera_federacao'),
+        ('base', '0020_auto_20180821_1421'),
     ]
 
     operations = [
