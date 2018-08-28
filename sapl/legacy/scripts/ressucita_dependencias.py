@@ -265,25 +265,26 @@ ind_excluido) values ({}, {}, 0, "O",
         '''.format(valor, num_legislatura)
 
 
-def get_link(tabela_alvo, valor):
-    return '{}/{}'.format(urls[tabela_alvo], valor)
+def get_link(tabela_alvo, valor, slug):
+    url_base = get_url(slug)
+    return 'http://{}{}/{}'.format(url_base, urls[tabela_alvo], valor)
 
 
-def get_sql_desexcluir(tabela_alvo, campo, valor):
+def get_sql_desexcluir(tabela_alvo, campo, valor, slug):
     sql = 'update {} set ind_excluido = 0 where {} = {};'.format(
         tabela_alvo, campo, valor)
-    return sql, [get_link(tabela_alvo, valor)]
+    return sql, [get_link(tabela_alvo, valor, slug)]
 
 
-def get_sql_criar(tabela_alvo, campo, valor):
+def get_sql_criar(tabela_alvo, campo, valor, slug):
     if tabela_alvo == 'sessao_legislativa':
         sql = criar_sessao_legislativa(campo, valor)
     else:
         sql, extras = SQLS_CRIACAO[tabela_alvo]
         sql = sql.format(valor)
-    links = [get_link(tabela_alvo, valor)]
+    links = [get_link(tabela_alvo, valor, slug)]
     for tabela_extra, valor_extra in extras:
-        links.insert(0, get_link(tabela_extra, valor_extra))
+        links.insert(0, get_link(tabela_extra, valor_extra, slug))
     return sql, links
 
 
@@ -303,16 +304,15 @@ def get_url(slug):
 
 
 def get_sqls_desexcluir_criar(desexcluir, criar, slug):
-    sqls_links = [get_sql(*args)
+    sqls_links = [get_sql(*(args + [slug]))
                   for itens, get_sql in ((desexcluir, get_sql_desexcluir),
                                          (criar, get_sql_criar))
                   for args in itens]
     if not sqls_links:
         return ''
     else:
-        url_base = get_url(slug)
         sqls, links = zip(*sqls_links)
-        links = [url_base + l for ll in links for l in ll]  # flatten
+        links = [l for ll in links for l in ll]  # flatten
         sqls, links = ['\n'.join(sorted(s)) for s in [sqls, links]]
         return TEMPLATE_RESSUCITADOS.format(links, sqls)
 
