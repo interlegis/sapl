@@ -4,7 +4,8 @@ import texttable
 import yaml
 from unipath import Path
 
-from sapl.legacy.migracao_dados import DIR_REPO, exec_legado
+from sapl.legacy.migracao_dados import (DIR_REPO, PROPAGACOES_DE_EXCLUSAO,
+                                        exec_legado)
 
 
 def stripsplit(ll):
@@ -15,9 +16,6 @@ fks_legado = '''
   autor                         cod_parlamentar        parlamentar
   autor                         tip_autor              tipo_autor
   autoria                       cod_autor              autor
-  expediente_materia            cod_materia            materia_legislativa
-  ordem_dia                     cod_materia            materia_legislativa
-  legislacao_citada             cod_norma              norma_juridica
   oradores                      cod_parlamentar        parlamentar
   oradores_expediente           cod_parlamentar        parlamentar
   ordem_dia_presenca            cod_parlamentar        parlamentar
@@ -29,7 +27,6 @@ fks_legado = '''
   sessao_plenaria_presenca      cod_parlamentar        parlamentar
   composicao_comissao           cod_cargo              cargo_comissao
   sessao_plenaria               cod_sessao_leg         sessao_legislativa
-  ordem_dia                     cod_sessao_plen        sessao_plenaria
   proposicao                    cod_materia            materia_legislativa
   proposicao                    cod_autor              autor
   tramitacao                    cod_status             status_tramitacao
@@ -47,6 +44,9 @@ fks_legado = '''
   sessao_plenaria               tip_sessao             tipo_sessao_plenaria
   mesa_sessao_plenaria          cod_cargo              cargo_mesa
   norma_juridica                tip_norma              tipo_norma_juridica
+  materia_legislativa           tip_id_basica          tipo_materia_legislativa
+  despacho_inicial              cod_comissao           comissao
+  relatoria                     cod_comissao           comissao
 '''
 fks_legado = stripsplit(fks_legado)
 fks_legado = {(o, c): t for (o, c, t) in fks_legado}
@@ -74,6 +74,7 @@ cargo_mesa               /sistema/mesa-diretora/cargo-mesa
 documento_administrativo /docadm
 tipo_materia_legislativa /sistema/materia/tipo
 tipo_norma_juridica      /sistema/norma/tipo
+comissao                 /comissao
 registro_votacao         ?????????
 '''
 urls = dict(stripsplit(urls))
@@ -94,6 +95,7 @@ def get_tabela_campo_tipo_proposicao(tip_proposicao):
 CAMPOS_ORIGEM_PARA_ALVO = {
     'cod_unid_tram_dest': 'cod_unid_tramitacao',
     'cod_unid_tram_local': 'cod_unid_tramitacao',
+    'tip_id_basica': 'tip_materia',
 }
 
 
@@ -168,8 +170,10 @@ def get_apaga_materias_de_proposicoes(fks, slug):
     links = '\n'.join([get_link_proposicao(p, slug)
                        for p in cods_proposicoes])
     sqls = '\n'.join(sqls)
-
-    return '''
+    if not sqls:
+        return ''
+    else:
+        return '''
 /* REFERÊNCIAS A MATÉRIAS APAGADAS DE PROPOSIÇÕES
 
 ATENÇÃO
@@ -208,8 +212,11 @@ def get_dependencias_a_ressucitar(slug):
 
     print(get_apaga_materias_de_proposicoes(proposicoes_para_materia, slug))
 
+    propagacoes = {(o, c) for t, o, c in PROPAGACOES_DE_EXCLUSAO}
+
     fks_faltando = [fk for fk in fks_faltando
-                    if fk not in proposicoes_para_materia]
+                    if fk not in proposicoes_para_materia
+                    and (fk['tabela'], fk['campo']) not in propagacoes]
 
     excluidos = [get_excluido(fk) for fk in fks_faltando]
     desexcluir, criar = [
@@ -246,7 +253,11 @@ SQLS_CRIACAO = [
     ('tipo_autor', '''
         insert into tipo_autor (tip_autor, des_tipo_autor, ind_excluido)
         values ({}, "DESCONHECIDO", 0);
-     ''')
+     '''),
+    ('unidade_tramitacao', '''
+        insert into unidade_tramitacao (cod_unid_tramitacao, cod_comissao, cod_orgao, cod_parlamentar, ind_excluido)
+        values ({}, NULL, NULL, NULL, 0);
+     '''),
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
                 for k, sql, *extras in SQLS_CRIACAO}
@@ -291,7 +302,17 @@ def get_sql_criar(tabela_alvo, campo, valor, slug):
 TEMPLATE_RESSUCITADOS = '''
 /* RESSUCITADOS
 
+
+SOBRE REGISTROS QUE ESTAVAM APAGADOS E FORAM RESTAURADOS
+
+Os registros que listamos a seguir estavam excluídos (ou simplesmente não existiam) no sistema antigo e precisaram ser restaurados (ou criados) para completarmos a migração. Foi necessário fazer isso pois outros registros ativos no sistema apontam para eles.
+Vocês agora podem decidir mantê-los, ajustá-los ou excluí-los. Segue a lista:
+
 {}
+
+Se a opção for por excluir um desses registros novamente, note que só será possível fazer isso quando nada mais no sistema fizer referência a ele.
+
+Ao tentar excluir um registro usado em outras partes do sistema, você verá uma lista dos itens que apontam para ele de alguma forma. Para conseguir excluir você deve editar cada dos dos itens dependentes lista mostrada, retirando ou trocando a referência ao que deseja excluir.
 
 */
 
@@ -300,11 +321,11 @@ TEMPLATE_RESSUCITADOS = '''
 
 
 def get_url(slug):
-    return 'sapl.{}.leg.br'.format(slug.replace('-', '.'))
+    return 'sapl31.{}.leg.br'.format(slug.replace('-', '.'))
 
 
 def get_sqls_desexcluir_criar(desexcluir, criar, slug):
-    sqls_links = [get_sql(*(args + [slug]))
+    sqls_links = [get_sql(*(args + (slug,)))
                   for itens, get_sql in ((desexcluir, get_sql_desexcluir),
                                          (criar, get_sql_criar))
                   for args in itens]
