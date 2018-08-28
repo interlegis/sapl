@@ -203,7 +203,7 @@ class NormaCrud(Crud):
                 self.initial['esfera_federacao'] = esfera
             except:
                 pass
-
+            self.initial['complemento'] = False
             return self.initial
 
         layout_key = 'NormaJuridicaCreate'
