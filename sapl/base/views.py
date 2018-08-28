@@ -44,6 +44,17 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
 from .models import AppConfig, CasaLegislativa
 
 
+def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
+    id_materias = []
+    filtro_url = qr[campo_url]
+    if local_ou_status == 'local':
+        id_materias = [item.id for item in qs if item.tramitacao_set.order_by('-id').first().unidade_tramitacao_destino_id == int(filtro_url)]
+    elif local_ou_status == 'status':
+        id_materias = [item.id for item in qs if item.tramitacao_set.order_by('-id').first().status_id == int(filtro_url)]
+
+    return qs.filter(em_tramitacao=True, id__in=id_materias)
+
+
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
 
@@ -400,17 +411,9 @@ class RelatorioMateriasTramitacaoView(FilterView):
         qs = qs.filter(em_tramitacao=True)
 
         if qr.get('tramitacao__unidade_tramitacao_destino'):
-            id_materias = []
-            for item in qs:
-                if str(item.tramitacao_set.order_by('-id').first().unidade_tramitacao_destino_id) == qr['tramitacao__unidade_tramitacao_destino']:
-                    id_materias.append(item.id)
-            qs = qs.filter(em_tramitacao=True, id__in=id_materias)
+            qs = filtra_url_materias_em_tramitacao(qr, qs, 'tramitacao__unidade_tramitacao_destino', 'local')
         if qr.get('tramitacao__status'):
-            id_materias = []
-            for item in qs:
-                if str(item.tramitacao_set.order_by('-id').first().status_id) == qr['tramitacao__status']:
-                    id_materias.append(item.id)
-            qs = qs.filter(em_tramitacao=True, id__in=id_materias)
+            qs = filtra_url_materias_em_tramitacao(qr, qs, 'tramitacao__status', 'status')
 
         context['object_list'] = qs
 
