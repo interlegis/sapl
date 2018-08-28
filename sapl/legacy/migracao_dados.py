@@ -367,8 +367,8 @@ def reverte_exclusao_de_autores_referenciados_no_legado():
                 where ind_excluido <> 1)
             '''.format(parlamentar=tabela, cod_parlamentar=fk)
         if autores_referenciados:
-            sql += ' and cod_autor not in {}'.format(
-                tuple(autores_referenciados))
+            sql += ' and cod_autor not in ({})'.format(
+                ', '.join(map(str, autores_referenciados)))
         exec_legado(sql)
 
 
