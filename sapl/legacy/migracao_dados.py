@@ -811,6 +811,11 @@ def roda_comando_shell(cmd):
     assert res == 0, 'O comando falhou: {}'.format(cmd)
 
 
+def get_arquivo_ajustes_pre_migracao():
+    return DIR_DADOS_MIGRACAO.child(
+        'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+
+
 def migrar_dados(apagar_do_legado=False):
     try:
         ocorrencias.clear()
@@ -829,8 +834,7 @@ def migrar_dados(apagar_do_legado=False):
         exec_legado('SET SESSION sql_mode = "NO_AUTO_VALUE_ON_ZERO";')
 
         # executa ajustes pré-migração, se existirem
-        arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
-            'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+        arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
         if arq_ajustes_pre_migracao.exists():
             exec_legado(arq_ajustes_pre_migracao.read_file())
 

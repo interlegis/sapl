@@ -5,7 +5,8 @@ import yaml
 from unipath import Path
 
 from sapl.legacy.migracao_dados import (DIR_REPO, PROPAGACOES_DE_EXCLUSAO,
-                                        exec_legado)
+                                        exec_legado,
+                                        get_arquivo_ajustes_pre_migracao)
 
 
 def stripsplit(ll):
@@ -338,6 +339,13 @@ def get_sqls_desexcluir_criar(desexcluir, criar, slug):
         return TEMPLATE_RESSUCITADOS.format(links, sqls)
 
 
-def print_ressucitar(slug):
+def get_ressucitar(slug):
     desexcluir, criar = get_dependencias_a_ressucitar(slug)
-    print(get_sqls_desexcluir_criar(desexcluir, criar, slug))
+    return get_sqls_desexcluir_criar(desexcluir, criar, slug)
+
+
+def adiciona_ressucitar(slug):
+    arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
+    conteudo = arq_ajustes_pre_migracao.read_file()
+    sqls = get_ressucitar(slug)
+    arq_ajustes_pre_migracao.write_file('{}\n{}'.format(conteudo, sqls))
