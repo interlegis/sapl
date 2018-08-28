@@ -559,6 +559,7 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('materia_legislativa', 'acomp_materia', 'cod_materia'),
     ('materia_legislativa', 'despacho_inicial', 'cod_materia'),
     ('materia_legislativa', 'legislacao_citada', 'cod_materia'),
+    ('materia_legislativa', 'relatoria', 'cod_materia'),
 
     # norma
     ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referente'),
@@ -1299,6 +1300,8 @@ def adjust_tiporesultadovotacao(new, old):
     if 'aprova' in new.nome.lower():
         new.natureza = TipoResultadoVotacao.NATUREZA_CHOICES.aprovado
     elif 'rejeita' in new.nome.lower():
+        new.natureza = TipoResultadoVotacao.NATUREZA_CHOICES.rejeitado
+    elif 'retirado' in new.nome.lower():
         new.natureza = TipoResultadoVotacao.NATUREZA_CHOICES.rejeitado
     else:
         if new.nome != 'DESCONHECIDO':
