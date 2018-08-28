@@ -17,7 +17,7 @@ from django.utils.translation import string_concat
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.parlamentares.models import SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
@@ -671,14 +671,23 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
                                       label='Ano da Matéria',
                                       choices=RANGE_ANOS)
 
+    tramitacao__unidade_tramitacao_destino = django_filters.ModelChoiceFilter(
+        queryset=UnidadeTramitacao.objects.all(),
+        label=_('Unidade Atual'))
+
+    tramitacao__status = django_filters.ModelChoiceFilter(
+        queryset=StatusTramitacao.objects.all(),
+        label=_('Status Atual'))
+
     @property
     def qs(self):
         parent = super(RelatorioMateriasTramitacaoilterSet, self).qs
         return parent.distinct().order_by('-ano', 'tipo', '-numero')
 
+
     class Meta:
         model = MateriaLegislativa
-        fields = ['ano', 'tipo', 'tramitacao__unidade_tramitacao_local',
+        fields = ['ano', 'tipo', 'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status']
 
     def __init__(self, *args, **kwargs):
@@ -689,7 +698,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 
         row1 = to_row([('ano', 12)])
         row2 = to_row([('tipo', 12)])
-        row3 = to_row([('tramitacao__unidade_tramitacao_local', 12)])
+        row3 = to_row([('tramitacao__unidade_tramitacao_destino', 12)])
         row4 = to_row([('tramitacao__status', 12)])
 
         self.form.helper = FormHelper()
