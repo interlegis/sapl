@@ -147,7 +147,8 @@ class NormaJuridica(models.Model):
         return anexos
 
     def __str__(self):
-        return _('nº %(numero)s de %(data)s') % {
+        return _('%(tipo)s nº %(numero)s de %(data)s') % {
+            'tipo': self.tipo,
             'numero': self.numero,
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
