@@ -395,8 +395,23 @@ class RelatorioMateriasTramitacaoView(FilterView):
 
         context['title'] = _('Matérias em Tramitação')
 
+        qr = self.request.GET.copy()
         qs = context['object_list']
         qs = qs.filter(em_tramitacao=True)
+
+        if 'tramitacao__unidade_tramitacao_destino' in qr and qr['tramitacao__unidade_tramitacao_destino'] != '' :
+            id_materias = []
+            for item in qs:
+                if str(item.tramitacao_set.order_by('-id').first().unidade_tramitacao_destino_id) == qr['tramitacao__unidade_tramitacao_destino']:
+                    id_materias.append(item.id)
+            qs = qs.filter(em_tramitacao=True, id__in=id_materias)
+        if 'tramitacao__status' in qr and qr['tramitacao__status'] != '' :
+            id_materias = []
+            for item in qs:
+                if str(item.tramitacao_set.order_by('-id').first().status_id) == qr['tramitacao__status']:
+                    id_materias.append(item.id)
+            qs = qs.filter(em_tramitacao=True, id__in=id_materias)
+
         context['object_list'] = qs
 
         qtdes = {}
@@ -407,7 +422,6 @@ class RelatorioMateriasTramitacaoView(FilterView):
                 qtdes[tipo] = qtde
         context['qtdes'] = qtdes
 
-        qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
