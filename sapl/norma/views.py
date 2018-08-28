@@ -13,7 +13,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
-
+import sapl
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -195,6 +195,16 @@ class NormaCrud(Crud):
         @property
         def cancel_url(self):
             return self.search_url
+
+        def get_initial(self):
+            try:
+                esfera = sapl.base.models.AppConfig.objects.last(
+                ).esfera_federacao
+                self.initial['esfera_federacao'] = esfera
+            except:
+                pass
+            self.initial['complemento'] = False
+            return self.initial
 
         layout_key = 'NormaJuridicaCreate'
 
