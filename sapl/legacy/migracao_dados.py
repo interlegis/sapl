@@ -1125,12 +1125,14 @@ def adjust_protocolo_antes_salvar(new, old):
              {'cod_protocolo': old.cod_protocolo})
 
 
-ARQUIVO_COMO_RESOLVER_REGISTRO_VOTACAO_AMBIGUO = \
-    'como_resolver_registro_votacao_ambiguo.yaml'
+def get_arquivo_resolve_registro_votacao():
+    return DIR_DADOS_MIGRACAO.child(
+        'ajustes_pre_migracao',
+        '{}_resolve_registro_votacao_ambiguo.yaml'.format(sigla_casa))
 
 
 def get_como_resolver_registro_votacao_ambiguo():
-    path = DIR_REPO.child(ARQUIVO_COMO_RESOLVER_REGISTRO_VOTACAO_AMBIGUO)
+    path = get_arquivo_resolve_registro_votacao()
     if path.exists():
         return yaml.load(path.read_file())
     else:
@@ -1159,7 +1161,7 @@ def adjust_registrovotacao_antes_salvar(new, old):
             raise Exception('''
                 Registro de Votação ambíguo: {}
                 Resolva criando o arquivo {}'''.format(
-                new.id, ARQUIVO_COMO_RESOLVER_REGISTRO_VOTACAO_AMBIGUO))
+                new.id, get_arquivo_resolve_registro_votacao()))
 
 
 def adjust_tipoafastamento(new, old):
