@@ -840,6 +840,7 @@ class ConfiguracoesAppForm(ModelForm):
         model = AppConfig
         fields = ['documentos_administrativos',
                   'sequencia_numeracao',
+                  'esfera_federacao',
                   # 'painel_aberto', # TODO: a ser implementado na versão 3.2
                   'texto_articulado_proposicao',
                   'texto_articulado_materia',

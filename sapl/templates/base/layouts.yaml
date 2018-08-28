@@ -14,6 +14,9 @@ AppConfig:
   {% trans 'Configurações da Aplicação' %}:
   - documentos_administrativos
 
+  {% trans 'Norma Jurídica' %}:
+  - esfera_federacao
+
   {% trans 'Proposições e Protocolo' %}:
   - sequencia_numeracao proposicao_incorporacao_obrigatoria receber_recibo_proposicao
 
