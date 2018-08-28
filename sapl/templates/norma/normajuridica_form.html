@@ -13,7 +13,6 @@
     var tipo = $('#id_tipo').val()
     var ano = $('#id_ano').val()
     var numero = $('#id_numero').val()
-    var up = 0;
     console.log(tipo, ano, numero)
     if (tipo_materia && numero_materia && ano_materia) {
         $.get("/norma/recuperar-norma",{tipo: tipo,
