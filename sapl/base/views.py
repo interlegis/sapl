@@ -399,13 +399,13 @@ class RelatorioMateriasTramitacaoView(FilterView):
         qs = context['object_list']
         qs = qs.filter(em_tramitacao=True)
 
-        if 'tramitacao__unidade_tramitacao_destino' in qr and qr['tramitacao__unidade_tramitacao_destino'] != '' :
+        if qr.get('tramitacao__unidade_tramitacao_destino'):
             id_materias = []
             for item in qs:
                 if str(item.tramitacao_set.order_by('-id').first().unidade_tramitacao_destino_id) == qr['tramitacao__unidade_tramitacao_destino']:
                     id_materias.append(item.id)
             qs = qs.filter(em_tramitacao=True, id__in=id_materias)
-        if 'tramitacao__status' in qr and qr['tramitacao__status'] != '' :
+        if qr.get('tramitacao__status'):
             id_materias = []
             for item in qs:
                 if str(item.tramitacao_set.order_by('-id').first().status_id) == qr['tramitacao__status']:
