@@ -41,6 +41,7 @@ fks_legado = '''
   relatoria                     cod_parlamentar        parlamentar
   relatoria                     cod_materia            materia_legislativa
   unidade_tramitacao            cod_orgao              orgao
+  unidade_tramitacao            cod_comissao           comissao
   norma_juridica                cod_materia            materia_legislativa
   sessao_plenaria               tip_sessao             tipo_sessao_plenaria
   mesa_sessao_plenaria          cod_cargo              cargo_mesa
@@ -211,7 +212,8 @@ def get_dependencias_a_ressucitar(slug):
         fk for fk in fks_faltando
         if fk['tabela'] == 'proposicao' and fk['campo'] == 'cod_materia']
 
-    print(get_apaga_materias_de_proposicoes(proposicoes_para_materia, slug))
+    preambulo = get_apaga_materias_de_proposicoes(
+        proposicoes_para_materia, slug)
 
     propagacoes = {(o, c) for t, o, c in PROPAGACOES_DE_EXCLUSAO}
 
@@ -230,7 +232,7 @@ def get_dependencias_a_ressucitar(slug):
             # o registro não existe
             lambda res: not res
         )]
-    return desexcluir, criar
+    return preambulo, desexcluir, criar
 
 
 SQLS_CRIACAO = [
@@ -300,7 +302,7 @@ def get_sql_criar(tabela_alvo, campo, valor, slug):
     return sql, links
 
 
-TEMPLATE_RESSUCITADOS = '''
+TEMPLATE_RESSUCITADOS = '''{}
 /* RESSUCITADOS
 
 
@@ -322,10 +324,10 @@ Ao tentar excluir um registro usado em outras partes do sistema, você verá uma
 
 
 def get_url(slug):
-    return 'sapl31.{}.leg.br'.format(slug.replace('-', '.'))
+    return 'sapl.{}.leg.br'.format(slug.replace('-', '.'))
 
 
-def get_sqls_desexcluir_criar(desexcluir, criar, slug):
+def get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug):
     sqls_links = [get_sql(*(args + (slug,)))
                   for itens, get_sql in ((desexcluir, get_sql_desexcluir),
                                          (criar, get_sql_criar))
@@ -336,12 +338,12 @@ def get_sqls_desexcluir_criar(desexcluir, criar, slug):
         sqls, links = zip(*sqls_links)
         links = [l for ll in links for l in ll]  # flatten
         sqls, links = ['\n'.join(sorted(s)) for s in [sqls, links]]
-        return TEMPLATE_RESSUCITADOS.format(links, sqls)
+        return TEMPLATE_RESSUCITADOS.format(preambulo, links, sqls)
 
 
 def get_ressucitar(slug):
-    desexcluir, criar = get_dependencias_a_ressucitar(slug)
-    return get_sqls_desexcluir_criar(desexcluir, criar, slug)
+    preambulo, desexcluir, criar = get_dependencias_a_ressucitar(slug)
+    return get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug)
 
 
 def adiciona_ressucitar(slug):
