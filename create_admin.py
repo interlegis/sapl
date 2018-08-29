@@ -14,6 +14,7 @@ def get_enviroment_admin_password(username):
             "[SUPERUSER] Environment variable $ADMIN_PASSWORD"
             " for user %s was not set. Leaving..." % username)
         sys.exit('MISSING_ADMIN_PASSWORD')
+    return password
 
 
 def create_user_interlegis():
