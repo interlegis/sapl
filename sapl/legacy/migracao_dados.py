@@ -216,6 +216,13 @@ def get_estrutura_legado(model):
     return model_legado, tabela_legado, campos_pk_legado
 
 
+def com_aspas_se_necessario(valor):
+    if isinstance(valor, int):
+        return valor
+    else:
+        return '"{}"'.format(valor)
+
+
 class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
 
@@ -233,7 +240,9 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
         pk = {c: getattr(self.old, c) for c in campos_pk}
         sql = 'select * from {} where {};'.format(
             tabela,
-            ' and '.join(['{} = {}'.format(k, v) for k, v in pk.items()]))
+            ' and '.join([
+                '{} = {}'.format(k, com_aspas_se_necessario(v))
+                for k, v in pk.items()]))
         return OrderedDict((('campo', campo),
                             ('valor', self.valor),
                             ('tabela', tabela),
@@ -531,6 +540,9 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('parlamentar', 'composicao_mesa', 'cod_parlamentar'),
     ('parlamentar', 'composicao_comissao', 'cod_parlamentar'),
 
+    # coligacao
+    ('coligacao', 'composicao_coligacao', 'cod_coligacao'),
+
     # comissao
     ('comissao', 'composicao_comissao', 'cod_comissao'),
     ('periodo_comp_comissao', 'composicao_comissao', 'cod_periodo_comp'),
@@ -539,6 +551,9 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('sessao_plenaria', 'ordem_dia', 'cod_sessao_plen'),
     ('sessao_plenaria', 'expediente_materia', 'cod_sessao_plen'),
     ('sessao_plenaria', 'expediente_sessao_plenaria', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'sessao_plenaria_presenca', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'ordem_dia_presenca', 'cod_sessao_plen'),
+
     # as consultas no código do sapl 2.5
     # votacao_ordem_dia_obter_zsql e votacao_expediente_materia_obter_zsql
     # indicam que os registros de votação de matérias excluídas não são
@@ -860,7 +875,7 @@ def migrar_dados(apagar_do_legado=False):
         ocorrencias.default_factory = None
         arq_ocorrencias = Path(REPO.working_dir, 'ocorrencias.yaml')
         with open(arq_ocorrencias, 'w') as arq:
-            pyaml.dump(ocorrencias, arq, vspacing=1)
+            pyaml.dump(ocorrencias, arq, vspacing=1, width=200)
         REPO.git.add([arq_ocorrencias.name])
         info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
         if not ocorrencias:
