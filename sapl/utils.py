@@ -437,6 +437,32 @@ class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
         return super().filter(qs, _value)
 
 
+class NormaPesquisaOrderingFilter(django_filters.OrderingFilter):
+
+    choices = (
+        ('', 'Selecione'),
+        ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
+        ('dataD', 'Data, Tipo, Ano, Numero - Ordem Decrescente'),
+        ('tipoC', 'Tipo, Ano, Numero, Data - Ordem Crescente'),
+        ('tipoD', 'Tipo, Ano, Numero, Data - Ordem Decrescente')
+    )
+    order_by_mapping = {
+        '': [],
+        'dataC': ['data', 'tipo', 'ano', 'numero'],
+        'dataD': ['-data', '-tipo', '-ano', '-numero'],
+        'tipoC': ['tipo', 'ano', 'numero', 'data'],
+        'tipoD': ['-tipo', '-ano', '-numero', '-data'],
+    }
+
+    def __init__(self, *args, **kwargs):
+        kwargs['choices'] = self.choices
+        super(NormaPesquisaOrderingFilter, self).__init__(*args, **kwargs)
+
+    def filter(self, qs, value):
+        _value = self.order_by_mapping[value[0]] if value else value
+        return super().filter(qs, _value)
+
+
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
 
     choices = (('DEC', 'Ordem Decrescente'),

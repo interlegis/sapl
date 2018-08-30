@@ -12,7 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import RANGE_ANOS, RangeWidgetOverride
+from sapl.utils import NormaPesquisaOrderingFilter, RANGE_ANOS, RangeWidgetOverride
 
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica)
@@ -55,6 +55,8 @@ class NormaFilterSet(django_filters.FilterSet):
     assuntos = django_filters.ModelChoiceFilter(
         queryset=AssuntoNorma.objects.all())
 
+    o = NormaPesquisaOrderingFilter()
+
     class Meta:
         model = NormaJuridica
         fields = ['tipo', 'numero', 'ano', 'data',
@@ -65,7 +67,7 @@ class NormaFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('tipo', 4), ('numero', 4), ('ano', 4)])
         row2 = to_row([('data', 6), ('data_publicacao', 6)])
-        row3 = to_row([('ementa', 8), ('assuntos', 4)])
+        row3 = to_row([('ementa', 6), ('assuntos', 6), ('o',6)])
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
