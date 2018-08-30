@@ -86,6 +86,12 @@ class NormaPesquisaView(FilterView):
 
         context['title'] = _('Pesquisar Norma Jurídica')
 
+        self.filterset.form.fields['o'].label = _('Ordenação')
+        
+        qs = self.object_list
+        if 'o' in self.request.GET and not self.request.GET['o']:
+            qs = qs.order_by('-ano', 'tipo', '-numero')
+
         qr = self.request.GET.copy()
 
         if 'page' in qr:
