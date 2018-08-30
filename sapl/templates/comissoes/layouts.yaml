@@ -1,10 +1,10 @@
  {% load i18n %}
 CargoComissao:
-  {% trans 'Período de composição de Comissão' %}:
+  {% trans 'Cargo de Comissão' %}:
   - nome:10  unico
 
 Periodo:
-  {% trans 'Cargo de Comissão' %}:
+  {% trans 'Período de composição de Comissão' %}:
   - data_inicio  data_fim
 
 TipoComissao:
@@ -46,9 +46,9 @@ ParticipacaoEdit:
 
 Reuniao:
   {% trans 'Reunião' %}:
-  - periodo numero 
+  - periodo numero
   - nome tema local_reuniao
-  - data hora_inicio hora_fim 
+  - data hora_inicio hora_fim
   - url_video url_audio
   - observacao
   - upload_pauta upload_ata upload_anexo
@@ -58,14 +58,12 @@ DocumentoAcessorio:
   {% trans 'Documento Acessório' %}:
   - nome data
   - autor arquivo
-  - indexacao 
+  - indexacao
   - ementa
 
 DocumentoAcessorioEdit:
   {% trans 'Documento Acessório' %}:
   - nome data
   - autor arquivo
-  - indexacao 
+  - indexacao
   - ementa
-
-
