@@ -57,7 +57,7 @@
                    </br>
                 {% endif %}
                 {% if m.numero_protocolo %}
-                    <strong>Protocolo: </strong>{{m.numero_protocolo}}/{{m.ano}} &nbsp;&nbsp; <strong>Data Entrada:</strong> {{m.data_entrada_protocolo}} </br>
+                    <strong>Protocolo: </strong>{{m.numero_protocolo}}/{{m.ano}} &nbsp;&nbsp; <strong>Data Entrada:</strong> {{m.data_entrada_protocolo|default_if_none:"" }} </br>
 
                 {% endif %}
                 {% if m.autoria_set.all %}

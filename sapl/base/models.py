@@ -3,9 +3,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
+
 import reversion
 
 from sapl.translation import ugettext_lazy as _
+
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
 
@@ -16,6 +18,11 @@ TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensiva')),
 SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano')),
                        ('L', _('Sequencial por legislatura')),
                        ('U', _('Sequencial único')))
+
+ESFERA_FEDERACAO_CHOICES = (('M', _('Municipal')),
+                            ('E', _('Estadual')),
+                            ('F', _('Federal')),
+                            )
 
 
 @reversion.register()
@@ -99,6 +106,13 @@ class AppConfig(models.Model):
         max_length=1,
         verbose_name=_('Sequência de numeração'),
         choices=SEQUENCIA_NUMERACAO, default='A')
+
+    esfera_federacao = models.CharField(
+        max_length=1,
+        blank=True,
+        default="",
+        verbose_name=_('Esfera Federação'),
+        choices=ESFERA_FEDERACAO_CHOICES)
 
     # TODO: a ser implementado na versão 3.2
     # painel_aberto = models.BooleanField(
