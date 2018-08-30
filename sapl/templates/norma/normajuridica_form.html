@@ -13,24 +13,19 @@
     var tipo = $('#id_tipo').val()
     var ano = $('#id_ano').val()
     var numero = $('#id_numero').val()
-    console.log(tipo, ano, numero)
+    var ementa = $('#id_ementa').val()
     if (tipo_materia && numero_materia && ano_materia) {
-        $.get("/norma/recuperar-norma",{tipo: tipo,
-                                    ano: ano ,
-                                    numero : numero},
-                                  function(data_norma, status) {
-                                    if (data_norma.id === 0){
-                                          $.get("/sessao/recuperar-materia",{tipo_materia: tipo_materia,
-                                                                      numero_materia: numero_materia,
-                                                                      ano_materia: ano_materia},
-                                                                    function(data, status) {
-                                                                      $("#id_ementa").val(data.ementa);
-                                                                      $("#id_indexacao").val(data.indexacao);
-                                                                    });
-                                        }
-                                  });
-
+        if (ementa === undefined || ementa === "") {
+          $.get("/sessao/recuperar-materia",{tipo_materia: tipo_materia,
+              numero_materia: numero_materia,
+              ano_materia: ano_materia},
+              function(data, status) {
+                  $("#id_ementa").val(data.ementa);
+                  $("#id_indexacao").val(data.indexacao);
+              });
         }
+
+     }
 }
   var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"]
   for (i = 0; i < fields.length; i++) {
