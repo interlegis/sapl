@@ -37,10 +37,6 @@ class ExpressaoTextualManage(object):
 
         msg = self._catalog(swap_value)
 
-        """count = 0
-        for key, expressao in indice.items():
-            count += len(expressao['proxy'])
-        print(count)"""
         return msg['custom'] if msg and msg['custom'] else swap_value
 
     def _catalog(self, item):

@@ -149,20 +149,6 @@ class AppConfig(models.Model):
         verbose_name=_('Protocolar proposição somente com recibo?'),
         choices=YES_NO_CHOICES, default=True)
 
-    """normajuridica_verbose_name = models.CharField(
-        max_length=100,
-        blank=False,
-        null=False,
-        default=_('Norma Jurídica'),
-        verbose_name=_('Customizar a expressão Norma Jurídica'))
-
-    verbose_name_plural = models.CharField(
-        max_length=100,
-        blank=False,
-        null=False,
-        default=_('Norma Jurídica'),
-        verbose_name=_('Customizar a expressão Norma Jurídica'))"""
-
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')
