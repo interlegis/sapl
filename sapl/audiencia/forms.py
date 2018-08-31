@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import timezone

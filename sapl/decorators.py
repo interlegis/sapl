@@ -1,7 +1,7 @@
 from functools import wraps
 
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 
 
 def vigencia_atual(decorated_method):

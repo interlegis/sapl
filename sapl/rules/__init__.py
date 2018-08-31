@@ -1,4 +1,4 @@
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 
 default_app_config = 'sapl.rules.apps.AppConfig'
 

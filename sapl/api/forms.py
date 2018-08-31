@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from django_filters.filters import DateFilter, MethodFilter, ModelChoiceFilter
 from rest_framework import serializers
 from rest_framework.compat import django_filters

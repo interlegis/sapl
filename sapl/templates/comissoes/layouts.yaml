@@ -1,4 +1,4 @@
- {% load i18n %}
+ {% load i18n_sapl %}
 CargoComissao:
   {% trans 'Cargo de Comissão' %}:
   - nome:10  unico

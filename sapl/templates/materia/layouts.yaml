@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n_sapl %}
 Origem:
   {% trans 'Origem' %}:
   - nome:8  sigla

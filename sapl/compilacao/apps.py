@@ -4,7 +4,7 @@ from django import apps
 from django.conf import settings
 from django.db import connection, models
 from django.db.utils import DEFAULT_DB_ALIAS, IntegrityError
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
 
 from sapl.settings import BASE_DIR

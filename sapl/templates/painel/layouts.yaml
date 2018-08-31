@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n_sapl %}
 Cronometro:
   {% trans 'Cronometro' %}:
   - status:3  data_cronometro:6  tipo

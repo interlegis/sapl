@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n_sapl %}
 CargoMesa:
   {% trans 'Cargo na Mesa'%}:
   - descricao:10  unico

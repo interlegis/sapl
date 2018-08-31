@@ -1,5 +1,4 @@
 
-import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout
@@ -10,12 +9,13 @@ from django.db import models
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
+from sapl.translation import ugettext_lazy as _
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
@@ -23,8 +23,11 @@ from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
-TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno'), ('', '---------')]
-TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno')]
+
+TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'),
+                   ('2', 'Interno'), ('', '---------')]
+TIPOS_PROTOCOLO_CREATE = [
+    ('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno')]
 
 NATUREZA_PROCESSO = [('', '---------'),
                      ('0', 'Administrativo'),
@@ -142,7 +145,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
                                       choices=ANO_CHOICES)
 
     tramitacao = django_filters.ChoiceFilter(required=False,
-                                             label='Em Tramitação?',
+                                             label=_('Em Tramitação?'),
                                              choices=EM_TRAMITACAO)
 
     assunto = django_filters.CharFilter(lookup_expr='icontains')
@@ -197,16 +200,15 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
             Fieldset(_('Pesquisar Documento'),
                      row1, row2,
                      row3, row4, row5,
-                     form_actions(label='Pesquisar'))
+                     form_actions(label=_('Pesquisar')))
         )
 
 
 class AnularProcoloAdmForm(ModelForm):
 
     numero = forms.CharField(required=True,
-                             label=Protocolo._meta.
-                             get_field('numero').verbose_name
-                             )
+                             label=Protocolo._meta.get_field(
+                                 'numero').verbose_name)
     ano = forms.ChoiceField(required=True,
                             label=Protocolo._meta.
                             get_field('ano').verbose_name,
@@ -312,7 +314,8 @@ class ProtocoloDocumentForm(ModelForm):
     observacao = forms.CharField(required=False,
                                  widget=forms.Textarea, label='Observação')
 
-    numero = forms.IntegerField(required=False, label='Número de Protocolo (opcional)')
+    numero = forms.IntegerField(
+        required=False, label='Número de Protocolo (opcional)')
 
     class Meta:
         model = Protocolo
@@ -399,7 +402,8 @@ class ProtocoloMateriaForm(ModelForm):
     assunto_ementa = forms.CharField(required=True,
                                      widget=forms.Textarea, label='Ementa')
 
-    numero = forms.IntegerField(required=False, label='Número de Protocolo (opcional)')
+    numero = forms.IntegerField(
+        required=False, label='Número de Protocolo (opcional)')
 
     class Meta:
         model = Protocolo
@@ -445,7 +449,8 @@ class ProtocoloMateriaForm(ModelForm):
                         raise ValidationError(_('Matéria Legislativa informada já possui o protocolo {}/{} vinculado.'
                                                 .format(self.materia.numero_protocolo, self.materia.ano)))
                 except ObjectDoesNotExist:
-                    raise ValidationError(_('Matéria Legislativa informada não existente.'))
+                    raise ValidationError(
+                        _('Matéria Legislativa informada não existente.'))
 
         return data
 
@@ -478,9 +483,9 @@ class ProtocoloMateriaForm(ModelForm):
                      ),
             Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece'
                        ' a partir do número a ser informado)'),
-                row5,
-                HTML("&nbsp;"),
-                form_actions(label=_('Protocolar Matéria')))
+                     row5,
+                     HTML("&nbsp;"),
+                     form_actions(label=_('Protocolar Matéria')))
         )
 
         super(ProtocoloMateriaForm, self).__init__(
@@ -674,8 +679,8 @@ class DocumentoAdministrativoForm(ModelForm):
         # não permite atualizar para numero/ano/tipo existente
         if self.instance.pk:
             mudanca_doc = numero_documento != self.instance.numero \
-                            or ano_documento != self.instance.ano \
-                            or tipo_documento != self.instance.tipo.pk
+                or ano_documento != self.instance.ano \
+                or tipo_documento != self.instance.tipo.pk
 
         if not self.instance.pk or mudanca_doc:
             doc_exists = DocumentoAdministrativo.objects.filter(numero=numero_documento,
@@ -705,12 +710,12 @@ class DocumentoAdministrativoForm(ModelForm):
 
             if str(protocolo_antigo) != numero_protocolo:
                 exist_materia = MateriaLegislativa.objects.filter(
-                                                    numero_protocolo=numero_protocolo,
-                                                    ano=ano_protocolo).exists()
+                    numero_protocolo=numero_protocolo,
+                    ano=ano_protocolo).exists()
 
                 exist_doc = DocumentoAdministrativo.objects.filter(
-                                                        protocolo__numero=numero_protocolo,
-                                                        protocolo__ano=ano_protocolo).exists()
+                    protocolo__numero=numero_protocolo,
+                    protocolo__ano=ano_protocolo).exists()
                 if exist_materia or exist_doc:
                     raise ValidationError(_('Protocolo %s/%s já possui'
                                             ' documento vinculado'
@@ -786,7 +791,8 @@ class DesvincularDocumentoForm(ModelForm):
         tipo = cleaned_data['tipo']
 
         try:
-            documento = DocumentoAdministrativo.objects.get(numero=numero, ano=ano, tipo=tipo)
+            documento = DocumentoAdministrativo.objects.get(
+                numero=numero, ano=ano, tipo=tipo)
             if not documento.protocolo:
                 raise forms.ValidationError(
                     _("%s %s/%s não se encontra vinculado a nenhum protocolo" % (tipo, numero, ano)))
@@ -848,7 +854,8 @@ class DesvincularMateriaForm(forms.Form):
         tipo = cleaned_data['tipo']
 
         try:
-            materia = MateriaLegislativa.objects.get(numero=numero, ano=ano, tipo=tipo)
+            materia = MateriaLegislativa.objects.get(
+                numero=numero, ano=ano, tipo=tipo)
             if not materia.numero_protocolo:
                 raise forms.ValidationError(
                     _("%s %s/%s não se encontra vinculada a nenhum protocolo" % (tipo, numero, ano)))

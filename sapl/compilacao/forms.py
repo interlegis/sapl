@@ -13,7 +13,7 @@ from django.forms import widgets
 from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 
 from sapl import utils
 from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,

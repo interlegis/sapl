@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n_sapl %}
 - title: {% trans 'Início' %}
   url: parlamentar_detail
 - title: {% trans 'Mandatos' %}

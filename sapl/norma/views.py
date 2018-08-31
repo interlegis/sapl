@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView

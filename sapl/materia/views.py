@@ -15,7 +15,7 @@ from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import RequestContext, loader
 from django.utils import formats, timezone
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView, CreateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView

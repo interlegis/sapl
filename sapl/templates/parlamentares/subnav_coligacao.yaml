@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n_sapl %}
 - title: {% trans 'Início' %}
   url: coligacao_detail
 - title: {% trans 'Composição da Coligação' %}

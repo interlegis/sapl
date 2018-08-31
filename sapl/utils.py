@@ -1,14 +1,12 @@
+from functools import wraps
 import hashlib
 import logging
+from operator import itemgetter
 import os
 import re
-import unicodedata
-from functools import wraps
-from operator import itemgetter
 from unicodedata import normalize as unicodedata_normalize
+import unicodedata
 
-import django_filters
-import magic
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -20,16 +18,19 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import six, timezone
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
+import django_filters
 from django_filters.filterset import STRICTNESS
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
+import magic
 from reversion.admin import VersionAdmin
 from reversion_compare.admin import CompareVersionAdmin
 from unipath.path import Path
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.settings import BASE_DIR
+
 
 sapl_logger = logging.getLogger(BASE_DIR.name)
 
@@ -765,5 +766,6 @@ def RemoveTag(texto):
 
     return textoSaida
 
+
 def remover_acentos(string):
-     return unicodedata.normalize('NFKD', string).encode('ASCII', 'ignore').decode()
+    return unicodedata.normalize('NFKD', string).encode('ASCII', 'ignore').decode()

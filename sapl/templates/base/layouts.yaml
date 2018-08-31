@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n_sapl %}
 CasaLegislativa:
   {% trans 'Casa Legislativa' %}:
   - codigo:2 nome sigla
@@ -9,6 +9,10 @@ CasaLegislativa:
   - endereco_web
   - email
   - informacao_geral
+
+ExpressaoTextual:
+  {% trans 'Expressão Textual' %}:
+  - custom
 
 AppConfig:
   {% trans 'Configurações da Aplicação' %}:

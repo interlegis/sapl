@@ -11,7 +11,7 @@ from django.template import defaultfilters
 from django.utils import timezone
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 import reversion
 
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,

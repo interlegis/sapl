@@ -1,23 +1,23 @@
 from builtins import LookupError
+import sys
 
-import django
-from django.apps import apps
+from django import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import string_concat
-from django.utils.translation import ugettext_lazy as _
 import reversion
 
 from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
                         SAPL_GROUP_PAINEL, SAPL_GROUP_PROTOCOLO,
                         SAPL_GROUP_SESSAO)
+from sapl.translation import ugettext_lazy as _
 
 
-class AppConfig(django.apps.AppConfig):
+class AppConfig(apps.AppConfig):
     name = 'sapl.rules'
     label = 'rules'
     verbose_name = _('Regras de Acesso')
@@ -32,7 +32,7 @@ def create_proxy_permissions(
     # print(app_config)
 
     try:
-        Permission = apps.get_model('auth', 'Permission')
+        Permission = apps.apps.get_model('auth', 'Permission')
     except LookupError:
         return
 

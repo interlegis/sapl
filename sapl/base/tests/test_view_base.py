@@ -1,6 +1,6 @@
 import pytest
 from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext_lazy as _
+from sapl.translation import ugettext_lazy as _
 
 
 @pytest.mark.django_db(transaction=False)

@@ -13,7 +13,6 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
 from django.views.generic import (CreateView, DeleteView, FormView, ListView,
                                   UpdateView)
@@ -23,12 +22,14 @@ from haystack.views import SearchView
 
 from sapl import settings
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
-from sapl.base.models import Autor, TipoAutor
-from sapl.crud.base import CrudAux, make_pagination
+from sapl.base.models import Autor, TipoAutor, ExpressaoTextual
+from sapl.crud.base import CrudAux, make_pagination, Crud, ListWithSearchForm
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa)
+from sapl.rules.apps import AppConfig as RulesAppConfig
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
+from sapl.translation import ugettext_lazy as _, sapl_expressions
 from sapl.utils import (parlamentares_ativos, sapl_logger,
                         show_results_filter_set)
 
@@ -69,6 +70,35 @@ class ConfirmarEmailView(TemplateView):
         user.save()
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)
+
+
+class ExpressaoTextualCrud(Crud):
+    model = ExpressaoTextual
+    CreateView = None
+    DeleteView = None
+
+    class BaseMixin(Crud.BaseMixin):
+        list_field_names = ['value', 'custom']
+        create_url = ''
+        delete_url = ''
+        cancel_url = Crud.BaseMixin.list_url
+
+    class UpdateView(Crud.UpdateView):
+
+        def post(self, request, *args, **kwargs):
+            response = Crud.UpdateView.post(self, request, *args, **kwargs)
+            sapl_expressions.rebuild_expressao(self.object)
+            return response
+
+    class DetailView(Crud.DetailView):
+        def get(self, request, *args, **kwargs):
+            return HttpResponseRedirect(
+                reverse('sapl.base:expressaotextual_update', kwargs=kwargs))
+
+    class ListView(Crud.ListView):
+        paginate_by = 30
+        form_search_class = ListWithSearchForm
+        lookup_search = 'value__icontains'
 
 
 class TipoAutorCrud(CrudAux):

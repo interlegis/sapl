@@ -8,7 +8,8 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_done)
 from django.views.generic.base import RedirectView, TemplateView
 
-from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
+from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud,\
+    ExpressaoTextualCrud
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
 from .apps import AppConfig
@@ -27,9 +28,12 @@ app_name = AppConfig.name
 
 admin_user = [
     url(r'^sistema/usuario/$', ListarUsuarioView.as_view(), name='user_list'),
-    url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
+    url(r'^sistema/usuario/create$',
+        CreateUsuarioView.as_view(), name='user_create'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/edit$',
+        EditUsuarioView.as_view(), name='user_edit'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/delete$',
+        DeleteUsuarioView.as_view(), name='user_delete')
 ]
 
 alterar_senha = [
@@ -70,6 +74,8 @@ recuperar_senha = [
 
 
 urlpatterns = [
+    url(r'^sistema/expressao-textual/', include(ExpressaoTextualCrud.get_urls())),
+
     url(r'^sistema/autor/tipo/', include(TipoAutorCrud.get_urls())),
     url(r'^sistema/autor/', include(AutorCrud.get_urls())),
 
