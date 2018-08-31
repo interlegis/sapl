@@ -100,8 +100,8 @@ class SessaoPlenariaForm(ModelForm):
 
 
         # Condições da verificação
-        abertura_entre_leg = leg.data_inicio < abertura < leg.data_fim
-        abertura_entre_sl = sl.data_inicio < abertura < sl.data_fim
+        abertura_entre_leg = leg.data_inicio <= abertura <= leg.data_fim
+        abertura_entre_sl = sl.data_inicio <= abertura <= sl.data_fim
         if encerramento is not None:
             encerramento_entre_leg = leg.data_inicio < encerramento < leg.data_fim
             encerramento_entre_sl = sl.data_inicio < encerramento < sl.data_fim

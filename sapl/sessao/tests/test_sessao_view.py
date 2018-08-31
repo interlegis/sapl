@@ -18,7 +18,7 @@ def test_incluir_sessao_plenaria_submit(admin_client):
                                   'numero': '1',
                                   'tipo': str(tipo.pk),
                                   'sessao_legislativa': str(sessao.pk),
-                                  'data_inicio': '10/11/2017',
+                                  'data_inicio': str(sessao.data_inicio),
                                   'hora_inicio': '10:10'
                                   }, follow=True)
 
