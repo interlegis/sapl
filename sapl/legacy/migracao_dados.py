@@ -750,19 +750,21 @@ def fill_vinculo_norma_juridica():
 
 
 def fill_dados_basicos():
-    # Ajusta sequencia numérica e cria base.AppConfig
-    letra = 'A'
-    try:
+    # Ajusta sequencia numérica de protocolo e cria base.AppConfig
+    if (TipoNumeracaoProtocolo._meta.db_table in TABELAS_LEGADO
+            and TipoNumeracaoProtocolo.objects.exists()):
+        # se este banco legado tem a a configuração de numeração de protocolo
         tipo = TipoNumeracaoProtocolo.objects.latest('dat_inicial_protocolo')
-        if 'POR ANO' in tipo.des_numeracao_protocolo:
-            letra = 'A'
-        elif 'POR LEGISLATURA' in tipo.des_numeracao_protocolo:
-            letra = 'L'
-        elif 'CONSECUTIVO' in tipo.des_numeracao_protocolo:
-            letra = 'U'
-    except Exception as e:
-        pass
-    appconf = AppConf(sequencia_numeracao=letra)
+        descricao = tipo.des_numeracao_protocolo
+        if 'POR ANO' in descricao:
+            sequencia_numeracao = 'A'
+        elif 'POR LEGISLATURA' in descricao:
+            sequencia_numeracao = 'L'
+        elif 'CONSECUTIVO' in descricao:
+            sequencia_numeracao = 'U'
+    else:
+        sequencia_numeracao = 'A'
+    appconf = AppConf(sequencia_numeracao=sequencia_numeracao)
     appconf.save()
 
 
