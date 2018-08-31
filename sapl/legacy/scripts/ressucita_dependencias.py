@@ -1,13 +1,13 @@
 from textwrap import dedent
 
-import yaml
-
 import texttable
+import yaml
+from unipath import Path
+
 from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO, exec_legado,
                                         get_arquivo_ajustes_pre_migracao)
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
-from unipath import Path
 
 
 def stripsplit(ll):
@@ -210,7 +210,7 @@ def get_dependencias_a_ressucitar(slug):
         Path(DIR_REPO.child('ocorrencias.yaml').read_file()))
     fks_faltando = ocorrencias.get('fk')
     if not fks_faltando:
-        return [], []
+        return [], [], []
 
     proposicoes_para_materia = [
         fk for fk in fks_faltando
