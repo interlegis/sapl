@@ -1,12 +1,13 @@
 from textwrap import dedent
 
-import texttable
 import yaml
-from unipath import Path
 
-from sapl.legacy.migracao_dados import (DIR_REPO, PROPAGACOES_DE_EXCLUSAO,
-                                        exec_legado,
+import texttable
+from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO, exec_legado,
                                         get_arquivo_ajustes_pre_migracao)
+from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
+                                            NOME_BANCO_LEGADO)
+from unipath import Path
 
 
 def stripsplit(ll):
@@ -49,6 +50,9 @@ fks_legado = '''
   materia_legislativa           tip_id_basica          tipo_materia_legislativa
   despacho_inicial              cod_comissao           comissao
   relatoria                     cod_comissao           comissao
+  autor                         cod_comissao           comissao
+  composicao_mesa               cod_cargo              cargo_mesa
+  comissao                      tip_comissao           tipo_comissao
 '''
 fks_legado = stripsplit(fks_legado)
 fks_legado = {(o, c): t for (o, c, t) in fks_legado}
@@ -346,8 +350,16 @@ def get_ressucitar(slug):
     return get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug)
 
 
-def adiciona_ressucitar(slug):
+def get_slug():
+    arq = DIR_DADOS_MIGRACAO.child('siglas_para_slugs.yaml')
+    with open(arq, 'r') as arq:
+        siglas_para_slugs = yaml.load(arq)
+    sigla = NOME_BANCO_LEGADO[-3:]
+    return siglas_para_slugs[sigla]
+
+
+def adiciona_ressucitar():
     arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
     conteudo = arq_ajustes_pre_migracao.read_file()
-    sqls = get_ressucitar(slug)
+    sqls = get_ressucitar(get_slug())
     arq_ajustes_pre_migracao.write_file('{}\n{}'.format(conteudo, sqls))
