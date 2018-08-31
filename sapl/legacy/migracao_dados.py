@@ -600,6 +600,18 @@ def propaga_exclusoes(propagacoes):
         exec_legado(sql)
 
 
+def corrige_unidades_tramitacao_destino_vazia_como_anterior():
+    """Se uma unidade de tramitação estiver vazia no legado a configura
+    como a anterior"""
+
+    for tabela_tramitacao in ['tramitacao', 'tramitacao_administrativo']:
+        exec_legado('''
+            update {}
+            set cod_unid_tram_dest = cod_unid_tram_local
+            where cod_unid_tram_dest is null;
+            '''.format(tabela_tramitacao))
+
+
 def uniformiza_banco():
     propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO)
     checa_registros_votacao_ambiguos_e_remove_nao_usados()
@@ -691,6 +703,7 @@ sessao_plenaria_presenca | dat_sessao = NULL           | dat_sessao = 0
     reverte_exclusao_de_autores_referenciados_no_legado()
 
     anula_tipos_origem_externa_invalidos()
+    corrige_unidades_tramitacao_destino_vazia_como_anterior()
 
 
 class Record:
