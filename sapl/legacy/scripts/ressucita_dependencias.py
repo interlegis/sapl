@@ -221,6 +221,13 @@ def get_dependencias_a_ressucitar(slug):
     return preambulo, desexcluir, criar
 
 
+# deve ser idempotente pois é usada na criação de autor
+# por isso o ON DUPLICATE KEY UPDATE
+SQL_INSERT_TIPO_AUTOR = '''
+    insert into tipo_autor (tip_autor, des_tipo_autor, ind_excluido)
+    values ({}, "DESCONHECIDO", 0) ON DUPLICATE KEY UPDATE ind_excluido = 0;
+     '''
+
 SQLS_CRIACAO = [
     ('tipo_proposicao', '''
         insert into tipo_materia_legislativa (
@@ -239,14 +246,18 @@ SQLS_CRIACAO = [
         tip_resultado_votacao, nom_resultado, ind_excluido)
         values ({}, "DESCONHECIDO", 0);
         '''),
-    ('tipo_autor', '''
-        insert into tipo_autor (tip_autor, des_tipo_autor, ind_excluido)
-        values ({}, "DESCONHECIDO", 0);
-     '''),
+    ('tipo_autor', SQL_INSERT_TIPO_AUTOR),
     ('unidade_tramitacao', '''
-        insert into unidade_tramitacao (cod_unid_tramitacao, cod_comissao, cod_orgao, cod_parlamentar, ind_excluido)
+        insert into unidade_tramitacao (
+        cod_unid_tramitacao, cod_comissao, cod_orgao, cod_parlamentar, ind_excluido)
         values ({}, NULL, NULL, NULL, 0);
      '''),
+    ('autor', SQL_INSERT_TIPO_AUTOR.format(0) + '''
+        insert into autor (
+        cod_autor, cod_partido, cod_comissao, cod_parlamentar, tip_autor,
+        nom_autor, des_cargo, col_username, ind_excluido)
+        values ({}, 0, 0, 0, 0, "DESCONHECIDO", "DESCONHECIDO", NULL, 0);
+     ''')
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
                 for k, sql, *extras in SQLS_CRIACAO}
