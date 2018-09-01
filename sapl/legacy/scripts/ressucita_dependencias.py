@@ -334,7 +334,8 @@ def get_slug():
 
 
 def adiciona_ressucitar():
-    arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
-    conteudo = arq_ajustes_pre_migracao.read_file()
     sqls = get_ressucitar(get_slug())
-    arq_ajustes_pre_migracao.write_file('{}\n{}'.format(conteudo, sqls))
+    if sqls.strip():
+        arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
+        conteudo = arq_ajustes_pre_migracao.read_file()
+        arq_ajustes_pre_migracao.write_file('{}\n{}'.format(conteudo, sqls))
