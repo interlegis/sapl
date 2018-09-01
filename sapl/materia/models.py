@@ -1,4 +1,5 @@
 
+import reversion
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -9,7 +10,6 @@ from django.template import defaultfilters
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-import reversion
 
 from sapl.base.models import SEQUENCIA_NUMERACAO, Autor
 from sapl.comissoes.models import Comissao
@@ -19,7 +19,6 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
-
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
@@ -107,8 +106,8 @@ class RegimeTramitacao(models.Model):
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
 
     class Meta:
-        verbose_name = _('Regime Tramitação')
-        verbose_name_plural = _('Regimes Tramitação')
+        verbose_name = _('Regime de Tramitação')
+        verbose_name_plural = _('Regimes de Tramitação')
 
     def __str__(self):
         return self.descricao
@@ -263,8 +262,8 @@ class MateriaLegislativa(models.Model):
         if self.ano and self.numero_protocolo:
             try:
                 protocolo = Protocolo.objects.get(
-                                ano=self.ano,
-                                numero=self.numero_protocolo)
+                    ano=self.ano,
+                    numero=self.numero_protocolo)
                 if protocolo.timestamp:
                     return protocolo.timestamp.date()
                 else:
