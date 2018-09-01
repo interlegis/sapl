@@ -34,29 +34,36 @@ for tabela_origem, campo, tabela_destino in [
 
 
 urls = '''
-autor                    /sistema/autor
-cargo_comissao           /sistema/comissao/cargo
-legislatura              /sistema/parlamentar/legislatura
-materia_legislativa      /materia
-norma_juridica           /norma
-parlamentar              /parlamentar
-sessao_legislativa       /sistema/mesa-diretora/sessao-legislativa
-sessao_plenaria          /sessao
-status_tramitacao        /sistema/materia/status-tramitacao
-tipo_autor               /sistema/autor/tipo
-tipo_expediente          /sistema/sessao-plenaria/tipo-expediente
-tipo_proposicao          /sistema/proposicao/tipo
-tipo_resultado_votacao   /sistema/sessao-plenaria/tipo-resultado-votacao
-unidade_tramitacao       /sistema/materia/unidade-tramitacao
-tipo_documento           /sistema/materia/tipo-documento
-orgao                    /sistema/materia/orgao
-tipo_sessao_plenaria     /sistema/sessao-plenaria/tipo
-cargo_mesa               /sistema/mesa-diretora/cargo-mesa
-documento_administrativo /docadm
-tipo_materia_legislativa /sistema/materia/tipo
-tipo_norma_juridica      /sistema/norma/tipo
-comissao                 /comissao
-registro_votacao         ?????????
+autor                         /sistema/autor
+cargo_comissao                /sistema/comissao/cargo
+legislatura                   /sistema/parlamentar/legislatura
+materia_legislativa           /materia
+norma_juridica                /norma
+parlamentar                   /parlamentar
+sessao_legislativa            /sistema/mesa-diretora/sessao-legislativa
+sessao_plenaria               /sessao
+status_tramitacao             /sistema/materia/status-tramitacao
+tipo_autor                    /sistema/autor/tipo
+tipo_expediente               /sistema/sessao-plenaria/tipo-expediente
+tipo_proposicao               /sistema/proposicao/tipo
+tipo_resultado_votacao        /sistema/sessao-plenaria/tipo-resultado-votacao
+unidade_tramitacao            /sistema/materia/unidade-tramitacao
+tipo_documento                /sistema/materia/tipo-documento
+orgao                         /sistema/materia/orgao
+tipo_sessao_plenaria          /sistema/sessao-plenaria/tipo
+cargo_mesa                    /sistema/mesa-diretora/cargo-mesa
+documento_administrativo      /docadm
+tipo_materia_legislativa      /sistema/materia/tipo
+tipo_norma_juridica           /sistema/norma/tipo
+comissao                      /comissao
+assunto_materia               /sistema/assunto-materia
+coligacao                     /sistema/coligacao
+nivel_instrucao               /sistema/parlamentar/nivel-instrucao
+partido                       /sistema/parlamentar/partido
+regime_tramitacao             /sistema/materia/regime-tramitacao
+tipo_comissao                 /sistema/comissao/tipo
+tipo_documento_administrativo /sistema/tipo-documento-adm
+registro_votacao              /admin/sessao/registrovotacao
 '''
 urls = dict(stripsplit(urls))
 
