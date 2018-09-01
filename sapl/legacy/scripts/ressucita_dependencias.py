@@ -272,6 +272,7 @@ def get_sql_desexcluir(tabela_alvo, campo, valor, slug):
 def get_sql_criar(tabela_alvo, campo, valor, slug):
     if tabela_alvo == 'sessao_legislativa':
         sql = criar_sessao_legislativa(campo, valor)
+        extras = []
     else:
         sql, extras = SQLS_CRIACAO[tabela_alvo]
         sql = sql.format(valor)
