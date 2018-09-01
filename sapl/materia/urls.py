@@ -125,7 +125,7 @@ urlpatterns_proposicao = [
 ]
 
 urlpatterns_sistema = [
-    url(r'^sistema/assunto-materia',
+    url(r'^sistema/assunto-materia/',
         include(AssuntoMateriaCrud.get_urls())),
     url(r'^sistema/proposicao/tipo/',
         include(TipoProposicaoCrud.get_urls())),
