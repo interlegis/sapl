@@ -5,12 +5,13 @@ from sapl.base.models import AppConfig, Autor, CasaLegislativa, TipoAutor
 from sapl.comissoes.models import \
     DocumentoAcessorio as DocumentoAcessorioComissoes
 from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
+from sapl.legacy.migracao_dados import appconfs, get_renames, legacy_app
 from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
                                  MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
-from sapl.norma.models import (NormaJuridica, NormaRelacionada,
-                               TipoVinculoNormaJuridica)
+from sapl.norma.models import (AnexoNormaJuridica, NormaJuridica,
+                               NormaRelacionada, TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import (Frente, Mandato, Parlamentar, Partido,
                                        TipoAfastamento, Votante)
 from sapl.protocoloadm.models import DocumentoAdministrativo
@@ -20,14 +21,12 @@ from sapl.sessao.models import (Bancada, Bloco, CargoBancada,
                                 SessaoPlenaria, TipoResultadoVotacao,
                                 VotoParlamentar)
 
-from .migracao_dados import appconfs, get_renames, legacy_app
-
 RENAMING_IGNORED_MODELS = [
-    Votante, Frente, Bancada, CargoBancada, Bloco,  # parlamentares
+    Votante, Frente, Bancada, Bloco, Votante,  # parlamentares
     Composicao, Reuniao,  DocumentoAcessorioComissoes,  # commissoes
     AppConfig, CasaLegislativa,  # base
-    ResumoOrdenacao,  # sessao
-    TipoVinculoNormaJuridica,  # norma
+    CargoBancada, ResumoOrdenacao,  # sessao
+    AnexoNormaJuridica, TipoVinculoNormaJuridica,  # norma
 
 ]
 
@@ -49,15 +48,16 @@ RENAMING_IGNORED_FIELDS = [
                       'upload_ata',
                       'upload_anexo',
                       'upload_pauta'}),
-    (ExpedienteMateria, {'votacao_aberta'}),
-    (OrdemDia, {'votacao_aberta'}),
+    (ExpedienteMateria, {'votacao_aberta', 'registro_aberto'}),
+    (OrdemDia, {'votacao_aberta', 'registro_aberto'}),
     (NormaJuridica, {'texto_integral', 'data_ultima_atualizacao', 'assuntos'}),
     (Parlamentar, {
         'uf_residencia', 'municipio_residencia', 'cropping', 'fotografia'}),
-    (Partido, {'logo_partido'}),
+    (Partido, {'logo_partido', 'observacao'}),
     (MateriaLegislativa, {
         'autores', 'anexadas', 'data_ultima_atualizacao', 'texto_original'}),
-    (DocumentoAdministrativo, {'protocolo', 'texto_integral'}),
+    (DocumentoAdministrativo, {
+        'protocolo', 'numero_externo', 'texto_integral'}),
     (Mandato, {'titular', 'data_fim_mandato', 'data_inicio_mandato'}),
     (TipoMateriaLegislativa, {'sequencia_numeracao'}),
     (TipoAutor, {'content_type'}),
@@ -71,6 +71,9 @@ RENAMING_IGNORED_FIELDS = [
     (AcompanhamentoMateria, {'confirmado', 'data_cadastro', 'usuario'}),
     (Autor, {'user', 'content_type', 'object_id', 'autor_related'}),
     (Comissao, {'ativa'}),
+    (Reuniao, {'url_audio', 'url_video', 'local_reuniao', 'upload_anexo',
+               'periodo', 'upload_pauta', 'tema', 'hora_fim', 'upload_ata',
+               'nome', 'hora_inicio'})
 ]
 
 

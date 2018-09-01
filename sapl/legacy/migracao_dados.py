@@ -34,8 +34,9 @@ from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
-from sapl.materia.models import (AcompanhamentoMateria, MateriaLegislativa,
-                                 Proposicao, StatusTramitacao, TipoDocumento,
+from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
+                                 MateriaLegislativa, Proposicao,
+                                 StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao)
 from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
@@ -157,7 +158,7 @@ class CampoVirtual(namedtuple('CampoVirtual', 'model related_model')):
 
 CAMPOS_VIRTUAIS_PROPOSICAO = {
     TipoMateriaLegislativa: CampoVirtual(Proposicao, MateriaLegislativa),
-    TipoDocumento: CampoVirtual(Proposicao, DocumentoAdministrativo)
+    TipoDocumento: CampoVirtual(Proposicao, DocumentoAcessorio)
 }
 for campo_virtual in CAMPOS_VIRTUAIS_PROPOSICAO.values():
     campos_novos_para_antigos[campo_virtual] = 'cod_mat_ou_doc'
@@ -215,6 +216,13 @@ def get_estrutura_legado(model):
     return model_legado, tabela_legado, campos_pk_legado
 
 
+def com_aspas_se_necessario(valor):
+    if isinstance(valor, int):
+        return valor
+    else:
+        return '"{}"'.format(valor)
+
+
 class ForeignKeyFaltando(ObjectDoesNotExist):
     'Uma FK aponta para um registro inexistente'
 
@@ -232,7 +240,9 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
         pk = {c: getattr(self.old, c) for c in campos_pk}
         sql = 'select * from {} where {};'.format(
             tabela,
-            ' and '.join(['{} = {}'.format(k, v) for k, v in pk.items()]))
+            ' and '.join([
+                '{} = {}'.format(k, com_aspas_se_necessario(v))
+                for k, v in pk.items()]))
         return OrderedDict((('campo', campo),
                             ('valor', self.valor),
                             ('tabela', tabela),
@@ -366,8 +376,8 @@ def reverte_exclusao_de_autores_referenciados_no_legado():
                 where ind_excluido <> 1)
             '''.format(parlamentar=tabela, cod_parlamentar=fk)
         if autores_referenciados:
-            sql += ' and cod_autor not in {}'.format(
-                tuple(autores_referenciados))
+            sql += ' and cod_autor not in ({})'.format(
+                ', '.join(map(str, autores_referenciados)))
         exec_legado(sql)
 
 
@@ -502,6 +512,9 @@ def checa_registros_votacao_ambiguos_e_remove_nao_usados():
 
     # interrompe migração se houver registros ambíguos
     ambiguos = ordem.intersection(expediente)
+    como_resolver = get_como_resolver_registro_votacao_ambiguo()
+    ambiguos = ambiguos - set(como_resolver)
+
     if ambiguos:
         warn('registro_votacao_ambiguos',
              'Existe(m) RegistroVotacao ambíguo(s): {cod_votacao}',
@@ -527,6 +540,9 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('parlamentar', 'composicao_mesa', 'cod_parlamentar'),
     ('parlamentar', 'composicao_comissao', 'cod_parlamentar'),
 
+    # coligacao
+    ('coligacao', 'composicao_coligacao', 'cod_coligacao'),
+
     # comissao
     ('comissao', 'composicao_comissao', 'cod_comissao'),
     ('periodo_comp_comissao', 'composicao_comissao', 'cod_periodo_comp'),
@@ -535,6 +551,9 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('sessao_plenaria', 'ordem_dia', 'cod_sessao_plen'),
     ('sessao_plenaria', 'expediente_materia', 'cod_sessao_plen'),
     ('sessao_plenaria', 'expediente_sessao_plenaria', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'sessao_plenaria_presenca', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'ordem_dia_presenca', 'cod_sessao_plen'),
+
     # as consultas no código do sapl 2.5
     # votacao_ordem_dia_obter_zsql e votacao_expediente_materia_obter_zsql
     # indicam que os registros de votação de matérias excluídas não são
@@ -551,6 +570,11 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('materia_legislativa', 'documento_acessorio', 'cod_materia'),
     ('materia_legislativa', 'numeracao', 'cod_materia'),
     ('materia_legislativa', 'expediente_materia', 'cod_materia'),
+    ('materia_legislativa', 'ordem_dia', 'cod_materia'),
+    ('materia_legislativa', 'acomp_materia', 'cod_materia'),
+    ('materia_legislativa', 'despacho_inicial', 'cod_materia'),
+    ('materia_legislativa', 'legislacao_citada', 'cod_materia'),
+    ('materia_legislativa', 'relatoria', 'cod_materia'),
 
     # norma
     ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referente'),
@@ -576,9 +600,19 @@ def propaga_exclusoes(propagacoes):
         exec_legado(sql)
 
 
-def uniformiza_banco():
-    exec_legado('SET SESSION sql_mode = "";')  # desliga checagens do mysql
+def corrige_unidades_tramitacao_destino_vazia_como_anterior():
+    """Se uma unidade de tramitação estiver vazia no legado a configura
+    como a anterior"""
 
+    for tabela_tramitacao in ['tramitacao', 'tramitacao_administrativo']:
+        exec_legado('''
+            update {}
+            set cod_unid_tram_dest = cod_unid_tram_local
+            where cod_unid_tram_dest is null;
+            '''.format(tabela_tramitacao))
+
+
+def uniformiza_banco():
     propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO)
     checa_registros_votacao_ambiguos_e_remove_nao_usados()
     propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO_REGISTROS_VOTACAO)
@@ -669,6 +703,7 @@ sessao_plenaria_presenca | dat_sessao = NULL           | dat_sessao = 0
     reverte_exclusao_de_autores_referenciados_no_legado()
 
     anula_tipos_origem_externa_invalidos()
+    corrige_unidades_tramitacao_destino_vazia_como_anterior()
 
 
 class Record:
@@ -728,19 +763,21 @@ def fill_vinculo_norma_juridica():
 
 
 def fill_dados_basicos():
-    # Ajusta sequencia numérica e cria base.AppConfig
-    letra = 'A'
-    try:
+    # Ajusta sequencia numérica de protocolo e cria base.AppConfig
+    if (TipoNumeracaoProtocolo._meta.db_table in TABELAS_LEGADO
+            and TipoNumeracaoProtocolo.objects.exists()):
+        # se este banco legado tem a a configuração de numeração de protocolo
         tipo = TipoNumeracaoProtocolo.objects.latest('dat_inicial_protocolo')
-        if 'POR ANO' in tipo.des_numeracao_protocolo:
-            letra = 'A'
-        elif 'POR LEGISLATURA' in tipo.des_numeracao_protocolo:
-            letra = 'L'
-        elif 'CONSECUTIVO' in tipo.des_numeracao_protocolo:
-            letra = 'U'
-    except Exception as e:
-        pass
-    appconf = AppConf(sequencia_numeracao=letra)
+        descricao = tipo.des_numeracao_protocolo
+        if 'POR ANO' in descricao:
+            sequencia_numeracao = 'A'
+        elif 'POR LEGISLATURA' in descricao:
+            sequencia_numeracao = 'L'
+        elif 'CONSECUTIVO' in descricao:
+            sequencia_numeracao = 'U'
+    else:
+        sequencia_numeracao = 'A'
+    appconf = AppConf(sequencia_numeracao=sequencia_numeracao)
     appconf.save()
 
 
@@ -804,6 +841,11 @@ def roda_comando_shell(cmd):
     assert res == 0, 'O comando falhou: {}'.format(cmd)
 
 
+def get_arquivo_ajustes_pre_migracao():
+    return DIR_DADOS_MIGRACAO.child(
+        'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+
+
 def migrar_dados(apagar_do_legado=False):
     try:
         ocorrencias.clear()
@@ -817,9 +859,12 @@ def migrar_dados(apagar_do_legado=False):
         normaliza_dump_mysql(arq_dump)
         roda_comando_shell('mysql -uroot < {}'.format(arq_dump))
 
+        # desliga checagens do mysql
+        # e possibilita inserir valor zero em campos de autoincremento
+        exec_legado('SET SESSION sql_mode = "NO_AUTO_VALUE_ON_ZERO";')
+
         # executa ajustes pré-migração, se existirem
-        arq_ajustes_pre_migracao = DIR_DADOS_MIGRACAO.child(
-            'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+        arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
         if arq_ajustes_pre_migracao.exists():
             exec_legado(arq_ajustes_pre_migracao.read_file())
 
@@ -845,9 +890,11 @@ def migrar_dados(apagar_do_legado=False):
         ocorrencias.default_factory = None
         arq_ocorrencias = Path(REPO.working_dir, 'ocorrencias.yaml')
         with open(arq_ocorrencias, 'w') as arq:
-            pyaml.dump(ocorrencias, arq, vspacing=1)
+            pyaml.dump(ocorrencias, arq, vspacing=1, width=200)
         REPO.git.add([arq_ocorrencias.name])
         info('Ocorrências salvas em\n  {}'.format(arq_ocorrencias))
+        if not ocorrencias:
+            info('NÃO HOUVE OCORRÊNCIAS !!!')
 
     # recria tipos de autor padrão que não foram criados pela migração
     cria_models_tipo_autor()
@@ -880,7 +927,7 @@ def get_models_a_migrar():
                         [TipoMateriaLegislativa, TipoDocumento])
     assert models.index(TipoProposicao) < models.index(Proposicao)
     move_para_depois_de(models, Proposicao,
-                        [MateriaLegislativa, DocumentoAdministrativo])
+                        [MateriaLegislativa, DocumentoAcessorio])
 
     return models
 
@@ -1014,9 +1061,16 @@ pois não existe protocolo no sistema com este número no ano {ano_original}.
                       'ano_original': ano_original,
                       'nota': nota})
             else:
+                # Se não achamos mesmo no ano anteriro
+                # colocamos no número externo
+                new.numero_externo = old.num_protocolo
+
                 nota = NOTA_DOCADM + '''
 Não existe no sistema nenhum protocolo com estes dados
-e portanto nenhum protocolo foi vinculado a este documento.'''
+e portanto nenhum protocolo foi vinculado a este documento.
+
+Colocamos então o número de protocolo no campo "número externo".
+'''
                 nota = nota.format(
                     num_protocolo=old.num_protocolo,
                     ano_original=ano_original)
@@ -1106,12 +1160,14 @@ def adjust_protocolo_antes_salvar(new, old):
              {'cod_protocolo': old.cod_protocolo})
 
 
-ARQUIVO_COMO_RESOLVER_REGISTRO_VOTACAO_AMBIGUO = \
-    'como_resolver_registro_votacao_ambiguo.yaml'
+def get_arquivo_resolve_registro_votacao():
+    return DIR_DADOS_MIGRACAO.child(
+        'ajustes_pre_migracao',
+        '{}_resolve_registro_votacao_ambiguo.yaml'.format(sigla_casa))
 
 
 def get_como_resolver_registro_votacao_ambiguo():
-    path = DIR_REPO.child(ARQUIVO_COMO_RESOLVER_REGISTRO_VOTACAO_AMBIGUO)
+    path = get_arquivo_resolve_registro_votacao()
     if path.exists():
         return yaml.load(path.read_file())
     else:
@@ -1140,7 +1196,7 @@ def adjust_registrovotacao_antes_salvar(new, old):
             raise Exception('''
                 Registro de Votação ambíguo: {}
                 Resolva criando o arquivo {}'''.format(
-                new.id, ARQUIVO_COMO_RESOLVER_REGISTRO_VOTACAO_AMBIGUO))
+                new.id, get_arquivo_resolve_registro_votacao()))
 
 
 def adjust_tipoafastamento(new, old):
@@ -1160,7 +1216,7 @@ def set_generic_fk(new, campo_virtual, old):
 
 def adjust_tipoproposicao(new, old):
     "Aponta para o tipo relacionado de matéria ou documento"
-    if old.tip_mat_ou_doc:
+    if old.tip_mat_ou_doc is not None:
         campo_virtual = CAMPOS_VIRTUAIS_TIPO_PROPOSICAO[old.ind_mat_ou_doc]
         set_generic_fk(new, campo_virtual, old)
 
@@ -1168,7 +1224,7 @@ def adjust_tipoproposicao(new, old):
 def adjust_proposicao_antes_salvar(new, old):
     if new.data_envio:
         new.ano = new.data_envio.year
-    if old.cod_mat_ou_doc:
+    if old.cod_mat_ou_doc is not None:
         tipo_mat_ou_doc = type(new.tipo.tipo_conteudo_related)
         campo_virtual = CAMPOS_VIRTUAIS_PROPOSICAO[tipo_mat_ou_doc]
         set_generic_fk(new, campo_virtual, old)
@@ -1279,11 +1335,15 @@ def adjust_tiporesultadovotacao(new, old):
         new.natureza = TipoResultadoVotacao.NATUREZA_CHOICES.aprovado
     elif 'rejeita' in new.nome.lower():
         new.natureza = TipoResultadoVotacao.NATUREZA_CHOICES.rejeitado
+    elif 'retirado' in new.nome.lower():
+        new.natureza = TipoResultadoVotacao.NATUREZA_CHOICES.rejeitado
     else:
-        warn('natureza_desconhecida_tipo_resultadovotacao',
-             'Não foi possível identificar a natureza do '
-             'tipo de resultado de votação [{pk}: "{nome}"]',
-             {'pk': new.pk, 'nome': new.nome})
+        if new.nome != 'DESCONHECIDO':
+            # ignoramos a natureza de item criado pela migração
+            warn('natureza_desconhecida_tipo_resultadovotacao',
+                 'Não foi possível identificar a natureza do '
+                 'tipo de resultado de votação [{pk}: "{nome}"]',
+                 {'pk': new.pk, 'nome': new.nome})
 
 
 def str_to_time(fonte):

@@ -27,6 +27,7 @@ from ZODB.POSException import POSKeyError
 from variaveis_comuns import DIR_DADOS_MIGRACAO, TAG_ZOPE
 
 EXTENSOES = {
+    # docs
     'application/msword': '.doc',
     'application/pdf': '.pdf',
     'application/vnd.oasis.opendocument.text': '.odt',
@@ -36,12 +37,25 @@ EXTENSOES = {
     'application/vnd.ms-powerpoint': '.ppt',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',  # noqa
     'application/vnd.oasis.opendocument.spreadsheet': '.ods',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',  # noqa
+    'application/vnd.oasis.opendocument.graphics': '.odg',
 
+    # incertos... associamos a extensão mais provável
+    'application/vnd.ms-office': '.doc',
+    'text/x-c++': '.cpp',
+
+    # outros
     'application/xml': '.xml',
     'text/xml': '.xml',
     'application/zip': '.zip',
     'application/x-rar': '.rar',
+    'application/x-dosexec': '.exe',
+    'message/rfc822': '.mht',
+    'text/richtext': '.rtx',
+    'application/gzip': '.gz',
+    'image/vnd.dwg': '*.dwg',
 
+    # media
     'image/jpeg': '.jpeg',
     'image/png': '.png',
     'image/gif': '.gif',
@@ -58,9 +72,8 @@ EXTENSOES = {
     'image/x-ms-bmp': '.bmp',
     'video/x-ms-asf': '.asf',
     'audio/mpeg': '.mp3',
-
-    # TODO rever...
-    'text/richtext': '.rtf',
+    'video/x-flv': '.flv',
+    'video/quicktime': '.mov',
 
     # sem extensao
     'application/octet-stream': '',  # binário
