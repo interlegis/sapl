@@ -257,7 +257,11 @@ SQLS_CRIACAO = [
         cod_autor, cod_partido, cod_comissao, cod_parlamentar, tip_autor,
         nom_autor, des_cargo, col_username, ind_excluido)
         values ({}, 0, 0, 0, 0, "DESCONHECIDO", "DESCONHECIDO", NULL, 0);
-     ''')
+     '''),
+    ('tipo_documento', '''
+         insert into tipo_documento (tip_documento, des_tipo_documento, ind_excluido)
+         values ({}, "DESCONHECIDO", 0);
+     '''),
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
                 for k, sql, *extras in SQLS_CRIACAO}
