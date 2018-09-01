@@ -4,8 +4,10 @@ import texttable
 import yaml
 from unipath import Path
 
-from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO, exec_legado,
-                                        get_arquivo_ajustes_pre_migracao)
+from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO,
+                                        campos_novos_para_antigos, exec_legado,
+                                        get_arquivo_ajustes_pre_migracao,
+                                        models_novos_para_antigos)
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
 
@@ -14,48 +16,21 @@ def stripsplit(ll):
     return [l.split() for l in ll.strip().splitlines()]
 
 
-fks_legado = '''
-  autor                         cod_parlamentar        parlamentar
-  autor                         tip_autor              tipo_autor
-  autoria                       cod_autor              autor
-  oradores                      cod_parlamentar        parlamentar
-  oradores_expediente           cod_parlamentar        parlamentar
-  ordem_dia_presenca            cod_parlamentar        parlamentar
-  protocolo                     cod_autor              autor
-  registro_votacao              tip_resultado_votacao  tipo_resultado_votacao
-  registro_votacao_parlamentar  cod_parlamentar        parlamentar
-  registro_votacao_parlamentar  cod_votacao            registro_votacao
-  sessao_legislativa            num_legislatura        legislatura
-  sessao_plenaria_presenca      cod_parlamentar        parlamentar
-  composicao_comissao           cod_cargo              cargo_comissao
-  sessao_plenaria               cod_sessao_leg         sessao_legislativa
-  proposicao                    cod_materia            materia_legislativa
-  proposicao                    cod_autor              autor
-  tramitacao                    cod_status             status_tramitacao
-  expediente_sessao_plenaria    cod_expediente         tipo_expediente
-  proposicao                    tip_proposicao         tipo_proposicao
-  tramitacao                    cod_unid_tram_dest     unidade_tramitacao
-  tramitacao                    cod_unid_tram_local    unidade_tramitacao
-  tramitacao_administrativo     cod_unid_tram_dest     unidade_tramitacao
-  tramitacao_administrativo     cod_unid_tram_local    unidade_tramitacao
-  documento_acessorio           tip_documento          tipo_documento
-  relatoria                     cod_parlamentar        parlamentar
-  relatoria                     cod_materia            materia_legislativa
-  unidade_tramitacao            cod_orgao              orgao
-  unidade_tramitacao            cod_comissao           comissao
-  norma_juridica                cod_materia            materia_legislativa
-  sessao_plenaria               tip_sessao             tipo_sessao_plenaria
-  mesa_sessao_plenaria          cod_cargo              cargo_mesa
-  norma_juridica                tip_norma              tipo_norma_juridica
-  materia_legislativa           tip_id_basica          tipo_materia_legislativa
-  despacho_inicial              cod_comissao           comissao
-  relatoria                     cod_comissao           comissao
-  autor                         cod_comissao           comissao
-  composicao_mesa               cod_cargo              cargo_mesa
-  comissao                      tip_comissao           tipo_comissao
-'''
-fks_legado = stripsplit(fks_legado)
-fks_legado = {(o, c): t for (o, c, t) in fks_legado}
+def _tab_legado(model):
+    return models_novos_para_antigos[model]._meta.db_table
+
+fks_legado = {
+    (_tab_legado(m), campos_novos_para_antigos[f]): _tab_legado(f.related_model)  # noqa
+    for m in models_novos_para_antigos
+    for f in m._meta.fields
+    if f in campos_novos_para_antigos and f.related_model}
+
+# acrescenta mapeamentos que não existem em campos_novos_para_antigos
+for tabela_origem, campo, tabela_destino in [
+        ['autor', 'cod_parlamentar', 'parlamentar'],
+        ['autor', 'cod_comissao', 'comissao'],
+        ['autor', 'cod_partido', 'partido']]:
+    fks_legado[(tabela_origem, campo)] = tabela_destino
 
 
 urls = '''
