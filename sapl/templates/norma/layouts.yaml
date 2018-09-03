@@ -27,6 +27,7 @@ NormaJuridica:
 AnexoNormaJuridica:
   {% trans 'Adicionar Anexos à Norma Jurídica' %}:
   - anexo_arquivo
+  - assunto_anexo
   - norma
 
 NormaJuridicaCreate:
