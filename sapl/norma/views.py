@@ -117,7 +117,7 @@ class AnexoNormaJuridicaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['id', 'anexo_arquivo']
+        list_field_names = ['id', 'anexo_arquivo', 'assunto_anexo']
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = AnexoNormaJuridicaForm
@@ -136,7 +136,7 @@ class AnexoNormaJuridicaCrud(MasterDetailCrud):
             initial = super(UpdateView, self).get_initial()
             initial['norma'] = self.object.norma
             initial['anexo_arquivo'] = self.object.anexo_arquivo
-            #initial['assunto_anexo'] = self.object.assunto_anexo
+            initial['assunto_anexo'] = self.object.assunto_anexo
             initial['ano'] = self.object.ano
             return initial
 
