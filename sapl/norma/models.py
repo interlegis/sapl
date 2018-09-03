@@ -273,6 +273,12 @@ class AnexoNormaJuridica(models.Model):
         related_name='norma',
         on_delete=models.PROTECT,
         verbose_name=_('Norma Juridica'))
+    assunto_anexo = models.TextField(
+        blank = True,
+        default = "",
+        verbose_name=_('Assunto do Anexo'),
+        max_length=250
+    )
     anexo_arquivo = models.FileField(
         blank=True,
         null=True,

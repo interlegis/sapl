@@ -184,7 +184,7 @@ class NormaJuridicaForm(ModelForm):
 class AnexoNormaJuridicaForm(ModelForm):
     class Meta:
         model = AnexoNormaJuridica
-        fields = ['norma', 'anexo_arquivo']
+        fields = ['norma', 'anexo_arquivo', 'assunto_anexo']
         widgets = {
             'norma': forms.HiddenInput(),
         }
@@ -205,6 +205,7 @@ class AnexoNormaJuridicaForm(ModelForm):
         anexo.ano = self.cleaned_data['norma'].ano
         anexo = super(AnexoNormaJuridicaForm, self).save(commit=True)
         anexo.norma = self.cleaned_data['norma']
+        anexo.assunto_anexo = self.cleaned_data['assunto_anexo']
         anexo.anexo_arquivo = self.cleaned_data['anexo_arquivo']
         anexo.save()
         return anexo

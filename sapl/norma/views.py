@@ -87,7 +87,7 @@ class NormaPesquisaView(FilterView):
         context['title'] = _('Pesquisar Norma Jurídica')
 
         self.filterset.form.fields['o'].label = _('Ordenação')
-        
+
         qs = self.object_list
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', 'tipo', '-numero')
@@ -136,6 +136,7 @@ class AnexoNormaJuridicaCrud(MasterDetailCrud):
             initial = super(UpdateView, self).get_initial()
             initial['norma'] = self.object.norma
             initial['anexo_arquivo'] = self.object.anexo_arquivo
+            #initial['assunto_anexo'] = self.object.assunto_anexo
             initial['ano'] = self.object.ano
             return initial
 
