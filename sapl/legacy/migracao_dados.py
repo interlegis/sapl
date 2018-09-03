@@ -539,6 +539,8 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('parlamentar', 'mandato', 'cod_parlamentar'),
     ('parlamentar', 'composicao_mesa', 'cod_parlamentar'),
     ('parlamentar', 'composicao_comissao', 'cod_parlamentar'),
+    # no 2.5 os parlamentares excluídos não são listados na presença da sessão
+    ('parlamentar', 'sessao_plenaria_presenca', 'cod_parlamentar'),
 
     # coligacao
     ('coligacao', 'composicao_coligacao', 'cod_coligacao'),
@@ -553,6 +555,9 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('sessao_plenaria', 'expediente_sessao_plenaria', 'cod_sessao_plen'),
     ('sessao_plenaria', 'sessao_plenaria_presenca', 'cod_sessao_plen'),
     ('sessao_plenaria', 'ordem_dia_presenca', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'mesa_sessao_plenaria', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'oradores', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'oradores_expediente', 'cod_sessao_plen'),
 
     # as consultas no código do sapl 2.5
     # votacao_ordem_dia_obter_zsql e votacao_expediente_materia_obter_zsql
