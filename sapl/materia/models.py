@@ -1,5 +1,4 @@
 
-import reversion
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -10,6 +9,7 @@ from django.template import defaultfilters
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import SEQUENCIA_NUMERACAO, Autor
 from sapl.comissoes.models import Comissao
@@ -19,6 +19,7 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
+
 
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
@@ -776,7 +777,7 @@ class Proposicao(models.Model):
     def epigrafe(self):
         return _('%(tipo)s nº %(numero)s de %(data)s') % {
             'tipo': self.tipo,
-            'numero': self.numero,
+            'numero': self.numero_proposicao,
             'data': defaultfilters.date(
                 self.data_envio if self.data_envio else timezone.now(),
                 "d \d\e F \d\e Y"
