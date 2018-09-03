@@ -64,6 +64,7 @@ regime_tramitacao             /sistema/materia/regime-tramitacao
 tipo_comissao                 /sistema/comissao/tipo
 tipo_documento_administrativo /sistema/tipo-documento-adm
 registro_votacao              /admin/sessao/registrovotacao
+tipo_dependente               /sistema/parlamentar/tipo-dependente
 '''
 urls = dict(stripsplit(urls))
 
@@ -261,6 +262,18 @@ SQLS_CRIACAO = [
     ('tipo_documento', '''
          insert into tipo_documento (tip_documento, des_tipo_documento, ind_excluido)
          values ({}, "DESCONHECIDO", 0);
+     '''),
+    ('partido', '''
+        insert into partido (cod_partido, sgl_partido, nom_partido, dat_criacao, dat_extincao, ind_excluido)
+        values ({}, "DESC", "DESCONHECIDO", NULL, NULL, 0);
+     '''),
+    ('legislatura', '''
+         insert into legislatura (num_legislatura, dat_inicio, dat_fim, dat_eleicao, ind_excluido)
+         values ({}, "1/1/1", "1/1/1", "1/1/1", 0);
+     '''),
+    ('cargo_mesa', '''
+        insert into cargo_mesa (cod_cargo, des_cargo, ind_unico, ind_excluido)
+        values ({}, "DESCONHECIDO", 0, 0);
      '''),
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
