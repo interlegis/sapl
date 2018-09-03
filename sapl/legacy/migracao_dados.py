@@ -541,7 +541,9 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('parlamentar', 'composicao_comissao', 'cod_parlamentar'),
     # no 2.5 os parlamentares excluídos não são listados na presença da sessão
     ('parlamentar', 'sessao_plenaria_presenca', 'cod_parlamentar'),
-    # no 2.5 os parlamentares excluídos não são listados na mesa da sessão
+    # ... nem na presença da ordem do dia
+    ('parlamentar', 'ordem_dia_presenca', 'cod_parlamentar'),
+    # ... nem na mesa da sessão
     ('parlamentar', 'mesa_sessao_plenaria', 'cod_parlamentar'),
 
     # coligacao
