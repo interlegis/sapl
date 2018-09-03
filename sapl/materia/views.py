@@ -530,7 +530,7 @@ class RetornarProposicao(UpdateView):
         if p.autor.user != request.user:
              messages.error(
                  request,
-                 'Usuário sem acesso a esta opção.' % 
+                 'Usuário sem acesso a esta opção.' %
                      request.user)
              return redirect('/')
 
@@ -1815,37 +1815,37 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        if request.POST['status'] == '':
+        if not request.POST['status']:
             msg = _('Campo Status deve ser preenchido.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        if request.POST['unidade_tramitacao_local'] == '':
+        if not request.POST['unidade_tramitacao_local']:
             msg = _('Campo Unidade Local deve ser preenchido.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        if request.POST['data_tramitacao'] == '':
+        if not request.POST['data_tramitacao']:
             msg = _('Campo Data da Tramitação deve ser preenchido.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        if request.POST['unidade_tramitacao_destino'] == '':
+        if not request.POST['unidade_tramitacao_destino']:
             msg = _('Campo Unidade Destino deve ser preenchido.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        if request.POST['urgente'] == '':
+        if not request.POST['urgente']:
             msg = _('Campo Urgente deve ser preenchido.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        if request.POST['texto'] == '':
+        if not request.POST['texto']:
             msg = _('Campo Texto da Ação deve ser preenchido.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        if request.POST['data_encaminhamento'] == '':
+        if not request.POST['data_encaminhamento']:
             data_encaminhamento = None
         else:
             data_encaminhamento = tz.localize(datetime.strptime(
@@ -1877,6 +1877,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 turno=request.POST['turno'],
                 texto=request.POST['texto']
             )
+            tramitacao_signal.send(sender=Tramitacao,
+                                   post=t,
+                                   request=self.request)
             t.save()
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
