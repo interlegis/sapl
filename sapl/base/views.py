@@ -26,7 +26,7 @@ from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa,
-                                 TipoMateriaLegislativa)
+                                 TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.utils import (parlamentares_ativos, sapl_logger,
@@ -405,6 +405,8 @@ class RelatorioMateriasTramitacaoView(FilterView):
                         self).get_context_data(**kwargs)
 
         context['title'] = _('Matérias em Tramitação')
+        if not self.filterset.form.is_valid():
+            return context
 
         qr = self.request.GET.copy()
         qs = context['object_list']
@@ -424,7 +426,13 @@ class RelatorioMateriasTramitacaoView(FilterView):
             if qtde > 0:
                 qtdes[tipo] = qtde
         context['qtdes'] = qtdes
-
+        tipo = self.request.GET['tipo']
+        tramitacao_status = self.request.GET['tramitacao__status']
+        context['tipo'] = (str(TipoMateriaLegislativa.objects.get(id=tipo)))
+        context['tramitacao__status'] = (str(StatusTramitacao.objects.get(id=tramitacao_status)))
+        context['ano'] = (self.request.GET['ano'])
+        context['tramitacao__unidade_tramitacao_destino'] = (str(UnidadeTramitacao.objects.get(id=
+            self.request.GET['tramitacao__unidade_tramitacao_destino'])))
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
