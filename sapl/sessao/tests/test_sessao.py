@@ -38,7 +38,7 @@ def test_sessao_plenaria_form_valido():
                                           'numero': '1',
                                           'tipo': str(tipo.pk),
                                           'sessao_legislativa': str(sessao.pk),
-                                          'data_inicio': '10/11/2017',
+                                          'data_inicio': str(sessao.data_inicio),
                                           'hora_inicio': '10:10',
                                           'painel_aberto': False
                                           })
