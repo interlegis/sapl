@@ -1757,6 +1757,11 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
 
+def empty_field_tramitacao_em_lote(request, campo):
+    if not request.POST[campo]:
+        return True
+    else:
+        return False
 
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteFilterSet
@@ -1805,6 +1810,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
         return context
 
+
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
 
@@ -1814,36 +1820,15 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             msg = _('Nenhuma máteria foi selecionada.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
+        obrigatorios = ['status','unidade_tramitacao_local','data_tramitacao',
+                'unidade_tramitacao_destino','urgente','texto']
+        for field in obrigatorios:
+            empty = empty_field_tramitacao_em_lote(request,field)
+            if empty:
+                msg = _('Campo ' + field + ' deve ser preenchido.')
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs)
 
-        if not request.POST['status']:
-            msg = _('Campo Status deve ser preenchido.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
-
-        if not request.POST['unidade_tramitacao_local']:
-            msg = _('Campo Unidade Local deve ser preenchido.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
-
-        if not request.POST['data_tramitacao']:
-            msg = _('Campo Data da Tramitação deve ser preenchido.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
-
-        if not request.POST['unidade_tramitacao_destino']:
-            msg = _('Campo Unidade Destino deve ser preenchido.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
-
-        if not request.POST['urgente']:
-            msg = _('Campo Urgente deve ser preenchido.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
-
-        if not request.POST['texto']:
-            msg = _('Campo Texto da Ação deve ser preenchido.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
 
         if not request.POST['data_encaminhamento']:
             data_encaminhamento = None
