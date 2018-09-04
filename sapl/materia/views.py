@@ -1758,10 +1758,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         return self.get(request, self.kwargs)
 
 def empty_field_tramitacao_em_lote(request, campo):
-    if not request.POST[campo]:
-        return True
-    else:
-        return False
+    return True if not request.POST[campo] else False
 
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteFilterSet
@@ -1829,7 +1826,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         for field,nome in obrigatorios.items():
             empty = empty_field_tramitacao_em_lote(request,field)
             if empty:
-                msg = _('Campo ' + nome + ' deve ser preenchido.')
+                msg = _('Campo {} deve ser preenchido.'.format(nome))
                 messages.add_message(request, messages.ERROR, msg)
                 return self.get(request, self.kwargs)
 
