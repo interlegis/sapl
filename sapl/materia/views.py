@@ -1822,8 +1822,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                         'urgente':'Urgente',
                         'texto':'Texto da Ação'}
         for field,nome in obrigatorios.items():
-            empty = True if not request.POST[field] else False
-            if empty:
+            if not request.POST[field]:
                 msg = _('Campo {} deve ser preenchido.'.format(nome))
                 messages.add_message(request, messages.ERROR, msg)
                 return self.get(request, self.kwargs)
