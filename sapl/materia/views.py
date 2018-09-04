@@ -1877,10 +1877,10 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 turno=request.POST['turno'],
                 texto=request.POST['texto']
             )
+            t.save()
             tramitacao_signal.send(sender=Tramitacao,
                                    post=t,
                                    request=self.request)
-            t.save()
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 
