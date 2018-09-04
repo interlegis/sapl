@@ -9,6 +9,7 @@ from django.db.models.fields import TextField
 from django.db.models.fields.files import FieldFile
 from django.db.models.functions import Concat
 from django.template import loader
+from haystack import connections
 from haystack.constants import Indexable
 from haystack.fields import CharField
 from haystack.indexes import SearchIndex
@@ -36,10 +37,16 @@ class TextExtractField(CharField):
             self.model_attr = (self.model_attr, )
 
     def solr_extraction(self, arquivo):
-        return textract.process(
-            arquivo.path,
-            language='pt-br').decode('utf-8').replace('\n', ' ').replace(
-            '\t', ' ')
+        backend = connections['default'].get_backend()
+        try:
+            with open(arquivo.path, 'rb') as f:
+                data = backend.extract_file_contents(f)['contents']
+                print('.')
+        except Exception as e:
+            self.print_error(arquivo, e)
+            data = ''
+        return data
+
 
     def whoosh_extraction(self, arquivo):
 
