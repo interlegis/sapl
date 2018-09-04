@@ -1820,12 +1820,16 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             msg = _('Nenhuma máteria foi selecionada.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
-        obrigatorios = ['status','unidade_tramitacao_local','data_tramitacao',
-                'unidade_tramitacao_destino','urgente','texto']
-        for field in obrigatorios:
+        obrigatorios = {'data_tramitacao':'Data da Tramitação',
+                        'unidade_tramitacao_local':'Unidade Local',
+                        'unidade_tramitacao_destino':'Unidade Destino',
+                        'status':'Status',
+                        'urgente':'Urgente',
+                        'texto':'Texto da Ação'}
+        for field,nome in obrigatorios.items():
             empty = empty_field_tramitacao_em_lote(request,field)
             if empty:
-                msg = _('Campo ' + field + ' deve ser preenchido.')
+                msg = _('Campo ' + nome + ' deve ser preenchido.')
                 messages.add_message(request, messages.ERROR, msg)
                 return self.get(request, self.kwargs)
 
