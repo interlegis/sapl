@@ -24,7 +24,7 @@ services:
         - "8983:8983"
 
     sapl:
-      image: interlegis/sapl:3.1.106-ALPHA
+      image: interlegis/sapl:3.1.112-ALPHA
       # build: .
       restart: always
       environment:
@@ -36,8 +36,10 @@ services:
         EMAIL_HOST: smtp.dominio.net
         EMAIL_HOST_USER: usuariosmtp
         EMAIL_HOST_PASSWORD: senhasmtp
-        SOLR_COLLECTION: sapl
-        SOLR_HOST: 10.1.10.192
+        USE_SOLR: 'True'
+        #SOLR_COLLECTION: sapl
+        #SOLR_HOST: saplsolr
+        SOLR_URL: http://saplsolr:8983/solr/sapl
         TZ: America/Sao_Paulo
       volumes:
         - sapl_data:/var/interlegis/sapl/data

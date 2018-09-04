@@ -29,6 +29,8 @@ logger = logging.getLogger(BASE_DIR.name)
 
 class TextExtractField(CharField):
 
+    backend = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         assert self.model_attr
@@ -37,11 +39,11 @@ class TextExtractField(CharField):
             self.model_attr = (self.model_attr, )
 
     def solr_extraction(self, arquivo):
-        backend = connections['default'].get_backend()
+        if not self.backend:
+            self.backend = connections['default'].get_backend()
         try:
             with open(arquivo.path, 'rb') as f:
-                data = backend.extract_file_contents(f)['contents']
-                print('.')
+                data = self.backend.extract_file_contents(f)['contents']
         except Exception as e:
             self.print_error(arquivo, e)
             data = ''
@@ -126,7 +128,9 @@ class TextExtractField(CharField):
             value = getattr(obj, attr)
             if not value:
                 continue
-            data += getattr(self, func)(value)
+            data += getattr(self, func)(value) + '  '
+
+        data = data.replace('\n', ' ')
 
         return data
 

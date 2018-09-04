@@ -108,16 +108,16 @@ if USE_SOLR:
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
     if SOLR_URL:
         SEARCH_URL = ('URL', SOLR_URL)
-#     elif SOLR_HOST and SOLR_COLLECTION:
-#         SEARCH_URL = ('URL', 'http://{}:8983/solr/{}'.format(SOLR_HOST, SOLR_COLLECTION))
-#     # elif SOLR_HOST:
-#     #     SEARCH_URL = ('URL', 'http://{}:8983/solr/sapl'.format(SOLR_HOST))
-#     # elif SOLR_CORE:
-#     #     SEARCH_URL = ('URL', 'http://localhost:8983/solr/sapl'.format(SOLR_COLLECTION))
-#     else:
-#         SEARCH_URL = ('URL', 'http://localhost:8983/solr/sapl')
-#
-    print("Solr URL: {}".format(SEARCH_URL[1]))
+    elif SOLR_HOST and SOLR_COLLECTION:
+        SEARCH_URL = ('URL', 'http://{}:8983/solr/{}'.format(SOLR_HOST, SOLR_COLLECTION))
+    elif SOLR_HOST and not SOLR_COLLECTION:
+        SEARCH_URL = ('URL', 'http://{}:8983/solr/sapl'.format(SOLR_HOST))
+    elif SOLR_COLLECTION and not SOLR_HOST:
+        SEARCH_URL = ('URL', 'http://localhost:8983/solr/sapl'.format(SOLR_COLLECTION))
+    else:
+        SEARCH_URL = ('URL', 'http://localhost:8983/solr/sapl')
+
+    # print("Solr URL: {}".format(SEARCH_URL[1]))
     # ...or for multicore...
     # 'URL': 'http://127.0.0.1:8983/solr/mysite',
 
