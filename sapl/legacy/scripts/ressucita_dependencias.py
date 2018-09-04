@@ -1,15 +1,16 @@
+from collections import OrderedDict
 from textwrap import dedent
 
-import texttable
 import yaml
-from unipath import Path
 
+import texttable
 from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO,
                                         campos_novos_para_antigos, exec_legado,
                                         get_arquivo_ajustes_pre_migracao,
                                         models_novos_para_antigos)
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
+from unipath import Path
 
 
 def stripsplit(ll):
@@ -18,6 +19,7 @@ def stripsplit(ll):
 
 def _tab_legado(model):
     return models_novos_para_antigos[model]._meta.db_table
+
 
 fks_legado = {
     (_tab_legado(m), campos_novos_para_antigos[f]): _tab_legado(f.related_model)  # noqa
@@ -342,6 +344,10 @@ def get_url(slug):
     return 'sapl.{}.leg.br'.format(slug.replace('-', '.'))
 
 
+def sem_repeticoes_mantendo_ordem(sequencia):
+    return OrderedDict.fromkeys(sequencia).keys()
+
+
 def get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug):
     sqls_links = [get_sql(*(args + (slug,)))
                   for itens, get_sql in ((desexcluir, get_sql_desexcluir),
@@ -351,7 +357,15 @@ def get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug):
         return ''
     else:
         sqls, links = zip(*sqls_links)
-        links = [l for ll in links for l in ll]  # flatten
+
+        sqls = [dedent(s.strip()) + ';'
+                for sql in sqls
+                for s in sql.split(';') if s.strip()]
+        sqls = sem_repeticoes_mantendo_ordem(sqls)
+
+        links = (l for ll in links for l in ll)  # flatten
+        links = sem_repeticoes_mantendo_ordem(links)
+
         sqls, links = ['\n'.join(sorted(s)) for s in [sqls, links]]
         return TEMPLATE_RESSUCITADOS.format(preambulo, links, sqls)
 
