@@ -1,0 +1,8 @@
+<fieldset>
+    <p align="justify">
+        <strong>Expedientes: </strong> {% for e in expedientes %}
+              <b>{{e.tipo}}</b>:
+                 {{e.conteudo}}
+        {% endfor %}
+	</p>
+</fieldset>

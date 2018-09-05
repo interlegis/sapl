@@ -1,0 +1,28 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+	<h1 class="page-header">
+		Extrato Eletrônico da {{sessaoplenaria}}
+	</h1>
+{% endblock %}
+
+{% block detail_content %}
+
+
+	{% include 'sessao/blocos_ata/'|add:primeiro_ordenacao %}
+    {% include 'sessao/blocos_ata/'|add:segundo_ordenacao %}
+    {% include 'sessao/blocos_ata/'|add:terceiro_ordenacao %}
+    {% include 'sessao/blocos_ata/'|add:quarto_ordenacao %}
+    {% include 'sessao/blocos_ata/'|add:quinto_ordenacao %}
+    {% include 'sessao/blocos_ata/'|add:sexto_ordenacao %}
+    {% include 'sessao/blocos_ata/'|add:setimo_ordenacao %}
+    {% include 'sessao/blocos_ata/'|add:oitavo_ordenacao %}
+    {% include 'sessao/blocos_ata/'|add:nono_ordenacao %}
+    {% include 'sessao/blocos_ata/'|add:decimo_ordenacao %}
+    {% include 'sessao/blocos_ata/assinaturas.html' %}
+
+
+
+{% endblock detail_content %}
