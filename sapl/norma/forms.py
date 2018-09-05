@@ -52,6 +52,9 @@ class NormaFilterSet(django_filters.FilterSet):
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
+    indexacao = django_filters.CharFilter(lookup_expr='icontains',
+                                          label=_('Indexação'))
+
     assuntos = django_filters.ModelChoiceFilter(
         queryset=AssuntoNorma.objects.all())
 
@@ -67,13 +70,14 @@ class NormaFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('tipo', 4), ('numero', 4), ('ano', 4)])
         row2 = to_row([('data', 6), ('data_publicacao', 6)])
-        row3 = to_row([('ementa', 6), ('assuntos', 6), ('o',6)])
+        row3 = to_row([('ementa', 6), ('assuntos', 6)])
+        row4 = to_row([('o',6), ('indexacao', 6)])
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Norma'),
-                     row1, row2, row3,
+                     row1, row2, row3, row4,
                      form_actions(label='Pesquisar'))
         )
 
