@@ -2,7 +2,8 @@
   
     <p align="justify">
 
-      <strong>Matérias da Ordem do Dia: </strong> {% for m in materias_ordem %}
+      <strong>Matérias da Ordem do Dia: </strong> 
+      {% for m in materias_ordem %}
             <b>{{m.numero}} - {{m.titulo}} </b>
             {% if m.turno %}
             Turno:{{m.turno}}

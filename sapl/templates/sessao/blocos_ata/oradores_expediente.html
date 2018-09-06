@@ -1,6 +1,7 @@
 <fieldset>
     <p align="justify">
-    	<strong>Oradores do Expediente: </strong>{% for o in oradores %}
+    	<strong>Oradores do Expediente: </strong>
+    	{% for o in oradores %}
 	        <div><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</div>
         	<div>{{o.url_discurso}}</div>
         	<div>{{o.observacao}}</div>

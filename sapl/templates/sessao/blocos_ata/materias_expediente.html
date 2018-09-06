@@ -1,6 +1,7 @@
 <fieldset>
   <p align="justify">
-      <strong>Matérias do Expediente: </strong> {% for m in materia_expediente %}
+      <strong>Matérias do Expediente: </strong> 
+      {% for m in materia_expediente %}
             <b>{{m.numero}} - {{m.titulo}}</b>
 
             {% if m.turno %}
