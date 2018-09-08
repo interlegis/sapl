@@ -68,6 +68,7 @@ tipo_documento_administrativo /sistema/tipo-documento-adm
 registro_votacao              /admin/sessao/registrovotacao
 tipo_dependente               /sistema/parlamentar/tipo-dependente
 origem                        /sistema/materia/origem
+documento_acessorio           /materia/documentoacessorio
 '''
 urls = dict(stripsplit(urls))
 
