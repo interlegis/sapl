@@ -584,6 +584,8 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('materia_legislativa', 'despacho_inicial', 'cod_materia'),
     ('materia_legislativa', 'legislacao_citada', 'cod_materia'),
     ('materia_legislativa', 'relatoria', 'cod_materia'),
+    ('materia_legislativa', 'materia_assunto', 'cod_materia'),
+
 
     # norma
     ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referente'),
