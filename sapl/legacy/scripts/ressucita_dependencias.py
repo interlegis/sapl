@@ -1,16 +1,16 @@
 from collections import OrderedDict
 from textwrap import dedent
 
-import texttable
 import yaml
-from unipath import Path
 
+import texttable
 from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO,
                                         campos_novos_para_antigos, exec_legado,
                                         get_arquivo_ajustes_pre_migracao,
                                         models_novos_para_antigos)
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
+from unipath import Path
 
 
 def stripsplit(ll):
@@ -67,6 +67,7 @@ tipo_comissao                 /sistema/comissao/tipo
 tipo_documento_administrativo /sistema/tipo-documento-adm
 registro_votacao              /admin/sessao/registrovotacao
 tipo_dependente               /sistema/parlamentar/tipo-dependente
+origem                        /sistema/materia/origem
 '''
 urls = dict(stripsplit(urls))
 
@@ -87,6 +88,7 @@ CAMPOS_ORIGEM_PARA_ALVO = {
     'cod_unid_tram_dest': 'cod_unid_tramitacao',
     'cod_unid_tram_local': 'cod_unid_tramitacao',
     'tip_id_basica': 'tip_materia',
+    'cod_local_origem_externa': 'cod_origem',
 }
 
 
