@@ -716,6 +716,12 @@ sessao_plenaria_presenca | dat_sessao = NULL           | dat_sessao = 0
     anula_tipos_origem_externa_invalidos()
     corrige_unidades_tramitacao_destino_vazia_como_anterior()
 
+    # matérias inexistentes não são mostradas em norma jurídica => apagamos
+    exec_legado('''update norma_juridica set cod_materia = NULL
+        where cod_materia not in (
+            select cod_materia from materia_legislativa
+            where ind_excluido <> 1);''')
+
 
 class Record:
     pass
