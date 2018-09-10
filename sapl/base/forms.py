@@ -169,13 +169,17 @@ class SessaoLegislativaForm(ModelForm):
         if not self.is_valid():
             return cleaned_data
 
+        flag_edit = True
         data_inicio = cleaned_data['data_inicio']
         data_fim = cleaned_data['data_fim']
         legislatura = cleaned_data['legislatura']
         numero = cleaned_data['numero']
         data_inicio_leg = legislatura.data_inicio
         data_fim_leg = legislatura.data_fim
-        pk = self.initial['id']
+        if self.initial:
+            pk = self.initial['id']
+        else:
+            pk = None
 
         # Querys para verificar se existem Sessões Legislativas no período selecionado no form
         # Caso onde a data_inicio e data_fim são iguais a de alguma sessão já criada
@@ -201,9 +205,10 @@ class SessaoLegislativaForm(ModelForm):
 
         else:
             ult = SessaoLegislativa.objects.latest('data_fim')
+            flag_edit = ult.id != pk
             ult = ult.numero
 
-        if numero <= ult:
+        if numero <= ult and flag_edit:
             raise ValidationError('O número da Sessão Legislativa não pode ser menor ou igual '
                                   'que o de Sessões Legislativas passadas')
 
