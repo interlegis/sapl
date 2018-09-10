@@ -234,6 +234,14 @@ SQL_INSERT_TIPO_AUTOR = '''
     values ({}, "DESCONHECIDO", 0) ON DUPLICATE KEY UPDATE ind_excluido = 0;
      '''
 
+# deve ser idempotente pois é usada na criação de comissao
+# por isso o ON DUPLICATE KEY UPDATE
+SQL_INSERT_TIPO_COMISSAO = '''
+    insert into tipo_comissao (tip_comissao, nom_tipo_comissao, sgl_natureza_comissao, sgl_tipo_comissao, des_dispositivo_regimental, ind_excluido)
+    values ({}, "DESCONHECIDO", "P", "DESC", NULL, 0)
+    ON DUPLICATE KEY UPDATE ind_excluido = 0;
+     '''
+
 SQLS_CRIACAO = [
     ('tipo_proposicao', '''
         insert into tipo_materia_legislativa (
@@ -287,6 +295,12 @@ SQLS_CRIACAO = [
     ('origem', '''
         insert into origem (cod_origem, sgl_origem, nom_origem, ind_excluido)
         values ({}, "DESC", "DESCONHECIDO", 0);
+     '''),
+    ('tipo_comissao', SQL_INSERT_TIPO_COMISSAO),
+    ('comissao', SQL_INSERT_TIPO_COMISSAO.format(0) + '''
+        insert into comissao (cod_comissao, tip_comissao, nom_comissao, sgl_comissao, dat_criacao,
+        ind_unid_deliberativa, ind_excluido)
+        values ({}, 0, "DESCONHECIDO", "DESC", "1-1-1", 0, 0);
      '''),
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
