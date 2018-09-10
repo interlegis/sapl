@@ -1,16 +1,16 @@
 from collections import OrderedDict
 from textwrap import dedent
 
-import yaml
-
 import texttable
+import yaml
+from unipath import Path
+
 from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO,
                                         campos_novos_para_antigos, exec_legado,
                                         get_arquivo_ajustes_pre_migracao,
                                         models_novos_para_antigos)
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
-from unipath import Path
 
 
 def stripsplit(ll):
@@ -283,6 +283,10 @@ SQLS_CRIACAO = [
     ('orgao', '''
         insert into orgao (cod_orgao, nom_orgao, sgl_orgao, ind_unid_deliberativa, end_orgao, num_tel_orgao, ind_excluido)
         values ({}, "DESCONHECIDO", "DESC", 0, NULL, NULL, 0);
+     '''),
+    ('origem', '''
+        insert into origem (cod_origem, sgl_origem, nom_origem, ind_excluido)
+        values ({}, "DESC", "DESCONHECIDO", 0);
      '''),
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
