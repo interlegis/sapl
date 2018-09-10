@@ -176,10 +176,7 @@ class SessaoLegislativaForm(ModelForm):
         numero = cleaned_data['numero']
         data_inicio_leg = legislatura.data_inicio
         data_fim_leg = legislatura.data_fim
-        if self.initial:
-            pk = self.initial['id']
-        else:
-            pk = None
+        pk = self.initial['id'] if self.initial else None
 
         # Querys para verificar se existem Sessões Legislativas no período selecionado no form
         # Caso onde a data_inicio e data_fim são iguais a de alguma sessão já criada
