@@ -5,7 +5,7 @@ from rest_framework.routers import DefaultRouter
 import sapl.api.base.urls
 import sapl.api.materia.urls
 import sapl.api.sessao.urls
-from sapl.api.views import ModelChoiceView
+from sapl.api.views import ModelChoiceView, TimeRefreshDatabaseView
 
 from .apps import AppConfig
 
@@ -22,6 +22,8 @@ urlpatterns_router = router.urls
 urlpatterns_api = [
     url(r'^model/(?P<content_type>\d+)/(?P<pk>\d*)$',
         ModelChoiceView.as_view(), name='model_list'),
+    url(r'time_refresh$',
+        TimeRefreshDatabaseView.as_view(), name="time_refresh")
 ]
 
 if settings.DEBUG:
