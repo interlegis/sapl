@@ -69,6 +69,7 @@ registro_votacao              /admin/sessao/registrovotacao
 tipo_dependente               /sistema/parlamentar/tipo-dependente
 origem                        /sistema/materia/origem
 documento_acessorio           /materia/documentoacessorio
+tipo_fim_relatoria            /sistema/materia/tipo-fim-relatoria
 '''
 urls = dict(stripsplit(urls))
 
