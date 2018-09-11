@@ -103,9 +103,8 @@ class SessaoPlenariaForm(ModelForm):
         abertura_entre_leg = leg.data_inicio <= abertura <= leg.data_fim
         abertura_entre_sl = sl.data_inicio <= abertura <= sl.data_fim
         if encerramento is not None:
-            encerramento_entre_leg = leg.data_inicio < encerramento < leg.data_fim
-            encerramento_entre_sl = sl.data_inicio < encerramento < sl.data_fim
-
+            encerramento_entre_leg = leg.data_inicio <= encerramento <= leg.data_fim
+            encerramento_entre_sl = sl.data_inicio <= encerramento <= sl.data_fim
         # Verificação das datas de abertura e encerramento da Sessão
         # Verificações com a data de encerramento preenchidas
         if encerramento is not None:
