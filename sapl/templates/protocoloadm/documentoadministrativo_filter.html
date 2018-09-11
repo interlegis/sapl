@@ -34,10 +34,11 @@
         {% endif %}
 
         {% for d in page_obj %}
+          {% if request.user.is_anonymous and not d.restrito or not request.user.is_anonymous%}
           <tr>
             <td>
               <strong><a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' d.id %}">{{d.tipo.sigla}} {{d.numero}}/{{d.ano}} - {{d.tipo}}</strong></a></br>
-              <strong>Interessado:</strong>&nbsp;{{ d.interessado|default_if_none:"Não informado"}}
+                <strong>Interessado:</strong>&nbsp;{{ d.interessado|default_if_none:"Não informado"}}
                 </br>
               <strong>Assunto:</strong>&nbsp;{{ d.assunto|safe }}
                 </br>
@@ -65,6 +66,7 @@
             </td>
 
           </tr>
+        {% endif %}
         {% endfor %}
       {% else  %}
         <tr><td><h3>Nenhum documento encontrado com essas especificações</h3></tr>

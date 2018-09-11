@@ -93,7 +93,7 @@ class Protocolo(models.Model):
     user_anulacao = models.CharField(max_length=20, blank=True)
     ip_anulacao = models.CharField(max_length=15, blank=True)
     justificativa_anulacao = models.CharField(
-        max_length=60, blank=True, verbose_name='Motivo')
+        max_length=60, blank=True, verbose_name=_('Motivo'))
     timestamp_anulacao = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -148,6 +148,9 @@ class DocumentoAdministrativo(models.Model):
         null=True,
         upload_to=texto_upload_path,
         verbose_name=_('Texto Integral'))
+    restrito = models.BooleanField(default=False,
+                                   verbose_name=_('Acesso Restrito'),
+                                   blank=True)
 
     class Meta:
         verbose_name = _('Documento Administrativo')

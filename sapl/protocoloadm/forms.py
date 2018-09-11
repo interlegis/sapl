@@ -304,15 +304,15 @@ class ProtocoloDocumentForm(ModelForm):
 
     numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
     assunto = forms.CharField(
-        widget=forms.Textarea, label='Assunto', required=True)
+        widget=forms.Textarea, label=_('Assunto'), required=True)
 
     interessado = forms.CharField(required=True,
-                                  label='Interessado')
+                                  label=_('Interessado'))
 
     observacao = forms.CharField(required=False,
-                                 widget=forms.Textarea, label='Observação')
+                                 widget=forms.Textarea, label=_('Observação'))
 
-    numero = forms.IntegerField(required=False, label='Número de Protocolo (opcional)')
+    numero = forms.IntegerField(required=False, label=_('Número de Protocolo (opcional)'))
 
     class Meta:
         model = Protocolo
@@ -394,12 +394,12 @@ class ProtocoloMateriaForm(ModelForm):
     numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
 
     observacao = forms.CharField(required=False,
-                                 widget=forms.Textarea, label='Observação')
+                                 widget=forms.Textarea, label=_('Observação'))
 
     assunto_ementa = forms.CharField(required=True,
-                                     widget=forms.Textarea, label='Ementa')
+                                     widget=forms.Textarea, label=_('Ementa'))
 
-    numero = forms.IntegerField(required=False, label='Número de Protocolo (opcional)')
+    numero = forms.IntegerField(required=False, label=_('Número de Protocolo (opcional)'))
 
     class Meta:
         model = Protocolo
@@ -636,6 +636,11 @@ class DocumentoAdministrativoForm(ModelForm):
                                           label=Protocolo._meta.
                                           get_field('numero').verbose_name)
 
+    restrito = forms.ChoiceField(label=_('Acesso Restrito'),
+                                         widget=forms.RadioSelect(),
+                                         choices=YES_NO_CHOICES,
+                                         initial=False)
+
     class Meta:
         model = DocumentoAdministrativo
         fields = ['tipo',
@@ -653,6 +658,7 @@ class DocumentoAdministrativoForm(ModelForm):
                   'observacao',
                   'texto_integral',
                   'protocolo',
+                  'restrito'
                   ]
 
         widgets = {'protocolo': forms.HiddenInput()}
@@ -682,7 +688,7 @@ class DocumentoAdministrativoForm(ModelForm):
                                                                 tipo=tipo_documento,
                                                                 ano=ano_protocolo).exists()
             if doc_exists:
-                raise ValidationError('Documento já existente')
+                raise ValidationError(_('Documento já existente'))
 
         # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
@@ -740,7 +746,7 @@ class DocumentoAdministrativoForm(ModelForm):
             [('assunto', 12)])
 
         row4 = to_row(
-            [('interessado', 9), ('tramitacao', 3)])
+            [('interessado', 8), ('tramitacao', 2), (InlineRadios('restrito'), 2)])
 
         row5 = to_row(
             [('texto_integral', 12)])
