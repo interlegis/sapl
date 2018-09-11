@@ -193,18 +193,19 @@ class SessaoLegislativaForm(ModelForm):
                                   'inserida, favor verificar as Sessões existentes antes de criar uma '
                                   'nova Sessão Legislativa')
 
-        sessoes_legislativas = SessaoLegislativa.objects.filter(legislatura=legislatura).exclude(pk=pk)
+        #sessoes_legislativas = SessaoLegislativa.objects.filter(legislatura=legislatura).exclude(pk=pk)
 
-        if sessoes_legislativas:
-            numeracoes = [n.numero for n in sessoes_legislativas]
-            numeracoes = sorted(numeracoes)
-            ult = max(numeracoes)
+        # if sessoes_legislativas:
+        #     numeracoes = [n.numero for n in sessoes_legislativas]
+        #     numeracoes = sorted(numeracoes)
+        #     ult = max(numeracoes)
+        #
+        # else:
+        #     ult = SessaoLegislativa.objects.latest('data_fim')
+        #     flag_edit = ult.id != pk
+        #     ult = ult.numero
 
-        else:
-            ult = SessaoLegislativa.objects.latest('data_fim')
-            flag_edit = ult.id != pk
-            ult = ult.numero
-
+        ult = 0
         if numero <= ult and flag_edit:
             raise ValidationError('O número da Sessão Legislativa não pode ser menor ou igual '
                                   'que o de Sessões Legislativas passadas')
