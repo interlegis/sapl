@@ -1843,7 +1843,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         # issue https://github.com/interlegis/sapl/issues/1123
         # TODO: usar Form
         urgente = request.POST['urgente'] == 'True'
-
+        flag_error = False
         for materia_id in marcadas:
             t = Tramitacao(
                 materia_id=materia_id,
@@ -1861,9 +1861,17 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 texto=request.POST['texto']
             )
             t.save()
-            tramitacao_signal.send(sender=Tramitacao,
-                                   post=t,
-                                   request=self.request)
+            try:
+                tramitacao_signal.send(sender=Tramitacao,
+                                       post=t,
+                                       request=self.request)
+            except Exception:
+                flag_error = True
+        if flag_error:
+            msg = _('Tramitação criada, mas e-mail de acompanhamento '
+                    'de matéria não enviado. Há problemas na configuração '
+                    'do e-mail.')
+            messages.add_message(self.request, messages.ERROR, msg)
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 
