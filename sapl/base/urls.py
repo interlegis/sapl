@@ -20,6 +20,7 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
+                    RelatorioReuniaoView,
                     RelatorioMateriasTramitacaoView,
                     RelatorioPresencaSessaoView, SaplSearchView)
 
@@ -104,6 +105,9 @@ urlpatterns = [
     url(r'^sistema/relatorios/atas$',
         RelatorioAtasView.as_view(),
         name='atas'),
+    url(r'^sistema/relatorios/reuniao$',
+        RelatorioReuniaoView.as_view(),
+        name='reuniao'),
 
     url(r'^email/validate/(?P<uidb64>[0-9A-Za-z_\-]+)/'
         '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$',

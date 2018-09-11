@@ -25,6 +25,7 @@ from sapl import settings
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux, make_pagination
+from sapl.comissoes.models import Reuniao
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
@@ -38,6 +39,7 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
+                    RelatorioReuniaoFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
                     RelatorioPresencaSessaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm)
@@ -433,6 +435,37 @@ class RelatorioDataFimPrazoTramitacaoView(FilterView):
                 (str(UnidadeTramitacao.objects.get(id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
+
+        return context
+
+class RelatorioReuniaoView(FilterView):
+    model = Reuniao
+    filterset_class = RelatorioReuniaoFilterSet
+    template_name = 'base/RelatorioReuniao_filter.html'
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(RelatorioReuniaoView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioReuniaoView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Reunião de Comissão')
+        if not self.filterset.form.is_valid():
+            return context
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        if self.request.GET['comissao']:
+            tipo = self.request.GET['comissao']
+            context['comissao'] = (str(Comissao.objects.get(id=comissao)))
+        else:
+            context['comissao'] = ''
 
         return context
 
