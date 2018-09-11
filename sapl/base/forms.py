@@ -170,8 +170,47 @@ class SessaoLegislativaForm(ModelForm):
         if not self.is_valid():
             return cleaned_data
 
+        flag_edit = True
         data_inicio = cleaned_data['data_inicio']
         data_fim = cleaned_data['data_fim']
+        legislatura = cleaned_data['legislatura']
+        numero = cleaned_data['numero']
+        data_inicio_leg = legislatura.data_inicio
+        data_fim_leg = legislatura.data_fim
+        pk = self.initial['id'] if self.initial else None
+         # Querys para verificar se existem Sessões Legislativas no período selecionado no form
+        # Caso onde a data_inicio e data_fim são iguais a de alguma sessão já criada
+        primeiro_caso = Q(data_inicio=data_inicio, data_fim=data_fim)
+        # Caso onde a data_inicio está entre o início e o fim de uma Sessão já existente
+        segundo_caso = Q(data_inicio__lt=data_inicio, data_fim__range=(data_inicio, data_fim))
+        # Caso onde a data_fim está entre o início e o fim de uma Sessão já existente
+        terceiro_caso = Q(data_inicio__range=(data_inicio, data_fim), data_fim__gt=data_fim)
+        sessoes_existentes = SessaoLegislativa.objects.filter(primeiro_caso|segundo_caso|terceiro_caso).\
+            exclude(pk=pk)
+         if sessoes_existentes:
+            raise ValidationError('Já existe registrado uma Sessão Legislativa que coincide com a data '
+                                  'inserida, favor verificar as Sessões existentes antes de criar uma '
+                                  'nova Sessão Legislativa')
+         sessoes_legislativas = SessaoLegislativa.objects.filter(legislatura=legislatura).exclude(pk=pk)
+         if sessoes_legislativas:
+            numeracoes = [n.numero for n in sessoes_legislativas]
+            numeracoes = sorted(numeracoes)
+            ult = max(numeracoes)
+         else:
+            ult = SessaoLegislativa.objects.latest('data_fim')
+            flag_edit = ult.id != pk
+            ult = ult.numero
+         if numero <= ult and flag_edit:
+            raise ValidationError('O número da Sessão Legislativa não pode ser menor ou igual '
+                                  'que o de Sessões Legislativas passadas')
+         if data_inicio < data_inicio_leg or \
+            data_inicio > data_fim_leg:
+            raise ValidationError('A data de início da Sessão Legislativa deve estar compreendida '
+                                  'entre a data início e fim da Legislatura selecionada')
+         if data_fim > data_fim_leg or \
+            data_fim < data_inicio_leg:
+            raise ValidationError('A data de fim da Sessão Legislativa deve estar compreendida '
+                                  'entre a data início e fim da Legislatura selecionada')
 
         if data_inicio > data_fim:
             raise ValidationError('Data início não pode ser superior à data fim')
@@ -183,6 +222,23 @@ class SessaoLegislativaForm(ModelForm):
             data_inicio_intervalo > data_fim_intervalo:
                 raise ValidationError('Data início de intervalo não pode ser '
                                       'superior à data fim de intervalo')
+
+         if data_inicio_intervalo:
+            if data_inicio_intervalo < data_inicio or \
+                    data_inicio_intervalo < data_inicio_leg or \
+                    data_inicio_intervalo > data_fim or \
+                    data_inicio_intervalo > data_inicio_leg:
+                raise ValidationError('A data de início do intervalo deve estar compreendida entre '
+                                      'as datas de início e fim tanto da Legislatura quanto da '
+                                      'própria Sessão Legislativa')
+         if data_fim_intervalo:
+            if data_fim_intervalo > data_fim or \
+                    data_fim_intervalo > data_fim_leg or \
+                    data_fim_intervalo < data_inicio or \
+                    data_fim_intervalo < data_inicio_leg:
+                raise ValidationError('A data de fim do intervalo deve estar compreendida entre '
+                                      'as datas de início e fim tanto da Legislatura quanto da '
+                                      'própria Sessão Legislativa')
 
         return cleaned_data
 
