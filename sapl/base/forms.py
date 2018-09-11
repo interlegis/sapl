@@ -17,7 +17,8 @@ from django.utils.translation import string_concat
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.comissoes.models import Reuniao
+from sapl.audiencia.models import AudienciaPublica,TipoAudienciaPublica
+from sapl.comissoes.models import Reuniao, Comissao
 from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.parlamentares.models import SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria
@@ -692,6 +693,35 @@ class RelatorioReuniaoFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Reunião de Comissão'),
+                     row1, row2,
+                     form_actions(label='Pesquisar'))
+        )
+
+class RelatorioAudienciaFilterSet(django_filters.FilterSet):
+
+    @property
+    def qs(self):
+        parent = super(RelatorioAudienciaFilterSet, self).qs
+        return parent.distinct().order_by('-data', 'tipo')
+
+    class Meta:
+        model = AudienciaPublica
+        fields = ['tipo', 'data',
+                  'nome']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioAudienciaFilterSet, self).__init__(
+            *args, **kwargs)
+
+        row1 = to_row([('data', 12)])
+        row2 = to_row(
+            [('tipo', 4),
+             ('nome', 4)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Audiência Pública'),
                      row1, row2,
                      form_actions(label='Pesquisar'))
         )

@@ -25,7 +25,8 @@ from sapl import settings
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.crud.base import CrudAux, make_pagination
-from sapl.comissoes.models import Reuniao
+from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
+from sapl.comissoes.models import Reuniao, Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
@@ -35,13 +36,14 @@ from sapl.utils import (parlamentares_ativos, sapl_logger,
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
+                    RelatorioAudienciaFilterSet,
                     RelatorioDataFimPrazoTramitacaoFilterSet,
                     RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
-                    RelatorioReuniaoFilterSet,
                     RelatorioMateriasTramitacaoilterSet,
-                    RelatorioPresencaSessaoFilterSet, UsuarioCreateForm,
+                    RelatorioPresencaSessaoFilterSet,
+                    RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm)
 from .models import AppConfig, CasaLegislativa
 
@@ -457,17 +459,51 @@ class RelatorioReuniaoView(FilterView):
         if not self.filterset.form.is_valid():
             return context
         qr = self.request.GET.copy()
+        
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
 
         if self.request.GET['comissao']:
-            tipo = self.request.GET['comissao']
+            comissao = self.request.GET['comissao']
             context['comissao'] = (str(Comissao.objects.get(id=comissao)))
         else:
             context['comissao'] = ''
 
         return context
+
+class RelatorioAudienciaView(FilterView):
+    model = AudienciaPublica
+    filterset_class = RelatorioAudienciaFilterSet
+    template_name = 'base/RelatorioAudiencia_filter.html'
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(RelatorioAudienciaView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioAudienciaView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Audiência Pública')
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        if self.request.GET['tipo']:
+            tipo = self.request.GET['tipo']
+            context['tipo'] = (str(TipoAudienciaPublica.objects.get(id=tipo)))
+        else:
+            context['tipo'] = ''
+
+        return context
+
 
 
 class RelatorioMateriasTramitacaoView(FilterView):

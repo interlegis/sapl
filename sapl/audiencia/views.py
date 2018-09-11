@@ -6,6 +6,9 @@ from sapl.crud.base import RP_DETAIL, RP_LIST, Crud
 from .forms import AudienciaForm
 from .models import AudienciaPublica
 
+def pegar_url_audiencia(pk):
+    url = reverse('sapl.audiencia:audiencia_detail', kwargs={'pk': self.object.id})
+    return url
 
 def index(request):
     return HttpResponse("Audiência  Pública")
