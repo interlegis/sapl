@@ -546,7 +546,7 @@ class TramitacaoAdmForm(ModelForm):
                             'destino  da última adicionada!')
                     raise ValidationError(msg)
 
-            if self.cleaned_data['data_tramitacao'] > timezone.now().date():
+            if self.cleaned_data['data_tramitacao'] > timezone.now():
                 msg = _(
                     'A data de tramitação deve ser ' +
                     'menor ou igual a data de hoje!')
@@ -559,13 +559,13 @@ class TramitacaoAdmForm(ModelForm):
                 raise ValidationError(msg)
 
         if data_enc_form:
-            if data_enc_form < data_tram_form:
+            if data_enc_form < data_tram_form.date():
                 msg = _('A data de encaminhamento deve ser ' +
                         'maior que a data de tramitação!')
                 raise ValidationError(msg)
 
         if data_prazo_form:
-            if data_prazo_form < data_tram_form:
+            if data_prazo_form < data_tram_form.date():
                 msg = _('A data fim de prazo deve ser ' +
                         'maior que a data de tramitação!')
                 raise ValidationError(msg)
@@ -579,7 +579,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         queryset=UnidadeTramitacao.objects.all(),
         widget=forms.HiddenInput())
 
-    data_tramitacao = forms.DateField(widget=forms.HiddenInput())
+    data_tramitacao = forms.DateTimeField(widget=forms.HiddenInput())
 
     class Meta:
         model = TramitacaoAdministrativo

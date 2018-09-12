@@ -904,7 +904,7 @@ class Tramitacao(models.Model):
                                null=True,
                                verbose_name=_('Status'))
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
-    data_tramitacao = models.DateField(verbose_name=_('Data Tramitação'))
+    data_tramitacao = models.DateTimeField(verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
         UnidadeTramitacao,
         related_name='tramitacoes_origem',
@@ -938,4 +938,4 @@ class Tramitacao(models.Model):
         return _('%(materia)s | %(status)s | %(data)s') % {
             'materia': self.materia,
             'status': self.status,
-            'data': self.data_tramitacao.strftime("%d/%m/%Y")}
+            'data': self.data_tramitacao.strftime("%d/%m/%Y/")}
