@@ -142,6 +142,13 @@ class DocumentoAdministrativoCrud(Crud):
 
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
 
+        def get(self, *args, **kwargs):
+            pk = self.kwargs['pk']
+            documento = DocumentoAdministrativo.objects.get(id=pk)
+            if documento.restrito and self.request.user.is_anonymous():
+                return redirect('/')
+            return super(Crud.DetailView, self).get(args, kwargs)
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             self.layout_display[0]['rows'][-1][0]['text'] = (

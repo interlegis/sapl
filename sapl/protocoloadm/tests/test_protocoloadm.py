@@ -359,8 +359,9 @@ def test_documento_administrativo_invalido():
     assert errors['assunto'] == [_('Este campo é obrigatório.')]
     assert errors['numero'] == [_('Este campo é obrigatório.')]
     assert errors['data'] == [_('Este campo é obrigatório.')]
+    assert errors['restrito'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 5
+    assert len(errors) == 6
 
 
 @pytest.mark.django_db(transaction=False)
@@ -374,7 +375,8 @@ def test_documento_administrativo_protocolo_inexistente():
                                              'numero': '1',
                                              'data': '2017-10-10',
                                              'numero_protocolo': '11',
-                                             'ano_protocolo': '2017'
+                                             'ano_protocolo': '2017',
+                                             'restrito': False
                                              })
 
     assert not form.is_valid()
