@@ -236,7 +236,7 @@ class SessaoLegislativaForm(ModelForm):
             if data_inicio_intervalo < data_inicio or \
                     data_inicio_intervalo < data_inicio_leg or \
                     data_inicio_intervalo > data_fim or \
-                    data_inicio_intervalo > data_inicio_leg:
+                    data_inicio_intervalo > data_fim_leg:
                 raise ValidationError('A data de início do intervalo deve estar compreendida entre '
                                       'as datas de início e fim tanto da Legislatura quanto da '
                                       'própria Sessão Legislativa')
