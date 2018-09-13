@@ -33,7 +33,8 @@ from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
-                                            NOME_BANCO_LEGADO)
+                                            NOME_BANCO_LEGADO, PYTZ_TIMEZONE,
+                                            SIGLA_CASA)
 from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
                                  MateriaLegislativa, Proposicao,
                                  StatusTramitacao, TipoDocumento,
@@ -50,7 +51,6 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
 from sapl.utils import normalize
 
 from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
-from .timezonesbrasil import get_timezone
 
 
 # YAML SETUP  ###############################################################
@@ -807,19 +807,6 @@ def reinicia_sequence(model, id):
 REPO = git.Repo.init(DIR_REPO)
 
 
-# configura timezone de migração
-match = re.match('sapl_cm_(.*)', NOME_BANCO_LEGADO)
-sigla_casa = match.group(1)
-PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
-with open(PATH_TABELA_TIMEZONES, 'r') as arq:
-    tabela_timezones = yaml.load(arq)
-municipio, uf, nome_timezone = tabela_timezones[sigla_casa]
-if nome_timezone:
-    timezone = pytz.timezone(nome_timezone)
-else:
-    timezone = get_timezone(municipio, uf)
-
-
 def populate_renamed_fields(new, old):
     renames = field_renames[type(new)]
 
@@ -846,9 +833,9 @@ def populate_renamed_fields(new, old):
                     return (field_type == tipo
                             and value and not value.tzinfo)
                 if campo_tempo_sem_timezone('DateTimeField'):
-                    value = timezone.localize(value)
+                    value = PYTZ_TIMEZONE.localize(value)
                 if campo_tempo_sem_timezone('TimeField'):
-                    value = value.replace(tzinfo=timezone)
+                    value = value.replace(tzinfo=PYTZ_TIMEZONE)
 
                 setattr(new, field.name, value)
 
@@ -860,7 +847,7 @@ def roda_comando_shell(cmd):
 
 def get_arquivo_ajustes_pre_migracao():
     return DIR_DADOS_MIGRACAO.child(
-        'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+        'ajustes_pre_migracao', '{}.sql'.format(SIGLA_CASA))
 
 
 def migrar_dados(apagar_do_legado=False):
@@ -1180,7 +1167,7 @@ def adjust_protocolo_antes_salvar(new, old):
 def get_arquivo_resolve_registro_votacao():
     return DIR_DADOS_MIGRACAO.child(
         'ajustes_pre_migracao',
-        '{}_resolve_registro_votacao_ambiguo.yaml'.format(sigla_casa))
+        '{}_resolve_registro_votacao_ambiguo.yaml'.format(SIGLA_CASA))
 
 
 def get_como_resolver_registro_votacao_ambiguo():
