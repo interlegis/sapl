@@ -826,15 +826,16 @@ def populate_renamed_fields(new, old):
                         and value in [None, 'None']):
                     value = ''
 
-                # adiciona timezone faltante aos campos com tempo
-                #   os campos TIMESTAMP do mysql são gravados em UTC
-                #   os DATETIME e TIME não têm timezone
-                def campo_tempo_sem_timezone(tipo):
-                    return (field_type == tipo
-                            and value and not value.tzinfo)
-                if campo_tempo_sem_timezone('DateTimeField'):
-                    value = PYTZ_TIMEZONE.localize(value)
-                if campo_tempo_sem_timezone('TimeField'):
+                # ajusta tempos segundo timezone
+                #  os campos TIMESTAMP do mysql são gravados em UTC
+                #  os DATETIME e TIME não têm timezone
+
+                if field_type == 'DateTimeField' and value:
+                    # as datas armazenadas no legado na verdade são naive
+                    sem_tz = value.replace(tzinfo=None)
+                    value = PYTZ_TIMEZONE.localize(sem_tz).astimezone(pytz.utc)
+
+                if field_type == 'TimeField' and value:
                     value = value.replace(tzinfo=PYTZ_TIMEZONE)
 
                 setattr(new, field.name, value)
