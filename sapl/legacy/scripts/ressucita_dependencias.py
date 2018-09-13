@@ -303,6 +303,10 @@ SQLS_CRIACAO = [
         ind_unid_deliberativa, ind_excluido)
         values ({}, 0, "DESCONHECIDO", "DESC", "1-1-1", 0, 0);
      '''),
+    ('parlamentar', '''
+        insert into parlamentar (cod_parlamentar, nom_completo, nom_parlamentar, sex_parlamentar, cod_casa, ind_ativo, ind_unid_deliberativa, ind_excluido)
+        values ({}, "DESCONHECIDO", "DESCONHECIDO", "M", 0, 0, 0, 0);
+     '''),
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
                 for k, sql, *extras in SQLS_CRIACAO}
