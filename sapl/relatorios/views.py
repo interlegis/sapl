@@ -751,6 +751,9 @@ def get_turno(dic, materia, sessao_data_inicio):
         'materia__tipo').order_by(
         '-data_tramitacao'
     ).first()
+    if tramitacao is None:
+        tramitacao = materia.tramitacao_set.last()
+
     if tramitacao is not None:
         for t in Tramitacao.TURNO_CHOICES:
             if t[0] == tramitacao.turno:
