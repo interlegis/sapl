@@ -6,7 +6,7 @@
 {% block extra_js %}
 
 <script language="Javascript">
-  document.getElementById("id_observacao").readOnly = true;
+  //document.getElementById("id_observacao").readOnly = true;
 
   function recuperar_materia() {
     var tipo_materia = $("#id_tipo_materia").val()
@@ -14,18 +14,29 @@
     var ano_materia = $("#id_ano_materia").val()
 
     if (tipo_materia && numero_materia && ano_materia) {
-      $.get("/sessao/recuperar-materia",{tipo_materia: tipo_materia,
-                                  numero_materia: numero_materia,
-                                  ano_materia: ano_materia},
-                                function(data, status) {
-                                  $("#id_observacao").val(data.ementa);
-                                });
+      $.get("/sessao/recuperar-materia", {
+          tipo_materia: tipo_materia,
+          numero_materia: numero_materia,
+          ano_materia: ano_materia
+        },
+        function(data, status) {
+          if ($(".ementa-materia").length === 0) {
+            $("#div_id_tipo_materia").closest('.row-fluid').after(
+              $('<div class="row-fluid"/>').append(
+                $('<div class="col-xs-12"/>').append(
+                  $('<div class="alert alert-info ementa-materia"/>').html(data.ementa))))
+          }
+          else {
+            $('.ementa-materia').html(data.ementa)
+          }
+        });
     }
   }
   var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"]
   for (i = 0; i < fields.length; i++) {
     $(fields[i]).change(recuperar_materia);
   }
+  recuperar_materia()
 </script>
 
 {% endblock %}

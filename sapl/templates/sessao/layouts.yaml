@@ -56,12 +56,14 @@ OrdemDia:
 ExpedienteMateriaDetail:
   {% trans 'Matérias do Expediente' %}:
   - materia
+  - ementa
   - tipo_votacao
   - observacao
 
 OrdemDiaDetail:
   {% trans 'Matérias da Ordem do Dia' %}:
   - materia
+  - ementa
   - tipo_votacao
   - observacao
 
