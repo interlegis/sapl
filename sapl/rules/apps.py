@@ -6,7 +6,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
+from django.db.models.signals import post_save, post_delete
 from django.db.utils import DEFAULT_DB_ALIAS
+from django.dispatch.dispatcher import receiver
+from django.utils import timezone
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import reversion
@@ -21,6 +24,7 @@ class AppConfig(django.apps.AppConfig):
     name = 'sapl.rules'
     label = 'rules'
     verbose_name = _('Regras de Acesso')
+    time_refresh = timezone.now()
 
 
 def create_proxy_permissions(
@@ -254,3 +258,9 @@ models.signals.post_migrate.connect(
 models.signals.pre_delete.connect(
     receiver=revision_pre_delete_signal,
     dispatch_uid="pre_delete_signal")
+
+
+@receiver([post_save, post_delete])
+def refresh_time_update_base(sender, instance, **kwargs):
+    rule_app = apps.get_app_config('rules')
+    rule_app.time_refresh = timezone.now()
