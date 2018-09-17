@@ -1,10 +1,10 @@
 from operator import xor
 
-import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
@@ -237,7 +237,7 @@ class AbstractOrdemDia(models.Model):
                                 verbose_name=_('Matéria'))
     data_ordem = models.DateField(verbose_name=_('Data da Sessão'))
     observacao = models.TextField(
-        blank=True, verbose_name=_('Ementa'))
+        blank=True, verbose_name=_('Observação'))
     numero_ordem = models.PositiveIntegerField(verbose_name=_('Nº Ordem'))
     resultado = models.TextField(blank=True, verbose_name=_('Resultado'))
     tipo_votacao = models.PositiveIntegerField(
@@ -253,6 +253,10 @@ class AbstractOrdemDia(models.Model):
 
     class Meta:
         abstract = True
+
+    @property
+    def ementa(self):
+        return self.materia.ementa
 
     def __str__(self):
         return 'Ordem do Dia/Expediente: %s - %s em %s' % (
