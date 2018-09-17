@@ -744,6 +744,10 @@ class ProposicaoCrud(Crud):
                                 % (p.tipo, numero, p.ano)))
                         except ValueError:
                             pass
+                        except AttributeError:
+                            pass
+                        except TypeError:
+                            pass
 
                 elif action == 'return':
                     if not p.data_envio:
