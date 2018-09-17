@@ -1272,7 +1272,6 @@ class ResumoView(DetailView):
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
         context.update({'expedientes': expedientes})
-        
         # =====================================================================
         # Matérias Expediente
         materias = ExpedienteMateria.objects.filter(

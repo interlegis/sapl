@@ -4,7 +4,7 @@
     <p align="justify">
       <strong>Lista de Presença na Sessão: </strong> 
       {% for p in presenca_sessao %}
-        	{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }} - 
+        	{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }} ; 
       {% endfor %}
     </p>
 </fieldset>
