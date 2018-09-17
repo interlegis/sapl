@@ -18,6 +18,8 @@ from django.utils.translation import string_concat
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
+from sapl.audiencia.models import AudienciaPublica,TipoAudienciaPublica
+from sapl.comissoes.models import Reuniao, Comissao
 from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.parlamentares.models import SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria
@@ -177,8 +179,7 @@ class SessaoLegislativaForm(ModelForm):
         data_inicio_leg = legislatura.data_inicio
         data_fim_leg = legislatura.data_fim
         pk = self.initial['id'] if self.initial else None
-
-        # Querys para verificar se existem Sessões Legislativas no período selecionado no form
+         # Queries para verificar se existem Sessões Legislativas no período selecionado no form
         # Caso onde a data_inicio e data_fim são iguais a de alguma sessão já criada
         primeiro_caso = Q(data_inicio=data_inicio, data_fim=data_fim)
         # Caso onde a data_inicio está entre o início e o fim de uma Sessão já existente
@@ -206,10 +207,10 @@ class SessaoLegislativaForm(ModelForm):
         #     ult = ult.numero
 
         ult = 0
+
         if numero <= ult and flag_edit:
             raise ValidationError('O número da Sessão Legislativa não pode ser menor ou igual '
                                   'que o de Sessões Legislativas passadas')
-
 
         if data_inicio < data_inicio_leg or \
             data_inicio > data_fim_leg:
@@ -240,7 +241,6 @@ class SessaoLegislativaForm(ModelForm):
                 raise ValidationError('A data de início do intervalo deve estar compreendida entre '
                                       'as datas de início e fim tanto da Legislatura quanto da '
                                       'própria Sessão Legislativa')
-
         if data_fim_intervalo:
             if data_fim_intervalo > data_fim or \
                     data_fim_intervalo > data_fim_leg or \
@@ -730,6 +730,67 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
                      row1, row2,
                      form_actions(label='Pesquisar'))
         )
+
+
+class RelatorioReuniaoFilterSet(django_filters.FilterSet):
+
+    @property
+    def qs(self):
+        parent = super(RelatorioReuniaoFilterSet, self).qs
+        return parent.distinct().order_by('-data', 'comissao')
+
+    class Meta:
+        model = Reuniao
+        fields = ['comissao', 'data',
+                  'nome','tema']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioReuniaoFilterSet, self).__init__(
+            *args, **kwargs)
+
+        row1 = to_row([('data', 12)])
+        row2 = to_row(
+            [('comissao', 4),
+             ('nome', 4),
+             ('tema', 4)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Reunião de Comissão'),
+                     row1, row2,
+                     form_actions(label='Pesquisar'))
+        )
+
+class RelatorioAudienciaFilterSet(django_filters.FilterSet):
+
+    @property
+    def qs(self):
+        parent = super(RelatorioAudienciaFilterSet, self).qs
+        return parent.distinct().order_by('-data', 'tipo')
+
+    class Meta:
+        model = AudienciaPublica
+        fields = ['tipo', 'data',
+                  'nome']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioAudienciaFilterSet, self).__init__(
+            *args, **kwargs)
+
+        row1 = to_row([('data', 12)])
+        row2 = to_row(
+            [('tipo', 4),
+             ('nome', 4)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Audiência Pública'),
+                     row1, row2,
+                     form_actions(label='Pesquisar'))
+        )
+
 
 
 class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
