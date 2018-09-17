@@ -231,7 +231,10 @@ LANGUAGES = (
     ('pt-br', 'Português'),
 )
 
-TIME_ZONE = config('TZ', cast=str, default='America/Sao_Paulo')
+TIME_ZONE = config('TZ', default='America/Sao_Paulo')
+if not TIME_ZONE:
+    raise ValueError('TIMEZONE env variable undefined in .env settings file! Leaving...')
+
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
