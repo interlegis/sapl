@@ -1280,7 +1280,6 @@ class ResumoView(DetailView):
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
         context.update({'expedientes': expedientes})
-
         # =====================================================================
         # Matérias Expediente
         materias = ExpedienteMateria.objects.filter(
@@ -1456,7 +1455,8 @@ class ResumoView(DetailView):
                  'decimo_ordenacao': dict_ord_template['oradores_expli']})
 
         return self.render_to_response(context)
-
+class ResumoAtaView(ResumoView):
+    template_name = 'sessao/resumo_ata.html'
 
 class ExpedienteView(FormMixin, DetailView):
     template_name = 'sessao/expediente.html'

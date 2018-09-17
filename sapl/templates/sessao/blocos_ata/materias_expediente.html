@@ -1,0 +1,25 @@
+<fieldset>
+  <p align="justify">
+      <strong>Matérias do Expediente: </strong> 
+      {% for m in materia_expediente %}
+            <b>{{m.numero}} - {{m.titulo}}</b>
+
+            {% if m.turno %}
+              Turno: {{m.turno}}
+            {% endif %}
+
+             Autor{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
+
+            {% if m.numero_protocolo %}
+               Número de Protocolo: {{ m.numero_protocolo }}
+            {% endif %}
+
+            {% if m.numero_processo %}
+               Processo: {{ m.numero_processo }}
+            {% endif %}
+
+			{{m.ementa|safe}}
+         	   {{m.resultado}} {{m.resultado_observacao}}</td>
+      {% endfor %}
+	</p>
+</fieldset>

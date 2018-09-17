@@ -1,0 +1,12 @@
+{% load common_tags %}
+
+</p>
+</p>
+	<legend>Assinatura Parlamentares Presentes</legend>
+		<div class="row">
+		  {% for p in presenca_ordem %}
+		  	<div class="col-md-12">{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }}</p>
+		  	</div>
+		  {% endfor %}
+		</div>
+</fieldset>
