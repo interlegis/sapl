@@ -298,6 +298,8 @@ DUMP_FUNCTIONS = {
     'Image': dump_file,
     'DTML Method': partial(dump_file,
                            get_conteudo=get_conteudo_dtml_method),
+    'DTMLMethod': partial(dump_file,
+                          get_conteudo=get_conteudo_dtml_method),
     'Folder': partial(dump_folder, enum=enumerate_folder),
     'BTreeFolder2': partial(dump_folder, enum=enumerate_btree),
     'SDE-Document': partial(dump_sde, tipo='sde.document'),
