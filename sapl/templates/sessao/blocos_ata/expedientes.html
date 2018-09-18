@@ -3,7 +3,7 @@
         <strong>Expedientes: </strong> 
         {% for e in expedientes %}
               <b>{{e.tipo}}</b>:
-                 {{e.conteudo|striptags}}
+                 {{e.conteudo|striptags|safe}}
         {% endfor %}
 	</p>
 </fieldset>
