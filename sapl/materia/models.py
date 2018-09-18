@@ -908,6 +908,9 @@ class Tramitacao(models.Model):
                                null=True,
                                verbose_name=_('Status'))
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
+    # TODO: Remover os campos de data
+    # TODO: pois timestamp supre a necessidade
+    timestamp = models.DateTimeField(default=timezone.now)
     data_tramitacao = models.DateField(verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
         UnidadeTramitacao,
