@@ -3,7 +3,7 @@ from django.conf.urls import include, url
 from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                AdicionarVariasMateriasOrdemDia, BancadaCrud,
                                BlocoCrud, CargoBancadaCrud,
-                               ExpedienteMateriaCrud, ExpedienteView,
+                               ExpedienteMateriaCrud, ExpedienteView, ocorrencia_sessaoView,
                                MateriaOrdemDiaCrud, MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
                                PautaSessaoDetailView, PautaSessaoView,
@@ -100,6 +100,8 @@ urlpatterns = [
     # Subnav sessão
     url(r'^sessao/(?P<pk>\d+)/expediente$',
         ExpedienteView.as_view(), name='expediente'),
+    url(r'^sessao/(?P<pk>\d+)/ocorrencia_sessao$',
+        ocorrencia_sessaoView.as_view(), name='ocorrencia_sessao'),               
     url(r'^sessao/(?P<pk>\d+)/presenca$',
         PresencaView.as_view(), name='presenca'),
     url(r'^sessao/(?P<pk>\d+)/painel$',

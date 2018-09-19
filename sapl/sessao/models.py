@@ -300,6 +300,20 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
     def __str__(self):
         return '%s - %s' % (self.tipo, self.sessao_plenaria)
 
+@reversion.register()
+class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        on_delete=models.PROTECT)
+    conteudo = models.TextField(
+        blank=True, verbose_name=_('Ocorrências da Sessão Plenária'))
+
+    class Meta:
+        verbose_name = _('Ocorrência da Sessão Plenaria')
+        verbose_name_plural = _('Ocorrências da Sessão Plenaria')
+
+    def __str__(self):
+        return '%s - %s' % (self.sessao_plenaria)    
+
 
 @reversion.register()
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria

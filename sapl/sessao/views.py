@@ -37,13 +37,13 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
-                    ExpedienteForm, ListMateriaForm, MesaForm,
+                    ExpedienteForm, OcorrenciaSessaoForm, ListMateriaForm, MesaForm,
                     OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
-                     ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
+                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
@@ -1535,7 +1535,84 @@ class ExpedienteView(FormMixin, DetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:expediente', kwargs={'pk': pk})
+    
+class ocorrencia_sessaoView(FormMixin, DetailView):
+    template_name = 'sessao/ocorrencia_sessao.html'
+    form_class = OcorrenciaSessaoForm
+    model = SessaoPlenaria
 
+    def get_context_data(self, **kwargs):
+        context = FormMixin.get_context_data(self, **kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Ocorrências da Sessão'), self.object)
+        return context
+
+    @method_decorator(permission_required('sessao.add_ocorrenciasessao'))
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = OcorrenciaSessaoForm(request.POST)
+
+        if 'apagar-ocorrencia_sessao' in request.POST:
+            OcorrenciaSessao.objects.filter(
+                sessao_plenaria_id=self.object.id).delete()
+            return self.form_valid(form)
+
+        if form.is_valid():
+            list_conteudo = request.POST.getlist('conteudo')
+
+            for tipo, conteudo in zip(list_tipo, list_conteudo):
+
+                ExpedienteSessao.objects.filter(
+                    sessao_plenaria_id=self.object.id,
+                    tipo_id=tipo).delete()
+
+                expediente = ExpedienteSessao()
+                expediente.sessao_plenaria_id = self.object.id
+                expediente.tipo_id = tipo
+                expediente.conteudo = conteudo
+                expediente.save()
+
+                msg = _('Registro salvo com sucesso')
+                messages.add_message(self.request, messages.SUCCESS, msg)
+            return self.form_valid(form)
+        else:
+            msg = _('Erro ao salvar registro')
+            messages.add_message(self.request, messages.SUCCESS, msg)
+            return self.form_invalid(form)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        tipos = TipoExpediente.objects.all().order_by('nome')
+        expedientes_sessao = ExpedienteSessao.objects.filter(
+            sessao_plenaria_id=self.object.id).order_by('tipo__nome')
+
+        expedientes_salvos = []
+        for e in expedientes_sessao:
+            expedientes_salvos.append(e.tipo)
+
+        tipos_null = list(set(tipos) - set(expedientes_salvos))
+        tipos_null.sort(key=lambda x: x.nome)
+
+        expedientes = []
+        for e, t in zip(expedientes_sessao, tipos):
+            expedientes.append({'tipo': e.tipo,
+                                'conteudo': e.conteudo
+                                })
+        context.update({'expedientes': expedientes})
+
+        for e in tipos_null:
+            expedientes.append({'tipo': e,
+                                'conteudo': ''
+                                })
+
+        context.update({'expedientes': expedientes})
+        return self.render_to_response(context)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sapl.sessao:ocorrencia_sessao', kwargs={'pk': pk})
+        
 
 class VotacaoEditView(SessaoPermissionMixin):
 
@@ -1645,7 +1722,7 @@ class VotacaoView(SessaoPermissionMixin):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = VotacaoForm(request.POST)
-        context = self.get_context_data(object=self.object)
+        context = self.get_context_d(object=self.object)
         url = request.get_full_path()
 
         # ====================================================

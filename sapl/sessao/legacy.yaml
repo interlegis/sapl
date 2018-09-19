@@ -34,6 +34,10 @@ ExpedienteSessao (ExpedienteSessaoPlenaria):
   sessao_plenaria: cod_sessao_plen
   tipo: cod_expediente
 
+OcorrenciaSessao (OcorrenciaSessaoPlenaria):
+  conteudo: txt_ocorrencia
+  sessao_plenaria: cod_sessao_plen
+
 IntegranteMesa (MesaSessaoPlenaria):
   cargo: cod_cargo
   parlamentar: cod_parlamentar
