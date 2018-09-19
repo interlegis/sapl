@@ -69,9 +69,9 @@ class PeriodoForm(forms.ModelForm):
         if not data_fim:
             data_fim = data_inicio
 
-        legislatura = Legislatura.objects.filter(Q(data_inicio__lte=data_inicio,
+        legislatura = Legislatura.objects.filter(data_inicio__lte=data_inicio,
                                                    data_fim__gte=data_fim,
-                                                   ))
+                                                   )
 
         if not legislatura:
             raise ValidationError('O período informado '
