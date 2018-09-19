@@ -6,27 +6,25 @@
 {% block actions %}{% endblock %}
 
 {% block detail_content %}
-
-<form method="post">
-{% csrf_token %}
-	<fieldset class="form-group">
-		<textarea rows="5" cols="50" name="conteudo" id="conteudo" class="form-control">{{object.ocorrenciasessao.conteudo}}</textarea>
-	</fieldset>
-	<input type="submit" value="Salvar" class="btn btn-primary"/>
-	<input type="submit" id="apagar-ocorrencia_sessao" name="apagar-ocorrencia_sessao" value="Apagar" class="btn btn-danger" />
-</form>
-
+  {% if perms|get_add_perm:view %}
+    <form method="post">
+    {% csrf_token %}
+      <fieldset class="form-group">
+        <textarea rows="5" cols="50" name="conteudo" id="conteudo" class="form-control">{{object.ocorrenciasessao.conteudo}}</textarea>
+      </fieldset>
+      <input type="submit" value="Salvar" class="btn btn-primary"/>
+      <input type="submit" id="apagar-ocorrencia_sessao" name="apagar-ocorrencia_sessao" value="Apagar" class="btn btn-danger" />
+    </form>
+  {% else %}
+  {{object.ocorrenciasessao.conteudo|safe}}
+  {% endif %}
 {% endblock detail_content %}
+
 <!-- Texto RICO -->
 {% block extra_js %}
-	{% if perms|get_add_perm:view %}
-		<script language="JavaScript">
-			initTinymce(null);
-		</script>
-	<!-- Se nao tiver permissao, o texto rico fica readonly -->
-	{% else %}
-		<script language="JavaScript">
-			initTinymce(null, true);
-		</script>
-	{% endif %}
+  {% if perms|get_add_perm:view %}
+    <script language="JavaScript">
+      initTinymce(null);
+    </script>
+  {% endif %}
 {% endblock %}
