@@ -1455,8 +1455,11 @@ class ResumoView(DetailView):
                  'decimo_ordenacao': dict_ord_template['oradores_expli']})
 
         return self.render_to_response(context)
+
+
 class ResumoAtaView(ResumoView):
     template_name = 'sessao/resumo_ata.html'
+
 
 class ExpedienteView(FormMixin, DetailView):
     template_name = 'sessao/expediente.html'
@@ -1535,8 +1538,9 @@ class ExpedienteView(FormMixin, DetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:expediente', kwargs={'pk': pk})
-    
-class ocorrencia_sessaoView(FormMixin, DetailView):
+
+
+class OcorrenciaSessaoView(FormMixin, DetailView):
     template_name = 'sessao/ocorrencia_sessao.html'
     form_class = OcorrenciaSessaoForm
     model = SessaoPlenaria
@@ -1558,61 +1562,28 @@ class ocorrencia_sessaoView(FormMixin, DetailView):
             return self.form_valid(form)
 
         if form.is_valid():
-            list_conteudo = request.POST.getlist('conteudo')
+            conteudo = request.POST.get('conteudo')
 
-            for tipo, conteudo in zip(list_tipo, list_conteudo):
+            OcorrenciaSessao.objects.filter(
+                sessao_plenaria_id=self.object.id).delete()
 
-                ExpedienteSessao.objects.filter(
-                    sessao_plenaria_id=self.object.id,
-                    tipo_id=tipo).delete()
+            ocorrencia = OcorrenciaSessao()
+            ocorrencia.sessao_plenaria_id = self.object.id
+            ocorrencia.conteudo = conteudo
+            ocorrencia.save()
 
-                expediente = ExpedienteSessao()
-                expediente.sessao_plenaria_id = self.object.id
-                expediente.tipo_id = tipo
-                expediente.conteudo = conteudo
-                expediente.save()
-
-                msg = _('Registro salvo com sucesso')
-                messages.add_message(self.request, messages.SUCCESS, msg)
+            msg = _('Registro salvo com sucesso')
+            messages.add_message(self.request, messages.SUCCESS, msg)
             return self.form_valid(form)
         else:
             msg = _('Erro ao salvar registro')
             messages.add_message(self.request, messages.SUCCESS, msg)
             return self.form_invalid(form)
 
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        tipos = TipoExpediente.objects.all().order_by('nome')
-        expedientes_sessao = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id).order_by('tipo__nome')
-
-        expedientes_salvos = []
-        for e in expedientes_sessao:
-            expedientes_salvos.append(e.tipo)
-
-        tipos_null = list(set(tipos) - set(expedientes_salvos))
-        tipos_null.sort(key=lambda x: x.nome)
-
-        expedientes = []
-        for e, t in zip(expedientes_sessao, tipos):
-            expedientes.append({'tipo': e.tipo,
-                                'conteudo': e.conteudo
-                                })
-        context.update({'expedientes': expedientes})
-
-        for e in tipos_null:
-            expedientes.append({'tipo': e,
-                                'conteudo': ''
-                                })
-
-        context.update({'expedientes': expedientes})
-        return self.render_to_response(context)
-
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:ocorrencia_sessao', kwargs={'pk': pk})
-        
+
 
 class VotacaoEditView(SessaoPermissionMixin):
 
