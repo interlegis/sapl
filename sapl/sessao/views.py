@@ -1546,7 +1546,7 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
     model = SessaoPlenaria
 
     def get_context_data(self, **kwargs):
-        context = FormMixin.get_context_data(self, **kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = '%s <small>(%s)</small>' % (
             _('Ocorrências da Sessão'), self.object)
         return context
@@ -1693,7 +1693,7 @@ class VotacaoView(SessaoPermissionMixin):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = VotacaoForm(request.POST)
-        context = self.get_context_d(object=self.object)
+        context = self.get_context_data(object=self.object)
         url = request.get_full_path()
 
         # ====================================================

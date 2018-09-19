@@ -413,7 +413,7 @@ class ExpedienteForm(forms.Form):
     conteudo = forms.CharField(required=False, widget=forms.Textarea)
 
 class OcorrenciaSessaoForm(forms.Form):
-    conteudo = forms.CharField(required=False, widget=forms.Textarea)    
+    conteudo = forms.CharField(required=True, widget=forms.Textarea)    
 
 
 class VotacaoForm(forms.Form):
