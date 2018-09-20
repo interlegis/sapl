@@ -236,6 +236,7 @@ class NormaCrud(Crud):
                 initial['tipo_materia'] = norma.materia.tipo
                 initial['ano_materia'] = norma.materia.ano
                 initial['numero_materia'] = norma.materia.numero
+                initial['esfera_federacao'] = norma.esfera_federacao
             return initial
 
 
