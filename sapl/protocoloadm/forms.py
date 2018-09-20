@@ -884,7 +884,7 @@ class DesvincularMateriaForm(forms.Form):
 
 def pega_ultima_tramitacao_adm():
     return TramitacaoAdministrativo.objects.values(
-        'materia_id').annotate(data_encaminhamento=Max(
+        'documento_id').annotate(data_encaminhamento=Max(
             'data_encaminhamento'),
         id=Max('id')).values_list('id', flat=True)
 
@@ -901,7 +901,7 @@ def filtra_tramitacao_adm_destino(destino):
     return TramitacaoAdministrativo.objects.filter(
         id__in=lista,
         unidade_tramitacao_destino=destino).distinct().values_list(
-            'materia_id', flat=True)
+            'documento_id', flat=True)
 
 
 def filtra_tramitacao_adm_destino_and_status(status, destino):
@@ -910,4 +910,4 @@ def filtra_tramitacao_adm_destino_and_status(status, destino):
         id__in=lista,
         status=status,
         unidade_tramitacao_destino=destino).distinct().values_list(
-            'materia_id', flat=True)
+            'documento_id', flat=True)
