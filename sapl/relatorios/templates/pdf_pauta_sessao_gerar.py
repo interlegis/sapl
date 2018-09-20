@@ -145,10 +145,10 @@ def votacao(lst_votacao):
     tmp += '<blockTable style="repeater" repeatRows="1">\n'
     tmp += '<tr><td >Matéria</td><td >Ementa</td><td>Situação</td></tr>\n'
     for votacao in lst_votacao:
-        tmp += '<tr><td><para style="P3"><b>' + str(votacao['num_ordem']) + '</b> - ' + votacao['id_materia'] + '</para>\n' + '<para style="P3"><b>Processo: </b>' + votacao[
-            'des_numeracao'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + votacao['des_turno'] + '</para>\n' + '<para style="P3"><b>Autor: </b>' + votacao['nom_autor'] + '</para></td>\n'
+        tmp += '<tr><td><para style="P3"><b>' + str(votacao['num_ordem']) + '</b> - ' + str(votacao['id_materia']) + '</para>\n' + '<para style="P3"><b>Processo: </b>' + str(votacao[
+            'des_numeracao']) + '</para>\n' + '<para style="P3"><b>Turno: </b>' + str(votacao['des_turno']) + '</para>\n' + '<para style="P3"><b>Autor: </b>' + str(votacao['nom_autor']) + '</para></td>\n'
         tmp += '<td><para style="P4">' + \
-            votacao['txt_ementa'] + '</para></td>\n'
+            str(votacao['txt_ementa']) + '</para></td>\n'
         tmp += '<td><para style="P3">' + \
             str(votacao['des_situacao']) + '</para></td></tr>\n'
 
