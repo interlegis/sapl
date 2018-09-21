@@ -12,6 +12,9 @@
     <a href="{% url 'sapl.sessao:adicionar_varias_materias_ordem_dia' root_pk %}" class="btn btn-default">
       {% blocktrans with verbose_name=view.verbose_name %} Adicionar Várias Matérias {% endblocktrans %}
     </a>
+    <a href="{% url 'sapl.sessao:registrar_votacao_em_bloco_ordem_dia' root_pk %}" class="btn btn-default">
+      {% blocktrans with verbose_name=view.verbose_name %} Votação em Bloco {% endblocktrans %}
+    </a>
 {% endif %}
 
 {% endblock more_buttons %}

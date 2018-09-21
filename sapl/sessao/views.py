@@ -49,6 +49,8 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
 
+from django.shortcuts import redirect
+
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
@@ -399,6 +401,11 @@ def get_presencas_generic(model, sessao, legislatura):
             yield (m.parlamentar, True)
         else:
             yield (m.parlamentar, False)
+
+
+def presentes(sessao, tabelaPresenca):
+    qtde = tabelaPresenca.objects.filter(sessao_plenaria_id=sessao).count()
+    return qtde
 
 
 class MateriaOrdemDiaCrud(MasterDetailCrud):
@@ -2667,6 +2674,114 @@ def retira_materias_ja_adicionadas(id_sessao, model):
         sessao_plenaria_id=id_sessao)
     lista_id_materias = [l.materia_id for l in lista]
     return lista_id_materias
+
+
+class RegistrarVotacaoEmBloco(PermissionRequiredMixin, TemplateView):
+
+    template_name = 'sessao/votacao/votacao_em_bloco.html'
+    permission_required = ('sessao.add_registrovotacao', )
+    form_class = VotacaoForm
+
+
+    def dispatch(self, request, *args, **kwargs):
+
+        sessao = SessaoPlenaria.objects.get(id=int(self.kwargs['pk']))
+        if not sessao.iniciada or sessao.finalizada:
+            msg = _('Não é possível registrar votação em bloco. '
+                'Esta Sessão Plenária não foi iniciada ou está finalizada.')
+            messages.add_message(self.request, messages.INFO, msg)
+            if 'expediente' in str(self.request):
+                return redirect(reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': self.kwargs['pk']}))
+            else:
+                return redirect(reverse('sapl.sessao:ordemdia_list', kwargs={'pk': self.kwargs['pk']}))
+        return super(RegistrarVotacaoEmBloco, self).dispatch(
+            request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+
+        context = super(RegistrarVotacaoEmBloco, self).get_context_data(**kwargs)
+        if 'registrar-votacao-em-bloco-ordem-dia' in str(self.request):
+            tabelaPresenca = PresencaOrdemDia
+            tabela = OrdemDia
+            titulo = 'Votação em Bloco - Matérias da Ordem do Dia'
+        else:
+            tabelaPresenca = SessaoPlenariaPresenca
+            tabela = ExpedienteMateria
+            titulo = 'Votação em Bloco - Matérias do Expediente'
+        qs = tabela.objects.filter(sessao_plenaria_id=int(self.kwargs['pk']), resultado='').order_by('numero_ordem')
+        tipos_materia = [{'descricao': ordem.materia.tipo.descricao, 'id': str(ordem.materia.tipo.id)} for ordem in qs.order_by('materia__tipo__descricao').distinct('materia__tipo__descricao')]
+        context['object_list'] = qs
+        context['tipos_materia'] = tipos_materia
+        context['total_presentes'] = presentes(int(self.kwargs['pk']), tabelaPresenca)
+        context['title'] = titulo
+        context['is_paginated'] = False        
+        return context
+
+    def post(self, request, *args, **kwargs):
+
+        if 'registrar-votacao-em-bloco-ordem-dia' in str(self.request):
+            tabelaPresenca = PresencaOrdemDia
+            tabela = OrdemDia
+            view_reverse = 'sapl.sessao:ordemdia_list'
+        else:
+            tabelaPresenca = SessaoPlenariaPresenca
+            tabela = ExpedienteMateria
+            view_reverse = 'sapl.sessao:expedientemateria_list'
+        qtde_presentes = tabelaPresenca.objects.filter(
+            sessao_plenaria_id=int(self.kwargs['pk'])).count()
+        qtde_votos = (int(request.POST['votos_sim']) +
+                      int(request.POST['votos_nao']) +
+                      int(request.POST['abstencoes']))
+
+        alerta = False
+        if (qtde_presentes == 0):
+            msg= _('Não há registro de presença de parlamentares!')
+            alerta = True
+        else:
+            if (int(request.POST['voto_presidente']) == 0):
+                qtde_presentes -= 1
+            if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
+                msg = _('O total de votos não corresponde à quantidade de presentes!')
+                alerta = True
+        if alerta:
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+        else:
+            marcadas = request.POST.getlist('materias_ordem_exp')
+            if len(marcadas) == 0:
+                msg = _('Nenhuma matéria selecionadas para registrar votação!')
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs) 
+            for materia_id in marcadas:
+
+                ordem = tabela.objects.get(id=materia_id)
+                resultado = TipoResultadoVotacao.objects.get(
+                    id=request.POST['resultado_votacao'])
+                ordem.resultado = resultado.nome
+                ordem.votacao_aberta = False
+                ordem.save()
+
+                v = RegistroVotacao(
+                    numero_votos_sim=int(request.POST['votos_sim']),
+                    numero_votos_nao=int(request.POST['votos_nao']),
+                    numero_abstencoes=int(request.POST['abstencoes']),
+                    observacao=request.POST['observacao'],
+                    materia_id = ordem.materia_id,
+                    tipo_resultado_votacao_id=int(request.POST['resultado_votacao'])
+                )
+                if tabela == OrdemDia:
+                    v.ordem_id = int(materia_id)
+                else:
+                    v.expediente_id = int(materia_id) 
+                v.save()
+            
+            msg = _('Votação em bloco completa.')
+            messages.add_message(request, messages.SUCCESS, msg)
+            return redirect(reverse(view_reverse, kwargs={'pk': self.kwargs['pk']}))
+
+    def get_tipos_votacao(self):
+        tipo = TipoResultadoVotacao.objects.all()
+        return tipo
 
 
 class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
