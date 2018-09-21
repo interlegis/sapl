@@ -16,12 +16,14 @@ from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
 from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     CreateUsuarioView, DeleteUsuarioView, EditUsuarioView,
                     HelpTopicView, ListarUsuarioView, LogotipoView,
-                    RelatorioAtasView, RelatorioDataFimPrazoTramitacaoView,
+                    RelatorioAtasView, RelatorioAudienciaView, 
+                    RelatorioDataFimPrazoTramitacaoView,
                     RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,
-                    RelatorioPresencaSessaoView, SaplSearchView)
+                    RelatorioPresencaSessaoView, 
+                    RelatorioReuniaoView, SaplSearchView)
 
 app_name = AppConfig.name
 
@@ -104,6 +106,12 @@ urlpatterns = [
     url(r'^sistema/relatorios/atas$',
         RelatorioAtasView.as_view(),
         name='atas'),
+    url(r'^sistema/relatorios/reuniao$',
+        RelatorioReuniaoView.as_view(),
+        name='reuniao'),
+    url(r'^sistema/relatorios/audiencia$',
+        RelatorioAudienciaView.as_view(),
+        name='audiencia'),
 
     url(r'^email/validate/(?P<uidb64>[0-9A-Za-z_\-]+)/'
         '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$',

@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import django_filters
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
@@ -9,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -98,14 +98,12 @@ class SessaoPlenariaForm(ModelForm):
             else:  # create
                 raise error
 
-
         # Condições da verificação
         abertura_entre_leg = leg.data_inicio <= abertura <= leg.data_fim
         abertura_entre_sl = sl.data_inicio <= abertura <= sl.data_fim
         if encerramento is not None:
-            encerramento_entre_leg = leg.data_inicio < encerramento < leg.data_fim
-            encerramento_entre_sl = sl.data_inicio < encerramento < sl.data_fim
-
+            encerramento_entre_leg = leg.data_inicio <= encerramento <= leg.data_fim
+            encerramento_entre_sl = sl.data_inicio <= encerramento <= sl.data_fim
         # Verificação das datas de abertura e encerramento da Sessão
         # Verificações com a data de encerramento preenchidas
         if encerramento is not None:
@@ -113,7 +111,8 @@ class SessaoPlenariaForm(ModelForm):
             if encerramento < abertura:
                 raise ValidationError("A data de encerramento não pode ser "
                                       "anterior a data de abertura.")
-            # Verifica se a data de abertura está entre a data de início e fim da legislatura
+            # Verifica se a data de abertura está entre a data de início e fim
+            # da legislatura
             if abertura_entre_leg and encerramento_entre_leg:
                 if abertura_entre_sl and encerramento_entre_sl:
                     pass
@@ -164,7 +163,6 @@ class SessaoPlenariaForm(ModelForm):
                                           "estar entre as "
                                           "datas de início e fim tanto Legislatura "
                                           "quanto da Sessão Legislativa.")
-
 
         # Verificações com a data de encerramento vazia
         else:
@@ -424,7 +422,7 @@ class VotacaoForm(forms.Form):
 
 class VotacaoNominalForm(forms.Form):
     resultado_votacao = forms.ModelChoiceField(label='Resultado da Votação',
-                                               required=True,
+                                               required=False,
                                                queryset=TipoResultadoVotacao.objects.all())
 
 
@@ -454,7 +452,6 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
 
         # pré-popula o campo do formulário com o ano corrente
         self.form.fields['data_inicio__year'].initial = timezone.now().year
-
 
         row1 = to_row(
             [('data_inicio__year', 3),
@@ -570,13 +567,14 @@ class OradorExpedienteForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(OradorExpedienteForm, self).__init__(*args, **kwargs)
-        legislatura_vigente = SessaoPlenaria.objects.get(pk=kwargs['initial']['id_sessao']).legislatura
+        legislatura_vigente = SessaoPlenaria.objects.get(
+            pk=kwargs['initial']['id_sessao']).legislatura
 
         if legislatura_vigente:
             self.fields['parlamentar'].queryset = \
                 Parlamentar.objects.filter(ativo=True,
                                            mandato__legislatura=legislatura_vigente
-                                          ).order_by('nome_parlamentar')
+                                           ).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()
@@ -586,18 +584,17 @@ class OradorExpedienteForm(ModelForm):
             return self.cleaned_data
 
         sessao_id = self.initial['id_sessao']
-        numero = self.initial.get('numero') # Retorna None se inexistente
+        numero = self.initial.get('numero')  # Retorna None se inexistente
         ordem = OradorExpediente.objects.filter(
-                            sessao_plenaria_id=sessao_id,
-                            numero_ordem=cleaned_data['numero_ordem']
-                            ).exists()
+            sessao_plenaria_id=sessao_id,
+            numero_ordem=cleaned_data['numero_ordem']
+        ).exists()
 
         if ordem and (cleaned_data['numero_ordem'] != numero):
             raise ValidationError(_(
                 'Já existe orador nesta posição da ordem de pronunciamento'))
 
         return self.cleaned_data
-
 
     class Meta:
         model = OradorExpediente

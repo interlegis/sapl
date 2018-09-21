@@ -116,11 +116,7 @@ HAYSTACK_CONNECTIONS = {
     },
 }
 
-
-if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
-
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -131,8 +127,13 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    # 'speedinfo.middleware.ProfilerMiddleware', # Bug na versão 1.9
-)
+    'speedinfo.middleware.ProfilerMiddleware',
+]
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
+    INTERNAL_IPS = ('127.0.0.1')
+
 
 CACHES = {
     'default': {
@@ -221,7 +222,7 @@ EMAIL_SEND_USER = config('EMAIL_SEND_USER', cast=str, default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
 SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 
-MAX_DOC_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB
+MAX_DOC_UPLOAD_SIZE = 60 * 1024 * 1024  # 60MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 
 # Internationalization
@@ -231,7 +232,10 @@ LANGUAGES = (
     ('pt-br', 'Português'),
 )
 
-TIME_ZONE = config('TZ', cast=str, default='America/Sao_Paulo')
+TIME_ZONE = config('TZ', default='America/Sao_Paulo')
+if not TIME_ZONE:
+    raise ValueError('TIMEZONE env variable undefined in .env settings file! Leaving...')
+
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True

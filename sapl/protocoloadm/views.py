@@ -142,6 +142,13 @@ class DocumentoAdministrativoCrud(Crud):
 
     class DetailView(DocumentoAdministrativoMixin, Crud.DetailView):
 
+        def get(self, *args, **kwargs):
+            pk = self.kwargs['pk']
+            documento = DocumentoAdministrativo.objects.get(id=pk)
+            if documento.restrito and self.request.user.is_anonymous():
+                return redirect('/')
+            return super(Crud.DetailView, self).get(args, kwargs)
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             self.layout_display[0]['rows'][-1][0]['text'] = (
@@ -561,18 +568,19 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
 
         kwargs = {'data': self.request.GET or None}
 
-        status_tramitacao = self.request.GET.get('tramitacao__status')
+        status_tramitacao = self.request.GET.get(
+            'tramitacaoadministrativo__status')
         unidade_destino = self.request.GET.get(
-            'tramitacao__unidade_tramitacao_destino')
+            'tramitacaoadministrativo__unidade_tramitacao_destino')
 
         qs = self.get_queryset()
 
         qs = qs.prefetch_related("documentoacessorioadministrativo_set",
-                                 "tramitacaoadministrativo_set",
-                                 "tipo",
-                                 "tramitacaoadministrativo_set__status",
-                                 "tramitacaoadministrativo_set__unidade_tramitacao_local",
-                                 "tramitacaoadministrativo_set__unidade_tramitacao_destino")
+                 "tramitacaoadministrativo_set",
+                 "tipo",
+                 "tramitacaoadministrativo_set__status",
+                 "tramitacaoadministrativo_set__unidade_tramitacao_local",
+                 "tramitacaoadministrativo_set__unidade_tramitacao_destino")
 
         if status_tramitacao and unidade_destino:
             lista = filtra_tramitacao_adm_destino_and_status(status_tramitacao,

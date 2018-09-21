@@ -8,3 +8,13 @@
        </div>
     {% endif %}
 {% endblock sub_actions %}
+{% block detail_content %}
+    {{ block.super }}
+    {% if object.normajuridica_set.last %}
+       <p class="control-label">&emsp; Norma Jurídica Relacionada</p>
+       <div class="actions btn-group btn-group-sm" role="group">
+       &emsp;&emsp;<a href="{% url 'sapl.norma:normajuridica_detail' object.normajuridica_set.last.id %}">
+           {{ object.normajuridica_set.last }}</a>
+       </div>
+    {% endif %}
+{% endblock detail_content %}

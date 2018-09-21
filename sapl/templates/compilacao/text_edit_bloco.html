@@ -36,9 +36,6 @@
             {{ node.td.rotulo_sufixo_html|safe }}
           {% endif %}
 
-
-
-
           {{ node.td.texto_prefixo_html|safe }}
 
           {% if node.da and node in node.da.alts and not node.dpt.visibilidade %}<small>({% trans 'Dispositivo visível apenas no Texto Articulado Original'%})</small>{% endif %}

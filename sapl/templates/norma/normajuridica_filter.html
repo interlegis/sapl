@@ -51,7 +51,11 @@
         {% for n in page_obj %}
           <tr>
             <td><a href="{% url 'sapl.norma:normajuridica_detail' n.id %}">{{n.tipo}}</a></td>
-            <td>{{n.numero}}</td>
+            {% if n.texto_integral %}
+                <td><a href="{{n.texto_integral.url}}">{{n.numero}}</a></td>
+            {% else %}
+                <td>{{n.numero}}</td>
+            {% endif %}
             <td>{{n.ano}}</td>
             <td>{{n.data}}</td>
             <td>{{n.ementa|safe}}</td>

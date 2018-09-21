@@ -5,15 +5,31 @@
     {% if ch.visibilidade %}
         <div class="dpt" id="d{{ch.id}}" nivel="{{ch.nivel}}">
           <div class="{{ ch.tipo_dispositivo.class_css }}" id="id{{ch.id}}" nivel="{{ch.nivel}}">
-      {% if ch.auto_inserido %}
-        {{ ch.dispositivo_pai.tipo_dispositivo.rotulo_prefixo_html|safe }}
-        <a name="{{ch.dispositivo_pai.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.dispositivo_pai.ta.pk %}#{{ch.dispositivo_pai.pk}}">{{ ch.dispositivo_pai.rotulo }}</a>
-        {{ ch.dispositivo_pai.tipo_dispositivo.rotulo_sufixo_html|safe }}
-      {% endif %}
-          {{ ch.tipo_dispositivo.rotulo_prefixo_html|safe }}
-          <a name="{{ch.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.ta.pk %}#{{ch.pk}}">{{ ch.rotulo }}</a>
-          {{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}
-          {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+            {% if ch.auto_inserido %}
+              {{ ch.dispositivo_pai.tipo_dispositivo.rotulo_prefixo_html|safe }}
+              {% if ch.dispositivo_pai.rotulo %}
+                <a name="{{ch.dispositivo_pai.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.dispositivo_pai.ta.pk %}#{{ch.dispositivo_pai.pk}}">{{ ch.dispositivo_pai.rotulo }}</a>
+                {{ ch.dispositivo_pai.tipo_dispositivo.rotulo_sufixo_html|safe }}
+              {% else %}
+                <a name="{{ch.dispositivo_pai.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.dispositivo_pai.ta.pk %}#{{ch.dispositivo_pai.pk}}">
+                  {{ ch.dispositivo_pai.tipo_dispositivo.rotulo_sufixo_html|safe }}
+                </a>
+              {% endif %}
+            {% endif %}
+            {{ ch.tipo_dispositivo.rotulo_prefixo_html|safe }}
+            {% if ch.rotulo %}
+              <a name="{{ch.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.ta.pk %}#{{ch.pk}}">{{ ch.rotulo }}</a>
+              {{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}
+              {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+            {% elif not ch.rotulo and not ch.auto_inserido %}
+              <a name="{{ch.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.ta.pk %}#{{ch.pk}}">
+                {{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}
+                {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+              </a>
+            {% else %}
+              {{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}
+              {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+            {% endif %}
           </div>
         </div>
     {%endif%}

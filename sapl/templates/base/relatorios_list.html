@@ -40,7 +40,15 @@
           <td><a href="{% url 'sapl.base:data_fim_prazo_tramitacoes' %}">Tramitações por fim de prazo</a></td>
           <td> Tramitações com fim de prazo no intervalo informado. </td>
         </tr>
+        <tr>
+          <td><a href="{% url 'sapl.base:reuniao' %}">Reunião de Comissão</a></td>
+          <td> Reunião de Comissão por data. </td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'sapl.base:audiencia' %}">Audiência Pública</a></td>
+          <td> Audiência Pública com o tipo. </td>
+        </tr>
     </tbody>
   </table>
-</fieldset
+</fieldset>
 {% endblock base_content %}

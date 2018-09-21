@@ -33,4 +33,8 @@
   check_permission: painel.list_painel
 
 - title: {% trans 'Resumo' %}
-  url: resumo
+  children:
+    - title: {% trans 'Resumo' %}
+      url: resumo
+    - title: {% trans 'Extrato' %}
+      url: resumo_ata     

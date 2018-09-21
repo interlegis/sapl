@@ -111,6 +111,8 @@ class Periodo(models.Model):  # PeriodoCompComissao
         if self.data_inicio and self.data_fim:
             return '%s - %s' % (self.data_inicio.strftime("%d/%m/%Y"),
                                 self.data_fim.strftime("%d/%m/%Y"))
+        elif self.data_inicio and not self.data_fim:
+            return '%s - ' % self.data_inicio.strftime("%d/%m/%Y")
         else:
             return '-'
 

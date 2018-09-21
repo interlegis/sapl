@@ -676,7 +676,8 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         widget=forms.HiddenInput())
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
-    indexacao = django_filters.CharFilter(lookup_expr='icontains')
+    indexacao = django_filters.CharFilter(lookup_expr='icontains',
+                                          label=_('Indexação'))
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
                                                 label='Em tramitação',
@@ -1160,7 +1161,7 @@ class TipoProposicaoSelect(Select):
             str(data_has_perfil),
             force_text(option_label))
 
-    def render_options(self, choices, selected_choices):
+    def render_options(self, selected_choices):
         # Normalize to strings.
         selected_choices = set(force_text(v) for v in selected_choices)
         output = []

@@ -744,6 +744,10 @@ class ProposicaoCrud(Crud):
                                 % (p.tipo, numero, p.ano)))
                         except ValueError:
                             pass
+                        except AttributeError:
+                            pass
+                        except TypeError:
+                            pass
 
                 elif action == 'return':
                     if not p.data_envio:
@@ -1076,6 +1080,7 @@ class TramitacaoCrud(MasterDetailCrud):
             ultima_tramitacao = Tramitacao.objects.filter(
                 materia_id=self.kwargs['pk']).order_by(
                 '-data_tramitacao',
+                '-timestamp',
                 '-id').first()
 
             if ultima_tramitacao:
@@ -1146,6 +1151,7 @@ class TramitacaoCrud(MasterDetailCrud):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data_tramitacao',
+                                                '-timestamp',
                                                 '-id')
 
     class DeleteView(MasterDetailCrud.DeleteView):
@@ -1158,6 +1164,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
             ultima_tramitacao = materia.tramitacao_set.order_by(
                 '-data_tramitacao',
+                '-timestamp',
                 '-id').first()
 
             if tramitacao.pk != ultima_tramitacao.pk:
@@ -1843,7 +1850,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         # issue https://github.com/interlegis/sapl/issues/1123
         # TODO: usar Form
         urgente = request.POST['urgente'] == 'True'
-
+        flag_error = False
         for materia_id in marcadas:
             t = Tramitacao(
                 materia_id=materia_id,
@@ -1861,9 +1868,17 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 texto=request.POST['texto']
             )
             t.save()
-            tramitacao_signal.send(sender=Tramitacao,
-                                   post=t,
-                                   request=self.request)
+            try:
+                tramitacao_signal.send(sender=Tramitacao,
+                                       post=t,
+                                       request=self.request)
+            except Exception:
+                flag_error = True
+        if flag_error:
+            msg = _('Tramitação criada, mas e-mail de acompanhamento '
+                    'de matéria não enviado. Há problemas na configuração '
+                    'do e-mail.')
+            messages.add_message(self.request, messages.ERROR, msg)
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 

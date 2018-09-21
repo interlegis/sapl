@@ -1,0 +1,10 @@
+<fieldset>
+    <p align="justify">
+      <strong>Mesa Diretora: </strong>
+      {% for m in mesa %}
+        {{m.cargo}}:
+          {{m.parlamentar.nome_parlamentar}} / {{ m.parlamentar.filiacao_atual }} ; 
+      {% endfor %}
+	</p>
+ 
+</fieldset>
