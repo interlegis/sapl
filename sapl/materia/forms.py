@@ -346,6 +346,11 @@ class RelatoriaForm(ModelForm):
 
 class TramitacaoForm(ModelForm):
 
+    urgente = forms.ChoiceField(required=True,
+                                choices=YES_NO_CHOICES,
+                                initial=False,
+                                label=_("Urgente?"))
+
     class Meta:
         model = Tramitacao
         fields = ['data_tramitacao',
