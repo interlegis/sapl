@@ -234,7 +234,8 @@ LANGUAGES = (
 
 TIME_ZONE = config('TZ', default='America/Sao_Paulo')
 if not TIME_ZONE:
-    raise ValueError('TIMEZONE env variable undefined in .env settings file! Leaving...')
+    raise ValueError(
+        'TIMEZONE env variable undefined in .env settings file! Leaving...')
 
 USE_I18N = True
 USE_L10N = True
@@ -305,15 +306,13 @@ if DEBUG and LOGGING_CONSOLE:
     # Descomentar linha abaixo fará com que logs aparecam, inclusive SQL
     # LOGGING['handlers']['console']['level'] = 'DEBUG'
     LOGGING['loggers']['django']['level'] = 'DEBUG'
-    LOGGING.update({
-        'formatters': {
-            'verbose': {
-                'format': '%(levelname)s %(asctime)s %(pathname)s '
-                '%(funcName)s %(message)s'
-            },
-            'simple': {
-                'format': '%(levelname)s %(message)s'
-            },
+    LOGGING['formatters'].update({
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(pathname)s '
+            '%(funcName)s %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
         },
     })
     LOGGING['handlers']['console']['formatter'] = 'verbose'
