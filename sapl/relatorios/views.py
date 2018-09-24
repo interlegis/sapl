@@ -1103,10 +1103,8 @@ def get_pauta_sessao(sessao, casa):
 
         dic_votacao["des_numeracao"] = ' '
 
-        numeracao = Numeracao.objects.filter(
-            materia=votacao.materia).first()
-        if numeracao is not None:
-             numeracao = numeracao.first()
+        numeracao = Numeracao.objects.filter(materia=votacao.materia).first()
+        if numeracao:
              dic_votacao["des_numeracao"] = str(
                  numeracao.numero_materia) + '/' + str(numeracao.ano_materia)
 
