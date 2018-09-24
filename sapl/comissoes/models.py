@@ -75,7 +75,8 @@ class Comissao(models.Model):
                               verbose_name=_('E-mail'))
     unidade_deliberativa = models.BooleanField(
         choices=YES_NO_CHOICES,
-        verbose_name=_('Unidade Deliberativa'))
+        verbose_name=_('Unidade Deliberativa'),
+        default=False)
     ativa = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
@@ -121,7 +122,7 @@ class Periodo(models.Model):  # PeriodoCompComissao
 class CargoComissao(models.Model):
     nome = models.CharField(max_length=50, verbose_name=_('Cargo'))
     unico = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Único'))
+        choices=YES_NO_CHOICES, verbose_name=_('Único'), default=True)
 
     class Meta:
         verbose_name = _('Cargo de Comissão')
