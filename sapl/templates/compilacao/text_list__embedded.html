@@ -1,4 +1,3 @@
-{% extends "base.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
 {% load common_tags %}
@@ -8,20 +7,6 @@
 {% block head_content %}
   <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
 {% endblock %}
-
-{% block navigation %}{% endblock %}
-
-{% block main_header %}{% endblock %}
-{% block title %}{% endblock %}
-{% block sections_nav %}{% endblock %}
-{% block extra_sections_nav %}{% endblock %}
-{% block actions %}{% endblock %}
-{% block dsp_actions %}{% endblock %}
-
-{% block detail_content %}{% endblock %}
-{% block footer_container %}{% endblock %}
-
-{% block base_content %}
 
   <div class="cp">
 
@@ -93,13 +78,9 @@
   </ul>
   {% include 'compilacao/text_list_bloco.html'%}
   </div>
-{% endblock base_content %}
-
-{% block foot_js %}
-  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
 
   {% if perms.compilacao.add_nota %}
-    <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
   {% endif %}
-{% endblock %}

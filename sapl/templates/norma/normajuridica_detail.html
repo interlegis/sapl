@@ -77,7 +77,7 @@
     </div>
   </div>
 
-  {% if object.texto_articulado.exists  %}
+  {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission %}
     <hr />
     <div class="row-fluid">
       <div class="col-sm-12">
@@ -90,13 +90,13 @@
 {% endblock detail_content %}
 
 {% block extra_js %}
-{% if object.texto_articulado.exists  %}
+{% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
   <script language="Javascript">
     window.onload = function () {
       $.get("{% url 'sapl.compilacao:ta_text' object.texto_articulado.first.id %}?embedded",
       function(data, status) {
         $('#textomultivigente').html(data)
-        $('a').dropdown()
+        $('cp a[data-toggle="dropdown"]').dropdown()
         $('.dne').remove()
       });
     }

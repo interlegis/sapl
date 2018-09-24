@@ -266,9 +266,12 @@ class TextoArticulado(TimestampedMixin):
              user.has_perm(
                  'compilacao.change_your_dispositivo_edicao_dinamica'))
 
-    def has_view_permission(self, request):
+    def has_view_permission(self, request=None):
         if self.privacidade in (STATUS_TA_IMMUTABLE_PUBLIC, STATUS_TA_PUBLIC):
             return True
+
+        if not request:
+            return False
 
         if request.user in self.owners.all():
             return True
