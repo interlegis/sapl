@@ -39,8 +39,6 @@ def test_str_sanity():
 
 
 def test_booleanfield_configure():
-    # this simply a sanity check
-    # __str__ semantics is not considered and should be tested separetely
     for app in sapl_appconfs:
         for model in app.get_models():
             for field in model._meta.get_fields():
