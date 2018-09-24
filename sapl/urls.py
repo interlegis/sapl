@@ -70,12 +70,6 @@ urlpatterns = [
 # http://stackoverflow.com/questions/35510373/
 
 if settings.DEBUG:
-    import debug_toolbar
-
-    urlpatterns += [
-                      url(r'^__debug__/', include(debug_toolbar.urls)),
-
-                  ]
     urlpatterns += static(settings.STATIC_URL,
                           document_root=settings.STATIC_ROOT)
 

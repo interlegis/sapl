@@ -1166,7 +1166,7 @@ class TipoProposicaoSelect(Select):
             str(data_has_perfil),
             force_text(option_label))
 
-    def render_options(self, selected_choices):
+    def render_options(self, choices, selected_choices):
         # Normalize to strings.
         selected_choices = set(force_text(v) for v in selected_choices)
         output = []
