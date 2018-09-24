@@ -64,7 +64,7 @@
       <div class="{{ dpt.tipo_dispositivo.class_css }}">
         <div class="dptt {% dispositivo_desativado dpt None None %}"  id="dptt{{dpt.pk}}" >
           {{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
-          {% if dpt.rotulo or dpt.nivel = 1 %}{{ dpt.rotulo }}{%else%}[{{ dpt|nomenclatura}} {% trans "de" %} {{ dpt.dispositivo_pai.rotulo }}] - {% endif %}
+          {% if dpt.rotulo or dpt.nivel == 1 %}{{ dpt.rotulo }}{%else%}[{{ dpt|nomenclatura}} {% trans "de" %} {{ dpt.dispositivo_pai.rotulo }}] - {% endif %}
           {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
 
           <span class="dtxt"
@@ -104,7 +104,7 @@
             <div class="{{ df.tipo_dispositivo.class_css }}">
               <div class="dptt {% dispositivo_desativado dpt None None %}"  id="dptt{{df.pk}}" >
                 {{ df.tipo_dispositivo.rotulo_prefixo_html|safe }}
-                <a name="{{df.pk}}" title="{{df.pk}}">{% if df.rotulo or df.nivel = 1%}{{ df.rotulo }}{%else%}[{{ df|nomenclatura}} {% trans "de" %} {{ df.dispositivo_pai.rotulo }}] - {% endif %}</a>
+                <a name="{{df.pk}}" title="{{df.pk}}">{% if df.rotulo or df.nivel == 1%}{{ df.rotulo }}{%else%}[{{ df|nomenclatura}} {% trans "de" %} {{ df.dispositivo_pai.rotulo }}] - {% endif %}</a>
                 {{ df.tipo_dispositivo.rotulo_sufixo_html|safe }}
                 <span class="dtxt" id="d{% if not df.dispositivo_subsequente_id and df.dispositivo_substituido_id %}a{% endif %}{{df.pk}}" pks="{{df.dispositivo_substituido_id|default:''}}" pk="{{df.pk}}">{{ df.tipo_dispositivo.texto_prefixo_html|safe }}{%if df.texto %}{{ df.texto|safe }}{%else%}{%if not df.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
                 {% if df.ta_publicado_id %}
