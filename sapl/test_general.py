@@ -1,9 +1,11 @@
-import pytest
 from django.apps import apps
 from django.db.models import CharField, TextField
+from django.db.models.fields import BooleanField
 from model_mommy import mommy
+import pytest
 
 from .settings import SAPL_APPS
+
 
 pytestmark = pytest.mark.django_db
 
@@ -34,3 +36,21 @@ def test_str_sanity():
                 msg = '%s.%s.__str__ is broken.' % (
                     model.__module__, model.__name__)
                 raise AssertionError(msg, exc)
+
+
+def test_booleanfield_configure():
+    # this simply a sanity check
+    # __str__ semantics is not considered and should be tested separetely
+    for app in sapl_appconfs:
+        for model in app.get_models():
+            for field in model._meta.get_fields():
+                if not isinstance(field, BooleanField):
+                    continue
+                assert isinstance(field.default, bool), """
+                    atributo 'default' não definido em:
+                    Campo: %s
+                    Model: %s
+                    app: %s 
+                    """ % (field.name,
+                           model._meta.object_name,
+                           app.name)
