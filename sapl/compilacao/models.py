@@ -657,7 +657,7 @@ class TipoDispositivo(BaseModel):
         blank=True,
         verbose_name=_('Sufixo html da nota automática'))
     contagem_continua = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Contagem contínua'))
+        choices=YES_NO_CHOICES, verbose_name=_('Contagem contínua'), default=False)
     dispositivo_de_articulacao = models.BooleanField(
         choices=YES_NO_CHOICES,
         default=False,

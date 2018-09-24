@@ -557,7 +557,8 @@ class Orgao(models.Model):
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     unidade_deliberativa = models.BooleanField(
         choices=YES_NO_CHOICES,
-        verbose_name=(_('Unidade Deliberativa')))
+        verbose_name=(_('Unidade Deliberativa')),
+        default=False)
     endereco = models.CharField(
         max_length=100, blank=True, verbose_name=_('Endereço'))
     telefone = models.CharField(
@@ -929,7 +930,8 @@ class Tramitacao(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Unidade Destino'))
     urgente = models.BooleanField(verbose_name=_('Urgente ?'),
-                                  choices=YES_NO_CHOICES)
+                                  choices=YES_NO_CHOICES,
+                                  default=False)
     turno = models.CharField(
         max_length=1, blank=True, verbose_name=_('Turno'),
         choices=TURNO_CHOICES)

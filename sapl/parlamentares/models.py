@@ -475,7 +475,7 @@ class CargoMesa(models.Model):
     descricao = models.CharField(
         max_length=50, verbose_name=_('Cargo na Mesa'))
     unico = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Cargo Único'))
+        choices=YES_NO_CHOICES, verbose_name=_('Cargo Único'), default=True)
 
     class Meta:
         verbose_name = _('Cargo na Mesa')

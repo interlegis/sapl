@@ -89,7 +89,7 @@ class Protocolo(models.Model):
         blank=True, null=True, verbose_name=_('Número de Páginas'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
-    anulado = models.BooleanField()
+    anulado = models.BooleanField(default=False)
     user_anulacao = models.CharField(max_length=20, blank=True)
     ip_anulacao = models.CharField(max_length=15, blank=True)
     justificativa_anulacao = models.CharField(
@@ -135,7 +135,8 @@ class DocumentoAdministrativo(models.Model):
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
     tramitacao = models.BooleanField(
         verbose_name=_('Em Tramitação?'),
-        choices=YES_NO_CHOICES)
+        choices=YES_NO_CHOICES,
+        default=False)
     assunto = models.TextField(verbose_name=_('Assunto'))
     numero_externo = models.PositiveIntegerField(
         blank=True,
