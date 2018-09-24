@@ -900,6 +900,8 @@ class TextView(CompMixin, ListView):
     def get(self, request, *args, **kwargs):
         if 'print' in request.GET:
             self.template_name = 'compilacao/text_list__print_version.html'
+        if 'embedded' in request.GET:
+            self.template_name = 'compilacao/text_list__embedded.html'
         return ListView.get(self, request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
