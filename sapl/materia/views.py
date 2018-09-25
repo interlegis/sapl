@@ -1114,7 +1114,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 msg = _('Tramitação criada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
-                messages.add_message(self.request, messages.ERROR, msg)
+                messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
 
@@ -1141,7 +1141,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
-                messages.add_message(self.request, messages.ERROR, msg)
+                messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
 
@@ -1878,7 +1878,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             msg = _('Tramitação criada, mas e-mail de acompanhamento '
                     'de matéria não enviado. Há problemas na configuração '
                     'do e-mail.')
-            messages.add_message(self.request, messages.ERROR, msg)
+            messages.add_message(self.request, messages.WARNING, msg)
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 

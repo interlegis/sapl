@@ -43,6 +43,7 @@ from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+from .signals import tramitacao_signal
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -820,6 +821,22 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                 context['form'].fields[
                     'unidade_tramitacao_local'].widget.attrs['disabled'] = True
             return context
+
+        def form_valid(self, form):
+            self.object = form.save()
+
+            try:
+                tramitacao_signal.send(sender=Tramitacao,
+                                       post=self.object,
+                                       request=self.request)
+            except Exception as e:
+                # TODO log error
+                msg = _('Tramitação criada, mas e-mail de acompanhamento '
+                        'de documento não enviado. Há problemas na configuração '
+                        'do e-mail.')
+                messages.add_message(self.request, messages.WARNING, msg)
+                return HttpResponseRedirect(self.get_success_url())
+            return super().form_valid(form)
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
