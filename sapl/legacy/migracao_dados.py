@@ -33,7 +33,8 @@ from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import TipoNumeracaoProtocolo
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
-                                            NOME_BANCO_LEGADO)
+                                            NOME_BANCO_LEGADO, PYTZ_TIMEZONE,
+                                            SIGLA_CASA)
 from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
                                  MateriaLegislativa, Proposicao,
                                  StatusTramitacao, TipoDocumento,
@@ -50,7 +51,6 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
 from sapl.utils import normalize
 
 from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
-from .timezonesbrasil import get_timezone
 
 
 # YAML SETUP  ###############################################################
@@ -539,6 +539,12 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('parlamentar', 'mandato', 'cod_parlamentar'),
     ('parlamentar', 'composicao_mesa', 'cod_parlamentar'),
     ('parlamentar', 'composicao_comissao', 'cod_parlamentar'),
+    # no 2.5 os parlamentares excluídos não são listados na presença da sessão
+    ('parlamentar', 'sessao_plenaria_presenca', 'cod_parlamentar'),
+    # ... nem na presença da ordem do dia
+    ('parlamentar', 'ordem_dia_presenca', 'cod_parlamentar'),
+    # ... nem na mesa da sessão
+    ('parlamentar', 'mesa_sessao_plenaria', 'cod_parlamentar'),
 
     # coligacao
     ('coligacao', 'composicao_coligacao', 'cod_coligacao'),
@@ -553,6 +559,9 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('sessao_plenaria', 'expediente_sessao_plenaria', 'cod_sessao_plen'),
     ('sessao_plenaria', 'sessao_plenaria_presenca', 'cod_sessao_plen'),
     ('sessao_plenaria', 'ordem_dia_presenca', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'mesa_sessao_plenaria', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'oradores', 'cod_sessao_plen'),
+    ('sessao_plenaria', 'oradores_expediente', 'cod_sessao_plen'),
 
     # as consultas no código do sapl 2.5
     # votacao_ordem_dia_obter_zsql e votacao_expediente_materia_obter_zsql
@@ -575,6 +584,8 @@ PROPAGACOES_DE_EXCLUSAO = [
     ('materia_legislativa', 'despacho_inicial', 'cod_materia'),
     ('materia_legislativa', 'legislacao_citada', 'cod_materia'),
     ('materia_legislativa', 'relatoria', 'cod_materia'),
+    ('materia_legislativa', 'materia_assunto', 'cod_materia'),
+
 
     # norma
     ('norma_juridica', 'vinculo_norma_juridica', 'cod_norma_referente'),
@@ -705,6 +716,12 @@ sessao_plenaria_presenca | dat_sessao = NULL           | dat_sessao = 0
     anula_tipos_origem_externa_invalidos()
     corrige_unidades_tramitacao_destino_vazia_como_anterior()
 
+    # matérias inexistentes não são mostradas em norma jurídica => apagamos
+    exec_legado('''update norma_juridica set cod_materia = NULL
+        where cod_materia not in (
+            select cod_materia from materia_legislativa
+            where ind_excluido <> 1);''')
+
 
 class Record:
     pass
@@ -790,19 +807,6 @@ def reinicia_sequence(model, id):
 REPO = git.Repo.init(DIR_REPO)
 
 
-# configura timezone de migração
-match = re.match('sapl_cm_(.*)', NOME_BANCO_LEGADO)
-sigla_casa = match.group(1)
-PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
-with open(PATH_TABELA_TIMEZONES, 'r') as arq:
-    tabela_timezones = yaml.load(arq)
-municipio, uf, nome_timezone = tabela_timezones[sigla_casa]
-if nome_timezone:
-    timezone = pytz.timezone(nome_timezone)
-else:
-    timezone = get_timezone(municipio, uf)
-
-
 def populate_renamed_fields(new, old):
     renames = field_renames[type(new)]
 
@@ -822,16 +826,17 @@ def populate_renamed_fields(new, old):
                         and value in [None, 'None']):
                     value = ''
 
-                # adiciona timezone faltante aos campos com tempo
-                #   os campos TIMESTAMP do mysql são gravados em UTC
-                #   os DATETIME e TIME não têm timezone
-                def campo_tempo_sem_timezone(tipo):
-                    return (field_type == tipo
-                            and value and not value.tzinfo)
-                if campo_tempo_sem_timezone('DateTimeField'):
-                    value = timezone.localize(value)
-                if campo_tempo_sem_timezone('TimeField'):
-                    value = value.replace(tzinfo=timezone)
+                # ajusta tempos segundo timezone
+                #  os campos TIMESTAMP do mysql são gravados em UTC
+                #  os DATETIME e TIME não têm timezone
+
+                if field_type == 'DateTimeField' and value:
+                    # as datas armazenadas no legado na verdade são naive
+                    sem_tz = value.replace(tzinfo=None)
+                    value = PYTZ_TIMEZONE.localize(sem_tz).astimezone(pytz.utc)
+
+                if field_type == 'TimeField' and value:
+                    value = value.replace(tzinfo=PYTZ_TIMEZONE)
 
                 setattr(new, field.name, value)
 
@@ -843,7 +848,7 @@ def roda_comando_shell(cmd):
 
 def get_arquivo_ajustes_pre_migracao():
     return DIR_DADOS_MIGRACAO.child(
-        'ajustes_pre_migracao', '{}.sql'.format(sigla_casa))
+        'ajustes_pre_migracao', '{}.sql'.format(SIGLA_CASA))
 
 
 def migrar_dados(apagar_do_legado=False):
@@ -1026,65 +1031,34 @@ def adjust_acompanhamentomateria(new, old):
     new.confirmado = True
 
 
-NOTA_DOCADM = '''
-## NOTA DE MIGRAÇÃO DE DADOS DO SAPL 2.5 ##
-O número de protocolo original deste documento era [{num_protocolo}], ano {ano_original}.
-'''.strip()  # noqa
-
-
 def adjust_documentoadministrativo(new, old):
     if old.num_protocolo:
-        nota = None
-        ano_original = new.ano
-        protocolo = Protocolo.objects.filter(
-            numero=old.num_protocolo, ano=new.ano)
-        if not protocolo:
-            # tentamos encontrar o protocolo no ano seguinte
-            ano_novo = ano_original + 1
-            protocolo = Protocolo.objects.filter(numero=old.num_protocolo,
-                                                 ano=ano_novo)
-            if protocolo:
-                nota = NOTA_DOCADM + '''
-O protocolo vinculado é o de mesmo número, porém do ano seguinte ({ano_novo}),
-pois não existe protocolo no sistema com este número no ano {ano_original}.
-'''
-                nota = nota.strip().format(num_protocolo=old.num_protocolo,
-                                           ano_original=ano_original,
-                                           ano_novo=ano_novo)
-                msg = 'PROTOCOLO ENCONTRADO APENAS PARA O ANO SEGUINTE!!!!! '\
-                    'DocumentoAdministrativo: {cod_documento}, '\
-                    'numero_protocolo: {num_protocolo}, '\
-                    'ano doc adm: {ano_original}'
-                warn('protocolo_ano_seguinte', msg,
-                     {'cod_documento': old.cod_documento,
-                      'num_protocolo': old.num_protocolo,
-                      'ano_original': ano_original,
-                      'nota': nota})
-            else:
-                # Se não achamos mesmo no ano anteriro
-                # colocamos no número externo
-                new.numero_externo = old.num_protocolo
+        numero, ano = old.num_protocolo, new.ano
+        # False < True => o primeiro será o protocolo não anulado
+        protocolos = Protocolo.objects.filter(
+            numero=numero, ano=ano).order_by('anulado')
+        if protocolos:
+            new.protocolo = protocolos[0]
+        else:
+            # Se não achamos o protocolo registramos no número externo
+            new.numero_externo = numero
 
-                nota = NOTA_DOCADM + '''
+            nota = '''
+## NOTA DE MIGRAÇÃO DE DADOS DO SAPL 2.5 ##
+O número de protocolo original deste documento era [{numero}], ano [{ano}].
+
 Não existe no sistema nenhum protocolo com estes dados
 e portanto nenhum protocolo foi vinculado a este documento.
 
 Colocamos então o número de protocolo no campo "número externo".
 '''
-                nota = nota.format(
-                    num_protocolo=old.num_protocolo,
-                    ano_original=ano_original)
-                msg = 'Protocolo {num_protocolo} faltando (referenciado ' \
-                    'no documento administrativo {cod_documento})'
-                warn('protocolo_faltando', msg,
-                     {'num_protocolo': old.num_protocolo,
-                      'cod_documento': old.cod_documento,
-                      'nota': nota})
-        if protocolo:
-            assert len(protocolo) == 1, 'mais de um protocolo encontrado'
-            [new.protocolo] = protocolo
-        # adiciona nota ao final da observação
-        if nota:
+            nota = nota.strip().format(numero=numero, ano=ano)
+            msg = 'Protocolo {numero} faltando (referenciado ' \
+                'no documento administrativo {cod_documento})'
+            warn('protocolo_faltando', msg,
+                 {'numero': numero,
+                  'cod_documento': old.cod_documento,
+                  'nota': nota})
             new.observacao += ('\n\n' if new.observacao else '') + nota
 
 
@@ -1163,7 +1137,7 @@ def adjust_protocolo_antes_salvar(new, old):
 def get_arquivo_resolve_registro_votacao():
     return DIR_DADOS_MIGRACAO.child(
         'ajustes_pre_migracao',
-        '{}_resolve_registro_votacao_ambiguo.yaml'.format(sigla_casa))
+        '{}_resolve_registro_votacao_ambiguo.yaml'.format(SIGLA_CASA))
 
 
 def get_como_resolver_registro_votacao_ambiguo():
