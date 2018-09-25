@@ -348,12 +348,12 @@ class FrenteForm(ModelForm):
         fields = '__all__'
 
     def clean(self):
-        frente = super(FrenteForm, self).clean()
+        super(FrenteForm, self).clean()
         cd = self.cleaned_data
         if not self.is_valid():
             return self.cleaned_data
 
-        if cd['data_criacao'] >= cd['data_extincao']:
+        if cd['data_extincao'] and cd['data_criacao'] >= cd['data_extincao']:
             raise ValidationError(_("Data Dissolução não pode ser anterior a Data Criação"))
 
         return cd
