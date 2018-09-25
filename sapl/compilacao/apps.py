@@ -6,8 +6,6 @@ from django.db.utils import DEFAULT_DB_ALIAS, IntegrityError
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.settings import BASE_DIR
-
 
 class AppConfig(apps.AppConfig):
     name = 'sapl.compilacao'
@@ -74,10 +72,9 @@ class AppConfig(apps.AppConfig):
                 tipo.save()
             except IntegrityError as e:
                 if not settings.DEBUG:
-                    logger.error(
-                        string_concat(
-                            _('Ocorreu erro na criação tipo de ta: '),
-                            str(e)))
+                    print(string_concat(
+                        _('Ocorreu erro na criação tipo de ta: '),
+                        str(e)))
 
 
 def init_compilacao_base(app_config, verbosity=2, interactive=True,
