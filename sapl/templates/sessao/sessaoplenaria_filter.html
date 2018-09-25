@@ -34,6 +34,9 @@
               <strong>Legislatura:</strong> {{s.legislatura}}</br>
               <strong>Sessão Legislativa:</strong> {{s.sessao_legislativa}}</br>
               <strong>Tipo:</strong> {{s.tipo}}</br>
+              {% if s.upload_ata %}
+              <strong><a href="{{s.upload_ata.url}}">Ata da Sessão</strong></a></br>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
@@ -54,7 +57,7 @@
   var querystring = "{{filter_url|safe}}"
 
   // Esse IF garante que já existe uma querystring, ou seja, algo já foi pesquisado
-  if(querystring.length != 0){ 
+  if(querystring.length != 0){
     $('#id_data_inicio__year').on({
       change: function(){
         window.location.search = jQuery.query.set("data_inicio__year", $('#id_data_inicio__year').val());
