@@ -1,15 +1,12 @@
-import logging
 
 from django import apps
 from django.conf import settings
 from django.db import connection, models
 from django.db.utils import DEFAULT_DB_ALIAS, IntegrityError
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 
 from sapl.settings import BASE_DIR
-
-logger = logging.getLogger(BASE_DIR.name)
 
 
 class AppConfig(apps.AppConfig):
@@ -42,7 +39,7 @@ class AppConfig(apps.AppConfig):
                         cursor.execute(line)
                     except IntegrityError as e:
                         if not settings.DEBUG:
-                            logger.error(
+                            print(
                                 string_concat(
                                     _('Ocorreu erro na importação: '),
                                     line,

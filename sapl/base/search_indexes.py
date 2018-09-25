@@ -1,29 +1,24 @@
-import logging
 import os.path
 import re
 import string
 
-import textract
 from django.db.models import F, Q, Value
 from django.db.models.fields import TextField
-from django.db.models.fields.files import FieldFile
 from django.db.models.functions import Concat
 from django.template import loader
 from haystack.constants import Indexable
 from haystack.fields import CharField
 from haystack.indexes import SearchIndex
 from haystack.utils import get_model_ct_tuple
+import textract
 from textract.exceptions import ExtensionNotSupported
 
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
-                                    STATUS_TA_PUBLIC, Dispositivo,
-                                    TextoArticulado)
+                                    STATUS_TA_PUBLIC, Dispositivo)
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
-from sapl.settings import BASE_DIR, SOLR_URL
+from sapl.settings import SOLR_URL
 from sapl.utils import RemoveTag
-
-logger = logging.getLogger(BASE_DIR.name)
 
 
 class TextExtractField(CharField):
@@ -68,7 +63,6 @@ class TextExtractField(CharField):
         msg = 'Erro inesperado processando arquivo: %s' % (
             arquivo.path)
         print(msg)
-        logger.error(msg)
 
     def file_extractor(self, arquivo):
         if not os.path.exists(arquivo.path) or \
@@ -89,7 +83,6 @@ class TextExtractField(CharField):
                 return self.whoosh_extraction(arquivo)
             except ExtensionNotSupported as e:
                 print(str(e))
-                logger.error(str(e))
             except Exception as e2:
                 print(str(e2))
                 self.print_error(arquivo)

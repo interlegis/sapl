@@ -13,8 +13,8 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, FormView, ListView,
                                   UpdateView)
 from django.views.generic.base import RedirectView, TemplateView
@@ -22,16 +22,16 @@ from django_filters.views import FilterView
 from haystack.views import SearchView
 
 from sapl import settings
+from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
-from sapl.crud.base import CrudAux, make_pagination
-from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.comissoes.models import Reuniao, Comissao
+from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
-from sapl.utils import (parlamentares_ativos, sapl_logger,
+from sapl.utils import (parlamentares_ativos,
                         show_results_filter_set)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
@@ -52,9 +52,11 @@ def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
     id_materias = []
     filtro_url = qr[campo_url]
     if local_ou_status == 'local':
-        id_materias = [item.id for item in qs if item.tramitacao_set.order_by('-id').first().unidade_tramitacao_destino_id == int(filtro_url)]
+        id_materias = [item.id for item in qs if item.tramitacao_set.order_by(
+            '-id').first().unidade_tramitacao_destino_id == int(filtro_url)]
     elif local_ou_status == 'status':
-        id_materias = [item.id for item in qs if item.tramitacao_set.order_by('-id').first().status_id == int(filtro_url)]
+        id_materias = [item.id for item in qs if item.tramitacao_set.order_by(
+            '-id').first().status_id == int(filtro_url)]
 
     return qs.filter(em_tramitacao=True, id__in=id_materias)
 
@@ -193,7 +195,7 @@ class AutorCrud(CrudAux):
                 send_mail(assunto, mensagem, remetente, destinatario,
                           fail_silently=False)
             except:
-                sapl_logger.error(
+                print(
                     _('Erro no envio de email na edição de Autores.'))
             return url_reverse
 
@@ -243,7 +245,7 @@ class AutorCrud(CrudAux):
                 send_mail(assunto, mensagem, remetente, destinatario,
                           fail_silently=False)
             except:
-                sapl_logger.error(
+                print(
                     _('Erro no envio de email na criação de Autores.'))
             return url_reverse
 
@@ -267,8 +269,8 @@ class RelatorioAtasView(FilterView):
 
         context['show_results'] = show_results_filter_set(qr)
         context['periodo'] = (
-                self.request.GET['data_inicio_0'] +
-                ' - ' + self.request.GET['data_inicio_1'])
+            self.request.GET['data_inicio_0'] +
+            ' - ' + self.request.GET['data_inicio_1'])
 
         return context
 
@@ -384,20 +386,23 @@ class RelatorioHistoricoTramitacaoView(FilterView):
 
         context['show_results'] = show_results_filter_set(qr)
         context['data_tramitacao'] = (self.request.GET['tramitacao__data_tramitacao_0'] + ' - ' +
-                                          self.request.GET['tramitacao__data_tramitacao_1'])
+                                      self.request.GET['tramitacao__data_tramitacao_1'])
         if self.request.GET['tipo']:
             tipo = self.request.GET['tipo']
-            context['tipo'] = (str(TipoMateriaLegislativa.objects.get(id=tipo)))
+            context['tipo'] = (
+                str(TipoMateriaLegislativa.objects.get(id=tipo)))
         else:
             context['tipo'] = ''
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
-            context['tramitacao__status'] = (str(StatusTramitacao.objects.get(id=tramitacao_status)))
+            context['tramitacao__status'] = (
+                str(StatusTramitacao.objects.get(id=tramitacao_status)))
         else:
             context['tramitacao__status'] = ''
         if self.request.GET['tramitacao__unidade_tramitacao_local']:
             context['tramitacao__unidade_tramitacao_local'] = \
-                (str(UnidadeTramitacao.objects.get(id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
 
@@ -424,21 +429,25 @@ class RelatorioDataFimPrazoTramitacaoView(FilterView):
                                       self.request.GET['tramitacao__data_fim_prazo_1'])
         if self.request.GET['tipo']:
             tipo = self.request.GET['tipo']
-            context['tipo'] = (str(TipoMateriaLegislativa.objects.get(id=tipo)))
+            context['tipo'] = (
+                str(TipoMateriaLegislativa.objects.get(id=tipo)))
         else:
             context['tipo'] = ''
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
-            context['tramitacao__status'] = (str(StatusTramitacao.objects.get(id=tramitacao_status)))
+            context['tramitacao__status'] = (
+                str(StatusTramitacao.objects.get(id=tramitacao_status)))
         else:
             context['tramitacao__status'] = ''
         if self.request.GET['tramitacao__unidade_tramitacao_local']:
             context['tramitacao__unidade_tramitacao_local'] = \
-                (str(UnidadeTramitacao.objects.get(id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
 
         return context
+
 
 class RelatorioReuniaoView(FilterView):
     model = Reuniao
@@ -459,7 +468,7 @@ class RelatorioReuniaoView(FilterView):
         if not self.filterset.form.is_valid():
             return context
         qr = self.request.GET.copy()
-        
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
@@ -471,6 +480,7 @@ class RelatorioReuniaoView(FilterView):
             context['comissao'] = ''
 
         return context
+
 
 class RelatorioAudienciaView(FilterView):
     model = AudienciaPublica
@@ -505,7 +515,6 @@ class RelatorioAudienciaView(FilterView):
         return context
 
 
-
 class RelatorioMateriasTramitacaoView(FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioMateriasTramitacaoilterSet
@@ -524,9 +533,11 @@ class RelatorioMateriasTramitacaoView(FilterView):
         qs = qs.filter(em_tramitacao=True)
 
         if qr.get('tramitacao__unidade_tramitacao_destino'):
-            qs = filtra_url_materias_em_tramitacao(qr, qs, 'tramitacao__unidade_tramitacao_destino', 'local')
+            qs = filtra_url_materias_em_tramitacao(
+                qr, qs, 'tramitacao__unidade_tramitacao_destino', 'local')
         if qr.get('tramitacao__status'):
-            qs = filtra_url_materias_em_tramitacao(qr, qs, 'tramitacao__status', 'status')
+            qs = filtra_url_materias_em_tramitacao(
+                qr, qs, 'tramitacao__status', 'status')
 
         context['object_list'] = qs
 
@@ -540,17 +551,19 @@ class RelatorioMateriasTramitacaoView(FilterView):
         context['ano'] = (self.request.GET['ano'])
         if self.request.GET['tipo']:
             tipo = self.request.GET['tipo']
-            context['tipo'] = (str(TipoMateriaLegislativa.objects.get(id=tipo)))
+            context['tipo'] = (
+                str(TipoMateriaLegislativa.objects.get(id=tipo)))
         else:
             context['tipo'] = ''
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
-            context['tramitacao__status'] = (str(StatusTramitacao.objects.get(id=tramitacao_status)))
+            context['tramitacao__status'] = (
+                str(StatusTramitacao.objects.get(id=tramitacao_status)))
         else:
             context['tramitacao__status'] = ''
         if self.request.GET['tramitacao__unidade_tramitacao_destino']:
-            context['tramitacao__unidade_tramitacao_destino'] = (str(UnidadeTramitacao.objects.get(id=
-                self.request.GET['tramitacao__unidade_tramitacao_destino'])))
+            context['tramitacao__unidade_tramitacao_destino'] = (str(UnidadeTramitacao.objects.get(
+                id=self.request.GET['tramitacao__unidade_tramitacao_destino'])))
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -677,7 +690,8 @@ class RelatorioMateriasPorAutorView(FilterView):
         context['show_results'] = show_results_filter_set(qr)
         if self.request.GET['tipo']:
             tipo = int(self.request.GET['tipo'])
-            context['tipo'] = (str(TipoMateriaLegislativa.objects.get(id=tipo)))
+            context['tipo'] = (
+                str(TipoMateriaLegislativa.objects.get(id=tipo)))
         else:
             context['tipo'] = ''
         if self.request.GET['autoria__autor']:
@@ -686,8 +700,8 @@ class RelatorioMateriasPorAutorView(FilterView):
         else:
             context['autor'] = ''
         context['periodo'] = (
-                self.request.GET['data_apresentacao_0'] +
-                ' - ' + self.request.GET['data_apresentacao_1'])
+            self.request.GET['data_apresentacao_0'] +
+            ' - ' + self.request.GET['data_apresentacao_1'])
 
         return context
 

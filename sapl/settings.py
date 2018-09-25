@@ -13,7 +13,6 @@ Quick-start development settings - unsuitable for production
 See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
-import logging
 
 from decouple import config
 from dj_database_url import parse as db_url
@@ -300,8 +299,10 @@ FILTERS_HELP_TEXT_FILTER = False
 LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
 
+# FIXME:  gerando problemas na alternancia entre django 1.9.13 e 1.10.8
+# Issue 52 https://github.com/interlegis/sapl/issues/52
 LOGGING_CONSOLE = config('LOGGING_CONSOLE', default=False, cast=bool)
-if DEBUG and LOGGING_CONSOLE:
+"""if DEBUG and LOGGING_CONSOLE:
     # Descomentar linha abaixo fará com que logs aparecam, inclusive SQL
     # LOGGING['handlers']['console']['level'] = 'DEBUG'
     LOGGING['loggers']['django']['level'] = 'DEBUG'
@@ -325,7 +326,7 @@ def excepthook(*args):
     logging.getLogger(BASE_DIR.name).error(
         'Uncaught exception:', exc_info=args)
 
-# sys.excepthook = excepthook
+# sys.excepthook = excepthook"""
 
 
 PASSWORD_HASHERS = [
