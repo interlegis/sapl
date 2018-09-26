@@ -604,6 +604,12 @@ p {
   }
 }
 
+@media print {
+  a[href]:after {
+    content: none !important;
+  }
+}
+
 /* Estilização da Listagem de Votos em sessões plenárias */
 
 #styleparlamentar {
