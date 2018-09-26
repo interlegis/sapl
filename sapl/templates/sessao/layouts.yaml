@@ -84,3 +84,7 @@ Bloco:
   - data_criacao data_extincao
   - partidos
   - descricao
+
+TipoJustificativa:
+  {% trans 'Tipo de Justificativa' %}:
+  - descricao

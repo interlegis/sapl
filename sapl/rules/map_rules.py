@@ -260,6 +260,7 @@ rules_group_geral = {
         (sessao.TipoSessaoPlenaria, __base__),
         (sessao.TipoResultadoVotacao, __base__),
         (sessao.TipoExpediente, __base__),
+        (sessao.TipoJustificativa, __base__),
         (sessao.Bloco, __base__),
         (sessao.ResumoOrdenacao, __base__),
 

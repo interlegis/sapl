@@ -565,3 +565,30 @@ class ResumoOrdenacao(models.Model):
 
     def __str__(self):
         return 'Ordenação do Resumo de uma Sessão'
+
+
+@reversion.register()
+class TipoJustificativa(models.Model):
+    descricao = models.CharField(max_length=150, verbose_name=_('Descrição'))
+
+    class Meta:
+        verbose_name = _('Tipo de Justificativa')
+        verbose_name_plural = _('Tipos de Justificativa')
+        ordering = ['descricao']
+
+    def __str__(self):
+        return self.descricao
+
+
+@reversion.register()
+class JustificativaAusencia(models.Model):
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        on_delete=models.CASCADE)
+    tipo_ausencia = models.ForeignKey(TipoJustificativa, on_delete=models.PROTECT,
+                                      verbose_name=_('Tipo'))
+    data = models.DateField(verbose_name=_('Data'))
+    hora = models.CharField(
+        max_length=5, verbose_name=_('Horário (hh:mm)'))
+    observacao = models.CharField(
+        max_length=150, blank=True, verbose_name=_('Observação'))
