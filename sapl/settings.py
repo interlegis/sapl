@@ -115,11 +115,7 @@ HAYSTACK_CONNECTIONS = {
     },
 }
 
-
-if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
-
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -130,8 +126,13 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    # 'speedinfo.middleware.ProfilerMiddleware', # Bug na versão 1.9
-)
+    'speedinfo.middleware.ProfilerMiddleware',
+]
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
+    INTERNAL_IPS = ('127.0.0.1')
+
 
 CACHES = {
     'default': {
