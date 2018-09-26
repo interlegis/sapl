@@ -602,7 +602,7 @@ class TipoDispositivo(BaseModel):
         max_length=50, unique=True, verbose_name=_('Nome'))
     class_css = models.CharField(
         blank=True,
-        max_length=20,
+        max_length=256,
         verbose_name=_('Classe CSS'))
     rotulo_prefixo_html = models.TextField(
         blank=True,
