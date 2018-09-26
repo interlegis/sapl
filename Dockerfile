@@ -40,7 +40,7 @@ COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
 # compilescss - Precompile all occurrences of your SASS/SCSS files for the whole project into css files
 
-RUN python3 manage.py bower_install -- --allow-root --no-input && \
+RUN python3 manage.py bower_install --allow-root && \
     python3 manage.py compilescss
 
 RUN python3 manage.py collectstatic --noinput --clear
