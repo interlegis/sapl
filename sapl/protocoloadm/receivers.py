@@ -9,7 +9,6 @@ from sapl.base.email_utils import do_envia_email_tramitacao
 
 
 @receiver(tramitacao_signal)
-import ipdb; ipdb.set_trace()
 def handle_tramitacao_signal(sender, **kwargs):
     tramitacao = kwargs.get("post")
     request = kwargs.get("request")
