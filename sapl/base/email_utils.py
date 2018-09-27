@@ -204,7 +204,6 @@ def do_envia_email_tramitacao(base_url, tipo, doc_mat, status, unidade_destino):
     #
     # Envia email de tramitacao para usuarios cadastrados
     #
-    import ipdb; ipdb.set_trace()
     if tipo == "materia":
         destinatarios = AcompanhamentoMateria.objects.filter(materia=doc_mat,
                                                              confirmado=True)
