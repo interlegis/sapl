@@ -46,7 +46,7 @@ from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal,
                         get_mime_type_from_file_extension, montar_row_autor,
                         show_results_filter_set)
 
-from .email_utils import do_envia_email_confirmacao
+from sapl.base.email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
@@ -1683,6 +1683,7 @@ class AcompanhamentoMateriaView(CreateView):
 
                 do_envia_email_confirmacao(base_url,
                                            casa,
+                                           "materia",
                                            materia,
                                            destinatario)
 

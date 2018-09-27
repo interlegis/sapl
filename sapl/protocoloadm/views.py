@@ -30,7 +30,7 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension,
                         show_results_filter_set)
-from .email_utils import do_envia_email_confirmacao
+from sapl.base.email_utils import do_envia_email_confirmacao
 from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -44,6 +44,7 @@ from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 from .signals import tramitacao_signal
+
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -196,6 +197,7 @@ class AcompanhamentoDocumentoView(CreateView):
 
                 do_envia_email_confirmacao(base_url,
                                            casa,
+                                           "documento",
                                            documento,
                                            destinatario)
 
@@ -826,7 +828,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             self.object = form.save()
 
             try:
-                tramitacao_signal.send(sender=Tramitacao,
+                tramitacao_signal.send(sender=TramitacaoAdministrativo,
                                        post=self.object,
                                        request=self.request)
             except Exception as e:
