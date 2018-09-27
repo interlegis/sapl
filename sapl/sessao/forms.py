@@ -20,8 +20,8 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone)
 
-from .models import (Bancada, Bloco, ExpedienteMateria, Orador,
-                     OradorExpediente, OrdemDia, SessaoPlenaria,
+from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
+                     Orador,OradorExpediente, OrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoResultadoVotacao)
 
 
@@ -676,3 +676,11 @@ class ResumoOrdenacaoForm(forms.Form):
                         raise ValidationError(_(
                             'Não é possível ter campos repetidos'))
         return self.cleaned_data
+
+
+
+class JustificativaAusenciaForm(forms.Form):
+    def clean(self):
+        cleaned_data = super(JustificativaAusenciaForm, self).clean()
+        if not self.is_valid():
+            return cleaned_data

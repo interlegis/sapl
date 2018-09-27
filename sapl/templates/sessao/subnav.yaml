@@ -8,6 +8,8 @@
       url: mesa
     - title: {% trans 'Presença' %}
       url: presenca
+    - title: {% trans 'Ausência' %}
+      url: justificativaausencia_list
     - title: {% trans 'Explicações Pessoais' %}
       url: orador_list
 

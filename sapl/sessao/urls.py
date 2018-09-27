@@ -4,8 +4,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                AdicionarVariasMateriasOrdemDia, BancadaCrud,
                                BlocoCrud, CargoBancadaCrud,
                                ExpedienteMateriaCrud, ExpedienteView,
-                               MateriaOrdemDiaCrud, MesaView, OradorCrud,
-                               OradorExpedienteCrud, PainelView,
+                               JustificativaAusenciaCrud, MateriaOrdemDiaCrud, MesaView, 
+                               OradorCrud, OradorExpedienteCrud, PainelView,
                                PautaSessaoDetailView, PautaSessaoView,
                                PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
@@ -152,8 +152,10 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/votacao-simbolica-transparencia/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoSimbolicaTransparenciaDetailView.as_view(),
         name='votacao_simbolica_transparencia'),
-
     url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
         name='mudar_ordem_materia_sessao'),
+    # Justificativa Ausencia
+    url(r'^sessao/(?P<pk>\d+)/justificativa/',
+        include(JustificativaAusenciaCrud.get_urls())),
 ]

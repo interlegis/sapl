@@ -37,14 +37,14 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
-                    ExpedienteForm, ListMateriaForm, MesaForm,
+                    JustificativaAusenciaForm, ExpedienteForm, ListMateriaForm, MesaForm,
                     OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
-                     ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
-                     MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
+                     ExpedienteMateria, ExpedienteSessao, JustificativaAusencia,
+                     IntegranteMesa, MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoJustificativa, TipoResultadoVotacao, TipoSessaoPlenaria, 
@@ -141,7 +141,7 @@ def abrir_votacao(request, pk, spk):
             presenca_model = SessaoPlenariaPresenca
             redirect_url = 'expedientemateria_list'
     if not model:
-        raise Http404
+        raise Http404()
 
     if (verifica_presenca(request, presenca_model, spk) and
         verifica_votacoes_abertas(request) and
@@ -2898,3 +2898,55 @@ def mudar_ordem_materia_sessao(request):
     materia_1.save()
 
     return
+
+
+class JustificativaAusenciaCrud(Crud):
+    model = JustificativaAusencia
+    public = [RP_LIST, RP_DETAIL, ]
+
+    class BaseMixin(Crud.BaseMixin):
+        list_field_names = ['sessao_plenaria', 'tipo_ausencia', 'hora',
+                            'data']
+        ordering = 'sessao_plenaria', 'tipo_ausencia', 'data'
+
+    class ListView(Crud.ListView):
+        paginate_by = 10
+
+    class CreateView(Crud.CreateView):
+        form_class = JustificativaAusenciaForm
+
+        def get_success_url(self):
+          pk = self.sessao_plenaria.id
+          return reverse('sapl.sessao:justificativaausencia_list', kwargs={'pk': pk})
+
+        def get_initial(self):
+            if self.sessao_plenaria.finalizada is None or \
+               not self.sessao_plenaria.finalizada:
+                msg = _('A Sessão deve estar finalizada para registrar as ausências.')
+                messages.add_message(self.request, messages.ERROR, msg)
+            else:
+              return {}
+
+        def form_valid(self, form):
+            return super(Crud.CreateView, self).form_valid(form)
+
+    class UpdateView(Crud.UpdateView):
+        form_class = JustificativaAusenciaForm
+
+        def get_initial(self):
+          if self.sessao_plenaria.finalizada is None or \
+               not self.sessao_plenaria.finalizada:
+                msg = _('A Sessão deve estar finalizada para editar as ausências.')
+                messages.add_message(self.request, messages.ERROR, msg)
+          else:
+            return {'sessao_plenaria': self.sessao_plenaria}
+     
+    class DeleteView(Crud.DeleteView):
+        pass
+
+    class DetailView(Crud.DetailView):
+
+        layout_key = 'JustificativaAusenciaDetail'
+
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)

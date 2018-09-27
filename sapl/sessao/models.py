@@ -582,6 +582,10 @@ class TipoJustificativa(models.Model):
 
 @reversion.register()
 class JustificativaAusencia(models.Model):
+    TIPO_AUSENCIA_CHOICES = Choices(
+        (1, 'sessao', 'Sessão'),
+        (2, 'materia', 'Matéria'),
+    )
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.CASCADE)
@@ -592,3 +596,7 @@ class JustificativaAusencia(models.Model):
         max_length=5, verbose_name=_('Horário (hh:mm)'))
     observacao = models.CharField(
         max_length=150, blank=True, verbose_name=_('Observação'))
+    ausencia = models.PositiveIntegerField(
+        verbose_name=_('Ausente em'), choices=TIPO_AUSENCIA_CHOICES, default=1)
+
+
