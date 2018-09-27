@@ -154,8 +154,7 @@ urlpatterns = [
         name='votacao_simbolica_transparencia'),
     url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
-        name='mudar_ordem_materia_sessao'),
-    # Justificativa Ausencia
-    url(r'^sessao/(?P<pk>\d+)/justificativa/',
+        name='mudar_ordem_materia_sessao'), 
+    url(r'^sessao/justificativa/',
         include(JustificativaAusenciaCrud.get_urls())),
 ]

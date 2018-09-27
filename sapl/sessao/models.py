@@ -599,4 +599,9 @@ class JustificativaAusencia(models.Model):
     ausencia = models.PositiveIntegerField(
         verbose_name=_('Ausente em'), choices=TIPO_AUSENCIA_CHOICES, default=1)
 
+    class Meta:
+        verbose_name = _('Justificativa de Ausência')
+        verbose_name_plural = _('Justificativas de Ausências')
 
+    def __str__(self):
+        return 'Justificativa de Ausência'

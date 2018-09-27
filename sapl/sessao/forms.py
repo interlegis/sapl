@@ -22,7 +22,7 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
 
 from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
                      Orador,OradorExpediente, OrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoResultadoVotacao)
+                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao)
 
 
 def recupera_anos():
@@ -680,6 +680,11 @@ class ResumoOrdenacaoForm(forms.Form):
 
 
 class JustificativaAusenciaForm(forms.Form):
+    class Meta:
+        model = JustificativaAusencia
+        fields = ['sessao_plenaria', 'tipo_ausencia', 'hora',
+                    'data']
+
     def clean(self):
         cleaned_data = super(JustificativaAusenciaForm, self).clean()
         if not self.is_valid():

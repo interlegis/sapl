@@ -2915,15 +2915,10 @@ class JustificativaAusenciaCrud(Crud):
     class CreateView(Crud.CreateView):
         form_class = JustificativaAusenciaForm
 
-        def get_success_url(self):
-          pk = self.sessao_plenaria.id
-          return reverse('sapl.sessao:justificativaausencia_list', kwargs={'pk': pk})
-
         def get_initial(self):
             if self.sessao_plenaria.finalizada is None or \
                not self.sessao_plenaria.finalizada:
-                msg = _('A Sessão deve estar finalizada para registrar as ausências.')
-                messages.add_message(self.request, messages.ERROR, msg)
+                raise ValidationError(_('A Sessão deve estar finalizada para registrar as ausências'))
             else:
               return {}
 
@@ -2936,8 +2931,7 @@ class JustificativaAusenciaCrud(Crud):
         def get_initial(self):
           if self.sessao_plenaria.finalizada is None or \
                not self.sessao_plenaria.finalizada:
-                msg = _('A Sessão deve estar finalizada para editar as ausências.')
-                messages.add_message(self.request, messages.ERROR, msg)
+               raise ValidationError(_('A Sessão deve estar finalizada para editar as ausências'))
           else:
             return {'sessao_plenaria': self.sessao_plenaria}
      

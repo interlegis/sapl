@@ -88,3 +88,11 @@ Bloco:
 TipoJustificativa:
   {% trans 'Tipo de Justificativa' %}:
   - descricao
+
+JustificativaAusenica:
+  {% trans 'Justificativa de Ausência' %}:
+  - sessao parlamentar 
+  - data hora
+  - tipo_ausencia
+  - ausencia
+  - observacao
