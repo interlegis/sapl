@@ -2955,9 +2955,3 @@ class JustificativaAusenciaCrud(Crud):
     class DeleteView(Crud.DeleteView):
         pass
 
-    class DetailView(Crud.DetailView):
-
-        layout_key = 'JustificativaAusenciaDetail'
-
-        def get(self, request, *args, **kwargs):
-            return super().get(request, *args, **kwargs)

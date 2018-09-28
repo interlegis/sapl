@@ -679,13 +679,15 @@ class ResumoOrdenacaoForm(forms.Form):
 
 
 
-class JustificativaAusenciaForm(forms.Form):
+class JustificativaAusenciaForm(ModelForm):
+
     class Meta:
         model = JustificativaAusencia
         fields = ['sessao_plenaria', 'tipo_ausencia', 'hora',
                     'data']
 
     def clean(self):
-        cleaned_data = super(JustificativaAusenciaForm, self).clean()
+        super(JustificativaAusenciaForm, self).clean()
+
         if not self.is_valid():
-            return cleaned_data
+            return self.cleaned_data
