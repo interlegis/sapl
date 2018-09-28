@@ -1,0 +1,143 @@
+{% extends "sessao/votacao/votacao.html" %}
+{% load i18n %}
+{% load common_tags %}
+
+{% block detail_content %}
+{% if object_list|length > 0 %}
+<form id="form-votacao" method="post">
+	{% csrf_token %}
+
+	<fieldset class="form-group">
+		<legend>Detalhes do Voto:</legend>
+		<div>
+			<br />
+			<b>Total presentes:</b> {{total_presentes}} (com presidente)
+			<input type="hidden" id="total_votos" name="total_votos">
+		</div>
+		<br />
+
+    <div class="row">
+      <div class="col-md-4">Sim: <input type="text" id="votos_sim" name="votos_sim" value="0" class="form-control"/></div>
+      <div class="col-md-4">Não: <input type="text" id="votos_nao" name="votos_nao" value="0" class="form-control"/></div>
+      <div class="col-md-4">Abstenções: <input type="text" id="abstencoes" name="abstencoes" value="0" class="form-control"/></div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        A totalização inclui o voto do Presidente?
+        <select id="voto_presidente" name="voto_presidente" class="form-control">
+          <option value="1">Sim</option>
+          <option value="0" selected>Não</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        Resultado da Votação
+        <select id="resultado_votacao" name="resultado_votacao" class="form-control">
+          {% for tipo in view.get_tipos_votacao %}
+          	<option value="{{tipo.id}}">{{tipo.nome}}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        Observações
+        <textarea id="observacao" name="observacao" cols="10" rows="10" class="form-control"></textarea>
+      </div>
+    </div>
+        </fieldset>
+       <br /><br />
+       <fieldset>
+        <legend>Tipos de Matéria a Exibir:</legend>
+        <div class="controls">
+            {% for tipo in tipos_materia %}
+             <div class="checkbox">
+              <label for="id_tipo_{{forloop.counter}}">
+                <input type="checkbox" id="id_tipo_{{forloop.counter}}" onchange="escondeMateria('{{ tipo.id }}')" name="tipo_materia" value="{{ tipo }}" checked />
+                {{ tipo.descricao }}
+              </label>
+             </div>
+            {% endfor %}
+        </div>
+        <br />
+        <div class="controls">
+          <div class="checkbox">
+            <label for="id_check_all">
+              <input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todas as Matérias para Votação
+            </label>
+          </div>
+        </div>
+
+        <br />
+        <div class="controls">
+        {% for ordem in object_list %}
+          {% if forloop.counter|par_ou_impar == 'P' %}
+             <div class="checkbox tipo{{ ordem.materia.tipo.id }}" style="background: #ececec;" name= "checkbox_materia">
+          {% else %}
+            <div class="checkbox tipo{{ ordem.materia.tipo.id }}" style="background: white;" name= "checkbox_materia">
+          {% endif %}
+            <label for="id_materia_{{forloop.counter}}">
+              <input type="checkbox" class="tipo{{ ordem.materia.tipo.id }}" id="id_materia_{{forloop.counter}}" name="materias_ordem_exp" value="{{ ordem.id }}" />
+              <b>{{ ordem.materia }}</b> - {{ ordem.materia.ementa }}
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+
+       </fieldset>
+        <br />
+        <input type="submit" value="Salvar" class="btn btn-primary"S>
+</form>
+{% else %}
+      <tr><td><h3 style="text-align: right;">Nenhuma matéria encontrada.</h3></td></tr>
+{% endif %}
+{% endblock detail_content %}
+
+{% block extra_js %}
+	<script language="JavaScript">
+	function checkAll(event) {
+//                        $('[name=materias_ordem_exp]').each(function() {
+//                                    alert($(this).attr("class"));
+//                                if ($(this).css("display") != "none") {
+//                                    $(this).prop('checked', event.target.checked ? 'checked': null);
+//                                    $(this).trigger('click');
+//                                    if ($(this).css("display") != "none") {
+//                                        $(this).trigger('click');   
+//
+//                                      $("." + $(this).attr("class")).removeClass("checked");
+//                                      alert("Display none");
+//                                    }
+//                                }
+//                        });
+                        $('[name=materias_ordem_exp]').each(function() {
+                                $(this).prop('checked', event.target.checked ? 'checked': null);
+                                $(this).trigger('click');
+                        });
+                }
+
+         function escondeMateria(tipo) {
+                          $(".tipo" + tipo).removeClass("checked");
+                          $('[name=materias_ordem_exp]').each(function() {
+                                if ($(this).hasClass("tipo" + tipo)) {
+                                     $(this).prop('checked', false);
+//                                     $(this).prop('checked', event.target.checked ? 'checked': null);
+//                                     $(this).trigger('click');
+                                }
+                          });
+                          $(".tipo" + tipo).toggle();
+//                          if ($(".tipo" + tipo).css("display") == "none") {
+//                          if ($(".tipo" + tipo).is( ":hidden" );) {
+//                          $(".tipo" + tipo).removeClass("checked");
+//                          }
+                }
+
+//         $('input[type=submit]').click(function() {
+//                          $('[name=checkbox_materia]').each(function() {
+//                                  $(this).show()
+//                          });
+//                          alert ('submit');
+//      });
+        </script>
+{% endblock %}

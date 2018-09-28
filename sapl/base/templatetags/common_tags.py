@@ -40,6 +40,13 @@ def model_verbose_name_plural(class_name):
 
 
 @register.filter
+def par_ou_impar(arg):
+    if int(arg) % 2 == 0:
+        return 'P'
+    else:
+        return 'I'
+
+@register.filter
 def split(value, arg):
     return value.split(arg)
 

@@ -27,7 +27,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                remove_parlamentar_composicao,
                                reordernar_materias_expediente,
                                reordernar_materias_ordem,
-                               sessao_legislativa_legislatura_ajax)
+                               sessao_legislativa_legislatura_ajax,
+                               RegistrarVotacaoEmBloco)
 
 from .apps import AppConfig
 
@@ -88,6 +89,13 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias-ordem-dia/',
         AdicionarVariasMateriasOrdemDia.as_view(),
         name='adicionar_varias_materias_ordem_dia'),
+
+    url(r'^sessao/(?P<pk>\d+)/registrar-votacao-em-bloco-ordem-dia/',
+        RegistrarVotacaoEmBloco.as_view(),
+        name='registrar_votacao_em_bloco_ordem_dia'),
+    url(r'^sessao/(?P<pk>\d+)/registrar-votacao-em-bloco-expediente/',
+        RegistrarVotacaoEmBloco.as_view(),
+        name='registrar_votacao_em_bloco_expediente'),
 
     # PAUTA SESSÃO
     url(r'^sessao/pauta-sessao$',
