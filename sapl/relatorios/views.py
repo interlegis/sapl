@@ -741,16 +741,7 @@ def get_sessao_plenaria(sessao, casa):
 def get_turno(dic, materia, sessao_data_inicio):
     descricao_turno = ' '
     descricao_tramitacao = ' '
-    tramitacao = Tramitacao.objects.filter(materia=materia,
-                                           turno__isnull=False,
-                                           data_tramitacao__lte=sessao_data_inicio,
-                                           ).exclude(turno__exact=''
-                                                     ).select_related(
-        'materia',
-        'status',
-        'materia__tipo').order_by(
-        '-data_tramitacao'
-    ).first()
+    tramitacao = None
     if tramitacao is None:
         tramitacao = materia.tramitacao_set.last()
 
@@ -759,7 +750,7 @@ def get_turno(dic, materia, sessao_data_inicio):
             if t[0] == tramitacao.turno:
                 descricao_turno = t[1]
                 break
-        descricao_tramitacao = tramitacao.status.descricao if tramitacao.status else ' '
+        descricao_tramitacao = tramitacao.status.descricao if tramitacao.status else 'Não informada'
     return (descricao_turno, descricao_tramitacao)
 
 
