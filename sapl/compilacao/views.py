@@ -2592,13 +2592,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
         history = dispositivo_a_alterar.history()
 
         for d in history:
-            """FIXME: A comparação "<" deverá ser mudada para
-                "<=" caso seja necessário permitir duas alterações
-                com mesmo inicio_vigencia no mesmo dispositivo. Neste Caso,
-                a sequencia correta ficará a cargo dos reposicionamentos e
-                (a ser implementado) entre dispositivos de mesmo nível,
-            """
-            if d.inicio_vigencia < bloco_alteracao.inicio_vigencia:
+            if d.inicio_vigencia <= bloco_alteracao.inicio_vigencia:
                 dispositivo_a_alterar = d
                 break
 
