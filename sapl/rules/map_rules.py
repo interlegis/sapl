@@ -1,23 +1,3 @@
-from sapl.base import models as base
-from sapl.comissoes import models as comissoes
-from sapl.compilacao import models as compilacao
-from sapl.lexml import models as lexml
-from sapl.materia import models as materia
-from sapl.norma import models as norma
-from sapl.painel import models as painel
-from sapl.parlamentares import models as parlamentares
-from sapl.protocoloadm import models as protocoloadm
-from sapl.audiencia import models as audiencia
-from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL, RP_LIST,
-                        SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_ANONYMOUS,
-                        SAPL_GROUP_AUTOR, SAPL_GROUP_COMISSOES,
-                        SAPL_GROUP_GERAL, SAPL_GROUP_LOGIN_SOCIAL,
-                        SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
-                        SAPL_GROUP_PAINEL, SAPL_GROUP_PARLAMENTAR,
-                        SAPL_GROUP_PROTOCOLO, SAPL_GROUP_SESSAO,
-                        SAPL_GROUP_VOTANTE)
-from sapl.sessao import models as sessao
-
 """
 Todas as permissões do django framework seguem o padrão
 
@@ -46,6 +26,26 @@ negócio trabalham com os cinco radiais de permissão
 e com qualquer outro tipo de permissão customizada, nesta ordem de precedência.
 
 """
+from sapl.audiencia import models as audiencia
+from sapl.base import models as base
+from sapl.comissoes import models as comissoes
+from sapl.compilacao import models as compilacao
+from sapl.lexml import models as lexml
+from sapl.materia import models as materia
+from sapl.norma import models as norma
+from sapl.painel import models as painel
+from sapl.parlamentares import models as parlamentares
+from sapl.protocoloadm import models as protocoloadm
+from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL, RP_LIST,
+                        SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_ANONYMOUS,
+                        SAPL_GROUP_AUTOR, SAPL_GROUP_COMISSOES,
+                        SAPL_GROUP_GERAL, SAPL_GROUP_LOGIN_SOCIAL,
+                        SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
+                        SAPL_GROUP_PAINEL, SAPL_GROUP_PARLAMENTAR,
+                        SAPL_GROUP_PROTOCOLO, SAPL_GROUP_SESSAO,
+                        SAPL_GROUP_VOTANTE)
+from sapl.sessao import models as sessao
+
 
 __base__ = [RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE]
 __listdetailchange__ = [RP_LIST, RP_DETAIL, RP_CHANGE]
@@ -161,6 +161,7 @@ rules_group_sessao = {
         (sessao.ExpedienteMateria, __base__),
         (sessao.IntegranteMesa, __base__),
         (sessao.ExpedienteSessao, __base__),
+        (sessao.OcorrenciaSessao, __base__),
         (sessao.Orador, __base__),
         (sessao.OradorExpediente, __base__),
         (sessao.OrdemDia, __base__),

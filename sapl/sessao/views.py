@@ -37,13 +37,13 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
-                    ExpedienteForm, ListMateriaForm, MesaForm,
+                    ExpedienteForm, OcorrenciaSessaoForm, ListMateriaForm, MesaForm,
                     OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
-                     ExpedienteMateria, ExpedienteSessao, IntegranteMesa,
+                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
@@ -1455,8 +1455,11 @@ class ResumoView(DetailView):
                  'decimo_ordenacao': dict_ord_template['oradores_expli']})
 
         return self.render_to_response(context)
+
+
 class ResumoAtaView(ResumoView):
     template_name = 'sessao/resumo_ata.html'
+
 
 class ExpedienteView(FormMixin, DetailView):
     template_name = 'sessao/expediente.html'
@@ -1535,6 +1538,51 @@ class ExpedienteView(FormMixin, DetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:expediente', kwargs={'pk': pk})
+
+
+class OcorrenciaSessaoView(FormMixin, DetailView):
+    template_name = 'sessao/ocorrencia_sessao.html'
+    form_class = OcorrenciaSessaoForm
+    model = SessaoPlenaria
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Ocorrências da Sessão'), self.object)
+        return context
+
+    @method_decorator(permission_required('sessao.add_ocorrenciasessao'))
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = OcorrenciaSessaoForm(request.POST)
+
+        if 'apagar-ocorrencia_sessao' in request.POST:
+            OcorrenciaSessao.objects.filter(
+                sessao_plenaria_id=self.object.id).delete()
+            return self.form_valid(form)
+
+        if form.is_valid():
+            conteudo = request.POST.get('conteudo')
+
+            OcorrenciaSessao.objects.filter(
+                sessao_plenaria_id=self.object.id).delete()
+
+            ocorrencia = OcorrenciaSessao()
+            ocorrencia.sessao_plenaria_id = self.object.id
+            ocorrencia.conteudo = conteudo
+            ocorrencia.save()
+
+            msg = _('Registro salvo com sucesso')
+            messages.add_message(self.request, messages.SUCCESS, msg)
+            return self.form_valid(form)
+        else:
+            msg = _('Erro ao salvar registro')
+            messages.add_message(self.request, messages.SUCCESS, msg)
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sapl.sessao:ocorrencia_sessao', kwargs={'pk': pk})
 
 
 class VotacaoEditView(SessaoPermissionMixin):
