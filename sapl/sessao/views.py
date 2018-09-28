@@ -2904,6 +2904,19 @@ class JustificativaAusenciaCrud(Crud):
     model = JustificativaAusencia
     public = [RP_LIST, RP_DETAIL, ]
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        presencas = SessaoPlenariaPresenca.objects.filter(
+          sessao_plenaria_id=self.object.id
+        ).order_by('parlamentar__nome_parlamentar')
+
+        parlamentares_sessao = [p.parlamentar for p in presencas]
+
+        context.update({'presenca_sessao': parlamentares_sessao})       
+        return self.render_to_response(context)
+
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['sessao_plenaria', 'tipo_ausencia', 'hora',
                             'data']
@@ -2917,23 +2930,27 @@ class JustificativaAusenciaCrud(Crud):
 
         def get_initial(self):
             if self.sessao_plenaria.finalizada is None or \
-               not self.sessao_plenaria.finalizada:
-                raise ValidationError(_('A Sessão deve estar finalizada para registrar as ausências'))
+              not self.sessao_plenaria.finalizada:
+              raise ValidationError(_('A Sessão deve estar finalizada para registrar as ausências'))
             else:
               return {}
 
         def form_valid(self, form):
             return super(Crud.CreateView, self).form_valid(form)
 
+        def get_success_url(self):
+            return reverse('sapl.sessao:justificativaausencia_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
     class UpdateView(Crud.UpdateView):
         form_class = JustificativaAusenciaForm
 
         def get_initial(self):
           if self.sessao_plenaria.finalizada is None or \
-               not self.sessao_plenaria.finalizada:
-               raise ValidationError(_('A Sessão deve estar finalizada para editar as ausências'))
+              not self.sessao_plenaria.finalizada:
+              raise ValidationError(_('A Sessão deve estar finalizada para editar as ausências'))
           else:
-            return {'sessao_plenaria': self.sessao_plenaria}
+              return {'sessao_plenaria': self.sessao_plenaria}
      
     class DeleteView(Crud.DeleteView):
         pass
