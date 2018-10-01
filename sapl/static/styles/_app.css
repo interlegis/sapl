@@ -1,0 +1,29 @@
+/*FOOTER
+Corrige a quebra de fluxo do background no rodapé com resoluções abaixo de 992px.*/
+
+.footer{
+    position:absolute;
+    width:100%;
+    background:#364347 none repeat scroll 0% 0%;
+    color:white;text-align:center;
+    margin-top:20px;
+}
+
+
+/*MEDIA QUERIES
+---> corrige a exibição de tabelas em resoluções menores que 512px*/
+
+@media screen and (max-width: 512px) {
+    .table{
+        width: auto;
+        white-space: normal;
+        display:block;
+        overflow-x: auto;
+    }
+}
+
+
+
+
+
+
