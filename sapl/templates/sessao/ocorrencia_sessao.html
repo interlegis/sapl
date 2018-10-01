@@ -1,0 +1,32 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block actions %}{% endblock %}
+
+{% block title %}<font size="6" face="SourceSansProSemiBold" color="#364347" >Ocorrências da Sessão </font> <b><small><font face="SourceSansProSemiBold" size="5" color="#93a4aa"> ({{ object }}) </font> </small></b>{% endblock %}
+
+{% block detail_content %}
+  {% if perms|get_add_perm:view %}
+    <form method="post" accept-charset="ISO-8859-1">
+    {% csrf_token %}
+      <fieldset class="form-group">
+        <textarea rows="5" cols="50" name="conteudo" id="conteudo">{{object.ocorrenciasessao.conteudo}}</textarea>
+      </fieldset>
+      <input type="submit" name="save" value="Salvar" class="btn btn-primary"/>
+      <input type="submit" name="delete" value="Apagar" class="btn btn-danger" />
+    </form>
+  {% else %}
+  {{object.ocorrenciasessao.conteudo|safe}}
+  {% endif %}
+{% endblock detail_content %}
+
+<!-- Texto RICO -->
+{% block extra_js %}
+  {% if perms|get_add_perm:view %}
+    <script language="JavaScript">
+      initTinymce(null);
+    </script>
+  {% endif %}
+{% endblock %}

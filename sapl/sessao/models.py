@@ -302,6 +302,21 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
 
 
 @reversion.register()
+class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
+    sessao_plenaria = models.OneToOneField(SessaoPlenaria,
+                                           on_delete=models.PROTECT)
+    conteudo = models.TextField(
+        blank=True, verbose_name=_('Ocorrências da Sessão Plenária'))
+
+    class Meta:
+        verbose_name = _('Ocorrência da Sessão Plenaria')
+        verbose_name_plural = _('Ocorrências da Sessão Plenaria')
+
+    def __str__(self):
+        return '%s - %s' % (self.sessao_plenaria, self.conteudo)
+
+
+@reversion.register()
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.PROTECT)
