@@ -91,7 +91,7 @@ TipoJustificativa:
 
 JustificativaAusenica:
   {% trans 'Justificativa de Ausência' %}:
-  - sessao parlamentar 
+  - sessao_plenaria parlamentar 
   - data hora
   - tipo_ausencia
   - ausencia

@@ -38,6 +38,7 @@ urlpatterns = [
     url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +
                              OradorExpedienteCrud.get_urls() +
                              ExpedienteMateriaCrud.get_urls() +
+                             JustificativaAusenciaCrud.get_urls() +
                              MateriaOrdemDiaCrud.get_urls())),
 
     url(r'^sessao/(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
@@ -155,6 +156,4 @@ urlpatterns = [
     url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
         name='mudar_ordem_materia_sessao'), 
-    url(r'^sessao/justificativa/',
-        include(JustificativaAusenciaCrud.get_urls())),
 ]

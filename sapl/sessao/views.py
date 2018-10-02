@@ -2900,9 +2900,10 @@ def mudar_ordem_materia_sessao(request):
     return
 
 
-class JustificativaAusenciaCrud(Crud):
+class JustificativaAusenciaCrud(MasterDetailCrud):
     model = JustificativaAusencia
     public = [RP_LIST, RP_DETAIL, ]
+    parent_field = 'sessao_plenaria'
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -2917,15 +2918,15 @@ class JustificativaAusenciaCrud(Crud):
         context.update({'presenca_sessao': parlamentares_sessao})       
         return self.render_to_response(context)
 
-    class BaseMixin(Crud.BaseMixin):
+    class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['sessao_plenaria', 'tipo_ausencia', 'hora',
                             'data']
         ordering = 'sessao_plenaria', 'tipo_ausencia', 'data'
 
-    class ListView(Crud.ListView):
+    class ListView(MasterDetailCrud.ListView):
         paginate_by = 10
 
-    class CreateView(Crud.CreateView):
+    class CreateView(MasterDetailCrud.CreateView):
         form_class = JustificativaAusenciaForm
 
         def get_initial(self):
@@ -2933,16 +2934,13 @@ class JustificativaAusenciaCrud(Crud):
               not self.sessao_plenaria.finalizada:
               raise ValidationError(_('A Sessão deve estar finalizada para registrar as ausências'))
             else:
-              return {}
-
-        def form_valid(self, form):
-            return super(Crud.CreateView, self).form_valid(form)
+              return {'sessao_plenaria': self.sessao_plenaria}
 
         def get_success_url(self):
             return reverse('sapl.sessao:justificativaausencia_list',
                            kwargs={'pk': self.kwargs['pk']})
 
-    class UpdateView(Crud.UpdateView):
+    class UpdateView(MasterDetailCrud.UpdateView):
         form_class = JustificativaAusenciaForm
 
         def get_initial(self):
@@ -2952,6 +2950,6 @@ class JustificativaAusenciaCrud(Crud):
           else:
               return {'sessao_plenaria': self.sessao_plenaria}
      
-    class DeleteView(Crud.DeleteView):
+    class DeleteView(MasterDetailCrud.DeleteView):
         pass
 
