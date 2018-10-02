@@ -2919,9 +2919,8 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
         return self.render_to_response(context)
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['sessao_plenaria', 'tipo_ausencia', 'hora',
-                            'data']
-        ordering = 'sessao_plenaria', 'tipo_ausencia', 'data'
+        list_field_names = ['sessao_plenaria', 'ausencia','tipo_ausencia',
+                    'data' ]
 
     class ListView(MasterDetailCrud.ListView):
         paginate_by = 10
@@ -2930,11 +2929,11 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
         form_class = JustificativaAusenciaForm
 
         def get_initial(self):
-            if self.sessao_plenaria.finalizada is None or \
-              not self.sessao_plenaria.finalizada:
-              raise ValidationError(_('A Sessão deve estar finalizada para registrar as ausências'))
-            else:
-              return {'sessao_plenaria': self.sessao_plenaria}
+            sessao_plenaria = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+            return {'sessao_plenaria': sessao_plenaria}
+
+        def form_valid(self, form):
+            return super(MasterDetailCrud.CreateView, self).form_valid(form)
 
         def get_success_url(self):
             return reverse('sapl.sessao:justificativaausencia_list',
@@ -2942,13 +2941,6 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = JustificativaAusenciaForm
-
-        def get_initial(self):
-          if self.sessao_plenaria.finalizada is None or \
-              not self.sessao_plenaria.finalizada:
-              raise ValidationError(_('A Sessão deve estar finalizada para editar as ausências'))
-          else:
-              return {'sessao_plenaria': self.sessao_plenaria}
      
     class DeleteView(MasterDetailCrud.DeleteView):
         pass

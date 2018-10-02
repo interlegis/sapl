@@ -684,10 +684,20 @@ class JustificativaAusenciaForm(ModelForm):
     class Meta:
         model = JustificativaAusencia
         fields = ['sessao_plenaria', 'tipo_ausencia', 'hora',
-                    'data']
+                    'data', 'ausencia', 'parlamentar', 'observacao']
+
+    def __init__(self, **kwargs):
+        super(JustificativaAusenciaForm, self).__init__(**kwargs)
 
     def clean(self):
-        super(JustificativaAusenciaForm, self).clean()
+        cleaned_data = super(JustificativaAusenciaForm, self).clean()
 
         if not self.is_valid():
             return self.cleaned_data
+
+        sessao_plenaria = cleaned_data['sessao_plenaria']
+
+        if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
+            raise ValidationError("A sessão deve está finalizada para registrar uma Ausência")
+        else:
+            return cleaned_data

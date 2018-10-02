@@ -588,13 +588,14 @@ class JustificativaAusencia(models.Model):
     )
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.CASCADE)
+                                        on_delete=models.CASCADE,
+                                        verbose_name=_('Sessão Plenárias'))
     tipo_ausencia = models.ForeignKey(TipoJustificativa, on_delete=models.PROTECT,
                                       verbose_name=_('Tipo'))
     data = models.DateField(verbose_name=_('Data'))
     hora = models.CharField(
         max_length=5, verbose_name=_('Horário (hh:mm)'))
-    observacao = models.CharField(
+    observacao = models.TextField(
         max_length=150, blank=True, verbose_name=_('Observação'))
     ausencia = models.PositiveIntegerField(
         verbose_name=_('Ausente em'), choices=TIPO_AUSENCIA_CHOICES, default=1)

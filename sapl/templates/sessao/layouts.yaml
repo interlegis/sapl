@@ -89,7 +89,7 @@ TipoJustificativa:
   {% trans 'Tipo de Justificativa' %}:
   - descricao
 
-JustificativaAusenica:
+JustificativaAusencia:
   {% trans 'Justificativa de Ausência' %}:
   - sessao_plenaria parlamentar 
   - data hora
