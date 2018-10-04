@@ -194,7 +194,7 @@ Para facilitar sua conferência, seguem os links para as proposições envolvida
     '''.format(table.draw(), links, sqls)
 
 
-def get_dependencias_a_ressucitar(slug):
+def get_dependencias_a_ressuscitar(slug):
     ocorrencias = yaml.load(
         Path(DIR_REPO.child('ocorrencias.yaml').read_file()))
     fks_faltando = ocorrencias.get('fk')
@@ -349,8 +349,8 @@ def get_sql_criar(tabela_alvo, campo, valor, slug):
     return sql, links
 
 
-TEMPLATE_RESSUCITADOS = '''{}
-/* RESSUCITADOS
+TEMPLATE_RESSUSCITADOS = '''{}
+/* RESSUSCITADOS
 
 
 SOBRE REGISTROS QUE ESTAVAM APAGADOS E FORAM RESTAURADOS
@@ -397,11 +397,11 @@ def get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug):
         links = sem_repeticoes_mantendo_ordem(links)
 
         sqls, links = ['\n'.join(sorted(s)) for s in [sqls, links]]
-        return TEMPLATE_RESSUCITADOS.format(preambulo, links, sqls)
+        return TEMPLATE_RESSUSCITADOS.format(preambulo, links, sqls)
 
 
-def get_ressucitar(slug):
-    preambulo, desexcluir, criar = get_dependencias_a_ressucitar(slug)
+def get_ressuscitar(slug):
+    preambulo, desexcluir, criar = get_dependencias_a_ressuscitar(slug)
     return get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug)
 
 
@@ -413,8 +413,8 @@ def get_slug():
     return siglas_para_slugs[sigla]
 
 
-def adiciona_ressucitar():
-    sqls = get_ressucitar(get_slug())
+def adiciona_ressuscitar():
+    sqls = get_ressuscitar(get_slug())
     if sqls.strip():
         arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
         conteudo = arq_ajustes_pre_migracao.read_file()
