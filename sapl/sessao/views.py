@@ -2905,6 +2905,7 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL, ]
     parent_field = 'sessao_plenaria'
 
+
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
@@ -2915,7 +2916,23 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
         parlamentares_sessao = [p.parlamentar for p in presencas]
 
-        context.update({'presenca_sessao': parlamentares_sessao})       
+        context.update({'presenca_sessao': parlamentares_sessao})  
+
+        expedientes = ExpedienteMateria.objects.filter(
+          sessao_plenaria_id=self.object.id) 
+
+        expedientes_materia = [e.materia for e in expedientes]
+
+        context.update({'expedientes': expedientes})  
+
+        ordens = OrdemDia.objects.filter(
+          sessao_plenaria_id=self.object.id)
+
+        ordem_materia = [o.materia for o in ordens]
+
+        context.update({'ordens': ordens})
+
+        import ipdb; ipdb.set_trace()
         return self.render_to_response(context)
 
     class BaseMixin(MasterDetailCrud.BaseMixin):

@@ -1,12 +1,16 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load common_tags %}
 {% block actions %}{% endblock %}
 {% block detail_content %}
 	{% crispy form %}
-	<div class="output">
-	  <div id="show_materia" class="show_materia">  “Good artists copy, great artists steal” Pablo Picasso</div>
-	</div>
+
+<form method="post">
+	{% csrf_token %}
+			<div class="output">
+			  <div id="show_materia" class="show_materia" type="hidden"> {{ expedientes_materia }}</div>
+			</div>
 {% endblock detail_content %}
 
 
@@ -16,10 +20,10 @@
     $(function () {
       $("#id_ausencia").change(function() {
         var val = $(this).val();
-        if(val === "show_materia") {
+        if(val === "1") {
             $("#show_materia").show();
         }
-        else if(val === "show_materia") {
+        else if(val === "2") {
             $("#show_materia").hide();
         }
       });

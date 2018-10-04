@@ -583,8 +583,8 @@ class TipoJustificativa(models.Model):
 @reversion.register()
 class JustificativaAusencia(models.Model):
     TIPO_AUSENCIA_CHOICES = Choices(
-        (1, 'sessao', 'Sessão'),
-        (2, 'materia', 'Matéria'),
+        (1, 'materia', 'Matéria'),
+        (2, 'sessao', 'Sessão'),
     )
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
