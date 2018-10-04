@@ -2927,13 +2927,11 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = JustificativaAusenciaForm
+        template_name = 'sessao/justificativaausencia_create.html'
 
         def get_initial(self):
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
             return {'sessao_plenaria': sessao_plenaria}
-
-        def form_valid(self, form):
-            return super(MasterDetailCrud.CreateView, self).form_valid(form)
 
         def get_success_url(self):
             return reverse('sapl.sessao:justificativaausencia_list',

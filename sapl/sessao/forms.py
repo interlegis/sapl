@@ -681,13 +681,13 @@ class ResumoOrdenacaoForm(forms.Form):
 
 class JustificativaAusenciaForm(ModelForm):
 
+    sessao_plenaria = forms.ModelChoiceField(queryset=SessaoPlenaria.objects.all(),
+                                      widget=forms.HiddenInput())
+
     class Meta:
         model = JustificativaAusencia
         fields = ['sessao_plenaria', 'tipo_ausencia', 'hora',
                     'data', 'ausencia', 'parlamentar', 'observacao']
-
-    def __init__(self, **kwargs):
-        super(JustificativaAusenciaForm, self).__init__(**kwargs)
 
     def clean(self):
         cleaned_data = super(JustificativaAusenciaForm, self).clean()

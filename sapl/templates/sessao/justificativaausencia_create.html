@@ -4,4 +4,27 @@
 {% block actions %}{% endblock %}
 {% block detail_content %}
 	{% crispy form %}
+	<div class="output">
+	  <div id="show_materia" class="show_materia">  “Good artists copy, great artists steal” Pablo Picasso</div>
+	</div>
 {% endblock detail_content %}
+
+
+{% block extra_js %}
+
+    <script type="text/javascript">
+    $(function () {
+      $("#id_ausencia").change(function() {
+        var val = $(this).val();
+        if(val === "show_materia") {
+            $("#show_materia").show();
+        }
+        else if(val === "show_materia") {
+            $("#show_materia").hide();
+        }
+      });
+    });
+   	</script>
+
+{% endblock %}
+ 			
