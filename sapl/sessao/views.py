@@ -1557,16 +1557,16 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
     form_class = OcorrenciaSessaoForm
     model = SessaoPlenaria
 
-    def delete_form(self):
-        OcorrenciaSessao.objects.filter(sessao_plenaria=self.object.id).delete()
+    def delete(self):
+        OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
 
         msg = _('Registro deletado com sucesso')
         messages.add_message(self.request, messages.SUCCESS, msg)
 
-    def save_form(self,request):
-        conteudo = request.POST.get('conteudo')
+    def save(self,form):
+        conteudo = form.cleaned_data['conteudo']
 
-        OcorrenciaSessao.objects.filter(sessao_plenaria=self.object.id).delete()
+        OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
 
         ocorrencia = OcorrenciaSessao()
         ocorrencia.sessao_plenaria_id = self.object.id
@@ -1581,13 +1581,16 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
         self.object = self.get_object()
         form = OcorrenciaSessaoForm(request.POST)
 
+        if not form.is_valid():
+            return self.form_invalid(form)
+
         if request.POST.get('delete'):
-            self.delete_form()
-            return self.form_valid(form)
+            self.delete()
 
         elif request.POST.get('save'):
-           self.save_form(request)
-           return self.form_valid(form)
+           self.save(form)
+
+        return self.form_valid(form)
 
     def get_success_url(self):
         pk = self.kwargs['pk']
@@ -1702,7 +1705,7 @@ class VotacaoView(SessaoPermissionMixin):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = VotacaoForm(request.POST)
-        context = self.get_context_d(object=self.object)
+        context = self.get_context_data(object=self.object)
         url = request.get_full_path()
 
         # ====================================================
