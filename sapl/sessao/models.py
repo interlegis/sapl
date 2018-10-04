@@ -589,9 +589,9 @@ class JustificativaAusencia(models.Model):
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.CASCADE,
-                                        verbose_name=_('Sessão Plenárias'))
+                                        verbose_name=_('Sessão Plenária'))
     tipo_ausencia = models.ForeignKey(TipoJustificativa, on_delete=models.PROTECT,
-                                      verbose_name=_('Tipo'))
+                                      verbose_name=_('Tipo de Justificativa'))
     data = models.DateField(verbose_name=_('Data'))
     hora = models.CharField(
         max_length=5, verbose_name=_('Horário (hh:mm)'))
