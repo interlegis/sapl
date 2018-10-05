@@ -1019,7 +1019,7 @@ def get_pauta_sessao(sessao, casa):
     inf_basicas_dic["nom_sessao"] = sessao.tipo.nome
     inf_basicas_dic["num_sessao_plen"] = sessao.numero
     inf_basicas_dic["num_legislatura"] = sessao.legislatura
-    inf_basicas_dic["num_sessao_leg"] = sessao.legislatura
+    inf_basicas_dic["num_sessao_leg"] = sessao.sessao_legislativa.numero
     inf_basicas_dic["dat_inicio_sessao"] = sessao.data_inicio
     inf_basicas_dic["hr_inicio_sessao"] = sessao.hora_inicio
     inf_basicas_dic["dat_fim_sessao"] = sessao.data_fim
