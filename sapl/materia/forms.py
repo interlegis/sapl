@@ -245,7 +245,7 @@ class MateriaLegislativaForm(ModelForm):
             primeiro_autor = True
         else:
             primeiro_autor = False
-            
+
         materia = super(MateriaLegislativaForm, self).save(commit)
         materia.save()
 
@@ -280,6 +280,20 @@ class UnidadeTramitacaoForm(ModelForm):
             msg = _('Somente um campo deve ser preenchido!')
             raise ValidationError(msg)
         return cleaned_data
+
+    def save(self, commit=False):
+        unidade = super(UnidadeTramitacaoForm, self).save(commit)
+        cd = self.cleaned_data
+
+        if not cd.get('orgao'):
+            unidade.orgao = None
+        if not cd.get('parlamentar'):
+            unidade.parlamentar = None
+        if not cd.get('comissao'):
+            unidade.comissao = None
+
+        unidade.save()
+        return unidade
 
 
 class AcompanhamentoMateriaForm(ModelForm):
