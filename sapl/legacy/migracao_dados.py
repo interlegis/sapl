@@ -623,6 +623,36 @@ def corrige_unidades_tramitacao_destino_vazia_como_anterior():
             '''.format(tabela_tramitacao))
 
 
+def apaga_ref_a_mats_e_docs_inexistentes_em_proposicoes():
+    # as referencias a matérias e documentos apagados não aparecem no 3.1
+    # além do que, se ressuscitássemos essas matérias e docs,
+    # não seria possível apagá-los,
+    # pois é impossível para um usuário não autor acessar as proposicões
+    # para apagar a referências antes
+    exec_legado('''
+        update proposicao set cod_materia = NULL where cod_materia not in (
+            select cod_materia from materia_legislativa
+            where ind_excluido <> 1);
+    ''')
+    props_sem_mats = list(primeira_coluna(exec_legado('''
+        select cod_proposicao from proposicao p inner join tipo_proposicao t
+        on p.tip_proposicao = t.tip_proposicao
+        where t.ind_mat_ou_doc = 'M' and cod_mat_ou_doc not in (
+            select cod_materia from materia_legislativa
+            where ind_excluido <> 1)
+        ''')))
+    props_sem_docs = list(primeira_coluna(exec_legado('''
+        select cod_proposicao from proposicao p inner join tipo_proposicao t
+        on p.tip_proposicao = t.tip_proposicao
+        where t.ind_mat_ou_doc = 'D' and cod_mat_ou_doc not in (
+            select cod_documento from documento_acessorio
+            where ind_excluido <> 1);
+        ''')))
+    exec_legado_em_subconjunto('''
+        update proposicao set cod_mat_ou_doc = NULL
+        where cod_proposicao in {}''', props_sem_mats + props_sem_docs)
+
+
 def uniformiza_banco():
     propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO)
     checa_registros_votacao_ambiguos_e_remove_nao_usados()
@@ -721,6 +751,8 @@ sessao_plenaria_presenca | dat_sessao = NULL           | dat_sessao = 0
         where cod_materia not in (
             select cod_materia from materia_legislativa
             where ind_excluido <> 1);''')
+
+    apaga_ref_a_mats_e_docs_inexistentes_em_proposicoes()
 
 
 class Record:
