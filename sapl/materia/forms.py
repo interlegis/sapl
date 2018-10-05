@@ -281,6 +281,23 @@ class UnidadeTramitacaoForm(ModelForm):
             raise ValidationError(msg)
         return cleaned_data
 
+    def save(self, commit=False):
+        unidade = super(UnidadeTramitacaoForm, self).save(commit)
+        cd = self.cleaned_data
+
+        if 'orgao' not in cd.keys():
+            unidade.orgao = None
+            unidade.orgao_id = None
+        if 'parlamentar' not in cd.keys():
+            unidade.parlamentar = None
+            unidade.parlamentar_id = None
+        if 'comissao' not in cd.keys():
+            unidade.comissao = None
+            unidade.comissao_id = None
+
+        unidade.save()
+        return unidade
+
 
 class AcompanhamentoMateriaForm(ModelForm):
 
