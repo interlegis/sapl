@@ -4,9 +4,12 @@
 
 @import "home_index";
 
-html, body {
+html {
   position: relative;
   min-height: 100%;
+}
+body {
+  margin-bottom: 160px;
 }
 
 h1, h2, h3, h4, h5, h6, form, dl, dt, dd, p, div, img, a {
@@ -364,6 +367,9 @@ nav {
   background: #364347;
   color: white;
   text-align: center;
+  position: absolute;
+  width: 100%;
+  bottom: 0px;
   p {
     color: white;
     margin-top: 10px;
@@ -406,18 +412,18 @@ nav {
 }
 
 @media (max-width: 991px) {
+  body {
+    margin: 0;
+  }
+  .footer {
+    position: relative;
+  }
   .caret {
     margin-left: 1px;
   }
   .navbar-nav > li > a {
     padding-left: 4px;
     padding-right: 4px;
-  }
-  .table{
-    width: auto;
-    white-space: normal;
-    display:block;
-    overflow-x: auto;
   }
 }
 
@@ -447,6 +453,12 @@ nav {
         margin: 8px 0;
       }
     }
+  }
+  .table{
+    width: auto;
+    white-space: normal;
+    display:block;
+    overflow-x: auto;
   }
 }
 
