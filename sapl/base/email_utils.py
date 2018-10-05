@@ -62,21 +62,22 @@ def enviar_emails(sender, recipients, messages):
                       fail_silently=False)
 
 
-def criar_email_confirmacao(base_url, casa_legislativa, tipo, doc_mat, hash_txt=''):
+def criar_email_confirmacao(base_url, casa_legislativa, doc_mat, tipo, hash_txt=''):
 
     if not casa_legislativa:
         raise ValueError("Casa Legislativa é obrigatória")
 
     if not doc_mat:
         if tipo == "materia":
-            raise ValueError("Matéria é obrigatória")
+            msg = "Matéria é obrigatória"
         else:
-            raise ValueError("Documento é obrigatório")
+            msg = "Documento é obrigatório"
+        raise ValueError(msg)
 
     # FIXME i18n
-    casa_nome = (casa_legislativa.nome + ' de ' +
-                 casa_legislativa.municipio + '-' +
-                 casa_legislativa.uf)
+    casa_nome = ("{} de {} - {}".format(casa_legislativa.nome,
+                                        casa_legislativa.municipio,
+                                        casa_legislativa.uf))
 
     if tipo == "materia":
         doc_mat_url = reverse('sapl.materia:materialegislativa_detail',
@@ -84,14 +85,12 @@ def criar_email_confirmacao(base_url, casa_legislativa, tipo, doc_mat, hash_txt=
         confirmacao_url = reverse('sapl.materia:acompanhar_confirmar',
                                   kwargs={'pk': doc_mat.id})
         ementa = doc_mat.ementa
-        autores = []
-        for autoria in doc_mat.autoria_set.all():
-            autores.append(autoria.autor.nome)
+        autores = [autoria.autor.nome for autoria in doc_mat.autoria_set.all()]
     else:
         doc_mat_url = reverse('sapl.protocoloadm:documentoadministrativo_detail',
-                              kwargs={'pk': documento.id})
+                              kwargs={'pk': doc_mat.id})
         confirmacao_url = reverse('sapl.protocoloadm:acompanhar_confirmar',
-                                  kwargs={'pk': documento.id})
+                                  kwargs={'pk': doc_mat.id})
         ementa = doc_mat.assunto
         autores = ""
 
@@ -119,16 +118,17 @@ def do_envia_email_confirmacao(base_url, casa, tipo, doc_mat, destinatario):
     sender = EMAIL_SEND_USER
     # FIXME i18n
     if tipo == "materia":
-        msg = " - Ative o Acompanhamento da Materia"
+        msg = " - Ative o Acompanhamento da Matéria"
     else:
         msg = " - Ative o Acompanhamento de Documento"
-    subject = "[SAPL] " + str(doc_mat) + msg
+    subject = "[SAPL] {} {}".format(str(doc_mat), msg)
     messages = []
     recipients = []
 
     email_texts = criar_email_confirmacao(base_url,
                                           casa,
                                           doc_mat,
+                                          tipo,
                                           destinatario.hash,)
     recipients.append(destinatario.email)
     messages.append({
@@ -149,14 +149,15 @@ def criar_email_tramitacao(base_url, casa_legislativa, tipo, doc_mat, status,
 
     if not doc_mat:
         if tipo == "materia":
-            raise ValueError("Matéria é obrigatória")
+            msg = "Matéria é obrigatória"
         else:
-            raise ValueError("Documento é obrigatório")
+            msg = "Documento é obrigatório"
+        raise ValueError(msg)
 
     # FIXME i18n
-    casa_nome = (casa_legislativa.nome + ' de ' +
-                 casa_legislativa.municipio + '-' +
-                 casa_legislativa.uf)
+    casa_nome = ("{} de {} - {}".format(casa_legislativa.nome,
+                                        casa_legislativa.municipio,
+                                        casa_legislativa.uf))
     if tipo == "materia":
         doc_mat_url = reverse('sapl.materia:tramitacao_list',
                               kwargs={'pk': doc_mat.id})
@@ -164,19 +165,17 @@ def criar_email_tramitacao(base_url, casa_legislativa, tipo, doc_mat, status,
                               kwargs={'pk': doc_mat.id})
 
         ementa = doc_mat.ementa
-        autores = []
-        for autoria in doc_mat.autoria_set.all():
-            autores.append(autoria.autor.nome)
+        autores = [autoria.autor.nome for autoria in doc_mat.autoria_set.all()]
+        tramitacao = doc_mat.tramitacao_set.last()
+
     else:
-        doc_mat_url = reverse('sapl.protocoloadm:tramitacao_list',
+        doc_mat_url = reverse('sapl.protocoloadm:tramitacaoadministrativo_list',
                               kwargs={'pk': doc_mat.id})
         url_excluir = reverse('sapl.protocoloadm:acompanhar_excluir',
                               kwargs={'pk': doc_mat.id})
         autores = ""
         ementa = doc_mat.assunto
-
-
-    tramitacao = doc_mat.tramitacao_set.last()
+        tramitacao = doc_mat.tramitacaoadministrativo_set.last()
 
     templates = load_email_templates(['email/tramitacao.txt',
                                       'email/tramitacao.html'],
@@ -216,12 +215,10 @@ def do_envia_email_tramitacao(base_url, tipo, doc_mat, status, unidade_destino):
     sender = EMAIL_SEND_USER
     # FIXME i18nn
     if tipo == "materia":
-        msg = " - Acompanhamento de Materia Legislativa"
+        msg = " - Acompanhamento de Matéria Legislativa"
     else:
         msg = " - Acompanhamento de Documento"
-
-    subject = "[SAPL] " + str(doc_mat) + \
-              msg
+    subject = "[SAPL] {} {}".format(str(doc_mat), msg)
 
     connection = get_connection()
     connection.open()
@@ -234,7 +231,7 @@ def do_envia_email_tramitacao(base_url, tipo, doc_mat, status, unidade_destino):
                                                  doc_mat,
                                                  status,
                                                  unidade_destino,
-                                                 destinatario.hash,)
+                                                 destinatario.hash)
 
             email = EmailMultiAlternatives(
                 subject,

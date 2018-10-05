@@ -65,7 +65,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
-from .signals import tramitacao_signal
+from sapl.base.signals import tramitacao_signal
 
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
