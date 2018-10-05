@@ -1,16 +1,16 @@
 from collections import OrderedDict
 from textwrap import dedent
 
-import texttable
 import yaml
-from unipath import Path
 
+import texttable
 from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO,
                                         campos_novos_para_antigos, exec_legado,
                                         get_arquivo_ajustes_pre_migracao,
                                         models_novos_para_antigos)
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
+from unipath import Path
 
 
 def stripsplit(ll):
@@ -265,7 +265,7 @@ SQLS_CRIACAO = [
     ('unidade_tramitacao', '''
         insert into unidade_tramitacao (
         cod_unid_tramitacao, cod_comissao, cod_orgao, cod_parlamentar, ind_excluido)
-        values ({}, NULL, NULL, NULL, 0);
+        values ({}, NULL, NULL, 0, 0);
      '''),
     ('autor', SQL_INSERT_TIPO_AUTOR.format(0) + '''
         insert into autor (
