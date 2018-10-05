@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 
 from sapl.parlamentares.models import Legislatura, SessaoLegislativa
-from sapl.sessao.models import SessaoPlenaria, TipoSessaoPlenaria
+from sapl.sessao.models import SessaoPlenaria, TipoSessaoPlenaria, OcorrenciaSessao
 
 
 @pytest.mark.django_db(transaction=False)
@@ -47,3 +47,28 @@ def test_incluir_sessao_errors(admin_client):
             [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['hora_inicio'] ==
             [_('Este campo é obrigatório.')])
+
+#
+# @pytest.mark.django_db(transaction=False)
+# def test_ocorrencias_da_sessao_salvar_conteudo(admin_client):
+#
+#     response = admin_client.post(reverse('sapl.sessao:ocorrencia_sessao'))
+#
+#     assert (response.status_code == 200)
+#
+#     ocorrencia = OcorrenciaSessao.objects.first()
+#
+#     assert (ocorrencia.conteudo, "Teste Ocorrencias da Sessao - Conteudo Adicionado.")
+#
+#     response = admin_client.post(reverse('sapl.sessao:ocorrencia_sessao'))
+#
+#     assert (response.status_code == 200)
+#
+#     ocorrencia = OcorrenciaSessao.objects.first()
+#
+#     assert (ocorrencia.conteudo, "")
+
+#
+# @pytest.mark.django_db(transaction=False)
+# def test_ocorrencias_da_sessao_apagar_conteudo(admin_client):
+#

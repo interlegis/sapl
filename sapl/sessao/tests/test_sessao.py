@@ -8,7 +8,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
 from sapl.sessao import forms
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
-                                SessaoPlenaria, TipoSessaoPlenaria)
+                                SessaoPlenaria, TipoSessaoPlenaria, OcorrenciaSessao)
 
 
 def test_valida_campos_obrigatorios_sessao_plenaria_form():
@@ -170,3 +170,12 @@ def test_registro_votacao_tem_ordem_xor_expediente():
     # a validação NÃO funciona quando ambos são preenchidos
     with pytest.raises(ValidationError):
         registro_votacao_com(ordem, expediente).full_clean()
+
+
+# @pytest.mark.django_db(transaction=False)
+# def test_ocorrencias_da_sessao_conteudo():
+#
+#     ocorrencias = OcorrenciaSessao()
+#     ocorrencias.conteudo = "Teste Ocorrencias da Sessao - Conteudo Adicionado."
+#
+#     assert(ocorrencias.conteudo, "Teste Ocorrencias da Sessao - Conteudo Adicionado.")
