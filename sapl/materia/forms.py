@@ -245,7 +245,7 @@ class MateriaLegislativaForm(ModelForm):
             primeiro_autor = True
         else:
             primeiro_autor = False
-            
+
         materia = super(MateriaLegislativaForm, self).save(commit)
         materia.save()
 
@@ -285,15 +285,12 @@ class UnidadeTramitacaoForm(ModelForm):
         unidade = super(UnidadeTramitacaoForm, self).save(commit)
         cd = self.cleaned_data
 
-        if 'orgao' not in cd.keys():
+        if not cd.get('orgao'):
             unidade.orgao = None
-            unidade.orgao_id = None
-        if 'parlamentar' not in cd.keys():
+        if not cd.get('parlamentar'):
             unidade.parlamentar = None
-            unidade.parlamentar_id = None
-        if 'comissao' not in cd.keys():
+        if not cd.get('comissao'):
             unidade.comissao = None
-            unidade.comissao_id = None
 
         unidade.save()
         return unidade
