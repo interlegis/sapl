@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 
+from sapl.base.models import Autor
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -129,6 +130,12 @@ class NormaJuridica(models.Model):
         auto_now=True,
         verbose_name=_('Data'))
 
+    autores = models.ManyToManyField(
+        Autor,
+        through='AutoriaNorma',
+        through_fields=('norma', 'autor'),
+        symmetrical=False)
+
     class Meta:
         verbose_name = _('Norma Jurídica')
         verbose_name_plural = _('Normas Jurídicas')
@@ -183,6 +190,28 @@ class NormaJuridica(models.Model):
                                  using=using,
                                  update_fields=update_fields)
 
+
+@reversion.register()
+class AutoriaNorma(models.Model):
+    autor = models.ForeignKey(Autor,
+                              verbose_name=_('Autor'),
+                              on_delete=models.CASCADE)
+    norma = models.ForeignKey(
+        NormaJuridica, on_delete=models.CASCADE,
+        verbose_name=_('Matéria Legislativa'))
+    primeiro_autor = models.BooleanField(verbose_name=_('Primeiro Autor'),
+                                         choices=YES_NO_CHOICES,
+                                         default=False)
+
+    class Meta:
+        verbose_name = _('Autoria')
+        verbose_name_plural = _('Autorias')
+        unique_together = (('autor', 'norma'), )
+        ordering = ('-primeiro_autor', 'autor__nome')
+
+    def __str__(self):
+        return _('Autoria: %(autor)s - %(norma)s') % {
+            'autor': self.autor, 'norma': self.norma}
 
 @reversion.register()
 class LegislacaoCitada(models.Model):

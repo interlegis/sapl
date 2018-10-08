@@ -5,17 +5,18 @@ from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from django.forms import ModelForm, widgets
+from django.forms import ModelForm, widgets, ModelChoiceField
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
+from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import NormaPesquisaOrderingFilter, RANGE_ANOS, RangeWidgetOverride
 
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
-                     TipoNormaJuridica)
+                     TipoNormaJuridica, AutoriaNorma)
 
 
 def ANO_CHOICES():
@@ -190,6 +191,51 @@ class NormaJuridicaForm(ModelForm):
 
         return norma
 
+
+class AutoriaNormaForm(ModelForm):
+
+    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
+                                  required=False,
+                                  queryset=TipoAutor.objects.all(),
+                                  empty_label=_('Selecione'),)
+
+    data_relativa = forms.DateField(
+        widget=forms.HiddenInput(), required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(AutoriaNormaForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('tipo_autor', 4),
+                       ('autor', 4),
+                       ('primeiro_autor', 4)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Autoria'),
+                     row1, 'data_relativa', form_actions(label='Salvar')))
+
+        if not kwargs['instance']:
+            self.fields['autor'].choices = []
+
+    class Meta:
+        model = AutoriaNorma
+        fields = ['tipo_autor', 'autor', 'primeiro_autor', 'data_relativa']
+
+    def clean(self):
+        cd = super(AutoriaNormaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        autorias = AutoriaNorma.objects.filter(
+            norma=self.instance.norma, autor=cd['autor'])
+        pk = self.instance.pk
+
+        if ((not pk and autorias.exists()) or
+                (pk and autorias.exclude(pk=pk).exists())):
+            raise ValidationError(_('Esse Autor já foi cadastrado.'))
+
+        return cd
 
 class AnexoNormaJuridicaForm(ModelForm):
     class Meta:
