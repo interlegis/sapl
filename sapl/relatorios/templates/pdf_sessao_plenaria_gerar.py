@@ -6,6 +6,9 @@
 """
 import time
 
+from django.template.defaultfilters import safe
+from django.utils.html import strip_tags
+
 from sapl.sessao.models import ResumoOrdenacao
 
 from trml2pdf import parseString
@@ -284,7 +287,25 @@ def oradores(lst_oradores):
     return tmp
 
 
-def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores):
+def ocorrencias(lst_ocorrencias):
+    """
+
+    """
+    tmp = ''
+    tmp += '\t\t<para style="P1">Ocorrências da Sessão</para>\n'
+    tmp += '\t\t<para style="P2">\n'
+    tmp += '\t\t\t<font color="white"> </font>\n'
+    tmp += '\t\t</para>\n'
+    for idx, ocorrencia in enumerate(lst_ocorrencias):
+        tmp += '\t\t<para style="P3">' + \
+               str(ocorrencia.conteudo) + '</para>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> </font>\n'
+        tmp += '\t\t</para>\n'
+    return tmp
+
+
+def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores, lst_ocorrencias):
     """
     """
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"
@@ -316,7 +337,8 @@ def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_me
         'mat_o_d': votacao(lst_votacao),
         'mesa_d': mesa(lst_mesa),
         'oradores_exped': oradores_expediente(lst_oradores_expediente),
-        'oradores_expli': oradores(lst_oradores)
+        'oradores_expli': oradores(lst_oradores),
+        'ocorr_sessao': ocorrencias(lst_ocorrencias)
     }
 
     if ordenacao:
@@ -330,6 +352,7 @@ def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_me
         tmp += dict_ord_template[ordenacao.oitavo]
         tmp += dict_ord_template[ordenacao.nono]
         tmp += dict_ord_template[ordenacao.decimo]
+
     else:
         tmp += inf_basicas(inf_basicas_dic)
         tmp += mesa(lst_mesa)
@@ -340,6 +363,7 @@ def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_me
         tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
         tmp += votacao(lst_votacao)
         tmp += oradores(lst_oradores)
+        tmp += ocorrencias(lst_ocorrencias)
 
     tmp += '\t</story>\n'
     tmp += '</document>\n'
