@@ -21,9 +21,9 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
 from sapl.utils import show_results_filter_set
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
-                    NormaPesquisaSimplesForm, NormaRelacionadaForm)
+                    NormaPesquisaSimplesForm, NormaRelacionadaForm, AutoriaNormaForm)
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
-                     TipoNormaJuridica, TipoVinculoNormaJuridica)
+                     TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma)
 
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
@@ -273,6 +273,39 @@ def recuperar_numero_norma(request):
 
     return response
 
+
+class AutoriaNormaCrud(MasterDetailCrud):
+    model = AutoriaNorma
+    parent_field = 'norma'
+    help_topic = 'despacho_autoria'
+    public = [RP_LIST, RP_DETAIL]
+    list_field_names = ['autor', 'autor__tipo__descricao', 'primeiro_autor']
+
+    class LocalBaseMixin():
+        form_class = AutoriaNormaForm
+
+        @property
+        def layout_key(self):
+            return None
+
+    class CreateView(LocalBaseMixin, MasterDetailCrud.CreateView):
+
+        def get_initial(self):
+            initial = super().get_initial()
+            norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
+            initial['data_relativa'] = norma.data
+            initial['autor'] = []
+            return initial
+
+    class UpdateView(LocalBaseMixin, MasterDetailCrud.UpdateView):
+
+        def get_initial(self):
+            initial = super().get_initial()
+            initial.update({
+                'data_relativa': self.object.norma.data_apresentacao,
+                'tipo_autor': self.object.autor.tipo.id,
+            })
+            return initial
 
 class ImpressosView(PermissionRequiredMixin, TemplateView):
     template_name = 'materia/impressos/impressos.html'

@@ -7,7 +7,8 @@
   check_permission: norma.list_normarelacionada
 - title: {% trans 'Anexos da Norma' %}
   url: anexonormajuridica_list
-
+- title: {% trans 'Autoria' %}
+  url: autorianorma_list
 #  Opção adicionada para chamar o TextoArticulado da norma.
 #   para integração foram necessárias apenas criar a url norma_ta em urls.py
 #   e a view NormaTaView(IntegracaoTaView) em views.py
