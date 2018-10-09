@@ -67,7 +67,7 @@ class Protocolo(models.Model):
         blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
     tipo_processo = models.PositiveIntegerField()
     interessado = models.CharField(
-        max_length=60, blank=True, verbose_name=_('Interessado'))
+        max_length=200, blank=True, verbose_name=_('Interessado'))
     autor = models.ForeignKey(Autor,
                               blank=True,
                               null=True,

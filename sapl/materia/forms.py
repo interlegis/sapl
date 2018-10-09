@@ -1855,14 +1855,13 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         else:
             # numeracao == 'U' ou não informada
             nm = Protocolo.objects.all().aggregate(Max('numero'))
-
         protocolo = Protocolo()
         protocolo.numero = (nm['numero__max'] + 1) if nm['numero__max'] else 1
         protocolo.ano = timezone.now().year
 
         protocolo.tipo_protocolo = '1'
 
-        protocolo.interessado = str(proposicao.autor)
+        protocolo.interessado = str(proposicao.autor)[:200]  # tamanho máximo 200
         protocolo.autor = proposicao.autor
         protocolo.assunto_ementa = proposicao.descricao
         protocolo.numero_paginas = cd['numero_de_paginas']
