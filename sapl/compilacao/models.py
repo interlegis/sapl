@@ -186,7 +186,8 @@ class TextoArticulado(TimestampedMixin):
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     ementa = models.TextField(verbose_name=_('Ementa'))
     observacao = models.TextField(blank=True, verbose_name=_('Observação'))
-    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    numero = models.CharField(
+        max_length=8,verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     tipo_ta = models.ForeignKey(
         TipoTextoArticulado,

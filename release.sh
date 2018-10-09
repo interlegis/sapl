@@ -13,6 +13,10 @@ function bump_version {
 
     sed -e s/$VERSION/$NEXT_VERSION/g setup.py > tmp2
     mv tmp2 setup.py
+
+
+    sed -e s/$VERSION/$NEXT_VERSION/g sapl/templates/base.html > tmp3
+    mv tmp3 sapl/templates/base.html
 }
 
 function commit_and_push {
