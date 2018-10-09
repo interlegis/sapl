@@ -2,7 +2,7 @@
 import django_filters
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Fieldset, Layout
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
@@ -19,7 +19,8 @@ from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
-from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
+from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
+                     DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
@@ -38,6 +39,28 @@ def ANO_CHOICES():
 EM_TRAMITACAO = [('', '---------'),
                  (0, 'Sim'),
                  (1, 'Não')]
+
+class AcompanhamentoDocumentoForm(ModelForm):
+
+    class Meta:
+        model = AcompanhamentoDocumento
+        fields = ['email']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([('email', 10)])
+
+        row1.append(
+            Column(form_actions(label='Cadastrar'), css_class='col-md-2')
+        )
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Acompanhamento de Documento por e-mail'), row1
+            )
+        )
+        super(AcompanhamentoDocumentoForm, self).__init__(*args, **kwargs)
 
 
 class ProtocoloFilterSet(django_filters.FilterSet):

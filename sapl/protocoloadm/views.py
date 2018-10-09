@@ -1,3 +1,6 @@
+from datetime import datetime
+from random import choice
+from string import ascii_letters, digits
 
 from braces.views import FormValidMessageMixin
 from django.contrib import messages
@@ -18,25 +21,30 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 import sapl
-from sapl.base.models import Autor
+from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
-from sapl.utils import (create_barcode, get_client_ip,
+from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension,
                         show_results_filter_set)
-
-from .forms import (AnularProcoloAdmForm, DocumentoAcessorioAdministrativoForm,
+from sapl.base.email_utils import do_envia_email_confirmacao
+from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
+                    DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, ProtocoloDocumentForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
-                    TramitacaoAdmEditForm, TramitacaoAdmForm, DesvincularDocumentoForm, DesvincularMateriaForm,
-                    filtra_tramitacao_adm_destino_and_status, filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status)
-from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
-                     StatusTramitacaoAdministrativo,
+                    TramitacaoAdmEditForm, TramitacaoAdmForm,
+                    DesvincularDocumentoForm, DesvincularMateriaForm,
+                    filtra_tramitacao_adm_destino_and_status,
+                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status)
+from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
+                     DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+from sapl.base.signals import tramitacao_signal
+
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -88,6 +96,136 @@ def doc_texto_integral(request, pk):
                 'inline; filename="%s"' % arquivo.name.split('/')[-1])
             return response
     raise Http404
+
+class AcompanhamentoConfirmarView(TemplateView):
+
+    def get_redirect_url(self, email):
+        msg = _('Este documento está sendo acompanhado pelo e-mail: %s') % (
+            email)
+        messages.add_message(self.request, messages.SUCCESS, msg)
+        return reverse('sapl.protocoloadm:documentoadministrativo_detail',
+                       kwargs={'pk': self.kwargs['pk']})
+
+    def get(self, request, *args, **kwargs):
+        documento_id = kwargs['pk']
+        hash_txt = request.GET.get('hash_txt', '')
+
+        try:
+            acompanhar = AcompanhamentoDocumento.objects.get(
+                documento_id=documento_id,
+                hash=hash_txt)
+        except ObjectDoesNotExist:
+            raise Http404()
+        # except MultipleObjectsReturned:
+        # A melhor solução deve ser permitir que a exceção
+        # (MultipleObjectsReturned) seja lançada e vá para o log,
+        # pois só poderá ser causada por um erro de desenvolvimente
+
+        acompanhar.confirmado = True
+        acompanhar.save()
+
+        return HttpResponseRedirect(self.get_redirect_url(acompanhar.email))
+
+
+class AcompanhamentoExcluirView(TemplateView):
+
+    def get_success_url(self):
+        msg = _('Você parou de acompanhar este Documento.')
+        messages.add_message(self.request, messages.INFO, msg)
+        return reverse('sapl.protocoloadm:documentoadministrativo_detail',
+                       kwargs={'pk': self.kwargs['pk']})
+
+    def get(self, request, *args, **kwargs):
+        materia_id = kwargs['pk']
+        hash_txt = request.GET.get('hash_txt', '')
+
+        try:
+            AcompanhamentoDocumento.objects.get(documento_id=documento_id,
+                                              hash=hash_txt).delete()
+        except ObjectDoesNotExist:
+            pass
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class AcompanhamentoDocumentoView(CreateView):
+    template_name = "protocoloadm/acompanhamento_documento.html"
+
+    def get_random_chars(self):
+        s = ascii_letters + digits
+        return ''.join(choice(s) for i in range(choice([6, 7])))
+
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        documento = DocumentoAdministrativo.objects.get(id=pk)
+
+        return self.render_to_response(
+            {'form': AcompanhamentoDocumentoForm(),
+             'documento': documento})
+
+    def post(self, request, *args, **kwargs):
+        form = AcompanhamentoDocumentoForm(request.POST)
+        pk = self.kwargs['pk']
+        documento = DocumentoAdministrativo.objects.get(id=pk)
+
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            usuario = request.user
+
+            hash_txt = self.get_random_chars()
+
+            acompanhar = AcompanhamentoDocumento.objects.get_or_create(
+                documento=documento,
+                email=form.data['email'])
+
+            # Se o segundo elemento do retorno do get_or_create for True
+            # quer dizer que o elemento não existia
+            if acompanhar[1]:
+                acompanhar = acompanhar[0]
+                acompanhar.hash = hash_txt
+                acompanhar.usuario = usuario.username
+                acompanhar.confirmado = False
+                acompanhar.save()
+
+                base_url = get_base_url(request)
+
+                destinatario = AcompanhamentoDocumento.objects.get(
+                    documento=documento,
+                    email=email,
+                    confirmado=False)
+                casa = CasaLegislativa.objects.first()
+
+                do_envia_email_confirmacao(base_url,
+                                           casa,
+                                           "documento",
+                                           documento,
+                                           destinatario)
+
+                msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
+                         de mensagens e clique no link que nós enviamos para \
+                         confirmar o acompanhamento deste documento.')
+                messages.add_message(request, messages.SUCCESS, msg)
+
+            # Caso esse Acompanhamento já exista
+            # avisa ao usuário que esse documento já está sendo acompanhado
+            else:
+                msg = _('Este e-mail já está acompanhando esse documento.')
+                messages.add_message(request, messages.INFO, msg)
+
+                return self.render_to_response(
+                    {'form': form,
+                     'documento': documento,
+                     'error': _('Esse documento já está\
+                     sendo acompanhada por este e-mail.')})
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.render_to_response(
+                {'form': form,
+                 'documento': documento})
+
+    def get_success_url(self):
+        return reverse('sapl.protocoloadm:documentoadministrativo_detail',
+                       kwargs={'pk': self.kwargs['pk']})
 
 
 class DocumentoAdministrativoMixin:
@@ -686,8 +824,38 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     'unidade_tramitacao_local'].widget.attrs['disabled'] = True
             return context
 
+        def form_valid(self, form):
+            self.object = form.save()
+
+            try:
+                tramitacao_signal.send(sender=TramitacaoAdministrativo,
+                                       post=self.object,
+                                       request=self.request)
+            except Exception as e:
+                # TODO log error
+                msg = _('Tramitação criada, mas e-mail de acompanhamento '
+                    'de documento não enviado. A não configuração do'
+                    ' servidor de e-mail impede o envio de aviso de tramitação')
+                messages.add_message(self.request, messages.WARNING, msg)
+                return HttpResponseRedirect(self.get_success_url())
+            return super().form_valid(form)
+
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
+        def form_valid(self, form):
+            self.object = form.save()
+            try:
+                tramitacao_signal.send(sender=TramitacaoAdministrativo,
+                                       post=self.object,
+                                       request=self.request)
+            except Exception as e:
+                # TODO log error
+                msg = _('Tramitação criada, mas e-mail de acompanhamento '
+                    'de documento não enviado. A não configuração do'
+                    ' servidor de e-mail impede o envio de aviso de tramitação')
+                messages.add_message(self.request, messages.WARNING, msg)
+                return HttpResponseRedirect(self.get_success_url())
+            return super().form_valid(form)
 
     class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
 

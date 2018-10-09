@@ -302,6 +302,7 @@ rules_group_anonymous = {
     'group': SAPL_GROUP_ANONYMOUS,
     'rules': [
         (materia.AcompanhamentoMateria, [RP_ADD, RP_DELETE]),
+        (protocoloadm.AcompanhamentoDocumento, [RP_ADD, RP_DELETE]),
     ]
 }
 

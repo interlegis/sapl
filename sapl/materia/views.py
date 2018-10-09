@@ -46,7 +46,7 @@ from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal,
                         get_mime_type_from_file_extension, montar_row_autor,
                         show_results_filter_set)
 
-from .email_utils import do_envia_email_confirmacao
+from sapl.base.email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
@@ -65,7 +65,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
-from .signals import tramitacao_signal
+from sapl.base.signals import tramitacao_signal
 
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
@@ -1114,7 +1114,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 msg = _('Tramitação criada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
-                messages.add_message(self.request, messages.ERROR, msg)
+                messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
 
@@ -1141,7 +1141,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
-                messages.add_message(self.request, messages.ERROR, msg)
+                messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
 
@@ -1683,6 +1683,7 @@ class AcompanhamentoMateriaView(CreateView):
 
                 do_envia_email_confirmacao(base_url,
                                            casa,
+                                           "materia",
                                            materia,
                                            destinatario)
 
@@ -1876,9 +1877,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 flag_error = True
         if flag_error:
             msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                    'de matéria não enviado. Há problemas na configuração '
-                    'do e-mail.')
-            messages.add_message(self.request, messages.ERROR, msg)
+                    'de matéria não enviado. A não configuração do servidor de e-mail '
+                    'impede o envio de aviso de tramitação')
+            messages.add_message(self.request, messages.WARNING, msg)
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 

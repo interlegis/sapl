@@ -22,8 +22,7 @@ def test_html_email_body_with_materia():
                                          "Assembléia Parlamentar",
                                       "data_registro": "25/02/2016",
                                       "cod_materia": "1",
-                                      "descricao_materia": "Ementa de teste",
-                                      "autoria": ["Autor1", "Autor2"],
+                                      "descricao_materia": "Assunto de teste",
                                       "data": "25/02/2016",
                                       "status": "Arquivado",
                                       "texto_acao": "Deliberado",
@@ -31,9 +30,9 @@ def test_html_email_body_with_materia():
                                       "materia_id": "794",
                                       "base_url": "http://localhost:8000",
                                       "materia_url":
-                                         "/materia/764/acompanhar-materia",
+                                         "/docadm/764/acompanhar-documento",
                                       "excluir_url":
-                                         "/materia/764/acompanhar-excluir"})
+                                         "/docadm/764/acompanhar-excluir"})
 
     assert len(templates) == 2
 
