@@ -2932,7 +2932,6 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
         context.update({'ordens': ordens})
 
-        import ipdb; ipdb.set_trace()
         return self.render_to_response(context)
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
