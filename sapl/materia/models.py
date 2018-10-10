@@ -725,6 +725,8 @@ class Proposicao(models.Model):
         blank=True, null=True, default=None)
     conteudo_gerado_related = SaplGenericForeignKey(
         'content_type', 'object_id', verbose_name=_('Conteúdo Gerado'))
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
 
     """# Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
     # de uma já existente

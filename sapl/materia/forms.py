@@ -1238,6 +1238,7 @@ class ProposicaoForm(forms.ModelForm):
         fields = ['tipo',
                   'receber_recibo',
                   'descricao',
+                  'observacao',
                   'texto_original',
                   'materia_de_vinculo',
 
@@ -1249,6 +1250,7 @@ class ProposicaoForm(forms.ModelForm):
 
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
+            'observacao': widgets.Textarea(attrs={'rows': 4}),
             'tipo': TipoProposicaoSelect(),
             'hash_code': forms.HiddenInput(), }
 
@@ -1274,6 +1276,7 @@ class ProposicaoForm(forms.ModelForm):
                        css_class="ementa_materia hidden alert-info",
                        dismiss=False), 12)),
             to_column(('descricao', 12)),
+            to_column(('observacao', 12)),
 
         ]
 
@@ -1500,11 +1503,14 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         fields = [
             'data_envio',
             'descricao',
+            'observacao',
             'gerar_protocolo',
             'numero_de_paginas'
         ]
         widgets = {
             'descricao': widgets.Textarea(
+                attrs={'readonly': 'readonly', 'rows': 4}),
+            'observacao': widgets.Textarea(
                 attrs={'readonly': 'readonly', 'rows': 4}),
             'data_envio':  widgets.DateTimeInput(
                 attrs={'readonly': 'readonly'}),
@@ -1552,7 +1558,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 to_column(('tipo_readonly', 4)),
                 to_column(('data_envio', 3)),
                 to_column(('autor_readonly', 5)),
-                to_column(('descricao', 12)))]
+                to_column(('descricao', 12)),
+                to_column(('observacao', 12)))]
 
         fields.append(
             Fieldset(_('Vinculado a Matéria Legislativa'),

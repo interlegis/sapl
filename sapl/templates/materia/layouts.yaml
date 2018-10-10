@@ -93,6 +93,7 @@ Proposicao:
   {% trans 'Proposição' %}:
   - tipo  data_envio
   - descricao
+  - observacao
   {% trans 'Materia' %}:
   - materia_de_vinculo
   {% trans 'Complemento' %}:
