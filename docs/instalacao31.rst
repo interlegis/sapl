@@ -47,14 +47,14 @@ Instalar o virtualenv usando python 3 para o projeto.
 
     sudo mkdir -p /var/interlegis/.virtualenvs
 
-* Ajustar as permissões - onde ``sapl31`` trocar por usuario::
+* Ajustar as permissões::
 
-    sudo chown -R sapl31:sapl31 /var/interlegis/
+    sudo chown -R $USER:$USER /var/interlegis/
 
 
 * Edite o arquivo ``.bashrc`` e adicione ao seu final as configurações abaixo para o virtualenvwrapper::
 
-    nano /home/sapl31/.bashrc
+    nano /home/$USER/.bashrc
 
     export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
     export WORKON_HOME=/var/interlegis/.virtualenvs
@@ -64,7 +64,7 @@ Instalar o virtualenv usando python 3 para o projeto.
 
 * Carregue as configurações do virtualenvwrapper::
 
-    source /home/sapl31/.bashrc
+    source /home/$USER/.bashrc
 
 
 
@@ -124,7 +124,7 @@ Instalação e configuração das dependências do projeto
   * (caso você já possua uma instalação do postrgresql anterior ao processo de instalação do ambiente de desenvolvimento do SAPL em sua máquina e sábia como fazer, esteja livre para proceder como desejar, porém, ao configurar o arquivo ``.env`` no próximo passo, as mesmas definições deverão ser usadas)
 
 
-* **Ajustar as permissões - onde $USER trocar por usuario**::
+* **Ajustar as permissões - onde $USER trocar por usuário**::
 
     eval $(echo "sudo chown -R $USER:$USER /var/interlegis/")
 
