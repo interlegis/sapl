@@ -1,4 +1,5 @@
 from operator import itemgetter
+import logging
 from re import sub
 
 from django.contrib import messages
@@ -17,7 +18,7 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import FormView, ListView, TemplateView, CreateView, UpdateView
-from django.views.generic.base import RedirectView
+from django.views.generic.base import RedirectView, logger
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
@@ -1557,6 +1558,8 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
     form_class = OcorrenciaSessaoForm
     model = SessaoPlenaria
 
+    logger = logging.getLogger(__name__)
+
     def delete(self):
         OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
 
@@ -1573,6 +1576,7 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
         ocorrencia.conteudo = conteudo
         ocorrencia.save()
 
+        logger.warning('TESTANDO LOG TESTANDO')
         msg = _('Registro salvo com sucesso')
         messages.add_message(self.request, messages.SUCCESS, msg)
 

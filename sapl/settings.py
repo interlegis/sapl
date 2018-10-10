@@ -296,30 +296,73 @@ FILTERS_HELP_TEXT_FILTER = False
 # FIXME update cripy-forms and remove this
 # hack to suppress many annoying warnings from crispy_forms
 # see sapl.temp_suppress_crispy_form_warnings
-LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
+# LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
+#
+#
+# LOGGING_CONSOLE = config('LOGGING_CONSOLE', default=False, cast=bool)
+# if DEBUG and LOGGING_CONSOLE:
+#     # Descomentar linha abaixo fará com que logs aparecam, inclusive SQL
+#     # LOGGING['handlers']['console']['level'] = 'DEBUG'
+#     LOGGING['loggers']['django']['level'] = 'DEBUG'
+#     LOGGING.update({
+#         'formatters': {
+#             'verbose': {
+#                 'format': '%(levelname)s %(asctime)s %(pathname)s '
+#                 '%(funcName)s %(message)s'
+#             },
+#             'simple': {
+#                 'format': '%(levelname)s %(message)s'
+#             },
+#         },
+#     })
+#     LOGGING['handlers']['console']['formatter'] = 'verbose'
+#     LOGGING['loggers'][BASE_DIR.name] = {
+#         'handlers': ['console'],
+#         'level': 'DEBUG',
+#     }
+#     LOGGING['loggers']['APPNAME']['handlers'] = ['file'],
+#     LOGGING['loggers']['APPNAME']['level'] = 'DEBUG'
 
-
-LOGGING_CONSOLE = config('LOGGING_CONSOLE', default=False, cast=bool)
-if DEBUG and LOGGING_CONSOLE:
-    # Descomentar linha abaixo fará com que logs aparecam, inclusive SQL
-    # LOGGING['handlers']['console']['level'] = 'DEBUG'
-    LOGGING['loggers']['django']['level'] = 'DEBUG'
-    LOGGING.update({
-        'formatters': {
-            'verbose': {
-                'format': '%(levelname)s %(asctime)s %(pathname)s '
-                '%(funcName)s %(message)s'
-            },
-            'simple': {
-                'format': '%(levelname)s %(message)s'
-            },
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
         },
-    })
-    LOGGING['handlers']['console']['formatter'] = 'verbose'
-    LOGGING['loggers'][BASE_DIR.name] = {
-        'handlers': ['console'],
-        'level': 'DEBUG',
+        'simple': {
+            'format': '%(levelname)s %(asctime)s %(message)s'
+        },
+    },
+    'filters': {
+        # TODO Ver depois !
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'applogfile': {
+            'level':'DEBUG',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': 'APPNAME.log',
+            'maxBytes': 1024*1024*15, # 15MB
+            'backupCount': 10,
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['applogfile'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
     }
+}
 
 
 def excepthook(*args):
