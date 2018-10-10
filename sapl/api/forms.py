@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models import Q
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
@@ -124,6 +126,7 @@ class AutorSearchForFieldFilterSet(AutorChoiceFilterSet):
 
 
 class AutoresPossiveisFilterSet(FilterSet):
+    logger = logging.getLogger(__name__)
     data_relativa = DateFilter(method='filter_data_relativa')
     tipo = MethodFilter()
 
@@ -135,9 +138,12 @@ class AutoresPossiveisFilterSet(FilterSet):
         return queryset
 
     def filter_tipo(self, queryset, value):
+        
         try:
+            self.logger.debug("Tentando obter TipoAutor correspondente à pk {}.".format(value))
             tipo = TipoAutor.objects.get(pk=value)
         except:
+            self.logger.error("TipoAutor(pk={}) inexistente.".format(value))
             raise serializers.ValidationError(_('Tipo de Autor inexistente.'))
 
         qs = queryset.filter(tipo=tipo)
