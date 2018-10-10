@@ -29,7 +29,7 @@
 
   <body>
     <div class="page fadein">
-    	
+
       {% if not request|has_iframe %}
       {% block navigation %}
       <nav class="navbar navbar-inverse navbar-static-top">
@@ -184,7 +184,7 @@
                 <small>
                   Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto.
                 </small>
-		<span>Release: 3.1.123</span>
+		<span>Release: 3.1.124</span>
               </p>
             </div>
             <div class="col-md-4">
@@ -252,7 +252,7 @@
 
       <script type="text/javascript" >
 
-      
+
         function inIframe () {
           try {
               return window.self !== window.top;
@@ -264,7 +264,7 @@
           let iframe_set_backend = {{ request|has_iframe|lower }}
           if (iframe_set_backend && !inIframe() ) {
             location.href = location.origin + '?iframe=0'
-          }          
+          }
         });
       </script>
 
