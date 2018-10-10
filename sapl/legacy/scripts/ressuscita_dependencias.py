@@ -1,16 +1,16 @@
 from collections import OrderedDict
 from textwrap import dedent
 
-import yaml
-
 import texttable
+import yaml
+from unipath import Path
+
 from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO,
                                         campos_novos_para_antigos, exec_legado,
                                         get_arquivo_ajustes_pre_migracao,
                                         models_novos_para_antigos)
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
-from unipath import Path
 
 
 def stripsplit(ll):
@@ -70,6 +70,7 @@ tipo_dependente               /sistema/parlamentar/tipo-dependente
 origem                        /sistema/materia/origem
 documento_acessorio           /materia/documentoacessorio
 tipo_fim_relatoria            /sistema/materia/tipo-fim-relatoria
+tipo_situacao_militar         /sistema/parlamentar/tipo-militar
 '''
 urls = dict(stripsplit(urls))
 
