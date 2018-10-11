@@ -292,43 +292,12 @@ SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
 
-
-# FIXME update cripy-forms and remove this
-# hack to suppress many annoying warnings from crispy_forms
-# see sapl.temp_suppress_crispy_form_warnings
-# LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
-#
-#
-# LOGGING_CONSOLE = config('LOGGING_CONSOLE', default=False, cast=bool)
-# if DEBUG and LOGGING_CONSOLE:
-#     # Descomentar linha abaixo fará com que logs aparecam, inclusive SQL
-#     # LOGGING['handlers']['console']['level'] = 'DEBUG'
-#     LOGGING['loggers']['django']['level'] = 'DEBUG'
-#     LOGGING.update({
-#         'formatters': {
-#             'verbose': {
-#                 'format': '%(levelname)s %(asctime)s %(pathname)s '
-#                 '%(funcName)s %(message)s'
-#             },
-#             'simple': {
-#                 'format': '%(levelname)s %(message)s'
-#             },
-#         },
-#     })
-#     LOGGING['handlers']['console']['formatter'] = 'verbose'
-#     LOGGING['loggers'][BASE_DIR.name] = {
-#         'handlers': ['console'],
-#         'level': 'DEBUG',
-#     }
-#     LOGGING['loggers']['APPNAME']['handlers'] = ['file'],
-#     LOGGING['loggers']['APPNAME']['level'] = 'DEBUG'
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': '%(levelname)s %(asctime)s %(filename)s %(funcName)s %(lineno)d %(name)s %(message)s'
         },
         'simple': {
             'format': '%(levelname)s %(asctime)s %(message)s'
@@ -342,23 +311,23 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
         'applogfile': {
-            'level':'DEBUG',
+            'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': 'APPNAME.log',
+            'filename': 'SAPL.log',
             'maxBytes': 1024*1024*15, # 15MB
             'backupCount': 10,
-            'formatter': 'simple',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
         'django.request': {
             'handlers': ['applogfile'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
     }
