@@ -198,6 +198,19 @@ def url(value):
         return True
     return False
 
+@register.filter
+def audio_url(value):
+    return True if url(value) and value.endswith("mp3") else False
+
+
+@register.filter
+def video_url(value):
+    return True if url(value) and value.endswith("mp4") else False
+
+@register.filter
+def file_extension(value):
+    import pathlib
+    return pathlib.Path(value).suffix.replace('.', '')
 
 @register.filter
 def cronometro_to_seconds(value):
