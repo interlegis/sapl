@@ -1,3 +1,5 @@
+import logging
+
 from django.core.urlresolvers import NoReverseMatch, reverse
 from django.views.generic import RedirectView
 
@@ -73,10 +75,13 @@ class RedirecionaSAPLIndex(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url_pattern = 'sapl_index'
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(url_pattern)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(url_pattern)
 
         url = has_iframe(url, self.request)
@@ -88,6 +93,7 @@ class RedirecionaParlamentar(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         pk_parlamentar = self.request.GET.get(
             'cod_parlamentar',
@@ -96,13 +102,17 @@ class RedirecionaParlamentar(RedirectView):
         if pk_parlamentar:
             try:
                 kwargs = {'pk': pk_parlamentar}
+                logger.info("- Tentando obter url correspondente.")
                 url = reverse(parlamentar_detail, kwargs=kwargs)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(parlamentar_detail, kwargs=kwargs)
         else:
             try:
+                logger.info("- Tentando obter url.")
                 url = reverse(parlamentar_list)
             except NoReverseMatch:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(parlamentar_list)
 
             numero_legislatura = self.request.GET.get(
@@ -121,6 +131,7 @@ class RedirecionaComissao(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         pk_comissao = self.request.GET.get('cod_comissao', EMPTY_STRING)
 
@@ -128,13 +139,17 @@ class RedirecionaComissao(RedirectView):
             kwargs = {'pk': pk_comissao}
 
             try:
+                logger.info("- Tentando obter url correspondente.")
                 url = reverse(comissao_detail, kwargs=kwargs)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(comissao_detail)
         else:
             try:
+                logger.info("- Tentando obter url.")
                 url = reverse(comissao_list)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(comissao_list)
 
         url = has_iframe(url, self.request)
@@ -146,6 +161,7 @@ class RedirecionaComposicaoComissao(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         pk_composicao = self.request.GET.get(
             'cod_periodo_comp_sel', EMPTY_STRING)
@@ -155,13 +171,17 @@ class RedirecionaComposicaoComissao(RedirectView):
             kwargs = {'pk': pk_comissao}
 
             try:
+                logger.info("- Tentando obter url correspondente.")
                 url = reverse(comissao_detail, kwargs=kwargs)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(comissao_detail)
         else:
             try:
+                logger.info("- Tentando obter url.")
                 url = reverse(comissao_list)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(comissao_list)
 
         url = has_iframe(url, self.request)
@@ -173,6 +193,7 @@ class RedirecionaPautaSessao(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         pk_sessao_plenaria = self.request.GET.get(
             'cod_sessao_plen',
             EMPTY_STRING)
@@ -180,13 +201,17 @@ class RedirecionaPautaSessao(RedirectView):
         if pk_sessao_plenaria:
             kwargs = {'pk': pk_sessao_plenaria}
             try:
+                logger.info("- Tentando obter url correspondente.")
                 url = reverse(pauta_sessao_detail, kwargs=kwargs)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(pauta_sessao_detail)
         else:
             try:
+                logger.info("- Tentando obter url.")
                 url = reverse(pauta_sessao_list)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(pauta_sessao_list)
 
             data_sessao_plenaria = self.request.GET.get(
@@ -214,6 +239,7 @@ class RedirecionaSessaoPlenaria(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         pk_sessao_plenaria = self.request.GET.get(
             'cod_sessao_plen',
             EMPTY_STRING)
@@ -221,14 +247,18 @@ class RedirecionaSessaoPlenaria(RedirectView):
         if pk_sessao_plenaria:
             kwargs = {'pk': pk_sessao_plenaria}
             try:
+                logger.info("- Tentando obter url correspondente.")
                 url = reverse(sessao_plenaria_detail, kwargs=kwargs)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(sessao_plenaria_detail)
 
         else:
             try:
+                logger.info("- Tentando obter url.")
                 url = reverse(sessao_plenaria_list)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(sessao_plenaria_list)
 
             year = self.request.GET.get(
@@ -263,10 +293,13 @@ class RedirecionaRelatoriosList(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(relatorios_list)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(relatorios_list)
 
         url = has_iframe(url, self.request)
@@ -278,10 +311,13 @@ class RedirecionaRelatoriosMateriasEmTramitacaoList(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(relatorio_materia_por_tramitacao)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(relatorio_materia_por_tramitacao)
 
         year = self.request.GET.get(
@@ -341,11 +377,14 @@ class RedirecionaMateriaLegislativaList(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         args = EMPTY_STRING
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(materialegislativa_list)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(materialegislativa_list)
 
         tipo_materia = self.request.GET.get(
@@ -416,10 +455,13 @@ class RedirecionaMesaDiretoraView(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(parlamentar_mesa_diretora)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(parlamentar_mesa_diretora)
 
         url = has_iframe(url, self.request)
@@ -449,12 +491,15 @@ class RedirecionaNormasJuridicasTextoIntegral(RedirectView):
     permanent = False
 
     def get_redirect_url(self, **kwargs):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         try:
+            logger.info("- Tentando obter NormaJuridica correspondente.")
             norma = NormaJuridica.objects.get(pk=kwargs['norma_id'])
             if norma:
                 url = norma.texto_integral.url
         except Exception as e:
+            logger.error("- Erro ao obter NormaJuridica. " + str(e))
             raise e
 
         url = has_iframe(url, self.request)
@@ -467,11 +512,14 @@ class RedirecionaNormasJuridicasList(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         args = EMPTY_STRING
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(norma_juridica_pesquisa)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(norma_juridica_pesquisa)
 
         tipo_norma = self.request.GET.get(
@@ -525,11 +573,14 @@ class RedirecionaHistoricoTramitacoesList(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         args = EMPTY_STRING
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(historico_tramitacoes)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(historico_tramitacoes)
 
         inicio_intervalo_data_tramitacao = self.request.GET.get(
@@ -582,11 +633,14 @@ class RedirecionaAtasList(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         args = EMPTY_STRING
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(pesquisar_atas)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(pesquisar_atas)
 
         inicio_intervalo_data_ata = self.request.GET.get(
@@ -616,11 +670,14 @@ class RedirecionaPresencaParlamentares(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         args = EMPTY_STRING
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(presenca_sessao)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(presenca_sessao)
 
         inicio_intervalo_data_presenca_parlamentar = self.request.GET.get(
@@ -650,10 +707,13 @@ class RedirecionaMateriasPorAutor(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(relatorio_materia_por_autor)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(relatorio_materia_por_autor)
 
         url = has_iframe(url, self.request)
@@ -666,12 +726,15 @@ class RedirecionaMateriasPorAnoAutorTipo(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         url = EMPTY_STRING
         ano = self.request.GET.get('ano', '')
 
         try:
+            logger.info("- Tentando obter url.")
             url = reverse(relatorio_materia_por_ano_autor_tipo)
-        except NoReverseMatch:
+        except NoReverseMatch as e:
+            logger.error("- Erro ao obter url. " + str(e))
             raise UnknownUrlNameError(relatorio_materia_por_ano_autor_tipo)
 
         if ano:
@@ -688,6 +751,7 @@ class RedirecionaReuniao(RedirectView):
     permanent = True
 
     def get_redirect_url(self):
+        logger = logging.getLogger(__name__)
         pk_reuniao = self.request.GET.get(
             'cod_comissao',
             EMPTY_STRING)
@@ -695,14 +759,18 @@ class RedirecionaReuniao(RedirectView):
         if pk_reuniao:
             kwargs = {'pk': pk_reuniao}
             try:
+                logger.info("- Tentando obter url correspondente.")
                 url = reverse(reuniao_detail, kwargs=kwargs)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(reuniao_detail)
 
         else:
             try:
+                logger.info("- Tentando obter url.")
                 url = reverse(reuniao_list)
-            except NoReverseMatch:
+            except NoReverseMatch as e:
+                logger.error("- Erro ao obter url. " + str(e))
                 raise UnknownUrlNameError(reuniao_list)
 
             year = self.request.GET.get(
