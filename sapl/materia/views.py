@@ -481,10 +481,13 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
         form = ReceberProposicaoForm(request.POST)
 
         if form.is_valid():
-            proposicoes = Proposicao.objects.filter(
-                data_envio__isnull=False, data_recebimento__isnull=True)
+            try:
+                # A ultima parte do código deve ser a pk da Proposicao
+                id = form.cleaned_data["cod_hash"].split("/")[1]
+                proposicao = Proposicao.objects.get(id=id,
+                                                    data_envio__isnull=False,
+                                                    data_recebimento__isnull=True)
 
-            for proposicao in proposicoes:
                 if proposicao.texto_articulado.exists():
                     ta = proposicao.texto_articulado.first()
                     # FIXME hash para textos articulados
@@ -492,7 +495,7 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                 else:
                     hasher = gerar_hash_arquivo(
                         proposicao.texto_original.path,
-                        str(proposicao.pk)) \
+                        str(proposicao.id)) \
                         if proposicao.texto_original else None
                 if hasher == form.cleaned_data['cod_hash']:
                     return HttpResponseRedirect(
@@ -500,8 +503,12 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                                 kwargs={
                                     'hash': hasher.split('/')[0][1:],
                                     'pk': proposicao.pk}))
-
-            messages.error(request, _('Proposição não encontrada!'))
+            except ObjectDoesNotExist:
+                messages.error(request, _('Proposição não encontrada!'))
+            except IndexError:
+                messages.error(request, _('Código de recibo mal formado!'))
+            except IOError:
+                messages.error(request, _('Erro abrindo texto original de proposição'))
         return self.form_invalid(form)
 
     def get_success_url(self):
