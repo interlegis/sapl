@@ -1061,6 +1061,7 @@ def get_pauta_sessao(sessao, casa):
             id=expediente_materia.materia.id).first()
 
         dic_expediente_materia = {}
+        dic_expediente_materia["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_expediente_materia["num_ordem"] = str(
             expediente_materia.numero_ordem)
         dic_expediente_materia["id_materia"] = str(
@@ -1113,6 +1114,7 @@ def get_pauta_sessao(sessao, casa):
             id=votacao.materia.id).first()
 
         dic_votacao = {}
+        dic_votacao["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_votacao["num_ordem"] = votacao.numero_ordem
         dic_votacao["id_materia"] = str(
             materia.numero) + "/" + str(materia.ano)
