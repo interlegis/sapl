@@ -65,7 +65,21 @@
                   <div id="div_id_{{ column.id }}" class="form-group">
                     <p class="control-label">{{ column.verbose_name }}</p>
                     <div class="controls">
-                      {% if column.text|url %}
+                      {% if column.text|audio_url %}
+                        <div class="form-control-static">
+                            <audio controls>
+                                <source src="{{ column.text|safe }}" type="audio/{{ column.text|file_extension }}">
+                                <p>Este navegador não suporta o elemento áudio.</p>
+                            </audio>
+                        </div>
+                      {% elif column.text|video_url %}
+                        <div class="form-control-static">
+                            <video width="320" height="120" controls>
+                                <source src="{{ column.text|safe }}" type="video/{{ column.text|file_extension }}">
+                                <p>Este navegador não suporta o elemento vídeo.</p>
+                            </video>
+                        </div>
+                      {% elif column.text|url %}
                         <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe|default:"" }} </a></div>
                       {% else %}
                         <div class="form-control-static">{{ column.text|safe|default:"" }}</div>
