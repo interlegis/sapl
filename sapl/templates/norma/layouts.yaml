@@ -70,3 +70,7 @@ NormaRelacionadaDetail:
   {% trans 'Norma Relacionada' %}:
   - norma_relacionada
   - tipo_vinculo
+
+AutoriaNorma:
+  {% trans 'Autoria' %}:
+  - autor primeiro_autor

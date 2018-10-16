@@ -13,10 +13,12 @@
 <h4>
 	<a href="{{base_url}}{{materia_url}}"><b>{{materia}} - {{descricao_materia}}</b></a>
 	<br/><br/>
+{% if autoria %}
 <b>Autoria:</b></br>
 {% for autor in autoria %}
 	 {{ autor }}</br>
 {% endfor %}
+{% endif %}
 </h4>
 <p></p>
 <p>

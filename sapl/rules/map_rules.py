@@ -116,6 +116,7 @@ rules_group_materia = {
         (materia.Numeracao, __base__),
         (materia.Tramitacao, __base__),
         (norma.LegislacaoCitada, __base__),
+        (norma.AutoriaNorma, __base__),
         (compilacao.Dispositivo, __base__ + [
             'change_dispositivo_edicao_dinamica',
 
@@ -136,6 +137,7 @@ rules_group_norma = {
         (norma.NormaJuridica, __base__),
         (norma.NormaRelacionada, __base__),
         (norma.AnexoNormaJuridica, __base__),
+        (norma.AutoriaNorma, __base__),
 
         # Publicacao está com permissão apenas para norma e não para matéria
         # e proposições apenas por análise do contexto, não é uma limitação
@@ -300,6 +302,7 @@ rules_group_anonymous = {
     'group': SAPL_GROUP_ANONYMOUS,
     'rules': [
         (materia.AcompanhamentoMateria, [RP_ADD, RP_DELETE]),
+        (protocoloadm.AcompanhamentoDocumento, [RP_ADD, RP_DELETE]),
     ]
 }
 

@@ -63,14 +63,18 @@
     {% endfor %}
     {% endfor %}
   {% endblock detail_content %}
-    <div class="actions btn-group pull-right btn-group-lg" role="group">
-      {% if view.detail_set_create_url %}
-      <a href="{{ view.detail_set_create_url }}" class="btn btn-default">
-        {% blocktrans with verbose_name=view.verbose_name_set %} Adicionar {{ verbose_name }} {% endblocktrans %}
-      </a>
-      {% endif %}
-      {% block more_buttons %}{% endblock more_buttons %}
-    </div>
+
+  <div class="actions btn-group pull-right btn-group-lg" role="group">
+    {% if view.detail_set_create_url %}
+    <a href="{{ view.detail_set_create_url }}" class="btn btn-default">
+      {% blocktrans with verbose_name=view.verbose_name_set %} Adicionar {{ verbose_name }} {% endblocktrans %}
+    </a>
+    {% endif %}
+    {% block more_buttons %}{% endblock more_buttons %}
+  </div>
+
+  <div class="clearfix"></div>
+  
   <div class="container-table">
     {% if not rows %}
       <p>{{ NO_ENTRIES_MSG }}</p>

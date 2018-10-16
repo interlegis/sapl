@@ -1,0 +1,21 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block actions %} {% endblock %}
+{% block detail_content %}
+
+<h1>Acompanhamento de Documento</h1>
+<hr>
+<div class="row">
+  <div class="col-md-4"><b>Tipo:</b> {{documento.tipo.sigla}} - {{documento.tipo.descricao}}</div>
+  <div class="col-md-4"><b>Número:</b> {{documento.numero}}</div>
+  <div class="col-md-4"><b>Ano:</b> {{documento.ano}}</div>
+
+</div>
+<div class="row">
+  <div class="col-md-12"><b>Assunto:</b> {{documento.assunto|safe}}</div>
+</div>
+
+{% if error %} <h5 align="center"><font color="#FF0000">{{ error }}</font></h5> {% endif %}
+{% crispy form %}
+{% endblock %}

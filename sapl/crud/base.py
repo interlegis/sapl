@@ -1,4 +1,3 @@
-import logging
 
 from braces.views import FormMessagesMixin
 from compressor.utils.decorators import cached_property
@@ -29,9 +28,6 @@ from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
 from sapl.settings import BASE_DIR
 from sapl.utils import normalize
-
-
-logger = logging.getLogger(BASE_DIR.name)
 
 ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
     'list', 'create', 'detail', 'update', 'delete'
@@ -588,7 +584,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
 
                     # print(ordering)
                 except Exception as e:
-                    logger.error(string_concat(_(
+                    print(string_concat(_(
                         'ERRO: construção da tupla de ordenação.'), str(e)))
 
         # print(queryset.query)

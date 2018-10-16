@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from datetime import timedelta
-import logging
 import sys
 
 from braces.views import FormMessagesMixin
@@ -11,9 +10,8 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db import connection, transaction
+from django.db import transaction
 from django.db.models import Q
-from django.db.utils import IntegrityError
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse, Http404)
 from django.shortcuts import get_object_or_404, redirect
@@ -57,8 +55,6 @@ TipoPublicacaoCrud = CrudAux.build(TipoPublicacao, 'tipo_publicacao')
 VeiculoPublicacaoCrud = CrudAux.build(VeiculoPublicacao, 'veiculo_publicacao')
 TipoDispositivoCrud = CrudAux.build(
     TipoDispositivo, 'tipo_dispositivo')
-
-logger = logging.getLogger(BASE_DIR.name)
 
 
 def choice_models_in_extenal_views():
@@ -119,7 +115,7 @@ class IntegracaoTaView(TemplateView):
                     tipo_ta.save()
 
         except Exception as e:
-            logger.error(
+            print(
                 string_concat(
                     _('Ocorreu erro na importação do arquivo base dos Tipos de'
                       'Dispositivos, entre outras informações iniciais.'),
@@ -903,6 +899,8 @@ class TextView(CompMixin, ListView):
     def get(self, request, *args, **kwargs):
         if 'print' in request.GET:
             self.template_name = 'compilacao/text_list__print_version.html'
+        if 'embedded' in request.GET:
+            self.template_name = 'compilacao/text_list__embedded.html'
         return ListView.get(self, request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -2615,13 +2613,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
         history = dispositivo_a_alterar.history()
 
         for d in history:
-            """FIXME: A comparação "<" deverá ser mudada para
-                "<=" caso seja necessário permitir duas alterações
-                com mesmo inicio_vigencia no mesmo dispositivo. Neste Caso,
-                a sequencia correta ficará a cargo dos reposicionamentos e
-                (a ser implementado) entre dispositivos de mesmo nível,
-            """
-            if d.inicio_vigencia < bloco_alteracao.inicio_vigencia:
+            if d.inicio_vigencia <= bloco_alteracao.inicio_vigencia:
                 dispositivo_a_alterar = d
                 break
 

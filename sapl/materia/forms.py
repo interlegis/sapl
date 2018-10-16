@@ -259,7 +259,7 @@ class MateriaLegislativaForm(ModelForm):
             primeiro_autor = True
         else:
             primeiro_autor = False
-            
+
         materia = super(MateriaLegislativaForm, self).save(commit)
         materia.save()
 
@@ -296,6 +296,20 @@ class UnidadeTramitacaoForm(ModelForm):
             logger.error("- Somente um campo deve ser preenchido!")
             raise ValidationError(msg)
         return cleaned_data
+
+    def save(self, commit=False):
+        unidade = super(UnidadeTramitacaoForm, self).save(commit)
+        cd = self.cleaned_data
+
+        if not cd.get('orgao'):
+            unidade.orgao = None
+        if not cd.get('parlamentar'):
+            unidade.parlamentar = None
+        if not cd.get('comissao'):
+            unidade.comissao = None
+
+        unidade.save()
+        return unidade
 
 
 class AcompanhamentoMateriaForm(ModelForm):
@@ -364,6 +378,11 @@ class RelatoriaForm(ModelForm):
 
 
 class TramitacaoForm(ModelForm):
+
+    urgente = forms.ChoiceField(required=True,
+                                choices=YES_NO_CHOICES,
+                                initial=False,
+                                label=_("Urgente?"))
 
     class Meta:
         model = Tramitacao
@@ -1914,14 +1933,13 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         else:
             # numeracao == 'U' ou não informada
             nm = Protocolo.objects.all().aggregate(Max('numero'))
-
         protocolo = Protocolo()
         protocolo.numero = (nm['numero__max'] + 1) if nm['numero__max'] else 1
         protocolo.ano = timezone.now().year
 
         protocolo.tipo_protocolo = '1'
 
-        protocolo.interessado = str(proposicao.autor)
+        protocolo.interessado = str(proposicao.autor)[:200]  # tamanho máximo 200
         protocolo.autor = proposicao.autor
         protocolo.assunto_ementa = proposicao.descricao
         protocolo.numero_paginas = cd['numero_de_paginas']

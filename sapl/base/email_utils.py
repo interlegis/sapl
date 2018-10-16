@@ -8,7 +8,8 @@ from django.utils import timezone
 from sapl.base.models import CasaLegislativa
 from sapl.settings import EMAIL_SEND_USER
 
-from .models import AcompanhamentoMateria
+from sapl.materia.models import AcompanhamentoMateria
+from sapl.protocoloadm.models import AcompanhamentoDocumento
 
 
 def load_email_templates(templates, context={}):
@@ -61,56 +62,73 @@ def enviar_emails(sender, recipients, messages):
                       fail_silently=False)
 
 
-def criar_email_confirmacao(base_url, casa_legislativa, materia, hash_txt=''):
+def criar_email_confirmacao(base_url, casa_legislativa, doc_mat, tipo, hash_txt=''):
 
     if not casa_legislativa:
         raise ValueError("Casa Legislativa é obrigatória")
 
-    if not materia:
-        raise ValueError("Matéria é obrigatória")
+    if not doc_mat:
+        if tipo == "materia":
+            msg = "Matéria é obrigatória"
+        else:
+            msg = "Documento é obrigatório"
+        raise ValueError(msg)
 
     # FIXME i18n
-    casa_nome = (casa_legislativa.nome + ' de ' +
-                 casa_legislativa.municipio + '-' +
-                 casa_legislativa.uf)
+    casa_nome = ("{} de {} - {}".format(casa_legislativa.nome,
+                                        casa_legislativa.municipio,
+                                        casa_legislativa.uf))
 
-    materia_url = reverse('sapl.materia:materialegislativa_detail',
-                          kwargs={'pk': materia.id})
-    confirmacao_url = reverse('sapl.materia:acompanhar_confirmar',
-                              kwargs={'pk': materia.id})
+    if tipo == "materia":
+        doc_mat_url = reverse('sapl.materia:materialegislativa_detail',
+                              kwargs={'pk': doc_mat.id})
+        confirmacao_url = reverse('sapl.materia:acompanhar_confirmar',
+                                  kwargs={'pk': doc_mat.id})
+        ementa = doc_mat.ementa
+        autores = [autoria.autor.nome for autoria in doc_mat.autoria_set.all()]
+    else:
+        doc_mat_url = reverse('sapl.protocoloadm:documentoadministrativo_detail',
+                              kwargs={'pk': doc_mat.id})
+        confirmacao_url = reverse('sapl.protocoloadm:acompanhar_confirmar',
+                                  kwargs={'pk': doc_mat.id})
+        ementa = doc_mat.assunto
+        autores = ""
 
-    autores = []
-    for autoria in materia.autoria_set.all():
-        autores.append(autoria.autor.nome)
+
 
     templates = load_email_templates(['email/acompanhar.txt',
                                       'email/acompanhar.html'],
                                      {"casa_legislativa": casa_nome,
                                       "logotipo": casa_legislativa.logotipo,
-                                      "descricao_materia": materia.ementa,
+                                      "descricao_materia": ementa,
                                       "autoria": autores,
                                       "hash_txt": hash_txt,
                                       "base_url": base_url,
-                                      "materia": str(materia),
-                                      "materia_url": materia_url,
+                                      "materia": str(doc_mat),
+                                      "materia_url": doc_mat_url,
                                       "confirmacao_url": confirmacao_url, })
     return templates
 
 
-def do_envia_email_confirmacao(base_url, casa, materia, destinatario):
+def do_envia_email_confirmacao(base_url, casa, tipo, doc_mat, destinatario):
     #
     # Envia email de confirmacao para atualizações de tramitação
     #
 
     sender = EMAIL_SEND_USER
     # FIXME i18n
-    subject = "[SAPL] " + str(materia) + " - Ative o Acompanhamento da Materia"
+    if tipo == "materia":
+        msg = " - Ative o Acompanhamento da Matéria"
+    else:
+        msg = " - Ative o Acompanhamento de Documento"
+    subject = "[SAPL] {} {}".format(str(doc_mat), msg)
     messages = []
     recipients = []
 
     email_texts = criar_email_confirmacao(base_url,
                                           casa,
-                                          materia,
+                                          doc_mat,
+                                          tipo,
                                           destinatario.hash,)
     recipients.append(destinatario.email)
     messages.append({
@@ -123,30 +141,41 @@ def do_envia_email_confirmacao(base_url, casa, materia, destinatario):
     enviar_emails(sender, recipients, messages)
 
 
-def criar_email_tramitacao(base_url, casa_legislativa, materia, status,
+def criar_email_tramitacao(base_url, casa_legislativa, tipo, doc_mat, status,
                            unidade_destino, hash_txt=''):
 
     if not casa_legislativa:
         raise ValueError("Casa Legislativa é obrigatória")
 
-    if not materia:
-        raise ValueError("Matéria é obrigatória")
+    if not doc_mat:
+        if tipo == "materia":
+            msg = "Matéria é obrigatória"
+        else:
+            msg = "Documento é obrigatório"
+        raise ValueError(msg)
 
     # FIXME i18n
-    casa_nome = (casa_legislativa.nome + ' de ' +
-                 casa_legislativa.municipio + '-' +
-                 casa_legislativa.uf)
+    casa_nome = ("{} de {} - {}".format(casa_legislativa.nome,
+                                        casa_legislativa.municipio,
+                                        casa_legislativa.uf))
+    if tipo == "materia":
+        doc_mat_url = reverse('sapl.materia:tramitacao_list',
+                              kwargs={'pk': doc_mat.id})
+        url_excluir = reverse('sapl.materia:acompanhar_excluir',
+                              kwargs={'pk': doc_mat.id})
 
-    url_materia = reverse('sapl.materia:tramitacao_list',
-                          kwargs={'pk': materia.id})
-    url_excluir = reverse('sapl.materia:acompanhar_excluir',
-                          kwargs={'pk': materia.id})
+        ementa = doc_mat.ementa
+        autores = [autoria.autor.nome for autoria in doc_mat.autoria_set.all()]
+        tramitacao = doc_mat.tramitacao_set.last()
 
-    autores = []
-    for autoria in materia.autoria_set.all():
-        autores.append(autoria.autor.nome)
-
-    tramitacao = materia.tramitacao_set.last()
+    else:
+        doc_mat_url = reverse('sapl.protocoloadm:tramitacaoadministrativo_list',
+                              kwargs={'pk': doc_mat.id})
+        url_excluir = reverse('sapl.protocoloadm:acompanhar_excluir',
+                              kwargs={'pk': doc_mat.id})
+        autores = ""
+        ementa = doc_mat.assunto
+        tramitacao = doc_mat.tramitacaoadministrativo_set.last()
 
     templates = load_email_templates(['email/tramitacao.txt',
                                       'email/tramitacao.html'],
@@ -154,34 +183,42 @@ def criar_email_tramitacao(base_url, casa_legislativa, materia, status,
                                       "data_registro": dt.strftime(
                                           timezone.now(),
                                           "%d/%m/%Y"),
-                                      "cod_materia": materia.id,
+                                      "cod_materia": doc_mat.id,
                                       "logotipo": casa_legislativa.logotipo,
-                                      "descricao_materia": materia.ementa,
+                                      "descricao_materia": ementa,
                                       "autoria": autores,
                                       "data": tramitacao.data_tramitacao,
                                       "status": status,
                                       "localizacao": unidade_destino,
                                       "texto_acao": tramitacao.texto,
                                       "hash_txt": hash_txt,
-                                      "materia": str(materia),
+                                      "materia": str(doc_mat),
                                       "base_url": base_url,
-                                      "materia_url": url_materia,
+                                      "materia_url": doc_mat_url,
                                       "excluir_url": url_excluir})
     return templates
 
 
-def do_envia_email_tramitacao(base_url, materia, status, unidade_destino):
+def do_envia_email_tramitacao(base_url, tipo, doc_mat, status, unidade_destino):
     #
     # Envia email de tramitacao para usuarios cadastrados
     #
-    destinatarios = AcompanhamentoMateria.objects.filter(materia=materia,
-                                                         confirmado=True)
+    if tipo == "materia":
+        destinatarios = AcompanhamentoMateria.objects.filter(materia=doc_mat,
+                                                             confirmado=True)
+    else:
+        destinatarios = AcompanhamentoDocumento.objects.filter(documento=doc_mat,
+                                                            confirmado=True)
+
     casa = CasaLegislativa.objects.first()
 
     sender = EMAIL_SEND_USER
-    # FIXME i18n
-    subject = "[SAPL] " + str(materia) + \
-              " - Acompanhamento de Materia Legislativa"
+    # FIXME i18nn
+    if tipo == "materia":
+        msg = " - Acompanhamento de Matéria Legislativa"
+    else:
+        msg = " - Acompanhamento de Documento"
+    subject = "[SAPL] {} {}".format(str(doc_mat), msg)
 
     connection = get_connection()
     connection.open()
@@ -190,10 +227,11 @@ def do_envia_email_tramitacao(base_url, materia, status, unidade_destino):
         try:
             email_texts = criar_email_tramitacao(base_url,
                                                  casa,
-                                                 materia,
+                                                 tipo,
+                                                 doc_mat,
                                                  status,
                                                  unidade_destino,
-                                                 destinatario.hash,)
+                                                 destinatario.hash)
 
             email = EmailMultiAlternatives(
                 subject,

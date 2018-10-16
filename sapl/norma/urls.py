@@ -3,7 +3,7 @@ from django.conf.urls import include, url
 from sapl.norma.views import (AnexoNormaJuridicaCrud,AssuntoNormaCrud, NormaCrud, NormaPesquisaView,
                               NormaRelacionadaCrud, NormaTaView, TipoNormaCrud,
                               TipoVinculoNormaJuridicaCrud, recuperar_norma,
-                              recuperar_numero_norma)
+                              recuperar_numero_norma, AutoriaNormaCrud)
 
 from .apps import AppConfig
 
@@ -13,7 +13,8 @@ app_name = AppConfig.name
 urlpatterns = [
     url(r'^norma/', include(NormaCrud.get_urls() +
                             NormaRelacionadaCrud.get_urls() +
-                            AnexoNormaJuridicaCrud.get_urls())),
+                            AnexoNormaJuridicaCrud.get_urls() +
+                            AutoriaNormaCrud.get_urls())),
 
     # Integração com Compilação
     url(r'^norma/(?P<pk>[0-9]+)/ta$', NormaTaView.as_view(), name='norma_ta'),

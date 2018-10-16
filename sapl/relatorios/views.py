@@ -766,16 +766,7 @@ def get_sessao_plenaria(sessao, casa):
 def get_turno(dic, materia, sessao_data_inicio):
     descricao_turno = ' '
     descricao_tramitacao = ' '
-    tramitacao = Tramitacao.objects.filter(materia=materia,
-                                           turno__isnull=False,
-                                           data_tramitacao__lte=sessao_data_inicio,
-                                           ).exclude(turno__exact=''
-                                                     ).select_related(
-        'materia',
-        'status',
-        'materia__tipo').order_by(
-        '-data_tramitacao'
-    ).first()
+    tramitacao = None
     if tramitacao is None:
         tramitacao = materia.tramitacao_set.last()
 
@@ -784,7 +775,7 @@ def get_turno(dic, materia, sessao_data_inicio):
             if t[0] == tramitacao.turno:
                 descricao_turno = t[1]
                 break
-        descricao_tramitacao = tramitacao.status.descricao if tramitacao.status else ' '
+        descricao_tramitacao = tramitacao.status.descricao if tramitacao.status else 'Não informada'
     return (descricao_turno, descricao_tramitacao)
 
 
@@ -1058,7 +1049,7 @@ def get_pauta_sessao(sessao, casa):
     inf_basicas_dic["nom_sessao"] = sessao.tipo.nome
     inf_basicas_dic["num_sessao_plen"] = sessao.numero
     inf_basicas_dic["num_legislatura"] = sessao.legislatura
-    inf_basicas_dic["num_sessao_leg"] = sessao.legislatura
+    inf_basicas_dic["num_sessao_leg"] = sessao.sessao_legislativa.numero
     inf_basicas_dic["dat_inicio_sessao"] = sessao.data_inicio
     inf_basicas_dic["hr_inicio_sessao"] = sessao.hora_inicio
     inf_basicas_dic["dat_fim_sessao"] = sessao.data_fim
@@ -1073,6 +1064,7 @@ def get_pauta_sessao(sessao, casa):
             id=expediente_materia.materia.id).first()
 
         dic_expediente_materia = {}
+        dic_expediente_materia["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_expediente_materia["num_ordem"] = str(
             expediente_materia.numero_ordem)
         dic_expediente_materia["id_materia"] = str(
@@ -1125,6 +1117,7 @@ def get_pauta_sessao(sessao, casa):
             id=votacao.materia.id).first()
 
         dic_votacao = {}
+        dic_votacao["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_votacao["num_ordem"] = votacao.numero_ordem
         dic_votacao["id_materia"] = str(
             materia.numero) + "/" + str(materia.ano)
@@ -1133,11 +1126,9 @@ def get_pauta_sessao(sessao, casa):
 
         dic_votacao["des_numeracao"] = ' '
 
-        numeracao = Numeracao.objects.filter(
-            materia=votacao.materia).first()
-        if numeracao is not None:
-            numeracao = numeracao.first()
-            dic_votacao["des_numeracao"] = str(
+        numeracao = Numeracao.objects.filter(materia=votacao.materia).first()
+        if numeracao:
+             dic_votacao["des_numeracao"] = str(
                  numeracao.numero_materia) + '/' + str(numeracao.ano_materia)
 
         turno, tramitacao = get_turno(dic_votacao, materia, sessao.data_inicio)

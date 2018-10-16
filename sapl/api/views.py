@@ -20,7 +20,7 @@ from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
 from sapl.base.models import Autor, TipoAutor
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
-from sapl.utils import SaplGenericRelation, sapl_logger
+from sapl.utils import SaplGenericRelation
 
 
 class ModelChoiceView(ListAPIView):
@@ -142,19 +142,15 @@ class AutorListView(ListAPIView):
         try:
             tr = int(self.request.GET.get
                      ('tr', AutorListView.TR_AUTOR_CHOICE_SERIALIZER))
-
-            assert tr in (
-                AutorListView.TR_AUTOR_CHOICE_SERIALIZER,
-                AutorListView.TR_AUTOR_SERIALIZER), sapl_logger.info(
-                _("Tipo do Resultado a ser fornecido não existe!"))
+            if tr not in (AutorListView.TR_AUTOR_CHOICE_SERIALIZER,
+                          AutorListView.TR_AUTOR_SERIALIZER):
+                return AutorListView.TR_AUTOR_CHOICE_SERIALIZER
         except Exception as e:
             logger.error("- " + str(e))
             return AutorListView.TR_AUTOR_CHOICE_SERIALIZER
-        else:
-            return tr
+        return tr
 
     def get(self, request, *args, **kwargs):
-
         if self.tr == AutorListView.TR_AUTOR_SERIALIZER:
             self.serializer_class = AutorSerializer
             self.permission_classes = (IsAuthenticated,)

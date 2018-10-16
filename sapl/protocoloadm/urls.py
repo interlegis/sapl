@@ -1,6 +1,9 @@
 from django.conf.urls import include, url
 
-from sapl.protocoloadm.views import (AnularProtocoloAdmView,
+from sapl.protocoloadm.views import (AcompanhamentoDocumentoView,
+                                     AcompanhamentoConfirmarView,
+                                     AcompanhamentoExcluirView,
+                                     AnularProtocoloAdmView,
                                      ComprovanteProtocoloView,
                                      CriarDocumentoProtocolo,
                                      DocumentoAcessorioAdministrativoCrud,
@@ -55,6 +58,15 @@ urlpatterns_protocolo = [
 
     url(r'^protocoloadm/(?P<pk>\d+)/protocolo-mostrar$',
         ProtocoloMostrarView.as_view(), name='protocolo_mostrar'),
+
+    url(r'^docadm/(?P<pk>\d+)/acompanhar-documento/$',
+        AcompanhamentoDocumentoView.as_view(), name='acompanhar_documento'),
+    url(r'^docadm/(?P<pk>\d+)/acompanhar-confirmar$',
+        AcompanhamentoConfirmarView.as_view(),
+        name='acompanhar_confirmar'),
+    url(r'^docadm/(?P<pk>\d+)/acompanhar-excluir$',
+        AcompanhamentoExcluirView.as_view(),
+        name='acompanhar_excluir'),
 
 
 

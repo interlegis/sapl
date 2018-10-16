@@ -1,16 +1,191 @@
-
 @import "bootstrap/variables.scss";
+
 @import "header";
 
-.vcenter {
-  display: inline-block;
-  vertical-align: middle;
-  float: none;
+@import "home_index";
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  margin-bottom: 160px;
+}
+
+h1, h2, h3, h4, h5, h6, form, dl, dt, dd, p, div, img, a {
+  margin: 0;
+  padding: 0;
+}
+h1, .h1 {
+  font-size: 30px;
+}
+h2, .h2 {
+  font-size: 24px;
+}
+h3, .h3 {
+  font-size: 20px;
+}
+h4, .h4 {
+  font-size: 16px;
+}
+h5, .h5 {
+  font-size: 14px;
+}
+h6, .h6 {
+  font-size: 12px;
+}
+
+p {
+  margin: 0.5em 0;
+  .control-label {
+    font-weight: bold;
+  }
+}
+
+label {
+  margin-bottom: 0;
+  line-height: 1;
+}
+
+fieldset {
+  fieldset {
+    font-size: 95%;
+    legend {
+      font-size: 18px;
+    }
+  }
+}
+
+.page-header {
+  margin: 20px 0px 10px;
+}
+
+.caret {
+  &.top {
+    transform: rotate(180deg);
+  }
+}
+
+.btn:hover, .btn:focus {
+  color: inherit;
+}
+
+.btn-default {
+  &.btn-excluir {
+    color: $btn-danger-bg;
+    &:hover {
+      color: $btn-danger-color;
+      border-color: lighten($btn-danger-bg, 5%);
+      background-color: lighten($btn-danger-bg, 5%);
+    }
+  }
+}
+
+.btn-cancel-iframe {
+  position: relative;
+  text-align: right;
+  opacity: 0.5;
+  &:hover {
+    opacity: 1;
+  }
+  a {
+    padding: 10px;
+    display: inline-block;
+  }
+}
+
+.legend {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin-bottom: $line-height-computed;
+  font-size: ($font-size-base * 1.5);
+  line-height: inherit;
+  color: $legend-color;
+  border: 0;
+  border-bottom: 1px solid $legend-border-color;
+  clear: both;
+}
+.grid-gutter-width-right {
+  margin-right: $grid-gutter-width / 2;
+}
+
+.controls-file {
   padding: 10px;
+  border: 1px solid #d6e1e5;
+  border-radius: 4px;
+  label.checkbox-inline {
+    margin: 0px;
+    display: block;
+  }
+}
+
+.help-block-danger {
+  margin: $grid-gutter-width / 2;
+  padding: $grid-gutter-width / 2;
+  border: 2px dashed #f00;
+}
+
+.control-label {
+  margin: 0;
+}
+
+.form-control-static {
+  padding-top: 0;
+  min-height: auto;
+  img {
+    max-width: 100%;
+  }
+}
+
+.pagination {
+  padding-top: 25px;
+}
+
+.modal {
+  .alert {
+    margin-bottom: 0;
+  }
+}
+
+.avatar-parlamentar {
+  height: 128px;
+  width: 128px;
+  margin: 0 auto;
+  display: table;
+}
+
+
+.masthead {
+  padding: 10px;
+  .nav {
+    clear:both;
+  }
+  .navbar-brand {
+    padding: 0px;
+    color: $headings-color;
+    font-size: 24px;
+    img.img-responsive {
+      height: 95px;
+      margin-right: $navbar-padding-horizontal;
+    }
+    small {
+      color: #93A4AA;
+      font-size: 75%;
+      line-height: 25px;
+    }
+    .vcenter {
+      display: inline-block;
+      vertical-align: middle;
+      float: none;
+      padding: 10px;
+    }
+  }
 }
 
 nav {
   &.navbar {
+    margin-bottom: 0;
     border-radius: 0;
     font-size: 15px;
   }
@@ -39,95 +214,6 @@ nav {
       }
     }
   }
-}
-.masthead {
-  padding: 10px;
-  .nav {
-    clear:both;
-  }
-  .navbar-brand {
-    color: $headings-color;
-    font-size: 24px;
-    img.img-responsive {
-      height: 95px;
-      margin-right: $navbar-padding-horizontal;
-    }
-    small {
-      color: #93A4AA;
-      font-size: 75%;
-      line-height: 25px;
-    }
-  }
-}
-
-.navbar {
-  margin-bottom: 0;
-}
-
-.navbar-brand {
-  padding: 0px;
-}
-// ADJUST DRUNKEN PARROT STYLES ########################################
-h1, .h1 {
-  font-size: 30px;
-}
-h2, .h2 {
-  font-size: 24px;
-}
-h3, .h3 {
-  font-size: 20px;
-}
-h4, .h4 {
-  font-size: 16px;
-}
-h5, .h5 {
-  font-size: 14px;
-}
-h6, .h6 {
-  font-size: 12px;
-}
-
-.page-header {
-    margin: 20px 0px 10px;
-}
-
-.btn:hover, .btn:focus {
-    color: inherit;
-}
-
-.caret {
-  /* Por padrão caret aponta para baixo*/
-  &.top {
-    transform: rotate(180deg);
-  }
-}
-
-.btn-default {
-  &.btn-excluir {
-    color: $btn-danger-bg;
-    &:hover {
-      color: $btn-danger-color;
-      border-color: lighten($btn-danger-bg, 5%);
-      background-color: lighten($btn-danger-bg, 5%);
-    }
-  }
-}
-
-.controls-file {
-  padding: 10px;
-  border: 1px solid #d6e1e5;
-  border-radius: 4px;
-
-  label.checkbox-inline {
-    margin: 0px;
-    display: block;
-  }
-}
-
-.help-block-danger {
-  margin: $grid-gutter-width / 2;
-  padding: $grid-gutter-width / 2;
-  border: 2px dashed #f00;
 }
 
 .controls-radio-checkbox {
@@ -164,326 +250,25 @@ h6, .h6 {
   }
 }
 
-
-// #### CRUD DETAIL ########################################
-p.control-label {
-  font-weight: bold;
-}
-
-// copied from bootstrap _forms.scss legend
-// using @extend would require importing parts of bootstrap again and overriding drunken parrot css
-//   @import "bootstrap/mixins.scss";
-//   @import "bootstrap/forms.scss";
-
-.legend {
-  display: block;
-  width: 100%;
-  padding: 0;
-  margin-bottom: $line-height-computed;
-  font-size: ($font-size-base * 1.5);
-  line-height: inherit;
-  color: $legend-color;
-  border: 0;
-  border-bottom: 1px solid $legend-border-color;
-  clear: both;
-}
-.grid-gutter-width-right {
-  margin-right: $grid-gutter-width / 2;
-}
-// #### footer ###########################################
-// based on http://getbootstrap.com/examples/sticky-footer
-
-$footer-height : 140px;
-html {
-  position: relative;
-  min-height: 100%;
-}
-body {
-  margin-bottom: $footer-height + 20px;
-}
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  /* Set the fixed height of the footer here */
-  height: $footer-height;
-  background: #364347 none repeat scroll 0% 0%;
-  color: white;
-  text-align: center;
-  p {
-    color: white;
-    margin-top: 10px;
-  }
-  .container {
-    padding-top: 25px;
-  }
-}
-
-label {
-  margin-bottom: 0;
-  line-height: 1;
-}
-.control-label {
-  margin: 0;
-}
-.form-control-static {
-  padding-top: 0;
-  min-height: auto;
-  img {
-    max-width: 100%;
-  }
-}
-
-
-// #### pagination ########################################
-.pagination {
-  padding-top: 25px;
-}
-
-.modal {
-  .alert {
-    margin-bottom: 0;
-  }
-}
-
-fieldset {
-  fieldset {
-    font-size: 95%;
-    legend {
-      font-size: 18px;
-    }
-  }
-}
-
-.avatar-parlamentar {
-  height: 128px;
-  width: 128px;
-  margin: 0 auto;
-  display: table;
-}
-
-/* INDEX */
-#conteudo {
-    position: relative;
-    padding: 2em 1.5em 1.5em 1.5em;
-    overflow: hidden;
-    font-size: 100%;
-    text-align: left;
-    min-height: 350px;
-    max-width: 1000px;
-    margin: 0 auto;
-}
-#conteudo a:hover {
-    color: #444;
-    -webkit-transition: 0.3s ease-in;
-    -moz-transition: 0.3s ease-in;
-    -o-transition: 0.3s ease-in
-}
-
-#homeIndex {
-    text-align: center;
-}
-
-.homeBanner span {
-    color: white;
-    font-size: 32px;
-    font-weight: 600;
-    display: inline-block;
-    vertical-align: middle;
-    padding: 2px 45px 4px;
-    border: 2px solid;
-}
-
-.homeBanner::after {
-    display: inline-block;
-    vertical-align: middle;
-    height: 100%;
-}
-
-.homeBlock {
-    display: inline-block;
-    position: relative;
-    background-color: #F3F3F3;
-    width: 190px;
-    height: 260px;
-    margin: 3px;
-    text-align: center;
-    font-size: 0;
-    overflow: hidden;
-}
-
-.homeBlock > a {
-    display: block;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-}
-
-.homeBlock::after {
-    content: '';
-    display: inline-block;
-    vertical-align: middle;
-    height: 100%;
-    overflow: visible;
-    clear: none;
-    visibility: initial;
-}
-
-.homeContent {
-    position: relative;
-    padding: 10px;
-    text-align: justify;
-    font-size: 14px;
-    color: #FFF;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-.homeContent p {
-    display: block;
-    line-height: 13px;
-    font-size: 80%;
-    color: white;
-}
-
-.homeIcon {
-    position: relative;
-    display: inline-block;
-    width: 105px;
-    height: 105px;
-    border-radius: 50%;
-    background: #364347;
-    z-index: 1;
-}
-
-.homeIcon::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: #364347;
-    top: 0;
-    left: 0;
-    transform: scale(0.95);
-    transition: transform 0.6s ease;
-}
-
-.homeIcon img {
-    position: absolute;
-    margin: auto;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    transition: opacity 0.4s 0.4s ease;
-}
-
-.homeFront {
-    position: absolute;
-    top: 46%;
-    width: 100%;
-    font-size: 0;
-    transform: translateY(-60%);
-
-}
-
-.homeFront h2 {
-    position: absolute;
-    margin-top: 18px;
-    font-size: 22px;
-    font-weight: 700;
-    color: #595959 !important;
-    width: 100%;
-    padding: 0 6%;
-    z-index: 0;
-}
-
-.homeTitle {
-    display: block;
-    height: 32px;
-    text-align: center;
-    width: 100%;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.homeTitle::before {
-    content: '';
-    display: inline-block;
-    vertical-align: middle;
-    height: 100%;
-}
-
-.homeTitle h2 {
-    display: inline-block;
-    vertical-align: middle;
-    max-width: 110px;
-    font-size: 14px;
-    color: white !important;
-    line-height: 1em;
-}
-
-.homeTitle img {
-    display: inline-block;
-    vertical-align: middle;
-    height: 30px;
-    margin-right: 5px;
-}
-
-.homeBlock:hover .homeIcon::before {
-    transform: scale(3.6) translateY(7px);
-}
-
-.homeBlock:hover .homeContent{
-    opacity: 1;
-    transition-delay: 0.2s;
-}
-
-.homeBlock:hover .homeIcon img {
-    opacity: 0;
-    transition-duration: 0.2s;
-    transition-delay: 0s;
-}
-
-.homeBlock:hover .homeTitle {
-    opacity: 1;
-}
-
-h1, h2, h3, h4, h5, h6, form, dl, dt, dd, p, div, img, a {
-    margin: 0;
-    padding: 0;
-}
-
-p {
-    margin: 0.5em 0;
-}
-/* FIM INDEX */
-
-/* TEMPLATE AJUDA */
-.manual li {
-    display: list-item;
-    line-height: 1.5em;
-    padding-right: 0;
-}
-.manual li a {
-    background-color: transparent;
-    border: none;
-    border-radius: none;
-    padding: 0;
-}
-
-.manual, .manual ul {
+.manual {
+  &, & ul {
     padding-left: 1.5em;
     list-style-type: none;
     margin-top: 0;
     font-size: 100%;
+  }
+  li {
+    display: list-item;
+    line-height: 1.5em;
+    padding-right: 0;
+    a {
+      background-color: transparent;
+      border: none;
+      border-radius: none;
+      padding: 0;
+    }
+  }
 }
-/* FIM TEMPLATE AJUDA */
 
 .container-tabaux {
   .sidebar-tabaux {
@@ -558,54 +343,6 @@ p {
   }
 }
 
-.btn-cancel-iframe {
-  position: relative;
-  text-align: right;
-  opacity: 0.5;
-  &:hover {
-    opacity: 1;
-  }
-  a {
-    padding: 10px;
-    display: inline-block;
-  }
-}
-
-
-@media (max-width: 1199px) {
-  .masthead {
-    .navbar-brand {
-      font-size: 22px;
-      img.img-responsive {
-        height: 60px;
-        width: 60px;
-        margin-right: $navbar-padding-horizontal / 2;
-      }
-    }
-  }
-  .navbar-nav > li > a {
-     padding-left: $grid-gutter-width / 2.8;
-     padding-right:  $grid-gutter-width / 2.8;
-  }
-}
-
-@media (max-width: 1091px) {
-  .navbar-nav > li > a {
-     padding-left: $grid-gutter-width / 4;
-     padding-right:  $grid-gutter-width / 4;
-  }
-}
-
-
-
-@media (min-width: 1092px) and (max-width: 1199px) {
-  .container {
-      width: 1070px;
-  }
-}
-
-/* Estilização da Listagem de Votos em sessões plenárias */
-
 #styleparlamentar {
   border: 0px solid #d6e1e5;
   border-top-color: rgb(214, 225, 229);
@@ -624,4 +361,115 @@ p {
   -webkit-box-shadow: none;
   box-shadow: none;
   margin-left: 1.0em;
+}
+
+.footer {
+  background: #364347;
+  color: white;
+  text-align: center;
+  position: absolute;
+  width: 100%;
+  bottom: 0px;
+  p {
+    color: white;
+    margin-top: 10px;
+  }
+  .container {
+    padding-top: 25px;
+  }
+}
+
+@media (max-width: 1199px) {
+  nav {
+    .container {
+      width: auto !important;
+    }
+  }
+  .navbar-nav > li > a {
+     padding-left: $grid-gutter-width / 2.8;
+     padding-right:  $grid-gutter-width / 2.8;
+  }
+}
+
+
+@media (max-width: 1091px) {
+  .container {
+    width: auto;
+  }
+  .navbar-nav > li > a {
+     padding-left: $grid-gutter-width / 4;
+     padding-right:  $grid-gutter-width / 4;
+  }
+  .masthead {
+    .navbar-brand {
+      font-size: 22px;
+      img.img-responsive {
+        height: 60px;
+        margin-right: $navbar-padding-horizontal / 2;
+      }
+    }
+  }
+}
+
+@media (max-width: 991px) {
+  body {
+    margin: 0;
+  }
+  .footer {
+    position: relative;
+  }
+  .caret {
+    margin-left: 1px;
+  }
+  .navbar-nav > li > a {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}
+
+@media (max-width: 767px) {
+  nav {
+    .navbar-nav > li > a { 
+      line-height: 2.5;
+    }
+    .navbar-right {
+      position: absolute;
+      top: 0;
+      margin: 10px;
+      & > li {
+        vertical-align: top;
+        display: inline-block;
+        a {
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+      }
+      .pesquisa.open {
+        ul {
+          position: absolute;
+        }
+      } 
+      .navbar-form {
+        margin: 8px 0;
+      }
+    }
+  }
+  .table{
+    width: auto;
+    white-space: normal;
+    display:block;
+    overflow-x: auto;
+  }
+}
+
+@media (min-width: 1092px) and (max-width: 1199px) {
+  .container {
+      width: 1070px;
+  }
+}
+
+@media print {
+  a[href]:after {
+    content: none !important;
+  }
 }

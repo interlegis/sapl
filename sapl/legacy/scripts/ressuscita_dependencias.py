@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from textwrap import dedent
 
 import texttable
@@ -19,6 +20,7 @@ def stripsplit(ll):
 def _tab_legado(model):
     return models_novos_para_antigos[model]._meta.db_table
 
+
 fks_legado = {
     (_tab_legado(m), campos_novos_para_antigos[f]): _tab_legado(f.related_model)  # noqa
     for m in models_novos_para_antigos
@@ -34,29 +36,41 @@ for tabela_origem, campo, tabela_destino in [
 
 
 urls = '''
-autor                    /sistema/autor
-cargo_comissao           /sistema/comissao/cargo
-legislatura              /sistema/parlamentar/legislatura
-materia_legislativa      /materia
-norma_juridica           /norma
-parlamentar              /parlamentar
-sessao_legislativa       /sistema/mesa-diretora/sessao-legislativa
-sessao_plenaria          /sessao
-status_tramitacao        /sistema/materia/status-tramitacao
-tipo_autor               /sistema/autor/tipo
-tipo_expediente          /sistema/sessao-plenaria/tipo-expediente
-tipo_proposicao          /sistema/proposicao/tipo
-tipo_resultado_votacao   /sistema/sessao-plenaria/tipo-resultado-votacao
-unidade_tramitacao       /sistema/materia/unidade-tramitacao
-tipo_documento           /sistema/materia/tipo-documento
-orgao                    /sistema/materia/orgao
-tipo_sessao_plenaria     /sistema/sessao-plenaria/tipo
-cargo_mesa               /sistema/mesa-diretora/cargo-mesa
-documento_administrativo /docadm
-tipo_materia_legislativa /sistema/materia/tipo
-tipo_norma_juridica      /sistema/norma/tipo
-comissao                 /comissao
-registro_votacao         ?????????
+autor                         /sistema/autor
+cargo_comissao                /sistema/comissao/cargo
+legislatura                   /sistema/parlamentar/legislatura
+materia_legislativa           /materia
+norma_juridica                /norma
+parlamentar                   /parlamentar
+sessao_legislativa            /sistema/mesa-diretora/sessao-legislativa
+sessao_plenaria               /sessao
+status_tramitacao             /sistema/materia/status-tramitacao
+tipo_autor                    /sistema/autor/tipo
+tipo_expediente               /sistema/sessao-plenaria/tipo-expediente
+tipo_proposicao               /sistema/proposicao/tipo
+tipo_resultado_votacao        /sistema/sessao-plenaria/tipo-resultado-votacao
+unidade_tramitacao            /sistema/materia/unidade-tramitacao
+tipo_documento                /sistema/materia/tipo-documento
+orgao                         /sistema/materia/orgao
+tipo_sessao_plenaria          /sistema/sessao-plenaria/tipo
+cargo_mesa                    /sistema/mesa-diretora/cargo-mesa
+documento_administrativo      /docadm
+tipo_materia_legislativa      /sistema/materia/tipo
+tipo_norma_juridica           /sistema/norma/tipo
+comissao                      /comissao
+assunto_materia               /sistema/assunto-materia
+coligacao                     /sistema/coligacao
+nivel_instrucao               /sistema/parlamentar/nivel-instrucao
+partido                       /sistema/parlamentar/partido
+regime_tramitacao             /sistema/materia/regime-tramitacao
+tipo_comissao                 /sistema/comissao/tipo
+tipo_documento_administrativo /sistema/tipo-documento-adm
+registro_votacao              /admin/sessao/registrovotacao
+tipo_dependente               /sistema/parlamentar/tipo-dependente
+origem                        /sistema/materia/origem
+documento_acessorio           /materia/documentoacessorio
+tipo_fim_relatoria            /sistema/materia/tipo-fim-relatoria
+tipo_situacao_militar         /sistema/parlamentar/tipo-militar
 '''
 urls = dict(stripsplit(urls))
 
@@ -77,6 +91,7 @@ CAMPOS_ORIGEM_PARA_ALVO = {
     'cod_unid_tram_dest': 'cod_unid_tramitacao',
     'cod_unid_tram_local': 'cod_unid_tramitacao',
     'tip_id_basica': 'tip_materia',
+    'cod_local_origem_externa': 'cod_origem',
 }
 
 
@@ -180,7 +195,7 @@ Para facilitar sua conferência, seguem os links para as proposições envolvida
     '''.format(table.draw(), links, sqls)
 
 
-def get_dependencias_a_ressucitar(slug):
+def get_dependencias_a_ressuscitar(slug):
     ocorrencias = yaml.load(
         Path(DIR_REPO.child('ocorrencias.yaml').read_file()))
     fks_faltando = ocorrencias.get('fk')
@@ -214,6 +229,21 @@ def get_dependencias_a_ressucitar(slug):
     return preambulo, desexcluir, criar
 
 
+# deve ser idempotente pois é usada na criação de autor
+# por isso o ON DUPLICATE KEY UPDATE
+SQL_INSERT_TIPO_AUTOR = '''
+    insert into tipo_autor (tip_autor, des_tipo_autor, ind_excluido)
+    values ({}, "DESCONHECIDO", 0) ON DUPLICATE KEY UPDATE ind_excluido = 0;
+     '''
+
+# deve ser idempotente pois é usada na criação de comissao
+# por isso o ON DUPLICATE KEY UPDATE
+SQL_INSERT_TIPO_COMISSAO = '''
+    insert into tipo_comissao (tip_comissao, nom_tipo_comissao, sgl_natureza_comissao, sgl_tipo_comissao, des_dispositivo_regimental, ind_excluido)
+    values ({}, "DESCONHECIDO", "P", "DESC", NULL, 0)
+    ON DUPLICATE KEY UPDATE ind_excluido = 0;
+     '''
+
 SQLS_CRIACAO = [
     ('tipo_proposicao', '''
         insert into tipo_materia_legislativa (
@@ -232,13 +262,54 @@ SQLS_CRIACAO = [
         tip_resultado_votacao, nom_resultado, ind_excluido)
         values ({}, "DESCONHECIDO", 0);
         '''),
-    ('tipo_autor', '''
-        insert into tipo_autor (tip_autor, des_tipo_autor, ind_excluido)
-        values ({}, "DESCONHECIDO", 0);
-     '''),
+    ('tipo_autor', SQL_INSERT_TIPO_AUTOR),
     ('unidade_tramitacao', '''
-        insert into unidade_tramitacao (cod_unid_tramitacao, cod_comissao, cod_orgao, cod_parlamentar, ind_excluido)
-        values ({}, NULL, NULL, NULL, 0);
+        insert into unidade_tramitacao (
+        cod_unid_tramitacao, cod_comissao, cod_orgao, cod_parlamentar, ind_excluido)
+        values ({}, NULL, NULL, 0, 0);
+     '''),
+    ('autor', SQL_INSERT_TIPO_AUTOR.format(0) + '''
+        insert into autor (
+        cod_autor, cod_partido, cod_comissao, cod_parlamentar, tip_autor,
+        nom_autor, des_cargo, col_username, ind_excluido)
+        values ({}, 0, 0, 0, 0, "DESCONHECIDO", "DESCONHECIDO", NULL, 0);
+     '''),
+    ('tipo_documento', '''
+         insert into tipo_documento (tip_documento, des_tipo_documento, ind_excluido)
+         values ({}, "DESCONHECIDO", 0);
+     '''),
+    ('partido', '''
+        insert into partido (cod_partido, sgl_partido, nom_partido, dat_criacao, dat_extincao, ind_excluido)
+        values ({}, "DESC", "DESCONHECIDO", NULL, NULL, 0);
+     '''),
+    ('legislatura', '''
+         insert into legislatura (num_legislatura, dat_inicio, dat_fim, dat_eleicao, ind_excluido)
+         values ({}, "1/1/1", "1/1/1", "1/1/1", 0);
+     '''),
+    ('cargo_mesa', '''
+        insert into cargo_mesa (cod_cargo, des_cargo, ind_unico, ind_excluido)
+        values ({}, "DESCONHECIDO", 0, 0);
+     '''),
+    ('orgao', '''
+        insert into orgao (cod_orgao, nom_orgao, sgl_orgao, ind_unid_deliberativa, end_orgao, num_tel_orgao, ind_excluido)
+        values ({}, "DESCONHECIDO", "DESC", 0, NULL, NULL, 0);
+     '''),
+    ('origem', '''
+        insert into origem (cod_origem, sgl_origem, nom_origem, ind_excluido)
+        values ({}, "DESC", "DESCONHECIDO", 0);
+     '''),
+    ('tipo_comissao', SQL_INSERT_TIPO_COMISSAO),
+    ('comissao', SQL_INSERT_TIPO_COMISSAO.format(0) + '''
+        insert into comissao (cod_comissao, tip_comissao, nom_comissao, sgl_comissao, dat_criacao,
+        ind_unid_deliberativa, ind_excluido)
+        values ({}, 0, "DESCONHECIDO", "DESC", "1-1-1", 0, 0);
+     '''),
+    ('parlamentar', '''
+        insert into parlamentar (cod_parlamentar, nom_completo, nom_parlamentar, sex_parlamentar, cod_casa, ind_ativo, ind_unid_deliberativa, ind_excluido)
+        values ({}, "DESCONHECIDO", "DESCONHECIDO", "M", 0, 0, 0, 0);
+     '''),
+    ('tipo_sessao_plenaria', '''
+        insert into tipo_sessao_plenaria (tip_sessao, nom_sessao, ind_excluido, num_minimo) values ({}, "DESCONHECIDO", 0, 0);
      '''),
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
@@ -282,8 +353,8 @@ def get_sql_criar(tabela_alvo, campo, valor, slug):
     return sql, links
 
 
-TEMPLATE_RESSUCITADOS = '''{}
-/* RESSUCITADOS
+TEMPLATE_RESSUSCITADOS = '''{}
+/* RESSUSCITADOS
 
 
 SOBRE REGISTROS QUE ESTAVAM APAGADOS E FORAM RESTAURADOS
@@ -307,6 +378,10 @@ def get_url(slug):
     return 'sapl.{}.leg.br'.format(slug.replace('-', '.'))
 
 
+def sem_repeticoes_mantendo_ordem(sequencia):
+    return OrderedDict.fromkeys(sequencia).keys()
+
+
 def get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug):
     sqls_links = [get_sql(*(args + (slug,)))
                   for itens, get_sql in ((desexcluir, get_sql_desexcluir),
@@ -316,13 +391,21 @@ def get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug):
         return ''
     else:
         sqls, links = zip(*sqls_links)
-        links = [l for ll in links for l in ll]  # flatten
+
+        sqls = [dedent(s.strip()) + ';'
+                for sql in sqls
+                for s in sql.split(';') if s.strip()]
+        sqls = sem_repeticoes_mantendo_ordem(sqls)
+
+        links = (l for ll in links for l in ll)  # flatten
+        links = sem_repeticoes_mantendo_ordem(links)
+
         sqls, links = ['\n'.join(sorted(s)) for s in [sqls, links]]
-        return TEMPLATE_RESSUCITADOS.format(preambulo, links, sqls)
+        return TEMPLATE_RESSUSCITADOS.format(preambulo, links, sqls)
 
 
-def get_ressucitar(slug):
-    preambulo, desexcluir, criar = get_dependencias_a_ressucitar(slug)
+def get_ressuscitar(slug):
+    preambulo, desexcluir, criar = get_dependencias_a_ressuscitar(slug)
     return get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug)
 
 
@@ -334,8 +417,8 @@ def get_slug():
     return siglas_para_slugs[sigla]
 
 
-def adiciona_ressucitar():
-    sqls = get_ressucitar(get_slug())
+def adiciona_ressuscitar():
+    sqls = get_ressuscitar(get_slug())
     if sqls.strip():
         arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
         conteudo = arq_ajustes_pre_migracao.read_file()

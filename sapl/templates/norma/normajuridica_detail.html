@@ -1,5 +1,5 @@
 {% extends "crud/detail.html" %}
-{% load i18n common_tags%}
+{% load i18n common_tags staticfiles%}
 
 {% block detail_content %}
       {% for fieldset in view.layout_display %}
@@ -76,4 +76,30 @@
       {% endif %}
     </div>
   </div>
+
+  {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission %}
+    <hr />
+    <div class="row-fluid">
+      <div class="col-sm-12">
+        <br>
+        <p class="control-label">{%trans 'Texto Multivigente' %}</p>
+        <div id="textomultivigente"></div>
+      </div>
+    </div>
+  {% endif %}
 {% endblock detail_content %}
+
+{% block extra_js %}
+{% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
+  <script language="Javascript">
+    window.onload = function () {
+      $.get("{% url 'sapl.compilacao:ta_text' object.texto_articulado.first.id %}?embedded",
+      function(data, status) {
+        $('#textomultivigente').html(data)
+        $('cp a[data-toggle="dropdown"]').dropdown()
+        $('.dne').remove()
+      });
+    }
+  </script>
+{% endif %}
+{% endblock extra_js %}

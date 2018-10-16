@@ -186,7 +186,8 @@ class TextoArticulado(TimestampedMixin):
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     ementa = models.TextField(verbose_name=_('Ementa'))
     observacao = models.TextField(blank=True, verbose_name=_('Observação'))
-    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    numero = models.CharField(
+        max_length=8,verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     tipo_ta = models.ForeignKey(
         TipoTextoArticulado,
@@ -266,9 +267,12 @@ class TextoArticulado(TimestampedMixin):
              user.has_perm(
                  'compilacao.change_your_dispositivo_edicao_dinamica'))
 
-    def has_view_permission(self, request):
+    def has_view_permission(self, request=None):
         if self.privacidade in (STATUS_TA_IMMUTABLE_PUBLIC, STATUS_TA_PUBLIC):
             return True
+
+        if not request:
+            return False
 
         if request.user in self.owners.all():
             return True
@@ -599,7 +603,7 @@ class TipoDispositivo(BaseModel):
         max_length=50, unique=True, verbose_name=_('Nome'))
     class_css = models.CharField(
         blank=True,
-        max_length=20,
+        max_length=256,
         verbose_name=_('Classe CSS'))
     rotulo_prefixo_html = models.TextField(
         blank=True,
@@ -654,7 +658,7 @@ class TipoDispositivo(BaseModel):
         blank=True,
         verbose_name=_('Sufixo html da nota automática'))
     contagem_continua = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Contagem contínua'))
+        choices=YES_NO_CHOICES, verbose_name=_('Contagem contínua'), default=False)
     dispositivo_de_articulacao = models.BooleanField(
         choices=YES_NO_CHOICES,
         default=False,

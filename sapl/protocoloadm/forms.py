@@ -3,7 +3,7 @@ import django_filters
 import logging
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Fieldset, Layout
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
@@ -20,7 +20,8 @@ from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal)
 
-from .models import (DocumentoAcessorioAdministrativo, DocumentoAdministrativo,
+from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
+                     DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
@@ -39,6 +40,28 @@ def ANO_CHOICES():
 EM_TRAMITACAO = [('', '---------'),
                  (0, 'Sim'),
                  (1, 'Não')]
+
+class AcompanhamentoDocumentoForm(ModelForm):
+
+    class Meta:
+        model = AcompanhamentoDocumento
+        fields = ['email']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([('email', 10)])
+
+        row1.append(
+            Column(form_actions(label='Cadastrar'), css_class='col-md-2')
+        )
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _('Acompanhamento de Documento por e-mail'), row1
+            )
+        )
+        super(AcompanhamentoDocumentoForm, self).__init__(*args, **kwargs)
 
 
 class ProtocoloFilterSet(django_filters.FilterSet):
@@ -920,7 +943,7 @@ class DesvincularMateriaForm(forms.Form):
 
 def pega_ultima_tramitacao_adm():
     return TramitacaoAdministrativo.objects.values(
-        'materia_id').annotate(data_encaminhamento=Max(
+        'documento_id').annotate(data_encaminhamento=Max(
             'data_encaminhamento'),
         id=Max('id')).values_list('id', flat=True)
 
@@ -937,7 +960,7 @@ def filtra_tramitacao_adm_destino(destino):
     return TramitacaoAdministrativo.objects.filter(
         id__in=lista,
         unidade_tramitacao_destino=destino).distinct().values_list(
-            'materia_id', flat=True)
+            'documento_id', flat=True)
 
 
 def filtra_tramitacao_adm_destino_and_status(status, destino):
@@ -946,4 +969,4 @@ def filtra_tramitacao_adm_destino_and_status(status, destino):
         id__in=lista,
         status=status,
         unidade_tramitacao_destino=destino).distinct().values_list(
-            'materia_id', flat=True)
+            'documento_id', flat=True)

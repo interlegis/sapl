@@ -87,7 +87,8 @@ class SessaoPlenariaForm(ModelForm):
         sessoes = SessaoPlenaria.objects.filter(numero=num,
                                                 sessao_legislativa=sl,
                                                 legislatura=leg,
-                                                tipo=tipo).\
+                                                tipo=tipo,
+                                                data_inicio__year=abertura.year).\
             values_list('id', flat=True)
 
         qtd_sessoes = len(sessoes)

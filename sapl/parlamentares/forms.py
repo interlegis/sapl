@@ -142,7 +142,7 @@ class LegislaturaForm(ModelForm):
         pk = self.instance.pk
 
 
-        ultima_legislatura = Legislatura.objects.filter(data_inicio__lte=data_inicio
+        ultima_legislatura = Legislatura.objects.filter(data_inicio__lt=data_inicio
                                                         ).order_by('-data_inicio').first()
         proxima_legislatura = Legislatura.objects.filter(data_fim__gt=data_fim
                                                          ).order_by('data_fim').first()
@@ -348,12 +348,12 @@ class FrenteForm(ModelForm):
         fields = '__all__'
 
     def clean(self):
-        frente = super(FrenteForm, self).clean()
+        super(FrenteForm, self).clean()
         cd = self.cleaned_data
         if not self.is_valid():
             return self.cleaned_data
 
-        if cd['data_criacao'] >= cd['data_extincao']:
+        if cd['data_extincao'] and cd['data_criacao'] >= cd['data_extincao']:
             raise ValidationError(_("Data Dissolução não pode ser anterior a Data Criação"))
 
         return cd

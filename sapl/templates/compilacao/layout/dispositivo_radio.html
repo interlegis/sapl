@@ -23,7 +23,7 @@
           <div class="{{ dpt.tipo_dispositivo.class_css }}">
             <div class="dptt {% dispositivo_desativado dpt None None %}"  id="dptt{{dpt.pk}}" >
               {{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
-              {% if dpt.rotulo or dpt.nivel = 1 %}{{ dpt.rotulo }}{%else%}[{{ dpt|nomenclatura}} {% trans "de" %} {{ dpt.dispositivo_pai.rotulo }}] - {% endif %}
+              {% if dpt.rotulo or dpt.nivel == 1 %}{{ dpt.rotulo }}{%else%}[{{ dpt|nomenclatura}} {% trans "de" %} {{ dpt.dispositivo_pai.rotulo }}] - {% endif %}
               {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
               <span class="dtxt"
                     id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}"

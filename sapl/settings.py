@@ -13,7 +13,6 @@ Quick-start development settings - unsuitable for production
 See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
-import logging
 
 from decouple import config
 from dj_database_url import parse as db_url
@@ -240,7 +239,8 @@ LANGUAGES = (
 
 TIME_ZONE = config('TZ', default='America/Sao_Paulo')
 if not TIME_ZONE:
-    raise ValueError('TIMEZONE env variable undefined in .env settings file! Leaving...')
+    raise ValueError(
+        'TIMEZONE env variable undefined in .env settings file! Leaving...')
 
 USE_I18N = True
 USE_L10N = True
@@ -348,7 +348,7 @@ def excepthook(*args):
     logging.getLogger(BASE_DIR.name).error(
         'Uncaught exception:', exc_info=args)
 
-# sys.excepthook = excepthook
+# sys.excepthook = excepthook"""
 
 
 PASSWORD_HASHERS = [
