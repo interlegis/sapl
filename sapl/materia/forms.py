@@ -1411,6 +1411,7 @@ class DevolverProposicaoForm(forms.ModelForm):
         model = Proposicao
         fields = [
             'justificativa_devolucao',
+            'observacao',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -1423,6 +1424,7 @@ class DevolverProposicaoForm(forms.ModelForm):
             Fieldset(
                 _('Registro de Devolução'),
                 to_column(('justificativa_devolucao', 12)),
+                to_column(('observacao', 12)),
                 to_column(
                     (form_actions(label=_('Devolver'),
                                   name='devolver',
@@ -1509,8 +1511,6 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         ]
         widgets = {
             'descricao': widgets.Textarea(
-                attrs={'readonly': 'readonly', 'rows': 4}),
-            'observacao': widgets.Textarea(
                 attrs={'readonly': 'readonly', 'rows': 4}),
             'data_envio':  widgets.DateTimeInput(
                 attrs={'readonly': 'readonly'}),
