@@ -159,7 +159,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
         if cleaned_data['cargo'].nome in cargos_unicos:
             msg = _('Este cargo é único para esta Comissão.')
-            logger.error('- ' + msg)
+            logger.error('- Este cargo é único para esta Comissão.')
             raise ValidationError(msg)
         return cleaned_data
 
@@ -282,43 +282,43 @@ class ComissaoForm(forms.ModelForm):
 
         if len(self.cleaned_data['nome']) > 100:
             msg = _('Nome da Comissão deve ter no máximo 50 caracteres.')
-            logger.error('- ' + msg)
+            logger.error('- Nome da Comissão deve ter no máximo 50 caracteres.')
             raise ValidationError(msg)
         if (self.cleaned_data['data_extincao'] and
             self.cleaned_data['data_extincao'] <
                 self.cleaned_data['data_criacao']):
                 msg = _('Data de extinção não pode ser menor que a de criação')
-                logger.error('- ' + msg)
+                logger.error('- Data de extinção não pode ser menor que a de criação')
                 raise ValidationError(msg)
         if (self.cleaned_data['data_final_prevista_temp'] and
             self.cleaned_data['data_final_prevista_temp'] <
                 self.cleaned_data['data_criacao']):
                 msg = _('Data Prevista para Término não pode ser menor que a de criação')
-                logger.error('- ' + msg)
+                logger.error('- Data Prevista para Término não pode ser menor que a de criação')
                 raise ValidationError(msg)
         if (self.cleaned_data['data_prorrogada_temp'] and
             self.cleaned_data['data_prorrogada_temp'] <
                 self.cleaned_data['data_criacao']):
                 msg = _('Data Novo Prazo não pode ser menor que a de criação')
-                logger.error('- ' + msg)
+                logger.error('- Data Novo Prazo não pode ser menor que a de criação')
                 raise ValidationError(msg)
         if (self.cleaned_data['data_instalacao_temp'] and
             self.cleaned_data['data_instalacao_temp'] <
                 self.cleaned_data['data_criacao']):
                 msg = _('Data de Instalação não pode ser menor que a de criação')
-                logger.error('- ' + msg)
+                logger.error('- Data de Instalação não pode ser menor que a de criação')
                 raise ValidationError(msg)
         if (self.cleaned_data['data_final_prevista_temp'] and self.cleaned_data['data_instalacao_temp'] and
             self.cleaned_data['data_final_prevista_temp'] <
                 self.cleaned_data['data_instalacao_temp']):
                 msg = _('Data Prevista para Término não pode ser menor que a de Instalação')
-                logger.error('- ' + msg)
+                logger.error('- Data Prevista para Término não pode ser menor que a de Instalação.')
                 raise ValidationError(msg)
         if (self.cleaned_data['data_prorrogada_temp'] and self.cleaned_data['data_instalacao_temp'] and
             self.cleaned_data['data_prorrogada_temp'] <
                 self.cleaned_data['data_instalacao_temp']):
                 msg = _('Data Novo Prazo não pode ser menor que a de Instalação')
-                logger.error('- ' + msg)
+                logger.error('- Data Novo Prazo não pode ser menor que a de Instalação.')
                 raise ValidationError(msg)
         return self.cleaned_data
 
@@ -354,6 +354,7 @@ class ReuniaoForm(ModelForm):
 
     def clean(self):
         super(ReuniaoForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -362,6 +363,7 @@ class ReuniaoForm(ModelForm):
             if (self.cleaned_data['hora_fim'] <
                     self.cleaned_data['hora_inicio']):
                 msg = _('A hora de término da reunião não pode ser menor que a de início')
+                logger.error("- A hora de término da reunião não pode ser menor que a de início")
                 raise ValidationError(msg)
         return self.cleaned_data
 
