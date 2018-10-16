@@ -158,7 +158,7 @@ def test_registro_votacao_tem_ordem_xor_expediente():
 
     ordem = mommy.make(OrdemDia)
     expediente = mommy.make(ExpedienteMateria)
-
+.
     # a validação funciona com exatamente um dos campos preenchido
     registro_votacao_com(ordem, None).full_clean()
     registro_votacao_com(None, expediente).full_clean()
@@ -170,3 +170,15 @@ def test_registro_votacao_tem_ordem_xor_expediente():
     # a validação NÃO funciona quando ambos são preenchidos
     with pytest.raises(ValidationError):
         registro_votacao_com(ordem, expediente).full_clean()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_delete_sessao_plenaria():
+    legislatura = mommy.make(Legislatura)
+    sessao = mommy.make(SessaoLegislativa)
+    tipo = mommy.make(TipoSessaoPlenaria)
+    sessao_plenaria = mommy.make(SessaoPlenaria,
+                               legislatura=legislatura,
+                               sessao_legislativa=sessao,
+                               tipo=tipo,
+                               numero=1)
