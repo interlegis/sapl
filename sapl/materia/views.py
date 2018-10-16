@@ -663,7 +663,7 @@ class ProposicaoCrud(Crud):
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['data_envio', 'data_recebimento', 'descricao',
-                            'tipo', 'conteudo_gerado_related']
+                            'tipo', 'conteudo_gerado_related', 'cancelado', ]
 
     class BaseLocalMixin:
         form_class = ProposicaoForm

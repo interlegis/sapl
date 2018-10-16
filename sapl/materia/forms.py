@@ -1250,7 +1250,6 @@ class ProposicaoForm(forms.ModelForm):
 
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
-            'observacao': widgets.Textarea(attrs={'rows': 4}),
             'tipo': TipoProposicaoSelect(),
             'hash_code': forms.HiddenInput(), }
 
