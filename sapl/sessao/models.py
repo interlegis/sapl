@@ -431,11 +431,11 @@ class RegistroVotacao(models.Model):
     ordem = models.ForeignKey(OrdemDia,
                               blank=True,
                               null=True,
-                              on_delete=models.PROTECT)
+                              on_delete=models.CASCADE)
     expediente = models.ForeignKey(ExpedienteMateria,
                                    blank=True,
                                    null=True,
-                                   on_delete=models.PROTECT)
+                                   on_delete=models.CASCADE)
     numero_votos_sim = models.PositiveIntegerField(verbose_name=_('Sim'))
     numero_votos_nao = models.PositiveIntegerField(verbose_name=_('Não'))
     numero_abstencoes = models.PositiveIntegerField(

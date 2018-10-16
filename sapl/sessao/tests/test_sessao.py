@@ -7,9 +7,11 @@ from model_mommy import mommy
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Partido, SessaoLegislativa
 from sapl.sessao import forms
-from sapl.sessao.models import (ExpedienteMateria, OrdemDia, RegistroVotacao,
-                                SessaoPlenaria, TipoSessaoPlenaria)
-
+from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
+                                IntegranteMesa, Orador, OrdemDia,
+                                PresencaOrdemDia, RegistroVotacao,
+                                SessaoPlenaria, SessaoPlenariaPresenca,
+                                TipoResultadoVotacao, TipoSessaoPlenaria)
 
 def test_valida_campos_obrigatorios_sessao_plenaria_form():
     form = forms.SessaoPlenariaForm(data={})
@@ -158,7 +160,7 @@ def test_registro_votacao_tem_ordem_xor_expediente():
 
     ordem = mommy.make(OrdemDia)
     expediente = mommy.make(ExpedienteMateria)
-.
+
     # a validação funciona com exatamente um dos campos preenchido
     registro_votacao_com(ordem, None).full_clean()
     registro_votacao_com(None, expediente).full_clean()
@@ -171,14 +173,106 @@ def test_registro_votacao_tem_ordem_xor_expediente():
     with pytest.raises(ValidationError):
         registro_votacao_com(ordem, expediente).full_clean()
 
-
-@pytest.mark.django_db(transaction=False)
-def test_delete_sessao_plenaria():
+def create_sessao_plenaria():
     legislatura = mommy.make(Legislatura)
     sessao = mommy.make(SessaoLegislativa)
     tipo = mommy.make(TipoSessaoPlenaria)
-    sessao_plenaria = mommy.make(SessaoPlenaria,
+    return mommy.make(SessaoPlenaria,
                                legislatura=legislatura,
                                sessao_legislativa=sessao,
                                tipo=tipo,
                                numero=1)
+
+def create_materia_legislativa():
+    tipo_materia = mommy.make(TipoMateriaLegislativa)
+    return mommy.make(MateriaLegislativa, tipo=tipo_materia)
+
+@pytest.mark.django_db(transaction=False)
+def test_delete_sessao_plenaria_cascade_registro_votacao_ordemdia():
+    materia = create_materia_legislativa()
+    sessao_plenaria = create_sessao_plenaria()
+    ordem = mommy.make(OrdemDia,
+                       sessao_plenaria=sessao_plenaria,
+                       materia=materia)
+    tipo_resultado_votacao = mommy.make(TipoResultadoVotacao,
+                                        nome='ok',
+                                        natureza="A")
+    registro = mommy.make(RegistroVotacao,
+                          tipo_resultado_votacao=tipo_resultado_votacao,
+                          materia=materia,
+                          ordem=ordem)
+    sessao_plenaria.delete()
+    ordem_filter = OrdemDia.objects.filter(sessao_plenaria=sessao_plenaria)
+    registro_filter = RegistroVotacao.objects.filter(tipo_resultado_votacao=tipo_resultado_votacao,
+                                            materia=materia,
+                                            ordem=ordem)
+    assert len(registro_filter) == 0
+    assert len(ordem_filter) == 0
+
+@pytest.mark.django_db(transaction=False)
+def test_delete_sessao_plenaria_cascade_registro_votacao_expediente():
+    materia = create_materia_legislativa()
+    sessao_plenaria = create_sessao_plenaria()
+    expediente = mommy.make(ExpedienteMateria,
+                            sessao_plenaria=sessao_plenaria,
+                            materia=materia)
+    tipo_resultado_votacao = mommy.make(TipoResultadoVotacao,
+                                        nome='ok',
+                                        natureza="A")
+    registro = mommy.make(RegistroVotacao,
+                          tipo_resultado_votacao=tipo_resultado_votacao,
+                          materia=materia,
+                          expediente=expediente)
+
+    sessao_plenaria.delete()
+    expediente_filter = ExpedienteMateria.objects.filter(sessao_plenaria=sessao_plenaria)
+    registro_filter = RegistroVotacao.objects.filter(tipo_resultado_votacao=tipo_resultado_votacao,
+                                            materia=materia,
+                                            expediente=expediente)
+    assert len(registro_filter) == 0
+    assert len(expediente_filter) == 0
+
+@pytest.mark.django_db(transaction=False)
+def test_delete_sessao_plenaria_cascade_presenca_ordemdia():
+    sessao_plenaria = create_sessao_plenaria()
+    presenca = mommy.make(PresencaOrdemDia,
+                          sessao_plenaria=sessao_plenaria)
+    sessao_plenaria.delete()
+    presenca_filter = PresencaOrdemDia.objects.filter(sessao_plenaria=sessao_plenaria)
+    assert len(presenca_filter) == 0
+
+@pytest.mark.django_db(transaction=False)
+def test_delete_sessao_plenaria_cascade_presenca_expediente():
+    sessao_plenaria = create_sessao_plenaria()
+    presenca = mommy.make(SessaoPlenariaPresenca,
+                          sessao_plenaria=sessao_plenaria)
+    sessao_plenaria.delete()
+    presenca_filter = SessaoPlenariaPresenca.objects.filter(sessao_plenaria=sessao_plenaria)
+    assert len(presenca_filter) == 0
+
+@pytest.mark.django_db(transaction=False)
+def test_delete_sessao_plenaria_cascade_integrante_mesa():
+    sessao_plenaria = create_sessao_plenaria()
+    mesa = mommy.make(IntegranteMesa,
+                      sessao_plenaria=sessao_plenaria)
+    sessao_plenaria.delete()
+    mesa_filter = IntegranteMesa.objects.filter(sessao_plenaria=sessao_plenaria)
+    assert len(mesa_filter) == 0
+
+@pytest.mark.django_db(transaction=False)
+def test_delete_sessao_plenaria_cascade_expediente_sessao():
+    sessao_plenaria = create_sessao_plenaria()
+    expediente_sessao = mommy.make(ExpedienteSessao,
+                      sessao_plenaria=sessao_plenaria)
+    sessao_plenaria.delete()
+    expediente_sessao_filter = ExpedienteSessao.objects.filter(sessao_plenaria=sessao_plenaria)
+    assert len(expediente_sessao_filter) == 0
+
+@pytest.mark.django_db(transaction=False)
+def test_delete_sessao_plenaria_cascade_orador():
+    sessao_plenaria = create_sessao_plenaria()
+    expediente_sessao = mommy.make(Orador,
+                      sessao_plenaria=sessao_plenaria) 
+    sessao_plenaria.delete()
+    orador_filter = Orador.objects.filter(sessao_plenaria=sessao_plenaria)
+    assert len(orador_filter) == 0
