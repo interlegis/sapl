@@ -72,17 +72,19 @@ class AudienciaForm(forms.ModelForm):
 
         if materia and ano_materia and tipo_materia:
             try:
+                logger.info("- Tentando obter matéria correspondente.")
                 materia = MateriaLegislativa.objects.get(
                     numero=materia,
                     ano=ano_materia,
                     tipo=tipo_materia)
             except ObjectDoesNotExist:
-                msg = _('A matéria %s nº %s/%s não existe no cadastro'
+                msg = _('- A matéria %s nº %s/%s não existe no cadastro'
                         ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
                 logger.error('- A matéria %s nº %s/%s não existe no cadastro'
                         ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
                 raise ValidationError(msg)
             else:
+                logger.info("- Matéria obtida com sucesso.")
                 cleaned_data['materia'] = materia
 
         else:
