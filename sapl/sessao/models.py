@@ -662,3 +662,43 @@ class JustificativaAusencia(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
+class RegistroVista(models.Model):
+    materia = models.ForeignKey(MateriaLegislativa,
+                                on_delete=models.CASCADE)
+    ordem = models.ForeignKey(OrdemDia,
+                              blank=True,
+                              null=True,
+                              on_delete=models.CASCADE)
+    expediente = models.ForeignKey(ExpedienteMateria,
+                                   blank=True,
+                                   null=True,
+                                   on_delete=models.CASCADE)
+    observacao = models.TextField(blank=True,
+                                  verbose_name=_('Observações'))
+
+    parlamentar = models.ForeignKey(Parlamentar,
+                                    on_delete=models.PROTECT,
+                                    verbose_name=_('Requerente'))
+
+    class Meta:
+        verbose_name = _('Pedido de Vista')
+        verbose_name_plural = _('Pedidos de Vista')
+
+    def __str__(self):
+        return _('Ordem: %(ordem)s - Requerente: %(requerente)s - '
+                 'Matéria: %(materia)s') % {
+                     'ordem': self.ordem,
+                     'requerente': self.parlamentar,
+                     'materia': self.materia}
+
+    def clean(self):
+        """Exatamente um dos campos ordem ou expediente deve estar preenchido.
+        """
+        # TODO remover esse método quando OrdemDia e ExpedienteMateria
+        # forem reestruturados e os campos ordem e expediente forem unificados
+        if not xor(bool(self.ordem), bool(self.expediente)):
+            raise ValidationError(
+                'RegistroVotacao deve ter exatamente um dos campos '
+                'ordem ou expediente preenchido. Ambos estão preenchidos: '
+                '{}, {}'. format(self.ordem, self.expediente))

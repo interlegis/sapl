@@ -23,11 +23,11 @@ from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone)
+from .models import (Bancada, Bloco, ExpedienteMateria, Orador, JustificativaAusencia,
+                     OradorExpediente, OrdemDia, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoResultadoVotacao, OcorrenciaSessao,
+                     RegistroVista)
 
-from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
-                     Orador, OradorExpediente, OrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
-                     OcorrenciaSessao)
 
 
 def recupera_anos():
@@ -189,6 +189,17 @@ class SessaoPlenariaForm(ModelForm):
                                           "Legislatura quanto da Sessão Legislativa.")
 
         return self.cleaned_data
+
+
+class RegistroVistaForm(ModelForm):
+
+    parlamentar = forms.ModelChoiceField(required=True,
+                                        empty_label='------',
+                                        queryset=Parlamentar.objects.all())
+
+    class Meta:
+        model = RegistroVista
+        exclude = ['ordem', 'expediente', 'materia']
 
 
 class BancadaForm(ModelForm):
