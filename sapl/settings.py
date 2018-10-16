@@ -23,9 +23,10 @@ from unipath import Path
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
+HOST = None
+
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
@@ -74,6 +75,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     # more
     'django_extensions',
@@ -132,7 +134,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # 'speedinfo.middleware.ProfilerMiddleware', # Bug na versão 1.9
+
+    'sapl.middleware.SiteMiddleware',
 )
+
+DEFAULT_SITE_ID = 1
+SITE_ID = 1
 
 CACHES = {
     'default': {
@@ -297,7 +304,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(filename)s %(funcName)s %(lineno)d %(name)s %(message)s'
+            'format': '%(levelname)s %(asctime)s ' + str(HOST) + ' %(filename)s %(funcName)s %(lineno)d %(name)s %(message)s'
         },
         'simple': {
             'format': '%(levelname)s %(asctime)s %(message)s'
@@ -307,7 +314,10 @@ LOGGING = {
         # TODO Ver depois !
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
-        }
+        },
+        'site_filter': {
+                '()': 'sapl.logging_filters.SiteFilter',
+        },
     },
     'handlers': {
         'console': {
