@@ -223,12 +223,12 @@ def test_delete_sessao_plenaria_cascade_registro_votacao_ordemdia():
     parlamentar_filter = Parlamentar.objects.exists()
     voto_parlamentar_filter = VotoParlamentar.objects.filter(
                                     ordem=ordem).exists()
-    assert registro_filter == False
-    assert ordem_filter == False
-    assert presenca_filter == False
-    assert voto_parlamentar_filter == False
-    assert materia_filter == True # Não exclui materia
-    assert parlamentar_filter == True # Não exclui Parlamentar
+    assert not registro_filter
+    assert not ordem_filter
+    assert not presenca_filter
+    assert not voto_parlamentar_filter
+    assert materia_filter # Não exclui materia
+    assert parlamentar_filter # Não exclui Parlamentar
 
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_registro_votacao_expediente():
@@ -264,11 +264,11 @@ def test_delete_sessao_plenaria_cascade_registro_votacao_expediente():
     parlamentar_filter = Parlamentar.objects.exists()
     voto_parlamentar_filter = VotoParlamentar.objects.filter(
                                     expediente=expediente).exists()
-    assert registro_filter == False
-    assert expediente_filter == False
-    assert presenca_filter == False
-    assert voto_parlamentar_filter == False
-    assert parlamentar_filter == True #  Não exclui Parlamentar
+    assert not registro_filter
+    assert not expediente_filter
+    assert not presenca_filter
+    assert not voto_parlamentar_filter
+    assert parlamentar_filter #  Não exclui Parlamentar
 
 
 @pytest.mark.django_db(transaction=False)
@@ -279,7 +279,7 @@ def test_delete_sessao_plenaria_cascade_integrante_mesa():
     sessao_plenaria.delete()
     mesa_filter = IntegranteMesa.objects.filter(
                         sessao_plenaria=sessao_plenaria).exists()
-    assert mesa_filter == False
+    assert not mesa_filter
 
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_expedientesessao():
@@ -289,7 +289,7 @@ def test_delete_sessao_plenaria_cascade_expedientesessao():
     sessao_plenaria.delete()
     expediente_sessao_filter = ExpedienteSessao.objects.filter(
                                     sessao_plenaria=sessao_plenaria).exists()
-    assert expediente_sessao_filter == False
+    assert not expediente_sessao_filter
 
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_orador():
