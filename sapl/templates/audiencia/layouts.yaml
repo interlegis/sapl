@@ -22,3 +22,8 @@ AudienciaPublicaDetail:
   - upload_pauta upload_ata upload_anexo
   - observacao
   - audiencia_cancelada
+
+AnexoAudienciaPublica:
+  {% trans 'Identificação Básica' %}
+  - 'nome' 'data' 'arquivo'
+  - 'assunto'

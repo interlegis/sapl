@@ -3,6 +3,10 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica, AnexoAudienciaPublica
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
+
+from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import timezone
 
@@ -116,3 +120,18 @@ class AnexoAudienciaPublicaForm(forms.ModelForm):
         widgets = {
             'data': forms.DateInput(format='%d/%m/%Y')
         }
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row(
+            [('nome', 4), ('data', 4), ('arquivo', 4)])
+
+        row2 = to_row(
+            [('assunto', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Identificação Básica'),
+                     row1, row2))
+        super(AnexoAudienciaPublicaForm, self).__init__(
+            *args, **kwargs)

@@ -94,6 +94,7 @@ class AnexoAudienciaPublicaCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = AnexoAudienciaPublicaForm
+        layout_key = None
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = AnexoAudienciaPublicaForm
