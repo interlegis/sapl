@@ -1,5 +1,6 @@
 import html
 import re
+import logging
 from datetime import datetime as dt
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -782,7 +783,7 @@ def relatorio_sessao_plenaria(request, pk):
     '''
         pdf_sessao_plenaria_gerar.py
     '''
-
+    logger = logging.getLogger(__name__)
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = (
         'inline; filename="relatorio_protocolo.pdf"')
@@ -797,8 +798,10 @@ def relatorio_sessao_plenaria(request, pk):
     imagem = get_imagem(casa)
 
     try:
+        logger.info("- Tentando obter SessaoPlenaria correspondente.")
         sessao = SessaoPlenaria.objects.get(id=pk)
-    except ObjectDoesNotExist:
+    except ObjectDoesNotExist as e:
+        logger.error("- Essa página não existe. "+ str(e))
         raise Http404('Essa página não existe')
 
     (inf_basicas_dic,

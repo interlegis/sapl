@@ -662,6 +662,7 @@ class NotasCreateView(NotaMixin, CreateView):
         return super(NotasCreateView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        logger = logging.getLogger(__name__)
         self.object = None
         try:
             ta_id = kwargs.pop('ta_id')
@@ -679,7 +680,9 @@ class NotasCreateView(NotaMixin, CreateView):
             else:
                 return self.form_invalid(form)
         except Exception as e:
+            logger.error("- " + str(e))
             print(e)
+        logger.error("- Error post.")
         return HttpResponse("error post")
 
 
@@ -756,7 +759,7 @@ class PublicacaoMixin(CompMixin):
             messages.error(request, _(
                 'A funcionalidade de %s está desativada para %s.') % (
                 TipoTextoArticulado._meta.get_field(
-                    'publicacao_func').verbose_name,
+                        'publicacao_func').verbose_name,
                 ta.tipo_ta.descricao))
             return redirect(reverse('sapl.compilacao:ta_text',
                                     kwargs={'ta_id': self.kwargs['ta_id']}))
@@ -1516,6 +1519,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
         return data
 
     def remover_dispositivo(self, base, bloco):
+        logger = logging.getLogger(__name__)
         base_ordem = base.ordem
         if base.dispositivo_subsequente or base.dispositivo_substituido:
             p = base.dispositivo_substituido
@@ -1541,6 +1545,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                         p.dispositivos_filhos_set.add(d)
                     p.save()
                 except Exception as e:
+                    logger.error("- " + str(e))
                     print(e)
             base.delete()
         else:
@@ -1575,6 +1580,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                         dispositivo_pai=base).first()
 
                     if not anterior:
+                        logger.error("- Não é possível excluir este Dispositivo sem"
+                                    " excluir toda a sua estrutura!!!")
                         raise Exception(
                             _('Não é possível excluir este Dispositivo sem'
                               ' excluir toda a sua estrutura!!!'))
@@ -1594,6 +1601,9 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
                         for candidato in parents:
                             if candidato == base:
+                                logger.error("- Não é possível excluir este "
+                                            "Dispositivo sem "
+                                            "excluir toda a sua estrutura!!!")
                                 raise Exception(
                                     _('Não é possível excluir este '
                                       'Dispositivo sem '
@@ -1629,7 +1639,9 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                                 d.rotulo = d.rotulo_padrao()
                                 break
                         else:
-
+                            logger.error("- Não é possível excluir este "
+                                        "Dispositivo sem "
+                                        "excluir toda a sua estrutura!!!")
                             raise Exception(
                                 _('Não é possível excluir este '
                                   'Dispositivo sem '
@@ -1675,7 +1687,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                                 profundidade=profundidade_base)
                             irmao.rotulo = irmao.rotulo_padrao()
                             irmao.save()
-                        except:
+                        except Exception as e:
+                            logger.error("- " + str(e))
                             break
 
                     irmaos = pai_base.dispositivos_filhos_set.\
@@ -1792,7 +1805,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                             dr.rotulo = dr.rotulo_padrao()
                             try:
                                 dr.save(clean=base != dr)
-                            except:
+                            except Exception as e:
+                                logger.error("- " + str(e))
                                 break
 
                                 # Pode não ser religavável
@@ -1837,6 +1851,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
     def allowed_inserts(self, _base=None):
+        logger = logging.getLogger(__name__)
         request = self.request
         try:
             base = Dispositivo.objects.get(
@@ -2090,14 +2105,15 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             return result
 
         except Exception as e:
+            logger.error("- " + str(e))
             print(e)
 
         return {}
 
     def json_set_dvt(self, context):
+        logger = logging.getLogger(__name__)
         # Dispositivo de Vigência do Texto Original e de Dpts Alterados
         dvt = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
-
         if dvt.auto_inserido:
             dvt = dvt.dispositivo_pai
 
@@ -2138,6 +2154,8 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             return data
         except:
             data = {}
+            logger.error("- Ocorreu um erro na atualização do "
+                        "Dispositivo de Vigência")
             self.set_message(data,
                              'success',
                              _('Ocorreu um erro na atualização do '
@@ -2154,8 +2172,9 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
     def json_add_next(
             self,
             context, local_add='json_add_next', create_auto_inserts=True):
+        logger = logging.getLogger(__name__)
         try:
-
+            
             dp_auto_insert = None
             base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
             tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
@@ -2425,6 +2444,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             return data
 
         except Exception as e:
+            logger.error("- " + str(e))
             print(e)
             return {}
 
@@ -2584,6 +2604,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             mudança, porém, após registro de alteração, a mudança de rótulo
             pode ser feita no editor avançado.
         """
+        logger = logging.getLogger(__name__)
 
         data = {}
         data.update({'pk': bloco_alteracao.pk,
@@ -2698,6 +2719,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                     _('Dispositivo de Revogação adicionado com sucesso.'))
 
         except Exception as e:
+            logger.error("- " + str(e))
             print(e)
 
         data.update({'pk': ndp.pk,
@@ -3096,6 +3118,7 @@ class DispositivoEdicaoBasicaView(CompMixin, FormMessagesMixin, UpdateView):
         return 'sapl.compilacao:dispositivo_edit'
 
     def run_actions(self, request):
+        logger = logging.getLogger(__name__)
         if 'action' in request.GET and\
                 request.GET['action'] == 'atualiza_rotulo':
             try:
@@ -3123,6 +3146,7 @@ class DispositivoEdicaoBasicaView(CompMixin, FormMessagesMixin, UpdateView):
                     d.rotulo = d.rotulo_padrao()
 
             except:
+                logger.error("- Ocorreu erro na atualização do rótulo.")
                 return True, JsonResponse({'message': str(
                     _('Ocorreu erro na atualização do rótulo'))}, safe=False)
             return True, JsonResponse({
@@ -3212,6 +3236,7 @@ class DispositivoDefinidorVigenciaView(CompMixin, FormMessagesMixin, FormView):
         return context
 
     def post(self, request, *args, **kwargs):
+        logger = logging.getLogger(__name__)
         self.object = get_object_or_404(Dispositivo, pk=kwargs['pk'])
 
         form = self.get_form()
@@ -3224,7 +3249,8 @@ class DispositivoDefinidorVigenciaView(CompMixin, FormMessagesMixin, FormView):
                         d = Dispositivo.objects.get(pk=item)
                         self.object.dispositivos_vigencias_set.add(d)
                     return self.form_valid(form)
-            except:
+            except Exception as e:
+                logger.error("- " + str(e))
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)
@@ -3255,6 +3281,7 @@ class DispositivoEdicaoAlteracaoView(CompMixin, FormMessagesMixin, UpdateView):
             kwargs={'ta_id': self.kwargs['ta_id'], 'pk': self.kwargs['pk']})
 
     def post(self, request, *args, **kwargs):
+        logger = logging.getLogger(__name__)
         self.object = get_object_or_404(Dispositivo, pk=kwargs['pk'])
 
         form = self.get_form()
@@ -3262,7 +3289,8 @@ class DispositivoEdicaoAlteracaoView(CompMixin, FormMessagesMixin, UpdateView):
             try:
                 with transaction.atomic():
                     return self.form_valid(form)
-            except:
+            except Exception as e:
+                logger.error('- ' + str(e))
                 return self.form_invalid(form)
         else:
             return self.form_invalid(form)

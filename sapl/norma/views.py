@@ -1,5 +1,6 @@
 
 import re
+import logging
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -204,11 +205,14 @@ class NormaCrud(Crud):
             return self.search_url
 
         def get_initial(self):
+            logger = logging.getLogger(__name__)
             try:
+                logger.info('- Tentando obter objeto de modelo da esfera da federação.')
                 esfera = sapl.base.models.AppConfig.objects.last(
                 ).esfera_federacao
                 self.initial['esfera_federacao'] = esfera
             except:
+                logger.error('- Erro ao obter objeto de modelo da esfera da federação.')
                 pass
             self.initial['complemento'] = False
             return self.initial
@@ -241,17 +245,20 @@ class NormaCrud(Crud):
 
 
 def recuperar_norma(request):
+    logger = logging.getLogger(__name__)
     tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
     numero = request.GET['numero']
     ano = request.GET['ano']
 
     try:
+        logger.info('- Tentando obter norma.')
         norma = NormaJuridica.objects.get(tipo=tipo,
                                           ano=ano,
                                           numero=numero)
         response = JsonResponse({'ementa': norma.ementa,
                                  'id': norma.id})
     except ObjectDoesNotExist:
+        logger.error('- Norma buscada não existe. Definida com ementa vazia e id 0.')
         response = JsonResponse({'ementa': '', 'id': 0})
 
     return response

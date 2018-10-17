@@ -87,6 +87,7 @@ target/
 *.sublime-workspace
 .ipynb_checkpoints/
 *.ipynb
+.vscode/*
 
 
 # specific to this project

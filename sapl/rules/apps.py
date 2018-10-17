@@ -1,6 +1,8 @@
 from builtins import LookupError
 
 import django
+import logging
+
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
@@ -28,12 +30,14 @@ def create_proxy_permissions(
         using=DEFAULT_DB_ALIAS, **kwargs):
     if not app_config.models_module:
         return
-
+    logger = logging.getLogger(__name__)
     # print(app_config)
 
     try:
+        logging.info("- Tentando obter modelo de permissão do app.")
         Permission = apps.get_model('auth', 'Permission')
-    except LookupError:
+    except LookupError as e:
+        logging.error("- " + str(e))
         return
 
     if not router.allow_migrate_model(using, Permission):
@@ -69,9 +73,11 @@ def create_proxy_permissions(
             app_label, model = opts.app_label, opts.model_name
 
             try:
+                logging.info("- Tentando obter db_manager.")
                 ctype = ContentType.objects.db_manager(
                     using).get_by_natural_key(app_label, model)
-            except:
+            except Exception as e:
+                logging.error("- " + str(e))
                 ctype = ContentType.objects.db_manager(
                     using).create(app_label=app_label, model=model)
         else:
@@ -81,12 +87,14 @@ def create_proxy_permissions(
 
         # FIXME: Retirar try except quando sapl passar a usar django 1.11
         try:
+            logger.info("- _get_all_permissions")
             # Função não existe mais em Django 1.11
             # como sapl ainda não foi para Django 1.11
             # esta excessão foi adicionada para caso o
             # Sapl esteja rodando em um projeto 1.11 não ocorra erros
             _all_perms_of_klass = _get_all_permissions(klass._meta, ctype)
-        except:
+        except Exception as e:
+            logger.error("- " + str(e))
             # Nova função usada em projetos com Django 1.11 e o sapl é uma app
             _all_perms_of_klass = _get_all_permissions(klass._meta)
 
@@ -111,6 +119,13 @@ def create_proxy_permissions(
     # error when the name is longer than 255 characters
     for perm in perms:
         if len(perm.name) > permission_name_max_length:
+            logger.error("- 'The permission name %s of %s.%s "
+                        "is longer than %s characters" % (
+                            perm.name,
+                            perm.content_type.app_label,
+                            perm.content_type.model,
+                            permission_name_max_length,
+                        ))
             raise exceptions.ValidationError(
                 'The permission name %s of %s.%s '
                 'is longer than %s characters' % (
@@ -155,15 +170,17 @@ def get_rules():
         def _config_group(self, group_name, rules_list):
             if not group_name:
                 return
-
+            logger = logging.getLogger(__name__)
             group, created = Group.objects.get_or_create(name=group_name)
             group.permissions.clear()
 
             try:
+                logger.info("- Tentando associar grupos.")
                 print(' ', group_name)
                 for model, perms in rules_list:
                     self.associar(group, model, perms)
             except Exception as e:
+                logger.error("- " + str(e))
                 print(group_name, e)
 
         def groups_add_user(self, user, groups_name):

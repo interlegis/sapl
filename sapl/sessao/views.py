@@ -1,4 +1,5 @@
 from operator import itemgetter
+import logging
 from re import sub
 
 from django.contrib import messages
@@ -17,7 +18,7 @@ from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import FormView, ListView, TemplateView, CreateView, UpdateView
-from django.views.generic.base import RedirectView
+from django.views.generic.base import RedirectView, logger
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
@@ -62,10 +63,11 @@ TipoResultadoVotacaoCrud = CrudAux.build(
 def reordernar_materias_expediente(request, pk):
     expedientes = ExpedienteMateria.objects.filter(
         sessao_plenaria_id=pk)
+    logger = logging.getLogger('reordenar.materias.expediente')
+
     for exp_num, e in enumerate(expedientes, 1):
         e.numero_ordem = exp_num
         e.save()
-
     return HttpResponseRedirect(
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
 
@@ -1086,6 +1088,7 @@ def insere_parlamentar_composicao(request):
         Esta função lida com qualquer operação de inserção
         na composição da Mesa Diretora
     """
+
     if request.user.has_perm(
             '%s.add_%s' % (
                 AppConfig.label, IntegranteMesa._meta.model_name)):
@@ -1470,12 +1473,17 @@ class ResumoView(DetailView):
 
 class ResumoAtaView(ResumoView):
     template_name = 'sessao/resumo_ata.html'
+    logger = logging.getLogger(__name__)
+    logger.info('- Gerando Resumo.')
+
 
 
 class ExpedienteView(FormMixin, DetailView):
     template_name = 'sessao/expediente.html'
     form_class = ExpedienteForm
     model = SessaoPlenaria
+
+    logger = logging.getLogger(__name__)
 
     def get_context_data(self, **kwargs):
         context = FormMixin.get_context_data(self, **kwargs)
@@ -1491,6 +1499,7 @@ class ExpedienteView(FormMixin, DetailView):
         if 'apagar-expediente' in request.POST:
             ExpedienteSessao.objects.filter(
                 sessao_plenaria_id=self.object.id).delete()
+            logger.info('- Expediente deletado.')
             return self.form_valid(form)
 
         if form.is_valid():
@@ -1511,6 +1520,8 @@ class ExpedienteView(FormMixin, DetailView):
 
                 msg = _('Registro salvo com sucesso')
                 messages.add_message(self.request, messages.SUCCESS, msg)
+                logger.info('- Expediente salvo.')
+
             return self.form_valid(form)
         else:
             msg = _('Erro ao salvar registro')
@@ -1557,11 +1568,15 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
     form_class = OcorrenciaSessaoForm
     model = SessaoPlenaria
 
+    logger = logging.getLogger(__name__)
+
     def delete(self):
         OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
 
         msg = _('Registro deletado com sucesso')
         messages.add_message(self.request, messages.SUCCESS, msg)
+
+        logger.info('- Ocorrência de Sessão deletada.')
 
     def save(self,form):
         conteudo = form.cleaned_data['conteudo']
@@ -1575,6 +1590,8 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
 
         msg = _('Registro salvo com sucesso')
         messages.add_message(self.request, messages.SUCCESS, msg)
+
+        logger.info('- Ocorrência de Sessão atualizada.')
 
     @method_decorator(permission_required('sessao.add_ocorrenciasessao'))
     def post(self, request, *args, **kwargs):
@@ -1677,6 +1694,8 @@ class VotacaoView(SessaoPermissionMixin):
     template_name = 'sessao/votacao/votacao.html'
     form_class = VotacaoForm
 
+    logger = logging.getLogger(__name__)
+
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
@@ -1762,6 +1781,7 @@ class VotacaoView(SessaoPermissionMixin):
                         request.POST['resultado_votacao'])
                     votacao.save()
                 except:
+                    logger.error('- Problemas ao salvar registro de votação.')
                     return self.form_invalid(form)
                 else:
                     ordem = OrdemDia.objects.get(
@@ -1809,18 +1829,22 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
     expediente = None
     form_class = VotacaoNominalForm
 
+    logger = logging.getLogger(__name__)
+
     def get(self, request, *args, **kwargs):
         if self.ordem:
             ordem_id = kwargs['oid']
             if RegistroVotacao.objects.filter(ordem_id=ordem_id).exists():
                 msg = _('Esta matéria já foi votada!')
                 messages.add_message(request, messages.ERROR, msg)
+                logger.info('- Matéria já votada!')
                 return HttpResponseRedirect(reverse(
                     'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
 
             try:
                 ordem = OrdemDia.objects.get(id=ordem_id)
             except ObjectDoesNotExist:
+                logger.error('- Objeto Ordem Dia não existe.')
                 raise Http404()
 
             presentes = PresencaOrdemDia.objects.filter(
@@ -1851,6 +1875,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             try:
                 expediente = ExpedienteMateria.objects.get(id=expediente_id)
             except ObjectDoesNotExist:
+                logger.error('- Objeto Expediente Matéria não existe.')
                 raise Http404()
 
             presentes = SessaoPlenariaPresenca.objects.filter(
@@ -1889,6 +1914,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             try:
                 materia_votacao = OrdemDia.objects.get(id=ordem_id)
             except ObjectDoesNotExist:
+                logger.error('- Objeto Matéria Votação não existe.')
                 raise Http404()
         elif self.expediente:
             expediente_id = kwargs['oid']
@@ -1896,6 +1922,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 materia_votacao = ExpedienteMateria.objects.get(
                     id=expediente_id)
             except ObjectDoesNotExist:
+                logger.error('- Objeto Matéria Votação não existe.')
                 raise Http404()
 
         if 'cancelar-votacao' in request.POST:
@@ -2034,6 +2061,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     voto = voto_parlamentar.get(
                         parlamentar=parlamentar)
                 except ObjectDoesNotExist:
+                    logger.error('- Objeto Voto não existe.')
                     yield [parlamentar, None]
                 else:
                     yield [parlamentar, voto.voto]
@@ -2052,6 +2080,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
 class VotacaoNominalEditAbstract(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal_edit.html'
 
+    logger = logging.getLogger(__name__)
+
     def get(self, request, *args, **kwargs):
         context = {}
 
@@ -2062,6 +2092,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
             votacao = RegistroVotacao.objects.filter(ordem_id=ordem_id).last()
 
             if not ordem or not votacao:
+                logger.error('- Objeto Ordem Dia ou Votação não existe.')
                 raise Http404()
 
             materia = ordem.materia
@@ -2076,6 +2107,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                 expediente_id=expediente_id).last()
 
             if not expediente or not votacao:
+                logger.error('- Objeto Expediente ou Votação não existe.')
                 raise Http404()
 
             materia = expediente.materia
@@ -2131,6 +2163,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
             try:
                 materia_votacao = OrdemDia.objects.get(id=ordem_id)
             except ObjectDoesNotExist:
+                logger.error('- Objeto Ordem Dia não existe.')
                 raise Http404()
 
         elif self.expediente:
@@ -2140,6 +2173,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                 materia_votacao = ExpedienteMateria.objects.get(
                     id=expediente_id)
             except ObjectDoesNotExist:
+                logger.error('- Objeto Matéria Expediente não existe.')
                 raise Http404()
 
         if(int(request.POST['anular_votacao']) == 1):
@@ -2671,6 +2705,8 @@ class PesquisarSessaoPlenariaView(FilterView):
     filterset_class = SessaoPlenariaFilterSet
     paginate_by = 10
 
+    logger = logging.getLogger(__name__)
+
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarSessaoPlenariaView,
               self).get_filterset_kwargs(filterset_class)
@@ -2726,12 +2762,17 @@ class PesquisarSessaoPlenariaView(FilterView):
         context['show_results'] = show_results_filter_set(
             self.request.GET.copy())
 
+        logger.info(' - Pesquisa de Sessões Plenárias.')
+
         return self.render_to_response(context)
 
 
 class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     filterset_class = PautaSessaoFilterSet
     template_name = 'sessao/pauta_sessao_filter.html'
+
+    logger = logging.getLogger(__name__)
+    logger.info(' - Pesquisa de Pauta de Sessão.')
 
     def get_context_data(self, **kwargs):
         context = super(PesquisarPautaSessaoView,
@@ -2752,6 +2793,8 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
     filterset_class = AdicionarVariasMateriasFilterSet
     template_name = 'sessao/adicionar_varias_materias_expediente.html'
     app_label = AppConfig.label
+
+    logger = logging.getLogger(__name__)
 
     def get_filterset_kwargs(self, filterset_class):
         super(AdicionarVariasMateriasExpediente,
@@ -2802,11 +2845,13 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
                 msg = _('%s adicionado(a) com sucesso!'
                         % MateriaLegislativa.objects.get(id=m))
                 messages.add_message(request, messages.SUCCESS, msg)
+                logger.info(msg)
             except MultiValueDictKeyError:
                 msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
                         'o tipo de votação de %s' %
                         MateriaLegislativa.objects.get(id=m))
                 messages.add_message(request, messages.ERROR, msg)
+                logger.info(msg)
                 return self.get(request, self.kwargs)
 
             if tipo_votacao:
@@ -2837,6 +2882,8 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
 class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
     filterset_class = AdicionarVariasMateriasFilterSet
     template_name = 'sessao/adicionar_varias_materias_ordem.html'
+
+    logger = logging.getLogger(__name__)
 
     def get_filterset_kwargs(self, filterset_class):
         super(AdicionarVariasMateriasExpediente,
@@ -2871,11 +2918,13 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                 msg = _('%s adicionado(a) com sucesso!'
                         % MateriaLegislativa.objects.get(id=m))
                 messages.add_message(request, messages.SUCCESS, msg)
+                logger.info(msg)
             except MultiValueDictKeyError:
                 msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
                         'o tipo de votação de %s' %
                         MateriaLegislativa.objects.get(id=m))
                 messages.add_message(request, messages.ERROR, msg)
+                logger.info(msg)
                 return self.get(request, self.kwargs)
 
             if tipo_votacao:

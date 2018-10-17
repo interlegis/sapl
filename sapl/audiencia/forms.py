@@ -1,3 +1,5 @@
+import logging
+
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
@@ -58,6 +60,8 @@ class AudienciaForm(forms.ModelForm):
 
 
     def clean(self):
+        logger = logging.getLogger(__name__)
+        
         cleaned_data = super(AudienciaForm, self).clean()
         if not self.is_valid():
             return cleaned_data
@@ -68,21 +72,26 @@ class AudienciaForm(forms.ModelForm):
 
         if materia and ano_materia and tipo_materia:
             try:
+                logger.info("- Tentando obter matéria correspondente.")
                 materia = MateriaLegislativa.objects.get(
                     numero=materia,
                     ano=ano_materia,
                     tipo=tipo_materia)
             except ObjectDoesNotExist:
-                msg = _('A matéria %s nº %s/%s não existe no cadastro'
+                msg = _('- A matéria %s nº %s/%s não existe no cadastro'
+                        ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
+                logger.error('- A matéria %s nº %s/%s não existe no cadastro'
                         ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
                 raise ValidationError(msg)
             else:
+                logger.info("- Matéria obtida com sucesso.")
                 cleaned_data['materia'] = materia
 
         else:
             campos = [materia, tipo_materia, ano_materia]
             if campos.count(None) + campos.count('') < len(campos):
                 msg = _('Preencha todos os campos relacionados à Matéria Legislativa')
+                logger.error('- Algum campo relacionado à Matéria Legislativa não foi preenchido.')
                 raise ValidationError(msg)
 
         if not cleaned_data['numero']:
@@ -99,6 +108,7 @@ class AudienciaForm(forms.ModelForm):
             if (self.cleaned_data['hora_fim'] <
                 self.cleaned_data['hora_inicio']):
                     msg = _('A hora de fim não pode ser anterior a hora de início')
+                    logger.error('- Hora de fim anterior à hora de início.')
                     raise ValidationError(msg)
 
         return cleaned_data

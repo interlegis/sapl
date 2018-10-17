@@ -1,4 +1,4 @@
-
+import logging
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
@@ -138,14 +138,15 @@ class AutorListView(ListAPIView):
 
     @property
     def tr(self):
+        logger = logging.getLogger(__name__)
         try:
             tr = int(self.request.GET.get
                      ('tr', AutorListView.TR_AUTOR_CHOICE_SERIALIZER))
-
             if tr not in (AutorListView.TR_AUTOR_CHOICE_SERIALIZER,
                           AutorListView.TR_AUTOR_SERIALIZER):
                 return AutorListView.TR_AUTOR_CHOICE_SERIALIZER
-        except:
+        except Exception as e:
+            logger.error("- " + str(e))
             return AutorListView.TR_AUTOR_CHOICE_SERIALIZER
         return tr
 
@@ -171,6 +172,7 @@ class AutoresProvaveisListView(ListAPIView):
     serializer_class = ChoiceSerializer
 
     def get_queryset(self):
+        logger = logging.getLogger(__name__)
         params = {'content_type__isnull': False}
 
         tipo = ''
@@ -178,7 +180,8 @@ class AutoresProvaveisListView(ListAPIView):
             tipo = int(self.request.GET.get('tipo', ''))
             if tipo:
                 params['id'] = tipo
-        except:
+        except Exception as e:
+            logger.error("- " + str(e))
             pass
 
         tipos = TipoAutor.objects.filter(**params)

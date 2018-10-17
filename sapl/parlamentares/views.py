@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime
 
 from django.contrib import messages
@@ -267,11 +268,15 @@ def parlamentares_frente_selected(request):
     """
     :return: Lista com o id dos parlamentares em uma frente
     """
+    logger = logging.getLogger(__name__)
     try:
+        logger.info("- Tentando objet objeto Frente.")
         frente = Frente.objects.get(id=int(request.GET['frente_id']))
     except ObjectDoesNotExist:
+        logger.error("- Frente buscada não existe. Retornada lista vazia.")
         lista_parlamentar_id = []
     else:
+        logger.info("- Frente encontrada com sucesso.")
         lista_parlamentar_id = frente.parlamentares.all().values_list(
             'id', flat=True)
     return JsonResponse({'id_list': list(lista_parlamentar_id)})
@@ -356,10 +361,13 @@ class LegislaturaCrud(CrudAux):
         form_class = LegislaturaForm
 
         def get_initial(self):
+            logger = logging.getLogger(__name__)
             try:
+                logger.error("- Tentando obter última legislatura.")
                 ultima_legislatura = Legislatura.objects.latest('numero')
                 numero = ultima_legislatura.numero + 1
             except Legislatura.DoesNotExist:
+                logger.error("- Legislatura não encontrada. Número definido como 1.")
                 numero = 1
             return {'numero': numero}
 
@@ -457,9 +465,12 @@ class ParlamentarCrud(Crud):
             return super().get(request, *args, **kwargs)
 
         def take_legislatura_id(self):
+            logger = logging.getLogger(__name__)
             try:
+                logger.info("- Tentando obter id da legislatura.")
                 return int(self.request.GET['pk'])
             except:
+                logger.error("- Legislatura não possui ID. Buscando em todas as entradas.")
                 legislaturas = Legislatura.objects.all()
                 for l in legislaturas:
                     if l.atual():
@@ -469,6 +480,7 @@ class ParlamentarCrud(Crud):
                 return -1
 
         def get_queryset(self):
+            logger = logging.getLogger(__name__)
             queryset = super().get_queryset()
             legislatura_id = self.take_legislatura_id()
             # Pelo menos uma casa legislativa criou uma
@@ -479,11 +491,14 @@ class ParlamentarCrud(Crud):
                         mandato_titular=F('mandato__titular'))
             else:
                 try:
+                    logger.info("- Tentando obter o mais recente registro do objeto Legislatura.")
                     l = Legislatura.objects.all().order_by(
                         '-data_inicio').first()
                 except ObjectDoesNotExist:
+                    logger.error("- Objeto não encontrado. Retornando todos os registros.")
                     return Legislatura.objects.all()
                 else:
+                    logger.info("- Objeto encontrado com sucesso.")
                     if l is None:
                         return Legislatura.objects.all()
                     return queryset.filter(mandato__legislatura_id=l).annotate(
@@ -495,6 +510,7 @@ class ParlamentarCrud(Crud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
+            logger = logging.getLogger(__name__)
 
             # Adiciona legislatura para filtrar parlamentares
             legislaturas = Legislatura.objects.all().order_by('-numero')
@@ -520,6 +536,7 @@ class ParlamentarCrud(Crud):
                 # da legislatura e data de desfiliação deve nula, ou maior,
                 # ou igual a data de fim da legislatura
                 try:
+                    logger.info("- Tentando obter filiação do parlamentar.")
                     filiacao = parlamentar.filiacao_set.get(Q(
                         data__lte=legislatura.data_fim,
                         data_desfiliacao__gte=legislatura.data_fim) | Q(
@@ -528,17 +545,20 @@ class ParlamentarCrud(Crud):
 
                 # Caso não exista filiação com essas condições
                 except ObjectDoesNotExist:
+                    logger.error("- Parlamentar não possui filiação.")
                     row[1] = ('Não possui filiação', None, None)
 
                 # Caso exista mais de uma filiação nesse intervalo
                 # Entretanto, NÃO DEVE OCORRER
                 except MultipleObjectsReturned:
+                    logger.error("- O Parlamentar possui duas filiações conflitantes")
                     row[1] = (
                         'O Parlamentar possui duas filiações conflitantes',
                         None)
 
                 # Caso encontre UMA filiação nessas condições
                 else:
+                    logger.info("- Filiação encontrada com sucesso.")
                     row[1] = (filiacao.partido.sigla, None, None)
 
             return context
@@ -566,13 +586,16 @@ class ParlamentarMateriasView(FormView):
 
     @xframe_options_exempt
     def get(self, request, *args, **kwargs):
+        logger = logging.getLogger(__name__)
         parlamentar_pk = kwargs['pk']
 
         try:
+            logger.info("- Tentando obter autor da matéria.")
             autor = Autor.objects.get(
                 content_type=ContentType.objects.get_for_model(Parlamentar),
                 object_id=parlamentar_pk)
         except ObjectDoesNotExist:
+            logger.error("- Este Parlamentar não é autor de matéria.")
             mensagem = _('Este Parlamentar não é autor de matéria.')
             messages.add_message(request, messages.ERROR, mensagem)
             return HttpResponseRedirect(
@@ -693,6 +716,7 @@ def altera_field_mesa(request):
         operação (Legislatura/Sessão/Inclusão/Remoção),
         atualizando os campos após cada alteração
     """
+    logger = logging.getLogger(__name__)
     legislatura = request.GET['legislatura']
     sessoes = SessaoLegislativa.objects.filter(
         legislatura=legislatura).order_by('-data_inicio')
@@ -710,8 +734,10 @@ def altera_field_mesa(request):
     else:
         year = timezone.now().year
         try:
+            logger.info("- Tentando obter id da sessão.")
             sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist:
+            logger.error("- Id não encontrado. Selecionado o ID da primeira sessão.")
             sessao_selecionada = sessoes.first().id
 
     # Atualiza os componentes da view após a mudança
@@ -751,7 +777,7 @@ def insere_parlamentar_composicao(request):
         Essa função lida com qualquer operação de inserção
         na composição da Mesa Diretora
     """
-
+    logger = logging.getLogger(__name__)
     if request.user.has_perm(
             '%s.add_%s' % (
                 AppConfig.label, ComposicaoMesa._meta.model_name)):
@@ -759,19 +785,24 @@ def insere_parlamentar_composicao(request):
         composicao = ComposicaoMesa()
 
         try:
+            logger.info("- Tentando obter SessaoLegislativa correspondente.")
             composicao.sessao_legislativa = SessaoLegislativa.objects.get(
                 id=int(request.POST['sessao']))
         except MultiValueDictKeyError:
+            logger.error(" 'MultiValueDictKeyError', nenhuma sessão foi inserida!")
             return JsonResponse({'msg': ('Nenhuma sessão foi inserida!', 0)})
 
         try:
+            logger.info("- Tentando obter Parlamentar correspondente.")
             composicao.parlamentar = Parlamentar.objects.get(
                 id=int(request.POST['parlamentar']))
         except MultiValueDictKeyError:
+            logger.error(" 'MultiValueDictKeyError', nenhum parlamentar foi inserido!")
             return JsonResponse({
                 'msg': ('Nenhum parlamentar foi inserido!', 0)})
 
         try:
+            logger.info("- Tentando obter CargoMesa correspondente.")
             composicao.cargo = CargoMesa.objects.get(
                 id=int(request.POST['cargo']))
             parlamentar_ja_inserido = ComposicaoMesa.objects.filter(
@@ -784,11 +815,14 @@ def insere_parlamentar_composicao(request):
             composicao.save()
 
         except MultiValueDictKeyError:
+            logger.error("- 'MultiValueDictKeyError', nenhum cargo foi inserido!")
             return JsonResponse({'msg': ('Nenhum cargo foi inserido!', 0)})
 
+        logger.info("- Parlamentar inserido com sucesso!")
         return JsonResponse({'msg': ('Parlamentar inserido com sucesso!', 1)})
 
     else:
+        logger.error("- Você não tem permissão para esta operação!")
         return JsonResponse(
             {'msg': ('Você não tem permissão para esta operação!', 0)})
 
@@ -798,26 +832,30 @@ def remove_parlamentar_composicao(request):
         Essa função lida com qualquer operação de remoção
         na composição da Mesa Diretora
     """
-
+    logger = logging.getLogger(__name__)
     if request.POST and request.user.has_perm(
         '%s.delete_%s' % (
             AppConfig.label, ComposicaoMesa._meta.model_name)):
 
         if 'composicao_mesa' in request.POST:
             try:
+                logger.info("- Tentando obter ComposicaoMesa correspondente.")
                 composicao = ComposicaoMesa.objects.get(
                     id=request.POST['composicao_mesa'])
             except ObjectDoesNotExist:
+                logger.error("- ComposicaoMesa não encontrada, portanto não pode ser removida.")
                 return JsonResponse(
                     {'msg': (
                         'Composição da Mesa não pôde ser removida!', 0)})
 
             composicao.delete()
 
+            logger.info("- Parlamentar excluido com sucesso!")
             return JsonResponse(
                 {'msg': (
                     'Parlamentar excluido com sucesso!', 1)})
         else:
+            logger.info("- Nenhum parlamentar escolhido para ser excluído.")
             return JsonResponse(
                 {'msg': (
                     'Selecione algum parlamentar para ser excluido!', 0)})
@@ -833,7 +871,9 @@ def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
     # A data de filiacao deve ser menor que a data de fim
     # da sessao legislativa e data de desfiliação deve nula, ou maior,
     # ou igual a data de fim da sessao
+    logger = logging.getLogger(__name__)
     try:
+        logger.info("- Tentando obter filiação correspondente.")
         filiacao = parlamentar.filiacao_set.get(Q(
             data__lte=sessao.data_fim,
             data_desfiliacao__gte=sessao.data_fim) | Q(
@@ -842,15 +882,18 @@ def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
 
     # Caso não exista filiação com essas condições
     except ObjectDoesNotExist:
+        logger.error("- Filiação não encontrada.")
         return ''
 
     # Caso exista mais de uma filiação nesse intervalo
     # Entretanto, NÃO DEVE OCORRER
     except MultipleObjectsReturned:
+        logger.error("- O Parlamentar possui duas filiações conflitantes.")
         return 'O Parlamentar possui duas filiações conflitantes'
 
     # Caso encontre UMA filiação nessas condições
     else:
+        logger.info("- Filiação encontrada com sucesso.")
         return filiacao.partido.sigla
 
 
@@ -860,7 +903,7 @@ def altera_field_mesa_public_view(request):
         da Mesa Diretora para usuários anônimos,
         atualizando os campos após cada alteração
     """
-
+    logger = logging.getLogger(__name__)
     legislatura = request.GET['legislatura']
     sessoes = SessaoLegislativa.objects.filter(
         legislatura=legislatura).order_by('-data_inicio')
@@ -877,8 +920,11 @@ def altera_field_mesa_public_view(request):
     else:
         try:
             year = timezone.now().year
+            logger.info("- Tentando obter sessões correspondentes.")
             sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist as e:
+            logger.error("- Sessões não encontradas com aquelas correspondencias. "
+                        "Selecionado o id da primeira sessão.")
             sessao_selecionada = sessoes.first().id
 
     # Atualiza os componentes da view após a mudança

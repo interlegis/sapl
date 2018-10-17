@@ -22,9 +22,10 @@ from unipath import Path
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
+HOST = None
+
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
@@ -73,6 +74,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     # more
     'django_extensions',
@@ -131,7 +133,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # 'speedinfo.middleware.ProfilerMiddleware', # Bug na versão 1.9
+
+    'sapl.middleware.SiteMiddleware',
 )
+
+DEFAULT_SITE_ID = 1
+SITE_ID = 1
 
 CACHES = {
     'default': {
@@ -292,34 +299,49 @@ SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
 
-
-# FIXME update cripy-forms and remove this
-# hack to suppress many annoying warnings from crispy_forms
-# see sapl.temp_suppress_crispy_form_warnings
-LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
-
-
-# FIXME:  gerando problemas na alternancia entre django 1.9.13 e 1.10.8
-# Issue 52 https://github.com/interlegis/sapl/issues/52
-LOGGING_CONSOLE = config('LOGGING_CONSOLE', default=False, cast=bool)
-"""if DEBUG and LOGGING_CONSOLE:
-    # Descomentar linha abaixo fará com que logs aparecam, inclusive SQL
-    # LOGGING['handlers']['console']['level'] = 'DEBUG'
-    LOGGING['loggers']['django']['level'] = 'DEBUG'
-    LOGGING['formatters'].update({
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(pathname)s '
-            '%(funcName)s %(message)s'
+            'format': '%(levelname)s %(asctime)s ' + str(HOST) + ' %(filename)s %(funcName)s %(lineno)d %(name)s %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(asctime)s %(message)s'
         },
-    })
-    LOGGING['handlers']['console']['formatter'] = 'verbose'
-    LOGGING['loggers'][BASE_DIR.name] = {
-        'handlers': ['console'],
-        'level': 'DEBUG',
+    },
+    'filters': {
+        # TODO Ver depois !
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        },
+        'site_filter': {
+                '()': 'sapl.logging_filters.SiteFilter',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'applogfile': {
+            'level':'INFO',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': 'SAPL.log',
+            'maxBytes': 1024*1024*15, # 15MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['applogfile'],
+            'level': 'INFO',
+            'propagate': True,
+        },
     }
+}
 
 
 def excepthook(*args):

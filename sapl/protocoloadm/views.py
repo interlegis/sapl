@@ -21,6 +21,7 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 import sapl
+import logging
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
@@ -59,7 +60,9 @@ def recuperar_materia_protocolo(request):
     tipo = request.GET.get('tipo')
     ano = request.GET.get('ano')
     numero = request.GET.get('numero')
+    logger = logging.getLogger(__name__)
     try:
+        logger.info("- Tentando obter matéria correspondente.")
         materia = MateriaLegislativa.objects.get(
             tipo=tipo, ano=ano,numero=numero)
         autoria = materia.autoria_set.first()
@@ -70,6 +73,7 @@ def recuperar_materia_protocolo(request):
                             'tipo_autor':autoria.autor.tipo.pk})
         response = JsonResponse(content)
     except Exception as e:
+        logger.error(str(e))
         response = JsonResponse({'error':e})
     return response
 
@@ -444,10 +448,14 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
     def form_valid(self, form):
         protocolo = form.save(commit=False)
+        logger = logging.getLogger(__name__)
         try:
+            logger.info("- Tentando obter sequência de numeração.")
             numeracao = sapl.base.models.AppConfig.objects.last(
             ).sequencia_numeracao
         except AttributeError:
+            logger.error("- É preciso definir a sequencia de "
+                        "numeração na tabelas auxiliares!")
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')
             messages.add_message(self.request, messages.ERROR, msg)
@@ -523,16 +531,21 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
     permission_required = ('protocoloadm.detail_protocolo', )
 
     def get_context_data(self, **kwargs):
+        logger = logging.getLogger(__name__)
+
         context = super(ProtocoloMostrarView, self).get_context_data(**kwargs)
         protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
 
         if protocolo.tipo_materia:
             try:
+                logger.info("- Tentando obter objeto MateriaLegislativa correspondente.")
                 materia = MateriaLegislativa.objects.get(
                     numero_protocolo=protocolo.numero, ano=protocolo.ano)
             except ObjectDoesNotExist:
+                logger.error("- Objeto não encontrado. Definido como None.")
                 context['materia'] = None
             else:
+                logger.info("- Objeto encontrado.")
                 context['materia'] = materia
 
         if protocolo.tipo_documento:
@@ -588,10 +601,14 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
     def form_valid(self, form):
         protocolo = form.save(commit=False)
+        logger = logging.getLogger(__name__)
         try:
+            logger.info("- Tentando obter sequência de numeração.")
             numeracao = sapl.base.models.AppConfig.objects.last(
             ).sequencia_numeracao
         except AttributeError:
+            logger.error("É preciso definir a sequencia de "
+                        "numeração na tabelas auxiliares!")
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')
             messages.add_message(self.request, messages.ERROR, msg)

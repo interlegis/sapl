@@ -1,5 +1,6 @@
 
 import django_filters
+import logging
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
@@ -129,6 +130,7 @@ class NormaJuridicaForm(ModelForm):
 
 
     def clean(self):
+        logger = logging.getLogger(__name__)
         cleaned_data = super(NormaJuridicaForm, self).clean()
 
         if not self.is_valid():
@@ -150,12 +152,17 @@ class NormaJuridicaForm(ModelForm):
                 cleaned_data['numero_materia'] and
                 cleaned_data['ano_materia']):
             try:
+                logger.info("- Tentando obter objeto MateriaLegislativa.")
                 materia = MateriaLegislativa.objects.get(
                     tipo_id=cleaned_data['tipo_materia'],
                     numero=cleaned_data['numero_materia'],
                     ano=cleaned_data['ano_materia'])
 
             except ObjectDoesNotExist:
+                logger.error("- Matéria Legislativa %s/%s (%s) é inexistente." % (
+                        self.cleaned_data['numero_materia'],
+                        self.cleaned_data['ano_materia'],
+                        cleaned_data['tipo_materia'].descricao))
                 raise forms.ValidationError(
                     _("Matéria Legislativa %s/%s (%s) é inexistente." % (
                         self.cleaned_data['numero_materia'],
@@ -171,14 +178,18 @@ class NormaJuridicaForm(ModelForm):
         data = cleaned_data['data']
 
         if data.year != ano:
+            logger.error("O ano da norma é diferente "
+                        "do ano no campo data")
             raise ValidationError("O ano da norma não pode ser "
                                   "diferente do ano no campo data")
         return cleaned_data
 
     def clean_texto_integral(self):
+        logger = logging.getLogger(__name__)
         texto_integral = self.cleaned_data.get('texto_integral', False)
         if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
             max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+            logger.error("- Arquivo muito grande. ( > {0}MB )".format(max_size))
             raise ValidationError(
                   "Arquivo muito grande. ( > {0}MB )".format(max_size))
         return texto_integral
@@ -246,12 +257,14 @@ class AnexoNormaJuridicaForm(ModelForm):
         }
 
     def clean(self):
+        logger = logging.getLogger(__name__)
         cleaned_data = super(AnexoNormaJuridicaForm, self).clean()
         if not self.is_valid():
             return cleaned_data
         anexo_arquivo = self.cleaned_data.get('anexo_arquivo', False)
         if anexo_arquivo and anexo_arquivo.size > MAX_DOC_UPLOAD_SIZE:
             max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+            logger.error("- Arquivo muito grande. ( > {0}MB )".format(max_size))
             raise ValidationError(
                  "Arquivo muito grande. ( > {0}MB )".format(max_size))
         return cleaned_data
@@ -291,17 +304,20 @@ class NormaRelacionadaForm(ModelForm):
 
     def clean(self):
         super(NormaRelacionadaForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
         cleaned_data = self.cleaned_data
 
         try:
+            logger.info("- Tentando obter objeto NormaJuridica. ")
             norma_relacionada = NormaJuridica.objects.get(
                 numero=cleaned_data['numero'],
                 ano=cleaned_data['ano'],
                 tipo=cleaned_data['tipo'])
         except ObjectDoesNotExist:
+            logger.error("- A norma a ser relacionada não existe.")
             msg = _('A norma a ser relacionada não existe.')
             raise ValidationError(msg)
         else:
@@ -362,6 +378,7 @@ class NormaPesquisaSimplesForm(forms.Form):
 
     def clean(self):
         super(NormaPesquisaSimplesForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -373,12 +390,15 @@ class NormaPesquisaSimplesForm(forms.Form):
 
         if (data_inicial and data_final and
                 data_inicial > data_final):
+            logger.error("- Data Final menor que a Data Inicial")
             raise ValidationError(_(
                 'A Data Final não pode ser menor que a Data Inicial'))
         else:
             condicao1 = data_inicial and not data_final
             condicao2 = not data_inicial and data_final
             if condicao1 or condicao2:
+                logger.error("- Caso pesquise por data, os campos de Data Inicial e "
+                            "Data Final devem ser preenchidos obrigatoriamente")
                 raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e ' +
                                         'Data Final devem ser preenchidos obrigatoriamente'))
 

@@ -1,6 +1,6 @@
 
 import os
-
+import logging
 import django_filters
 from crispy_forms.bootstrap import Alert, FormActions, InlineRadios
 from crispy_forms.helper import FormHelper
@@ -146,6 +146,7 @@ class MateriaSimplificadaForm(ModelForm):
 
     def clean(self):
         super(MateriaSimplificadaForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -156,6 +157,8 @@ class MateriaSimplificadaForm(ModelForm):
         ano = cleaned_data['ano']
 
         if data_apresentacao.year != ano:
+            logger.error("- O ano da matéria é diferente"
+                        " do ano na data de apresentação")
             raise ValidationError("O ano da matéria não pode ser "
                                   "diferente do ano na data de apresentação")
 
@@ -191,6 +194,7 @@ class MateriaLegislativaForm(ModelForm):
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -204,6 +208,8 @@ class MateriaLegislativaForm(ModelForm):
 
         if protocolo:
             if not Protocolo.objects.filter(numero=protocolo,ano=ano).exists():
+                logger.error("- Protocolo %s/%s não"
+                            " existe" % (protocolo, ano))
                 raise ValidationError(_('Protocolo %s/%s não'
                                         ' existe' % (protocolo, ano)))
 
@@ -217,15 +223,21 @@ class MateriaLegislativaForm(ModelForm):
                                                         ano=ano).exists()
 
                 if exist_materia or exist_doc:
+                    logger.error("- Protocolo %s/%s ja possui"
+                                " documento vinculado"
+                                % (protocolo, ano))
                     raise ValidationError(_('Protocolo %s/%s ja possui'
                                             ' documento vinculado'
                                              % (protocolo, ano)))
 
                 p = Protocolo.objects.get(numero=protocolo,ano=ano)
                 if p.tipo_materia != cleaned_data['tipo']:
+                    logger.error("- Tipo do Protocolo deve ser o mesmo do Tipo Matéria")
                     raise ValidationError(_('Tipo do Protocolo deve ser o mesmo do Tipo Matéria'))
 
         if data_apresentacao.year != ano:
+            logger.error("- O ano da matéria é diferente "
+                        "do ano na data de apresentação")
             raise ValidationError(_("O ano da matéria não pode ser "
                                   "diferente do ano na data de apresentação"))
 
@@ -234,6 +246,8 @@ class MateriaLegislativaForm(ModelForm):
 
         if ano_origem_externa and data_origem_externa and \
                 ano_origem_externa != data_origem_externa.year:
+            logger.error("O ano de origem externa da matéria é "
+                        " diferente do ano na data de origem externa")
             raise ValidationError(_("O ano de origem externa da matéria não "
                                   "pode ser diferente do ano na data de "
                                   "origem externa"))
@@ -266,6 +280,7 @@ class UnidadeTramitacaoForm(ModelForm):
 
     def clean(self):
         super(UnidadeTramitacaoForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -278,6 +293,7 @@ class UnidadeTramitacaoForm(ModelForm):
 
         if len(cleaned_data) != 1:
             msg = _('Somente um campo deve ser preenchido!')
+            logger.error("- Somente um campo deve ser preenchido!")
             raise ValidationError(msg)
         return cleaned_data
 
@@ -341,6 +357,7 @@ class RelatoriaForm(ModelForm):
 
     def clean(self):
         super(RelatoriaForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -348,8 +365,10 @@ class RelatoriaForm(ModelForm):
         cleaned_data = self.cleaned_data
 
         try:
+            logger.info("- Tentando obter objeto Comissao.")
             comissao = Comissao.objects.get(id=self.initial['comissao'])
         except ObjectDoesNotExist:
+            logger.error("- A localização atual deve ser uma comissão.")
             msg = _('A localização atual deve ser uma comissão.')
             raise ValidationError(msg)
         else:
@@ -383,6 +402,7 @@ class TramitacaoForm(ModelForm):
 
     def clean(self):
         super(TramitacaoForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -409,30 +429,40 @@ class TramitacaoForm(ModelForm):
                 if (destino != self.cleaned_data['unidade_tramitacao_local']):
                     msg = _('A origem da nova tramitação deve ser igual ao '
                             'destino  da última adicionada!')
+                    logger.error("- A origem da nova tramitação deve ser igual ao "
+                                "destino da última adicionada!")
                     raise ValidationError(msg)
 
             if cleaned_data['data_tramitacao'] > timezone.now().date():
                 msg = _(
                     'A data de tramitação deve ser ' +
                     'menor ou igual a data de hoje!')
+                logger.error("- A data de tramitação deve ser " 
+                            "menor ou igual a data de hoje!")
                 raise ValidationError(msg)
 
             if (ultima_tramitacao and
                     data_tram_form < ultima_tramitacao.data_tramitacao):
                 msg = _('A data da nova tramitação deve ser ' +
                         'maior que a data da última tramitação!')
+                logger.error("- A data da nova tramitação deve ser "
+                            "maior que a data da última tramitação!")
                 raise ValidationError(msg)
 
         if data_enc_form:
             if data_enc_form < data_tram_form:
                 msg = _('A data de encaminhamento deve ser ' +
                         'maior que a data de tramitação!')
+                logger.error("- A data de encaminhamento deve ser "
+                            "maior que a data de tramitação!")
                 raise ValidationError(msg)
 
         if data_prazo_form:
             if data_prazo_form < data_tram_form:
                 msg = _('A data fim de prazo deve ser ' +
                         'maior que a data de tramitação!')
+                logger.error("- A data fim de prazo deve ser " +
+                            "maior que a data de tramitação!")
                 raise ValidationError(msg)
 
         return cleaned_data
@@ -465,6 +495,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
     def clean(self):
         super(TramitacaoUpdateForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -479,6 +510,9 @@ class TramitacaoUpdateForm(TramitacaoForm):
         if ultima_tramitacao != self.instance:
             if self.cleaned_data['unidade_tramitacao_destino'] != \
                     self.instance.unidade_tramitacao_destino:
+                logger.error("- Você não pode mudar a Unidade de Destino desta "
+                            "tramitação, pois irá conflitar com a Unidade "
+                            "Local da tramitação seguinte")
                 raise ValidationError(
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
@@ -525,6 +559,7 @@ class LegislacaoCitadaForm(ModelForm):
 
     def clean(self):
         super(LegislacaoCitadaForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -532,11 +567,14 @@ class LegislacaoCitadaForm(ModelForm):
         cleaned_data = self.cleaned_data
 
         try:
+            logger.info("- Tentando obter objeto NormalJuridica.")
             norma = NormaJuridica.objects.get(
                 numero=cleaned_data['numero'],
                 ano=cleaned_data['ano'],
                 tipo=cleaned_data['tipo'])
         except ObjectDoesNotExist:
+            logger.error("- A norma a ser inclusa não existe no cadastro"
+                        " de Normas.")
             msg = _('A norma a ser inclusa não existe no cadastro'
                     ' de Normas.')
             raise ValidationError(msg)
@@ -562,10 +600,12 @@ class LegislacaoCitadaForm(ModelForm):
         if not self.instance.id:
             if filtro_base.exists():
                 msg = _('Essa Legislação já foi cadastrada.')
+                logger.error("- Essa Legislação já foi cadastrada.")
                 raise ValidationError(msg)
         else:
             if filtro_base.exclude(id=self.instance.id).exists():
                 msg = _('Essa Legislação já foi cadastrada.')
+                logger.error("- Essa Legislação já foi cadastrada.")
                 raise ValidationError(msg)
         return cleaned_data
 
@@ -588,11 +628,13 @@ class NumeracaoForm(ModelForm):
 
     def clean(self):
         super(NumeracaoForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
 
         try:
+            logger.info("- Tentando obter objeto MateriaLegislativa.")
             MateriaLegislativa.objects.get(
                 numero=self.cleaned_data['numero_materia'],
                 ano=self.cleaned_data['ano_materia'],
@@ -600,6 +642,8 @@ class NumeracaoForm(ModelForm):
         except ObjectDoesNotExist:
             msg = _('A matéria a ser inclusa não existe no cadastro'
                     ' de matérias legislativas.')
+            logger.error("- A matéria a ser inclusa não existe no cadastro "
+                        " de matérias legislativas.")
             raise ValidationError(msg)
 
         if Numeracao.objects.filter(
@@ -609,6 +653,7 @@ class NumeracaoForm(ModelForm):
             numero_materia=self.cleaned_data['numero_materia']
         ).exists():
             msg = _('Essa numeração já foi cadastrada.')
+            logger.error("- Essa numeração já foi cadastrada.")
             raise ValidationError(msg)
 
         return self.cleaned_data
@@ -633,6 +678,7 @@ class AnexadaForm(ModelForm):
 
     def clean(self):
         super(AnexadaForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -640,6 +686,7 @@ class AnexadaForm(ModelForm):
         cleaned_data = self.cleaned_data
 
         try:
+            logger.info("Tentando obter objeto MateriaLegislativa.")
             materia_anexada = MateriaLegislativa.objects.get(
                 numero=cleaned_data['numero'],
                 ano=cleaned_data['ano'],
@@ -647,17 +694,21 @@ class AnexadaForm(ModelForm):
         except ObjectDoesNotExist:
             msg = _('A matéria a ser anexada não existe no cadastro'
                     ' de matérias legislativas.')
+            logger.error("- A matéria a ser anexada não existe no cadastro"
+                        " de matérias legislativas.")
             raise ValidationError(msg)
 
         materia_principal = self.instance.materia_principal
         if materia_principal == materia_anexada:
+            logger.error("- Matéria não pode ser anexada a si mesma.")
             raise ValidationError(_('Matéria não pode ser anexada a si mesma'))
 
         is_anexada = Anexada.objects.filter(materia_principal=materia_principal,
                                             materia_anexada=materia_anexada
                                             ).exists()
         if is_anexada:
-            raise ValidationError(_('Materia já se encontra anexada'))
+            logger.error("- Matéria já se encontra anexada.")
+            raise ValidationError(_('Matéria já se encontra anexada'))
 
         cleaned_data['materia_anexada'] = materia_anexada
 
@@ -879,6 +930,7 @@ class AutoriaForm(ModelForm):
 
     def clean(self):
         cd = super(AutoriaForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -889,6 +941,7 @@ class AutoriaForm(ModelForm):
 
         if ((not pk and autorias.exists()) or
                 (pk and autorias.exclude(pk=pk).exists())):
+            logger.error("- Esse Autor já foi cadastrado.")
             raise ValidationError(_('Esse Autor já foi cadastrado.'))
 
         return cd
@@ -932,11 +985,13 @@ class AutoriaMultiCreateForm(Form):
 
     def clean(self):
         cd = super().clean()
+        logger = logging.getLogger(__name__)
 
         if 'autores' in self.errors:
             del self.errors['autores']
 
         if 'autor' not in cd or not cd['autor'].exists():
+            logger.error("- Ao menos um autor deve ser selecionado para inclusão")
             raise ValidationError(
                 _('Ao menos um autor deve ser selecionado para inclusão'))
 
@@ -1102,6 +1157,7 @@ class TipoProposicaoForm(ModelForm):
 
     def clean(self):
         super(TipoProposicaoForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -1112,11 +1168,14 @@ class TipoProposicaoForm(ModelForm):
 
         if 'tipo_conteudo_related' not in cd or not cd[
            'tipo_conteudo_related']:
+            logger.error("- Seleção de Tipo não definida.")
             raise ValidationError(
-                _('Seleção de Tipo não definida'))
+                _('Seleção de Tipo não definida.'))
 
         if not content_type.model_class().objects.filter(
                 pk=cd['tipo_conteudo_related']).exists():
+            logger.error("- O Registro definido (%s) não está na base de %s."
+                   % (cd['tipo_conteudo_related'], content_type))
             raise ValidationError(
                 _('O Registro definido (%s) não está na base de %s.'
                   ) % (cd['tipo_conteudo_related'], content_type))
@@ -1315,9 +1374,11 @@ class ProposicaoForm(forms.ModelForm):
                 ].initial = self.instance.materia_de_vinculo.ano
 
     def clean_texto_original(self):
+        logger = logging.getLogger(__name__)
         texto_original = self.cleaned_data.get('texto_original', False)
         if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
             max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
+            logger.error("- Arquivo muito grande. ( > {0}MB )".format(max_size))
             raise ValidationError(
                     "Arquivo muito grande. ( > {0}MB )".format(max_size))
         return texto_original
@@ -1338,6 +1399,7 @@ class ProposicaoForm(forms.ModelForm):
 
     def clean(self):
         super(ProposicaoForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -1350,14 +1412,17 @@ class ProposicaoForm(forms.ModelForm):
 
         if tm and am and nm:
             try:
+                logger.info("- Tentando obter objeto MateriaLegislativa.")
                 materia_de_vinculo = MateriaLegislativa.objects.get(
                     tipo_id=tm,
                     ano=am,
                     numero=nm
                 )
             except ObjectDoesNotExist:
+                logger.error("- Matéria Vinculada não existe!")
                 raise ValidationError(_('Matéria Vinculada não existe!'))
             else:
+                logger.info("- Matéria vinculada com sucesso.")
                 cd['materia_de_vinculo'] = materia_de_vinculo
         return cd
 
@@ -1433,6 +1498,7 @@ class DevolverProposicaoForm(forms.ModelForm):
 
     def clean(self):
         super(DevolverProposicaoForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -1442,6 +1508,7 @@ class DevolverProposicaoForm(forms.ModelForm):
         if 'justificativa_devolucao' not in cd or\
                 not cd['justificativa_devolucao']:
             # TODO Implementar notificação ao autor por email
+            logger.error("- Adicione uma Justificativa para devolução.")
             raise ValidationError(
                 _('Adicione uma Justificativa para devolução.'))
         return cd
@@ -1512,6 +1579,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         }
 
     def __init__(self, *args, **kwargs):
+        logger = logging.getLogger(__name__)
 
         self.proposicao_incorporacao_obrigatoria = \
             sapl.base.models.AppConfig.attr(
@@ -1533,6 +1601,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         self.instance = kwargs.get('instance', None)
         if not self.instance:
+            logger.error("- Erro na Busca por proposição a incorporar")
             raise ValueError(_('Erro na Busca por proposição a incorporar'))
 
         if self.instance.tipo.content_type.model_class() == TipoDocumento:
@@ -1618,6 +1687,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
     def clean(self):
         super(ConfirmarProposicaoForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -1625,6 +1695,9 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
 
         if not numeracao:
+            logger.error("- A sequência de numeração (por ano ou geral)"
+                        " não foi configurada para a aplicação em "
+                        "tabelas auxiliares")
             raise ValidationError("A sequência de numeração (por ano ou geral)"
                                   " não foi configurada para a aplicação em "
                                   "tabelas auxiliares")
@@ -1635,12 +1708,14 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 TipoMateriaLegislativa:
             if 'regime_tramitacao' not in cd or\
                     not cd['regime_tramitacao']:
+                logger.error("- Regime de Tramitação deve ser informado.")
                 raise ValidationError(
                     _('Regime de Tramitação deve ser informado.'))
 
         elif self.instance.tipo.content_type.model_class(
         ) == TipoDocumento and not cd['materia_de_vinculo']:
-
+            logger.error("- Documentos não podem ser incorporados sem definir "
+                        "para qual Matéria Legislativa ele se destina.")
             raise ValidationError(
                 _('Documentos não podem ser incorporados sem definir '
                   'para qual Matéria Legislativa ele se destina.'))
@@ -1649,6 +1724,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
     @transaction.atomic
     def save(self, commit=False):
+        logger = logging.getLogger(__name__)
         # TODO Implementar workflow entre protocolo e autores
         cd = self.cleaned_data
 
@@ -1692,9 +1768,11 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
             numeracao = None
             try:
+                logger.info("- Tentando obter modelo de sequência de numeração.")
                 numeracao = sapl.base.models.AppConfig.objects.last(
                 ).sequencia_numeracao
-            except AttributeError:
+            except AttributeError as e:
+                logger.error("- Erro ao obter modelo. " + str(e))
                 pass
 
             tipo = self.instance.tipo.tipo_conteudo_related
@@ -1954,6 +2032,7 @@ class EtiquetaPesquisaForm(forms.Form):
 
     def clean(self):
         super(EtiquetaPesquisaForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -1966,12 +2045,15 @@ class EtiquetaPesquisaForm(forms.Form):
             # preencheu o Final, ou vice-versa
             if (not cleaned_data['data_inicial'] or
                     not cleaned_data['data_final']):
+                logger.error("- Caso pesquise por data, os campos de Data Incial e "
+                            "Data Final devem ser preenchidos obrigatoriamente")
                 raise ValidationError(_(
                     'Caso pesquise por data, os campos de Data Incial e ' +
                     'Data Final devem ser preenchidos obrigatoriamente'))
             # Caso tenha preenchido, verifica se a data final é maior que
             # a inicial
             elif cleaned_data['data_final'] < cleaned_data['data_inicial']:
+                logger.error("- A Data Final não pode ser menor que a Data Inicial")
                 raise ValidationError(_(
                     'A Data Final não pode ser menor que a Data Inicial'))
 
@@ -1980,12 +2062,16 @@ class EtiquetaPesquisaForm(forms.Form):
                 cleaned_data['processo_final']):
             if (not cleaned_data['processo_inicial'] or
                     not cleaned_data['processo_final']):
+                logger.error("- Caso pesquise por número de processo, os campos de "
+                            "Processo Inicial e Processo Final "
+                            "devem ser preenchidos obrigatoriamente")
                 raise ValidationError(_(
                     'Caso pesquise por número de processo, os campos de ' +
                     'Processo Inicial e Processo Final ' +
                     'devem ser preenchidos obrigatoriamente'))
             elif (cleaned_data['processo_final'] <
                   cleaned_data['processo_inicial']):
+                logger.error("- O processo final não pode ser menor que o inicial")
                 raise ValidationError(_(
                     'O processo final não pode ser menor que o inicial'))
 
@@ -2027,6 +2113,7 @@ class FichaPesquisaForm(forms.Form):
 
     def clean(self):
         super(FichaPesquisaForm, self).clean()
+        logger = logging.getLogger(__name__)
 
         if not self.is_valid():
             return self.cleaned_data
@@ -2037,6 +2124,7 @@ class FichaPesquisaForm(forms.Form):
             return cleaned_data
 
         if cleaned_data['data_final'] < cleaned_data['data_inicial']:
+            logger.error("- A Data Final não pode ser menor que a Data Inicial.")
             raise ValidationError(_(
                 'A Data Final não pode ser menor que a Data Inicial'))
 
@@ -2087,6 +2175,7 @@ class ExcluirTramitacaoEmLote(forms.Form):
 
     def clean(self):
         super(ExcluirTramitacaoEmLote, self).clean()
+        logger = logging.getLogger(__name__)
 
         cleaned_data = self.cleaned_data
 
@@ -2103,6 +2192,7 @@ class ExcluirTramitacaoEmLote(forms.Form):
                                                            unidade_tramitacao_destino=unidade_tramitacao_destino,
                                                            status=status)
         if not tramitacao_set.exists():
+            logger.error("- Não existem tramitações com os dados informados.")
             raise forms.ValidationError(
                 _("Não existem tramitações com os dados informados."))
 
