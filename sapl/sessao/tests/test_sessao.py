@@ -299,4 +299,4 @@ def test_delete_sessao_plenaria_cascade_orador():
     sessao_plenaria.delete()
     orador_filter = Orador.objects.filter(
                             sessao_plenaria=sessao_plenaria).exists()
-    assert orador_filter == False
+    assert not orador_filter
