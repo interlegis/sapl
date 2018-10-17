@@ -476,7 +476,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     '''
     votacao = models.ForeignKey(RegistroVotacao,
                                 blank=True,
-                                null=True)
+                                null=True,on_delete=models.CASCADE)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     voto = models.CharField(max_length=10)
 
@@ -496,10 +496,10 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
 
     ordem = models.ForeignKey(OrdemDia,
                               blank=True,
-                              null=True)
+                              null=True, on_delete=models.CASCADE)
     expediente = models.ForeignKey(ExpedienteMateria,
                                    blank=True,
-                                   null=True)
+                                   null=True, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _('Registro de Votação de Parlamentar')
