@@ -274,29 +274,23 @@ def test_delete_sessao_plenaria_cascade_registro_votacao_expediente():
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_integrante_mesa():
     sessao_plenaria = create_sessao_plenaria()
-    mesa = mommy.make(IntegranteMesa,
-                      sessao_plenaria=sessao_plenaria)
+    mesa = mommy.make(IntegranteMesa,sessao_plenaria=sessao_plenaria)
     sessao_plenaria.delete()
-    mesa_filter = IntegranteMesa.objects.filter(
-                        sessao_plenaria=sessao_plenaria).exists()
+    mesa_filter = IntegranteMesa.objects.filter(sessao_plenaria=sessao_plenaria).exists()
     assert not mesa_filter
 
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_expedientesessao():
     sessao_plenaria = create_sessao_plenaria()
-    expediente_sessao = mommy.make(ExpedienteSessao,
-                      sessao_plenaria=sessao_plenaria)
+    expediente_sessao = mommy.make(ExpedienteSessao, sessao_plenaria=sessao_plenaria)
     sessao_plenaria.delete()
-    expediente_sessao_filter = ExpedienteSessao.objects.filter(
-                                    sessao_plenaria=sessao_plenaria).exists()
+    expediente_sessao_filter = ExpedienteSessao.objects.filter(sessao_plenaria=sessao_plenaria).exists()
     assert not expediente_sessao_filter
 
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_orador():
     sessao_plenaria = create_sessao_plenaria()
-    expediente_sessao = mommy.make(Orador,
-                      sessao_plenaria=sessao_plenaria)
+    expediente_sessao = mommy.make(Orador, sessao_plenaria=sessao_plenaria)
     sessao_plenaria.delete()
-    orador_filter = Orador.objects.filter(
-                            sessao_plenaria=sessao_plenaria).exists()
+    orador_filter = Orador.objects.filter(sessao_plenaria=sessao_plenaria).exists()
     assert not orador_filter
