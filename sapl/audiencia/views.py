@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.core.urlresolvers import reverse
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import UpdateView
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud
@@ -22,6 +23,22 @@ class AudienciaCrud(Crud):
 
     class ListView(Crud.ListView):
         paginate_by = 10
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            audiencia_materia = {}
+            for o in context['object_list']:
+                audiencia_materia[str(o.id)] = o.materia
+
+            for row in context['rows']:
+                coluna_materia = row[3] # se mudar a ordem de listagem mudar aqui
+                if coluna_materia[0]:
+                    materia = audiencia_materia[row[0][0]]
+                    url_materia = reverse('sapl.materia:materialegislativa_detail',
+                                          kwargs={'pk': materia.id})
+                    row[3] = (coluna_materia[0], url_materia)
+            return context
 
     class CreateView(Crud.CreateView):
         form_class = AudienciaForm
