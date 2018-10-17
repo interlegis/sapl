@@ -1,3 +1,5 @@
+import sapl
+
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -82,7 +84,7 @@ class AudienciaMixin:
 
 class AnexoAudienciaPublicaCrud(MasterDetailCrud):
     model = AnexoAudienciaPublica
-    parent_field = 'documento'
+    parent_field = 'audiencia'
     help_topic = 'numeracao_docsacess'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
