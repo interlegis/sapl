@@ -147,3 +147,50 @@ class AudienciaPublica(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
+
+@reversion.register()
+class AnexoAudienciaPublica(models.Model):
+    audiencia = models.ForeignKey(AudienciaPublica,
+                                  on_delete=models.PROTECT)
+    nome = models.CharField(max_length=30, verbose_name=_('Nome'))
+    arquivo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=texto_upload_path,
+        verbose_name=_('Arquivo'))
+    data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
+    assunto = models.TextField(
+        blank=True, verbose_name=_('Assunto'))
+    indexacao = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = _('Documento Acessório')
+        verbose_name_plural = _('Documentos Acessórios')
+
+    def __str__(self):
+        return self.nome
+
+    def delete(self, using=None, keep_parents=False):
+        if self.arquivo:
+            self.arquivo.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.arquivo:
+            arquivo = self.arquivo
+            self.arquivo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.arquivo = arquivo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)

@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
-from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
+from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica, AnexoAudienciaPublica
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import timezone
 
@@ -102,3 +102,17 @@ class AudienciaForm(forms.ModelForm):
                     raise ValidationError(msg)
 
         return cleaned_data
+
+
+class AnexoAudienciaPublicaForm(forms.ModelForm):
+
+    class Meta:
+        model = AnexoAudienciaPublica
+        fields = ['nome',
+                  'data',
+                  'arquivo',
+                  'assunto']
+
+        widgets = {
+            'data': forms.DateInput(format='%d/%m/%Y')
+        }
