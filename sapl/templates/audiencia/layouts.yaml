@@ -24,6 +24,7 @@ AudienciaPublicaDetail:
   - audiencia_cancelada
 
 AnexoAudienciaPublica:
-  {% trans 'Identificação Básica' %}
-  - 'nome' 'data' 'arquivo'
-  - 'assunto'
+  {% trans 'Documento Acessório' %}:
+  - nome  data
+  - assunto
+  - arquivo
