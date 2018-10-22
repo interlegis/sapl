@@ -136,7 +136,7 @@ class AcompanhamentoExcluirView(TemplateView):
                        kwargs={'pk': self.kwargs['pk']})
 
     def get(self, request, *args, **kwargs):
-        materia_id = kwargs['pk']
+        documento_id = kwargs['pk']
         hash_txt = request.GET.get('hash_txt', '')
 
         try:
