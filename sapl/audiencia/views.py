@@ -29,7 +29,8 @@ class AudienciaCrud(Crud):
 
             audiencia_materia = {}
             for o in context['object_list']:
-                audiencia_materia[str(o.id)] = o.materia
+                # indexado pelo numero da audiencia
+                audiencia_materia[str(o.numero)] = o.materia
 
             for row in context['rows']:
                 coluna_materia = row[3] # se mudar a ordem de listagem mudar aqui
