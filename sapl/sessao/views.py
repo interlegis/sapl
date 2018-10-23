@@ -1898,15 +1898,27 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             except ObjectDoesNotExist:
                 raise Http404()
 
-        if 'cancelar-votacao' in request.POST:
-            fechar_votacao_materia(materia_votacao)
-            return self.form_valid(form)
 
         if form.is_valid():
             votos_sim = 0
             votos_nao = 0
             abstencoes = 0
             nao_votou = 0
+
+            if 'cancelar-votacao' in request.POST:
+                fechar_votacao_materia(materia_votacao)
+                if self.ordem:
+                    return HttpResponseRedirect(reverse(
+                        'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
+                else:
+                    return HttpResponseRedirect(reverse(
+                        'sapl.sessao:expedientemateria_list',
+                        kwargs={'pk': kwargs['pk']}))
+            else:
+                if form.cleaned_data['resultado_votacao'] == None:
+                    form.add_error(None, 'Não é possível finalizar a votação sem '
+                                         'nenhum resultado da votação')
+                    return self.form_invalid(form)
 
             for votos in request.POST.getlist('voto_parlamentar'):
                 v = votos.split(':')
