@@ -2892,7 +2892,21 @@ class DispositivoSearchFragmentFormView(ListView):
                 itens.append(item)
             return JsonResponse(itens, safe=False)
 
-        return ListView.get(self, request, *args, **kwargs)
+        response = ListView.get(self, request, *args, **kwargs)
+
+        if not self.object_list.exists():
+            messages.info(
+                request, _('Não foram encontrados resultados '
+                           'com seus critérios de busca!'))
+
+        try:
+            r = response.render()
+            return response
+        except Exception as e:
+            messages.error(request, "Erro - %s" % e)
+            context = {}
+            self.template_name = 'compilacao/messages.html'
+            return self.render_to_response(context)
 
     def get_queryset(self):
         try:

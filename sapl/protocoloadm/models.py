@@ -67,7 +67,7 @@ class Protocolo(models.Model):
         blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
     tipo_processo = models.PositiveIntegerField()
     interessado = models.CharField(
-        max_length=60, blank=True, verbose_name=_('Interessado'))
+        max_length=200, blank=True, verbose_name=_('Interessado'))
     autor = models.ForeignKey(Autor,
                               blank=True,
                               null=True,
@@ -298,3 +298,30 @@ class TramitacaoAdministrativo(models.Model):
         return _('%(documento)s - %(status)s') % {
             'documento': self.documento, 'status': self.status
         }
+
+@reversion.register()
+class AcompanhamentoDocumento(models.Model):
+    usuario = models.CharField(max_length=50)
+    documento = models.ForeignKey(DocumentoAdministrativo, on_delete=models.CASCADE)
+    email = models.EmailField(
+        max_length=100, verbose_name=_('E-mail'))
+    data_cadastro = models.DateField(auto_now_add=True)
+    hash = models.CharField(max_length=8)
+    confirmado = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _('Acompanhamento de Documento')
+        verbose_name_plural = _('Acompanhamentos de Documento')
+
+    def __str__(self):
+        if self.data_cadastro is None:
+            return _('%(documento)s - %(email)s') % {
+                'documento': self.documento,
+                'email': self.email
+            }
+        else:
+            return _('%(documento)s - %(email)s - Registrado em: %(data)s') % {
+                'documento': self.documento,
+                'email': self.email,
+                'data': str(self.data_cadastro.strftime('%d/%m/%Y'))
+            }

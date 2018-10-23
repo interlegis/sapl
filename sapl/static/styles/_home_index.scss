@@ -1,0 +1,188 @@
+
+.container-home {
+  position: relative;
+  padding: 2em 1.5em 1.5em 1.5em;
+  max-width: 1000px;
+  margin: 0 auto;
+  a:hover {
+    color: #444;
+    -webkit-transition: 0.3s ease-in;
+    -moz-transition: 0.3s ease-in;
+    -o-transition: 0.3s ease-in
+  }
+
+  #homeIndex {
+    text-align: center;
+  }
+
+  .homeBanner span {
+    color: white;
+    font-size: 32px;
+    font-weight: 600;
+    display: inline-block;
+    vertical-align: middle;
+    padding: 2px 45px 4px;
+    border: 2px solid;
+  }
+
+  .homeBanner::after {
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+  }
+
+  .homeBlock {
+    display: inline-block;
+    position: relative;
+    background-color: #F3F3F3;
+    width: 190px;
+    height: 260px;
+    margin: 3px;
+    text-align: center;
+    font-size: 0;
+    overflow: hidden;
+  }
+
+  .homeBlock > a {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+
+  .homeBlock::after {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+    overflow: visible;
+    clear: none;
+    visibility: initial;
+  }
+
+  .homeContent {
+    position: relative;
+    padding: 10px;
+    text-align: justify;
+    font-size: 14px;
+    color: #FFF;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .homeContent p {
+    display: block;
+    line-height: 13px;
+    font-size: 80%;
+    color: white;
+  }
+
+  .homeIcon {
+    position: relative;
+    display: inline-block;
+    width: 105px;
+    height: 105px;
+    border-radius: 50%;
+    background: #364347;
+    z-index: 1;
+  }
+
+  .homeIcon::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #364347;
+    top: 0;
+    left: 0;
+    transform: scale(0.95);
+    transition: transform 0.6s ease;
+  }
+
+  .homeIcon img {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    transition: opacity 0.4s 0.4s ease;
+  }
+
+  .homeFront {
+    position: absolute;
+    top: 46%;
+    width: 100%;
+    font-size: 0;
+    transform: translateY(-60%);
+
+  }
+
+  .homeFront h2 {
+    position: absolute;
+    margin-top: 18px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #595959 !important;
+    width: 100%;
+    padding: 0 6%;
+    z-index: 0;
+  }
+
+  .homeTitle {
+    display: block;
+    height: 32px;
+    text-align: center;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .homeTitle::before {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+  }
+
+  .homeTitle h2 {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 110px;
+    font-size: 14px;
+    color: white !important;
+    line-height: 1em;
+  }
+
+  .homeTitle img {
+    display: inline-block;
+    vertical-align: middle;
+    height: 30px;
+    margin-right: 5px;
+  }
+
+  .homeBlock:hover .homeIcon::before {
+    transform: scale(3.6) translateY(7px);
+  }
+
+  .homeBlock:hover .homeContent{
+    opacity: 1;
+    transition-delay: 0.2s;
+  }
+
+  .homeBlock:hover .homeIcon img {
+    opacity: 0;
+    transition-duration: 0.2s;
+    transition-delay: 0s;
+  }
+
+  .homeBlock:hover .homeTitle {
+    opacity: 1;
+  }
+
+}

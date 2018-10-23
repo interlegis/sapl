@@ -10,6 +10,21 @@
 {% endblock sub_actions %}
 {% block detail_content %}
     {{ block.super }}
+    {% if object.registrovotacao_set.exists %}
+        <strong>Data Votação:</strong>
+        {% for rv in object.registrovotacao_set.all %}
+            {% if rv.ordem %}
+              <a href="{% url 'sapl.sessao:ordemdia_list' rv.ordem.sessao_plenaria_id %}">
+                {{ rv.ordem.sessao_plenaria.data_inicio }}
+              </a>
+            {% elif rv.expediente %}
+              <a href="{% url 'sapl.sessao:expedientemateria_list' rv.expediente.sessao_plenaria_id %}">
+                {{ rv.expediente.sessao_plenaria.data_inicio }}
+              </a>
+            {% endif %}
+            </br>
+        {% endfor %}
+    {% endif %}
     {% if object.normajuridica_set.last %}
        <p class="control-label">&emsp; Norma Jurídica Relacionada</p>
        <div class="actions btn-group btn-group-sm" role="group">

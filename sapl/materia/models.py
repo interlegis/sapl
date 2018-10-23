@@ -307,7 +307,7 @@ class MateriaLegislativa(models.Model):
 class Autoria(models.Model):
     autor = models.ForeignKey(Autor,
                               verbose_name=_('Autor'),
-                              on_delete=models.CASCADE)
+                              on_delete=models.PROTECT)
     materia = models.ForeignKey(
         MateriaLegislativa, on_delete=models.CASCADE,
         verbose_name=_('Matéria Legislativa'))

@@ -70,6 +70,7 @@ tipo_dependente               /sistema/parlamentar/tipo-dependente
 origem                        /sistema/materia/origem
 documento_acessorio           /materia/documentoacessorio
 tipo_fim_relatoria            /sistema/materia/tipo-fim-relatoria
+tipo_situacao_militar         /sistema/parlamentar/tipo-militar
 '''
 urls = dict(stripsplit(urls))
 
@@ -194,7 +195,7 @@ Para facilitar sua conferência, seguem os links para as proposições envolvida
     '''.format(table.draw(), links, sqls)
 
 
-def get_dependencias_a_ressucitar(slug):
+def get_dependencias_a_ressuscitar(slug):
     ocorrencias = yaml.load(
         Path(DIR_REPO.child('ocorrencias.yaml').read_file()))
     fks_faltando = ocorrencias.get('fk')
@@ -265,7 +266,7 @@ SQLS_CRIACAO = [
     ('unidade_tramitacao', '''
         insert into unidade_tramitacao (
         cod_unid_tramitacao, cod_comissao, cod_orgao, cod_parlamentar, ind_excluido)
-        values ({}, NULL, NULL, NULL, 0);
+        values ({}, NULL, NULL, 0, 0);
      '''),
     ('autor', SQL_INSERT_TIPO_AUTOR.format(0) + '''
         insert into autor (
@@ -306,6 +307,9 @@ SQLS_CRIACAO = [
     ('parlamentar', '''
         insert into parlamentar (cod_parlamentar, nom_completo, nom_parlamentar, sex_parlamentar, cod_casa, ind_ativo, ind_unid_deliberativa, ind_excluido)
         values ({}, "DESCONHECIDO", "DESCONHECIDO", "M", 0, 0, 0, 0);
+     '''),
+    ('tipo_sessao_plenaria', '''
+        insert into tipo_sessao_plenaria (tip_sessao, nom_sessao, ind_excluido, num_minimo) values ({}, "DESCONHECIDO", 0, 0);
      '''),
 ]
 SQLS_CRIACAO = {k: (dedent(sql.strip()), extras)
@@ -349,8 +353,8 @@ def get_sql_criar(tabela_alvo, campo, valor, slug):
     return sql, links
 
 
-TEMPLATE_RESSUCITADOS = '''{}
-/* RESSUCITADOS
+TEMPLATE_RESSUSCITADOS = '''{}
+/* RESSUSCITADOS
 
 
 SOBRE REGISTROS QUE ESTAVAM APAGADOS E FORAM RESTAURADOS
@@ -397,11 +401,11 @@ def get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug):
         links = sem_repeticoes_mantendo_ordem(links)
 
         sqls, links = ['\n'.join(sorted(s)) for s in [sqls, links]]
-        return TEMPLATE_RESSUCITADOS.format(preambulo, links, sqls)
+        return TEMPLATE_RESSUSCITADOS.format(preambulo, links, sqls)
 
 
-def get_ressucitar(slug):
-    preambulo, desexcluir, criar = get_dependencias_a_ressucitar(slug)
+def get_ressuscitar(slug):
+    preambulo, desexcluir, criar = get_dependencias_a_ressuscitar(slug)
     return get_sqls_desexcluir_criar(preambulo, desexcluir, criar, slug)
 
 
@@ -413,8 +417,8 @@ def get_slug():
     return siglas_para_slugs[sigla]
 
 
-def adiciona_ressucitar():
-    sqls = get_ressucitar(get_slug())
+def adiciona_ressuscitar():
+    sqls = get_ressuscitar(get_slug())
     if sqls.strip():
         arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
         conteudo = arq_ajustes_pre_migracao.read_file()
