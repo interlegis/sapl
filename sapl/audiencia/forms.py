@@ -2,7 +2,11 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
-from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
+from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica, AnexoAudienciaPublica
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
+
+from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import timezone
 
@@ -102,3 +106,26 @@ class AudienciaForm(forms.ModelForm):
                     raise ValidationError(msg)
 
         return cleaned_data
+
+
+class AnexoAudienciaPublicaForm(forms.ModelForm):
+
+    class Meta:
+        model = AnexoAudienciaPublica
+        fields = ['arquivo',
+                  'assunto']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row(
+            [('arquivo', 4)])
+
+        row2 = to_row(
+            [('assunto', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Identificação Básica'),
+                     row1, row2))
+        super(AnexoAudienciaPublicaForm, self).__init__(
+            *args, **kwargs)
