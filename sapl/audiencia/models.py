@@ -1,5 +1,6 @@
 import reversion
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 from sapl.materia.models import MateriaLegislativa
@@ -153,23 +154,21 @@ class AudienciaPublica(models.Model):
 class AnexoAudienciaPublica(models.Model):
     audiencia = models.ForeignKey(AudienciaPublica,
                                   on_delete=models.PROTECT)
-    nome = models.CharField(max_length=30, verbose_name=_('Nome'))
     arquivo = models.FileField(
         blank=True,
         null=True,
         upload_to=texto_upload_path,
         verbose_name=_('Arquivo'))
-    data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
+    data = models.DateField(auto_now=timezone.now,blank=True, null=True)
     assunto = models.TextField(
         blank=True, verbose_name=_('Assunto'))
-    indexacao = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = _('Documento Acessório')
-        verbose_name_plural = _('Documentos Acessórios')
+        verbose_name = _('Anexo de Documento Acessório')
+        verbose_name_plural = _('Anexo de Documentos Acessórios')
 
     def __str__(self):
-        return self.nome
+        return self.assunto
 
     def delete(self, using=None, keep_parents=False):
         if self.arquivo:

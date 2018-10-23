@@ -112,19 +112,13 @@ class AnexoAudienciaPublicaForm(forms.ModelForm):
 
     class Meta:
         model = AnexoAudienciaPublica
-        fields = ['nome',
-                  'data',
-                  'arquivo',
+        fields = ['arquivo',
                   'assunto']
-
-        widgets = {
-            'data': forms.DateInput(format='%d/%m/%Y')
-        }
 
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [('nome', 4), ('data', 4), ('arquivo', 4)])
+            [('arquivo', 4)])
 
         row2 = to_row(
             [('assunto', 12)])

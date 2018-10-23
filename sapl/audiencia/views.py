@@ -88,9 +88,7 @@ class AnexoAudienciaPublicaCrud(MasterDetailCrud):
     help_topic = 'numeracao_docsacess'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['nome',
-                            'data',
-                            'assunto']
+        list_field_names = ['assunto']
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = AnexoAudienciaPublicaForm

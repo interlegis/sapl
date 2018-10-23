@@ -25,6 +25,5 @@ AudienciaPublicaDetail:
 
 AnexoAudienciaPublica:
   {% trans 'Documento Acessório' %}:
-  - nome  data
   - assunto
   - arquivo
