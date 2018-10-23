@@ -697,7 +697,7 @@ class JustificativaAusenciaForm(ModelForm):
     class Meta:
         model = JustificativaAusencia
         fields = ['sessao_plenaria', 'tipo_ausencia', 'hora',
-                    'data', 'ausencia', 'parlamentar', 'observacao']
+                    'data', 'upload_anexo', 'ausencia', 'parlamentar', 'observacao']
 
     def clean(self):
         cleaned_data = super(JustificativaAusenciaForm, self).clean()

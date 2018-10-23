@@ -93,6 +93,7 @@ JustificativaAusencia:
   {% trans 'Justificativa de Ausência' %}:
   - parlamentar 
   - data hora
+  - upload_anexo
   - tipo_ausencia
   - ausencia
   - observacao

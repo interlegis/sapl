@@ -614,6 +614,11 @@ class JustificativaAusencia(models.Model):
         max_length=150, blank=True, verbose_name=_('Observação'))
     ausencia = models.PositiveIntegerField(
         verbose_name=_('Ausente em'), choices=TIPO_AUSENCIA_CHOICES, default=1)
+    upload_anexo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=anexo_upload_path,
+        verbose_name=_('Anexo de Justificativa'))
 
     class Meta:
         verbose_name = _('Justificativa de Ausência')
@@ -621,3 +626,28 @@ class JustificativaAusencia(models.Model):
 
     def __str__(self):
         return 'Justificativa de Ausência'
+
+    def delete(self, using=None, keep_parents=False):
+        if self.upload_anexo:
+            self.upload_anexo.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.upload_anexo:
+            upload_anexo = self.upload_anexo
+            self.upload_anexo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+
+            self.upload_anexo = upload_anexo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
