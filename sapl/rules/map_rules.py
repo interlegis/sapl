@@ -66,6 +66,7 @@ rules_group_audiencia = {
     'rules': [
         (audiencia.AudienciaPublica, __base__),
         (audiencia.TipoAudienciaPublica, __base__),
+        (audiencia.AnexoAudienciaPublica, __base__),
     ]
 }
 
