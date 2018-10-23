@@ -117,7 +117,8 @@ def verifica_sessao_iniciada(request, spk):
 
     if not sessao.iniciada or sessao.finalizada:
         msg = _('Não é possível abrir matérias para votação. '
-                'Esta Sessão Plenária não foi iniciada ou está finalizada.')
+                'Esta Sessão Plenária não foi iniciada ou está finalizada.'
+                ' Vá em "Abertura"->"Dados Básicos" e altere os valores dos campos necessários.')
         messages.add_message(request, messages.INFO, msg)
         return False
 
