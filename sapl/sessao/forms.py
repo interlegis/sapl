@@ -20,11 +20,10 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         ausencia_expediente, ausencia_ordem, autor_modal, timezone)
 
-from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia, 
+from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao, 
+                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
                      OcorrenciaSessao)
-
 
 
 def recupera_anos():
@@ -415,11 +414,11 @@ class MesaForm(forms.Form):
 class ExpedienteForm(forms.Form):
     conteudo = forms.CharField(required=False, widget=forms.Textarea)
 
+
 class OcorrenciaSessaoForm(ModelForm):
     class Meta:
         model = OcorrenciaSessao
         fields = ['conteudo']
-
 
 
 class VotacaoForm(forms.Form):
@@ -688,18 +687,17 @@ class ResumoOrdenacaoForm(forms.Form):
         return self.cleaned_data
 
 
-
 class JustificativaAusenciaForm(ModelForm):
 
     sessao_plenaria = forms.ModelChoiceField(queryset=SessaoPlenaria.objects.all(),
-                                      widget=forms.HiddenInput())
+                                             widget=forms.HiddenInput())
 
     class Meta:
         model = JustificativaAusencia
         fields = ['sessao_plenaria', 'tipo_ausencia', 'hora',
-                    'data', 'upload_anexo', 'ausencia', 'parlamentar', 'observacao']
+                  'data', 'upload_anexo', 'ausencia', 'parlamentar', 'observacao']
 
-    def __init__(self, *args, **kwargs):  
+    def __init__(self, *args, **kwargs):
 
         row1 = to_row(
             [('parlamentar', 12)])
@@ -707,7 +705,7 @@ class JustificativaAusenciaForm(ModelForm):
             [('data', 6),
              ('hora', 6)])
         row3 = to_row(
-            [('anexo', 6)])
+            [('upload_anexo', 6)])
         row4 = to_row(
             [('tipo_ausencia', 6)])
         row5 = to_row(
@@ -715,15 +713,15 @@ class JustificativaAusenciaForm(ModelForm):
         row6 = to_row(
             [('observacao', 12)])
 
-        self.form.helper = FormHelper()
-        self.form.helper.layout = Layout(
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
             Fieldset(_('Justificativa de Ausência'),
                      row1, row2, row3,
                      row4, row5,
                      HTML(ausencia_expediente),
                      HTML(ausencia_ordem),
                      row6,)
-            )
+        )
         super(JustificativaAusenciaForm, self).__init__(
             *args, **kwargs)
 
@@ -736,9 +734,7 @@ class JustificativaAusenciaForm(ModelForm):
         sessao_plenaria = cleaned_data['sessao_plenaria']
 
         if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
-            raise ValidationError("A sessão deve está finalizada para registrar uma Ausência")
+            raise ValidationError(
+                "A sessão deve está finalizada para registrar uma Ausência")
         else:
             return self.cleaned_data
-
-
-

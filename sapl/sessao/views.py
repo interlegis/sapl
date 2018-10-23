@@ -37,7 +37,7 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
-                    ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm, 
+                    ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
@@ -47,7 +47,7 @@ from .models import (Bancada, Bloco, CargoBancada, CargoMesa, ExpedienteMateria,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
-                     TipoJustificativa, TipoResultadoVotacao, TipoSessaoPlenaria, 
+                     TipoJustificativa, TipoResultadoVotacao, TipoSessaoPlenaria,
                      VotoParlamentar)
 
 
@@ -1420,7 +1420,8 @@ class ResumoView(DetailView):
 
         # =====================================================================
         # Ocorrẽncias da Sessão
-        ocorrencias_sessao = OcorrenciaSessao.objects.filter(sessao_plenaria_id=self.object.id)
+        ocorrencias_sessao = OcorrenciaSessao.objects.filter(
+            sessao_plenaria_id=self.object.id)
 
         context.update({'ocorrencias_da_sessao': ocorrencias_sessao})
 
@@ -1553,7 +1554,6 @@ class ExpedienteView(FormMixin, DetailView):
         return reverse('sapl.sessao:expediente', kwargs={'pk': pk})
 
 
-
 class OcorrenciaSessaoView(FormMixin, DetailView):
     template_name = 'sessao/ocorrencia_sessao.html'
     form_class = OcorrenciaSessaoForm
@@ -1565,7 +1565,7 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
         msg = _('Registro deletado com sucesso')
         messages.add_message(self.request, messages.SUCCESS, msg)
 
-    def save(self,form):
+    def save(self, form):
         conteudo = form.cleaned_data['conteudo']
 
         OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
@@ -1590,7 +1590,7 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
             self.delete()
 
         elif request.POST.get('save'):
-           self.save(form)
+            self.save(form)
 
         return self.form_valid(form)
 
@@ -2967,41 +2967,42 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
     template_name = 'sessao/justificativaausencia_create.html'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['parlamentar', 'sessao_plenaria', 'ausencia','tipo_ausencia',
-                    'data' ]
+        list_field_names = ['parlamentar', 'sessao_plenaria', 'ausencia', 'tipo_ausencia',
+                            'data']
 
     class ListView(MasterDetailCrud.ListView):
         paginate_by = 10
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = JustificativaAusenciaForm
+        layout_key = None
 
         def get_context_data(self, **kwargs):
 
             context = super().get_context_data(**kwargs)
 
             presencas = SessaoPlenariaPresenca.objects.filter(
-              sessao_plenaria_id=kwargs['root_pk']
+                sessao_plenaria_id=kwargs['root_pk']
             ).order_by('parlamentar__nome_parlamentar')
 
             parlamentares_sessao = [p.parlamentar for p in presencas]
 
-            context.update({'presenca_sessao': parlamentares_sessao})  
+            context.update({'presenca_sessao': parlamentares_sessao})
 
             expedientes = ExpedienteMateria.objects.filter(
-              sessao_plenaria_id=kwargs['root_pk']) 
+                sessao_plenaria_id=kwargs['root_pk'])
 
             expedientes_materia = [e.materia for e in expedientes]
 
-            context.update({'expedientes': expedientes})  
+            context.update({'expedientes': expedientes})
 
             ordens = OrdemDia.objects.filter(
-              sessao_plenaria_id=kwargs['root_pk'])
+                sessao_plenaria_id=kwargs['root_pk'])
 
             ordem_materia = [o.materia for o in ordens]
 
             context.update({'ordens': ordens})
-          
+
             return context
 
         def get_initial(self):
@@ -3015,7 +3016,7 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
 
         form_class = JustificativaAusenciaForm
-     
+        layout_key = None
+
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
-
