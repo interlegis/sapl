@@ -21,7 +21,7 @@ function bump_version {
 
 function commit_and_push {
    echo "committing..."
-   git add docker-compose.yml setup.py
+   git add docker-compose.yml setup.py sapl/templates/base.html
    git commit -m "Release: $NEXT_VERSION"
    git tag $NEXT_VERSION
 

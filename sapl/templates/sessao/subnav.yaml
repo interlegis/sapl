@@ -12,6 +12,8 @@
       url: justificativaausencia_list
     - title: {% trans 'Explicações Pessoais' %}
       url: orador_list
+    - title: {% trans 'Ocorrências da Sessão' %}
+      url: ocorrencia_sessao
 
 - title: {% trans 'Expedientes' %}
   children:

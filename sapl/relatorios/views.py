@@ -17,7 +17,7 @@ from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
 from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 IntegranteMesa, Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca)
+                                SessaoPlenariaPresenca, OcorrenciaSessao)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, ExtraiTag, TrocaTag, filiacao_data
 
@@ -514,13 +514,13 @@ def get_sessao_plenaria(sessao, casa):
         dic_presenca['sgl_partido'] = partido_sigla
         lst_presenca_sessao.append(dic_presenca)
 
+
     # Exibe os Expedientes
     lst_expedientes = []
     expedientes = ExpedienteSessao.objects.filter(
         sessao_plenaria=sessao).order_by('tipo__nome')
 
     for e in expedientes:
-
         dic_expedientes = {}
         dic_expedientes["nom_expediente"] = e.tipo.nome
         conteudo = e.conteudo
@@ -538,6 +538,7 @@ def get_sessao_plenaria(sessao, casa):
 
         if dic_expedientes:
             lst_expedientes.append(dic_expedientes)
+
 
     # Lista das matérias do Expediente, incluindo o resultado das votacoes
     lst_expediente_materia = []
@@ -727,6 +728,28 @@ def get_sessao_plenaria(sessao, casa):
             dic_oradores['sgl_partido'] = sigla
             lst_oradores.append(dic_oradores)
 
+    # Ocorrências da Sessão
+    lst_ocorrencias = []
+    ocorrencias = OcorrenciaSessao.objects.filter(
+        sessao_plenaria=sessao)
+
+    for o in ocorrencias:
+        conteudo = o.conteudo
+
+        # unescape HTML codes
+        # https://github.com/interlegis/sapl/issues/1046
+        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = html.unescape(conteudo)
+
+        # escape special character '&'
+        #   https://github.com/interlegis/sapl/issues/1009
+        conteudo = conteudo.replace('&', '&amp;')
+
+        o.conteudo = conteudo
+
+        lst_ocorrencias.append(o)
+
+
     return (inf_basicas_dic,
             lst_mesa,
             lst_presenca_sessao,
@@ -735,7 +758,8 @@ def get_sessao_plenaria(sessao, casa):
             lst_oradores_expediente,
             lst_presenca_ordem_dia,
             lst_votacao,
-            lst_oradores)
+            lst_oradores,
+            lst_ocorrencias)
 
 
 def get_turno(dic, materia, sessao_data_inicio):
@@ -785,7 +809,9 @@ def relatorio_sessao_plenaria(request, pk):
      lst_oradores_expediente,
      lst_presenca_ordem_dia,
      lst_votacao,
-     lst_oradores) = get_sessao_plenaria(sessao, casa)
+     lst_oradores,
+     lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
+
 
     for idx in range(len(lst_expedientes)):
         txt_expedientes = lst_expedientes[idx]['txt_expediente']
@@ -806,7 +832,8 @@ def relatorio_sessao_plenaria(request, pk):
         lst_oradores_expediente,
         lst_presenca_ordem_dia,
         lst_votacao,
-        lst_oradores)
+        lst_oradores,
+        lst_ocorrencias)
 
     response.write(pdf)
     return response
@@ -1034,6 +1061,7 @@ def get_pauta_sessao(sessao, casa):
             id=expediente_materia.materia.id).first()
 
         dic_expediente_materia = {}
+        dic_expediente_materia["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_expediente_materia["num_ordem"] = str(
             expediente_materia.numero_ordem)
         dic_expediente_materia["id_materia"] = str(
@@ -1086,6 +1114,7 @@ def get_pauta_sessao(sessao, casa):
             id=votacao.materia.id).first()
 
         dic_votacao = {}
+        dic_votacao["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_votacao["num_ordem"] = votacao.numero_ordem
         dic_votacao["id_materia"] = str(
             materia.numero) + "/" + str(materia.ano)

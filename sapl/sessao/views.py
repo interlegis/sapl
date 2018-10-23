@@ -37,14 +37,14 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
-                    JustificativaAusenciaForm, ExpedienteForm, ListMateriaForm, MesaForm,
-                    OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
+                    ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm, 
+                    MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
-from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
-                     ExpedienteMateria, ExpedienteSessao, JustificativaAusencia,
-                     IntegranteMesa, MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
+from .models import (Bancada, Bloco, CargoBancada, CargoMesa, ExpedienteMateria,
+                     ExpedienteSessao, JustificativaAusencia, OcorrenciaSessao, IntegranteMesa,
+                     MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoJustificativa, TipoResultadoVotacao, TipoSessaoPlenaria, 
@@ -1177,7 +1177,8 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
                             'setimo': ordenacao.setimo,
                             'oitavo': ordenacao.oitavo,
                             'nono': ordenacao.nono,
-                            'decimo': ordenacao.decimo})
+                            'decimo': ordenacao.decimo,
+                            'decimo_primeiro': ordenacao.decimo_primeiro})
         return initial
 
     def form_valid(self, form):
@@ -1193,6 +1194,7 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
         ordenacao.oitavo = form.cleaned_data['oitavo']
         ordenacao.nono = form.cleaned_data['nono']
         ordenacao.decimo = form.cleaned_data['decimo']
+        ordenacao.decimo_primeiro = form.cleaned_data['decimo_primeiro']
 
         ordenacao.save()
 
@@ -1282,6 +1284,7 @@ class ResumoView(DetailView):
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
         context.update({'expedientes': expedientes})
+
         # =====================================================================
         # Matérias Expediente
         materias = ExpedienteMateria.objects.filter(
@@ -1416,6 +1419,12 @@ class ResumoView(DetailView):
         context.update({'oradores_explicacoes': oradores_explicacoes})
 
         # =====================================================================
+        # Ocorrẽncias da Sessão
+        ocorrencias_sessao = OcorrenciaSessao.objects.filter(sessao_plenaria_id=self.object.id)
+
+        context.update({'ocorrencias_da_sessao': ocorrencias_sessao})
+
+        # =====================================================================
         # Indica a ordem com a qual o template será renderizado
         ordenacao = ResumoOrdenacao.objects.first()
         dict_ord_template = {
@@ -1428,7 +1437,8 @@ class ResumoView(DetailView):
             'mat_o_d': 'materias_ordem_dia.html',
             'mesa_d': 'mesa_diretora.html',
             'oradores_exped': 'oradores_expediente.html',
-            'oradores_expli': 'oradores_explicacoes.html'
+            'oradores_expli': 'oradores_explicacoes.html',
+            'ocorr_sessao': 'ocorrencias_da_sessao.html'
         }
 
         if ordenacao:
@@ -1454,11 +1464,15 @@ class ResumoView(DetailView):
                  'setimo_ordenacao': dict_ord_template['oradores_exped'],
                  'oitavo_ordenacao': dict_ord_template['lista_p_o_d'],
                  'nono_ordenacao': dict_ord_template['mat_o_d'],
-                 'decimo_ordenacao': dict_ord_template['oradores_expli']})
+                 'decimo_ordenacao': dict_ord_template['oradores_expli'],
+                 'decimo_primeiro_ordenacao': dict_ord_template['ocorr_sessao']})
 
         return self.render_to_response(context)
+
+
 class ResumoAtaView(ResumoView):
     template_name = 'sessao/resumo_ata.html'
+
 
 class ExpedienteView(FormMixin, DetailView):
     template_name = 'sessao/expediente.html'
@@ -1537,6 +1551,52 @@ class ExpedienteView(FormMixin, DetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:expediente', kwargs={'pk': pk})
+
+
+
+class OcorrenciaSessaoView(FormMixin, DetailView):
+    template_name = 'sessao/ocorrencia_sessao.html'
+    form_class = OcorrenciaSessaoForm
+    model = SessaoPlenaria
+
+    def delete(self):
+        OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
+
+        msg = _('Registro deletado com sucesso')
+        messages.add_message(self.request, messages.SUCCESS, msg)
+
+    def save(self,form):
+        conteudo = form.cleaned_data['conteudo']
+
+        OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
+
+        ocorrencia = OcorrenciaSessao()
+        ocorrencia.sessao_plenaria_id = self.object.id
+        ocorrencia.conteudo = conteudo
+        ocorrencia.save()
+
+        msg = _('Registro salvo com sucesso')
+        messages.add_message(self.request, messages.SUCCESS, msg)
+
+    @method_decorator(permission_required('sessao.add_ocorrenciasessao'))
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = OcorrenciaSessaoForm(request.POST)
+
+        if not form.is_valid():
+            return self.form_invalid(form)
+
+        if request.POST.get('delete'):
+            self.delete()
+
+        elif request.POST.get('save'):
+           self.save(form)
+
+        return self.form_valid(form)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sapl.sessao:ocorrencia_sessao', kwargs={'pk': pk})
 
 
 class VotacaoEditView(SessaoPermissionMixin):

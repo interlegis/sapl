@@ -121,7 +121,7 @@ class SessaoPlenaria(models.Model):
                              verbose_name=_('Tipo'))
     sessao_legislativa = models.ForeignKey(
         SessaoLegislativa,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         verbose_name=_('Sessão Legislativa'))
     legislatura = models.ForeignKey(Legislatura,
                                     on_delete=models.PROTECT,
@@ -288,7 +288,7 @@ class TipoExpediente(models.Model):
 @reversion.register()
 class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.PROTECT)
+                                        on_delete=models.CASCADE)
     tipo = models.ForeignKey(TipoExpediente, on_delete=models.PROTECT)
     conteudo = models.TextField(
         blank=True, verbose_name=_('Conteúdo do expediente'))
@@ -302,9 +302,24 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
 
 
 @reversion.register()
+class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
+    sessao_plenaria = models.OneToOneField(SessaoPlenaria,
+                                           on_delete=models.PROTECT)
+    conteudo = models.TextField(
+        blank=True, verbose_name=_('Ocorrências da Sessão Plenária'))
+
+    class Meta:
+        verbose_name = _('Ocorrência da Sessão Plenaria')
+        verbose_name_plural = _('Ocorrências da Sessão Plenaria')
+
+    def __str__(self):
+        return '%s - %s' % (self.sessao_plenaria, self.conteudo)
+
+
+@reversion.register()
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.PROTECT)
+                                        on_delete=models.CASCADE)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
 
@@ -319,7 +334,7 @@ class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
 @reversion.register()
 class AbstractOrador(models.Model):  # Oradores
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.PROTECT)
+                                        on_delete=models.CASCADE)
     parlamentar = models.ForeignKey(Parlamentar,
                                     on_delete=models.PROTECT,
                                     verbose_name=_('Parlamentar'))
@@ -372,7 +387,7 @@ class OrdemDia(AbstractOrdemDia):
 @reversion.register()
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.PROTECT)
+                                        on_delete=models.CASCADE)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
 
     class Meta:
@@ -412,15 +427,15 @@ class RegistroVotacao(models.Model):
         TipoResultadoVotacao,
         on_delete=models.PROTECT,
         verbose_name=_('Resultado da Votação'))
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.PROTECT)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     ordem = models.ForeignKey(OrdemDia,
                               blank=True,
                               null=True,
-                              on_delete=models.PROTECT)
+                              on_delete=models.CASCADE)
     expediente = models.ForeignKey(ExpedienteMateria,
                                    blank=True,
                                    null=True,
-                                   on_delete=models.PROTECT)
+                                   on_delete=models.CASCADE)
     numero_votos_sim = models.PositiveIntegerField(verbose_name=_('Sim'))
     numero_votos_nao = models.PositiveIntegerField(verbose_name=_('Não'))
     numero_abstencoes = models.PositiveIntegerField(
@@ -461,7 +476,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     '''
     votacao = models.ForeignKey(RegistroVotacao,
                                 blank=True,
-                                null=True)
+                                null=True,on_delete=models.CASCADE)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     voto = models.CharField(max_length=10)
 
@@ -481,10 +496,10 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
 
     ordem = models.ForeignKey(OrdemDia,
                               blank=True,
-                              null=True)
+                              null=True, on_delete=models.CASCADE)
     expediente = models.ForeignKey(ExpedienteMateria,
                                    blank=True,
-                                   null=True)
+                                   null=True, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _('Registro de Votação de Parlamentar')
@@ -498,7 +513,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
 @reversion.register()
 class SessaoPlenariaPresenca(models.Model):
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.PROTECT)
+                                        on_delete=models.CASCADE)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     data_sessao = models.DateField(blank=True, null=True)
 

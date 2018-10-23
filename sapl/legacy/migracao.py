@@ -70,12 +70,13 @@ def scrap_sde(url, usuario, senha=None):
                        {'__ac_name': usuario, '__ac_password': senha})
     assert res.status_code == 200
 
-    url_proposicao = '{}/sapl_documentos/proposicao/{}/renderXML?xsl=__default__'  # noqa
+    url_proposicao_tmpl = '{}/sapl_documentos/proposicao/{}/renderXML?xsl=__default__'  # noqa
     total = Proposicao.objects.count()
     for num, proposicao in enumerate(Proposicao.objects.all()):
         pk = proposicao.pk
-        res = session.get(url_proposicao.format(url, pk))
-        print("pk: {} status: {} (progresso: {:.2%})".format(
-            pk, res.status_code, num / total))
+        url_proposicao = url_proposicao_tmpl.format(url, pk)
+        res = session.get(url_proposicao)
+        print("pk: {} status: {} {} (progresso: {:.2%})".format(
+            pk, res.status_code, url_proposicao, num / total))
         if res.status_code == 200:
             salva_conteudo_do_sde(proposicao, res.content)

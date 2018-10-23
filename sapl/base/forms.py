@@ -262,6 +262,32 @@ class TipoAutorForm(ModelForm):
 
         super(TipoAutorForm, self).__init__(*args, **kwargs)
 
+    def clean(self):
+        super(TipoAutorForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cd = self.cleaned_data
+        lista = ['comissão',
+                 'comis',
+                 'parlamentar',
+                 'bancada',
+                 'bloco',
+                 'comissao',
+                 'vereador',
+                 'órgão',
+                 'orgao',
+                 'deputado',
+                 'senador',
+                 'vereadora',
+                 'frente']
+
+        for l in lista:
+            if l in cd['descricao'].lower():
+                raise ValidationError(_('A descrição colocada não pode ser usada '
+                                        'por ser equivalente a um tipo já existente'))
+
 
 class AutorForm(ModelForm):
     senha = forms.CharField(

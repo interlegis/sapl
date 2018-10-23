@@ -1,0 +1,135 @@
+{% load i18n staticfiles sass_tags menus %}
+{% load common_tags %}
+<!DOCTYPE html>
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="pt-br">
+<!--<![endif]-->
+
+  <head>
+    <meta charset="utf-8">
+    <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block head_content %}
+      <link rel="icon" href="{% static 'img/favicon.ico' %}"  type="image/png" >
+
+      {# Styles #}
+      <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
+      <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
+      <link rel="stylesheet" href="{% static 'drunken-parrot-flat-ui/css/drunken-parrot.css' %}">
+      <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
+
+      <link rel="stylesheet" href="{% static 'jquery-ui/themes/cupertino/jquery-ui.min.css' %}">
+      <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+
+      {# Scripts #}
+      {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
+    {% endblock %}
+  </head>
+
+  <body>
+    <div class="page fadein">
+
+      {% block navigation %}
+      <nav class="navbar navbar-inverse navbar-static-top">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+      {% endblock navigation %}
+
+      {# Header #}
+      {% block main_header %}
+      <header class="masthead">
+        <div class="container">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="/">
+              <span class="text-center">
+                <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
+              </span>
+            </a>
+          </div>
+          <div class="hidden-print">
+            {% block sections_nav %} {% subnav %} {% endblock sections_nav %}
+          </div>
+        </div>
+      </header>
+      {% endblock main_header %}
+
+      <div class="container">
+      <span class="text-center">
+        <br/><h1><big>{% trans 'Ocorreu um erro inesperado! Erro 500' %}</big></h1>
+      </span>
+  </div>
+      {% block base_content %}
+      {% endblock %}
+      {% block footer_container %}
+      <footer id="footer" class="footer page__row hidden-print">
+        <div class="container">
+
+          <div class="row">
+            <div class="col-md-4">
+
+              <a class="footer__logo" href="#">
+                <a href="http://www.interlegis.leg.br/">
+                  <img src="{% static 'img/logo_interlegis.png' %}" alt="{% trans 'Logo do Interlegis' %} ">
+                </a>
+              </a>
+              <p>
+                <small>
+                  Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto.
+                </small>
+              </p>
+            </div>
+            <div class="col-md-4">
+              <a class="footer__logo" href="#">
+                <img src="{% static 'img/logo_cc.png' %}" alt="{% trans 'Logo do Creative Commons BY SA' %}">
+              </a>
+              <p>
+                <small>
+                  Conteúdo e dados sob licença <a href="https://creativecommons.org">Creative Commons</a> 4.0 <a href="https://creativecommons.org/licenses/by/4.0/">Atribuir Fonte - Compartilhar Igual</a>
+                </small>
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+    {% endblock footer_container %}
+
+    {% block foot_js %}
+      <!-- Bootstrap core JavaScript ================================================== -->
+      <!-- Placed at the end of the document so the pages load faster -->
+      <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'jquery-ui/ui/i18n/datepicker-pt-BR.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
+      <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
+
+      <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'jsdiff/diff.min.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/checkbox.js' %}"></script>
+      <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/radio.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
+
+      <script type="text/javascript" src="{% static 'jquery-query-object/jquery.query-object.js' %}"></script>
+
+      {% block extra_js %}{% endblock %}
+
+    {% endblock foot_js %}
+  </body>
+</html>

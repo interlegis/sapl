@@ -6,3 +6,6 @@ class AppConfig(apps.AppConfig):
     name = 'sapl.protocoloadm'
     label = 'protocoloadm'
     verbose_name = _('Protocolo Administrativo')
+
+    def ready(self):
+        from sapl.base import receivers

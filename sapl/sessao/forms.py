@@ -20,9 +20,11 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone)
 
-from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
-                     Orador,OradorExpediente, OrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao)
+from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia, 
+                     Orador, OradorExpediente, OrdemDia, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao, 
+                     OcorrenciaSessao)
+
 
 
 def recupera_anos():
@@ -54,7 +56,8 @@ ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
                     ('mat_o_d', 'Matérias da Ordem do Dia'),
                     ('mesa_d', 'Mesa Diretora'),
                     ('oradores_exped', 'Oradores do Expediente'),
-                    ('oradores_expli', 'Oradores das Explicações Pessoais')]
+                    ('oradores_expli', 'Oradores das Explicações Pessoais'),
+                    ('ocorrencia_sessao', 'Ocorrências da Sessão')]
 
 
 class SessaoPlenariaForm(ModelForm):
@@ -411,6 +414,12 @@ class MesaForm(forms.Form):
 
 class ExpedienteForm(forms.Form):
     conteudo = forms.CharField(required=False, widget=forms.Textarea)
+
+class OcorrenciaSessaoForm(ModelForm):
+    class Meta:
+        model = OcorrenciaSessao
+        fields = ['conteudo']
+
 
 
 class VotacaoForm(forms.Form):

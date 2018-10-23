@@ -11,6 +11,7 @@ from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TipoDispositivo,
                                     TipoDispositivoRelationship)
 from sapl.materia.models import AcompanhamentoMateria
+from sapl.protocoloadm.models import AcompanhamentoDocumento
 from sapl.rules import SAPL_GROUPS, map_rules
 from sapl.test_urls import create_perms_post_migrate
 from scripts.lista_permissions_in_decorators import \
@@ -61,6 +62,7 @@ __fp__in__test_permission_of_models_in_rules_patterns = {
                        PerfilEstruturalTextoArticulado],
 
     map_rules.RP_CHANGE: [AcompanhamentoMateria,
+                          AcompanhamentoDocumento,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
                           PerfilEstruturalTextoArticulado],
@@ -71,11 +73,13 @@ __fp__in__test_permission_of_models_in_rules_patterns = {
                           PerfilEstruturalTextoArticulado],
 
     map_rules.RP_LIST: [AcompanhamentoMateria,
+                          AcompanhamentoDocumento,
                         TipoDispositivo,
                         TipoDispositivoRelationship,
                         PerfilEstruturalTextoArticulado],
 
     map_rules.RP_DETAIL: [AcompanhamentoMateria,
+                          AcompanhamentoDocumento,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
                           PerfilEstruturalTextoArticulado]

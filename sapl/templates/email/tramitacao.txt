@@ -8,12 +8,12 @@ A seguinte matéria, de seu interesse, sofreu Tramitação registrada em {{data_
 Matéria: {{materia}} - {{descricao_materia}}
 
 {{url_materia}}
-
+{% if autoria %}
 Autoria:
 {% for autor in autoria %}
    {{ autor }}
 {% endfor %}
-
+{% endif %}
 Data da ação: {{data}}
 
 Status: {{status}}

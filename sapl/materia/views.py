@@ -46,7 +46,7 @@ from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal,
                         get_mime_type_from_file_extension, montar_row_autor,
                         show_results_filter_set)
 
-from .email_utils import do_envia_email_confirmacao
+from sapl.base.email_utils import do_envia_email_confirmacao
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
@@ -65,7 +65,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao)
-from .signals import tramitacao_signal
+from sapl.base.signals import tramitacao_signal
 
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
@@ -481,10 +481,13 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
         form = ReceberProposicaoForm(request.POST)
 
         if form.is_valid():
-            proposicoes = Proposicao.objects.filter(
-                data_envio__isnull=False, data_recebimento__isnull=True)
+            try:
+                # A ultima parte do código deve ser a pk da Proposicao
+                id = form.cleaned_data["cod_hash"].split("/")[1]
+                proposicao = Proposicao.objects.get(id=id,
+                                                    data_envio__isnull=False,
+                                                    data_recebimento__isnull=True)
 
-            for proposicao in proposicoes:
                 if proposicao.texto_articulado.exists():
                     ta = proposicao.texto_articulado.first()
                     # FIXME hash para textos articulados
@@ -492,7 +495,7 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                 else:
                     hasher = gerar_hash_arquivo(
                         proposicao.texto_original.path,
-                        str(proposicao.pk)) \
+                        str(proposicao.id)) \
                         if proposicao.texto_original else None
                 if hasher == form.cleaned_data['cod_hash']:
                     return HttpResponseRedirect(
@@ -500,8 +503,12 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                                 kwargs={
                                     'hash': hasher.split('/')[0][1:],
                                     'pk': proposicao.pk}))
-
-            messages.error(request, _('Proposição não encontrada!'))
+            except ObjectDoesNotExist:
+                messages.error(request, _('Proposição não encontrada!'))
+            except IndexError:
+                messages.error(request, _('Código de recibo mal formado!'))
+            except IOError:
+                messages.error(request, _('Erro abrindo texto original de proposição'))
         return self.form_invalid(form)
 
     def get_success_url(self):
@@ -1114,7 +1121,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 msg = _('Tramitação criada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
-                messages.add_message(self.request, messages.ERROR, msg)
+                messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
 
@@ -1141,7 +1148,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
-                messages.add_message(self.request, messages.ERROR, msg)
+                messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
 
@@ -1683,6 +1690,7 @@ class AcompanhamentoMateriaView(CreateView):
 
                 do_envia_email_confirmacao(base_url,
                                            casa,
+                                           "materia",
                                            materia,
                                            destinatario)
 
@@ -1876,9 +1884,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 flag_error = True
         if flag_error:
             msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                    'de matéria não enviado. Há problemas na configuração '
-                    'do e-mail.')
-            messages.add_message(self.request, messages.ERROR, msg)
+                    'de matéria não enviado. A não configuração do servidor de e-mail '
+                    'impede o envio de aviso de tramitação')
+            messages.add_message(self.request, messages.WARNING, msg)
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 
