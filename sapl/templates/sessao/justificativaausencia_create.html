@@ -1,34 +1,26 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% load common_tags %}
-{% block actions %}{% endblock %}
 {% block detail_content %}
 	{% crispy form %}
-
-<form method="post">
-	{% csrf_token %}
-			<div class="output">
-			  <div id="show_materia" class="show_materia" type="hidden"> {{ expedientes_materia }}</div>
-			</div>
 {% endblock detail_content %}
 
 
 {% block extra_js %}
 
-    <script type="text/javascript">
-    $(function () {
-      $("#id_ausencia").change(function() {
-        var val = $(this).val();
-        if(val === "1") {
-            $("#show_materia").show();
-        }
-        else if(val === "2") {
-            $("#show_materia").hide();
-        }
-      });
+<script type="text/javascript">
+  $(function () {
+    $("#id_ausencia").change(function() {
+      var val = $(this).val();
+      if(val === "1") {
+          $("#show_materia").show();
+      }
+      else if(val === "2") {
+          $("#show_materia").hide();                    
+      }
     });
-   	</script>
+  });
+</script>
 
 {% endblock %}
  			

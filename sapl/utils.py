@@ -87,6 +87,31 @@ autor_modal = '''
    </div>
 '''
 
+ausencia_expediente = '''
+    <div class="controls" id="show_materia" class="show_materia" type="hidden">
+        {% for e in expedientes %}
+          <div class="checkbox">
+            <label for="show_materia">
+              <input type="checkbox" name="materia" value="{{ e.materia }}" {% if check %} checked {% endif %}/>
+              {{ e.materia }}
+            </label>
+          </div>
+        {% endfor %}
+    </div>
+'''
+
+ausencia_ordem = '''
+    <div class="controls" id="show_materia" class="show_materia" type="hidden">
+        {% for o in ordens %}
+          <div class="checkbox" >
+            <label for="show_materia">
+              <input type="checkbox" name="materia" value="{{ o.materia }}" {% if check %} checked {% endif %}/>
+              {{ o.materia }}
+            </label>
+          </div>
+        {% endfor %}
+    </div>
+'''
 
 def montar_row_autor(name):
     autor_row = to_row(

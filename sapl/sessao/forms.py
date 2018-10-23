@@ -18,7 +18,7 @@ from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
-                        autor_modal, timezone)
+                        ausencia_expediente, ausencia_ordem, autor_modal, timezone)
 
 from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia, 
                      Orador, OradorExpediente, OrdemDia, SessaoPlenaria,
@@ -699,6 +699,34 @@ class JustificativaAusenciaForm(ModelForm):
         fields = ['sessao_plenaria', 'tipo_ausencia', 'hora',
                     'data', 'upload_anexo', 'ausencia', 'parlamentar', 'observacao']
 
+    def __init__(self, *args, **kwargs):  
+
+        row1 = to_row(
+            [('parlamentar', 12)])
+        row2 = to_row(
+            [('data', 6),
+             ('hora', 6)])
+        row3 = to_row(
+            [('anexo', 6)])
+        row4 = to_row(
+            [('tipo_ausencia', 6)])
+        row5 = to_row(
+            [('ausencia', 6)])
+        row6 = to_row(
+            [('observacao', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.layout = Layout(
+            Fieldset(_('Justificativa de Ausência'),
+                     row1, row2, row3,
+                     row4, row5,
+                     HTML(ausencia_expediente),
+                     HTML(ausencia_ordem),
+                     row6,)
+            )
+        super(JustificativaAusenciaForm, self).__init__(
+            *args, **kwargs)
+
     def clean(self):
         cleaned_data = super(JustificativaAusenciaForm, self).clean()
 
@@ -710,4 +738,7 @@ class JustificativaAusenciaForm(ModelForm):
         if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
             raise ValidationError("A sessão deve está finalizada para registrar uma Ausência")
         else:
-            return cleaned_data
+            return self.cleaned_data
+
+
+

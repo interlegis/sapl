@@ -2964,38 +2964,10 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
     model = JustificativaAusencia
     public = [RP_LIST, RP_DETAIL, ]
     parent_field = 'sessao_plenaria'
-
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
-        presencas = SessaoPlenariaPresenca.objects.filter(
-          sessao_plenaria_id=self.object.id
-        ).order_by('parlamentar__nome_parlamentar')
-
-        parlamentares_sessao = [p.parlamentar for p in presencas]
-
-        context.update({'presenca_sessao': parlamentares_sessao})  
-
-        expedientes = ExpedienteMateria.objects.filter(
-          sessao_plenaria_id=self.object.id) 
-
-        expedientes_materia = [e.materia for e in expedientes]
-
-        context.update({'expedientes': expedientes})  
-
-        ordens = OrdemDia.objects.filter(
-          sessao_plenaria_id=self.object.id)
-
-        ordem_materia = [o.materia for o in ordens]
-
-        context.update({'ordens': ordens})
-
-        return self.render_to_response(context)
+    template_name = 'sessao/justificativaausencia_create.html'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['sessao_plenaria', 'ausencia','tipo_ausencia',
+        list_field_names = ['parlamentar', 'sessao_plenaria', 'ausencia','tipo_ausencia',
                     'data' ]
 
     class ListView(MasterDetailCrud.ListView):
@@ -3003,7 +2975,34 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = JustificativaAusenciaForm
-        template_name = 'sessao/justificativaausencia_create.html'
+
+        def get_context_data(self, **kwargs):
+
+            context = super().get_context_data(**kwargs)
+
+            presencas = SessaoPlenariaPresenca.objects.filter(
+              sessao_plenaria_id=kwargs['root_pk']
+            ).order_by('parlamentar__nome_parlamentar')
+
+            parlamentares_sessao = [p.parlamentar for p in presencas]
+
+            context.update({'presenca_sessao': parlamentares_sessao})  
+
+            expedientes = ExpedienteMateria.objects.filter(
+              sessao_plenaria_id=kwargs['root_pk']) 
+
+            expedientes_materia = [e.materia for e in expedientes]
+
+            context.update({'expedientes': expedientes})  
+
+            ordens = OrdemDia.objects.filter(
+              sessao_plenaria_id=kwargs['root_pk'])
+
+            ordem_materia = [o.materia for o in ordens]
+
+            context.update({'ordens': ordens})
+          
+            return context
 
         def get_initial(self):
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
@@ -3014,6 +3013,7 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
                            kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(MasterDetailCrud.UpdateView):
+
         form_class = JustificativaAusenciaForm
      
     class DeleteView(MasterDetailCrud.DeleteView):

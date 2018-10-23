@@ -601,7 +601,8 @@ class JustificativaAusencia(models.Model):
         (1, 'materia', 'Matéria'),
         (2, 'sessao', 'Sessão'),
     )
-    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT,
+                                    verbose_name=_('Parlamentar'))
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.CASCADE,
                                         verbose_name=_('Sessão Plenária'))
