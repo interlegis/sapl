@@ -70,7 +70,7 @@ body
         <strong class="text_pdf">PROCESSO Nº {{ materia.numeracao_set.first.numero_materia }} / {{ materia.numeracao_set.first.ano_materia }}</strong><br>
     	 &nbsp;
       {% else %}
-    	<strong class="text_pdf">PROCESSO Nº: {{ materia.numero }}</strong><br>
+    	<strong class="text_pdf">PROCESSO Nº: {{ materia.numero }} / {{materia.ano}}</strong><br>
     	 &nbsp;
       {% endif %}
     </div>
@@ -96,6 +96,14 @@ body
 		<strong class="text_pdf">Autor: </strong><span class="text_pdf">{{materia.autoria_set.first.autor.nome}}</span><br>
        </td>
     </table>
+    {% if  materia.numero_protocolo%}
+    <table border=0>
+      <td height="60pt" valign=top>
+        <div>
+		<strong class="text_pdf">Protocolo: </strong><span class="text_pdf">{{materia.numero_protocolo}} / {{materia.ano}}</span><br>
+       </td>
+    </table>
+    {% endif %}
 
     <!-- Ementa -->
     <table border=0>
