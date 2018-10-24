@@ -1901,7 +1901,6 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             except ObjectDoesNotExist:
                 raise Http404()
 
-
         if form.is_valid():
             votos_sim = 0
             votos_nao = 0

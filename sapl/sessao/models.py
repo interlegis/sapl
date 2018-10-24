@@ -478,7 +478,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     '''
     votacao = models.ForeignKey(RegistroVotacao,
                                 blank=True,
-                                null=True,on_delete=models.CASCADE)
+                                null=True, on_delete=models.CASCADE)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     voto = models.CharField(max_length=10)
 
