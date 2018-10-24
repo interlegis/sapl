@@ -2988,7 +2988,7 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
         form_class = JustificativaAusenciaForm
         layout_key = None
 
-        def get_context_data(self, **kwargs):
+        def get_context_data_old(self, **kwargs):
 
             context = super().get_context_data(**kwargs)
 

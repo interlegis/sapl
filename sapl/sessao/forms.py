@@ -689,13 +689,18 @@ class ResumoOrdenacaoForm(forms.Form):
 
 class JustificativaAusenciaForm(ModelForm):
 
-    sessao_plenaria = forms.ModelChoiceField(queryset=SessaoPlenaria.objects.all(),
-                                             widget=forms.HiddenInput())
-
     class Meta:
         model = JustificativaAusencia
-        fields = ['sessao_plenaria', 'tipo_ausencia', 'hora',
-                  'data', 'upload_anexo', 'ausencia', 'parlamentar', 'observacao']
+        fields = ['parlamentar',
+                  'hora',
+                  'data',
+                  'upload_anexo',
+                  'tipo_ausencia',
+                  'ausencia',
+                  #'materias_do_expediente',
+                  #'materias_da_ordem_do_dia',
+                  'observacao'
+                  ]
 
     def __init__(self, *args, **kwargs):
 
@@ -710,7 +715,11 @@ class JustificativaAusenciaForm(ModelForm):
             [('tipo_ausencia', 12)])
         row5 = to_row(
             [('ausencia', 12)])
-        row6 = to_row(
+        # row6 = to_row(
+        #    [('materias_do_expediente', 12)])
+        # row7 = to_row(
+        #    [('materias_da_ordem_do_dia', 12)])
+        row8 = to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
@@ -718,12 +727,21 @@ class JustificativaAusenciaForm(ModelForm):
             Fieldset(_('Justificativa de Ausência'),
                      row1, row2, row3,
                      row4, row5,
-                     HTML(ausencia_materia),
-                     row6,
+                     # row6,
+                     # row7,
+                     row8,
                      form_actions(label='Salvar'))
         )
+
         super(JustificativaAusenciaForm, self).__init__(
             *args, **kwargs)
+
+        presencas = SessaoPlenariaPresenca.objects.filter(
+            sessao_plenaria_id=kwargs['initial']['sessao_plenaria']
+        ).order_by('parlamentar__nome_parlamentar')
+
+        self.fields['parlamentar'].choices = [
+            (p.parlamentar.id, p.parlamentar) for p in presencas]
 
     def clean(self):
         cleaned_data = super(JustificativaAusenciaForm, self).clean()
