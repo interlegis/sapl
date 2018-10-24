@@ -772,11 +772,12 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
 
         self.filterset.form.fields['o'].label = _('Ordenação')
         
-        
-        if request.user.has_perm(permission_required):
-            length = self.object_list.count()
-        else:
+        # é usada essa verificação anônima para quando os documentos administrativos 
+        # estão no modo ostensivo, mas podem existir documentos administrativos restritos
+        if request.user.is_anonymous():
             length = self.object_list.filter(restrito=False).count()
+        else:
+            length = self.object_list.count()
         
         context = self.get_context_data(filter=self.filterset,
                                         filter_url=url,
