@@ -160,10 +160,12 @@ class SessaoPlenaria(models.Model):
         verbose_name=_('Anexo da Sessão'))
     iniciada = models.NullBooleanField(blank=True,
                                        choices=YES_NO_CHOICES,
-                                       verbose_name=_('Sessão iniciada?'))
+                                       verbose_name=_('Sessão iniciada?'),
+                                       default=True)
     finalizada = models.NullBooleanField(blank=True,
                                          choices=YES_NO_CHOICES,
-                                         verbose_name=_('Sessão finalizada?'))
+                                         verbose_name=_('Sessão finalizada?'),
+                                         default=False)
     interativa = models.NullBooleanField(blank=True,
                                          choices=YES_NO_CHOICES,
                                          verbose_name=_('Sessão interativa'))

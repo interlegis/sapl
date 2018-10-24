@@ -119,7 +119,8 @@ def verifica_sessao_iniciada(request, spk):
 
     if not sessao.iniciada or sessao.finalizada:
         msg = _('Não é possível abrir matérias para votação. '
-                'Esta Sessão Plenária não foi iniciada ou está finalizada.')
+                'Esta Sessão Plenária não foi iniciada ou está finalizada.'
+                ' Vá em "Abertura"->"Dados Básicos" e altere os valores dos campos necessários.')
         messages.add_message(request, messages.INFO, msg)
         return False
 
@@ -1900,15 +1901,27 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             except ObjectDoesNotExist:
                 raise Http404()
 
-        if 'cancelar-votacao' in request.POST:
-            fechar_votacao_materia(materia_votacao)
-            return self.form_valid(form)
 
         if form.is_valid():
             votos_sim = 0
             votos_nao = 0
             abstencoes = 0
             nao_votou = 0
+
+            if 'cancelar-votacao' in request.POST:
+                fechar_votacao_materia(materia_votacao)
+                if self.ordem:
+                    return HttpResponseRedirect(reverse(
+                        'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
+                else:
+                    return HttpResponseRedirect(reverse(
+                        'sapl.sessao:expedientemateria_list',
+                        kwargs={'pk': kwargs['pk']}))
+            else:
+                if form.cleaned_data['resultado_votacao'] == None:
+                    form.add_error(None, 'Não é possível finalizar a votação sem '
+                                         'nenhum resultado da votação')
+                    return self.form_invalid(form)
 
             for votos in request.POST.getlist('voto_parlamentar'):
                 v = votos.split(':')
