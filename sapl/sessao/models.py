@@ -617,6 +617,13 @@ class JustificativaAusencia(models.Model):
         max_length=150, blank=True, verbose_name=_('Observação'))
     ausencia = models.PositiveIntegerField(
         verbose_name=_('Ausente em'), choices=TIPO_AUSENCIA_CHOICES, default=1)
+
+    materias_do_expediente = models.ManyToManyField(
+        ExpedienteMateria, blank=True, verbose_name=_('Matérias do Expediente'))
+
+    materias_da_ordem_do_dia = models.ManyToManyField(
+        OrdemDia, blank=True, verbose_name=_('Matérias do Ordem do Dia'))
+
     upload_anexo = models.FileField(
         blank=True,
         null=True,
