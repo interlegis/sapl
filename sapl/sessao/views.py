@@ -572,6 +572,14 @@ class OradorCrud(OradorCrud):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
 
+    class UpdateView(MasterDetailCrud.UpdateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            return {'id_sessao': self.object.sessao_plenaria.id,
+                    'numero': self.object.numero_ordem}
+
 
 class BancadaCrud(Crud):
     model = Bancada
