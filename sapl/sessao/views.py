@@ -2981,6 +2981,19 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
         list_field_names = ['parlamentar', 'sessao_plenaria', 'ausencia', 'tipo_ausencia',
                             'data']
 
+        @property
+        def layout_display(self):
+
+            layout = super().layout_display
+
+            if self.object.ausencia == 2:
+                # rm materias_da_ordem_do_dia do detail
+                layout[0]['rows'].pop(6)
+                # rm materias_do_expediente do detail
+                layout[0]['rows'].pop(5)
+
+            return layout
+
     class ListView(MasterDetailCrud.ListView):
         paginate_by = 10
 
@@ -3028,6 +3041,17 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
         form_class = JustificativaAusenciaForm
         layout_key = None
+
+        def get_initial(self):
+            sessao_plenaria = JustificativaAusencia.objects.get(
+                id=self.kwargs['pk']).sessao_plenaria
+            return {'sessao_plenaria': sessao_plenaria}
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data()
+            return context
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass

@@ -96,5 +96,6 @@ JustificativaAusencia:
   - upload_anexo
   - tipo_ausencia
   - ausencia
+  - materias_do_expediente
+  - materias_da_ordem_do_dia
   - observacao
-  - sessao_plenaria 

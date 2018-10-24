@@ -11,12 +11,13 @@
     $("#id_ausencia").change(function() {
       var val = $(this).val();
       if(val === "1") {
-          $("#show_materia").show();
+          $("#div_id_materias_do_expediente, #div_id_materias_da_ordem_do_dia").show();
       }
       else if(val === "2") {
-          $("#show_materia").hide();                    
+        $("#div_id_materias_do_expediente, #div_id_materias_da_ordem_do_dia").hide();                    
       }
     });
+    $("#id_ausencia").change()
   });
 </script>
 

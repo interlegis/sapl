@@ -6,12 +6,15 @@ from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.forms import ModelForm
+from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 import django_filters
+from floppyforms import widgets
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
@@ -697,10 +700,14 @@ class JustificativaAusenciaForm(ModelForm):
                   'upload_anexo',
                   'tipo_ausencia',
                   'ausencia',
-                  #'materias_do_expediente',
-                  #'materias_da_ordem_do_dia',
+                  'materias_do_expediente',
+                  'materias_da_ordem_do_dia',
                   'observacao'
                   ]
+
+        widgets = {
+            'materias_do_expediente': CheckboxSelectMultiple(),
+            'materias_da_ordem_do_dia': CheckboxSelectMultiple()}
 
     def __init__(self, *args, **kwargs):
 
@@ -715,32 +722,40 @@ class JustificativaAusenciaForm(ModelForm):
             [('tipo_ausencia', 12)])
         row5 = to_row(
             [('ausencia', 12)])
-        # row6 = to_row(
-        #    [('materias_do_expediente', 12)])
-        # row7 = to_row(
-        #    [('materias_da_ordem_do_dia', 12)])
+        row6 = to_row(
+            [('materias_do_expediente', 12)])
+        row7 = to_row(
+            [('materias_da_ordem_do_dia', 12)])
         row8 = to_row(
             [('observacao', 12)])
 
         self.helper = FormHelper()
-        self.helper.layout = Layout(
+        self.helper.layout = SaplFormLayout(
             Fieldset(_('Justificativa de Ausência'),
                      row1, row2, row3,
                      row4, row5,
-                     # row6,
-                     # row7,
-                     row8,
-                     form_actions(label='Salvar'))
+                     row6,
+                     row7,
+                     row8)
         )
+        q = Q(sessao_plenaria=kwargs['initial']['sessao_plenaria'])
+        ordens = OrdemDia.objects.filter(q)
+        expedientes = ExpedienteMateria.objects.filter(q)
 
         super(JustificativaAusenciaForm, self).__init__(
             *args, **kwargs)
 
         presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=kwargs['initial']['sessao_plenaria']
-        ).order_by('parlamentar__nome_parlamentar')
+            q).order_by('parlamentar__nome_parlamentar')
+
+        self.fields['materias_do_expediente'].choices = [
+            (e.id, e.materia) for e in expedientes]
+
+        self.fields['materias_da_ordem_do_dia'].choices = [
+            (o.id, o.materia) for o in ordens]
 
         self.fields['parlamentar'].choices = [
+            ("0", "------------")] + [
             (p.parlamentar.id, p.parlamentar) for p in presencas]
 
     def clean(self):
@@ -749,10 +764,19 @@ class JustificativaAusenciaForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        sessao_plenaria = cleaned_data['sessao_plenaria']
+        sessao_plenaria = self.instance.sessao_plenaria
 
         if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
             raise ValidationError(
                 "A sessão deve está finalizada para registrar uma Ausência")
         else:
             return self.cleaned_data
+
+    def save(self, commit=False):
+
+        justificativa = super().save(True)
+
+        if justificativa.ausencia == 2:
+            justificativa.materias_do_expediente.clear()
+            justificativa.materias_da_ordem_do_dia.clear()
+        return justificativa
