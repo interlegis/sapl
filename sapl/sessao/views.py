@@ -2964,7 +2964,6 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
     model = JustificativaAusencia
     public = [RP_LIST, RP_DETAIL, ]
     parent_field = 'sessao_plenaria'
-    template_name = 'sessao/justificativaausencia_create.html'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['parlamentar', 'sessao_plenaria', 'ausencia', 'tipo_ausencia',
