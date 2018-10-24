@@ -771,8 +771,13 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             url = ''
 
         self.filterset.form.fields['o'].label = _('Ordenação')
-
-        length = self.object_list.count()
+        
+        
+        if request.user.has_perm(permission_required):
+            length = self.object_list.count()
+        else:
+            length = self.object_list.filter(restrito=False).count()
+        
         context = self.get_context_data(filter=self.filterset,
                                         filter_url=url,
                                         numero_res=length
