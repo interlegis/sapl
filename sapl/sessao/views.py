@@ -577,8 +577,10 @@ class OradorCrud(OradorCrud):
         form_class = OradorForm
 
         def get_initial(self):
-            return {'id_sessao': self.object.sessao_plenaria.id,
-                    'numero': self.object.numero_ordem}
+            initial = super(UpdateView, self).get_initial()
+            initial.update({'id_sessao': self.object.sessao_plenaria.id})
+
+            return initial
 
 
 class BancadaCrud(Crud):
