@@ -3047,11 +3047,5 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
                 id=self.kwargs['pk']).sessao_plenaria
             return {'sessao_plenaria': sessao_plenaria}
 
-    class DetailView(MasterDetailCrud.DetailView):
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data()
-            return context
-
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
