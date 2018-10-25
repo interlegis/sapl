@@ -65,7 +65,7 @@ class AcompanhamentoDocumentoForm(ModelForm):
 
 class ProtocoloFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateField: {
+    filter_overrides = {models.DateTimeField: {
         'filter_class': django_filters.DateFromToRangeFilter,
         'extra': lambda f: {
             'label': 'Data (%s)' % (_('Inicial - Final')),
@@ -101,7 +101,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         model = Protocolo
         fields = ['numero',
                   'tipo_documento',
-                  'data',
+                  'timestamp',
                   'tipo_materia',
                   ]
 
@@ -114,7 +114,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         row1 = to_row(
             [('numero', 4),
              ('ano', 4),
-             ('data', 4)])
+             ('timestamp', 4)])
 
         row2 = to_row(
             [('tipo_documento', 4),
