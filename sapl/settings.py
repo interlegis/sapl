@@ -14,6 +14,7 @@ See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
 import socket
+import logging
 
 from decouple import config
 from dj_database_url import parse as db_url

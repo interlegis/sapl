@@ -1582,7 +1582,7 @@ class ExpedienteView(FormMixin, DetailView):
 
                 msg = _('Registro salvo com sucesso')
                 messages.add_message(self.request, messages.SUCCESS, msg)
-                self.logger.info('user=' + username + '. ExpedienteSessao(sessao_plenaria_id={} e tipo_id{}) salvo com sucesso.'
+                self.logger.info('user=' + username + '. ExpedienteSessao(sessao_plenaria_id={} e tipo_id={}) salvo com sucesso.'
                                  .format(self.object.id, tipo))
 
             return self.form_valid(form)
