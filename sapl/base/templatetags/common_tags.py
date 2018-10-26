@@ -6,7 +6,7 @@ from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposicao
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
-from sapl.utils import filiacao_data
+from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO
 
 register = template.Library()
 
@@ -96,7 +96,12 @@ def isinst(value, class_str):
 @register.filter
 @stringfilter
 def strip_hash(value):
-    return value.split('/')[0][1:]
+    vet = value.split('/')
+    if len(vet) == 2:
+        return vet[0][1:]
+    else:
+        return value.split(SEPARADOR_HASH_PROPOSICAO)[0][1:]
+
 
 
 @register.filter

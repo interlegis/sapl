@@ -39,7 +39,7 @@ from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, gerar_hash_arquivo,
@@ -1334,7 +1334,7 @@ class ProposicaoForm(forms.ModelForm):
             elif inst.texto_articulado.exists():
                 ta = inst.texto_articulado.first()
                 # FIXME hash para textos articulados
-                inst.hash_code = 'P' + ta.hash() + '/' + str(inst.pk)
+                inst.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(inst.pk)
 
     def clean(self):
         super(ProposicaoForm, self).clean()
