@@ -144,9 +144,9 @@
                   <strong>Audiência(s) Pública(s): </strong>
                   {% for ap in m.audienciapublica_set.all %}
                     <a href="{% url 'sapl.audiencia:audienciapublica_detail' ap.id %}">
-                        {{ ap }}
+                        {{ ap.nome }}
                     </a>
-                    </br>
+                    {% if not forloop.last %},&nbsp;{% endif %}
                   {% endfor %}
                 {% endif %}
                 </td>
