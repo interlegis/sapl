@@ -139,6 +139,16 @@
                 {% if m.em_tramitacao %}
                   <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
                 {% endif %}
+                {{m.audiencia_set.exists}}
+                {% if m.audienciapublica_set.exists %}
+                  <strong>Audiência(s) Pública(s): </strong>
+                  {% for ap in m.audienciapublica_set.all %}
+                    <a href="{% url 'sapl.audiencia:audienciapublica_detail' ap.id %}">
+                        {{ ap }}
+                    </a>
+                    </br>
+                  {% endfor %}
+                {% endif %}
                 </td>
             </tr>
           {% endfor %}
