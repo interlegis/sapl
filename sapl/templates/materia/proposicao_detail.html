@@ -129,14 +129,31 @@
           <h2 class="legend">{% trans "Vínculo com a Matéria Legislativa" %}</h2>
           <div id="div_id_materia_de_vinculo" class="form-group">
             <div class="controls">
+              Matéria</br>
+              &nbsp;&nbsp;&nbsp;&nbsp;
                 <a href="{% url object.materia_de_vinculo|urldetail object.materia_de_vinculo.id%}">
                   {{object.materia_de_vinculo}}
                 </a>
-            </div>
+              </br>
+                {% if object.materia_de_vinculo.autoria_set.all %}
+            		Autores
+            		{% for a in object.materia_de_vinculo.autoria_set.all %}
+              </br>&nbsp;&nbsp;&nbsp;&nbsp;{{a.autor}}
+                {% endfor %}
+                {% endif %}
+              </br>
+                Texto Original
+              </br>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+                  <a href="{{object.materia_de_vinculo.texto_original.url}}">
+                    {{object.materia_de_vinculo.texto_original| to_str | split:"/" | get_last_item_from_list:-1}}
+                  </a>
+                </br>
           </div>
         </div>
+      </div>
     {% endif %}
-    
+
     {% if not AppConfig.receber_recibo_proposicao %}
         {% if object.hash_code %}
 
