@@ -1333,7 +1333,6 @@ class ProposicaoForm(forms.ModelForm):
                     inst.texto_original.path, str(inst.pk))
             elif inst.texto_articulado.exists():
                 ta = inst.texto_articulado.first()
-                # FIXME hash para textos articulados
                 inst.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(inst.pk)
 
     def clean(self):
