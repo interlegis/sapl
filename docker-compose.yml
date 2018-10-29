@@ -9,7 +9,7 @@ sapldb:
   volumes:
     - sapldb_data:/var/lib/postgresql/data/
   ports:
-    - "5433:5432"
+    - "5432:5432"
 sapl:
   image: interlegis/sapl:3.1.131
   restart: always
@@ -29,4 +29,4 @@ sapl:
   links:
     - sapldb
   ports:
-    - "81:80"
+    - "80:80"
