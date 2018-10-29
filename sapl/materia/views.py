@@ -42,7 +42,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
-from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal,
+from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH_PROPOSICAO,
                         gerar_hash_arquivo, get_base_url,
                         get_mime_type_from_file_extension, montar_row_autor,
                         show_results_filter_set)
@@ -504,7 +504,9 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
         if form.is_valid():
             try:
                 # A ultima parte do código deve ser a pk da Proposicao
-                id = form.cleaned_data["cod_hash"].split("/")[1]
+                cod_hash = form.cleaned_data["cod_hash"]. \
+                    replace('/', SEPARADOR_HASH_PROPOSICAO)
+                id = cod_hash.split(SEPARADOR_HASH_PROPOSICAO)[1]
                 proposicao = Proposicao.objects.get(id=id,
                                                     data_envio__isnull=False,
                                                     data_recebimento__isnull=True)
@@ -512,17 +514,17 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
                 if proposicao.texto_articulado.exists():
                     ta = proposicao.texto_articulado.first()
                     # FIXME hash para textos articulados
-                    hasher = 'P' + ta.hash() + '/' + str(proposicao.id)
+                    hasher = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(proposicao.id)
                 else:
                     hasher = gerar_hash_arquivo(
                         proposicao.texto_original.path,
                         str(proposicao.id)) \
                         if proposicao.texto_original else None
-                if hasher == form.cleaned_data['cod_hash']:
+                if hasher == cod_hash:
                     return HttpResponseRedirect(
                         reverse('sapl.materia:proposicao-confirmar',
                                 kwargs={
-                                    'hash': hasher.split('/')[0][1:],
+                                    'hash': hasher.split(SEPARADOR_HASH_PROPOSICAO)[0][1:],
                                     'pk': proposicao.pk}))
             except ObjectDoesNotExist:
                 messages.error(request, _('Proposição não encontrada!'))
@@ -603,13 +605,13 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
 
             if proposicao.texto_articulado.exists():
                 ta = proposicao.texto_articulado.first()
-                hasher = 'P' + ta.hash() + '/' + str(proposicao.id)
+                hasher = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(proposicao.id)
             else:
                 hasher = gerar_hash_arquivo(
                     proposicao.texto_original.path,
                     str(proposicao.pk)) if proposicao.texto_original else None
 
-            if hasher == 'P%s/%s' % (self.kwargs['hash'], proposicao.pk):
+            if hasher == 'P%s%s%s' % (self.kwargs['hash'], SEPARADOR_HASH_PROPOSICAO, proposicao.pk):
                 self.object = proposicao
         except Exception as e:
             self.logger.error("user=" + username + ". Objeto Proposicao com atributos (pk={}, data_envio=Not Null, "

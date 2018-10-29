@@ -28,6 +28,10 @@ from unipath.path import Path
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 
+# (26/10/2018): O separador foi mudador de '/' para 'K'
+# por conta dos leitores de códigos de barra, que trocavam
+# a '/' por '&' ou ';'
+SEPARADOR_HASH_PROPOSICAO = 'K'
 
 def pil_image(source, exif_orientation=False, **options):
     return source_generators.pil_image(source, exif_orientation, **options)
@@ -484,7 +488,7 @@ def gerar_hash_arquivo(arquivo, pk, block_size=2**20):
         if not data:
             break
         md5.update(data)
-    return 'P' + md5.hexdigest() + '/' + pk
+    return 'P' + md5.hexdigest() + SEPARADOR_HASH_PROPOSICAO + pk
 
 
 class ChoiceWithoutValidationField(forms.ChoiceField):
