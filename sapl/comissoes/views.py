@@ -1,3 +1,4 @@
+import logging
 
 from django.core.urlresolvers import reverse
 from django.db.models import F
@@ -102,13 +103,18 @@ class ComposicaoCrud(MasterDetailCrud):
             return {'comissao': comissao}
 
     class ListView(MasterDetailCrud.ListView):
+        logger = logging.getLogger(__name__)
         template_name = "comissoes/composicao_list.html"
         paginate_by = None
 
         def take_composicao_pk(self):
+            
+            username = self.request.user.username
             try:
+                self.logger.debug('user=' + username + '. Tentando obter pk da composição.')
                 return int(self.request.GET['pk'])
-            except:
+            except Exception as e:
+                self.logger.error('user=' + username + '. Erro ao obter pk da composição. Retornado 0. ' + str(e))
                 return 0
 
         def get_context_data(self, **kwargs):
@@ -193,12 +199,17 @@ class ReuniaoCrud(MasterDetailCrud):
         list_field_names = ['data', 'nome', 'tema']
 
     class ListView(MasterDetailCrud.ListView):
+        logger = logging.getLogger(__name__)
         paginate_by = 10
 
         def take_reuniao_pk(self):
+
+            username = self.request.user.username
             try:
+                self.logger.debug('user=' + username + '. Tentando obter pk da reunião.')
                 return int(self.request.GET['pk'])
-            except:
+            except Exception as e:
+                self.logger.error('user=' + username + '. Erro ao obter pk da reunião. Retornado 0. ' + str(e))
                 return 0
 
         def get_context_data(self, **kwargs):

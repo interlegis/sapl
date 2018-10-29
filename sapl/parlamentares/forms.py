@@ -1,3 +1,5 @@
+import logging
+
 from datetime import timedelta
 
 from crispy_forms.helper import FormHelper
@@ -40,9 +42,12 @@ class CustomImageCropWidget(ImageCropWidget):
 
 
 def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
-
+    logger = logging.getLogger(__name__)
     # Verifica se data de eleição < inicio < fim
     if inicio >= fim or eleicao >= inicio:
+        logger.error('A data início ({}) deve ser menor que a ' +
+                    'data fim ({}) e a data eleição ({}) deve ser ' +
+                    'menor que a data início ({})'.format(inicio, fim, eleicao, inicio))
         msg_error = _('A data início deve ser menor que a ' +
                       'data fim e a data eleição deve ser ' +
                       'menor que a data início')
@@ -53,12 +58,15 @@ def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
         data_inicio__lte=fim, data_fim__gte=inicio
     ).exclude(pk=pk).exists()
     if intersecao_legislatura:
+        logger.error("Já existe uma legislatura neste intervalo de datas (data_inicio<={} e data_fim>={})."
+                     .format(fim, inicio))
         msg_error = _('Já existe uma legislatura neste intervalo de datas')
         return (False, msg_error)
 
     # Verifica se há alguma outra data de eleição cadastrada
     if Legislatura.objects.filter(
             data_eleicao=eleicao).exclude(pk=pk).exists():
+        logger.error("Esta data de eleição ({}) já foi cadastrada.".format(eleicao))
         msg_error = _('Esta data de eleição já foi cadastrada')
         return (False, msg_error)
 
@@ -66,7 +74,7 @@ def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
 
 
 class MandatoForm(ModelForm):
-
+    logger = logging.getLogger(__name__)
     class Meta:
         model = Mandato
         fields = ['legislatura', 'coligacao', 'votos_recebidos',
@@ -89,6 +97,9 @@ class MandatoForm(ModelForm):
         if data_inicio_mandato:
             if (data_inicio_mandato < legislatura.data_inicio or
                     data_inicio_mandato > legislatura.data_fim):
+                self.logger.error("Data início mandato ({}) fora do intervalo"
+                                  " de legislatura informada ({} a {})."
+                                  .format(data_inicio_mandato, legislatura.data_inicio, legislatura.data_fim))
                 raise ValidationError(_("Data início mandato fora do intervalo"
                                         " de legislatura informada"))
 
@@ -96,17 +107,27 @@ class MandatoForm(ModelForm):
         if data_fim_mandato:
             if (data_fim_mandato < legislatura.data_inicio or
                     data_fim_mandato > legislatura.data_fim):
+                self.logger.error("Data fim mandato ({}) fora do intervalo"
+                                " de legislatura informada ({} a {})."
+                                .format(data_fim_mandato, legislatura.data_inicio, legislatura.data_fim))
                 raise ValidationError(_("Data fim mandato fora do intervalo de"
                                         " legislatura informada"))
 
         data_expedicao_diploma = data['data_expedicao_diploma']
         if (data_expedicao_diploma and
                 data_expedicao_diploma > data_inicio_mandato):
+                self.logger.error("A data da expedição do diploma ({}) deve ser anterior "
+                                  "a data de início do mandato ({}).".format(data_expedicao_diploma, data_inicio_mandato))
                 raise ValidationError(_("A data da expedição do diploma deve ser anterior "
                                         "a data de início do mandato"))
 
         coligacao = data['coligacao']
         if coligacao and not coligacao.legislatura == legislatura:
+                self.logger.error("A coligação selecionada ({}) não está cadastrada "
+                                  "na mesma legislatura ({}) que o presente mandato ({}), "
+                                  "favor verificar a coligação ou fazer o cadastro "
+                                  "de uma nova coligação na legislatura correspondente"
+                                  .format(coligacao, coligacao.legislatura, legislatura))
                 raise ValidationError(_("A coligação selecionada não está cadastrada "
                                         "na mesma legislatura que o presente mandato, "
                                         "favor verificar a coligação ou fazer o cadastro "
@@ -116,12 +137,16 @@ class MandatoForm(ModelForm):
             parlamentar=data['parlamentar'],
             legislatura=data['legislatura']).exists()
         if existe_mandato:
+            self.logger.error("Mandato nesta legislatura (parlamentar={}, legislatura={}) já existe."
+                              .format(data['parlamentar'], data['legislatura']))
             raise ValidationError(_('Mandato nesta legislatura já existe.'))
 
         return self.cleaned_data
 
 
 class LegislaturaForm(ModelForm):
+
+    logger = logging.getLogger(__name__)
 
     class Meta:
         model = Legislatura
@@ -148,8 +173,13 @@ class LegislaturaForm(ModelForm):
                                                          ).order_by('data_fim').first()
 
         if ultima_legislatura and ultima_legislatura.numero >= numero:
+            self.logger.error("Número ({}) deve ser maior que o da legislatura anterior ({})."
+                              .format(numero, ultima_legislatura.numero))
             raise ValidationError(_("Número deve ser maior que o da legislatura anterior"))
         elif proxima_legislatura and proxima_legislatura.numero <= numero:
+            self.logger.error("O Número ({}) deve ser menor que {}, pois existe uma "
+                              "legislatura afrente cronologicamente desta que está sendo criada!"
+                              .format(numero, proxima_legislatura.numero))
             msg_erro = "O Número deve ser menor que {}, pois existe uma " \
             "legislatura afrente cronologicamente desta que está sendo criada!"
             msg_erro = msg_erro.format(proxima_legislatura.numero)
@@ -222,8 +252,13 @@ class ParlamentarCreateForm(ParlamentarForm):
 
 
 def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
+
+    logger = logging.getLogger(__name__)
+
     # Verifica se data de desfiliacao é anterior a data de filiacao
     if data_desfiliacao and data_desfiliacao < data_filiacao:
+        logger.error("A data de desfiliação ({}) é anterior à data de filiação ({})."
+                     .format(data_desfiliacao, data_filiacao))
         error_msg = _("A data de desfiliação não pode anterior \
                        à data de filiação")
         return [False, error_msg]
@@ -249,6 +284,8 @@ def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
     # filiação em edição não é a última e está sem data de desfiliação
     if not data_desfiliacao and filiacao_em_edicao_id and\
             filiacao_em_edicao_id != filiacoes.last().pk:
+        logger.error("Data de desfiliação do parlamentar não pode ser "
+                     "ausente, se existirem datas de filiação posteriores.")
         error_msg = _("Data de desfiliação do parlamentar não pode ser\
                     ausente, se existirem datas de filiação posteriores.")
 
@@ -256,6 +293,8 @@ def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
     #  já existe outra sem data de desfiliação
     elif not data_desfiliacao and not filiacao_em_edicao_id and\
             not filiacoes.last().data_desfiliacao:
+        logger.error("O parlamentar não pode se filiar a novo partido sem"
+                     " antes se desfiliar do partido anterior.")
         error_msg = _("O parlamentar não pode se filiar a novo partido sem\
                         antes se desfiliar do partido anterior.")
 
@@ -266,14 +305,20 @@ def validar_datas(data_filiacao, data_desfiliacao, parlamentar, filiacao):
 
         # testa a intercessão de intervalo com outra filiação
         if filiacoes.filter(range_livre_exigido).exists():
-            error_msg = _("A data de filiação e desfiliação não podem estar\
-                            no intervalo de outro período de filiação.")
+            logger.error("A data de filiação e desfiliação não podem estar"
+                         " no intervalo de outro período de filiação.")
+            error_msg = _("A data de filiação e desfiliação (intervalo de {} a {}) "
+                          "não podem estar no intervalo de outro período de filiação."
+                          .format(data_filiacao, df_desfiliacao, ))
 
     if not error_msg:
         # passou pelo teste de intervalo mas a data de filiação é maior que
         # a ultima que está em aberto
         if filiacoes.filter(data_desfiliacao__isnull=True,
                             data__lte=data_filiacao).exists():
+            logger.error("Não pode haver um registro de filiação com data de "
+                         "filiação igual ou superior a data de filiação em aberto ({})."
+                         .format(data_filiacao))
             error_msg = _("Não pode haver um registro de filiação com data de \
                     filiação igual ou superior a data de filiação em aberto.")
 
@@ -313,6 +358,8 @@ class FiliacaoForm(ModelForm):
 
 class ComposicaoColigacaoForm(ModelForm):
 
+    logger = logging.getLogger(__name__)
+
     class Meta:
         model = ComposicaoColigacao
         fields = ['partido']
@@ -328,6 +375,8 @@ class ComposicaoColigacaoForm(ModelForm):
         if (ComposicaoColigacao.objects.filter(
            coligacao_id=pk,
            partido=cleaned_data.get('partido')).exists()):
+            self.logger.error("Esse partido (coligacao_id={} e partido={}) já foi cadastrado "
+                              "nesta coligação.".format(pk, cleaned_data.get('partido')))
             msg = _('Esse partido já foi cadastrado nesta coligação.')
             raise ValidationError(msg)
 
@@ -335,7 +384,7 @@ class ComposicaoColigacaoForm(ModelForm):
 
 
 class FrenteForm(ModelForm):
-
+    logger = logging.getLogger(__name__)
     def __init__(self, *args, **kwargs):
         super(FrenteForm, self).__init__(*args, **kwargs)
         self.fields['parlamentares'].queryset = Parlamentar.objects.filter(
@@ -354,6 +403,8 @@ class FrenteForm(ModelForm):
             return self.cleaned_data
 
         if cd['data_extincao'] and cd['data_criacao'] >= cd['data_extincao']:
+            self.logger.error("Data Dissolução ({}) não pode ser anterior a Data Criação ({})."
+                              .format(cd['data_extincao'],cd['data_criacao']))
             raise ValidationError(_("Data Dissolução não pode ser anterior a Data Criação"))
 
         return cd
@@ -382,6 +433,8 @@ class VotanteForm(ModelForm):
         label=_('Usuário'),
         required=True,
         max_length=30)
+
+    logger = logging.getLogger(__name__)
 
     class Meta:
         model = Votante
@@ -413,12 +466,15 @@ class VotanteForm(ModelForm):
         username = cd['username']
         user = get_user_model().objects.filter(username=username)
         if not user.exists():
+            self.logger.error("Não foi possível vincular usuário. Usuário {} não existe.".format(username))
             raise ValidationError(_(
                 "{} [{}] {}".format(
                     'Não foi possível vincular usuário. Usuário',
                     username,
                     'não existe')))
         if Votante.objects.filter(user=user[0].pk).exists():
+            self.logger.error("Não foi possível vincular usuário. Usuário {} já está "
+                              "vinculado à outro parlamentar.".format(username))
             raise ValidationError(_(
                 "{} [{}] {}".format(
                     'Não foi possível vincular usuário. Usuário',

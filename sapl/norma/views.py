@@ -1,5 +1,6 @@
 
 import re
+import logging
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -199,16 +200,22 @@ class NormaCrud(Crud):
     class CreateView(Crud.CreateView):
         form_class = NormaJuridicaForm
 
+        logger = logging.getLogger(__name__)
+
         @property
         def cancel_url(self):
             return self.search_url
 
         def get_initial(self):
+            username = self.request.user.username
+            
             try:
+                self.logger.debug('user=' + username + '. Tentando obter objeto de modelo da esfera da federação.')
                 esfera = sapl.base.models.AppConfig.objects.last(
                 ).esfera_federacao
                 self.initial['esfera_federacao'] = esfera
             except:
+                self.logger.error('user=' + username + '. Erro ao obter objeto de modelo da esfera da federação.')
                 pass
             self.initial['complemento'] = False
             return self.initial
@@ -241,17 +248,24 @@ class NormaCrud(Crud):
 
 
 def recuperar_norma(request):
+    logger = logging.getLogger(__name__)
+    username = request.user.username
+
     tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
     numero = request.GET['numero']
     ano = request.GET['ano']
 
     try:
+        logger.info('user=' + username + '. Tentando obter NormaJuridica (tipo={}, ano={}, numero={}).'
+                    .format(tipo, ano, numero))
         norma = NormaJuridica.objects.get(tipo=tipo,
                                           ano=ano,
                                           numero=numero)
         response = JsonResponse({'ementa': norma.ementa,
                                  'id': norma.id})
     except ObjectDoesNotExist:
+        logger.error('user=' + username + '. NormaJuridica buscada (tipo={}, ano={}, numero={}) não existe. '
+                     'Definida com ementa vazia e id 0.'.format(tipo, ano, numero))
         response = JsonResponse({'ementa': '', 'id': 0})
 
     return response

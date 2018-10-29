@@ -7,7 +7,7 @@ from crispy_forms.layout import HTML
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.http import HttpResponse, JsonResponse
@@ -21,6 +21,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
+import logging
 
 import sapl
 from sapl.base.models import Autor, CasaLegislativa
@@ -92,11 +93,16 @@ def autores_ja_adicionados(materia_pk):
 
 
 def proposicao_texto(request, pk):
+    logger = logging.getLogger(__name__)
+    username = request.user.username.replace("'","")
+    logger.debug('user=' + username + '. Tentando obter objeto Proposicao com pk = {}.'.format(pk))
     proposicao = Proposicao.objects.get(pk=pk)
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
                 proposicao.autor.user_id != request.user.id):
+            logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
+                        .format(request.user.id))
             messages.error(request, _(
                 'Você não tem permissão para acessar o texto original.'))
             return redirect(reverse('sapl.materia:proposicao_detail',
@@ -113,6 +119,7 @@ def proposicao_texto(request, pk):
         response['Content-Disposition'] = (
             'inline; filename="%s"' % arquivo.name.split('/')[-1])
         return response
+    logger.error('user=' + username + '. Objeto Proposicao com pk={} não encontrado.'.format(pk))
     raise Http404
 
 
@@ -165,6 +172,7 @@ class CriarProtocoloMateriaView(CreateView):
     template_name = "crud/form.html"
     form_class = MateriaSimplificadaForm
     form_valid_message = _('Matéria cadastrada com sucesso!')
+    logger = logging.getLogger(__name__)
 
     def get_success_url(self, materia):
         return reverse('sapl.materia:materialegislativa_detail', kwargs={
@@ -173,19 +181,25 @@ class CriarProtocoloMateriaView(CreateView):
     def get_context_data(self, **kwargs):
         context = super(
             CriarProtocoloMateriaView, self).get_context_data(**kwargs)
+        username = self.request.user.username.replace("'","")
 
         try:
+            self.logger.debug("user=" + username + ". Tentando obter objeto Protocolo.")
             protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
+            self.logger.error("user=" + username + ". Objeto Protocolo com pk={} não encontrado. ".format(self.kwargs['pk']) + str(e))
             raise Http404()
 
         numero = 1
         try:
+            self.logger.debug("user=" + username + ". Tentando obter materias do último ano.")
             materias_ano = MateriaLegislativa.objects.filter(
                 ano=protocolo.ano,
                 tipo=protocolo.tipo_materia).latest('numero')
             numero = materias_ano.numero + 1
         except ObjectDoesNotExist:
+            self.logger.error("user=" + username + ". Não foram encontradas matérias no último ano ({}). "
+                            "Definido 1 como padrão.".format(protocolo.ano))
             pass  # numero ficou com o valor padrão 1 acima
 
         context['form'].fields['tipo'].initial = protocolo.tipo_materia
@@ -199,10 +213,13 @@ class CriarProtocoloMateriaView(CreateView):
 
     def form_valid(self, form):
         materia = form.save()
+        username = self.request.user.username.replace("'","")
 
         try:
+            self.logger.info("user=" + username + ". Tentando obter objeto Procolo com pk={}.".format(self.kwargs['pk']))
             protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
         except ObjectDoesNotExist:
+            self.logger.error('user=' + username + '. Objeto Protocolo com pk={} não encontrado.'.format(self.kwargs['pk']))
             raise Http404()
 
         if protocolo.autor:
@@ -286,14 +303,18 @@ class ProposicaoTaView(IntegracaoTaView):
 
 @permission_required('materia.detail_materialegislativa')
 def recuperar_materia(request):
+    logger = logging.getLogger(__name__)
+    username = request.user.username.replace("'","")
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
 
     numeracao = None
     try:
+        logger.debug("user=" + username + ". Tentando obter numeração da matéria.")
         numeracao = sapl.base.models.AppConfig.objects.last(
         ).sequencia_numeracao
-    except AttributeError:
+    except AttributeError as e:
+        logger.error("user=" + username + ". " + str(e) + " Numeracao da matéria definida como None.")
         pass
 
     if tipo.sequencia_numeracao:
@@ -526,20 +547,24 @@ class RetornarProposicao(UpdateView):
     model = Proposicao
     fields = ['data_envio', 'descricao' ]
     permission_required = ('materia.detail_proposicao_enviada', )
+    logger = logging.getLogger(__name__)
 
     def dispatch(self, request, *args, **kwargs):
-
+        username = request.user.username.replace("'","")
         try:
+            self.logger.info("user=" + username + ". Tentando obter objeto Proposicao com id={}.".format(kwargs['pk']))
             p = Proposicao.objects.get(id=kwargs['pk'])
         except:
+            self.logger.error("user=" + username + ". Objeto Proposicao com id={} não encontrado.".format(kwargs['pk']))
             raise Http404()
 
         if p.autor.user != request.user:
-             messages.error(
+            self.logger.error("user=" + username + ". Usuário ({}) sem acesso a esta opção.".format(request.user))
+            messages.error(
                  request,
                  'Usuário sem acesso a esta opção.' %
                      request.user)
-             return redirect('/')
+            return redirect('/')
 
         return super(RetornarProposicao, self).dispatch(
             request, *args, **kwargs)
@@ -550,6 +575,7 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
     template_name = "materia/confirmar_proposicao.html"
     model = Proposicao
     form_class = ConfirmarProposicaoForm, DevolverProposicaoForm
+    logger = logging.getLogger(__name__)
 
     def get_success_url(self):
         msgs = self.object.results['messages']
@@ -561,12 +587,15 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
         return self.object.results['url']
 
     def get_object(self, queryset=None):
+        username = self.request.user.username.replace("'","")
+
         try:
             """
             Não deve haver acesso na rotina de confirmação a proposições:
             já recebidas -> data_recebimento != None
             não enviadas -> data_envio == None
             """
+            self.logger.debug("user=" + username + ". Tentando obter objeto Proposicao.")
             proposicao = Proposicao.objects.get(pk=self.kwargs['pk'],
                                                 data_envio__isnull=False,
                                                 data_recebimento__isnull=True)
@@ -582,10 +611,13 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
 
             if hasher == 'P%s/%s' % (self.kwargs['hash'], proposicao.pk):
                 self.object = proposicao
-        except:
+        except Exception as e:
+            self.logger.error("user=" + username + ". Objeto Proposicao com atributos (pk={}, data_envio=Not Null, "
+                            "data_recebimento=Null) não encontrado. ".format(self.kwargs['pk']) + str(e))
             raise Http404()
 
         if not self.object:
+            self.logger.error("user=" + username + ". Objeto vazio.")
             raise Http404()
 
         return self.object
@@ -701,6 +733,7 @@ class ProposicaoCrud(Crud):
                                'materia.detail_proposicao_devolvida',
                                'materia.detail_proposicao_incorporada')
 
+        logger = logging.getLogger(__name__)
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
@@ -711,7 +744,9 @@ class ProposicaoCrud(Crud):
             return context
 
         def get(self, request, *args, **kwargs):
+            
             action = request.GET.get('action', '')
+            username = request.user.username.replace("'","")
 
             if not action:
                 return Crud.DetailView.get(self, request, *args, **kwargs)
@@ -743,23 +778,32 @@ class ProposicaoCrud(Crud):
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
                         try:
+                            self.logger.debug("user=" + username + ". Tentando obter número do objeto MateriaLegislativa com "
+                                            "atributos tipo={} e ano={}."
+                                            .format(p.tipo.tipo_conteudo_related, p.ano))
                             numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
                                                                        ano=p.ano).last().numero + 1
                             messages.success(request, _(
                                 '%s : nº %s de %s <br>Atenção! Este número é apenas um provável '
                                 'número que pode não corresponder com a realidade'
                                 % (p.tipo, numero, p.ano)))
-                        except ValueError:
+                        except ValueError as e:
+                            self.logger.error("user=" + username + "." + str(e))
                             pass
-                        except AttributeError:
+                        except AttributeError as e:
+                            self.logger.error("user=" + username + "." + str(e))
                             pass
-                        except TypeError:
+                        except TypeError as e:
+                            self.logger.error("user=" + username + "." + str(e))
                             pass
 
                 elif action == 'return':
                     if not p.data_envio:
+                        self.logger.error("user=" + username + ". Proposição (numero={}) ainda não foi enviada.".format(p.numero_proposicao))
                         msg_error = _('Proposição ainda não foi enviada.')
                     elif p.data_recebimento:
+                        self.logger.error("user=" + username + ". Proposição (numero={}) já foi recebida, não é "
+                                        "possível retorná-la.".format(p.numero_proposicao))
                         msg_error = _('Proposição já foi recebida, não é '
                                       'possível retorná-la.')
                     else:
@@ -770,6 +814,7 @@ class ProposicaoCrud(Crud):
                             ta.privacidade = STATUS_TA_PRIVATE
                             ta.editing_locked = False
                             ta.save()
+                        self.logger.info("user=" + username + ". Proposição (numero={}) Retornada com sucesso.".format(p.numero_proposicao))
                         messages.success(request, _(
                             'Proposição Retornada com sucesso.'))
 
@@ -781,10 +826,12 @@ class ProposicaoCrud(Crud):
                                     kwargs={'pk': kwargs['pk']}))
 
         def dispatch(self, request, *args, **kwargs):
-
+            username = request.user.username.replace("'","")
             try:
+                self.logger.debug("user=" + username + ". Tentando obter objeto Proposicao com pk={}".format(kwargs['pk']))
                 p = Proposicao.objects.get(id=kwargs['pk'])
-            except:
+            except Exception as e:
+                self.logger.error("user=" + username + ". Erro ao obter proposicao com pk={}. Retornando 404. ".format(kwargs['pk']) + str(e))
                 raise Http404()
 
             if not self.has_permission():
@@ -813,16 +860,25 @@ class ProposicaoCrud(Crud):
 
     class DeleteView(BaseLocalMixin, Crud.DeleteView):
 
+        logger = logging.getLogger(__name__)
+
         def _action_is_valid(self, request, *args, **kwargs):
             proposicao = Proposicao.objects.filter(
                 id=kwargs['pk']).values_list(
                     'data_envio', 'data_recebimento')
 
+            username = request.user.username.replace("'","")
+
             if proposicao:
                 if proposicao[0][0] and proposicao[0][1]:
+                    self.logger.error("user=" + username + ". Proposição (id={}) já foi enviada e recebida."
+                                    "Não pode mais ser excluida.".format(kwargs['pk']))
                     msg = _('Proposição já foi enviada e recebida.'
                             'Não pode mais ser excluida.')
                 elif proposicao[0][0] and not proposicao[0][1]:
+                    self.logger.error("user=" + username + ". Proposição (id={}) já foi enviada mas ainda não recebida "
+                                "pelo protocolo. Use a opção Recuperar Proposição "
+                                "para depois excluí-la.".format(kwargs['pk']))
                     msg = _('Proposição já foi enviada mas ainda não recebida '
                             'pelo protocolo. Use a opção Recuperar Proposição '
                             'para depois excluí-la.')
@@ -834,17 +890,26 @@ class ProposicaoCrud(Crud):
 
     class UpdateView(BaseLocalMixin, Crud.UpdateView):
 
+        logger = logging.getLogger(__name__)
+
         def _action_is_valid(self, request, *args, **kwargs):
 
             proposicao = Proposicao.objects.filter(
                 id=kwargs['pk']).values_list(
                     'data_envio', 'data_recebimento')
+                
+            username = request.user.username.replace("'","")
 
             if proposicao:
                 if proposicao[0][0] and proposicao[0][1]:
+                    self.logger.error('user=' + username + '. Proposição (id={}) já foi enviada e recebida.'
+                                    'Não pode mais ser editada'.format(kwargs['pk']))
                     msg = _('Proposição já foi enviada e recebida.'
                             'Não pode mais ser editada')
                 elif proposicao[0][0] and not proposicao[0][1]:
+                    self.logger.error('user=' + username + '. Proposição (id={}) já foi enviada mas ainda não recebida '
+                                    'pelo protocolo. Use a opção Recuperar Proposição '
+                                    'para voltar para edição.'.format(kwargs['pk']))
                     msg = _('Proposição já foi enviada mas ainda não recebida '
                             'pelo protocolo. Use a opção Recuperar Proposição '
                             'para voltar para edição.')
@@ -857,6 +922,7 @@ class ProposicaoCrud(Crud):
         def get_success_url(self):
 
             tipo_texto = self.request.POST.get('tipo_texto', '')
+            username = self.request.user.username.replace("'","")
 
             if tipo_texto == 'T':
                 messages.info(self.request,
@@ -864,12 +930,17 @@ class ProposicaoCrud(Crud):
                                 'alterada e a opção "Texto Articulado " for '
                                 'marcada, você será redirecionado para a '
                                 'edição do Texto Eletrônico.'))
+                self.logger.debug('user=' + username + '. Sempre que uma Proposição é inclusa ou '
+                                'alterada e a opção "Texto Articulado " for '
+                                'marcada, você será redirecionado para a '
+                                'edição do Texto Eletrônico.')
                 return reverse('sapl.materia:proposicao_ta',
                                kwargs={'pk': self.object.pk})
             else:
                 return Crud.UpdateView.get_success_url(self)
 
     class CreateView(Crud.CreateView):
+        logger = logging.getLogger(__name__)
         form_class = ProposicaoForm
         layout_key = None
 
@@ -881,6 +952,7 @@ class ProposicaoCrud(Crud):
         def get_success_url(self):
 
             tipo_texto = self.request.POST.get('tipo_texto', '')
+            username = self.request.user.username.replace("'","")
 
             if tipo_texto == 'T':
                 messages.info(self.request,
@@ -889,6 +961,11 @@ class ProposicaoCrud(Crud):
                                 'marcada, você será redirecionado para o '
                                 'Texto Eletrônico. Use a opção "Editar Texto" '
                                 'para construir seu texto.'))
+                self.logger.debug('user=' + username + '. Sempre que uma Proposição é inclusa ou '
+                                'alterada e a opção "Texto Articulado " for '
+                                'marcada, você será redirecionado para o '
+                                'Texto Eletrônico. Use a opção "Editar Texto" '
+                                'para construir seu texto.')
                 return reverse('sapl.materia:proposicao_ta',
                                kwargs={'pk': self.object.pk})
             else:
@@ -920,6 +997,7 @@ class ProposicaoCrud(Crud):
 
 
 class ReciboProposicaoView(TemplateView):
+    logger = logging.getLogger(__name__)
     template_name = "materia/recibo_proposicao.html"
     permission_required = ('materia.detail_proposicao', )
 
@@ -957,14 +1035,18 @@ class ReciboProposicaoView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
+        username = request.user.username.replace("'","")
 
         if proposicao.data_envio:
             return TemplateView.get(self, request, *args, **kwargs)
 
         if not proposicao.data_envio and not proposicao.data_devolucao:
+            self.logger.error('user=' + username + '. Não é possível gerar recibo para uma '
+                            'Proposição (pk={}) ainda não enviada.'.format(self.kwargs['pk']))
             messages.error(request, _('Não é possível gerar recibo para uma '
                                       'Proposição ainda não enviada.'))
         elif proposicao.data_devolucao:
+            self.logger.error("user=" + username + ". Não é possível gerar recibo para proposicao de pk={}.".format(self.kwargs['pk']))
             messages.error(request, _('Não é possível gerar recibo.'))
 
         return redirect(reverse('sapl.materia:proposicao_detail',
@@ -979,17 +1061,22 @@ class RelatoriaCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = RelatoriaForm
+        logger = logging.getLogger(__name__)
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
+            username = self.request.user.username.replace("'","")
 
             try:
+                self.logger.debug("user=" + username + ". Tentando obter objeto Comissao de pk={}.".format(context['form'].initial['comissao']))
                 comissao = Comissao.objects.get(
                     pk=context['form'].initial['comissao'])
             except:
+                self.logger.error("user=" + username + ". Objeto Comissão de pk={} não encontrado.".format(context['form'].initial['comissao']))
                 pass
 
             else:
+                self.logger.info("user=" + username + ". Objeto Comissao de pk={} obtido com sucesso.".format(context['form'].initial['comissao']))
                 composicao = comissao.composicao_set.order_by(
                     '-periodo__data_inicio').first()
                 participacao = Participacao.objects.filter(
@@ -1025,15 +1112,22 @@ class RelatoriaCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = RelatoriaForm
 
+        logger = logging.getLogger(__name__)
+
         def get_context_data(self, **kwargs):
+            
             context = super().get_context_data(**kwargs)
+            username = self.request.user.username.replace("'","")
 
             try:
+                self.logger.debug("user=" + username + ". Tentando obter objeto Comissao de pk={}.".format(context['form'].initial['comissao']))
                 comissao = Comissao.objects.get(
                     pk=context['form'].initial['comissao'])
-            except ObjectDoesNotExist:
+            except ObjectDoesNotExist:                
+                self.logger.error("user=" + username + ". Objeto Comissão de pk={} não encontrado.".format(context['form'].initial['comissao']))
                 pass
-            else:
+            else:                
+                self.logger.info("user=" + username + ". Objeto Comissao de pk={} obtido com sucesso.".format(context['form'].initial['comissao']))
                 composicao = comissao.composicao_set.order_by(
                     '-periodo__data_inicio').first()
                 participacao = Participacao.objects.filter(
@@ -1061,6 +1155,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoForm
+        logger = logging.getLogger(__name__)
 
         def get_success_url(self):
             return reverse('sapl.materia:tramitacao_list', kwargs={
@@ -1083,6 +1178,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
+            username = self.request.user.username.replace("'","")
 
             ultima_tramitacao = Tramitacao.objects.filter(
                 materia_id=self.kwargs['pk']).order_by(
@@ -1097,6 +1193,8 @@ class TramitacaoCrud(MasterDetailCrud):
                         (ultima_tramitacao.unidade_tramitacao_destino.pk,
                          ultima_tramitacao.unidade_tramitacao_destino)]
                 else:
+                    self.logger.error('user=' + username + '. Unidade de tramitação destino '
+                                    'da última tramitação não pode ser vazia!')
                     msg = _('Unidade de tramitação destino '
                             ' da última tramitação não pode ser vazia!')
                     messages.add_message(self.request, messages.ERROR, msg)
@@ -1104,7 +1202,9 @@ class TramitacaoCrud(MasterDetailCrud):
             return context
 
         def form_valid(self, form):
+
             self.object = form.save()
+            username = self.request.user.username.replace("'","")
 
             if form.instance.status.indicador == 'F':
                 form.instance.materia.em_tramitacao = False
@@ -1113,25 +1213,32 @@ class TramitacaoCrud(MasterDetailCrud):
             form.instance.materia.save()
 
             try:
+                self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={})."
+                                    .format(Tramitacao, self.object, self.request))
                 tramitacao_signal.send(sender=Tramitacao,
                                        post=self.object,
                                        request=self.request)
-            except Exception:
+            except Exception as e:
                 # TODO log error
                 msg = _('Tramitação criada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
+                self.logger.warning('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento '
+                                'de matéria não enviado. Há problemas na configuração '
+                                'do e-mail. ' + str(e))
                 messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoUpdateForm
+        logger = logging.getLogger(__name__)
 
         layout_key = 'TramitacaoUpdate'
 
         def form_valid(self, form):
             self.object = form.save()
+            username = self.request.user.username.replace("'","")
 
             if form.instance.status.indicador == 'F':
                 form.instance.materia.em_tramitacao = False
@@ -1140,6 +1247,8 @@ class TramitacaoCrud(MasterDetailCrud):
             form.instance.materia.save()
 
             try:
+                self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
+                                        .format(Tramitacao, self.object, self.request))
                 tramitacao_signal.send(sender=Tramitacao,
                                        post=self.object,
                                        request=self.request)
@@ -1148,6 +1257,9 @@ class TramitacaoCrud(MasterDetailCrud):
                 msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
+                self.logger.warning('user=' + username + '. Tramitação atualizada, mas e-mail de acompanhamento '
+                                    'de matéria não enviado. Há problemas na configuração '
+                                    'do e-mail.')
                 messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
@@ -1163,6 +1275,8 @@ class TramitacaoCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
 
+        logger = logging.getLogger(__name__)
+
         def delete(self, request, *args, **kwargs):
             tramitacao = Tramitacao.objects.get(id=self.kwargs['pk'])
             materia = MateriaLegislativa.objects.get(id=tramitacao.materia.id)
@@ -1173,8 +1287,13 @@ class TramitacaoCrud(MasterDetailCrud):
                 '-data_tramitacao',
                 '-timestamp',
                 '-id').first()
+            
+            username = request.user.username.replace("'","")
 
             if tramitacao.pk != ultima_tramitacao.pk:
+                self.logger.error("user=" + username + ". Não é possível deletar a tramitação de pk={}. "
+                                  "Somente a última tramitação (pk={}) pode ser deletada!."
+                                    .format(tramitacao.pk, ultima_tramitacao.pk))
                 msg = _('Somente a última tramitação pode ser deletada!')
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
@@ -1515,7 +1634,11 @@ class DocumentoAcessorioView(PermissionRequiredMixin, CreateView):
 
 class AcompanhamentoConfirmarView(TemplateView):
 
+    logger = logging.getLogger(__name__)
+
     def get_redirect_url(self, email):
+        username = self.request.user.username.replace("'","")
+        self.logger.debug('user=' + username + '. Esta matéria está sendo acompanhada pelo e-mail: %s' % (email))
         msg = _('Esta matéria está sendo acompanhada pelo e-mail: %s') % (
             email)
         messages.add_message(self.request, messages.SUCCESS, msg)
@@ -1525,18 +1648,24 @@ class AcompanhamentoConfirmarView(TemplateView):
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
         hash_txt = request.GET.get('hash_txt', '')
+        username = self.request.user.username.replace("'","")
 
         try:
+            self.logger.info("user=" + username + ". Tentando obter objeto AcompanhamentoMateria (materia_id={}, hash={})."
+                                .format(materia_id, hash_txt))
             acompanhar = AcompanhamentoMateria.objects.get(
                 materia_id=materia_id,
                 hash=hash_txt)
         except ObjectDoesNotExist:
+            self.logger.error("user=" + username + ". Objeto AcompanhamentoMateria(materia_id={}, hash={}) não encontrado."
+                                .format(materia_id, hash_txt))
             raise Http404()
-        # except MultipleObjectsReturned:
+        except MultipleObjectsReturned as e:
         # A melhor solução deve ser permitir que a exceção
         # (MultipleObjectsReturned) seja lançada e vá para o log,
         # pois só poderá ser causada por um erro de desenvolvimente
-
+            self.logger.error('user=' + username + '.'  + str(e))
+            pass
         acompanhar.confirmado = True
         acompanhar.save()
 
@@ -1545,7 +1674,11 @@ class AcompanhamentoConfirmarView(TemplateView):
 
 class AcompanhamentoExcluirView(TemplateView):
 
+    logger = logging.getLogger(__name__)
+
     def get_success_url(self):
+        username = self.request.user.username.replace("'","")
+        self.logger.debug("user=" + username + ". Você parou de acompanhar esta matéria.")
         msg = _('Você parou de acompanhar esta matéria.')
         messages.add_message(self.request, messages.INFO, msg)
         return reverse('sapl.materia:materialegislativa_detail',
@@ -1554,11 +1687,16 @@ class AcompanhamentoExcluirView(TemplateView):
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
         hash_txt = request.GET.get('hash_txt', '')
+        username = self.request.user.username.replace("'","")
 
         try:
+            self.logger.info("user=" + username + ". Tentando deletar objeto AcompanhamentoMateria (materia_id={}, hash={})."
+                                .format(materia_id, hash_txt))
             AcompanhamentoMateria.objects.get(materia_id=materia_id,
                                               hash=hash_txt).delete()
         except ObjectDoesNotExist:
+            self.logger.error("user=" + username + ". Objeto AcompanhamentoMateria (materia_id={}, hash={}) não encontrado."
+                                .format(materia_id, hash_txt))
             pass
 
         return HttpResponseRedirect(self.get_success_url())
@@ -1642,6 +1780,7 @@ class MateriaLegislativaPesquisaView(FilterView):
 
 
 class AcompanhamentoMateriaView(CreateView):
+    logger = logging.getLogger(__name__)
     template_name = "materia/acompanhamento_materia.html"
 
     def get_random_chars(self):
@@ -1693,7 +1832,9 @@ class AcompanhamentoMateriaView(CreateView):
                                            "materia",
                                            materia,
                                            destinatario)
-
+                self.logger.debug('user=' + usuario.username + '. Foi enviado um e-mail de confirmação. Confira sua caixa \
+                                de mensagens e clique no link que nós enviamos para \
+                                confirmar o acompanhamento desta matéria.')
                 msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
                          de mensagens e clique no link que nós enviamos para \
                          confirmar o acompanhamento desta matéria.')
@@ -1702,6 +1843,7 @@ class AcompanhamentoMateriaView(CreateView):
             # Caso esse Acompanhamento já exista
             # avisa ao usuário que essa matéria já está sendo acompanhada
             else:
+                self.logger.debug("user=" + usuario.username + ". Este e-mail já está acompanhando essa matéria.")
                 msg = _('Este e-mail já está acompanhando essa matéria.')
                 messages.add_message(request, messages.INFO, msg)
 
@@ -1780,6 +1922,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
     primeira_tramitacao = True
 
+    logger = logging.getLogger(__name__)
+
     def get_context_data(self, **kwargs):
         context = super(PrimeiraTramitacaoEmLoteView,
                         self).get_context_data(**kwargs)
@@ -1822,9 +1966,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
 
     def post(self, request, *args, **kwargs):
+        
         marcadas = request.POST.getlist('materia_id')
 
         tz = timezone.get_current_timezone()
+
+        username = request.user.username.replace("'","")
 
         if len(marcadas) == 0:
             msg = _('Nenhuma máteria foi selecionada.')
@@ -1877,10 +2024,15 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             )
             t.save()
             try:
+                self.logger.debug("user=" + username + ". Tentando enviar tramitação.")
                 tramitacao_signal.send(sender=Tramitacao,
                                        post=t,
                                        request=self.request)
-            except Exception:
+                
+            except Exception as e:
+                self.logger.error('user=' + username + '. Tramitação criada , mas e-mail de acompanhamento '
+                            'de matéria não enviado. Há problemas na configuração '
+                            'do e-mail. ' + str(e))
                 flag_error = True
         if flag_error:
             msg = _('Tramitação criada, mas e-mail de acompanhamento '
@@ -1898,6 +2050,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             materia.save()
 
         msg = _('Tramitação completa.')
+        self.logger.info('user=' + username + '. Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
 
@@ -2003,6 +2156,7 @@ class FichaPesquisaView(PermissionRequiredMixin, FormView):
 
 
 class FichaSelecionaView(PermissionRequiredMixin, FormView):
+    logger = logging.getLogger(__name__)
     form_class = FichaSelecionaForm
     template_name = 'materia/impressos/ficha_seleciona.html'
     permission_required = ('materia.can_access_impressos', )
@@ -2031,8 +2185,16 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
 
         context['form'].fields['materia'].choices = [
             (m.id, str(m)) for m in materia_list]
+        
+        username = self.request.user.username.replace("'","")
 
         if context['quantidade'] > 100:
+            self.logger.info('user=' + username + '. Sua pesquisa (tipo={}, data_inicial={}, data_final={}) retornou mais do que '
+                        '100 impressos. Por questões de '
+                        'performance, foram retornados '
+                        'apenas os 100 primeiros. Caso '
+                        'queira outros, tente fazer uma '
+                        'pesquisa mais específica'.format(tipo, data_inicial, data_final))
             messages.info(self.request, _('Sua pesquisa retornou mais do que '
                                           '100 impressos. Por questões de '
                                           'performance, foram retornados '
@@ -2044,11 +2206,14 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
 
     def form_valid(self, form):
         context = {}
+        username = self.request.user.username.replace("'","")
 
         try:
+            self.logger.debug("user=" + username + ". Tentando obter objeto MateriaLegislativa com id={}".format(form.data['materia']))
             materia = MateriaLegislativa.objects.get(
                 id=form.data['materia'])
         except ObjectDoesNotExist:
+            self.logger.error("user=" + username + ". Esta MáteriaLegislativa não existe (id={}).".format(form.data['materia']))
             mensagem = _('Esta Máteria não existe!')
             self.messages.add_message(self.request, messages.INFO, mensagem)
 

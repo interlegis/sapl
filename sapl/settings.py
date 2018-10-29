@@ -13,6 +13,8 @@ Quick-start development settings - unsuitable for production
 See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
+import socket
+import logging
 
 from decouple import config
 from dj_database_url import parse as db_url
@@ -22,9 +24,10 @@ from unipath import Path
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
 
+host = socket.gethostbyname_ex(socket.gethostname())[0]
+
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
@@ -293,34 +296,40 @@ SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
 
-
-# FIXME update cripy-forms and remove this
-# hack to suppress many annoying warnings from crispy_forms
-# see sapl.temp_suppress_crispy_form_warnings
-LOGGING = SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
-
-
-# FIXME:  gerando problemas na alternancia entre django 1.9.13 e 1.10.8
-# Issue 52 https://github.com/interlegis/sapl/issues/52
-LOGGING_CONSOLE = config('LOGGING_CONSOLE', default=False, cast=bool)
-"""if DEBUG and LOGGING_CONSOLE:
-    # Descomentar linha abaixo fará com que logs aparecam, inclusive SQL
-    # LOGGING['handlers']['console']['level'] = 'DEBUG'
-    LOGGING['loggers']['django']['level'] = 'DEBUG'
-    LOGGING['formatters'].update({
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(pathname)s '
-            '%(funcName)s %(message)s'
+            'format': '%(levelname)s %(asctime)s ' + host + ' %(pathname)s %(name)s:%(funcName)s:%(lineno)d %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(asctime)s - %(message)s'
         },
-    })
-    LOGGING['handlers']['console']['formatter'] = 'verbose'
-    LOGGING['loggers'][BASE_DIR.name] = {
-        'handlers': ['console'],
-        'level': 'DEBUG',
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'applogfile': {
+            'level':'INFO',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': 'sapl.log',
+            'maxBytes': 1024*1024*15, # 15MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'sapl': {
+            'handlers': ['applogfile'],
+            'level': 'INFO',
+            'propagate': True,
+        },
     }
+}
 
 
 def excepthook(*args):

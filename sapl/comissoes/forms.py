@@ -1,3 +1,5 @@
+import logging
+
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -14,7 +16,7 @@ from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 class ComposicaoForm(forms.ModelForm):
 
     comissao = forms.CharField(required=False, label='Comissao', widget=forms.HiddenInput())
-
+    logger = logging.getLogger(__name__)
     class Meta:
         model = Composicao
         exclude = []
@@ -39,6 +41,9 @@ class ComposicaoForm(forms.ModelForm):
             comissao_id=comissao_pk)
 
         if intersecao_periodo:
+            self.logger.error('O período informado ({} a {})'
+                        'choca com períodos já '
+                        'cadastrados para esta comissão'.format(periodo.data_inicio, periodo.data_fim))
             raise ValidationError('O período informado '
                                   'choca com períodos já '
                                   'cadastrados para esta comissão')
@@ -48,6 +53,7 @@ class ComposicaoForm(forms.ModelForm):
 
 class PeriodoForm(forms.ModelForm):
 
+    logger = logging.getLogger(__name__)
     class Meta:
         model = Periodo
         exclude = []
@@ -62,8 +68,10 @@ class PeriodoForm(forms.ModelForm):
         data_fim = cleaned_data['data_fim']
 
         if data_fim and data_fim < data_inicio:
+            self.logger.error('A Data Final ({}) é menor que '
+                            'a Data Inicial({}).'.format(data_fim, data_inicio))
             raise ValidationError('A Data Final não pode ser menor que '
-                                        'a Data Inicial')
+                                    'a Data Inicial')
 
         # Evita NoneType exception se não preenchida a data_fim
         if not data_fim:
@@ -74,6 +82,9 @@ class PeriodoForm(forms.ModelForm):
                                                    )
 
         if not legislatura:
+            self.logger.error('O período informado ({} a {})'
+                            'não está contido em uma única '
+                            'legislatura existente'.format(data_inicio, data_fim))
             raise ValidationError('O período informado '
                                   'deve estar contido em uma única '
                                   'legislatura existente')
@@ -85,6 +96,7 @@ class PeriodoForm(forms.ModelForm):
 
 class ParticipacaoCreateForm(forms.ModelForm):
 
+    logger = logging.getLogger(__name__)
     parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
 
     class Meta:
@@ -135,7 +147,9 @@ class ParticipacaoCreateForm(forms.ModelForm):
         data_desligamento = cleaned_data['data_desligamento']
 
         if data_desligamento and \
-           data_designacao > data_desligamento:
+            data_designacao > data_desligamento:
+            self.logger.error('Data de designação ({}) superior '
+                            'à data de desligamento ({})'.format(data_designacao, data_desligamento))
             raise ValidationError(_('Data de designação não pode ser superior '
                                   'à data de desligamento'))
 
@@ -144,6 +158,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
         if cleaned_data['cargo'].nome in cargos_unicos:
             msg = _('Este cargo é único para esta Comissão.')
+            self.logger.error('Este cargo ({}) é único para esta Comissão.'.format(cleaned_data['cargo'].nome))
             raise ValidationError(msg)
         return cleaned_data
 
@@ -190,6 +205,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
 class ParticipacaoEditForm(forms.ModelForm):
 
+    logger = logging.getLogger(__name__)
     parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
     nome_parlamentar = forms.CharField(required=False, label='Parlamentar')
 
@@ -219,6 +235,8 @@ class ParticipacaoEditForm(forms.ModelForm):
 
         if data_desligamento and \
            data_designacao > data_desligamento:
+            self.logger.error('Data de designação ({}) superior '
+                            'à data de desligamento ({})'.format(data_designacao, data_desligamento))
             raise ValidationError(_('Data de designação não pode ser superior '
                                   'à data de desligamento'))
 
@@ -229,6 +247,8 @@ class ParticipacaoEditForm(forms.ModelForm):
 
         if cleaned_data['cargo'].nome in cargos_unicos:
             msg = _('Este cargo é único para esta Comissão.')
+            self.logger.error('Este cargo ({}) é único para esta Comissão (id={}).'
+                            .format(cleaned_data['cargo'].nome, composicao_id))
             raise ValidationError(msg)
 
         return cleaned_data
@@ -236,6 +256,7 @@ class ParticipacaoEditForm(forms.ModelForm):
 
 class ComissaoForm(forms.ModelForm):
 
+    logger = logging.getLogger(__name__)
     class Meta:
         model = Comissao
         fields = '__all__'
@@ -260,37 +281,50 @@ class ComissaoForm(forms.ModelForm):
             return self.cleaned_data
 
         if len(self.cleaned_data['nome']) > 100:
-            msg = _('Nome da Comissão deve ter no máximo 50 caracteres.')
+            msg = _('Nome da Comissão informado ({}) tem mais de 50 caracteres.'.format(self.cleaned_data['nome']))
+            self.logger.error('Nome da Comissão deve ter no máximo 50 caracteres.')
             raise ValidationError(msg)
         if (self.cleaned_data['data_extincao'] and
             self.cleaned_data['data_extincao'] <
                 self.cleaned_data['data_criacao']):
                 msg = _('Data de extinção não pode ser menor que a de criação')
+                self.logger.error('Data de extinção ({}) não pode ser menor que a de criação ({}).'
+                        .format(self.cleaned_data['data_extincao'],self.cleaned_data['data_criacao']))
                 raise ValidationError(msg)
         if (self.cleaned_data['data_final_prevista_temp'] and
             self.cleaned_data['data_final_prevista_temp'] <
                 self.cleaned_data['data_criacao']):
                 msg = _('Data Prevista para Término não pode ser menor que a de criação')
+                self.logger.error('Data Prevista para Término ({}) não pode ser menor que a de criação ({}).'
+                                .format(self.cleaned_data['data_final_prevista_temp'], self.cleaned_data['data_criacao']))
                 raise ValidationError(msg)
         if (self.cleaned_data['data_prorrogada_temp'] and
             self.cleaned_data['data_prorrogada_temp'] <
                 self.cleaned_data['data_criacao']):
                 msg = _('Data Novo Prazo não pode ser menor que a de criação')
+                self.logger.error('Data Novo Prazo ({}) não pode ser menor que a de criação ({}).'
+                                .format(self.cleaned_data['data_prorrogada_temp'], self.cleaned_data['data_criacao']))
                 raise ValidationError(msg)
         if (self.cleaned_data['data_instalacao_temp'] and
             self.cleaned_data['data_instalacao_temp'] <
                 self.cleaned_data['data_criacao']):
                 msg = _('Data de Instalação não pode ser menor que a de criação')
+                self.logger.error('Data de Instalação ({}) não pode ser menor que a de criação ({}).'
+                                .format(self.cleaned_data['data_instalacao_temp'], self.cleaned_data['data_criacao']))
                 raise ValidationError(msg)
         if (self.cleaned_data['data_final_prevista_temp'] and self.cleaned_data['data_instalacao_temp'] and
             self.cleaned_data['data_final_prevista_temp'] <
                 self.cleaned_data['data_instalacao_temp']):
-                msg = _('Data Prevista para Término não pode ser menor que a de Instalação')
+                msg = _('Data Prevista para Término não pode ser menor que a de Instalação.')
+                self.logger.error('Data Prevista para Término ({}) não pode ser menor que a de Instalação ({}).'
+                        .format(self.cleaned_data['data_final_prevista_temp'], self.cleaned_data['data_instalacao_temp']))
                 raise ValidationError(msg)
         if (self.cleaned_data['data_prorrogada_temp'] and self.cleaned_data['data_instalacao_temp'] and
             self.cleaned_data['data_prorrogada_temp'] <
                 self.cleaned_data['data_instalacao_temp']):
-                msg = _('Data Novo Prazo não pode ser menor que a de Instalação')
+                msg = _('Data Novo Prazo não pode ser menor que a de Instalação.')
+                self.logger.error('Data Novo Prazo ({}) não pode ser menor que a de Instalação ({}).'
+                        .format(self.cleaned_data['data_prorrogada_temp'], self.cleaned_data['data_instalacao_temp']))
                 raise ValidationError(msg)
         return self.cleaned_data
 
@@ -317,6 +351,7 @@ class ComissaoForm(forms.ModelForm):
 
 class ReuniaoForm(ModelForm):
 
+    logger = logging.getLogger(__name__)
     comissao = forms.ModelChoiceField(queryset=Comissao.objects.all(),
                                       widget=forms.HiddenInput())
 
@@ -326,6 +361,7 @@ class ReuniaoForm(ModelForm):
 
     def clean(self):
         super(ReuniaoForm, self).clean()
+        
 
         if not self.is_valid():
             return self.cleaned_data
@@ -334,6 +370,8 @@ class ReuniaoForm(ModelForm):
             if (self.cleaned_data['hora_fim'] <
                     self.cleaned_data['hora_inicio']):
                 msg = _('A hora de término da reunião não pode ser menor que a de início')
+                self.logger.error("A hora de término da reunião ({}) não pode ser menor que a de início ({})."
+                                .format(self.cleaned_data['hora_fim'], self.cleaned_data['hora_inicio']))
                 raise ValidationError(msg)
         return self.cleaned_data
 
