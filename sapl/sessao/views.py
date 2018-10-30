@@ -1415,6 +1415,8 @@ class ResumoView(DetailView):
             sessao_plenaria_id=self.object.id
         ).order_by('parlamentar__nome_parlamentar')
 
+        composicao_mesa = ComposicaoMesa.objects.filter(sessao_legislativa=sessao)
+
         parlamentares_ordem = [p.parlamentar for p in presencas]
 
         context.update({'presenca_ordem': parlamentares_ordem})
