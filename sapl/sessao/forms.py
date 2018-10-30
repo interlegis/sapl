@@ -741,12 +741,19 @@ class JustificativaAusenciaForm(ModelForm):
         q = Q(sessao_plenaria=kwargs['initial']['sessao_plenaria'])
         ordens = OrdemDia.objects.filter(q)
         expedientes = ExpedienteMateria.objects.filter(q)
+        legislatura = kwargs['initial']['sessao_plenaria'].legislatura
+        mandato = Mandato.objects.filter(legislatura=legislatura)
+        parlamentares = [m.parlamentar for m in mandato]
+
 
         super(JustificativaAusenciaForm, self).__init__(
             *args, **kwargs)
 
         presencas = SessaoPlenariaPresenca.objects.filter(
             q).order_by('parlamentar__nome_parlamentar')
+
+        presentes = [p.parlamentar for p in presencas]
+        setFinal = set(parlamentares) - set(presentes)
 
         self.fields['materias_do_expediente'].choices = [
             (e.id, e.materia) for e in expedientes]
@@ -755,8 +762,7 @@ class JustificativaAusenciaForm(ModelForm):
             (o.id, o.materia) for o in ordens]
 
         self.fields['parlamentar'].choices = [
-            ("0", "------------")] + [
-            (p.parlamentar.id, p.parlamentar) for p in presencas]
+            ("0", "------------")] + [(p.id, p) for p in setFinal]
 
     def clean(self):
         cleaned_data = super(JustificativaAusenciaForm, self).clean()
