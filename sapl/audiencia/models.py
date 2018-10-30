@@ -1,5 +1,6 @@
 import reversion
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 from sapl.materia.models import MateriaLegislativa
@@ -142,6 +143,51 @@ class AudienciaPublica(models.Model):
             self.upload_pauta = upload_pauta
             self.upload_ata = upload_ata
             self.upload_anexo = upload_anexo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
+
+
+@reversion.register()
+class AnexoAudienciaPublica(models.Model):
+    audiencia = models.ForeignKey(AudienciaPublica,
+                                  on_delete=models.PROTECT)
+    arquivo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=texto_upload_path,
+        verbose_name=_('Arquivo'))
+    data = models.DateField(auto_now=timezone.now,blank=True, null=True)
+    assunto = models.TextField(
+        blank=True, verbose_name=_('Assunto'))
+
+    class Meta:
+        verbose_name = _('Anexo de Documento Acessório')
+        verbose_name_plural = _('Anexo de Documentos Acessórios')
+
+    def __str__(self):
+        return self.assunto
+
+    def delete(self, using=None, keep_parents=False):
+        if self.arquivo:
+            self.arquivo.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.arquivo:
+            arquivo = self.arquivo
+            self.arquivo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.arquivo = arquivo
 
         return models.Model.save(self, force_insert=force_insert,
                                  force_update=force_update,

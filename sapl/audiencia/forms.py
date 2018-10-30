@@ -1,13 +1,19 @@
+import logging
+
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
-from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
+from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica, AnexoAudienciaPublica
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
+
+from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.utils import timezone
 
 class AudienciaForm(forms.ModelForm):
-
+    logger = logging.getLogger(__name__)
     data_atual = timezone.now()
 
     tipo = forms.ModelChoiceField(required=True,
@@ -58,6 +64,7 @@ class AudienciaForm(forms.ModelForm):
 
 
     def clean(self):
+                
         cleaned_data = super(AudienciaForm, self).clean()
         if not self.is_valid():
             return cleaned_data
@@ -68,6 +75,7 @@ class AudienciaForm(forms.ModelForm):
 
         if materia and ano_materia and tipo_materia:
             try:
+                self.logger.debug("Tentando obter MateriaLegislativa %s nº %s/%s." % (tipo_materia, materia, ano_materia))
                 materia = MateriaLegislativa.objects.get(
                     numero=materia,
                     ano=ano_materia,
@@ -75,14 +83,19 @@ class AudienciaForm(forms.ModelForm):
             except ObjectDoesNotExist:
                 msg = _('A matéria %s nº %s/%s não existe no cadastro'
                         ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
+                self.logger.error('A MateriaLegislativa %s nº %s/%s não existe no cadastro'
+                        ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
                 raise ValidationError(msg)
             else:
+                self.logger.info("MateriaLegislativa %s nº %s/%s obtida com sucesso." % (tipo_materia, materia, ano_materia))
                 cleaned_data['materia'] = materia
 
         else:
             campos = [materia, tipo_materia, ano_materia]
             if campos.count(None) + campos.count('') < len(campos):
                 msg = _('Preencha todos os campos relacionados à Matéria Legislativa')
+                self.logger.error('Algum campo relacionado à MatériaLegislativa %s nº %s/%s \
+                                não foi preenchido.' % (tipo_materia, materia, ano_materia))
                 raise ValidationError(msg)
 
         if not cleaned_data['numero']:
@@ -98,7 +111,32 @@ class AudienciaForm(forms.ModelForm):
         if self.cleaned_data['hora_inicio'] and self.cleaned_data['hora_fim']:
             if (self.cleaned_data['hora_fim'] <
                 self.cleaned_data['hora_inicio']):
-                    msg = _('A hora de fim não pode ser anterior a hora de início')
+                    msg = _('A hora de fim ({}) não pode ser anterior a hora '
+                    'de início({})'.format(self.cleaned_data['hora_fim'], self.cleaned_data['hora_inicio']))
+                    self.logger.error('Hora de fim anterior à hora de início.')
                     raise ValidationError(msg)
 
         return cleaned_data
+
+
+class AnexoAudienciaPublicaForm(forms.ModelForm):
+
+    class Meta:
+        model = AnexoAudienciaPublica
+        fields = ['arquivo',
+                  'assunto']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row(
+            [('arquivo', 4)])
+
+        row2 = to_row(
+            [('assunto', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Identificação Básica'),
+                     row1, row2))
+        super(AnexoAudienciaPublicaForm, self).__init__(
+            *args, **kwargs)

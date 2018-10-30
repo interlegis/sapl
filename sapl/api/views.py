@@ -1,4 +1,4 @@
-
+import logging
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
@@ -124,6 +124,7 @@ class AutorListView(ListAPIView):
                       qualquer atributo destes models podem ser passados
                       para busca
     """
+    logger = logging.getLogger(__name__)
 
     TR_AUTOR_CHOICE_SERIALIZER = 1
     TR_AUTOR_SERIALIZER = 3
@@ -138,6 +139,7 @@ class AutorListView(ListAPIView):
 
     @property
     def tr(self):
+        username = self.request.user.username
         try:
             tr = int(self.request.GET.get
                      ('tr', AutorListView.TR_AUTOR_CHOICE_SERIALIZER))
@@ -145,7 +147,8 @@ class AutorListView(ListAPIView):
             if tr not in (AutorListView.TR_AUTOR_CHOICE_SERIALIZER,
                           AutorListView.TR_AUTOR_SERIALIZER):
                 return AutorListView.TR_AUTOR_CHOICE_SERIALIZER
-        except:
+        except Exception as e:
+            self.logger.error('user=' + username + '. ' + str(e))
             return AutorListView.TR_AUTOR_CHOICE_SERIALIZER
         return tr
 
@@ -161,6 +164,7 @@ class AutorListView(ListAPIView):
 
 
 class AutoresProvaveisListView(ListAPIView):
+    logger = logging.getLogger(__name__)
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Autor.objects.all()
@@ -171,14 +175,16 @@ class AutoresProvaveisListView(ListAPIView):
     serializer_class = ChoiceSerializer
 
     def get_queryset(self):
+        
         params = {'content_type__isnull': False}
-
+        username = self.request.user.username
         tipo = ''
         try:
             tipo = int(self.request.GET.get('tipo', ''))
             if tipo:
                 params['id'] = tipo
-        except:
+        except Exception as e:
+            self.logger.error('user= ' + username + '. ' + str(e))
             pass
 
         tipos = TipoAutor.objects.filter(**params)

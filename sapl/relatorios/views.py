@@ -1,5 +1,6 @@
 import html
 import re
+import logging
 from datetime import datetime as dt
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -782,7 +783,8 @@ def relatorio_sessao_plenaria(request, pk):
     '''
         pdf_sessao_plenaria_gerar.py
     '''
-
+    logger = logging.getLogger(__name__)
+    username = request.user.username
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = (
         'inline; filename="relatorio_protocolo.pdf"')
@@ -797,8 +799,10 @@ def relatorio_sessao_plenaria(request, pk):
     imagem = get_imagem(casa)
 
     try:
+        logger.debug("user=" + username + ". Tentando obter SessaoPlenaria com id={}.".format(pk))
         sessao = SessaoPlenaria.objects.get(id=pk)
-    except ObjectDoesNotExist:
+    except ObjectDoesNotExist as e:
+        logger.error("user=" + username + ". Essa SessaoPlenaria não existe (pk={}). ".format(pk) + str(e))
         raise Http404('Essa página não existe')
 
     (inf_basicas_dic,
@@ -1061,6 +1065,7 @@ def get_pauta_sessao(sessao, casa):
             id=expediente_materia.materia.id).first()
 
         dic_expediente_materia = {}
+        dic_expediente_materia["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_expediente_materia["num_ordem"] = str(
             expediente_materia.numero_ordem)
         dic_expediente_materia["id_materia"] = str(
@@ -1113,6 +1118,7 @@ def get_pauta_sessao(sessao, casa):
             id=votacao.materia.id).first()
 
         dic_votacao = {}
+        dic_votacao["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_votacao["num_ordem"] = votacao.numero_ordem
         dic_votacao["id_materia"] = str(
             materia.numero) + "/" + str(materia.ano)
@@ -1123,7 +1129,7 @@ def get_pauta_sessao(sessao, casa):
 
         numeracao = Numeracao.objects.filter(materia=votacao.materia).first()
         if numeracao:
-             dic_votacao["des_numeracao"] = str(
+            dic_votacao["des_numeracao"] = str(
                  numeracao.numero_materia) + '/' + str(numeracao.ano_materia)
 
         turno, tramitacao = get_turno(dic_votacao, materia, sessao.data_inicio)

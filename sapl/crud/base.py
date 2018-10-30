@@ -1,4 +1,4 @@
-
+import logging
 from braces.views import FormMessagesMixin
 from compressor.utils.decorators import cached_property
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
@@ -102,6 +102,7 @@ variáveis do crud:
 class SearchMixin(models.Model):
 
     search = models.TextField(blank=True, default='')
+    logger = logging.getLogger(__name__)
 
     class Meta:
         abstract = True
@@ -116,7 +117,9 @@ class SearchMixin(models.Model):
                 if len(fields) == 1:
                     try:
                         search += str(getattr(self, str_field)) + ' '
-                    except:
+                    except Exception as e:
+                        username = self.request.user.username
+                        self.logger.error("user=" + username + ". " + str(e))
                         pass
                 else:
                     _self = self
@@ -379,6 +382,7 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
 
 class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
     permission_required = (RP_LIST, )
+    logger = logging.getLogger(__name__)
 
     @classmethod
     def get_url_regex(cls):
@@ -552,7 +556,9 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                         fm = None
                         try:
                             fm = model._meta.get_field(fo)
-                        except:
+                        except Exception as e:
+                            username = self.request.user.username
+                            self.logger.error("user=" + username + ". " + str(e))
                             pass
 
                         if fm and hasattr(fm, 'related_model')\
@@ -597,6 +603,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
 class CrudCreateView(PermissionRequiredContainerCrudMixin,
                      FormMessagesMixin, CreateView):
     permission_required = (RP_ADD, )
+    logger = logging.getLogger(__name__)
 
     @classmethod
     def get_url_regex(cls):
@@ -621,7 +628,9 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
         try:
             self.object.owner = self.request.user
             self.object.modifier = self.request.user
-        except:
+        except Exception as e:
+            username = self.request.user.username
+            self.logger.error("user=" + username + ". " + str(e))
             pass
 
         if self.container_field:
@@ -668,6 +677,7 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
     permission_required = (RP_DETAIL, )
     no_entries_msg = _('Nenhum registro Associado.')
     paginate_by = 10
+    logger = logging.getLogger(__name__)
 
     @classmethod
     def get_url_regex(cls):
@@ -690,7 +700,9 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
                     self.object, obj.model_set).model._meta.get_field(
                     fieldname).related_model._meta.verbose_name_plural)
                 for fieldname in self.list_field_names_set]
-        except:
+        except Exception as e:
+            username = self.request.user.username
+            self.logger.error("user=" + username + ". " + str(e))
             obj = self.crud if hasattr(self, 'crud') else self
             return [getattr(
                 self.object,
@@ -717,7 +729,9 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
                 self.resolve_model_set_url(ACTION_DETAIL, args=(obj.id,))
                 if i == 0 else None)
                 for i, name in enumerate(self.list_field_names_set)]
-        except:
+        except Exception as e:
+            username = self.request.user.username
+            self.logger.error("user=" + username + ". " + str(e))
             return [(
                 getattr(obj, name),
                 self.resolve_model_set_url(ACTION_DETAIL, args=(obj.id,))
@@ -732,7 +746,9 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
     def get(self, request, *args, **kwargs):
         try:
             self.object = self.model.objects.get(pk=kwargs.get('pk'))
-        except:
+        except Exception as e:
+            username = request.user.username
+            self.logger.error("user=" + username + ". " + str(e))
             raise Http404
         obj = self.crud if hasattr(self, 'crud') else self
         if hasattr(obj, 'model_set') and obj.model_set:
@@ -805,12 +821,16 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
 class CrudUpdateView(PermissionRequiredContainerCrudMixin,
                      FormMessagesMixin, UpdateView):
     permission_required = (RP_CHANGE, )
+    logger = logging.getLogger(__name__)
 
     def form_valid(self, form):
+        
         self.object = form.instance
         try:
             self.object.modifier = self.request.user
-        except:
+        except Exception as e:
+            username = self.request.user.username
+            self.logger.error("user=" + username + ". " + str(e))
             pass
 
         return super().form_valid(form)
@@ -832,6 +852,7 @@ class CrudUpdateView(PermissionRequiredContainerCrudMixin,
 class CrudDeleteView(PermissionRequiredContainerCrudMixin,
                      FormMessagesMixin, DeleteView):
     permission_required = (RP_DELETE, )
+    logger = logging.getLogger(__name__)
 
     @classmethod
     def get_url_regex(cls):
@@ -853,12 +874,20 @@ class CrudDeleteView(PermissionRequiredContainerCrudMixin,
             error_msg = 'Registro não pode ser removido, pois\
                          é referenciado por outros registros:<br>\
                          <ul>'
+            error_msg2 = ''
             for i in err.protected_objects:
                 error_msg += '<li>{} - {}</li>'.format(
                     i._meta.verbose_name, i
                 )
+                error_msg2 += '{} - {}, '.format(
+                    i._meta.verbose_name, i
+                )
+            error_msg2 = error_msg2[:len(error_msg2)-2] + '.'
             error_msg += '</ul>'
-
+            
+            username = request.user.username
+            self.logger.error("user=" + username + ". Registro não pode ser removido, pois "
+                         "é referenciado por outros registros: " + error_msg2)
             messages.add_message(request,
                                  messages.ERROR,
                                  error_msg)
@@ -1062,12 +1091,14 @@ class MasterDetailCrud(Crud):
 
     class ListView(Crud.ListView):
         permission_required = RP_LIST,
+        logger = logging.getLogger(__name__)
 
         @classmethod
         def get_url_regex(cls):
             return r'^(?P<pk>\d+)/%s$' % cls.model._meta.model_name
 
         def get_context_data(self, **kwargs):
+
             obj = self.crud if hasattr(self, 'crud') else self
             context = CrudListView.get_context_data(self, **kwargs)
 
@@ -1098,7 +1129,9 @@ class MasterDetailCrud(Crud):
 
             try:
                 parent_object = parent_model.objects.get(**params)
-            except:
+            except Exception as e:
+                username = self.request.user.username
+                self.logger.error("user=" + username + ". " + str(e))
                 raise Http404()
 
             context[
@@ -1119,6 +1152,7 @@ class MasterDetailCrud(Crud):
 
     class CreateView(Crud.CreateView):
         permission_required = RP_ADD,
+        logger = logging.getLogger(__name__)
 
         def dispatch(self, request, *args, **kwargs):
             return PermissionRequiredMixin.dispatch(
@@ -1144,6 +1178,7 @@ class MasterDetailCrud(Crud):
             return form
 
         def get_context_data(self, **kwargs):
+
             obj = self.crud if hasattr(self, 'crud') else self
             context = Crud.CreateView.get_context_data(
                 self, **kwargs)
@@ -1161,7 +1196,9 @@ class MasterDetailCrud(Crud):
 
                 try:
                     parent_object = parent_model.objects.get(**params)
-                except Exception:
+                except Exception as e:
+                    username = self.request.user.username
+                    self.logger.error("user=" + username + ". " + str(e))
                     raise Http404()
             else:
                 parent_model = self.model

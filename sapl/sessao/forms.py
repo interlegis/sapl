@@ -430,7 +430,7 @@ class VotacaoForm(forms.Form):
 
 class VotacaoNominalForm(forms.Form):
     resultado_votacao = forms.ModelChoiceField(label='Resultado da Votação',
-                                               required=True,
+                                               required=False,
                                                queryset=TipoResultadoVotacao.objects.all())
 
 

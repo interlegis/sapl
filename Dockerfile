@@ -1,8 +1,8 @@
-FROM alpine:3.7
+FROM alpine:3.8
 
 ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
-python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev nodejs py3-lxml \
-py3-magic postgresql-client poppler-utils antiword vim openssh-client
+                   python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev \ 
+                   nodejs npm py3-lxml py3-magic postgresql-client poppler-utils antiword vim openssh-client
 
 RUN apk update --update-cache && apk upgrade
 
@@ -40,7 +40,7 @@ COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
 # compilescss - Precompile all occurrences of your SASS/SCSS files for the whole project into css files
 
-RUN python3 manage.py bower_install -- --allow-root --no-input && \
+RUN python3 manage.py bower_install --allow-root && \
     python3 manage.py compilescss
 
 RUN python3 manage.py collectstatic --noinput --clear

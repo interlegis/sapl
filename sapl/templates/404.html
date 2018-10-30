@@ -1,6 +1,6 @@
-<!DOCTYPE html>
 {% load i18n staticfiles sass_tags menus %}
 {% load common_tags %}
+<!DOCTYPE html>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!-->
 <html class="no-js" lang="pt-br">
@@ -44,40 +44,6 @@
           </div>
           <div id="navbar" class="navbar-collapse collapse">
 
-            {% block sections_navbar %} {% navbar 'navbar.yaml' %}{% endblock sections_navbar %}
-
-            <ul class="nav navbar-nav navbar-right" id="autenticacao">
-              <li class="dropdown pesquisa">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="{% static 'img/search.png' %}"><span class="caret"></span></a>
-                  <ul class="dropdown-menu">
-                    <li class="nav__sub-item">
-                      <form class="navbar-form search-form" method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
-                				<input type="text" class="form-control" placeholder="Pesquisar no LexML" />
-                			</form>
-                    </li>
-                  </ul>
-              </li>
-              <li><a href="/sistema/ajuda"><img src="{% static 'img/manual.png' %}"></a></li>
-              {% if not user.is_authenticated %}
-                <li><a href="{% url 'sapl.base:login' %}"><img src="{% static 'img/user.png' %}"></a></li>
-              {% else %}
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img height="30" width="30" src="{% static 'img/authenticated.png' %}"><span class="caret"></span></a>
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li><a>{{user.username}}</a></li>
-                    {% if 'parlamentares.can_vote' in request.user.get_all_permissions %}
-                      <li><a href="" onclick="window.open('{% url 'sapl.painel:voto_individual' %}','Voto Individual','width=1000, height=800, scrollbars=yes')";>
-                        Votar Matéria
-                      </a></li>
-                    {% endif %}
-                    <li><a href="{% url 'sapl.base:alterar_senha' %}">Alterar senha</a></li>
-                    <li><a href="{% url 'sapl.base:logout' %}">Sair</a></li>
-                  </ul>
-                </li>
-              {% endif %}
-            </ul>
-
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -90,14 +56,10 @@
           <div class="navbar-header">
             <a class="navbar-brand" href="/">
               <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
-              alt="Logo" class="img-responsive" >
+              alt="Logo" class="img-responsive visible-md-inline-block visible-lg-inline-block" >
               <span class="vcenter">
                 {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
-                {% if nome %}
-                  {{ nome }}
-                {% else %}
-                  {% trans 'Câmara/Assembléia não configurada'%}
-                {% endif %}
+
                 <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
               </span>
             </a>
@@ -120,53 +82,13 @@
                 </div>
               </header>
       {% endif %}
-
-      {# Main content #}
-      {% block content_container %}
-        <main id="content" class="content page__row">
-          <div class="container">
-
-            {# Feedback messages #}
-            {% for message in messages %}
-              <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade in" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                </button>
-                {{ message|safe }}
-              </div>
-            {% endfor %}
-
-            {# Content header #}
-            {% block base_header %}
-              <div class="clearfix">
-
-                {% block help %}
-{#                    {% if view.help_topic %}#}
-{#                        <a class="contextual-help right" href="{% url 'sapl.base:help'  %}{{ view.help_topic  }}">{% trans 'Ajuda' %}</a>#}
-{#                    {% endif %}#}
-                {% endblock %}
-
-                {% block title %}
-                  <h1 class="page-header">
-                    {% if title %}
-                      {{ title|safe|linebreaksbr }}
-                    {% elif object %}
-                      {{ object|safe|linebreaksbr }}
-                    {% endif %}
-                  </h1>
-                {% endblock %}
-
-              </div>
-            {% endblock base_header %}
-
-            {# Content per se #}
-            {% block base_content %}{% endblock %}
-
-          </div>
-        </main>
-
-      {% endblock content_container %}
-
+      <div class="container">
+      <span class="text-center">
+        <br/><h1><big>{% trans 'Página não encontrada! Erro 404' %}</big></h1>
+      </span>
+  </div>
+      {% block base_content %}
+      {% endblock %}
       {% if not request|has_iframe %}
       {% block footer_container %}
       <footer id="footer" class="footer page__row hidden-print">
@@ -184,7 +106,6 @@
                 <small>
                   Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto.
                 </small>
-		<span>Release: 3.1.131</span>
               </p>
             </div>
             <div class="col-md-4">
@@ -193,32 +114,9 @@
               </a>
               <p>
                 <small>
-                  Conteúdo e dados sob licença <a href="https://creativecommons.org">Creative Commons</a> 4.0<br><a href="https://creativecommons.org/licenses/by/4.0/">Atribuir Fonte - Compartilhar Igual</a>
+                  Conteúdo e dados sob licença <a href="https://creativecommons.org">Creative Commons</a> 4.0 <a href="https://creativecommons.org/licenses/by/4.0/">Atribuir Fonte - Compartilhar Igual</a>
                 </small>
               </p>
-            </div>
-            <div class="col-md-4">
-              {% if nome %}
-              <address>
-                <small>
-                  <strong>
-                    <span class="org">{{ nome }}</span>
-                  </strong>
-                  <br>
-                  <span class="street-address">{{ endereco }}</span>
-                  <br> CEP: <span class="postal-code">{{ cep }}</span> | Telefone: <span>{{ telefone }}</span>
-                  <br>
-                  <a href="{{endereco_web}}" class="url">{% trans 'Site' %}</a> |
-                  <a href="mailto:{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
-                </small>
-              </address>
-              {% else %}
-                 Casa Legislativa não configurada.
-                 <br>
-                {% if user.is_authenticated %}
-                  <a href="{% url 'sapl.base:casalegislativa_list' %}">Favor configurar clicando aqui</a>
-                {% endif %}
-              {% endif %}
             </div>
           </div>
         </div>

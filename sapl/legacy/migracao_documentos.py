@@ -1,4 +1,5 @@
 import os
+import shutil
 import re
 from glob import glob
 from os.path import join
@@ -52,6 +53,12 @@ def mover_documento(repo, origem, destino, ignora_origem_ausente=False):
     if ignora_origem_ausente and not os.path.exists(origem):
         print('Origem ignorada ao mover documento: {}'.format(origem))
         return
+    # apaga destino, se houver, e renomeia origem para destino
+    if os.path.exists(destino):
+        if os.path.isdir(destino):
+            shutil.rmtree(destino)
+        else:
+            os.remove(destino)
     os.makedirs(os.path.dirname(destino), exist_ok=True)
     os.rename(origem, destino)
 

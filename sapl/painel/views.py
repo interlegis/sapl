@@ -1,5 +1,6 @@
 import html
 import json
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
@@ -42,6 +43,9 @@ def votacao_aberta(request):
     nenhuma. É utilizada como uma função auxiliar para a view
     votante_view.
     '''
+    logger = logging.getLogger(__name__)
+    username = request.user.username
+
     votacoes_abertas = SessaoPlenaria.objects.filter(
         Q(ordemdia__votacao_aberta=True) |
         Q(expedientemateria__votacao_aberta=True)).distinct()
@@ -53,7 +57,9 @@ def votacao_aberta(request):
                 reverse('sapl.sessao:sessaoplenaria_detail',
                         kwargs={'pk': v.id}),
                 v.__str__()))
-
+        logger.info('user=' + username + '. Existe mais de uma votações aberta. Elas se encontram '
+                    'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
+                    'Para votar, peça para que o Operador feche-as.')
         msg = _('Existe mais de uma votações aberta. Elas se encontram '
                 'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
                 'Para votar, peça para que o Operador feche-as.')
@@ -70,6 +76,11 @@ def votacao_aberta(request):
 
         numero_materias_abertas = len(ordens) + len(expedientes)
         if numero_materias_abertas > 1:
+            logger.info('user=' + username + '. Existe mais de uma votação aberta na Sessão: ' +
+                        ('''<li><a href="%s">%s</a></li>''' % (
+                        reverse('sapl.sessao:sessaoplenaria_detail',
+                                kwargs={'pk': votacoes_abertas.first().id}),
+                        votacoes_abertas.first().__str__())))
             msg = _('Existe mais de uma votação aberta na Sessão: ' +
                     ('''<li><a href="%s">%s</a></li>''' % (
                         reverse('sapl.sessao:sessaoplenaria_detail',
@@ -83,7 +94,7 @@ def votacao_aberta(request):
 
 
 def votacao(context,context_vars):
-
+    logger = logging.getLogger(__name__)
     parlamentar = context_vars['votante'].parlamentar
     parlamentar_presente = False
     if parlamentar.id in context_vars['presentes']:
@@ -105,13 +116,17 @@ def votacao(context,context_vars):
 
         if voto:
             try:
+                logger.debug("Tentando obter objeto VotoParlamentar com parlamentar={}.".format(context_vars['parlamentar']))
                 voto = voto.get(parlamentar=context_vars['parlamentar'])
                 context.update({'voto_parlamentar': voto.voto})
             except ObjectDoesNotExist:
+                logger.error("Voto do parlamentar {} não computado.".format(context_vars['parlamentar']))
                 context.update(
                     {'voto_parlamentar': 'Voto não '
                      'computado.'})
     else:
+        logger.error("Parlamentar com id={} não está presente na "
+                    "Ordem do Dia/Expediente em votação.".format(parlamentar.id))
         context.update({'error_message':
                         'Você não está presente na '
                         'Ordem do Dia/Expediente em votação.'})
@@ -185,14 +200,20 @@ def can_vote(context, context_vars, request):
 
 
 def votante_view(request):
+    logger = logging.getLogger(__name__)
+    username = request.user.username
+
     # Pega o votante relacionado ao usuário
     template_name = 'painel/voto_nominal.html'
     context = {}
     context_vars = {}
 
     try:
+        logger.debug('user=' + username + '. Tentando obter objeto Votante com user={}.'.format(request.user))
         votante = Votante.objects.get(user=request.user)
     except ObjectDoesNotExist:
+        logger.error("user=" + username + ". Usuário (user={}) não cadastrado como votante na tela de parlamentares. " 
+                     "Contate a administração de sua Casa Legislativa!".format(request.user))
         msg = _("Usuário não cadastrado como votante na tela de parlamentares. Contate a administração de sua Casa Legislativa!")
         context.update({
             'error_message':msg
@@ -205,8 +226,9 @@ def votante_view(request):
     # Verifica se usuário possui permissão para votar
     if 'parlamentares.can_vote' in request.user.get_all_permissions():
         context, context_vars = can_vote(context, context_vars, request)
-
+        logger.debug("user=" + username + ". Verificando se usuário {} possui permissão para votar.".format(request.user))
     else:
+        logger.error("user=" + username + ". Usuário {} sem permissão para votar.".format(request.user))
         context.update({'permissao': False,
                         'error_message': 'Usuário sem permissão para votar.'})
 
@@ -214,10 +236,14 @@ def votante_view(request):
     if request.method == 'POST':
         if context_vars['ordem_dia']:
             try:
+                logger.info("user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e ordem={}."
+                            .format(context_vars['parlamentar'], context_vars['ordem_dia']))
                 voto = VotoParlamentar.objects.get(
                     parlamentar=context_vars['parlamentar'],
                     ordem=context_vars['ordem_dia'])
             except ObjectDoesNotExist:
+                logger.error("user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e ordem={}. Criando objeto."
+                             .format(context_vars['parlamentar'], context_vars['ordem_dia']))
                 voto = VotoParlamentar.objects.create(
                     parlamentar=context_vars['parlamentar'],
                     voto=request.POST['voto'],
@@ -225,6 +251,8 @@ def votante_view(request):
                     ip=get_client_ip(request),
                     ordem=context_vars['ordem_dia'])
             else:
+                logger.info("user=" + username + ". VotoParlamentar para parlamentar={} e ordem={} obtido com sucesso."
+                            .format(context_vars['parlamentar'], context_vars['ordem_dia']))
                 voto.voto = request.POST['voto']
                 voto.ip = get_client_ip(request)
                 voto.user = request.user
@@ -232,10 +260,14 @@ def votante_view(request):
 
         elif context_vars['expediente']:
             try:
+                logger.info("user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e expediente={}."
+                            .format(context_vars['parlamentar'], context_vars['expediente']))
                 voto = VotoParlamentar.objects.get(
                     parlamentar=context_vars['parlamentar'],
                     expediente=context_vars['expediente'])
             except ObjectDoesNotExist:
+                logger.error("user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e expediente={}. Criando objeto."
+                             .format(context_vars['parlamentar'], context_vars['expediente']))
                 voto = VotoParlamentar.objects.create(
                     parlamentar=context_vars['parlamentar'],
                     voto=request.POST['voto'],
@@ -243,6 +275,8 @@ def votante_view(request):
                     ip=get_client_ip(request),
                     expediente=context_vars['expediente'])
             else:
+                logger.info("user=" + username + ". VotoParlamentar para parlamentar={} e expediente={} obtido com sucesso."
+                            .format(context_vars['parlamentar'], context_vars['expediente']))
                 voto.voto = request.POST['voto']
                 voto.ip = get_client_ip(request)
                 voto.user = request.user
@@ -304,9 +338,14 @@ def cronometro_painel(request):
 
 
 def get_cronometro_status(request, name):
+    logger = logging.getLogger(__name__)
+    username = request.user.username
+
     try:
+        logger.debug("user=" + username + ". Tentando obter cronometro.")
         cronometro = request.session[name]
-    except KeyError:
+    except KeyError as e:
+        logger.error("user=" + username + ". Erro ao obter cronometro. Retornado como vazio. " + str(e))
         cronometro = ''
     return cronometro
 
@@ -402,6 +441,7 @@ def response_nenhuma_materia(response):
 
 
 def get_votos(response, materia):
+    logger = logging.getLogger(__name__)
     if type(materia) == OrdemDia:
         registro = RegistroVotacao.objects.filter(
             ordem=materia, materia=materia.materia).last()
@@ -433,9 +473,12 @@ def get_votos(response, materia):
 
             for i, p in enumerate(response['presentes']):
                 try:
+                    logger.info("Tentando obter votos do parlamentar (id={}).".format(p['parlamentar_id']))
                     if votos_parlamentares.get(parlamentar_id=p['parlamentar_id']).voto:
                         response['presentes'][i]['voto'] = 'Voto Informado'
                 except ObjectDoesNotExist:
+                    logger.error("Votos do parlamentar (id={}) não encontrados. Retornado vazio."
+                                 .format(p['parlamentar_id']))
                     response['presentes'][i]['voto'] = ''
 
     else:
@@ -450,9 +493,11 @@ def get_votos(response, materia):
 
             for i, p in enumerate(response['presentes']):
                 try:
+                    logger.debug("Tentando obter votos do parlamentar (id={}).".format(p['parlamentar_id']))
                     response['presentes'][i]['voto'] = votos_parlamentares.get(
                         parlamentar_id=p['parlamentar_id']).voto
                 except ObjectDoesNotExist:
+                    logger.error("Votos do parlamentar (id={}) não encontrados. Retornado None.".format(p['parlamentar_id']))
                     response['presentes'][i]['voto'] = None
 
         response.update({

@@ -1,5 +1,14 @@
 {% load i18n compilacao_filters %}
 
+{% for message in messages %}
+  <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade in" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+    </button>
+    {{ message|safe }}
+  </div>
+{% endfor %}
+
 {% if object_list.count >= 100 %}
   <div class="alert-box success radius">
     {% trans 'Use argumentos para simplificar listagem...' %}

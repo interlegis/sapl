@@ -6,7 +6,7 @@ from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposicao
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
-from sapl.utils import filiacao_data
+from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO
 
 register = template.Library()
 
@@ -96,7 +96,12 @@ def isinst(value, class_str):
 @register.filter
 @stringfilter
 def strip_hash(value):
-    return value.split('/')[0][1:]
+    vet = value.split('/')
+    if len(vet) == 2:
+        return vet[0][1:]
+    else:
+        return value.split(SEPARADOR_HASH_PROPOSICAO)[0][1:]
+
 
 
 @register.filter
@@ -198,6 +203,19 @@ def url(value):
         return True
     return False
 
+@register.filter
+def audio_url(value):
+    return True if url(value) and value.endswith("mp3") else False
+
+
+@register.filter
+def video_url(value):
+    return True if url(value) and value.endswith("mp4") else False
+
+@register.filter
+def file_extension(value):
+    import pathlib
+    return pathlib.Path(value).suffix.replace('.', '')
 
 @register.filter
 def cronometro_to_seconds(value):
