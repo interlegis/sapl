@@ -21,6 +21,12 @@ ESFERA_FEDERACAO_CHOICES = (('M', _('Municipal')),
     ('F', _('Federal')),
 )
 
+ASSINATURA_ATA_CHOICES = (
+    ('M', _('Mesa do dia')),
+    ('P', _('Apenas o presidente do dia')),
+    ('T', _('Todos os presentes')),
+)
+
 
 @reversion.register()
 class CasaLegislativa(models.Model):
@@ -110,6 +116,10 @@ class AppConfig(models.Model):
     proposicao_incorporacao_obrigatoria = models.CharField(
         verbose_name=_('Regra de incorporação de proposições e protocolo'),
         max_length=1, choices=POLITICA_PROTOCOLO_CHOICES, default='O')
+
+    assinatura_ata = models.CharField(
+        verbose_name=_('Quem deve assina a ata'),
+        max_length=1, choices=ASSINATURA_ATA_CHOICES, default='T')
 
     cronometro_discurso = models.TimeField(
         verbose_name=_('Cronômetro do Discurso'),

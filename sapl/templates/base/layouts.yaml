@@ -21,7 +21,10 @@ AppConfig:
   - sequencia_numeracao proposicao_incorporacao_obrigatoria receber_recibo_proposicao
 
   {% trans 'Textos Articulados' %}:
-  - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
+  - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma assinatura_ata
+
+  {% trans 'Assinaturas' %}:
+  - assinatura_ata
 
   {% trans 'Cronômetros do Painel' %}:
   - cronometro_discurso cronometro_aparte cronometro_ordem cronometro_consideracoes
