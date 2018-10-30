@@ -2,10 +2,10 @@
 
 </p>
 </p>
-	<legend>Assinatura Parlamentares Presentes</legend>
+	<legend>Assinatura Parlamentares Presentes</legend></br>
 		<div class="row">
 		  {% for p in presenca_ordem %}
-		  	<div class="col-md-12">{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }}</p>
+		  	<div class="col-md-6">___________________________________________ </br>{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }}</br></br></br>
 		  	</div>
 		  {% endfor %}
 		</div>
