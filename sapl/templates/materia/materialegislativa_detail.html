@@ -32,4 +32,15 @@
            {{ object.normajuridica_set.last }}</a>
        </div>
     {% endif %}
+    {% if object.audienciapublica_set.exists %}
+       <p class="control-label">&emsp; Audiência(s) Pública(s)</p>
+       <div class="actions btn-group btn-group-sm" role="group">
+          {% for ap in object.audienciapublica_set.all %}
+            &emsp;&emsp;<a href="{% url 'sapl.audiencia:audienciapublica_detail' ap.id %}">
+                {{ ap.nome }}
+            </a>
+              {% if not forloop.last %} </br> {% endif %}
+          {% endfor %}
+       </div>
+    {% endif %}
 {% endblock detail_content %}
