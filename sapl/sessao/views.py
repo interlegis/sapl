@@ -1415,11 +1415,24 @@ class ResumoView(DetailView):
             sessao_plenaria_id=self.object.id
         ).order_by('parlamentar__nome_parlamentar')
 
-        composicao_mesa = ComposicaoMesa.objects.filter(sessao_legislativa=sessao)
+        parlamentares_mesa_dia = [m['parlamentar'] for m in context['mesa']]
+        # composicao_mesa = ComposicaoMesa.objects.filter(sessao_legislativa=sessao)
+        
+        for m in context['mesa']:
+            if m['cargo'].descricao == 'Presidente':
+                presidente_dia = [m['parlamentar']]
+                break
 
         parlamentares_ordem = [p.parlamentar for p in presencas]
 
         context.update({'presenca_ordem': parlamentares_ordem})
+
+        # if config == 'presenca_ordem':
+            # context.update({'assinatura_presentes': parlamentares_ordem})
+        # elif config == 'mesa_dia':
+            # context.update({'assinatura_presentes': parlamentares_mesa_dia})
+        # elif config == 'presidente':
+            # context.update({'assinatura_presentes': presidente_dia})
 
         # =====================================================================
         # Matérias Ordem do Dia
