@@ -132,6 +132,17 @@
   $( "#votosim" ).mouseleave(function(){document.location.reload(true);});
   $( "#votonao" ).mouseleave(function(){document.location.reload(true);});
   $( "#votoabstencao" ).mouseleave(function(){document.location.reload(true);});
+
+  $(document).on('keyup', (e) => {if (e.keyCode == 83){
+      document.getElementsByClassName("btn btn-lg btn-success")[0].click()
+  };});
+  $(document).on('keyup', (e) => {if (e.keyCode == 78){
+      document.getElementsByClassName("btn btn-lg btn-danger")[0].click()
+  };});
+  $(document).on('keyup', (e) => {if (e.keyCode == 65){
+      document.getElementsByClassName("btn btn-lg btn-secondary")[0].click()
+  };});
+  
   $(document).ready(
     function(){
 
@@ -154,7 +165,7 @@
          startTime();
 
       setTimeout(function() {
-          document.location.reload(true);
+      //    document.location.reload(true);
          }, 30000)
     });
 
