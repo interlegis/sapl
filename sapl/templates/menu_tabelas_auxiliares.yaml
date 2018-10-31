@@ -152,6 +152,9 @@
   - title: {% trans 'Tipo de Expediente' %}
     url: sapl.sessao:tipoexpediente_list
     css_class: btn btn-link
+  - title: {% trans 'Tipo de Retirada de Pauta' %}
+    url: sapl.sessao:tiporetiradapauta_list
+    css_class: btn btn-link
   - title: {% trans 'Ordenação do Resumo' %}
     url: sapl.sessao:resumo_ordenacao
     css_class: btn btn-link

@@ -99,3 +99,7 @@ JustificativaAusencia:
   - materias_do_expediente
   - materias_da_ordem_do_dia
   - observacao
+
+TipoRetiradaPauta:
+  {% trans 'Tipo Retirada Pauta'%}:
+  - descricao

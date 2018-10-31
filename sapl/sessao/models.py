@@ -584,6 +584,18 @@ class ResumoOrdenacao(models.Model):
     def __str__(self):
         return 'Ordenação do Resumo de uma Sessão'
 
+@reversion.register()
+class TipoRetiradaPauta(models.Model):
+    descricao = models.CharField(max_length=150, verbose_name=_('Descrição'))
+
+    class Meta:
+        verbose_name = _('Tipo de Retidara de Pauta')
+        verbose_name_plural = _('Tipos de Retirada de Pauta')
+        ordering = ['descricao']
+
+    def __str__(self):
+        return self.descricao
+
 
 @reversion.register()
 class TipoJustificativa(models.Model):
@@ -663,7 +675,7 @@ class JustificativaAusencia(models.Model):
                                  using=using,
                                  update_fields=update_fields)
 
-class RegistroVista(models.Model):
+class RetiradaPauta(models.Model):
     materia = models.ForeignKey(MateriaLegislativa,
                                 on_delete=models.CASCADE)
     ordem = models.ForeignKey(OrdemDia,
@@ -676,14 +688,18 @@ class RegistroVista(models.Model):
                                    on_delete=models.CASCADE)
     observacao = models.TextField(blank=True,
                                   verbose_name=_('Observações'))
-
     parlamentar = models.ForeignKey(Parlamentar,
                                     on_delete=models.PROTECT,
-                                    verbose_name=_('Requerente'))
+                                    verbose_name=_('Requerente'),
+                                    blank=True,
+                                    null=True)
+    tipo_de_retirada = models.ForeignKey(TipoRetiradaPauta,
+                                         on_delete=models.PROTECT,
+                                         verbose_name=_('Motivo de Retirada de Pauta'))
 
     class Meta:
-        verbose_name = _('Pedido de Vista')
-        verbose_name_plural = _('Pedidos de Vista')
+        verbose_name = _('Retirada de Pauta')
+        verbose_name_plural = _('Retirada de Pauta')
 
     def __str__(self):
         return _('Ordem: %(ordem)s - Requerente: %(requerente)s - '
@@ -699,6 +715,6 @@ class RegistroVista(models.Model):
         # forem reestruturados e os campos ordem e expediente forem unificados
         if not xor(bool(self.ordem), bool(self.expediente)):
             raise ValidationError(
-                'RegistroVotacao deve ter exatamente um dos campos '
+                'ReritadaPauta deve ter exatamente um dos campos '
                 'ordem ou expediente preenchido. Ambos estão preenchidos: '
                 '{}, {}'. format(self.ordem, self.expediente))

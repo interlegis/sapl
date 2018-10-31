@@ -43,24 +43,22 @@ from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm)
-from .models import (Bancada, Bloco, CargoBancada, CargoMesa, ExpedienteMateria,
-                     ExpedienteSessao, JustificativaAusencia, OcorrenciaSessao, IntegranteMesa,
+                    VotacaoNominalForm, RetiradaPautaForm)
+from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
+                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
-                     TipoJustificativa, TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar)
+                     TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
+                     RetiradaPauta, TipoJustificativa, JustificativaAusencia)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
-
-
-TipoResultadoVotacaoCrud = CrudAux.build(
-    TipoResultadoVotacao, 'tipo_resultado_votacao')
+TipoResultadoVotacaoCrud = CrudAux.build(TipoResultadoVotacao, 'tipo_resultado_votacao')
+TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
 
 
 def reordernar_materias_expediente(request, pk):

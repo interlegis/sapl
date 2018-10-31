@@ -26,7 +26,7 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
 from .models import (Bancada, Bloco, ExpedienteMateria, Orador, JustificativaAusencia,
                      OradorExpediente, OrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoResultadoVotacao, OcorrenciaSessao,
-                     RegistroVista)
+                     RetiradaPauta, TipoRetiradaPauta)
 
 
 
@@ -191,14 +191,18 @@ class SessaoPlenariaForm(ModelForm):
         return self.cleaned_data
 
 
-class RegistroVistaForm(ModelForm):
+class RetiradaPautaForm(ModelForm):
 
     parlamentar = forms.ModelChoiceField(required=True,
                                         empty_label='------',
                                         queryset=Parlamentar.objects.all())
 
+    tipo_de_retirada = forms.ModelChoiceField(required=True,
+                                              empty_label='------',
+                                              queryset=TipoRetiradaPauta.objects.all())
+
     class Meta:
-        model = RegistroVista
+        model = RetiradaPauta
         exclude = ['ordem', 'expediente', 'materia']
 
 
