@@ -262,16 +262,15 @@ class MateriaLegislativa(models.Model):
         from sapl.protocoloadm.models import Protocolo
         if self.ano and self.numero_protocolo:
             try:
-                protocolo = Protocolo.objects.get(
+                import pdb; pdb.set_trace()
+                protocolo = Protocolo.objects.filter(
                     ano=self.ano,
                     numero=self.numero_protocolo)
-                if protocolo.timestamp:
-                    return protocolo.timestamp.date()
+                if protocolo.first().timestamp:
+                    return protocolo.first().timestamp.date()
                 else:
                     return protocolo.data
             except ObjectDoesNotExist:
-                pass
-            except MultipleObjectsReturned:
                 pass
 
         return ''
