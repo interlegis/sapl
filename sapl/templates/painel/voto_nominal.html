@@ -134,15 +134,16 @@
   $( "#votoabstencao" ).mouseleave(function(){document.location.reload(true);});
 
   $(document).on('keyup', (e) => {if (e.keyCode == 83){
-      document.getElementsByClassName("btn btn-lg btn-success")[0].click()
+    document.querySelectorAll("#votosim input")[0].click();
+
   };});
   $(document).on('keyup', (e) => {if (e.keyCode == 78){
-      document.getElementsByClassName("btn btn-lg btn-danger")[0].click()
+      document.querySelectorAll("#votonao input")[0].click();
   };});
   $(document).on('keyup', (e) => {if (e.keyCode == 65){
-      document.getElementsByClassName("btn btn-lg btn-secondary")[0].click()
+      document.querySelectorAll("#votoabstencao input")[0].click();
   };});
-  
+
   $(document).ready(
     function(){
 
