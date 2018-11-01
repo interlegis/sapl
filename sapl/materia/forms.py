@@ -1329,6 +1329,7 @@ class ProposicaoForm(forms.ModelForm):
         fields = ['tipo',
                   'receber_recibo',
                   'descricao',
+                  'observacao',
                   'texto_original',
                   'materia_de_vinculo',
 
@@ -1365,6 +1366,7 @@ class ProposicaoForm(forms.ModelForm):
                        css_class="ementa_materia hidden alert-info",
                        dismiss=False), 12)),
             to_column(('descricao', 12)),
+            to_column(('observacao', 12)),
 
         ]
 
@@ -1507,6 +1509,7 @@ class DevolverProposicaoForm(forms.ModelForm):
         model = Proposicao
         fields = [
             'justificativa_devolucao',
+            'observacao',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -1519,6 +1522,7 @@ class DevolverProposicaoForm(forms.ModelForm):
             Fieldset(
                 _('Registro de Devolução'),
                 to_column(('justificativa_devolucao', 12)),
+                to_column(('observacao', 12)),
                 to_column(
                     (form_actions(label=_('Devolver'),
                                   name='devolver',
@@ -1600,6 +1604,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         fields = [
             'data_envio',
             'descricao',
+            'observacao',
             'gerar_protocolo',
             'numero_de_paginas'
         ]
@@ -1653,7 +1658,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 to_column(('tipo_readonly', 4)),
                 to_column(('data_envio', 3)),
                 to_column(('autor_readonly', 5)),
-                to_column(('descricao', 12)))]
+                to_column(('descricao', 12)),
+                to_column(('observacao', 12)))]
 
         fields.append(
             Fieldset(_('Vinculado a Matéria Legislativa'),

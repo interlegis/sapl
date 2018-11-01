@@ -280,6 +280,7 @@ class MateriaLegislativa(models.Model):
 
         for p in self.proposicao.all():
             p.conteudo_gerado_related = None
+            p.cancelado = True
             p.save()
 
         return models.Model.delete(
@@ -725,6 +726,11 @@ class Proposicao(models.Model):
         blank=True, null=True, default=None)
     conteudo_gerado_related = SaplGenericForeignKey(
         'content_type', 'object_id', verbose_name=_('Conteúdo Gerado'))
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
+    cancelado = models.BooleanField(verbose_name=_('Cancelada ?'),
+                                  choices=YES_NO_CHOICES,
+                                  default=False)
 
     """# Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
     # de uma já existente

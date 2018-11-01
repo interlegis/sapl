@@ -129,9 +129,14 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
         def get_queryset(self):
             return super().get_queryset().filter(
                 data_envio__isnull=False,
-                data_recebimento__isnull=False)
+                data_recebimento__isnull=False,
+                cancelado=False)
 
     class DetailView(CrudBaseForListAndDetailExternalAppView.DetailView):
+
+        def get_queryset(self):
+            return super().get_queryset().filter(
+                cancelado=False)
 
         @property
         def extras_url(self):

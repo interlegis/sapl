@@ -111,6 +111,20 @@
       </div>
   </div>
 
+
+  {% if object.observacao %}
+    <div class="row-fluid">
+        <div class="col-sm-12">
+          <div id="div_id_obseracao" class="form-group">
+            <p class="control-label">{%field_verbose_name object 'observacao'%}</p>
+            <div class="controls">
+                <div class="form-control-static">{{object.observacao}}</div>
+            </div>
+          </div>
+        </div>
+    </div>
+  {% endif %}
+
   <div class="row-fluid">
     {% if object.conteudo_gerado_related %}
         <div class="col-sm-6">
