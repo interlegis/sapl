@@ -262,7 +262,6 @@ class MateriaLegislativa(models.Model):
         from sapl.protocoloadm.models import Protocolo
         if self.ano and self.numero_protocolo:
             try:
-                import pdb; pdb.set_trace()
                 protocolo = Protocolo.objects.filter(
                     ano=self.ano,
                     numero=self.numero_protocolo)
