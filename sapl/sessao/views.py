@@ -1426,13 +1426,14 @@ class ResumoView(DetailView):
         parlamentares_ordem = [p.parlamentar for p in presencas]
 
         context.update({'presenca_ordem': parlamentares_ordem})
-
-        # if config == 'presenca_ordem':
-            # context.update({'assinatura_presentes': parlamentares_ordem})
-        # elif config == 'mesa_dia':
-            # context.update({'assinatura_presentes': parlamentares_mesa_dia})
-        # elif config == 'presidente':
-            # context.update({'assinatura_presentes': presidente_dia})
+        
+        config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
+        if config_assinatura_ata == 'T':
+            context.update({'assinatura_presentes': parlamentares_ordem})
+        elif config_assinatura_ata == 'M':
+            context.update({'assinatura_presentes': parlamentares_mesa_dia})
+        elif config_assinatura_ata == 'P':
+            context.update({'assinatura_presentes': presidente_dia})
 
         # =====================================================================
         # Matérias Ordem do Dia
