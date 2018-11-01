@@ -32,5 +32,6 @@ gunicorn==19.6.0
 django-reversion==2.0.8
 WeasyPrint==0.42
 whoosh==2.7.4
+pyoai==2.5.0
 django-speedinfo==1.3.5
 django-reversion-compare==0.8.4
