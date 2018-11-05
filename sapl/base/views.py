@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -170,9 +170,16 @@ class AutorCrud(CrudAux):
             pk_autor = self.object.id
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
-            
+
+            if not settings.EMAIL_HOST:
+                self.logger.warning(_('Registro de Autor sem envio de email. '
+                                      'Servidor de email não configurado.'))
+                return url_reverse
+
             try:
-                self.logger.debug('user=' + username + '. Enviando email na edição de Autores.')
+
+                self.logger.debug('user=' + username +
+                                  '. Enviando email na edição de Autores.')
                 kwargs = {}
                 user = self.object.user
 
@@ -200,8 +207,9 @@ class AutorCrud(CrudAux):
                 send_mail(assunto, mensagem, remetente, destinatario,
                           fail_silently=False)
             except Exception as e:
-                self.logger.error('user=' + username + '. Erro no envio de email na edição de Autores. ' + str(e))
-                
+                self.logger.error(
+                    'user=' + username + '. Erro no envio de email na edição de Autores. ' + str(e))
+
             return url_reverse
 
     class CreateView(CrudAux.CreateView):
@@ -224,9 +232,15 @@ class AutorCrud(CrudAux):
             pk_autor = self.object.id
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
-            
+
+            if not settings.EMAIL_HOST:
+                self.logger.warning(_('Registro de Autor sem envio de email. '
+                                      'Servidor de email não configurado.'))
+                return url_reverse
+
             try:
-                self.logger.debug('user=' + username + '. Enviando email na criação de Autores.')
+                self.logger.debug('user=' + username +
+                                  '. Enviando email na criação de Autores.')
 
                 kwargs = {}
                 user = self.object.user
@@ -257,8 +271,9 @@ class AutorCrud(CrudAux):
             except Exception as e:
                 print(
                     _('Erro no envio de email na criação de Autores.'))
-                self.logger.error('user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
-                    
+                self.logger.error(
+                    'user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
+
             return url_reverse
 
 
@@ -347,18 +362,21 @@ class RelatorioPresencaSessaoView(FilterView):
                 'ordemdia_porc': 0
             })
             try:
-                self.logger.debug('user=' + username + '. Tentando obter presença do parlamentar (pk={}).'.format(p.id))
+                self.logger.debug(
+                    'user=' + username + '. Tentando obter presença do parlamentar (pk={}).'.format(p.id))
                 sessao_count = presenca_sessao.get(parlamentar_id=p.id)[1]
             except ObjectDoesNotExist as e:
-                self.logger.error('user=' + username + '. Erro ao obter presença do parlamentar (pk={}). Definido como 0. '.format(p.id) + str(e))
+                self.logger.error(
+                    'user=' + username + '. Erro ao obter presença do parlamentar (pk={}). Definido como 0. '.format(p.id) + str(e))
                 sessao_count = 0
             try:
                 # Presenças de cada Ordem do Dia
-                self.logger.info('user=' + username + '. Tentando obter PresencaOrdemDia para o parlamentar pk={}.'.format(p.id))
+                self.logger.info(
+                    'user=' + username + '. Tentando obter PresencaOrdemDia para o parlamentar pk={}.'.format(p.id))
                 ordemdia_count = presenca_ordem.get(parlamentar_id=p.id)[1]
             except ObjectDoesNotExist:
                 self.logger.error('user=' + username + '. Erro ao obter PresencaOrdemDia para o parlamentar pk={}. '
-                                    'Definido como 0.'.format(p.id))
+                                  'Definido como 0.'.format(p.id))
                 ordemdia_count = 0
 
             parlamentares_presencas[i].update({
@@ -871,14 +889,16 @@ class HelpTopicView(TemplateView):
     logger = logging.getLogger(__name__)
 
     def get_template_names(self):
-        
+
         username = self.request.user.username
         topico = self.kwargs['topic']
         try:
-            self.logger.debug('user=' + username + '. Tentando obter template %s.html.' % topico)
+            self.logger.debug('user=' + username +
+                              '. Tentando obter template %s.html.' % topico)
             get_template('ajuda/%s.html' % topico)
         except TemplateDoesNotExist as e:
-            self.logger.error('user=' + username + '. Erro ao obter template {}.html. Template não existe. '.format(topico) + str(e))
+            self.logger.error(
+                'user=' + username + '. Erro ao obter template {}.html. Template não existe. '.format(topico) + str(e))
             raise Http404()
         return ['ajuda/%s.html' % topico]
 

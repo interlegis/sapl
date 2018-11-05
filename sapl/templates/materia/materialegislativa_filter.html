@@ -145,7 +145,7 @@
                   {% endfor %}
                 {% endif %}
                 <p></p>
-                {% if m.em_tramitacao %}
+                {% if m.em_tramitacao and mail_service_configured %}
                   <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
                 {% endif %}
                 </td>
