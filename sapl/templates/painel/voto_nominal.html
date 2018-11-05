@@ -97,7 +97,7 @@
             </br>
             </br>
             </br>
-            <center><button type="button" class="btn btn-lg btn-secondary" onclick="javascript:window.close()">Voltar</button></center>
+            <div id='voltar'><center><button type="button" class="btn btn-lg btn-secondary" onclick="javascript:window.close()">Voltar</button></center></div>
           </div>
         </div>
 
@@ -133,16 +133,24 @@
   $( "#votonao" ).mouseleave(function(){document.location.reload(true);});
   $( "#votoabstencao" ).mouseleave(function(){document.location.reload(true);});
 
-  $(document).on('keyup', (e) => {if (e.keyCode == 83){
-    document.querySelectorAll("#votosim input")[0].click();
+  $(document).on('keyup', (e) => {
+    var tecla_press = e.keyCode;
+    switch (tecla_press) {
+      case 83: // 83 = valor da tecla S
+        document.querySelectorAll("#votosim input")[0].click();
+        break;
+        case 78: //78 = valor da tecla N
+          document.querySelectorAll("#votonao input")[0].click();
+          break;
+        case 65: //65 = valor da tecla A
+          document.querySelectorAll("#votoabstencao input")[0].click();
+          break;
+        case 86: //86 = valor da tecla V
+          document.querySelectorAll("#voltar button")[0].click();
+          break;
 
-  };});
-  $(document).on('keyup', (e) => {if (e.keyCode == 78){
-      document.querySelectorAll("#votonao input")[0].click();
-  };});
-  $(document).on('keyup', (e) => {if (e.keyCode == 65){
-      document.querySelectorAll("#votoabstencao input")[0].click();
-  };});
+    };
+  });
 
   $(document).ready(
     function(){
