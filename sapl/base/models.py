@@ -22,9 +22,9 @@ ESFERA_FEDERACAO_CHOICES = (('M', _('Municipal')),
 )
 
 ASSINATURA_ATA_CHOICES = (
-    ('M', _('Mesa do dia')),
-    ('P', _('Apenas o presidente do dia')),
-    ('T', _('Todos os presentes')),
+    ('M', _('Mesa Diretora da Sessão')),
+    ('P', _('Apenas o Presidente da Sessão')),
+    ('T', _('Todos os Parlamentares Presentes na Sessão')),
 )
 
 

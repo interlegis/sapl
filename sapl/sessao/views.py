@@ -1418,6 +1418,7 @@ class ResumoView(DetailView):
         parlamentares_mesa_dia = [m['parlamentar'] for m in context['mesa']]
         # composicao_mesa = ComposicaoMesa.objects.filter(sessao_legislativa=sessao)
         
+        presidente_dia = ''
         for m in context['mesa']:
             if m['cargo'].descricao == 'Presidente':
                 presidente_dia = [m['parlamentar']]
@@ -1429,10 +1430,13 @@ class ResumoView(DetailView):
         
         config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
         if config_assinatura_ata == 'T':
+            context.update({'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
             context.update({'assinatura_presentes': parlamentares_ordem})
         elif config_assinatura_ata == 'M':
+            context.update({'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
             context.update({'assinatura_presentes': parlamentares_mesa_dia})
         elif config_assinatura_ata == 'P':
+            context.update({'texto_assinatura': 'Assinatura do Presidente da Sessão'})
             context.update({'assinatura_presentes': presidente_dia})
 
         # =====================================================================
