@@ -1415,9 +1415,25 @@ class ResumoView(DetailView):
             sessao_plenaria_id=self.object.id
         ).order_by('parlamentar__nome_parlamentar')
 
+        parlamentares_mesa_dia = [m['parlamentar'] for m in context['mesa']]
+        # composicao_mesa = ComposicaoMesa.objects.filter(sessao_legislativa=sessao)
+        
+        for m in context['mesa']:
+            if m['cargo'].descricao == 'Presidente':
+                presidente_dia = [m['parlamentar']]
+                break
+
         parlamentares_ordem = [p.parlamentar for p in presencas]
 
         context.update({'presenca_ordem': parlamentares_ordem})
+        
+        config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
+        if config_assinatura_ata == 'T':
+            context.update({'assinatura_presentes': parlamentares_ordem})
+        elif config_assinatura_ata == 'M':
+            context.update({'assinatura_presentes': parlamentares_mesa_dia})
+        elif config_assinatura_ata == 'P':
+            context.update({'assinatura_presentes': presidente_dia})
 
         # =====================================================================
         # Matérias Ordem do Dia
