@@ -33,6 +33,7 @@ class ComposicaoForm(forms.ModelForm):
 
         periodo = cleaned_data['periodo']
         comissao_pk = self.initial['comissao'].id
+        cleaned_data['comissao'] = self.initial['comissao']
         intersecao_periodo = Composicao.objects.filter(
             Q(periodo__data_inicio__lte=periodo.data_fim,
                 periodo__data_fim__gte=periodo.data_fim) |
