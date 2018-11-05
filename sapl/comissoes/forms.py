@@ -244,7 +244,8 @@ class ParticipacaoEditForm(forms.ModelForm):
         composicao_id = self.instance.composicao_id
 
         composicao = Composicao.objects.get(id=composicao_id)
-        cargos_unicos = [c.cargo.nome for c in composicao.participacao_set.filter(cargo__unico=True)]
+        cargos_unicos = [c.cargo.nome for c in
+                         composicao.participacao_set.filter(cargo__unico=True).exclude(id=self.instance.pk)]
 
         if cleaned_data['cargo'].nome in cargos_unicos:
             msg = _('Este cargo é único para esta Comissão.')
