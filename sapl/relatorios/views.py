@@ -569,7 +569,7 @@ def get_sessao_plenaria(sessao, casa):
         dic_expediente_materia["des_turno"] = turno
 
         dic_expediente_materia["txt_ementa"] = str(materia.ementa)
-        dic_expediente_materia["ordem_observacao"] = ' '  # TODO
+        dic_expediente_materia["ordem_observacao"] = expediente_materia.observacao
         dic_expediente_materia["nom_autor"] = ' '
         dic_expediente_materia["nom_resultado"] = ''
 
