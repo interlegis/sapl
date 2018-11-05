@@ -38,9 +38,10 @@
 			<br />
 			{% if not protocolo.anulado %} <a href="{% url 'sapl.protocoloadm:criar_documento' protocolo.pk %}" class="btn btn-primary">Criar Documento</a>{% endif %}
 	{% elif protocolo.tipo_materia %}
-		{% if materia %}
-			<a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}"> {{materia}} </a>
-		{% endif %}
+		{% for m in materia%}
+            &nbsp;&nbsp;&nbsp;&nbsp;
+			<a href="{% url 'sapl.materia:materialegislativa_detail' m.pk %}"> {{m}} </a></br>
+		{% endfor %}
 			</br>
 			{% if not protocolo.anulado%}{% if not materia %}<a href="{% url 'sapl.materia:materia_create_simplificado' protocolo.pk %}" class="btn btn-primary">Criar Matéria</a>&nbsp;&nbsp;&nbsp;&nbsp;{% endif %}{% endif %}
 	{% endif %}

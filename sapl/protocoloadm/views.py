@@ -563,19 +563,21 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
         username = self.request.user.username
 
         if protocolo.tipo_materia:
-            try:
-                self.logger.debug("user=" + username + ". Tentando obter objeto MateriaLegislativa com numero_protocolo={} e ano={}."
-                                .format(protocolo.numero, protocolo.ano))
-                materia = MateriaLegislativa.objects.get(
-                    numero_protocolo=protocolo.numero, ano=protocolo.ano)
-            except ObjectDoesNotExist:
-                self.logger.error("user=" + username + ". Objeto MateriaLegislativa com numero_protocolo={} e ano={} não encontrado."
-                                  " Definido como None.".format(protocolo.numero, protocolo.ano))
-                context['materia'] = None
-            else:
-                self.logger.info("user=" + username + ". Objeto MateriaLegislativa com numero_protocolo={} e ano={} encontrado"
-                                 "com sucesso.".format(protocolo.numero, protocolo.ano))
-                context['materia'] = materia
+            self.logger.debug(
+                "user=" + username + ". Tentando obter objeto MateriaLegislativa com numero_protocolo={} e ano={}."
+                .format(protocolo.numero, protocolo.ano))
+            materia = MateriaLegislativa.objects.filter(
+                numero_protocolo=protocolo.numero, ano=protocolo.ano)
+            context['materia'] = materia
+            if len(materia) > 1:
+                msg = _('Foi encontrada mais de uma matéria com o mesmo número de protocolo e ano.'
+                        ' Isso é um erro de uso!'
+                        ' Reporte isso ao suporte para que seja corrigido.')
+                messages.add_message(self.request, messages.ERROR, msg)
+                self.logger.error(
+                    "user=" + username + ". Objeto MateriaLegislativa com numero_protocolo={} e ano={}"
+                                         " encontrado mais de um registro."
+                                         " Erro relatado ao usuário.".format(protocolo.numero, protocolo.ano))
 
         if protocolo.tipo_documento:
             context[
