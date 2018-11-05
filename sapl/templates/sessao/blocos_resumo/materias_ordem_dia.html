@@ -33,7 +33,7 @@
               <b>Processo:</b> {{ m.numero_processo }}
             {% endif %}
           </td>
-          <td>{{m.ementa|safe}}</td>
+          <td>{{m.ementa|safe}}</b><br/>{{m.ementa_observacao}}</td>
           <td><b>{{m.resultado}}</b><br/>{{m.resultado_observacao}}</td>
         </tr>
       {% endfor %}
