@@ -86,11 +86,11 @@
           <div  class="row-fluid">
             <div class="col-md-12" id="votos">
 
-               <div id="votosim"><input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim (S)" /></div>
+               <div id="votosim"><input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim" /></div>
                 &nbsp;
-                <div id="votonao"><input type="submit" class="btn btn-lg btn-danger" id="voto" name="voto" type="submit" value="Não (N)"/></div>
+                <div id="votonao"><input type="submit" class="btn btn-lg btn-danger" id="voto" name="voto" type="submit" value="Não"/></div>
                 &nbsp;
-                <div id="votoabstencao"><input type="submit" class="btn btn-lg btn-secondary" id="voto" name="voto" type="submit" value="Abster (A)"/></div>
+                <div id="votoabstencao"><input type="submit" class="btn btn-lg btn-secondary" id="voto" name="voto" type="submit" value="Abstenção"/></div>
             </div>
             </br>
             </br>
@@ -134,13 +134,14 @@
   $( "#votoabstencao" ).mouseleave(function(){document.location.reload(true);});
 
   $(document).on('keyup', (e) => {if (e.keyCode == 83){
-      document.getElementsByClassName("btn btn-lg btn-success")[0].click()
+    document.querySelectorAll("#votosim input")[0].click();
+
   };});
   $(document).on('keyup', (e) => {if (e.keyCode == 78){
-      document.getElementsByClassName("btn btn-lg btn-danger")[0].click()
+      document.querySelectorAll("#votonao input")[0].click();
   };});
   $(document).on('keyup', (e) => {if (e.keyCode == 65){
-      document.getElementsByClassName("btn btn-lg btn-secondary")[0].click()
+      document.querySelectorAll("#votoabstencao input")[0].click();
   };});
 
   $(document).ready(
@@ -165,7 +166,7 @@
          startTime();
 
       setTimeout(function() {
-      //    document.location.reload(true);
+          document.location.reload(true);
          }, 30000)
     });
 
