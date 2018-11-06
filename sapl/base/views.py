@@ -201,7 +201,7 @@ class AutorCrud(CrudAux):
                     "ignore esta mensagem. Caso tenha, clique " +
                     "no link abaixo\n" + url_base +
                     reverse('sapl.base:confirmar_email', kwargs=kwargs))
-                remetente = [settings.EMAIL_SEND_USER]
+                remetente = settings.EMAIL_SEND_USER
                 destinatario = [user.email]
                 send_mail(assunto, mensagem, remetente, destinatario,
                           fail_silently=False)
@@ -263,7 +263,7 @@ class AutorCrud(CrudAux):
                     "ignore esta mensagem. Caso tenha, clique " +
                     "no link abaixo\n" + url_base +
                     reverse('sapl.base:confirmar_email', kwargs=kwargs))
-                remetente = [settings.EMAIL_SEND_USER]
+                remetente = settings.EMAIL_SEND_USER
                 destinatario = [user.email]
                 send_mail(assunto, mensagem, remetente, destinatario,
                           fail_silently=False)
