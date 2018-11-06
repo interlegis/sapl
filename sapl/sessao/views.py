@@ -1430,13 +1430,13 @@ class ResumoView(DetailView):
         context.update({'presenca_ordem': parlamentares_ordem})
         
         config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
-        if config_assinatura_ata == 'T':
+        if config_assinatura_ata == 'T' and parlamentares_ordem:
             context.update({'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
             context.update({'assinatura_presentes': parlamentares_ordem})
-        elif config_assinatura_ata == 'M':
+        elif config_assinatura_ata == 'M' and parlamentares_mesa_dia:
             context.update({'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
             context.update({'assinatura_presentes': parlamentares_mesa_dia})
-        elif config_assinatura_ata == 'P':
+        elif config_assinatura_ata == 'P' and presidente_dia:
             context.update({'texto_assinatura': 'Assinatura do Presidente da Sessão'})
             context.update({'assinatura_presentes': presidente_dia})
 
