@@ -1,8 +1,10 @@
 from datetime import datetime
+import logging
 from random import choice
 from string import ascii_letters, digits
 
 from braces.views import FormValidMessageMixin
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -21,17 +23,18 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 import sapl
-import logging
-from sapl.comissoes.models import Comissao
+from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa
+from sapl.base.signals import tramitacao_signal
+from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension,
-                        show_results_filter_set)
-from sapl.base.email_utils import do_envia_email_confirmacao
+                        show_results_filter_set, mail_service_configured)
+
 from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
@@ -44,7 +47,6 @@ from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
-from sapl.base.signals import tramitacao_signal
 
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
@@ -63,20 +65,22 @@ def recuperar_materia_protocolo(request):
     logger = logging.getLogger(__name__)
     username = request.user.username
     try:
-        logger.debug("user=" + username + ". Tentando obter matéria com tipo={}, ano={} e numero={}.".format(tipo, ano, numero))
+        logger.debug("user=" + username +
+                     ". Tentando obter matéria com tipo={}, ano={} e numero={}.".format(tipo, ano, numero))
         materia = MateriaLegislativa.objects.get(
-            tipo=tipo, ano=ano,numero=numero)
+            tipo=tipo, ano=ano, numero=numero)
         autoria = materia.autoria_set.first()
         content = {'ementa': materia.ementa.strip(),
-                    'ano':materia.ano, 'numero':materia.numero}
+                   'ano': materia.ano, 'numero': materia.numero}
         if autoria:
             content.update({'autor': autoria.autor.pk,
-                            'tipo_autor':autoria.autor.tipo.pk})
+                            'tipo_autor': autoria.autor.tipo.pk})
         response = JsonResponse(content)
     except Exception as e:
         logger.error("user=" + username + ". " + str(e))
-        response = JsonResponse({'error':e})
+        response = JsonResponse({'error': e})
     return response
+
 
 def doc_texto_integral(request, pk):
     can_see = True
@@ -102,13 +106,15 @@ def doc_texto_integral(request, pk):
             return response
     raise Http404
 
+
 class AcompanhamentoConfirmarView(TemplateView):
 
     logger = logging.getLogger(__name__)
 
     def get_redirect_url(self, email):
         username = self.request.user.username
-        self.logger.info('user=' + username + '. Este documento está sendo acompanhado pelo e-mail: {}'.format(email))
+        self.logger.info(
+            'user=' + username + '. Este documento está sendo acompanhado pelo e-mail: {}'.format(email))
         msg = _('Este documento está sendo acompanhado pelo e-mail: %s') % (
             email)
         messages.add_message(self.request, messages.SUCCESS, msg)
@@ -116,6 +122,7 @@ class AcompanhamentoConfirmarView(TemplateView):
                        kwargs={'pk': self.kwargs['pk']})
 
     def get(self, request, *args, **kwargs):
+
         documento_id = kwargs['pk']
         hash_txt = request.GET.get('hash_txt', '')
         username = request.user.username
@@ -146,7 +153,8 @@ class AcompanhamentoExcluirView(TemplateView):
 
     def get_success_url(self):
         username = self.request.user.username
-        self.logger.info("user=" + username + ". Você parou de acompanhar este Documento (pk={}).".format(self.kwargs['pk']))
+        self.logger.info(
+            "user=" + username + ". Você parou de acompanhar este Documento (pk={}).".format(self.kwargs['pk']))
         msg = _('Você parou de acompanhar este Documento.')
         messages.add_message(self.request, messages.INFO, msg)
         return reverse('sapl.protocoloadm:documentoadministrativo_detail',
@@ -160,7 +168,7 @@ class AcompanhamentoExcluirView(TemplateView):
             self.logger.debug("user=" + username + ". Tentando obter AcompanhamentoDocumento com documento_id={} e hash={}."
                               .format(documento_id, hash_txt))
             AcompanhamentoDocumento.objects.get(documento_id=documento_id,
-                                              hash=hash_txt).delete()
+                                                hash=hash_txt).delete()
         except ObjectDoesNotExist:
             self.logger.error("user=" + username + ". AcompanhamentoDocumento com documento_id={} e hash={} não encontrado."
                               .format(documento_id, hash_txt))
@@ -178,6 +186,12 @@ class AcompanhamentoDocumentoView(CreateView):
         return ''.join(choice(s) for i in range(choice([6, 7])))
 
     def get(self, request, *args, **kwargs):
+        if not mail_service_configured():
+            self.logger.warning(_('Servidor de email não configurado.'))
+            messages.error(request, _('Serviço de Acompanhamento de '
+                                      'Documentos não foi configurado'))
+            return redirect('/')
+
         pk = self.kwargs['pk']
         documento = DocumentoAdministrativo.objects.get(id=pk)
 
@@ -186,6 +200,12 @@ class AcompanhamentoDocumentoView(CreateView):
              'documento': documento})
 
     def post(self, request, *args, **kwargs):
+        if not mail_service_configured():
+            self.logger.warning(_('Servidor de email não configurado.'))
+            messages.error(request, _('Serviço de Acompanhamento de '
+                                      'Documentos não foi configurado'))
+            return redirect('/')
+
         form = AcompanhamentoDocumentoForm(request.POST)
         pk = self.kwargs['pk']
         documento = DocumentoAdministrativo.objects.get(id=pk)
@@ -233,7 +253,8 @@ class AcompanhamentoDocumentoView(CreateView):
             # Caso esse Acompanhamento já exista
             # avisa ao usuário que esse documento já está sendo acompanhado
             else:
-                self.logger.info('user=' + request.user.username + '. Este e-mail já está acompanhando esse documento (pk={}).'.format(pk))
+                self.logger.info('user=' + request.user.username +
+                                 '. Este e-mail já está acompanhando esse documento (pk={}).'.format(pk))
                 msg = _('Este e-mail já está acompanhando esse documento.')
                 messages.add_message(request, messages.INFO, msg)
 
@@ -474,7 +495,8 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         protocolo = form.save(commit=False)
         username = self.request.user.username
         try:
-            self.logger.debug("user=" + username + ". Tentando obter sequência de numeração.")
+            self.logger.debug("user=" + username +
+                              ". Tentando obter sequência de numeração.")
             numeracao = sapl.base.models.AppConfig.objects.last(
             ).sequencia_numeracao
         except AttributeError as e:
@@ -504,10 +526,13 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
         if not protocolo.numero:
-            protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+            protocolo.numero = (
+                numero['numero__max'] + 1) if numero['numero__max'] else 1
         elif protocolo.numero < (numero['numero__max'] + 1) if numero['numero__max'] else 0:
-            msg = _('Número de protocolo deve ser maior que {}'.format(numero['numero__max']))
-            self.logger.error("user=" + username + ". Número de protocolo deve ser maior que {}.".format(numero['numero__max']))
+            msg = _('Número de protocolo deve ser maior que {}'.format(
+                numero['numero__max']))
+            self.logger.error(
+                "user=" + username + ". Número de protocolo deve ser maior que {}.".format(numero['numero__max']))
             messages.add_message(self.request, messages.ERROR, msg)
             return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
@@ -564,7 +589,8 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
 
         if protocolo.tipo_materia:
             self.logger.debug(
-                "user=" + username + ". Tentando obter objeto MateriaLegislativa com numero_protocolo={} e ano={}."
+                "user=" + username +
+                ". Tentando obter objeto MateriaLegislativa com numero_protocolo={} e ano={}."
                 .format(protocolo.numero, protocolo.ano))
             materia = MateriaLegislativa.objects.filter(
                 numero_protocolo=protocolo.numero, ano=protocolo.ano)
@@ -636,7 +662,8 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo = form.save(commit=False)
         username = self.request.user.username
         try:
-            self.logger.debug("user=" + username + ". Tentando obter sequência de numeração.")
+            self.logger.debug("user=" + username +
+                              ". Tentando obter sequência de numeração.")
             numeracao = sapl.base.models.AppConfig.objects.last(
             ).sequencia_numeracao
         except AttributeError:
@@ -667,12 +694,14 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             numero['numero__max'] = 0
 
         if not protocolo.numero:
-            protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+            protocolo.numero = (
+                numero['numero__max'] + 1) if numero['numero__max'] else 1
         if numero['numero__max']:
             if protocolo.numero < (numero['numero__max'] + 1):
                 self.logger.error("user=" + username + ". Número de protocolo ({}) é menor que {}"
                                   .format(protocolo.numero, numero['numero__max']))
-                msg = _('Número de protocolo deve ser maior que {}').format(numero['numero__max'])
+                msg = _('Número de protocolo deve ser maior que {}').format(
+                    numero['numero__max'])
                 messages.add_message(self.request, messages.ERROR, msg)
                 return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
@@ -766,11 +795,11 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         qs = self.get_queryset()
 
         qs = qs.prefetch_related("documentoacessorioadministrativo_set",
-                 "tramitacaoadministrativo_set",
-                 "tipo",
-                 "tramitacaoadministrativo_set__status",
-                 "tramitacaoadministrativo_set__unidade_tramitacao_local",
-                 "tramitacaoadministrativo_set__unidade_tramitacao_destino")
+                                 "tramitacaoadministrativo_set",
+                                 "tipo",
+                                 "tramitacaoadministrativo_set__status",
+                                 "tramitacaoadministrativo_set__unidade_tramitacao_local",
+                                 "tramitacaoadministrativo_set__unidade_tramitacao_destino")
 
         if status_tramitacao and unidade_destino:
             lista = filtra_tramitacao_adm_destino_and_status(status_tramitacao,
@@ -787,7 +816,6 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
 
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', '-numero')
-
 
         kwargs.update({
             'queryset': qs,
@@ -823,14 +851,15 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             url = ''
 
         self.filterset.form.fields['o'].label = _('Ordenação')
-        
-        # é usada essa verificação anônima para quando os documentos administrativos 
-        # estão no modo ostensivo, mas podem existir documentos administrativos restritos
+
+        # é usada essa verificação anônima para quando os documentos administrativos
+        # estão no modo ostensivo, mas podem existir documentos administrativos
+        # restritos
         if request.user.is_anonymous():
             length = self.object_list.filter(restrito=False).count()
         else:
             length = self.object_list.count()
-        
+
         context = self.get_context_data(filter=self.filterset,
                                         filter_url=url,
                                         numero_res=length
@@ -864,7 +893,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
             if local:
                 initial['unidade_tramitacao_local'
-                             ] = local.unidade_tramitacao_destino.pk
+                        ] = local.unidade_tramitacao_destino.pk
             else:
                 initial['unidade_tramitacao_local'] = ''
             initial['data_tramitacao'] = timezone.now().date()
@@ -905,6 +934,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
         logger = logging.getLogger(__name__)
+
         def form_valid(self, form):
             self.object = form.save()
             username = self.request.user.username
@@ -918,8 +948,8 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                                   'não enviado. A não configuração do servidor de e-mail '
                                   'impede o envio de aviso de tramitação. ' + str(e))
                 msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                    'de documento não enviado. A não configuração do'
-                    ' servidor de e-mail impede o envio de aviso de tramitação')
+                        'de documento não enviado. A não configuração do'
+                        ' servidor de e-mail impede o envio de aviso de tramitação')
                 messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
             return super().form_valid(form)
@@ -1038,8 +1068,8 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
 
     def form_valid(self, form):
         materia = MateriaLegislativa.objects.get(numero=form.cleaned_data['numero'],
-                                                        ano=form.cleaned_data['ano'],
-                                                        tipo=form.cleaned_data['tipo'])
+                                                 ano=form.cleaned_data['ano'],
+                                                 tipo=form.cleaned_data['tipo'])
         materia.numero_protocolo = None
         materia.save()
         return redirect(self.get_success_url())

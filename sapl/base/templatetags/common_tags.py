@@ -1,5 +1,8 @@
+import logging
+
 from compressor.utils import get_class
 from django import template
+from django.conf import settings
 from django.template.defaultfilters import stringfilter
 
 from sapl.base.models import AppConfig
@@ -8,12 +11,13 @@ from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
 from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO
 
+
 register = template.Library()
 
 
 @register.simple_tag
 def define(arg):
-  return arg
+    return arg
 
 
 @register.simple_tag
@@ -48,8 +52,9 @@ def split(value, arg):
 def to_str(arg):
     return str(arg)
 
+
 @register.filter
-def get_last_item_from_list(list,arg):
+def get_last_item_from_list(list, arg):
     return list[arg]
 
 
@@ -59,14 +64,14 @@ def sort_by_keys(value, key):
     id_props = [x.id for x in value]
     qs = Proposicao.objects.filter(pk__in=id_props)
     key_descricao = {'1': 'data_envio',
-                        '-1': '-data_envio',
-                        '2': 'tipo',
-                        '-2': '-tipo',
-                        '3': 'descricao',
-                        '-3': '-descricao',
-                        '4': 'autor',
-                        '-4': '-autor'
-                        }
+                     '-1': '-data_envio',
+                     '2': 'tipo',
+                     '-2': '-tipo',
+                     '3': 'descricao',
+                     '-3': '-descricao',
+                     '4': 'autor',
+                     '-4': '-autor'
+                     }
 
     transformed = qs.order_by(key_descricao[key])
     return transformed
@@ -74,7 +79,7 @@ def sort_by_keys(value, key):
 
 @register.filter
 def paginacao_limite_inferior(pagina):
-    return (int(pagina) - 1) * 10 
+    return (int(pagina) - 1) * 10
 
 
 @register.filter
@@ -101,7 +106,6 @@ def strip_hash(value):
         return vet[0][1:]
     else:
         return value.split(SEPARADOR_HASH_PROPOSICAO)[0][1:]
-
 
 
 @register.filter
@@ -203,6 +207,7 @@ def url(value):
         return True
     return False
 
+
 @register.filter
 def audio_url(value):
     return True if url(value) and value.endswith("mp3") else False
@@ -212,10 +217,12 @@ def audio_url(value):
 def video_url(value):
     return True if url(value) and value.endswith("mp4") else False
 
+
 @register.filter
 def file_extension(value):
     import pathlib
     return pathlib.Path(value).suffix.replace('.', '')
+
 
 @register.filter
 def cronometro_to_seconds(value):

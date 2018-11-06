@@ -63,7 +63,7 @@
               {% if d.texto_integral %}
                 <strong><a href="{{ d.texto_integral.url }}">Texto Integral</a></strong></br>
               {% endif %}
-              {% if d.tramitacao %}
+              {% if d.tramitacao and mail_service_configured %}
                 <a href="{% url 'sapl.protocoloadm:acompanhar_documento' d.id %}">Acompanhar Documento</a>
               {% endif %}
             </td>

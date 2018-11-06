@@ -13,8 +13,8 @@ Quick-start development settings - unsuitable for production
 See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
-import socket
 import logging
+import socket
 
 from decouple import config
 from dj_database_url import parse as db_url
@@ -23,6 +23,7 @@ from unipath import Path
 
 from .temp_suppress_crispy_form_warnings import \
     SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
+
 
 host = socket.gethostbyname_ex(socket.gethostname())[0]
 
@@ -181,6 +182,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 'django.contrib.messages.context_processors.messages',
                 'sapl.context_processors.parliament_info',
+                'sapl.context_processors.mail_service_configured',
             ],
             'debug': DEBUG
         },
@@ -223,6 +225,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
 EMAIL_SEND_USER = config('EMAIL_SEND_USER', cast=str, default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
 SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
+EMAIL_RUNNING = None
 
 MAX_DOC_UPLOAD_SIZE = 60 * 1024 * 1024  # 60MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
@@ -314,10 +317,10 @@ LOGGING = {
             'formatter': 'simple',
         },
         'applogfile': {
-            'level':'INFO',
-            'class':'logging.handlers.RotatingFileHandler',
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': 'sapl.log',
-            'maxBytes': 1024*1024*15, # 15MB
+            'maxBytes': 1024 * 1024 * 15,  # 15MB
             'backupCount': 10,
             'formatter': 'verbose',
         },

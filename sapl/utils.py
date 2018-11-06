@@ -15,6 +15,7 @@ from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
+from django.core.mail import get_connection
 from django.db.models import Q
 from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
@@ -28,10 +29,12 @@ from unipath.path import Path
 
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 
+
 # (26/10/2018): O separador foi mudador de '/' para 'K'
 # por conta dos leitores de códigos de barra, que trocavam
 # a '/' por '&' ou ';'
 SEPARADOR_HASH_PROPOSICAO = 'K'
+
 
 def pil_image(source, exif_orientation=False, **options):
     return source_generators.pil_image(source, exif_orientation, **options)
@@ -767,3 +770,19 @@ def RemoveTag(texto):
 
 def remover_acentos(string):
     return unicodedata.normalize('NFKD', string).encode('ASCII', 'ignore').decode()
+
+
+def mail_service_configured(request=None):
+
+    if settings.EMAIL_RUNNING is None:
+        result = True
+        try:
+            connection = get_connection()
+            connection.open()
+        except Exception as e:
+            result = False
+        finally:
+            connection.close()
+        settings.EMAIL_RUNNING = result
+
+    return settings.EMAIL_RUNNING
