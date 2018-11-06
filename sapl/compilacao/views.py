@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from datetime import timedelta
-import sys
 import logging
+import sys
 
 from braces.views import FormMessagesMixin
 from django import forms
@@ -49,6 +49,7 @@ from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    get_integrations_view_names)
 from sapl.crud.base import Crud, CrudAux, CrudListView, make_pagination
 from sapl.settings import BASE_DIR
+
 
 TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
 TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
@@ -664,7 +665,7 @@ class NotasCreateView(NotaMixin, CreateView):
         return super(NotasCreateView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        
+
         username = request.user.username
         self.object = None
         try:
@@ -762,7 +763,7 @@ class PublicacaoMixin(CompMixin):
             messages.error(request, _(
                 'A funcionalidade de %s está desativada para %s.') % (
                 TipoTextoArticulado._meta.get_field(
-                        'publicacao_func').verbose_name,
+                    'publicacao_func').verbose_name,
                 ta.tipo_ta.descricao))
             return redirect(reverse('sapl.compilacao:ta_text',
                                     kwargs={'ta_id': self.kwargs['ta_id']}))
@@ -1586,7 +1587,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
                     if not anterior:
                         self.logger.error("user=" + username + ". Não é possível excluir este Dispositivo (id={}) sem"
-                                    " excluir toda a sua estrutura!!!".format(base.ta_id))
+                                          " excluir toda a sua estrutura!!!".format(base.ta_id))
                         raise Exception(
                             _('Não é possível excluir este Dispositivo sem'
                               ' excluir toda a sua estrutura!!!'))
@@ -1607,8 +1608,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                         for candidato in parents:
                             if candidato == base:
                                 self.logger.error("user=" + username + ". Não é possível excluir este "
-                                            "Dispositivo ({}) sem "
-                                            "excluir toda a sua estrutura!!!".format(candidato))
+                                                  "Dispositivo ({}) sem "
+                                                  "excluir toda a sua estrutura!!!".format(candidato))
                                 raise Exception(
                                     _('Não é possível excluir este '
                                       'Dispositivo sem '
@@ -1645,8 +1646,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                                 break
                         else:
                             self.logger.error("user=" + username + ". Não é possível excluir este "
-                                        "Dispositivo ({}) sem excluir toda "
-                                        "a sua estrutura!!!".format(candidato))
+                                              "Dispositivo ({}) sem excluir toda "
+                                              "a sua estrutura!!!".format(candidato))
                             raise Exception(
                                 _('Não é possível excluir este '
                                   'Dispositivo sem '
@@ -1693,7 +1694,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                             irmao.rotulo = irmao.rotulo_padrao()
                             irmao.save()
                         except Exception as e:
-                            self.logger.error("user=" + username + "." + str(e))
+                            self.logger.error(
+                                "user=" + username + "." + str(e))
                             break
 
                     irmaos = pai_base.dispositivos_filhos_set.\
@@ -1811,7 +1813,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                             try:
                                 dr.save(clean=base != dr)
                             except Exception as e:
-                                self.logger.error("user=" + username + ". " + str(e))
+                                self.logger.error(
+                                    "user=" + username + ". " + str(e))
                                 break
 
                                 # Pode não ser religavável
@@ -2162,7 +2165,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             data = {}
             username = self.request.user.username
             self.logger.error("user=" + username + ". Ocorreu um erro ({}) na atualização do "
-                        "Dispositivo de Vigência".format(str(e)))
+                              "Dispositivo de Vigência".format(str(e)))
             self.set_message(data,
                              'success',
                              _('Ocorreu um erro na atualização do '
@@ -2179,9 +2182,9 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
     def json_add_next(
             self,
             context, local_add='json_add_next', create_auto_inserts=True):
-        
+
         try:
-            
+
             dp_auto_insert = None
             base = Dispositivo.objects.get(pk=self.kwargs['dispositivo_id'])
             tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
@@ -2925,7 +2928,8 @@ class DispositivoSearchFragmentFormView(ListView):
 
         response = ListView.get(self, request, *args, **kwargs)
 
-        if not self.object_list.exists():
+        if isinstance(self.object_list, list) and self.object_list or \
+                not self.object_list.exists():
             messages.info(
                 request, _('Não foram encontrados resultados '
                            'com seus critérios de busca!'))
@@ -3126,6 +3130,7 @@ class DispositivoEdicaoBasicaView(CompMixin, FormMessagesMixin, UpdateView):
 
     permission_required = 'compilacao.change_dispositivo_edicao_avancada'
     logger = logging.getLogger(__name__)
+
     @property
     def cancel_url(self):
         return reverse_lazy(
@@ -3169,7 +3174,8 @@ class DispositivoEdicaoBasicaView(CompMixin, FormMessagesMixin, UpdateView):
 
             except Exception as e:
                 username = self.request.user.username
-                self.logger.error("user=" + username + ". Ocorreu erro ({}) na atualização do rótulo.".format(str(e)))
+                self.logger.error(
+                    "user=" + username + ". Ocorreu erro ({}) na atualização do rótulo.".format(str(e)))
                 return True, JsonResponse({'message': str(
                     _('Ocorreu erro na atualização do rótulo'))}, safe=False)
             return True, JsonResponse({
