@@ -1,0 +1,25 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block detail_content %}
+	{% crispy form %}
+{% endblock detail_content %}
+
+{% block extra_js %}
+<script type="text/javascript">
+  $(function () {
+    $("#id_ausencia").change(function() {
+      var val = $(this).val();
+      if(val === "1") {
+          $("#div_id_materias_do_expediente, #div_id_materias_da_ordem_do_dia").show();
+      }
+      else if(val === "2") {
+        $("#div_id_materias_do_expediente, #div_id_materias_da_ordem_do_dia").hide();                    
+      }
+    });
+    $("#id_ausencia").change()
+  });
+</script>
+
+{% endblock %}
+ 			

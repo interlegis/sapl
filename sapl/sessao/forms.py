@@ -6,12 +6,15 @@ from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.forms import ModelForm
+from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 import django_filters
+from floppyforms import widgets
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
@@ -20,9 +23,10 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone)
 
-from .models import (Bancada, Bloco, ExpedienteMateria, Orador,
-                     OradorExpediente, OrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoResultadoVotacao, OcorrenciaSessao)
+from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
+                     Orador, OradorExpediente, OrdemDia, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
+                     OcorrenciaSessao)
 
 
 def recupera_anos():
@@ -413,11 +417,11 @@ class MesaForm(forms.Form):
 class ExpedienteForm(forms.Form):
     conteudo = forms.CharField(required=False, widget=forms.Textarea)
 
+
 class OcorrenciaSessaoForm(ModelForm):
     class Meta:
         model = OcorrenciaSessao
         fields = ['conteudo']
-
 
 
 class VotacaoForm(forms.Form):
@@ -684,3 +688,101 @@ class ResumoOrdenacaoForm(forms.Form):
                         raise ValidationError(_(
                             'Não é possível ter campos repetidos'))
         return self.cleaned_data
+
+
+class JustificativaAusenciaForm(ModelForm):
+
+    class Meta:
+        model = JustificativaAusencia
+        fields = ['parlamentar',
+                  'hora',
+                  'data',
+                  'upload_anexo',
+                  'tipo_ausencia',
+                  'ausencia',
+                  'materias_do_expediente',
+                  'materias_da_ordem_do_dia',
+                  'observacao'
+                  ]
+
+        widgets = {
+            'materias_do_expediente': CheckboxSelectMultiple(),
+            'materias_da_ordem_do_dia': CheckboxSelectMultiple()}
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row(
+            [('parlamentar', 12)])
+        row2 = to_row(
+            [('data', 6),
+             ('hora', 6)])
+        row3 = to_row(
+            [('upload_anexo', 6)])
+        row4 = to_row(
+            [('tipo_ausencia', 12)])
+        row5 = to_row(
+            [('ausencia', 12)])
+        row6 = to_row(
+            [('materias_do_expediente', 12)])
+        row7 = to_row(
+            [('materias_da_ordem_do_dia', 12)])
+        row8 = to_row(
+            [('observacao', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Justificativa de Ausência'),
+                     row1, row2, row3,
+                     row4, row5,
+                     row6,
+                     row7,
+                     row8)
+        )
+        q = Q(sessao_plenaria=kwargs['initial']['sessao_plenaria'])
+        ordens = OrdemDia.objects.filter(q)
+        expedientes = ExpedienteMateria.objects.filter(q)
+        legislatura = kwargs['initial']['sessao_plenaria'].legislatura
+        mandato = Mandato.objects.filter(legislatura=legislatura)
+        parlamentares = [m.parlamentar for m in mandato]
+
+
+        super(JustificativaAusenciaForm, self).__init__(
+            *args, **kwargs)
+
+        presencas = SessaoPlenariaPresenca.objects.filter(
+            q).order_by('parlamentar__nome_parlamentar')
+
+        presentes = [p.parlamentar for p in presencas]
+        setFinal = set(parlamentares) - set(presentes)
+
+        self.fields['materias_do_expediente'].choices = [
+            (e.id, e.materia) for e in expedientes]
+
+        self.fields['materias_da_ordem_do_dia'].choices = [
+            (o.id, o.materia) for o in ordens]
+
+        self.fields['parlamentar'].choices = [
+            ("0", "------------")] + [(p.id, p) for p in setFinal]
+
+    def clean(self):
+        cleaned_data = super(JustificativaAusenciaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        sessao_plenaria = self.instance.sessao_plenaria
+
+        if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
+            raise ValidationError(
+                "A sessão deve está finalizada para registrar uma Ausência")
+        else:
+            return self.cleaned_data
+
+    def save(self, commit=False):
+
+        justificativa = super().save(True)
+
+        if justificativa.ausencia == 2:
+            justificativa.materias_do_expediente.clear()
+            justificativa.materias_da_ordem_do_dia.clear()
+        return justificativa

@@ -155,6 +155,9 @@
   - title: {% trans 'Ordenação do Resumo' %}
     url: sapl.sessao:resumo_ordenacao
     css_class: btn btn-link
+  - title: {% trans 'Tipo de Justificativa' %}
+    url: sapl.sessao:tipojustificativa_list
+    css_class: btn btn-link
 - title: {% trans 'Módulo LexML' %}
   css_class: head_title
   children:

@@ -478,7 +478,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     '''
     votacao = models.ForeignKey(RegistroVotacao,
                                 blank=True,
-                                null=True,on_delete=models.CASCADE)
+                                null=True, on_delete=models.CASCADE)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     voto = models.CharField(max_length=10)
 
@@ -582,3 +582,82 @@ class ResumoOrdenacao(models.Model):
 
     def __str__(self):
         return 'Ordenação do Resumo de uma Sessão'
+
+
+@reversion.register()
+class TipoJustificativa(models.Model):
+    descricao = models.CharField(max_length=150, verbose_name=_('Descrição'))
+
+    class Meta:
+        verbose_name = _('Tipo de Justificativa')
+        verbose_name_plural = _('Tipos de Justificativa')
+        ordering = ['descricao']
+
+    def __str__(self):
+        return self.descricao
+
+
+@reversion.register()
+class JustificativaAusencia(models.Model):
+    TIPO_AUSENCIA_CHOICES = Choices(
+        (1, 'materia', 'Matéria'),
+        (2, 'sessao', 'Sessão'),
+    )
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT,
+                                    verbose_name=_('Parlamentar'))
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        on_delete=models.CASCADE,
+                                        verbose_name=_('Sessão Plenária'))
+    tipo_ausencia = models.ForeignKey(TipoJustificativa, on_delete=models.PROTECT,
+                                      verbose_name=_('Tipo de Justificativa'))
+    data = models.DateField(verbose_name=_('Data'))
+    hora = models.CharField(
+        max_length=5, verbose_name=_('Horário (hh:mm)'))
+    observacao = models.TextField(
+        max_length=150, blank=True, verbose_name=_('Observação'))
+    ausencia = models.PositiveIntegerField(
+        verbose_name=_('Ausente em'), choices=TIPO_AUSENCIA_CHOICES, default=1)
+
+    materias_do_expediente = models.ManyToManyField(
+        ExpedienteMateria, blank=True, verbose_name=_('Matérias do Expediente'))
+
+    materias_da_ordem_do_dia = models.ManyToManyField(
+        OrdemDia, blank=True, verbose_name=_('Matérias do Ordem do Dia'))
+
+    upload_anexo = models.FileField(
+        blank=True,
+        null=True,
+        upload_to=anexo_upload_path,
+        verbose_name=_('Anexo de Justificativa'))
+
+    class Meta:
+        verbose_name = _('Justificativa de Ausência')
+        verbose_name_plural = _('Justificativas de Ausências')
+
+    def __str__(self):
+        return 'Justificativa de Ausência'
+
+    def delete(self, using=None, keep_parents=False):
+        if self.upload_anexo:
+            self.upload_anexo.delete()
+
+        return models.Model.delete(
+            self, using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.upload_anexo:
+            upload_anexo = self.upload_anexo
+            self.upload_anexo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+
+            self.upload_anexo = upload_anexo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)

@@ -3,15 +3,15 @@ from django.conf.urls import include, url
 from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                AdicionarVariasMateriasOrdemDia, BancadaCrud,
                                BlocoCrud, CargoBancadaCrud,
-                               ExpedienteMateriaCrud, ExpedienteView, OcorrenciaSessaoView,
-                               MateriaOrdemDiaCrud, MesaView, OradorCrud,
+                               ExpedienteMateriaCrud, ExpedienteView, JustificativaAusenciaCrud,
+                               OcorrenciaSessaoView, MateriaOrdemDiaCrud, MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
                                PautaSessaoDetailView, PautaSessaoView,
                                PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
                                PresencaOrdemDiaView, PresencaView,
                                ResumoOrdenacaoView, ResumoView, ResumoAtaView, SessaoCrud,
-                               TipoExpedienteCrud, TipoResultadoVotacaoCrud,
+                               TipoJustificativaCrud, TipoExpedienteCrud, TipoResultadoVotacaoCrud,
                                TipoSessaoCrud, VotacaoEditView,
                                VotacaoExpedienteEditView,
                                VotacaoExpedienteView, VotacaoNominalEditView,
@@ -38,6 +38,7 @@ urlpatterns = [
     url(r'^sessao/', include(SessaoCrud.get_urls() + OradorCrud.get_urls() +
                              OradorExpedienteCrud.get_urls() +
                              ExpedienteMateriaCrud.get_urls() +
+                             JustificativaAusenciaCrud.get_urls() +
                              MateriaOrdemDiaCrud.get_urls())),
 
     url(r'^sessao/(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
@@ -73,6 +74,8 @@ urlpatterns = [
         include(TipoResultadoVotacaoCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-expediente/',
         include(TipoExpedienteCrud.get_urls())),
+    url(r'^sistema/sessao-plenaria/tipo-justificativa/',
+         include(TipoJustificativaCrud.get_urls())),
     url(r'^sistema/bancada/',
         include(BancadaCrud.get_urls())),
     url(r'^sistema/bloco/',
@@ -152,8 +155,7 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/votacao-simbolica-transparencia/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoSimbolicaTransparenciaDetailView.as_view(),
         name='votacao_simbolica_transparencia'),
-
     url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
-        name='mudar_ordem_materia_sessao'),
+        name='mudar_ordem_materia_sessao'), 
 ]

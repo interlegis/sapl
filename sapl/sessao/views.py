@@ -38,21 +38,23 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
-                    ExpedienteForm, OcorrenciaSessaoForm, ListMateriaForm, MesaForm,
-                    OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
+                    ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
+                    MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm)
-from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
-                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
+from .models import (Bancada, Bloco, CargoBancada, CargoMesa, ExpedienteMateria,
+                     ExpedienteSessao, JustificativaAusencia, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
-                     TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar)
+                     TipoJustificativa, TipoResultadoVotacao, TipoSessaoPlenaria,
+                     VotoParlamentar)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
+TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
 
 
@@ -153,7 +155,7 @@ def abrir_votacao(request, pk, spk):
             presenca_model = SessaoPlenariaPresenca
             redirect_url = 'expedientemateria_list'
     if not model:
-        raise Http404
+        raise Http404()
 
     if (verifica_presenca(request, presenca_model, spk) and
         verifica_votacoes_abertas(request) and
@@ -1506,7 +1508,8 @@ class ResumoView(DetailView):
 
         # =====================================================================
         # Ocorrẽncias da Sessão
-        ocorrencias_sessao = OcorrenciaSessao.objects.filter(sessao_plenaria_id=self.object.id)
+        ocorrencias_sessao = OcorrenciaSessao.objects.filter(
+            sessao_plenaria_id=self.object.id)
 
         context.update({'ocorrencias_da_sessao': ocorrencias_sessao})
 
@@ -1649,7 +1652,6 @@ class ExpedienteView(FormMixin, DetailView):
         return reverse('sapl.sessao:expediente', kwargs={'pk': pk})
 
 
-
 class OcorrenciaSessaoView(FormMixin, DetailView):
     template_name = 'sessao/ocorrencia_sessao.html'
     form_class = OcorrenciaSessaoForm
@@ -1667,7 +1669,7 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
         msg = _('Registro deletado com sucesso')
         messages.add_message(self.request, messages.SUCCESS, msg)
 
-    def save(self,form):
+    def save(self, form):
         conteudo = form.cleaned_data['conteudo']
 
         OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
@@ -2023,7 +2025,6 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             except ObjectDoesNotExist:
                 self.logger.error('user=' + username + '. Objeto ExpedienteMateria com id={} não existe.'.format(expediente_id))
                 raise Http404()
-
 
         if form.is_valid():
             votos_sim = 0
@@ -3135,3 +3136,82 @@ def mudar_ordem_materia_sessao(request):
     materia_1.save()
 
     return
+
+
+class JustificativaAusenciaCrud(MasterDetailCrud):
+    model = JustificativaAusencia
+    public = [RP_LIST, RP_DETAIL, ]
+    parent_field = 'sessao_plenaria'
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['parlamentar', 'sessao_plenaria', 'ausencia', 'tipo_ausencia',
+                            'data']
+
+        @property
+        def layout_display(self):
+
+            layout = super().layout_display
+
+            if self.object.ausencia == 2:
+                # rm materias_da_ordem_do_dia do detail
+                layout[0]['rows'].pop(6)
+                # rm materias_do_expediente do detail
+                layout[0]['rows'].pop(5)
+
+            return layout
+
+    class ListView(MasterDetailCrud.ListView):
+        paginate_by = 10
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = JustificativaAusenciaForm
+        layout_key = None
+
+        def get_context_data_old(self, **kwargs):
+
+            context = super().get_context_data(**kwargs)
+
+            presencas = SessaoPlenariaPresenca.objects.filter(
+                sessao_plenaria_id=kwargs['root_pk']
+            ).order_by('parlamentar__nome_parlamentar')
+
+            parlamentares_sessao = [p.parlamentar for p in presencas]
+
+            context.update({'presenca_sessao': parlamentares_sessao})
+
+            expedientes = ExpedienteMateria.objects.filter(
+                sessao_plenaria_id=kwargs['root_pk'])
+
+            expedientes_materia = [e.materia for e in expedientes]
+
+            context.update({'expedientes': expedientes})
+
+            ordens = OrdemDia.objects.filter(
+                sessao_plenaria_id=kwargs['root_pk'])
+
+            ordem_materia = [o.materia for o in ordens]
+
+            context.update({'ordens': ordens})
+
+            return context
+
+        def get_initial(self):
+            sessao_plenaria = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+            return {'sessao_plenaria': sessao_plenaria}
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:justificativaausencia_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+
+        form_class = JustificativaAusenciaForm
+        layout_key = None
+
+        def get_initial(self):
+            sessao_plenaria = JustificativaAusencia.objects.get(
+                id=self.kwargs['pk']).sessao_plenaria
+            return {'sessao_plenaria': sessao_plenaria}
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+        pass

@@ -84,3 +84,18 @@ Bloco:
   - data_criacao data_extincao
   - partidos
   - descricao
+
+TipoJustificativa:
+  {% trans 'Tipo de Justificativa' %}:
+  - descricao
+
+JustificativaAusencia:
+  {% trans 'Justificativa de Ausência' %}:
+  - parlamentar 
+  - data hora
+  - upload_anexo
+  - tipo_ausencia
+  - ausencia
+  - materias_do_expediente
+  - materias_da_ordem_do_dia
+  - observacao
