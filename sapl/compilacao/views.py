@@ -2928,7 +2928,8 @@ class DispositivoSearchFragmentFormView(ListView):
 
         response = ListView.get(self, request, *args, **kwargs)
 
-        if isinstance(self.object_list, list) and self.object_list or \
+        if not self.object_list or \
+                not isinstance(self.object_list, list) and \
                 not self.object_list.exists():
             messages.info(
                 request, _('Não foram encontrados resultados '
