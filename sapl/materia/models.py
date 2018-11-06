@@ -2,7 +2,7 @@
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
 from django.db import models
 from django.db.models.functions import Concat
 from django.template import defaultfilters
@@ -261,18 +261,15 @@ class MateriaLegislativa(models.Model):
         '''
         from sapl.protocoloadm.models import Protocolo
         if self.ano and self.numero_protocolo:
-            try:
-                protocolo = Protocolo.objects.get(
-                    ano=self.ano,
-                    numero=self.numero_protocolo)
-                if protocolo.timestamp:
-                    return protocolo.timestamp.date()
-                else:
-                    return protocolo.data
-            except ObjectDoesNotExist:
-                pass
-
-        return ''
+            protocolo = Protocolo.objects.filter(
+                ano=self.ano,
+                numero=self.numero_protocolo)
+            if protocolo.first().timestamp:
+                return protocolo.first().timestamp.date()
+            else:
+                return protocolo.data        
+        else:
+            return ''           
 
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
