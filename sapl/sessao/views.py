@@ -1361,6 +1361,7 @@ class ResumoView(DetailView):
             numero = m.numero_ordem
             tramitacao = m.materia.tramitacao_set.last()
             turno = None
+            
             if tramitacao:
                 turno = get_turno(tramitacao.turno)
 
@@ -1446,6 +1447,7 @@ class ResumoView(DetailView):
         materias_ordem = []
         for o in ordem:
             ementa = o.materia.ementa
+            ementa_observacao = o.observacao
             titulo = o.materia
             numero = o.numero_ordem
             tramitacao = o.materia.tramitacao_set.last()
@@ -1467,6 +1469,7 @@ class ResumoView(DetailView):
             autor = [str(x.autor) for x in autoria]
 
             mat = {'ementa': ementa,
+                   'ementa_observacao': ementa_observacao,
                    'titulo': titulo,
                    'numero': numero,
                    'turno': turno,

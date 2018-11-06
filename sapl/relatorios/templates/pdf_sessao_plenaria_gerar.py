@@ -257,7 +257,7 @@ def votacao(lst_votacao):
         tmp += '<tr><td><para style="P3"><b>' + str(votacao['num_ordem']) + '</b> - ' + votacao['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno:</b> ' + str(votacao[
             'des_turno']) + '</para>\n' + '<para style="P3"><b>Autor: </b>' + str(votacao['nom_autor']) + '</para></td>\n'
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
-        tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
+        tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + votacao['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
             str(votacao['nom_resultado']) + \
             '</b></para>\n' + '<para style="P3">'
