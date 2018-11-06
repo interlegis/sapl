@@ -1,7 +1,6 @@
 from datetime import datetime as dt
 import logging
 
-from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from django.core.urlresolvers import reverse
 from django.template import Context, loader
@@ -11,6 +10,7 @@ from sapl.base.models import CasaLegislativa
 from sapl.materia.models import AcompanhamentoMateria
 from sapl.protocoloadm.models import AcompanhamentoDocumento
 from sapl.settings import EMAIL_SEND_USER
+from sapl.utils import mail_service_configured
 
 
 def load_email_templates(templates, context={}):
@@ -114,7 +114,7 @@ def do_envia_email_confirmacao(base_url, casa, tipo, doc_mat, destinatario):
     # Envia email de confirmacao para atualizações de tramitação
     #
 
-    if not settings.EMAIL_HOST:
+    if not mail_service_configured():
         logger = logging.getLogger(__name__)
         logger.warning(_('Servidor de email não configurado.'))
         return
@@ -208,7 +208,7 @@ def do_envia_email_tramitacao(base_url, tipo, doc_mat, status, unidade_destino):
     # Envia email de tramitacao para usuarios cadastrados
     #
 
-    if not settings.EMAIL_HOST:
+    if not mail_service_configured():
         logger = logging.getLogger(__name__)
         logger.warning(_('Servidor de email não configurado.'))
         return

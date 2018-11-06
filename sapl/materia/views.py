@@ -48,7 +48,7 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH_PROPOSICAO,
                         gerar_hash_arquivo, get_base_url,
                         get_mime_type_from_file_extension, montar_row_autor,
-                        show_results_filter_set)
+                        show_results_filter_set, mail_service_configured)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
@@ -1822,7 +1822,7 @@ class AcompanhamentoMateriaView(CreateView):
         return ''.join(choice(s) for i in range(choice([6, 7])))
 
     def get(self, request, *args, **kwargs):
-        if not settings.EMAIL_HOST:
+        if not mail_service_configured():
             self.logger.warning(_('Servidor de email não configurado.'))
             messages.error(request, _('Serviço de Acompanhamento de '
                                       'Matérias não foi configurado'))

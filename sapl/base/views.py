@@ -33,7 +33,7 @@ from sapl.materia.models import (Autoria, MateriaLegislativa,
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.utils import (parlamentares_ativos,
-                        show_results_filter_set)
+                        show_results_filter_set, mail_service_configured)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
@@ -171,15 +171,14 @@ class AutorCrud(CrudAux):
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
 
-            if not settings.EMAIL_HOST:
+            if not mail_service_configured():
                 self.logger.warning(_('Registro de Autor sem envio de email. '
                                       'Servidor de email não configurado.'))
                 return url_reverse
 
             try:
-
-                self.logger.debug('user=' + username +
-                                  '. Enviando email na edição de Autores.')
+                self.logger.debug('user={}. Enviando email na edição '
+                                  'de Autores.'.format(username))
                 kwargs = {}
                 user = self.object.user
 
@@ -207,8 +206,8 @@ class AutorCrud(CrudAux):
                 send_mail(assunto, mensagem, remetente, destinatario,
                           fail_silently=False)
             except Exception as e:
-                self.logger.error(
-                    'user=' + username + '. Erro no envio de email na edição de Autores. ' + str(e))
+                self.logger.error('user={}. Erro no envio de email na edição de'
+                                  ' Autores. {}'.format(username, str(e)))
 
             return url_reverse
 
@@ -233,7 +232,7 @@ class AutorCrud(CrudAux):
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
 
-            if not settings.EMAIL_HOST:
+            if not mail_service_configured():
                 self.logger.warning(_('Registro de Autor sem envio de email. '
                                       'Servidor de email não configurado.'))
                 return url_reverse

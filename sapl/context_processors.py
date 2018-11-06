@@ -4,6 +4,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.views import get_casalegislativa
+from sapl.utils import mail_service_configured as mail_service_configured_utils
 
 
 def parliament_info(request):
@@ -16,7 +17,7 @@ def parliament_info(request):
 
 def mail_service_configured(request):
 
-    if not settings.EMAIL_HOST:
+    if not mail_service_configured_utils():
         logger = logging.getLogger(__name__)
         logger.warning(_('Servidor de email não configurado.'))
         return {'mail_service_configured': False}
