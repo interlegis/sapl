@@ -261,18 +261,15 @@ class MateriaLegislativa(models.Model):
         '''
         from sapl.protocoloadm.models import Protocolo
         if self.ano and self.numero_protocolo:
-            try:
-                protocolo = Protocolo.objects.filter(
-                    ano=self.ano,
-                    numero=self.numero_protocolo)
-                if protocolo.first().timestamp:
-                    return protocolo.first().timestamp.date()
-                else:
-                    return protocolo.data
-            except ObjectDoesNotExist:
-                pass
-
-        return ''
+            protocolo = Protocolo.objects.filter(
+                ano=self.ano,
+                numero=self.numero_protocolo)
+            if protocolo.first().timestamp:
+                return protocolo.first().timestamp.date()
+            else:
+                return protocolo.data        
+        else:
+            return ''           
 
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
