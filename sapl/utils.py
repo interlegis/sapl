@@ -773,13 +773,16 @@ def remover_acentos(string):
 
 
 def mail_service_configured(request=None):
-    result = True
-    try:
-        connection = get_connection()
-        connection.open()
-    except Exception as e:
-        result = False
-        print(e)
-    finally:
-        connection.close()
-    return result
+
+    if settings.EMAIL_RUNNING is None:
+        result = True
+        try:
+            connection = get_connection()
+            connection.open()
+        except Exception as e:
+            result = False
+        finally:
+            connection.close()
+        settings.EMAIL_RUNNING = result
+
+    return settings.EMAIL_RUNNING
