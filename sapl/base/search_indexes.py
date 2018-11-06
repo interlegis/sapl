@@ -1,6 +1,8 @@
 import os.path
 import re
 import string
+import textract
+import logging
 
 from django.db.models import F, Q, Value
 from django.db.models.fields import TextField
@@ -10,7 +12,6 @@ from haystack.constants import Indexable
 from haystack.fields import CharField
 from haystack.indexes import SearchIndex
 from haystack.utils import get_model_ct_tuple
-import textract
 from textract.exceptions import ExtensionNotSupported
 
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -23,6 +24,8 @@ from sapl.utils import RemoveTag
 
 class TextExtractField(CharField):
 
+    logger = logging.getLogger(__name__)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         assert self.model_attr
@@ -34,14 +37,18 @@ class TextExtractField(CharField):
         extracted_data = self._get_backend(None).extract_file_contents(
             arquivo)['contents']
         # Remove as tags xml
+        self.logger.debug("Removendo as tags xml.")
         extracted_data = re.sub('<[^>]*>', '', extracted_data)
         # Remove tags \t e \n
+        self.logger.debug("Removendo as \t e \n.")
         extracted_data = extracted_data.replace(
             '\n', ' ').replace('\t', ' ')
         # Remove sinais de pontuação
+        self.logger.debug("Removendo sinais de pontuação.")
         extracted_data = re.sub('[' + string.punctuation + ']',
                                 ' ', extracted_data)
         # Remove espaços múltiplos
+        self.logger.debugger("Removendo espaços múltiplos.")
         extracted_data = " ".join(extracted_data.split())
 
         return extracted_data
@@ -60,6 +67,7 @@ class TextExtractField(CharField):
                 '\t', ' ')
 
     def print_error(self, arquivo):
+        self.logger.error("Erro inesperado processando arquivo: {}".format(arquivo.path))
         msg = 'Erro inesperado processando arquivo: %s' % (
             arquivo.path)
         print(msg)
@@ -73,17 +81,21 @@ class TextExtractField(CharField):
         if SOLR_URL:
             try:
                 return self.solr_extraction(arquivo)
-            except Exception:
+            except Exception as e:
+                self.logger.error("Erro no arquivo {}. ".format(arquivo.path) + str(e))
                 self.print_error(arquivo)
 
         # Em ambiente de DEV utiliza-se o Whoosh
         # Como ele não possui extração, faz-se uso do textract
         else:
             try:
+                self.logger.debug("Tentando whoosh_extraction no arquivo {}".format(arquivo.path))
                 return self.whoosh_extraction(arquivo)
             except ExtensionNotSupported as e:
+                self.logger.error("Erro no arquivo {}".format(arquivo.path) + str(e))
                 print(str(e))
             except Exception as e2:
+                self.logger.error(str(e))
                 print(str(e2))
                 self.print_error(arquivo)
         return ''
