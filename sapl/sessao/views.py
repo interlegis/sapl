@@ -2356,7 +2356,7 @@ class VotacaoNominalTransparenciaDetailView(TemplateView):
         context['votacao'] = votacao
 
         voto_parlamentar = VotoParlamentar.objects.filter(
-            votacao=votacao)
+            votacao=votacao).order_by('parlamentar__nome_parlamentar')
 
         context['voto_parlamentar'] = voto_parlamentar
 
