@@ -203,7 +203,20 @@ class RetiradaPautaForm(ModelForm):
 
     class Meta:
         model = RetiradaPauta
-        exclude = ['ordem', 'expediente', 'materia']
+        exclude = ['ordem',
+                   'expediente',
+                   'materia']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row[('parlamentar', 6),
+                      ('tipo_de_retirada', 6)]
+        row2 = to_row[('observacao',12)]
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Retirada de Pauta'),
+                     row1, row2))
 
 
 class BancadaForm(ModelForm):
