@@ -263,12 +263,13 @@ class MateriaLegislativa(models.Model):
         if self.ano and self.numero_protocolo:
             protocolo = Protocolo.objects.filter(
                 ano=self.ano,
-                numero=self.numero_protocolo)
-            if protocolo.first().timestamp:
-                return protocolo.first().timestamp.date()
-            else:
-                return protocolo.data        
-        else:
+                numero=self.numero_protocolo).first()
+            if protocolo:
+                if protocolo.timestamp:
+                    return protocolo.timestamp.date()
+                elif protocolo.data:
+                    return protocolo.data  
+
             return ''           
 
     def delete(self, using=None, keep_parents=False):
