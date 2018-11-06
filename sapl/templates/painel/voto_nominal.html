@@ -86,7 +86,7 @@
           <div  class="row-fluid">
             <div class="col-md-12" id="votos">
 
-               <div id="votosim"><input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim"/></div>
+               <div id="votosim"><input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim" /></div>
                 &nbsp;
                 <div id="votonao"><input type="submit" class="btn btn-lg btn-danger" id="voto" name="voto" type="submit" value="Não"/></div>
                 &nbsp;
@@ -97,7 +97,7 @@
             </br>
             </br>
             </br>
-            <center><button type="button" class="btn btn-lg btn-secondary" onclick="javascript:window.close()">Voltar</button></center>
+            <div id='voltar'><center><button type="button" class="btn btn-lg btn-secondary" onclick="javascript:window.close()">Voltar</button></center></div>
           </div>
         </div>
 
@@ -132,6 +132,26 @@
   $( "#votosim" ).mouseleave(function(){document.location.reload(true);});
   $( "#votonao" ).mouseleave(function(){document.location.reload(true);});
   $( "#votoabstencao" ).mouseleave(function(){document.location.reload(true);});
+
+  $(document).on('keyup', (e) => {
+    var tecla_press = e.keyCode;
+    switch (tecla_press) {
+      case 83: // 83 = valor da tecla S
+        document.querySelectorAll("#votosim input")[0].click();
+        break;
+        case 78: //78 = valor da tecla N
+          document.querySelectorAll("#votonao input")[0].click();
+          break;
+        case 65: //65 = valor da tecla A
+          document.querySelectorAll("#votoabstencao input")[0].click();
+          break;
+        case 86: //86 = valor da tecla V
+          document.querySelectorAll("#voltar button")[0].click();
+          break;
+
+    };
+  });
+
   $(document).ready(
     function(){
 
