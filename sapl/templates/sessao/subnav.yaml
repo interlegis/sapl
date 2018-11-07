@@ -30,6 +30,8 @@
       url: ordemdia_list
     - title: {% trans 'Presença Ordem do Dia' %}
       url: presencaordemdia
+    - title: {% trans 'Votação em Bloco' %}
+      url: votacao-bloco
 
 - title: {% trans 'Painel Eletrônico' %}
   url: painel
