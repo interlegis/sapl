@@ -3215,3 +3215,8 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
+
+
+class VotacaoEmBloco(PermissionRequiredForAppCrudMixin,
+                     MateriaLegislativaPesquisaView):
+    pass

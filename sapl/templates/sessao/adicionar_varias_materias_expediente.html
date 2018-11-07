@@ -28,18 +28,19 @@
     {% if not filter_url %}
       {% crispy filter.form %}
     {% endif %}
-  {%  endif %}
+  {% endif %}
 
   <p></p>
   {% if filter_url and not filter.form.errors %}
   <table class="table table-striped table-bordered">
-        <thead class="thead-default">
+        
+        {% if paginator.count %}
+          <thead class="thead-default">
             <tr>
               <td><h3>{% trans "Matérias" %}</h3></td>
               <td><h3>{% trans "Tipo de Votação" %}</h3></td>
             </tr>
-        </thead>
-        {% if paginator.count %}
+          </thead>
           {% if paginator.count > 1 %}
               <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
             {% elif paginator.count == 1 %}
