@@ -167,6 +167,7 @@ function DispositivoEdit() {
         instance.scrollTo(_this);
         dpt_form.submit(instance.onSubmitFormRegistraRevogacao);
 
+
         var btn_fechar = _this.find('.btn-fechar');
         btn_fechar.on('click', function() {
             instance.clearEditSelected();
@@ -228,6 +229,7 @@ function DispositivoEdit() {
                     if (editortype == 'tinymce' ) {
                         initTinymce();
                     }
+                    OptionalCustomFrontEnd().init();
                 }
                 dpt.trigger(trigger);
             }).always(function() {
@@ -304,16 +306,29 @@ function DispositivoEdit() {
     instance.onSubmitFormRegistraAlteracao = function(event) {
         var _this = this;
 
+        if (this.dispositivo_alterado === undefined) {
+            instance.modalMessage('Nenhum dispositivo selecionado', 'alert-info')
+            if (event != null)
+                event.preventDefault();
+            return
+        }
+        var dispositivo_alterado = this.dispositivo_alterado.length === undefined ? [this.dispositivo_alterado, ] : Array.from(this.dispositivo_alterado)
         var form_data = {
-            'csrfmiddlewaretoken'  : this['csrfmiddlewaretoken'].value,
-            'dispositivo_alterado' : this['dispositivo_alterado'].value,
+            'csrfmiddlewaretoken'  : this.csrfmiddlewaretoken.value,
+            'dispositivo_alterado' : dispositivo_alterado.filter(
+                function(elem, idx, array) {
+                    return elem.checked
+                }
+            ).map(function(dsp) {
+                return dsp.value
+            }),
             'formtype': 'get_form_alteracao',
         };
         var url = $(this).closest('.dpt').attr( "pk" )+'/refresh';
 
         instance.waitShow();
 
-        $.post(url, form_data)
+        $.post(url, form_data, dataType="json")
         .done(function(data) {
             instance.clearEditSelected();
 
@@ -364,11 +379,27 @@ function DispositivoEdit() {
     instance.onSubmitFormRegistraRevogacao = function(event) {
         var _this = this;
 
+
+        if (this.dispositivo_revogado === undefined) {
+            instance.modalMessage('Nenhum dispositivo selecionado', 'alert-info')
+            if (event != null)
+                event.preventDefault();
+            return
+        }
+        var dispositivo_revogado = this.dispositivo_revogado.length === undefined ? [this.dispositivo_revogado, ] : Array.from(this.dispositivo_revogado)
         var form_data = {
-            'csrfmiddlewaretoken'  : this['csrfmiddlewaretoken'].value,
-            'dispositivo_revogado' : this['dispositivo_revogado'].value,
+            'csrfmiddlewaretoken'  : this.csrfmiddlewaretoken.value,
+            'dispositivo_revogado' : dispositivo_revogado.filter(
+                function(elem, idx, array) {
+                    return elem.checked
+                }
+            ).map(function(dsp) {
+                return dsp.value
+            }),
+            'revogacao_em_bloco': this.revogacao_em_bloco.value,
             'formtype': 'get_form_revogacao',
         };
+
         var url = $(this).closest('.dpt').attr( "pk" )+'/refresh';
 
         instance.waitShow();

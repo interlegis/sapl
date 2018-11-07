@@ -9,10 +9,12 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.core.signing import Signer
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import transaction
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse, Http404)
 from django.shortcuts import get_object_or_404, redirect
@@ -1525,6 +1527,13 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
         return data
 
     def remover_dispositivo(self, base, bloco):
+
+        if base.tipo_dispositivo.dispositivo_de_alteracao:
+            bloco = False
+            for d in base.dispositivos_alterados_set.all():
+                d.refresh_from_db()
+                self.remover_dispositivo(d, bloco)
+
         username = self.request.user.username
         base_ordem = base.ordem
         if base.dispositivo_subsequente or base.dispositivo_substituido:
@@ -1836,7 +1845,10 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     dpts = base.dispositivos_alterados_set.all().order_by(
                         '-ordem_bloco_atualizador')
                     for dpt in dpts:
-                        self.remover_dispositivo(dpt, False)
+                        try:
+                            self.remover_dispositivo(dpt, False)
+                        except Exception as e:
+                            print(e)
 
                 if base.pk:
                     """
@@ -2585,17 +2597,20 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
         return self.json_add_next_registra_inclusao(
             context, local_add='json_add_in')
 
-    def registra_revogacao(self, bloco_alteracao, dispositivo_a_revogar):
+    def registra_revogacao(self, bloco_alteracao, dsp_a_rev, em_bloco=False):
+
         return self.registra_alteracao(
             bloco_alteracao,
-            dispositivo_a_revogar,
-            revogacao=True
+            dsp_a_rev,
+            revogacao=True,
+            em_bloco=em_bloco
         )
 
     def registra_alteracao(self,
                            bloco_alteracao,
-                           dispositivo_a_alterar,
-                           revogacao=False):
+                           dsp_a_alterar,
+                           revogacao=False,
+                           em_bloco=False):
         """
         Caracteristicas:
         1 - Se é um dispositivo simples e sem subsequente
@@ -2621,14 +2636,69 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
         data.update({'pk': bloco_alteracao.pk,
                      'pai': [bloco_alteracao.pk, ]})
 
-        history = dispositivo_a_alterar.history()
+        if isinstance(dsp_a_alterar, list):
+            dsps = Dispositivo.objects.filter(id__in=dsp_a_alterar)
+            dsps_ids = set()
+            for d in dsps:
+                ds = d
+                while ds.dispositivo_subsequente:
+                    ds = ds.dispositivo_subsequente
+                dsps_ids.add(ds.pk)
 
-        for d in history:
+                if em_bloco:
+                    proximo_bloco = Dispositivo.objects.filter(
+                        ordem__gt=ds.ordem,
+                        nivel__lte=ds.nivel,
+                        ta_id=ds.ta_id).first()
+
+                    params = {
+                        'ta_id': ds.ta_id,
+                        'nivel__gte': ds.nivel,
+                        'ordem__gte': ds.ordem,
+                        'dispositivo_subsequente__isnull': True
+                    }
+
+                    if proximo_bloco:
+                        params['ordem__lt'] = proximo_bloco.ordem
+
+                    bloco = Dispositivo.objects.filter(
+                        **params).values_list('id', 'auto_inserido')
+                    for id, auto in bloco:
+                        if auto:
+                            dsp_pai = Dispositivo.objects.filter(
+                                pk=id
+                            ).values_list('dispositivo_pai', flat=True).first()
+                            if dsp_pai in dsps_ids:
+                                dsps_ids.remove(dsp_pai)
+                        dsps_ids.add(id)
+
+            dsps_ids = Dispositivo.objects.filter(
+                id__in=dsps_ids
+            ).values_list('id', flat="True")
+            for dsp in dsps_ids:
+                with transaction.atomic():
+                    data.update(
+                        self.registra_alteracao(
+                            bloco_alteracao,
+                            dsp,
+                            revogacao
+                        )
+                    )
+                if 'message' in data and 'danger' in data['message']['type']:
+                    return data
+            return data
+
+        dsp_a_alterar = Dispositivo.objects.get(
+            pk=dsp_a_alterar)
+
+        history = dsp_a_alterar.history()
+
+        for d in list(history):
             if d.inicio_vigencia <= bloco_alteracao.inicio_vigencia:
-                dispositivo_a_alterar = d
+                dsp_a_alterar = d
                 break
 
-        if (dispositivo_a_alterar.inicio_vigencia >
+        if (dsp_a_alterar.inicio_vigencia >
                 bloco_alteracao.inicio_vigencia):
             self.set_message(
                 data, 'danger',
@@ -2637,7 +2707,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                   'Alterador!'), time=10000)
             return data
 
-        if dispositivo_a_alterar.tipo_dispositivo.dispositivo_de_articulacao\
+        if dsp_a_alterar.tipo_dispositivo.dispositivo_de_articulacao\
                 and not revogacao:
             self.set_message(
                 data, 'warning',
@@ -2647,13 +2717,13 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                       'para o dispositivo que se quer alterar.'), modal=True)
 
         ndp = Dispositivo.new_instance_based_on(
-            dispositivo_a_alterar, dispositivo_a_alterar.tipo_dispositivo)
-        ndp.auto_inserido = dispositivo_a_alterar.auto_inserido
-        ndp.rotulo = dispositivo_a_alterar.rotulo
+            dsp_a_alterar, dsp_a_alterar.tipo_dispositivo)
+        ndp.auto_inserido = dsp_a_alterar.auto_inserido
+        ndp.rotulo = dsp_a_alterar.rotulo
         ndp.publicacao = bloco_alteracao.publicacao
 
         if not revogacao:
-            ndp.texto = dispositivo_a_alterar.texto
+            ndp.texto = dsp_a_alterar.texto
         else:
             ndp.texto = Dispositivo.TEXTO_PADRAO_DISPOSITIVO_REVOGADO
             ndp.dispositivo_de_revogacao = True
@@ -2668,15 +2738,15 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             ndp.inicio_vigencia = bloco_alteracao.inicio_eficacia
 
         try:
-            ordem = dispositivo_a_alterar.criar_espaco(
-                espaco_a_criar=1, local='json_add_in')
+            ordem = dsp_a_alterar.criar_espaco(
+                espaco_a_criar=1, local='json_add_in_with_auto')
 
             ndp.ordem = ordem
             ndp.dispositivo_atualizador = bloco_alteracao
             ndp.ta_publicado = bloco_alteracao.ta
 
-            p = dispositivo_a_alterar
-            n = dispositivo_a_alterar.dispositivo_subsequente
+            p = dsp_a_alterar
+            n = dsp_a_alterar.dispositivo_subsequente
 
             ndp.dispositivo_substituido = p
             ndp.dispositivo_subsequente = n
@@ -2711,7 +2781,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 n.dispositivo_substituido = ndp
                 n.save()
 
-            filhos_diretos = dispositivo_a_alterar.dispositivos_filhos_set
+            filhos_diretos = dsp_a_alterar.dispositivos_filhos_set
             for d in filhos_diretos.all():
                 d.dispositivo_pai = ndp
                 d.save()
@@ -2728,14 +2798,20 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                 self.set_message(
                     data, 'success',
                     _('Dispositivo de Revogação adicionado com sucesso.'))
-
+            # data.update({'pk': ndp.pk,
+            #             'pai': [bloco_alteracao.pk, ]})
+        except ValidationError as ve:
+            self.set_message(
+                data, 'danger',
+                _('O dispositivo ({} - {}) já existe neste bloco.'.format(
+                    ndp.tipo_dispositivo,
+                    ndp.get_nomenclatura_completa())), time=10000)
         except Exception as e:
             username = self.request.user.username
             self.logger.error("user=" + username + ". " + str(e))
-            print(e)
-
-        data.update({'pk': ndp.pk,
-                     'pai': [bloco_alteracao.pk, ]})
+            self.set_message(
+                data, 'danger',
+                _('Não é foi possível registrar sua solicitação!'), time=10000)
 
         return data
 
@@ -2836,17 +2912,16 @@ class DispositivoDinamicEditView(
         formtype = request.POST['formtype']
         if formtype == 'get_form_alteracao':
 
-            dispositivo_a_alterar = Dispositivo.objects.get(
-                pk=request.POST['dispositivo_alterado'])
-
-            data = self.registra_alteracao(d, dispositivo_a_alterar)
+            data = self.registra_alteracao(
+                d, request.POST.getlist('dispositivo_alterado[]', []))
 
         elif formtype == 'get_form_revogacao':
 
-            dispositivo_a_revogar = Dispositivo.objects.get(
-                pk=request.POST['dispositivo_revogado'])
-
-            data = self.registra_revogacao(d, dispositivo_a_revogar)
+            data = self.registra_revogacao(
+                d,
+                request.POST.getlist('dispositivo_revogado[]', []),
+                request.POST.get("revogacao_em_bloco") == "True"
+            )
 
         if formtype == 'get_form_inclusao':
 

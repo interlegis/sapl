@@ -178,30 +178,39 @@ function OptionalCustomFrontEnd() {
     instance.customCheckBoxAndRadioWithoutLabel = function() {
 
         $('[type=radio], [type=checkbox]').each(function() {
-            var _this = $(this);
-            var _label = _this.closest('label');
-
-            if (_label.length)
-                return;
-
-            if (this.id)
-                _label = $('label[for='+this.id+']');
-            else {
-                _label = $('<label/>').insertBefore(this)
+            let _this = $(this)
+            
+            if (this.id === undefined || this.id.length === 0) {
+                return 
             }
+                        
+            let _label = _this.closest('label')
 
-            if (_label.length) {
-                /*var _controls = _label.closest('.controls');
+            if (_label.length === 0) {
+                _label = $('label[for='+this.id+']');
+                if (_label.length === 0) {
+                    _label = $('<label[for='+this.id+']/>').insertBefore(this)
+                }
+            }
+            /*var _controls = _label.closest('.controls');
 
-                if (!_controls.length) {
-                    _controls = $('<div class="controls"/>').insertBefore(_label)
-                    _controls.append(_label)
-                }*/
+            if (!_controls.length) {
+                _controls = $('<div class="controls"/>').insertBefore(_label)
+                _controls.append(_label)
+            }*/
 
+            if (this.type === "checkbox") {
                 _label.addClass('checkbox-inline');
                 _label.prepend(_this);
                 _this.checkbox();
             }
+            else if (this.type === "radio") {
+                _label.addClass('radio-inline');
+                _label.prepend(_this);
+                _this.radio();
+
+            }
+
         });
     }
     instance.init = function() {

@@ -187,7 +187,7 @@ class TextoArticulado(TimestampedMixin):
     ementa = models.TextField(verbose_name=_('Ementa'))
     observacao = models.TextField(blank=True, verbose_name=_('Observação'))
     numero = models.CharField(
-        max_length=8,verbose_name=_('Número'))
+        max_length=8, verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
     tipo_ta = models.ForeignKey(
         TipoTextoArticulado,
@@ -1386,28 +1386,30 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
         return result
 
-    def criar_espaco(self, espaco_a_criar, local):
+    def criar_espaco(self, espaco_a_criar, local=None):
 
         if local == 'json_add_next':
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel,
-                ta_id=self.ta_id)[:1]
+                ta_id=self.ta_id).first()
         elif local == 'json_add_in':
-            # FIXME: o exclude não deve estar limitado a uma class_css caput e
-            # sim a qualquer filho de inserção automática
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gt=self.ordem,
                 nivel__lte=self.nivel + 1,
-                ta_id=self.ta_id).exclude(
-                    tipo_dispositivo__class_css='caput')[:1]
+                ta_id=self.ta_id).exclude(auto_inserido=True).first()
+        elif local == 'json_add_in_with_auto':
+            proximo_bloco = Dispositivo.objects.filter(
+                ordem__gt=self.ordem,
+                nivel__lte=self.nivel + 1,
+                ta_id=self.ta_id).first()
         else:
             proximo_bloco = Dispositivo.objects.filter(
                 ordem__gte=self.ordem,
-                ta_id=self.ta_id)[:1]
+                ta_id=self.ta_id).first()
 
-        if proximo_bloco.exists():
-            ordem = proximo_bloco[0].ordem
+        if proximo_bloco:
+            ordem = proximo_bloco.ordem
             proximo_bloco = Dispositivo.objects.order_by('-ordem').filter(
                 ordem__gte=ordem,
                 ta_id=self.ta_id)
