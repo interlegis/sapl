@@ -1,0 +1,19 @@
+{% extends "sessao/votacao/votacao_bloco_expediente.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block buttons %}
+
+      {% if filter_url and not filter.form.errors %}
+
+            <div class="actions btn-group pull-right" role="group">
+              <a href="{% url 'sapl.sessao:votacao_bloco_ordemdia' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+            </div>
+
+            <div class="actions btn-group pull-right" role="group">
+              <a href="{% url 'sapl.sessao:ordemdia_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias da Ordem do Dia' %}</a>
+            </div>
+
+      {% endif %}
+
+    {% endblock %}

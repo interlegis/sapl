@@ -786,3 +786,79 @@ class JustificativaAusenciaForm(ModelForm):
             justificativa.materias_do_expediente.clear()
             justificativa.materias_da_ordem_do_dia.clear()
         return justificativa
+
+
+class VotacaoEmBlocoFilterSet(MateriaLegislativaFilterSet):
+
+    o = MateriaPesquisaOrderingFilter()
+    tramitacao__status = django_filters.ModelChoiceFilter(
+        required=True,
+        queryset=StatusTramitacao.objects.all(),
+        label=_('Status da Matéria'))
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tramitacao__status',
+                  'numero',
+                  'numero_protocolo',
+                  'ano',
+                  'tipo',
+                  'data_apresentacao',
+                  'data_publicacao',
+                  'autoria__autor__tipo',
+                  # FIXME 'autoria__autor__partido',
+                  'relatoria__parlamentar_id',
+                  'local_origem_externa',
+                  'em_tramitacao',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
+        # self.filters['autoria__autor__partido'].label = 'Partido do Autor'
+        self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
+
+        row1 = to_row(
+            [('tramitacao__status', 12)])
+        row2 = to_row(
+            [('tipo', 12)])
+        row3 = to_row(
+            [('numero', 4),
+             ('ano', 4),
+             ('numero_protocolo', 4)])
+        row4 = to_row(
+            [('data_apresentacao', 6),
+             ('data_publicacao', 6)])
+        row5 = to_row(
+            [('autoria__autor', 0),
+             (Button('pesquisar',
+                     'Pesquisar Autor',
+                     css_class='btn btn-primary btn-sm'), 2),
+             (Button('limpar',
+                     'limpar Autor',
+                     css_class='btn btn-primary btn-sm'), 10)])
+        row6 = to_row(
+            [('autoria__autor__tipo', 6),
+             # ('autoria__autor__partido', 6)
+             ])
+        row7 = to_row(
+            [('relatoria__parlamentar_id', 6),
+             ('local_origem_externa', 6)])
+        row8 = to_row(
+            [('em_tramitacao', 6),
+             ('o', 6)])
+        row9 = to_row(
+            [('ementa', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Matéria'),
+                     row1, row2, row3,
+                     HTML(autor_label),
+                     HTML(autor_modal),
+                     row4, row5, row6, row7, row8, row9,
+                     form_actions(label='Pesquisar'))
+        )
