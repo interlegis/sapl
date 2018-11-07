@@ -95,7 +95,7 @@ def autores_ja_adicionados(materia_pk):
 
 def proposicao_texto(request, pk):
     logger = logging.getLogger(__name__)
-    username = request.user.username.replace("'", "")
+    username = request.user.username
     logger.debug('user=' + username +
                  '. Tentando obter objeto Proposicao com pk = {}.'.format(pk))
     proposicao = Proposicao.objects.get(pk=pk)
@@ -184,7 +184,7 @@ class CriarProtocoloMateriaView(CreateView):
     def get_context_data(self, **kwargs):
         context = super(
             CriarProtocoloMateriaView, self).get_context_data(**kwargs)
-        username = self.request.user.username.replace("'", "")
+        username = self.request.user.username
 
         try:
             self.logger.debug("user=" + username +
@@ -219,7 +219,7 @@ class CriarProtocoloMateriaView(CreateView):
 
     def form_valid(self, form):
         materia = form.save()
-        username = self.request.user.username.replace("'", "")
+        username = self.request.user.username
 
         try:
             self.logger.info(
@@ -312,7 +312,7 @@ class ProposicaoTaView(IntegracaoTaView):
 @permission_required('materia.detail_materialegislativa')
 def recuperar_materia(request):
     logger = logging.getLogger(__name__)
-    username = request.user.username.replace("'", "")
+    username = request.user.username
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
 
@@ -563,7 +563,7 @@ class RetornarProposicao(UpdateView):
     logger = logging.getLogger(__name__)
 
     def dispatch(self, request, *args, **kwargs):
-        username = request.user.username.replace("'", "")
+        username = request.user.username
         try:
             self.logger.info(
                 "user=" + username + ". Tentando obter objeto Proposicao com id={}.".format(kwargs['pk']))
@@ -603,7 +603,7 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
         return self.object.results['url']
 
     def get_object(self, queryset=None):
-        username = self.request.user.username.replace("'", "")
+        username = self.request.user.username
 
         try:
             """
@@ -764,7 +764,7 @@ class ProposicaoCrud(Crud):
         def get(self, request, *args, **kwargs):
 
             action = request.GET.get('action', '')
-            username = request.user.username.replace("'", "")
+            username = request.user.username
 
             if not action:
                 return Crud.DetailView.get(self, request, *args, **kwargs)
@@ -849,7 +849,7 @@ class ProposicaoCrud(Crud):
                                     kwargs={'pk': kwargs['pk']}))
 
         def dispatch(self, request, *args, **kwargs):
-            username = request.user.username.replace("'", "")
+            username = request.user.username
             try:
                 self.logger.debug(
                     "user=" + username + ". Tentando obter objeto Proposicao com pk={}".format(kwargs['pk']))
@@ -892,7 +892,7 @@ class ProposicaoCrud(Crud):
                 id=kwargs['pk']).values_list(
                     'data_envio', 'data_recebimento')
 
-            username = request.user.username.replace("'", "")
+            username = request.user.username
 
             if proposicao:
                 if proposicao[0][0] and proposicao[0][1]:
@@ -923,7 +923,7 @@ class ProposicaoCrud(Crud):
                 id=kwargs['pk']).values_list(
                     'data_envio', 'data_recebimento')
 
-            username = request.user.username.replace("'", "")
+            username = request.user.username
 
             if proposicao:
                 if proposicao[0][0] and proposicao[0][1]:
@@ -947,7 +947,7 @@ class ProposicaoCrud(Crud):
         def get_success_url(self):
 
             tipo_texto = self.request.POST.get('tipo_texto', '')
-            username = self.request.user.username.replace("'", "")
+            username = self.request.user.username
 
             if tipo_texto == 'T':
                 messages.info(self.request,
@@ -977,7 +977,7 @@ class ProposicaoCrud(Crud):
         def get_success_url(self):
 
             tipo_texto = self.request.POST.get('tipo_texto', '')
-            username = self.request.user.username.replace("'", "")
+            username = self.request.user.username
 
             if tipo_texto == 'T':
                 messages.info(self.request,
@@ -1060,7 +1060,7 @@ class ReciboProposicaoView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         proposicao = Proposicao.objects.get(pk=self.kwargs['pk'])
-        username = request.user.username.replace("'", "")
+        username = request.user.username
 
         if proposicao.data_envio:
             return TemplateView.get(self, request, *args, **kwargs)
@@ -1091,7 +1091,7 @@ class RelatoriaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            username = self.request.user.username.replace("'", "")
+            username = self.request.user.username
 
             try:
                 self.logger.debug("user=" + username + ". Tentando obter objeto Comissao de pk={}.".format(
@@ -1146,7 +1146,7 @@ class RelatoriaCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
 
             context = super().get_context_data(**kwargs)
-            username = self.request.user.username.replace("'", "")
+            username = self.request.user.username
 
             try:
                 self.logger.debug("user=" + username + ". Tentando obter objeto Comissao de pk={}.".format(
@@ -1210,7 +1210,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            username = self.request.user.username.replace("'", "")
+            username = self.request.user.username
 
             ultima_tramitacao = Tramitacao.objects.filter(
                 materia_id=self.kwargs['pk']).order_by(
@@ -1236,7 +1236,7 @@ class TramitacaoCrud(MasterDetailCrud):
         def form_valid(self, form):
 
             self.object = form.save()
-            username = self.request.user.username.replace("'", "")
+            username = self.request.user.username
 
             if form.instance.status.indicador == 'F':
                 form.instance.materia.em_tramitacao = False
@@ -1270,7 +1270,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def form_valid(self, form):
             self.object = form.save()
-            username = self.request.user.username.replace("'", "")
+            username = self.request.user.username
 
             if form.instance.status.indicador == 'F':
                 form.instance.materia.em_tramitacao = False
@@ -1320,7 +1320,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 '-timestamp',
                 '-id').first()
 
-            username = request.user.username.replace("'", "")
+            username = request.user.username
 
             if tramitacao.pk != ultima_tramitacao.pk:
                 self.logger.error("user=" + username + ". Não é possível deletar a tramitação de pk={}. "
@@ -1669,7 +1669,7 @@ class AcompanhamentoConfirmarView(TemplateView):
     logger = logging.getLogger(__name__)
 
     def get_redirect_url(self, email):
-        username = self.request.user.username.replace("'", "")
+        username = self.request.user.username
         self.logger.debug(
             'user=' + username + '. Esta matéria está sendo acompanhada pelo e-mail: %s' % (email))
         msg = _('Esta matéria está sendo acompanhada pelo e-mail: %s') % (
@@ -1681,7 +1681,7 @@ class AcompanhamentoConfirmarView(TemplateView):
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
         hash_txt = request.GET.get('hash_txt', '')
-        username = self.request.user.username.replace("'", "")
+        username = self.request.user.username
 
         try:
             self.logger.info("user=" + username + ". Tentando obter objeto AcompanhamentoMateria (materia_id={}, hash={})."
@@ -1710,7 +1710,7 @@ class AcompanhamentoExcluirView(TemplateView):
     logger = logging.getLogger(__name__)
 
     def get_success_url(self):
-        username = self.request.user.username.replace("'", "")
+        username = self.request.user.username
         self.logger.debug("user=" + username +
                           ". Você parou de acompanhar esta matéria.")
         msg = _('Você parou de acompanhar esta matéria.')
@@ -1721,7 +1721,7 @@ class AcompanhamentoExcluirView(TemplateView):
     def get(self, request, *args, **kwargs):
         materia_id = kwargs['pk']
         hash_txt = request.GET.get('hash_txt', '')
-        username = self.request.user.username.replace("'", "")
+        username = self.request.user.username
 
         try:
             self.logger.info("user=" + username + ". Tentando deletar objeto AcompanhamentoMateria (materia_id={}, hash={})."
@@ -2018,7 +2018,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
         tz = timezone.get_current_timezone()
 
-        username = request.user.username.replace("'", "")
+        username = request.user.username
 
         if len(marcadas) == 0:
             msg = _('Nenhuma máteria foi selecionada.')
@@ -2233,7 +2233,7 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
         context['form'].fields['materia'].choices = [
             (m.id, str(m)) for m in materia_list]
 
-        username = self.request.user.username.replace("'", "")
+        username = self.request.user.username
 
         if context['quantidade'] > 100:
             self.logger.info('user=' + username + '. Sua pesquisa (tipo={}, data_inicial={}, data_final={}) retornou mais do que '
@@ -2253,7 +2253,7 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
 
     def form_valid(self, form):
         context = {}
-        username = self.request.user.username.replace("'", "")
+        username = self.request.user.username
 
         try:
             self.logger.debug(
