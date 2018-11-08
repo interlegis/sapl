@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('materia', '0032_auto_20181022_1743'),
         ('parlamentares', '0025_auto_20180924_1724'),
-        ('sessao', '0027_auto_20181023_1239'),
+        ('sessao', '0028_auto_20181024_0848'),
     ]
 
     operations = [
