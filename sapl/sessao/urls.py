@@ -137,6 +137,10 @@ urlpatterns = [
         VotacaoEditView.as_view(), name='votacaosecretaedit'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoView.as_view(), name='votacaosimbolica'),
+    
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimbbloco/$',
+        VotacaoView.as_view(), name='votacaosimbolicabloco'),
+
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb'
         '/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoEditView.as_view(), name='votacaosimbolicaedit'),

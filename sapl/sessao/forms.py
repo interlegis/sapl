@@ -431,6 +431,12 @@ class VotacaoForm(forms.Form):
     total_votos = forms.CharField(required=False, label='total')
     resultado_votacao = forms.CharField(label='Resultado da Votação')
 
+    def save(self, commit=False):
+        votacao = super(VotacaoForm, self).save(commit)
+        votacao.materia = self.cleaned_data['materia']
+        votacao.save()
+        return votacao
+
 
 class VotacaoNominalForm(forms.Form):
     resultado_votacao = forms.ModelChoiceField(label='Resultado da Votação',

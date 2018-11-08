@@ -3343,42 +3343,54 @@ class VotacaoEmBlocoOrdemDia(VotacaoEmBlocoExpediente):
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
         username = request.user.username
+        tipo_votacao = request.POST['tipo_votacao_']
 
-        for m in marcadas:
-            try:
-                tipo_votacao = request.POST['tipo_votacao_%s' % m]
-                msg = _('%s adicionado(a) com sucesso!'
-                        % MateriaLegislativa.objects.get(id=m))
-                messages.add_message(request, messages.SUCCESS, msg)
-                self.logger.debug('user=' + username + '. MateriaLegislativa de id={} adicionado(a) com sucesso!'.format(m))
-            except MultiValueDictKeyError:
-                msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
-                        'o tipo de votação de %s' %
-                        MateriaLegislativa.objects.get(id=m))
-                messages.add_message(request, messages.ERROR, msg)
-                self.logger.error('user=' + username + '. Formulário Inválido. Você esqueceu de selecionar '
-                                  'o tipo de votação de MateriaLegislativa com id={}'.format(m))
+        qs = self.get_queryset()
+
+        qs = qs.filter(id__in=marcadas).distinct()
+
+        kwargs.update({
+            'queryset': qs,
+            'tipo_votacao': tipo_votacao
+        })
+
+        import pdb; pdb.set_trace()
+
+    #     for m in marcadas:
+    #         try:
+    #             tipo_votacao = request.POST['tipo_votacao_%s' % m]
+    #             msg = _('%s adicionado(a) com sucesso!'
+    #                     % MateriaLegislativa.objects.get(id=m))
+    #             messages.add_message(request, messages.SUCCESS, msg)
+    #             self.logger.debug('user=' + username + '. MateriaLegislativa de id={} adicionado(a) com sucesso!'.format(m))
+    #         except MultiValueDictKeyError:
+    #             msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
+    #                     'o tipo de votação de %s' %
+    #                     MateriaLegislativa.objects.get(id=m))
+    #             messages.add_message(request, messages.ERROR, msg)
+    #             self.logger.error('user=' + username + '. Formulário Inválido. Você esqueceu de selecionar '
+    #                               'o tipo de votação de MateriaLegislativa com id={}'.format(m))
                 
-                return self.get(request, self.kwargs)
+    #             return self.get(request, self.kwargs)
 
-            if tipo_votacao:
-                lista_materias_ordem_dia = OrdemDia.objects.filter(
-                    sessao_plenaria_id=self.kwargs[
-                        'pk'])
+    #         if tipo_votacao:
+    #             lista_materias_ordem_dia = OrdemDia.objects.filter(
+    #                 sessao_plenaria_id=self.kwargs[
+    #                     'pk'])
 
-                materia = MateriaLegislativa.objects.get(id=m)
+    #             materia = MateriaLegislativa.objects.get(id=m)
 
-                ordem_dia = OrdemDia()
-                ordem_dia.sessao_plenaria_id = self.kwargs['pk']
-                ordem_dia.materia_id = materia.id
-                if lista_materias_ordem_dia:
-                    posicao = lista_materias_ordem_dia.last().numero_ordem + 1
-                    ordem_dia.numero_ordem = posicao
-                else:
-                    ordem_dia.numero_ordem = 1
-                ordem_dia.data_ordem = timezone.now()
-                ordem_dia.tipo_votacao = tipo_votacao
-                ordem_dia.save()
+    #             ordem_dia = OrdemDia()
+    #             ordem_dia.sessao_plenaria_id = self.kwargs['pk']
+    #             ordem_dia.materia_id = materia.id
+    #             if lista_materias_ordem_dia:
+    #                 posicao = lista_materias_ordem_dia.last().numero_ordem + 1
+    #                 ordem_dia.numero_ordem = posicao
+    #             else:
+    #                 ordem_dia.numero_ordem = 1
+    #             ordem_dia.data_ordem = timezone.now()
+    #             ordem_dia.tipo_votacao = tipo_votacao
+    #             ordem_dia.save()
 
         return HttpResponseRedirect(
-            reverse('sapl.sessao:ordemdia_list', kwargs=self.kwargs))
+            reverse('sapl.sessao:votacaosimbolicabloco', kwargs=self.kwargs))
