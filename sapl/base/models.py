@@ -12,6 +12,9 @@ from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensiva')),
                                  ('R', _('Restritiva')))
 
+RELATORIO_ATOS_ACESSADOS = (('S', _('Sim')),
+                            ('N', _('Não')))
+
 SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano')),
                        ('L', _('Sequencial por legislatura')),
                        ('U', _('Sequencial único')))
@@ -83,6 +86,11 @@ class AppConfig(models.Model):
         max_length=1,
         verbose_name=_('Visibilidade dos Documentos Administrativos'),
         choices=TIPO_DOCUMENTO_ADMINISTRATIVO, default='O')
+    
+    relatorios_atos = models.CharField(
+        max_length=1,
+        verbose_name=_('Relatórios de atos acessados'),
+        choices=RELATORIO_ATOS_ACESSADOS, default='N')
 
     sequencia_numeracao = models.CharField(
         max_length=1,
