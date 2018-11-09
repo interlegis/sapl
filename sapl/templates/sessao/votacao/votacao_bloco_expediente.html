@@ -9,7 +9,7 @@
 {% block detail_content %}
     {% block buttons %}
 
-      {% if filter_url and not filter.form.errors %}
+      {% comment %} {% if filter_url and not filter.form.errors %}
             <div class="actions btn-group pull-right" role="group">
               <a href="{% url 'sapl.sessao:votacao_bloco_expediente' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
             </div>
@@ -18,29 +18,20 @@
               <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias do Expediente' %}</a>
             </div>
 
-      {% endif %}
+      {% endif %} {% endcomment %}
 
     {% endblock %}
 
-  {% if filter.form.errors %}
-    {% crispy filter.form %}
-  {% else %}
-    {% if not filter_url %}
-      {% crispy filter.form %}
-    {% endif %}
-  {% endif %}
-
   <p></p>
-  {% if filter_url and not filter.form.errors %}
         
-        {% if paginator.count %}
+        {% comment %} {% if paginator.count %} {% endcomment %}
           <form method="POST" enctype="application/x-www-form-urlencoded">
           {% csrf_token %}
-            {% if paginator.count > 1 %}
+            {% comment %} {% if paginator.count > 1 %}
                 <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
             {% elif paginator.count == 1 %}
                 <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
-            {% endif %}
+            {% endif %} {% endcomment %}
             <br><br>
             <table class="table table-striped table-bordered">
                 <thead class="thead-default">
@@ -54,17 +45,16 @@
                         </br>
                         <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="2"> <label for="tipo">Nominal</label>
                         </br>
-                        <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="3"> <label for="tipo">Secreta</label>
                     </td>
                 </tr>
             </table>
             
             <br>
-            <h3>Selecione a(s) matéria(s) desejada(s).</h3>
+            <h3>Selecione a(s) ordem(s) do dia desejada(s).</h3>
             <table class="table table-striped table-bordered">
               <thead class="thead-default">
                 <tr>
-                  <td><h3>{% trans "Matérias" %}</h3></td>
+                  <td><h3>{% trans "Ordem do dia" %}</h3></td>
                 </tr>
               </thead>
               
@@ -72,9 +62,10 @@
                     <tr>
                         <td>
                             <input type="checkbox" name="materia_id" id="{{m.id}}" value="{{m.id}}" {% if check %} checked {% endif %}>
-                            <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
-                            <strong>Autores:</strong>
-                            {% for a in m.autoria_set.all %}
+                            <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.materia.tipo.sigla}} {{m.materia.numero}}/{{m.materia.ano}} - {{m.materia.tipo}}</strong></a></br>
+                            <strong>Processo:</strong> &nbsp;</br>
+                            <strong>Autor:</strong>
+                            {% for a in m.materia.autoria_set.all %}
                               {% if not forloop.first %}
                                 , &nbsp;&nbsp; {{a.autor|default_if_none:""}}
                               {% else %}
@@ -82,9 +73,9 @@
                               {% endif %}
                             {% endfor %}
                             </br>
-                            <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não informado"}}</br>
-                            <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status|default_if_none:"Não informado"}}</br>
-                            <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não informado"}}</br>
+                            <strong>Status:</strong> &nbsp;</br>
+                            <strong>Protocolo:</strong> &nbsp;</br>
+                            <strong>Turno:</strong>&nbsp;</br>
                             <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
                             <p></p>
                         </td>
@@ -93,17 +84,16 @@
               </table>
               <input type="submit" value="Registrar votação" class="btn btn-primary"S>
             </form>
-        {% else %}
+        {% comment %} {% else %}
           <table class="table table-striped table-bordered">
             <tr>
                 <td>
-                    <h3>Nenhuma matéria encontrada com essas especificações</h3>
+                    <h3>Nenhuma ordem do dia aberta.</h3>
                 </td>
             </tr>
           </table>
-        {% endif %}
+        {% endif %} {% endcomment %}
 
-{% endif %}
 
 {% endblock detail_content %}
 
