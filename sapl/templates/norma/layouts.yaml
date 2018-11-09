@@ -17,7 +17,7 @@ NormaJuridica:
   - tipo  numero  ano
   - data  esfera_federacao  complemento
   - materia
-  - data_publicacao  veiculo_publicacao  pagina_inicio_publicacao  pagina_fim_publicacao
+  - data_publicacao  veiculo_publicacao data_vigencia pagina_inicio_publicacao  pagina_fim_publicacao
   - texto_integral
   - ementa
   - indexacao
@@ -35,7 +35,7 @@ NormaJuridicaCreate:
   - tipo  ano numero
   - data  esfera_federacao  complemento
   - tipo_materia  numero_materia  ano_materia
-  - data_publicacao  veiculo_publicacao  pagina_inicio_publicacao  pagina_fim_publicacao
+  - data_publicacao  veiculo_publicacao data_vigencia pagina_inicio_publicacao  pagina_fim_publicacao
   - texto_integral
   - ementa
   - indexacao
