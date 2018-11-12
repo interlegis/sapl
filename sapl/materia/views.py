@@ -2271,7 +2271,8 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
             self.messages.add_message(self.request, messages.INFO, mensagem)
 
             return self.render_to_response(context)
-
+        if len(materia.ementa) > 301:
+            materia.ementa = materia.ementa[0:300] + '[...]'
         context['materia'] = materia
         context['despachos'] = materia.despachoinicial_set.all().values_list(
             'comissao__nome', flat=True)
