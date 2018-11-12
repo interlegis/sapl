@@ -58,12 +58,14 @@
                 </tr>
               </thead>
               
-                {% for m in page_obj %}
+                {% for m in ordem_dia %}
                     <tr>
                         <td>
                             <input type="checkbox" name="materia_id" id="{{m.id}}" value="{{m.id}}" {% if check %} checked {% endif %}>
                             <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.materia.tipo.sigla}} {{m.materia.numero}}/{{m.materia.ano}} - {{m.materia.tipo}}</strong></a></br>
-                            <strong>Processo:</strong> &nbsp;</br>
+                            {% if m.materia.numeracao_set.last %}
+                              <strong>Processo:</strong> &nbsp; {{m.materia.numeracao_set.last}}</br>
+                            {% endif %}
                             <strong>Autor:</strong>
                             {% for a in m.materia.autoria_set.all %}
                               {% if not forloop.first %}
@@ -73,9 +75,19 @@
                               {% endif %}
                             {% endfor %}
                             </br>
-                            <strong>Status:</strong> &nbsp;</br>
-                            <strong>Protocolo:</strong> &nbsp;</br>
-                            <strong>Turno:</strong>&nbsp;</br>
+                            {% if m.materia.numero_protocolo %}
+                              <strong>Protocolo:</strong> &nbsp; {{m.materia.numero_protocolo}}</br>
+                            {% endif %}
+                            {% if  m.materia.tramitacao_set.last %}
+                              {% if m.materia.tramitacao_set.last.turno %}
+                                <strong>Turno:</strong>&nbsp;
+                                {% for t in turno_choices %}
+                                  {% if t.0 == m.materia.tramitacao_set.last.turno %}
+                                    {{ t.1 }}
+                                  {% endif %}
+                                {% endfor %}</br>
+                              {% endif %}
+                            {% endif %}
                             <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
                             <p></p>
                         </td>

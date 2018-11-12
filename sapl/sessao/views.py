@@ -42,7 +42,7 @@ from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm, VotacaoEmBlocoFilterSet)
+                    VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa, ExpedienteMateria,
                      ExpedienteSessao, JustificativaAusencia, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
@@ -3225,8 +3225,6 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin,
     app_label = AppConfig.label
     logger = logging.getLogger(__name__)
 
-    import ipdb; ipdb.set_trace()
-
     def get_filterset_kwargs(self, filterset_class):
         super(VotacaoEmBlocoExpediente,
               self).get_filterset_kwargs(filterset_class)
@@ -3317,7 +3315,7 @@ class VotacaoEmBlocoOrdemDia(ListView):
     template_name = 'sessao/votacao/votacao_bloco_ordem.html'
     app_label = AppConfig.label
     logger = logging.getLogger(__name__)
-    context_object_name = 'ordemdia'
+    context_object_name = 'ordem_dia'
 
     def get_queryset(self):
         kwargs = self.kwargs
@@ -3326,12 +3324,8 @@ class VotacaoEmBlocoOrdemDia(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoOrdemDia, self).get_context_data(**kwargs)
-        import ipdb; ipdb.set_trace()
-        # paginator = context['paginator']
-        context['page_obj']  = context['object_list']
-
-        # context['page_range'] = make_pagination(
-        #     page_obj.number, paginator.num_pages)
+        context['turno_choices'] = Tramitacao.TURNO_CHOICES
+        
         return context
 
 
