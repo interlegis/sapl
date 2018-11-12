@@ -229,14 +229,16 @@ nav {
   }
 
   label {
-    padding: 5px;
+    padding: 0;
+    line-height: 2.7;
+    padding-left: 36px;
     .icons {
-      top:  5px;
+      top:  8px;
       left: 8px;
     }
-    &.checkbox-inline, &.radio-inline {
-      padding: 8px;
-      padding-left: 36px;
+
+    &.checkbox-inline, &.radio-inline, {
+      padding-right: 8px;
       .icons {
         top:  8px;
         left: 8px;
@@ -244,7 +246,7 @@ nav {
     }
   }
   .checkbox, .radio, .checkbox-inline, .radio-inline  {
-      margin: 0;
+    margin: 0;
     &:hover {
       background-color: #d6e1e5;
     }

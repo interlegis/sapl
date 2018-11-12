@@ -192,20 +192,12 @@ function OptionalCustomFrontEnd() {
                     _label = $('<label[for='+this.id+']/>').insertBefore(this)
                 }
             }
-            /*var _controls = _label.closest('.controls');
-
-            if (!_controls.length) {
-                _controls = $('<div class="controls"/>').insertBefore(_label)
-                _controls.append(_label)
-            }*/
 
             if (this.type === "checkbox") {
-                _label.addClass('checkbox-inline');
                 _label.prepend(_this);
                 _this.checkbox();
             }
             else if (this.type === "radio") {
-                _label.addClass('radio-inline');
                 _label.prepend(_this);
                 _this.radio();
 
