@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block detail_content %}
-	<style>
+<style xmlns:max-width="http://www.w3.org/1999/xhtml">
 		table {
 			width: 100%;
 		}
@@ -25,7 +25,7 @@
 
 	<table>
 		<tr><td colspan="2" align="center">
-				<img height="150" width="150"
+				<img height="90" width="90"
 				     src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
 						 alt="Logotipo"
 						 class="img-responsive visible-lg-inline-block vcenter">
