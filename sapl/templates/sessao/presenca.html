@@ -9,32 +9,40 @@
 <form method="POST">
   {% csrf_token %}
   <div class="controls">
-    <label for="id_check_all" class="checkbox">
-      <input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todos
-    </label>
+    <div class="checkbox">
+      <label for="id_check_all">
+        <input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todos
+      </label>
+      </div>
   </div>
   <br />
   <div class="controls">
-    <label for="id_ativos" class="checkbox">
-      <input type="checkbox" name="ativos" id="id_ativos" onchange="escondeInativos()" checked /> Exibir somente
-      parlamentares ativos
-    </label>
+    <div class="checkbox">
+      <label for="id_ativos">
+        <input type="checkbox" name="ativos" id="id_ativos" onchange="escondeInativos()" checked /> Exibir somente
+        parlamentares ativos
+      </label>
+      </div>
   </div>
   <br />
   <div class="controls ">
     {% for parlamentar, check in view.get_presencas %}
     {% if parlamentar.ativo %}
-    <label for="id_presenca_{{forloop.counter}}" class="checkbox">
-      <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}"
-        {% if check %} checked {% endif %}>
-      {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}
-    </label>
+      <div class="checkbox">
+        <label for="id_presenca_{{forloop.counter}}">
+          <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}"
+          {% if check %} checked {% endif %}>
+          {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}
+        </label>
+      </div>
     {% else %}
-    <label for="id_presenca_{{forloop.counter}}" class="checkbox inativos" style="display:none;">
-      <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_inativos" value="{{ parlamentar.id }}"
-        {% if check %} checked {% endif %}>
-      {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}
-    </label>
+    <div class="checkbox inativos" style="display:none;">
+      <label for="id_presenca_{{forloop.counter}}" class="inativos" style="display:none;">
+        <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_inativos" value="{{ parlamentar.id }}"
+          {% if check %} checked {% endif %}>
+        {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}
+      </label>
+    </div>
     {% endif %}
     {% endfor %}
   </div>
