@@ -193,30 +193,48 @@ class SessaoPlenariaForm(ModelForm):
 
 class RetiradaPautaForm(ModelForm):
 
-    parlamentar = forms.ModelChoiceField(required=True,
-                                        empty_label='------',
-                                        queryset=Parlamentar.objects.all())
-
     tipo_de_retirada = forms.ModelChoiceField(required=True,
                                               empty_label='------',
                                               queryset=TipoRetiradaPauta.objects.all())
 
     class Meta:
         model = RetiradaPauta
-        exclude = ['ordem',
-                   'expediente',
-                   'materia']
+        fields = ['ordem',
+                  'expediente',
+                  'parlamentar',
+                  'tipo_de_retirada',
+                  'data']
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row[('parlamentar', 6),
-                      ('tipo_de_retirada', 6)]
-        row2 = to_row[('observacao',12)]
+        row1 = to_row[('tipo_de_retirada', 5),
+                      ('parlamentar', 4),
+                      ('data', 3)]
+        row2 = to_row[('ordem', 6),
+                      ('expediente', 6)]
+        row3 = to_row[('observacao',12)]
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Retirada de Pauta'),
-                     row1, row2))
+                     row1, row2, row3))
+
+        q = Q(sessao_plenaria=kwargs['initial']['sessao_plenaria'])
+        ordens = OrdemDia.objects.filter(q)
+        expedientes = ExpedienteMateria.objects.filter(q)
+
+        super(RetiradaPautaForm, self).__init__(
+            *args, **kwargs)
+        presencas = SessaoPlenariaPresenca.objects.filter(
+            q).order_by('parlamentar__nome_parlamentar')
+        presentes = [p.parlamentar for p in presencas]
+
+        self.fields['materias_do_expediente'].choices = [
+            (e.id, e.materia) for e in expedientes]
+        self.fields['materias_da_ordem_do_dia'].choices = [
+            (o.id, o.materia) for o in ordens]
+        self.fields['parlamentar'].choices = [
+            ("0", "------------")] + [(p.id, p) for p in presentes]
 
 
 class BancadaForm(ModelForm):

@@ -10,7 +10,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
                                PresencaOrdemDiaView, PresencaView,
-                               ResumoOrdenacaoView, ResumoView, ResumoAtaView, SessaoCrud,
+                               ResumoOrdenacaoView, ResumoView, ResumoAtaView, RetiradaPautaCrud, SessaoCrud,
                                TipoJustificativaCrud, TipoExpedienteCrud, TipoResultadoVotacaoCrud,
                                TipoExpedienteCrud, TipoResultadoVotacaoCrud,TipoRetiradaPautaCrud,
                                TipoSessaoCrud, VotacaoEditView,
@@ -40,7 +40,7 @@ urlpatterns = [
                              OradorExpedienteCrud.get_urls() +
                              ExpedienteMateriaCrud.get_urls() +
                              JustificativaAusenciaCrud.get_urls() +
-                             MateriaOrdemDiaCrud.get_urls())),
+                             MateriaOrdemDiaCrud.get_urls() + RetiradaPautaCrud.get_urls())),
 
     url(r'^sessao/(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
 
@@ -160,5 +160,5 @@ urlpatterns = [
         name='votacao_simbolica_transparencia'),
     url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
-        name='mudar_ordem_materia_sessao'), 
+        name='mudar_ordem_materia_sessao'),
 ]

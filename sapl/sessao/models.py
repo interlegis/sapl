@@ -2,6 +2,7 @@ from operator import xor
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
@@ -678,6 +679,11 @@ class JustificativaAusencia(models.Model):
 class RetiradaPauta(models.Model):
     materia = models.ForeignKey(MateriaLegislativa,
                                 on_delete=models.CASCADE)
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        on_delete=models.CASCADE,
+                                        verbose_name=_('Sessão Plenária'),
+                                        blank=True,
+                                        null=True)
     ordem = models.ForeignKey(OrdemDia,
                               blank=True,
                               null=True,
@@ -686,6 +692,8 @@ class RetiradaPauta(models.Model):
                                    blank=True,
                                    null=True,
                                    on_delete=models.CASCADE)
+    data = models.DateField(verbose_name=_('Data'),
+                            default=timezone.now)
     observacao = models.TextField(blank=True,
                                   verbose_name=_('Observações'))
     parlamentar = models.ForeignKey(Parlamentar,

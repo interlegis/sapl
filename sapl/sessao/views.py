@@ -3216,3 +3216,27 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
+
+
+class RetiradaPautaCrud(MasterDetailCrud):
+    model = RetiradaPauta
+    public = [RP_LIST, RP_DETAIL, ]
+    parent_field = 'sessao_plenaria'
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['tipo_de_retirada', 'materia', 'observacao', 'parlamentar']
+
+    class ListView(MasterDetailCrud.ListView):
+        paginate_by = 10
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = RetiradaPautaForm
+        layout_key = None
+
+        def get_initial(self):
+            sessao_plenaria = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+            return {'sessao_plenaria': sessao_plenaria}
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:retiradapauta_list',
+                           kwargs={'pk': self.kwargs['pk']})
