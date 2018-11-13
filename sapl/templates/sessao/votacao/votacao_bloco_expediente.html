@@ -57,7 +57,14 @@
                   <td><h3>{% trans "Ordem do dia" %}</h3></td>
                 </tr>
               </thead>
-              
+
+              <div class="checkbox">
+                <label for="id_check_all">
+                  <input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todos
+                </label>
+              </div>
+             
+
                 {% for m in ordem_dia %}
                     <tr>
                         <td>
@@ -116,5 +123,14 @@
             $("input[type=submit], input[type=button]").prop("disabled", "disabled");
         });
 
+	</script>
+
+  <script language="JavaScript">
+		function checkAll(event) {
+			$('[name=materia_id]').each(function() {
+				$(this).prop('unchecked', event.target.checked ? 'checked': null);
+				$(this).trigger('click');
+			});
+		}
 	</script>
 {% endblock extra_js%}

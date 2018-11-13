@@ -3331,7 +3331,7 @@ class VotacaoEmBlocoOrdemDia(ListView):
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
         username = request.user.username
-
+        import ipdb; ipdb.set_trace()  
         if not 'tipo_votacao_' in request.POST:
             msg = _('Formulário Inválido. Você esqueceu de selecionar ' +
                         'o tipo de votação.')
@@ -3352,8 +3352,8 @@ class VotacaoEmBlocoOrdemDia(ListView):
             'tipo_votacao': tipo_votacao,
         })
       
-        import ipdb; ipdb.set_trace()   
         for m in marcadas:
+            import ipdb; ipdb.set_trace()   
             tipo_votacao = request.POST['tipo_votacao_']
             msg = _('%s adicionado(a) com sucesso!'
                     % MateriaLegislativa.objects.get(id=m))
