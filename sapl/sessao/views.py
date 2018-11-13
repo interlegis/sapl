@@ -1,3 +1,4 @@
+
 from operator import itemgetter
 import logging
 from re import sub
@@ -1334,8 +1335,16 @@ class ResumoView(DetailView):
         ).order_by('parlamentar__nome_parlamentar')
 
         parlamentares_sessao = [p.parlamentar for p in presencas]
+        # Justificativa de Ausências Sessão
+        ausencias = JustificativaAusencia.objects.filter(
+            sessao_plenaria_id=self.object.id
+        ).order_by('parlamentar__nome_parlamentar')
+        ausentes = []
+        ausentes = [{'parlamentar': a.parlamentar, 'tipo_ausencia': a.tipo_ausencia} for a in ausencias]
 
+        context.update({'justificativa_ausencia': ausentes})
         context.update({'presenca_sessao': parlamentares_sessao})
+
 
         # =====================================================================
         # Expedientes
@@ -1541,7 +1550,8 @@ class ResumoView(DetailView):
                  'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
                  'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
                  'nono_ordenacao': dict_ord_template[ordenacao.nono],
-                 'decimo_ordenacao': dict_ord_template[ordenacao.decimo]})
+                 'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+                 'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro]})
         else:
             context.update(
                 {'primeiro_ordenacao': dict_ord_template['id_basica'],
