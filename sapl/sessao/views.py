@@ -707,7 +707,7 @@ class SessaoCrud(Crud):
             else:
                 msg = _('Cadastre alguma legislatura antes de adicionar ' +
                         'uma sessão plenária!')
-                
+
                 username = self.request.user.username
                 self.logger.error('user=' + username + '. Cadastre alguma legislatura antes de adicionar '
                                   'uma sessão plenária!')
@@ -783,8 +783,8 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
                 sessao.sessao_plenaria = self.object
                 sessao.parlamentar = Parlamentar.objects.get(id=p)
                 sessao.save()
-            username = request.user.username
-            self.logger.info("user=" + username + ". SessaoPlenariaPresenca salva com sucesso (parlamentar_id={})!".format(p))
+                username = request.user.username
+                self.logger.info("user=" + username + ". SessaoPlenariaPresenca salva com sucesso (parlamentar_id={})!".format(p))
             msg = _('Presença em Sessão salva com sucesso!')
             messages.add_message(request, messages.SUCCESS, msg)
 
@@ -822,7 +822,7 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
 
         if (not cronometro_discurso or not cronometro_aparte
                 or not cronometro_ordem or not cronometro_consideracoes):
-            
+
             username = self.request.user.username
             self.logger.error('user=' + username + '. Você precisa primeiro configurar os cronômetros'
                               ' nas Configurações da Aplicação')
@@ -1363,7 +1363,7 @@ class ResumoView(DetailView):
             numero = m.numero_ordem
             tramitacao = m.materia.tramitacao_set.last()
             turno = None
-            
+
             if tramitacao:
                 turno = get_turno(tramitacao.turno)
 
@@ -1420,7 +1420,7 @@ class ResumoView(DetailView):
 
         parlamentares_mesa_dia = [m['parlamentar'] for m in context['mesa']]
         # composicao_mesa = ComposicaoMesa.objects.filter(sessao_legislativa=sessao)
-        
+
         presidente_dia = ''
         for m in context['mesa']:
             if m['cargo'].descricao == 'Presidente':
@@ -1430,7 +1430,7 @@ class ResumoView(DetailView):
         parlamentares_ordem = [p.parlamentar for p in presencas]
 
         context.update({'presenca_ordem': parlamentares_ordem})
-        
+
         config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
         if config_assinatura_ata == 'T' and parlamentares_ordem:
             context.update({'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
@@ -1661,7 +1661,7 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
 
     def delete(self):
         OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
-        
+
         username = self.request.user.username
         self.logger.info('user=' + username + '. OcorrenciaSessao com SessaoPlenaria de id={} deletada.'
                          .format(self.object.id))
@@ -1681,7 +1681,7 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
 
         msg = _('Registro salvo com sucesso')
         messages.add_message(self.request, messages.SUCCESS, msg)
-        
+
         username = self.request.user.username
         self.logger.info('user=' + username + '. OcorrenciaSessao de sessao_plenaria_id={} atualizada com sucesso.'.format(self.object.id))
 
@@ -3052,7 +3052,7 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                 messages.add_message(request, messages.ERROR, msg)
                 self.logger.error('user=' + username + '. Formulário Inválido. Você esqueceu de selecionar '
                                   'o tipo de votação de MateriaLegislativa com id={}'.format(m))
-                
+
                 return self.get(request, self.kwargs)
 
             if tipo_votacao:
