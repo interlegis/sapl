@@ -194,8 +194,14 @@ class SessaoPlenariaForm(ModelForm):
 class RetiradaPautaForm(ModelForm):
 
     tipo_de_retirada = forms.ModelChoiceField(required=True,
-                                              empty_label='------',
+                                              empty_label='------------',
                                               queryset=TipoRetiradaPauta.objects.all())
+    expediente = forms.ModelChoiceField(required=False,
+                                        label='Matéria do Expediente',
+                                        queryset=ExpedienteMateria.objects.all())
+    ordem = forms.ModelChoiceField(required=False,
+                                   label='Matéria da Ordem do Dia',
+                                   queryset=OrdemDia.objects.all())
 
     class Meta:
         model = RetiradaPauta
@@ -203,16 +209,17 @@ class RetiradaPautaForm(ModelForm):
                   'expediente',
                   'parlamentar',
                   'tipo_de_retirada',
-                  'data']
+                  'data',
+                  'observacao']
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row[('tipo_de_retirada', 5),
+        row1 = to_row([('tipo_de_retirada', 5),
                       ('parlamentar', 4),
-                      ('data', 3)]
-        row2 = to_row[('ordem', 6),
-                      ('expediente', 6)]
-        row3 = to_row[('observacao',12)]
+                      ('data', 3)])
+        row2 = to_row([('ordem', 6),
+                      ('expediente', 6)])
+        row3 = to_row([('observacao',12)])
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
@@ -229,12 +236,22 @@ class RetiradaPautaForm(ModelForm):
             q).order_by('parlamentar__nome_parlamentar')
         presentes = [p.parlamentar for p in presencas]
 
-        self.fields['materias_do_expediente'].choices = [
-            (e.id, e.materia) for e in expedientes]
-        self.fields['materias_da_ordem_do_dia'].choices = [
-            (o.id, o.materia) for o in ordens]
+        self.fields['expediente'].choices = [
+            ("0", "------------")] + [(e.id, e.materia) for e in expedientes]
+        self.fields['ordem'].choices = [
+            ("0", "------------")] + [(o.id, o.materia) for o in ordens]
         self.fields['parlamentar'].choices = [
             ("0", "------------")] + [(p.id, p) for p in presentes]
+
+    def clean_data(self):
+        cleaned_data = super(RetiradaPautaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        sessao_plenaria = self.instance.sessao_plenaria
+
+        return cleaned_data
 
 
 class BancadaForm(ModelForm):
