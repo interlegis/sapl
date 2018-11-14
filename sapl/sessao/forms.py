@@ -638,6 +638,8 @@ class ResumoOrdenacaoForm(forms.Form):
                              choices=ORDENACAO_RESUMO)
     decimo = forms.ChoiceField(label='10°',
                                choices=ORDENACAO_RESUMO)
+    decimo_primeiro = forms.ChoiceField(label='11°',
+                               choices=ORDENACAO_RESUMO)
 
     def __init__(self, *args, **kwargs):
         super(ResumoOrdenacaoForm, self).__init__(*args, **kwargs)
@@ -662,12 +664,15 @@ class ResumoOrdenacaoForm(forms.Form):
             [('nono', 12)])
         row10 = to_row(
             [('decimo', 12)])
+        row11 = to_row(
+            [('decimo_primeiro', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
+                     row11,
                      form_actions(label='Atualizar'))
         )
 
