@@ -352,6 +352,7 @@ def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_me
         tmp += dict_ord_template[ordenacao.oitavo]
         tmp += dict_ord_template[ordenacao.nono]
         tmp += dict_ord_template[ordenacao.decimo]
+        tmp += dict_ord_template[ordenacao.decimo_primeiro]
 
     else:
         tmp += inf_basicas(inf_basicas_dic)
