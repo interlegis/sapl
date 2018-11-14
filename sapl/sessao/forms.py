@@ -438,6 +438,21 @@ class VotacaoForm(forms.Form):
         return votacao
 
 
+class VotacaoFormBloco(forms.Form):
+    votos_sim = forms.CharField(label='Sim')
+    votos_nao = forms.CharField(label='Não')
+    abstencoes = forms.CharField(label='Abstenções')
+    total_votos = forms.CharField(required=False, label='total')
+    resultado_votacao = forms.CharField(required=False, label='Resultado da Votação')
+
+    def save(self, commit=False):
+        votacao = super(VotacaoFormBloco, self).save(commit)
+        votacao.materia = self.cleaned_data['materia']
+        import pdb; pdb.set_trace()
+        votacao.save()
+        return votacao
+
+
 class VotacaoNominalForm(forms.Form):
     resultado_votacao = forms.ModelChoiceField(label='Resultado da Votação',
                                                required=False,

@@ -26,11 +26,12 @@
 		{% endif %}
 		
 		<div>
-			<b>Matéria:</b> {{materia.materia|safe}}
-			<br />
-			<b>Ementa:</b> {{materia.ementa|safe}}
-			<br />
-			<br />
+			{% for materia in materias %}
+				<b>Matéria:</b> {{materia.materia|safe}}
+				<br />
+				<b>Ementa:</b> {{materia.ementa|safe}}
+				<br /> <br />
+			{% endfor %}
 			<b>Total presentes:</b> {{total_presentes}} (com presidente)
 			<input type="hidden" id="total_votos" name="total_votos">
 		</div>

@@ -25,7 +25,7 @@
   <p></p>
         
         {% comment %} {% if paginator.count %} {% endcomment %}
-          <form method="POST" enctype="application/x-www-form-urlencoded">
+          <form method="POST" enctype="application/x-www-form-urlencoded" action="{% url 'sapl.sessao:votacaoblocosimbod' pk %}">
           {% csrf_token %}
             {% comment %} {% if paginator.count > 1 %}
                 <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
@@ -41,9 +41,9 @@
                 </thead>
                 <tr>
                     <td class="col-md-12">
-                        <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="1"> <label for="tipo">Simbólica</label>
+                        <input type="radio" name="tipo_votacao" id="tipo_votacao" value="1" checked="checked" onchange="alteraTipoVotacao()" > <label for="tipo">Simbólica</label>
                         </br>
-                        <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="2"> <label for="tipo">Nominal</label>
+                        <input type="radio" name="tipo_votacao" id="tipo_votacao" value="2" onchange="alteraTipoVotacao()" > <label for="tipo">Nominal</label>
                         </br>
                     </td>
                 </tr>
@@ -63,12 +63,11 @@
                   <input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todos
                 </label>
               </div>
-             
 
                 {% for m in ordem_dia %}
-                    <tr>
+                  <tr class="{% if m.tipo_votacao == 1 %}Simbolica{% else %}Nominal{% endif %}"  {% if m.tipo_votacao == 2 %} style="display:none;" {% endif %}>
                         <td>
-                            <input type="checkbox" name="materia_id" id="{{m.id}}" value="{{m.id}}" {% if check %} checked {% endif %}>
+                            <input type="checkbox" name="materia_id_{{m.tipo_votacao}}" id="{{m.id}}" value="{{m.id}}" {% if check %} checked {% endif %}>
                             <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.materia.tipo.sigla}} {{m.materia.numero}}/{{m.materia.ano}} - {{m.materia.tipo}}</strong></a></br>
                             {% if m.materia.numeracao_set.last %}
                               <strong>Processo:</strong> &nbsp; {{m.materia.numeracao_set.last}}</br>
@@ -127,10 +126,21 @@
 
   <script language="JavaScript">
 		function checkAll(event) {
-			$('[name=materia_id]').each(function() {
+			$('[name=materia_id_1]').each(function() {
 				$(this).prop('unchecked', event.target.checked ? 'checked': null);
 				$(this).trigger('click');
 			});
+
+      $('[name=materia_id_2]').each(function() {
+				$(this).prop('unchecked', event.target.checked ? 'checked': null);
+				$(this).trigger('click');
+			});
+
 		}
+    
+    function alteraTipoVotacao() {
+        $(".Simbolica").toggle();
+        $(".Nominal").toggle();
+    }
 	</script>
 {% endblock extra_js%}
