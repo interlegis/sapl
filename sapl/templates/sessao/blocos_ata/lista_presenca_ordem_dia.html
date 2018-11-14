@@ -7,9 +7,5 @@
 		   		{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }} ;
 		  {% endfor %}
 	  </p>
-		<strong>Ausências justificadas: </strong>
-		{% for j in justificativa_ausencia %}
-				{{j.parlamentar}} - {{ j.tipo_ausencia }} ;
-		{% endfor %}
-	</p>
+
 </fieldset>

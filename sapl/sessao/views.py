@@ -1335,14 +1335,7 @@ class ResumoView(DetailView):
         ).order_by('parlamentar__nome_parlamentar')
 
         parlamentares_sessao = [p.parlamentar for p in presencas]
-        # Justificativa de Ausências Sessão
-        ausencias = JustificativaAusencia.objects.filter(
-            sessao_plenaria_id=self.object.id
-        ).order_by('parlamentar__nome_parlamentar')
-        ausentes = []
-        ausentes = [{'parlamentar': a.parlamentar, 'tipo_ausencia': a.tipo_ausencia} for a in ausencias]
-
-        context.update({'justificativa_ausencia': ausentes})
+        
         context.update({'presenca_sessao': parlamentares_sessao})
 
 
