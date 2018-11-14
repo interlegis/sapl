@@ -237,22 +237,33 @@ class RetiradaPautaForm(ModelForm):
         presentes = [p.parlamentar for p in presencas]
 
         self.fields['expediente'].choices = [
-            ("0", "------------")] + [(e.id, e.materia) for e in expedientes]
+            (None, "------------")] + [(e.id, e.materia) for e in expedientes]
         self.fields['ordem'].choices = [
-            ("0", "------------")] + [(o.id, o.materia) for o in ordens]
+            (None, "------------")] + [(o.id, o.materia) for o in ordens]
         self.fields['parlamentar'].choices = [
-            ("0", "------------")] + [(p.id, p) for p in presentes]
+            (None, "------------")] + [(p.id, p) for p in presentes]
 
-    def clean_data(self):
-        cleaned_data = super(RetiradaPautaForm, self).clean()
+    def clean(self):
+
+        super(RetiradaPautaForm, self).clean()
 
         if not self.is_valid():
             return self.cleaned_data
 
         sessao_plenaria = self.instance.sessao_plenaria
+        if self.cleaned_data['data'] < sessao_plenaria.data_inicio:
+            raise ValidationError(_("Data de retirada de pauta anterior à abertura da Sessão"))
+        if sessao_plenaria.data_fim and self.cleaned_data['data'] > sessao_plenaria.data_fim:
+            raise ValidationError(_("Data de retirada de pauta posterior ao encerramento da Sessão"))
+        import ipdb;
+        ipdb.set_trace()
+        return self.cleaned_data
 
-        return cleaned_data
-
+    def save(self, commit=False):
+        retirada = super().save(True)
+        retirada.materia = retirada.ordem.materia
+        import ipdb;ipdb.set_trace()
+        return retirada
 
 class BancadaForm(ModelForm):
 
