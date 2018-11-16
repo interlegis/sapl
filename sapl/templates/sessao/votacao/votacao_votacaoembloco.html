@@ -27,6 +27,7 @@
 		
 		<div>
 			{% for materia in materias %}
+			  <input type="hidden" id="materias" name="materias" value="{{materia.materia.id}}">
 				<b>Matéria:</b> {{materia.materia|safe}}
 				<br />
 				<b>Ementa:</b> {{materia.ementa|safe}}
@@ -55,7 +56,7 @@
       <div class="col-md-6">
         Resultado da Votação
         <select id="resultado_votacao" name="resultado_votacao" class="form-control">
-          {% for tipo in view.get_tipos_votacao %}
+          {% for tipo in resultado_votacao %}
           	<option value="{{tipo.id}}">{{tipo.nome}}</option>
           {% endfor %}
         </select>

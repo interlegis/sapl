@@ -443,14 +443,25 @@ class VotacaoFormBloco(forms.Form):
     votos_nao = forms.CharField(label='Não')
     abstencoes = forms.CharField(label='Abstenções')
     total_votos = forms.CharField(required=False, label='total')
-    resultado_votacao = forms.CharField(required=False, label='Resultado da Votação')
+    # resultado_votacao = forms.CharField(required=False, label='Resultado da Votação')
+    resultado_votacao = forms.ModelChoiceField(label='Resultado da Votação',
+                                               required=True,
+                                               queryset=TipoResultadoVotacao.objects.all())
 
     def save(self, commit=False):
-        votacao = super(VotacaoFormBloco, self).save(commit)
-        votacao.materia = self.cleaned_data['materia']
-        import pdb; pdb.set_trace()
-        votacao.save()
-        return votacao
+        votos_sim = self.data['votos_sim']
+        votos_nao = self.data['votos_nao']
+        abstencoes = self.data['abstencoes']
+        total_votos = self.data['total_votos']
+
+        materias = MateriaLegislativa.objects.filter(id__in=self.data['materias'])
+        for m in materias:
+            rv = RegistroVotacao(votos_sim=votos_sim,
+                                 votos_nao=votos_nao,
+                                 abstencoes=abstencoes
+                                 materia=materia)
+
+            rv.save()
 
 
 class VotacaoNominalForm(forms.Form):
