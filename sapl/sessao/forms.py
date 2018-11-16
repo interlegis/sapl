@@ -233,17 +233,28 @@ class RetiradaPautaForm(ModelForm):
         q = Q(sessao_plenaria=kwargs['initial']['sessao_plenaria'])
         ordens = OrdemDia.objects.filter(q)
         expedientes = ExpedienteMateria.objects.filter(q)
+        retiradas_ordem = [r.ordem for r in RetiradaPauta.objects.filter(q, ordem__in=ordens)]
+        retiradas_expediente = [r.expediente for r in RetiradaPauta.objects.filter(q, expediente__in=expedientes)]
+        setOrdem = set(ordens) - set(retiradas_ordem)
+        setExpediente = set(expedientes) - set(retiradas_expediente)
 
         super(RetiradaPautaForm, self).__init__(
             *args, **kwargs)
+
+        if self.instance:
+            setOrdem = set(ordens)
+            setExpediente = set(expedientes)
+
+
+
         presencas = SessaoPlenariaPresenca.objects.filter(
             q).order_by('parlamentar__nome_parlamentar')
         presentes = [p.parlamentar for p in presencas]
 
         self.fields['expediente'].choices = [
-            (None, "------------")] + [(e.id, e.materia) for e in expedientes]
+            (None, "------------")] + [(e.id, e.materia) for e in setExpediente]
         self.fields['ordem'].choices = [
-            (None, "------------")] + [(o.id, o.materia) for o in ordens]
+            (None, "------------")] + [(o.id, o.materia) for o in setOrdem]
         self.fields['parlamentar'].choices = [
             (None, "------------")] + [(p.id, p) for p in presentes]
 
@@ -254,12 +265,6 @@ class RetiradaPautaForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        if self.cleaned_data['ordem']:
-            self.cleaned_data['materia'] = self.cleaned_data['ordem'].materia
-        elif self.cleaned_data['expediente']:
-            self.cleaned_data['materia'] = self.cleaned_data['expediente'].materia
-
-
         sessao_plenaria = self.instance.sessao_plenaria
         if self.cleaned_data['data'] < sessao_plenaria.data_inicio:
             raise ValidationError(_("Data de retirada de pauta anterior à abertura da Sessão"))
@@ -268,6 +273,13 @@ class RetiradaPautaForm(ModelForm):
 
         return self.cleaned_data
 
+    def save(self, commit=False):
+        retirada = super(RetiradaPautaForm, self).save(commit=False)
+        if retirada.ordem:
+            retirada.materia = retirada.ordem.materia
+        elif retirada.expediente:
+            retirada.materia = retirada.expediente.materia
+        retirada.save()
 
 class BancadaForm(ModelForm):
 

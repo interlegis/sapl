@@ -3240,3 +3240,14 @@ class RetiradaPautaCrud(MasterDetailCrud):
         def get_success_url(self):
             return reverse('sapl.sessao:retiradapauta_list',
                            kwargs={'pk': self.kwargs['pk']})
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = RetiradaPautaForm
+        layout_key = None
+
+        def get_initial(self):
+            sessao_plenaria = RetiradaPauta.objects.get(id=self.kwargs['pk']).sessao_plenaria
+            return {'sessao_plenaria': sessao_plenaria}
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+        pass

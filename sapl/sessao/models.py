@@ -678,7 +678,8 @@ class JustificativaAusencia(models.Model):
 
 class RetiradaPauta(models.Model):
     materia = models.ForeignKey(MateriaLegislativa,
-                                on_delete=models.CASCADE)
+                                on_delete=models.CASCADE,
+                                verbose_name=_('Matéria'))
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.CASCADE,
                                         verbose_name=_('Sessão Plenária'),
