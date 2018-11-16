@@ -26,15 +26,17 @@
 		{% endif %}
 		
 		<div>
-			{% for materia in materias %}
-			  <input type="hidden" id="materias" name="materias" value="{{materia.materia.id}}">
-				<b>Matéria:</b> {{materia.materia|safe}}
+			{{tipo_votacao}}
+			<input type="hidden" id="tipo_votacao" name="tipo_votacao" value="{{tipo_votacao}}">
+			{% for o in ordens %}
+			  <input type="hidden" id="ordens" name="ordens" value="{{o.id}}">
+				<b>Matéria:</b> {{o.materia|safe}}
 				<br />
-				<b>Ementa:</b> {{materia.ementa|safe}}
+				<b>Ementa:</b> {{o.materia.ementa|safe}}
 				<br /> <br />
 			{% endfor %}
 			<b>Total presentes:</b> {{total_presentes}} (com presidente)
-			<input type="hidden" id="total_votos" name="total_votos">
+			<input type="hidden" id="total_presentes" name="total_presentes" value="{{total_presentes}}">
 		</div>
 		<br />
 

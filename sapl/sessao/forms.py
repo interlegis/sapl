@@ -26,7 +26,7 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
 from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
-                     OcorrenciaSessao)
+                     OcorrenciaSessao, RegistroVotacao)
 
 
 def recupera_anos():
@@ -429,39 +429,16 @@ class VotacaoForm(forms.Form):
     votos_nao = forms.CharField(label='Não')
     abstencoes = forms.CharField(label='Abstenções')
     total_votos = forms.CharField(required=False, label='total')
+    observacao = forms.CharField(required=False , label='Observação')
     resultado_votacao = forms.CharField(label='Resultado da Votação')
 
-    def save(self, commit=False):
-        votacao = super(VotacaoForm, self).save(commit)
-        votacao.materia = self.cleaned_data['materia']
-        votacao.save()
-        return votacao
+    # def save(self, commit=False):
+    #     #TODO Verificar se esse códido é utilizado
 
-
-class VotacaoFormBloco(forms.Form):
-    votos_sim = forms.CharField(label='Sim')
-    votos_nao = forms.CharField(label='Não')
-    abstencoes = forms.CharField(label='Abstenções')
-    total_votos = forms.CharField(required=False, label='total')
-    # resultado_votacao = forms.CharField(required=False, label='Resultado da Votação')
-    resultado_votacao = forms.ModelChoiceField(label='Resultado da Votação',
-                                               required=True,
-                                               queryset=TipoResultadoVotacao.objects.all())
-
-    def save(self, commit=False):
-        votos_sim = self.data['votos_sim']
-        votos_nao = self.data['votos_nao']
-        abstencoes = self.data['abstencoes']
-        total_votos = self.data['total_votos']
-
-        materias = MateriaLegislativa.objects.filter(id__in=self.data['materias'])
-        for m in materias:
-            rv = RegistroVotacao(votos_sim=votos_sim,
-                                 votos_nao=votos_nao,
-                                 abstencoes=abstencoes
-                                 materia=materia)
-
-            rv.save()
+    #     votacao = super(VotacaoForm, self).save(commit) 
+    #     votacao.materia = self.cleaned_data['materia']
+    #     votacao.save()
+    #     return votacao
 
 
 class VotacaoNominalForm(forms.Form):

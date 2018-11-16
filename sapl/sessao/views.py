@@ -42,7 +42,7 @@ from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm, VotacaoFormBloco)
+                    VotacaoNominalForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa, ExpedienteMateria,
                      ExpedienteSessao, JustificativaAusencia, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
@@ -3319,8 +3319,8 @@ class VotacaoEmBlocoOrdemDia(ListView):
 
     def get_queryset(self):
         kwargs = self.kwargs
-        return OrdemDia.objects.filter(sessao_plenaria_id=
-            kwargs['pk'])
+        return OrdemDia.objects.filter(sessao_plenaria_id=kwargs['pk'], 
+                                       resultado='')
 
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoOrdemDia, self).get_context_data(**kwargs)
@@ -3340,157 +3340,87 @@ class VotacaoEmBlocoView(TemplateView):
     """
 
     template_name = 'sessao/votacao/votacao_votacaoembloco.html'
-    form_class = VotacaoFormBloco
     logger = logging.getLogger(__name__)
 
     def get_initial(self):
-        import ipdb; ipdb.set_trace()
-        return {'resultado_votacao': TipoResultadoVotacao.objects.all()}
+        pass
 
     def get(self, request, *args, **kwargs):
-        import ipdb; ipdb.set_trace()
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-        context = {}
-        url = request.get_full_path()
-
-        # # TODO: HACK, VERIFICAR MELHOR FORMA DE FAZER ISSO
-        if "votsimb" in url:
-            titulo = _("Votação Simbólica")
-        elif "votsec" in url:
-            titulo = _("Votação Secreta")
-        else:
-            titulo = _("Não definida")
-
-        # ordem_id = kwargs['oid']
-        ordem = OrdemDia.objects.get(id=ordem_id)
-        qtde_presentes = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=self.object.id).count()
-
-        materia = {'materia': ordem.materia, 'ementa': ordem.materia.ementa}
-        context.update({'votacao_titulo': titulo,
-                        'materia': materia,
-                        'total_presentes': qtde_presentes,
-                        'resultado_votacao': TipoResultadoVotacao.objects.all()
-                        })
-        
-        import ipdb; ipdb.set_trace() 
-
-        return self.render_to_response(context)
+        pass
 
     def post(self, request, *args, **kwargs):
+        if not 'context' in locals():
+            context = {}
 
-        tipo_votacao = request.POST.get('tipo_votacao')
-        tipo_votacao = '1' # RETIRAR
-        if tipo_votacao == '1':
-            marcadas = request.POST.getlist('materia_id_1')
-            titulo = "Votação Simbólica"
-        elif tipo_votacao == '2':
-            marcadas = request.POST.getlist('materia_id_2')
-            titulo = "Votação Nominal"
-        context = {}
-        ordens = OrdemDia.objects.filter(id__in=marcadas)
-        qtde_presentes = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=self.kwargs['pk']).count()
-        materias = []
-        for o in ordens:
-            materias.append({'materia': o.materia, 'ementa': o.materia.ementa})
-        context.update({'votacao_titulo': titulo,
-                        'materias': materias,
-                        'resultado_votacao': TipoResultadoVotacao.objects.all(),
-                        'total_presentes': qtde_presentes})
+        if ('ordem_id_1' in request.POST) or ('ordem_id_2' in request.POST):
+            tipo_votacao = request.POST.get('tipo_votacao')
+            if tipo_votacao == '1':
+                marcadas = request.POST.getlist('ordem_id_1')
+                titulo = "Votação Simbólica"
+            elif tipo_votacao == '2':
+                marcadas = request.POST.getlist('ordem_id_2')
+                titulo = "Votação Nominal"
+
+            ordens = OrdemDia.objects.filter(id__in=marcadas)
+
+            qtde_presentes = PresencaOrdemDia.objects.filter(
+                    sessao_plenaria_id=self.kwargs['pk']).count()
+
+            context.update({'tipo_votacao': tipo_votacao,
+                            'votacao_titulo': titulo,
+                            'ordens': ordens,
+                            'total_presentes': qtde_presentes,
+                            'resultado_votacao': TipoResultadoVotacao.objects.all()})
         
         if 'salvar-votacao' in request.POST:
-            form = VotacaoFormBloco(request.POST)
+            form = VotacaoForm(request.POST)
+            ordens = OrdemDia.objects.filter(id__in=request.POST['ordens'])
+            qtde_presentes = int(request.POST['total_presentes'])
+            
             if form.is_valid():
-                form.save()
-                # pass
-            context.update({'form': form})
+                qtde_votos = (int(request.POST['votos_sim']) +
+                            int(request.POST['votos_nao']) +
+                            int(request.POST['abstencoes']))
+
+                if (int(request.POST['voto_presidente']) == 0):
+                    qtde_presentes -= 1
+
+                if qtde_votos != qtde_presentes:
+                    form._errors["total_votos"] = ErrorList([u""])
+                    return self.render_to_response(context)
+
+                for ordem in ordens:
+                    try:
+                        votacao = RegistroVotacao()
+                        votacao.numero_votos_sim = int(request.POST['votos_sim'])
+                        votacao.numero_votos_nao = int(request.POST['votos_nao'])
+                        votacao.numero_abstencoes = int(request.POST['abstencoes'])
+                        votacao.observacao = request.POST['observacao']
+                        votacao.materia = ordem.materia
+                        votacao.ordem = ordem
+                        resultado = TipoResultadoVotacao.objects.get(
+                            id=request.POST['resultado_votacao'])
+                        votacao.tipo_resultado_votacao = resultado
+                        votacao.save()
+                    except Exception as e:
+                        username = request.user.username
+                        self.logger.error('user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
+                                        'e da ordem de id={}. '.format(ordem.materia.id, ordem.id) + str(e))
+                        return self.form_invalid(form)
+                    else:
+                        ordem.resultado = resultado.nome
+                        ordem.votacao_aberta = False
+                        ordem.save()
+                return HttpResponseRedirect(self.get_success_url())
         
+        if 'cancelar-votacao' in request.POST:
+            ordens = OrdemDia.objects.filter(id__in=request.POST['ordens'])
+            for ordem in ordens:
+                ordem.votacao_aberta = False
+                ordem.save()
+
         return self.render_to_response(context)
 
-    #     if 'tipo_votacao' in request.POST:
-    #         tipo_votacao = request.POST.get('tipo_votacao')
-            
-    #         if tipo_votacao == '1':
-    #             marcadas = request.POST.getlist('materia_id_1')
-    #             titulo = "Votação Simbólica"
-    #         elif tipo_votacao == '2':
-    #             marcadas = request.POST.getlist('materia_id_2')
-    #             titulo = "Votação Nominal"
-
-    #         form = VotacaoFormBloco(request.POST)
-    #         context = {}
-    #         ordens = OrdemDia.objects.filter(id__in=marcadas)
-    #         import ipdb; ipdb.set_trace()
-    #         qtde_presentes = PresencaOrdemDia.objects.filter(
-    #             sessao_plenaria_id=self.kwargs['pk']).count()
-    #         materias = []
-    #         for o in ordens:
-    #             materias.append({'materia': o.materia, 'ementa': o.materia.ementa})
-    #     #     materia = {'materia': ordem.materia, 'ementa': ordem.materia.ementa}
-    #         context.update({'votacao_titulo': titulo,
-    #                         'materias': materias,
-    #                         'resultado_votacao': TipoResultadoVotacao.objects.all(),
-    #                         'total_presentes': qtde_presentes})
-    #         context.update({'form': form})
-
-    # #     # ====================================================
-    #     import ipdb; ipdb.set_trace()
-    #     if 'cancelar-votacao' in request.POST:
-    #         for ordem in ordens:
-    #             ordem.votacao_aberta = False
-    #             ordem.save()
-            
-    #         return self.form_valid(form)
-
-    #     if form.is_valid():
-    # #         materia_id = kwargs['mid']
-    # #         ordem_id = kwargs['oid']
-
-    # #         qtde_presentes = PresencaOrdemDia.objects.filter(
-    # #             sessao_plenaria_id=self.object.id).count()
-    #         qtde_votos = (int(request.POST['votos_sim']) +
-    #                       int(request.POST['votos_nao']) +
-    #                       int(request.POST['abstencoes']))
-
-    #         if (int(request.POST['voto_presidente']) == 0):
-    #             qtde_presentes -= 1
-
-    #         if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
-    #             form._errors["total_votos"] = ErrorList([u""])
-    #             return self.render_to_response(context)
-    #         elif (qtde_presentes == qtde_votos):
-    #             for ordem in ordens:
-    #                 try:
-    #                     votacao = RegistroVotacao()
-    #                     votacao.numero_votos_sim = int(request.POST['votos_sim'])
-    #                     votacao.numero_votos_nao = int(request.POST['votos_nao'])
-    #                     votacao.numero_abstencoes = int(request.POST['abstencoes'])
-    #                     votacao.observacao = request.POST['observacao']
-    #                     votacao.materia_id = ordem.materia.id
-    #                     votacao.ordem_id = ordem.id
-    #                     votacao.tipo_resultado_votacao_id = int(
-    #                         request.POST['resultado_votacao'])
-    #                     votacao.save()
-    #                 except Exception as e:
-    #                     username = request.user.username
-    #                     self.logger.error('user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
-    #                                     'e da ordem de id={}. '.format(materia_id, ordem_id) + str(e))
-    #                     return self.form_invalid(form)
-    #                 else:
-    #                     ordem = OrdemDia.objects.get(
-    #                         sessao_plenaria_id=self.kwargs['pk'],
-    #                         materia_id=ordem.materia.id)
-    #                     resultado = TipoResultadoVotacao.objects.get(
-    #                         id=request.POST['resultado_votacao'])
-    #                     ordem.resultado = resultado.nome
-    #                     ordem.votacao_aberta = False
-    #                     ordem.save()
-
-    #         return self.form_valid(form)
-    #     else:
-    #         return self.render_to_response(context)
 
     def get_tipos_votacao(self):
         for tipo in TipoResultadoVotacao.objects.all():
