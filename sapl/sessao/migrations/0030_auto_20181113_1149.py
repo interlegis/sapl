@@ -10,7 +10,7 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sessao', '0029_auto_20181024_0952'),
+        ('sessao', '0028_auto_20181031_0902'),
     ]
 
     operations = [

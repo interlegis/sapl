@@ -202,6 +202,9 @@ class RetiradaPautaForm(ModelForm):
     ordem = forms.ModelChoiceField(required=False,
                                    label='Matéria da Ordem do Dia',
                                    queryset=OrdemDia.objects.all())
+    materia = forms.ModelChoiceField(required=False,
+                                     widget=forms.HiddenInput(),
+                                     queryset=MateriaLegislativa.objects.all())
 
     class Meta:
         model = RetiradaPauta
@@ -210,7 +213,8 @@ class RetiradaPautaForm(ModelForm):
                   'parlamentar',
                   'tipo_de_retirada',
                   'data',
-                  'observacao']
+                  'observacao',
+                  'materia']
 
     def __init__(self, *args, **kwargs):
 
@@ -250,20 +254,20 @@ class RetiradaPautaForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
+        if self.cleaned_data['ordem']:
+            self.cleaned_data['materia'] = self.cleaned_data['ordem'].materia
+        elif self.cleaned_data['expediente']:
+            self.cleaned_data['materia'] = self.cleaned_data['expediente'].materia
+
+
         sessao_plenaria = self.instance.sessao_plenaria
         if self.cleaned_data['data'] < sessao_plenaria.data_inicio:
             raise ValidationError(_("Data de retirada de pauta anterior à abertura da Sessão"))
         if sessao_plenaria.data_fim and self.cleaned_data['data'] > sessao_plenaria.data_fim:
             raise ValidationError(_("Data de retirada de pauta posterior ao encerramento da Sessão"))
-        import ipdb;
-        ipdb.set_trace()
+
         return self.cleaned_data
 
-    def save(self, commit=False):
-        retirada = super().save(True)
-        retirada.materia = retirada.ordem.materia
-        import ipdb;ipdb.set_trace()
-        return retirada
 
 class BancadaForm(ModelForm):
 
