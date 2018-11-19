@@ -27,11 +27,6 @@
         {% comment %} {% if paginator.count %} {% endcomment %}
           <form method="POST" enctype="application/x-www-form-urlencoded" action="{% url 'sapl.sessao:votacaoblocosimbod' pk %}">
           {% csrf_token %}
-            {% comment %} {% if paginator.count > 1 %}
-                <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
-            {% elif paginator.count == 1 %}
-                <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
-            {% endif %} {% endcomment %}
             <br><br>
             <table class="table table-striped table-bordered">
                 <thead class="thead-default">
@@ -60,7 +55,7 @@
 
               <div class="checkbox">
                 <label for="id_check_all">
-                  <input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todos
+                  <input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
                 </label>
               </div>
 
@@ -125,16 +120,40 @@
 	</script>
 
   <script language="JavaScript">
-		function checkAll(event) {
-			$('[name=ordem_id_1]').each(function() {
+		function checkAll(ele) {
+			/* $('[name=ordem_id_1]').each(function() {
 				$(this).prop('unchecked', event.target.checked ? 'checked': null);
 				$(this).trigger('click');
-			});
+			}); */
+      let checkboxes = document.getElementsByName('ordem_id_1');
+      if (ele.checked) {
+         for (let i = 0; i < checkboxes.length; i++) {
+             if (checkboxes[i].type == 'checkbox') {
+                 checkboxes[i].checked = true;
+             }
+         }
+     } else {
+         for (let i = 0; i < checkboxes.length; i++) {
+             if (checkboxes[i].type == 'checkbox') {
+                 checkboxes[i].checked = false;
+             }
+         }
+     }
 
-      $('[name=ordem_id_2]').each(function() {
-				$(this).prop('unchecked', event.target.checked ? 'checked': null);
-				$(this).trigger('click');
-			});
+      checkboxes = document.getElementsByName('ordem_id_2');
+      if (ele.checked) {
+         for (let i = 0; i < checkboxes.length; i++) {
+             if (checkboxes[i].type == 'checkbox') {
+                 checkboxes[i].checked = true;
+             }
+         }
+     } else {
+         for (let i = 0; i < checkboxes.length; i++) {
+             if (checkboxes[i].type == 'checkbox') {
+                 checkboxes[i].checked = false;
+             }
+         }
+     }
 
 		}
     

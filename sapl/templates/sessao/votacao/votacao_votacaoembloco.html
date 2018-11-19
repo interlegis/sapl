@@ -26,7 +26,6 @@
 		{% endif %}
 		
 		<div>
-			{{tipo_votacao}}
 			<input type="hidden" id="tipo_votacao" name="tipo_votacao" value="{{tipo_votacao}}">
 			{% for o in ordens %}
 			  <input type="hidden" id="ordens" name="ordens" value="{{o.id}}">

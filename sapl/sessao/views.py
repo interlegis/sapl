@@ -3374,7 +3374,7 @@ class VotacaoEmBlocoView(TemplateView):
         
         if 'salvar-votacao' in request.POST:
             form = VotacaoForm(request.POST)
-            ordens = OrdemDia.objects.filter(id__in=request.POST['ordens'])
+            ordens = OrdemDia.objects.filter(id__in=request.POST.getlist('ordens'))
             qtde_presentes = int(request.POST['total_presentes'])
             
             if form.is_valid():
@@ -3382,7 +3382,7 @@ class VotacaoEmBlocoView(TemplateView):
                             int(request.POST['votos_nao']) +
                             int(request.POST['abstencoes']))
 
-                if (int(request.POST['voto_presidente']) == 0):
+                if (request.POST['voto_presidente'] == '0'):
                     qtde_presentes -= 1
 
                 if qtde_votos != qtde_presentes:
