@@ -575,7 +575,7 @@ class ResumoOrdenacao(models.Model):
     oitavo = models.CharField(max_length=30)
     nono = models.CharField(max_length=30)
     decimo = models.CharField(max_length=30)
-    decimo_primeiro = models.CharField(max_length=30,default="")
+    decimo_primeiro = models.CharField(max_length=30,default="Ocorrências da Sessão")
 
     class Meta:
         verbose_name = _('Ordenação do Resumo de uma Sessão')
