@@ -241,11 +241,9 @@ class RetiradaPautaForm(ModelForm):
         super(RetiradaPautaForm, self).__init__(
             *args, **kwargs)
 
-        if self.instance:
+        if self.instance.pk:
             setOrdem = set(ordens)
             setExpediente = set(expedientes)
-
-
 
         presencas = SessaoPlenariaPresenca.objects.filter(
             q).order_by('parlamentar__nome_parlamentar')
@@ -267,9 +265,14 @@ class RetiradaPautaForm(ModelForm):
 
         sessao_plenaria = self.instance.sessao_plenaria
         if self.cleaned_data['data'] < sessao_plenaria.data_inicio:
-            raise ValidationError(_("Data de retirada de pauta anterior à abertura da Sessão"))
+            raise ValidationError(_("Data de retirada de pauta anterior à abertura da Sessão."))
         if sessao_plenaria.data_fim and self.cleaned_data['data'] > sessao_plenaria.data_fim:
-            raise ValidationError(_("Data de retirada de pauta posterior ao encerramento da Sessão"))
+            raise ValidationError(_("Data de retirada de pauta posterior ao encerramento da Sessão."))
+
+        if self.cleaned_data['ordem'] and self.cleaned_data['ordem'].registrovotacao_set.exists():
+            raise ValidationError(_("Essa matéria já foi votada, portanto não pode ser retirada de pauta."))
+        elif self.cleaned_data['expediente'] and self.cleaned_data['expediente'].registrovotacao_set.exists():
+            raise ValidationError(_("Essa matéria já foi votada, portanto não pode ser retirada de pauta."))
 
         return self.cleaned_data
 

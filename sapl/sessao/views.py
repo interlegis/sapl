@@ -219,7 +219,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
         exist_resultado = obj.registrovotacao_set.filter(
             materia=obj.materia).exists()
-        if not exist_resultado:
+        exist_retirada = obj.retiradapauta_set.filter(
+            materia=obj.materia).exists()
+        if not exist_resultado and not exist_retirada:
             if obj.votacao_aberta:
                 url = ''
                 if is_expediente:
@@ -292,6 +294,19 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     resultado = btn_abrir
                 else:
                     resultado = '''Não há resultado'''
+
+        elif exist_retirada:
+            retirada = obj.retiradapauta_set.filter(
+                materia_id=obj.materia_id).last()
+            retirada_descricao = retirada.tipo_de_retirada.descricao
+            retirada_observacao = retirada.observacao
+            url = reverse('sapl.sessao:retiradapauta_detail',
+                           kwargs={'pk': retirada.id})
+            resultado = ('<a href="%s">%s<br/>%s</a>' %
+                         (url,
+                          retirada_descricao,
+                          retirada_observacao))
+
         else:
             resultado = obj.registrovotacao_set.filter(
                 materia_id=obj.materia_id).last()
