@@ -29,7 +29,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                reordernar_materias_ordem,
                                sessao_legislativa_legislatura_ajax,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
-                               VotacaoEmBlocoView,)
+                               VotacaoEmBlocoSimbolicaView,VotacaoEmBlocoNominalView)
 
 from .apps import AppConfig
 
@@ -117,10 +117,10 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/votacao_bloco_ordem_dia$',
         VotacaoEmBlocoOrdemDia.as_view(),
         name='votacao_bloco_ordemdia'),
-    # url(r'^sessao/(?P<pk>\d+)/votacao_bloco_ordem_dia/votnom$',
-    #     VotacaoNominalView.as_view(), name='votacaobloconomod'),
+    url(r'^sessao/(?P<pk>\d+)/votacao_bloco/votnom$',
+        VotacaoEmBlocoNominalView.as_view(), name='votacaobloconom'),
     url(r'^sessao/(?P<pk>\d+)/votacao_bloco/votsimb$',
-        VotacaoEmBlocoView.as_view(), name='votacaoblocosimb'),  
+        VotacaoEmBlocoSimbolicaView.as_view(), name='votacaoblocosimb'),  
     url(r'^sessao/(?P<pk>\d+)/votacao_bloco_expediente$',
         VotacaoEmBlocoExpediente.as_view(),
         name='votacao_bloco_expediente'),

@@ -181,6 +181,13 @@
         document.getElementById('but_reg').style.display = '';
         document.getElementById('nenhum_exp').style.display = 'none';
       }
+
+      if(tipo_votacao == "1"){
+        $('#form').attr("action", "{% url 'sapl.sessao:votacaoblocosimb' pk %}")
+      }
+      else{
+        $('#form').attr("action", "{% url 'sapl.sessao:votacaobloconom' pk %}")
+      }
     }
 	</script>
 {% endblock extra_js%}

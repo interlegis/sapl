@@ -6,7 +6,7 @@
 	{% csrf_token %}
 
 	<fieldset class="form-group">
-		<legend>{{votacao_titulo}}</legend>
+		<legend>Votação Simbólica</legend>
 
 		{% if form.errors %}
 			<div class="alert-box alert">
@@ -26,7 +26,6 @@
 		{% endif %}
 		
 		<div>
-			<input type="hidden" id="tipo_votacao" name="tipo_votacao" value="{{tipo_votacao}}">
 			{% if ordens %}
 				{% for o in ordens %}
 					<input type="hidden" id="ordens" name="ordens" value="{{o.id}}">

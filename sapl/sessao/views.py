@@ -3264,44 +3264,28 @@ class VotacaoEmBlocoOrdemDia(ListView):
             reverse('sapl.sessao:votacaoblocosimb', kwargs=self.kwargs))
 
 
-class VotacaoEmBlocoView(TemplateView):
+class VotacaoEmBlocoSimbolicaView(TemplateView):
 
     """
-        Votação Simbólica e Nominal
+        Votação Simbólica
     """
 
-    template_name = 'sessao/votacao/votacao_votacaoembloco.html'
+    template_name = 'sessao/votacao/votacao_simbolica_bloco.html'
     logger = logging.getLogger(__name__)
-
-    def get_initial(self):
-        pass
-
-    def get(self, request, *args, **kwargs):
-        pass
 
     def post(self, request, *args, **kwargs):
         if not 'context' in locals():
             context = {}
 
         if 'origem' in request.POST:
-            tipo_votacao = request.POST.get('tipo_votacao')
-            if tipo_votacao == '1':
-                marcadas = request.POST.getlist('marcadas_id_1')
-                titulo = "Votação Simbólica"
-            elif tipo_votacao == '2':
-                marcadas = request.POST.getlist('marcadas_id_2')
-                titulo = "Votação Nominal"
+            marcadas = request.POST.getlist('marcadas_id_1')
 
             qtde_presentes = PresencaOrdemDia.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk']).count()
 
             origem = request.POST['origem']
 
-            # import ipdb; ipdb.set_trace()
-
-            context.update({'tipo_votacao': tipo_votacao,
-                            'votacao_titulo': titulo,
-                            'total_presentes': qtde_presentes,
+            context.update({'total_presentes': qtde_presentes,
                             'resultado_votacao': TipoResultadoVotacao.objects.all(),
                             'origem': origem})
             if origem == 'ordem':
@@ -3332,7 +3316,7 @@ class VotacaoEmBlocoView(TemplateView):
                 
                 if origem == 'ordem':
                     ordens = OrdemDia.objects.filter(id__in=request.POST.getlist('ordens'))
-                    import ipdb; ipdb.set_trace()
+                    
                     for ordem in ordens:
                         try:
                             votacao = RegistroVotacao()
@@ -3411,3 +3395,69 @@ class VotacaoEmBlocoView(TemplateView):
             return reverse('sapl.sessao:expedientemateria_list',
                         kwargs={'pk': pk})
 
+class VotacaoEmBlocoNominalView(TemplateView):
+    """
+        Votação Nominal
+    """
+    template_name = 'sessao/votacao/votacao_nominal_bloco.html'
+    logger = logging.getLogger(__name__)
+
+    def post(self, request, *args, **kwargs):
+        if not 'context' in locals():
+            context = {}
+
+        if 'origem' in request.POST:
+            form = VotacaoNominalForm(request.POST)
+
+            marcadas = request.POST.getlist('marcadas_id_2')
+
+            origem = request.POST['origem']
+
+            context.update({'resultado_votacao': TipoResultadoVotacao.objects.all(),
+                            'origem': origem,
+                            'form': form})
+            if origem == 'ordem':
+                ordens = OrdemDia.objects.filter(id__in=marcadas)
+                presentes = PresencaOrdemDia.objects.filter(
+                        sessao_plenaria_id=kwargs['pk'])
+                context.update({'ordens':ordens})
+            else:
+                expedientes = ExpedienteMateria.objects.filter(id__in=marcadas)
+                presentes = PresencaOrdemDia.objects.filter(
+                        sessao_plenaria_id=kwargs['pk'])
+                context.update({'expedientes':expedientes})
+            total = presentes.count()
+            import ipdb; ipdb.set_trace()
+            context.update({'parlamentares':self.get_parlamentares(request)})
+
+        return self.render_to_response(context)
+
+    def get_parlamentares(self, request):
+
+        if request.POST['origem']=='ordem':
+            presencas = PresencaOrdemDia.objects.filter(
+                        sessao_plenaria_id=self.kwargs['pk'])
+            ordens_id = request.POST.getlist('marcadas_id_2')
+            voto_parlamentar = VotoParlamentar.objects.filter(
+                ordem=self.kwargs['oid']) #TODO
+        else:
+            presencas = PresencaOrdemDia.objects.filter(
+                        sessao_plenaria_id=self.kwargs['pk'])
+            expedientes_id = request.POST.getlist('marcadas_id_2')
+            voto_parlamentar = VotoParlamentar.objects.filter(
+                expediente=self.kwargs['oid']) #TODO
+
+        presentes = [p.parlamentar for p in presencas]
+
+        for parlamentar in Parlamentar.objects.filter(ativo=True):
+            if parlamentar in presentes:
+                try:
+                    voto = voto_parlamentar.get(
+                        parlamentar=parlamentar)
+                except ObjectDoesNotExist:
+                    username = self.request.user.username
+                    self.logger.error('user=' + username + '. Objeto voto_parlamentar do ' +
+                                      'parlamentar de id={} não existe.'.format(parlamentar.pk))
+                    yield [parlamentar, None]
+                else:
+                    yield [parlamentar, voto.voto]

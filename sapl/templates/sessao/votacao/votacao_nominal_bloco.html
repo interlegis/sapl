@@ -1,0 +1,130 @@
+{% extends "crud/detail.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block detail_content %}
+<form method="post">
+	{% csrf_token %}
+
+	<fieldset>
+		<legend>Votação Nominal</legend>
+        {% if ordens %}
+            {% for o in ordens %}
+                <div>
+                    Matéria: {{o.materia}}
+                    <br />
+                    Ementa: {{o.materia.ementa|safe}}
+                </div>
+                <br />
+            {% endfor %}
+        {% else %}
+            {% for e in expedientes %}
+                <div>
+                    Matéria: {{e.materia}}
+                    <br />
+                    Ementa: {{e.materia.ementa|safe}}
+                </div>
+                <br />
+            {% endfor %}
+        {% endif %}
+		{% comment %} {% if total == 0 %}
+			<div class="alert alert-info alert-dismissible fade in" role="alert">
+				<div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
+			</div>
+			<a href="{% url 'sapl.sessao:sessaoplenaria_detail' object.pk %}" class="btn btn-warning">Voltar</a>
+		{% else %} {% endcomment %}
+    <fieldset class="form-group">
+
+
+    <legend>Votos</legend>
+    <div class="row">
+    {% for parlamentar in parlamentares %}
+        <div class="col-md-4" id="styleparlamentar">{{parlamentar.0.parlamentar.nome_parlamentar}}</div>
+        <div class="col-md-5">
+            {% if parlamentar.1 %} <input type="hidden" name="voto_parlamentar" value="{{parlamentar.1}}:{{parlamentar.0.parlamentar.id}}" /> {% endif %}
+            <select id="voto_parlamentar" name="voto_parlamentar" class="form-control" {% if parlamentar.1 %} disabled {% endif %}>
+            <option value="Não Votou:{{parlamentar.0.parlamentar.id}}">Não Votou</option>
+            <option value="Sim:{{parlamentar.0.parlamentar.id}}" {% if parlamentar.1 == 'Sim' %} selected {% endif %}>Sim</option>
+            <option value="Não:{{parlamentar.0.parlamentar.id}}" {% if parlamentar.1 == 'Não' %} selected {% endif %}>Não</option>
+            <option value="Abstenção:{{parlamentar.0.parlamentar.id}}" {% if parlamentar.1 == 'Abstenção' %} selected {% endif %}>Abstenção</option>
+            </select>
+        </div>
+    {% endfor %}
+    </div>
+
+    <legend>Situação da Votação:</legend>
+
+    <div id="soma_votos"></div>
+
+	</fieldset>
+
+	    {% comment %} <div class="row">
+	      <div class="col-md-12">
+	        {{ form.resultado_votacao|as_crispy_field }}
+	      </div>
+	    </div> {% endcomment %}
+
+			<br />
+	    <div class="row">
+	      <div class="col-md-12">
+	        Observações<br/>
+	        <textarea id="observacao" name="observacao" style="width:100%;" rows="7"></textarea>
+	      </div>
+	    </div>
+
+        <br /><br />
+        <input type="submit" id="salvar-votacao" name="salvar-votacao" value="Fechar Votação" class="btn btn-primary" />
+        <input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="btn btn-warning" />
+    </fieldset>
+</form>
+{% comment %} {% endif %} {% endcomment %}
+{% endblock detail_content %}
+
+{% block extra_js %}
+	<script>
+		function voltar() {
+			window.history.back();
+		}
+
+		function conta_votos() {
+			var votos_sim = 0;
+			var votos_nao = 0;
+			var votos_abstencao = 0;
+			var nao_votou = 0;
+			$('[name=voto_parlamentar]').each(function() {
+				if (($(this).is(':hidden')) == false) {
+					switch ($(this).val().substring(0,4)) {
+						case "Sim:":
+							votos_sim = votos_sim + 1;
+							break;
+						case "Não:":
+							votos_nao = votos_nao + 1;
+							break;
+						case "Abst":
+							votos_abstencao = votos_abstencao + 1;
+							break;
+						case "Não ":
+							nao_votou = nao_votou + 1;
+							break;
+					};
+				};
+			});
+
+			$("#soma_votos").empty();
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Sim: " + votos_sim + "</div></div>");
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Não: " + votos_nao + "</div></div>");
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Abstenções: " + votos_abstencao + "</div></div>");
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Ainda não votaram: " + nao_votou + "</div></div>");
+			var t = setTimeout(function(){
+						conta_votos()
+				}, 500);
+		}
+		conta_votos();
+
+		window.onload = conta_votos();
+
+		$(window).on('beforeunload', function () {
+				$("input[type=submit], input[type=button]").prop("disabled", "disabled");
+		});
+
+	</script>
+{% endblock extra_js%}
