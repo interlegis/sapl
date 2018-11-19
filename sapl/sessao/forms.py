@@ -283,6 +283,7 @@ class RetiradaPautaForm(ModelForm):
         elif retirada.expediente:
             retirada.materia = retirada.expediente.materia
         retirada.save()
+        return retirada
 
 class BancadaForm(ModelForm):
 
