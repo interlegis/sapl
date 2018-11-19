@@ -27,13 +27,23 @@
 		
 		<div>
 			<input type="hidden" id="tipo_votacao" name="tipo_votacao" value="{{tipo_votacao}}">
-			{% for o in ordens %}
-			  <input type="hidden" id="ordens" name="ordens" value="{{o.id}}">
-				<b>Matéria:</b> {{o.materia|safe}}
-				<br />
-				<b>Ementa:</b> {{o.materia.ementa|safe}}
-				<br /> <br />
-			{% endfor %}
+			{% if ordens %}
+				{% for o in ordens %}
+					<input type="hidden" id="ordens" name="ordens" value="{{o.id}}">
+					<b>Matéria:</b> {{o.materia|safe}}
+					<br />
+					<b>Ementa:</b> {{o.materia.ementa|safe}}
+					<br /> <br />
+				{% endfor %}
+			{% else %}
+				{% for e in expedientes %}
+					<input type="hidden" id="expedientes" name="expedientes" value="{{e.id}}">
+					<b>Matéria:</b> {{e.materia|safe}}
+					<br />
+					<b>Ementa:</b> {{e.materia.ementa|safe}}
+					<br /> <br />
+				{% endfor %}
+			{% endif %}
 			<b>Total presentes:</b> {{total_presentes}} (com presidente)
 			<input type="hidden" id="total_presentes" name="total_presentes" value="{{total_presentes}}">
 		</div>
@@ -70,6 +80,8 @@
         <textarea id="observacao" name="observacao" cols="10" rows="10" class="form-control"></textarea>
       </div>
     </div>
+
+		<input type="hidden" id="origem2" name="origem2" value="{{origem}}">
 
 		<br /><br />
 		<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Salvar" class="btn btn-primary" />
