@@ -3403,11 +3403,14 @@ class VotacaoEmBlocoNominalView(TemplateView):
     logger = logging.getLogger(__name__)
 
     def post(self, request, *args, **kwargs):
+        username = request.user.username
+        form = VotacaoNominalForm(request.POST)
+
         if not 'context' in locals():
             context = {}
 
         if 'origem' in request.POST:
-            form = VotacaoNominalForm(request.POST)
+            # form = VotacaoNominalForm(request.POST)
 
             marcadas = request.POST.getlist('marcadas_id_2')
 
@@ -3427,26 +3430,144 @@ class VotacaoEmBlocoNominalView(TemplateView):
                         sessao_plenaria_id=kwargs['pk'])
                 context.update({'expedientes':expedientes})
             total = presentes.count()
-            context.update({'parlamentares':self.get_parlamentares(request)})
+            context.update({'parlamentares':self.get_parlamentares(),
+                            'total':total})
+        
+        if 'cancelar-votacao' in request.POST:
+            if request.POST['origem'] == 'ordem':
+                for ordem_id in request.POST['ordens']:
+                    ordem = OrdemDia.objects.get(id=ordem_id)
+                    fechar_votacao_materia(ordem)
+                return HttpResponseRedirect(reverse(
+                    'sapl.sessao:ordemdia_list', kwargs={'pk': self.kwargs['pk']}))
+            else:
+                for expediente_id in request.POST['expedientes']:
+                    expediente = ExpedienteMateria.objects.get(id=expediente_id)
+                    fechar_votacao_materia(expediente)
+                return HttpResponseRedirect(reverse(
+                    'sapl.sessao:expedientemateria_list',
+                    kwargs={'pk': self.kwargs['pk']}))
+
+        if 'salvar-votacao' in request.POST:
+            
+            if form.is_valid():
+                if form.cleaned_data['resultado_votacao'] == None:
+                    form.add_error(None, 'Não é possível finalizar a votação sem '
+                                        'nenhum resultado da votação')
+                    return self.form_invalid(form)
+
+                #import ipdb; ipdb.set_trace()
+                qtde_votos = (int(request.POST['votos_sim']) +
+                            int(request.POST['votos_nao']) +
+                            int(request.POST['abstencoes']) + 
+                            int(request.POST['nao_votou']))
+
+                origem = request.POST['origem2']
+                
+                # Caso todas as opções sejam 'Não votou', fecha a votação
+                if int(request.POST['nao_votou']) == qtde_votos:
+                    self.logger.error('user=' + username + '. Não é possível finalizar a votação sem '
+                                    'nenhum voto')
+                    form.add_error(None, 'Não é possível finalizar a votação sem '
+                                        'nenhum voto')
+                    return self.form_invalid(form)
+                
+                if origem=='ordem':
+                    for ordem_id in request.POST.getlist('ordens'):
+                        ordem = OrdemDia.objects.get(id=ordem_id)
+                        # Remove todas as votação desta matéria, caso existam
+                        RegistroVotacao.objects.filter(ordem_id=ordem_id).delete()
+                        votacao = RegistroVotacao()
+                        votacao.numero_votos_sim = int(request.POST['votos_sim'])
+                        votacao.numero_votos_nao = int(request.POST['votos_nao'])
+                        votacao.numero_abstencoes = int(request.POST['abstencoes'])
+                        votacao.observacao = request.POST['observacao']
+                        votacao.materia = ordem.materia
+                        votacao.ordem = ordem
+                        votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.save()
+
+                        for votos in request.POST.getlist('voto_parlamentar'):
+                            v = votos.split(':')
+                            voto = v[0]
+                            parlamentar_id = v[1]
+
+                            voto_parlamentar = VotoParlamentar.objects.get_or_create(
+                                parlamentar_id=parlamentar_id,
+                                ordem_id=ordem_id)[0]
+
+                            voto_parlamentar.voto = voto
+                            voto_parlamentar.parlamentar_id = parlamentar_id
+                            voto_parlamentar.votacao_id = votacao.id
+                            voto_parlamentar.save()
+
+                            ordem.resultado = form.cleaned_data['resultado_votacao'].nome
+                            ordem.votacao_aberta = False
+                            ordem.save()
+
+                    VotoParlamentar.objects.filter(
+                        ordem_id=ordem_id,
+                        votacao__isnull=True).delete()
+                    
+                else:
+                    for expediente_id in request.POST['expedientes']:
+                        expediente = ExpedienteMateria.objects.get(id=expediente_id)
+                        RegistroVotacao.objects.filter(
+                            expediente_id=expediente_id).delete()
+                        votacao = RegistroVotacao()
+                        votacao.numero_votos_sim = int(request.POST['votos_sim'])
+                        votacao.numero_votos_nao = int(request.POST['votos_nao'])
+                        votacao.numero_abstencoes = int(request.POST['abstencoes'])
+                        votacao.observacao = request.POST['observacao']
+                        votacao.materia = expediente.materia
+                        votacao.expediente = expediente
+                        votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.save()
+
+                        # Salva os votos de cada parlamentar
+                        for votos in request.POST.getlist('voto_parlamentar'):
+                            v = votos.split(':')
+                            voto = v[0]
+                            parlamentar_id = v[1]
+
+                            voto_parlamentar = VotoParlamentar.objects.get_or_create(
+                                parlamentar_id=parlamentar_id,
+                                expediente_id=expediente_id)[0]
+
+                            voto_parlamentar.voto = voto
+                            voto_parlamentar.parlamentar_id = parlamentar_id
+                            voto_parlamentar.votacao_id = votacao.id
+                            voto_parlamentar.save()
+
+                            expediente.resultado = form.cleaned_data['resultado_votacao'].nome
+                            expediente.votacao_aberta = False
+                            expediente.save()
+                    
+                    VotoParlamentar.objects.filter(
+                    expediente_id=expediente_id,
+                    votacao__isnull=True).delete()
+
+                return HttpResponseRedirect(self.get_success_url())
+
+            else:
+                return self.form_invalid(form)
 
         return self.render_to_response(context)
 
-    def get_parlamentares(self, request):
+    def get_parlamentares(self):
 
-        if request.POST['origem']=='ordem':
+        if self.request.POST['origem']=='ordem':
             presencas = PresencaOrdemDia.objects.filter(
                         sessao_plenaria_id=self.kwargs['pk'])
-            ordens_id = request.POST.getlist('marcadas_id_2')
-            for oid in ordens_id:
-                voto_parlamentar = VotoParlamentar.objects.filter(
-                    ordem=oid) #TODO
+            ordens_id = self.request.POST.getlist('marcadas_id_2')
+            voto_parlamentar = VotoParlamentar.objects.filter(
+                ordem=ordens_id[0])
         else:
             presencas = PresencaOrdemDia.objects.filter(
                         sessao_plenaria_id=self.kwargs['pk'])
-            expedientes_id = request.POST.getlist('marcadas_id_2')
-            for eid in expedientes_id:
-                voto_parlamentar = VotoParlamentar.objects.filter(
-                    expediente=eid) #TODO
+            expedientes_id = self.request.POST.getlist('marcadas_id_2')
+            voto_parlamentar = VotoParlamentar.objects.filter(
+                expediente=expedientes_id[0])
 
         presentes = [p.parlamentar for p in presencas]
 
@@ -3462,3 +3583,36 @@ class VotacaoEmBlocoNominalView(TemplateView):
                     yield [parlamentar, None]
                 else:
                     yield [parlamentar, voto.voto]
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        import ipdb; ipdb.set_trace()
+        if self.request.POST['origem2']=='ordem':
+            return reverse('sapl.sessao:ordemdia_list',
+                        kwargs={'pk': pk})
+        else:
+            return reverse('sapl.sessao:expedientemateria_list',
+                        kwargs={'pk': pk})
+
+    def form_invalid(self, form):
+        errors_tuple = [(form[e].label, form.errors[e])
+                        for e in form.errors if e in form.fields]
+        error_message = '''<ul>'''
+        for e in errors_tuple:
+            error_message += '''<li><b>%s</b>: %s</li>''' % (e[0], e[1][0])
+        for e in form.non_field_errors():
+            error_message += '''<li>%s</li>''' % e
+        error_message += '''</ul>'''
+
+        messages.add_message(self.request, messages.ERROR, error_message)
+
+        if self.request.POST['origem2'] == 'ordem':
+            view = 'sapl.sessao:votacaobloconom'
+        elif self.request.POST['origem2'] == 'expediente':
+            view = 'sapl.sessao:votacaobloconom'
+        else:
+            view = None
+
+        return HttpResponseRedirect(reverse(
+            view,
+            kwargs={'pk': self.kwargs['pk']}))

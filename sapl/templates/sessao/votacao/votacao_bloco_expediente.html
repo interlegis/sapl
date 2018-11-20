@@ -24,7 +24,7 @@
 
   <p></p>
         
-          <form method="POST" enctype="application/x-www-form-urlencoded" action="{% url 'sapl.sessao:votacaoblocosimb' pk %}">
+          <form method="POST" enctype="application/x-www-form-urlencoded" id="form" action="{% url 'sapl.sessao:votacaoblocosimb' pk %}">
           {% csrf_token %}
             <br><br>
             <table class="table table-striped table-bordered">
@@ -114,6 +114,7 @@
 	<script>
     $(document).ready(function(){
       checa_tipo_votacao();
+      $('#tipo_votacao1').prop('checked', true)
     });
 
 		$(window).on('beforeunload', function () {
