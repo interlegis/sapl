@@ -3405,6 +3405,11 @@ class VotacaoEmBlocoNominalView(TemplateView):
     template_name = 'sessao/votacao/votacao_nominal_bloco.html'
     logger = logging.getLogger(__name__)
 
+    def get(self, request, *args, **kwargs):
+        import ipdb; ipdb.set_trace()
+        pass
+
+
     def post(self, request, *args, **kwargs):
         username = request.user.username
         form = VotacaoNominalForm(request.POST)
@@ -3459,7 +3464,6 @@ class VotacaoEmBlocoNominalView(TemplateView):
                                         'nenhum resultado da votação')
                     return self.form_invalid(form)
 
-                #import ipdb; ipdb.set_trace()
                 qtde_votos = (int(request.POST['votos_sim']) +
                             int(request.POST['votos_nao']) +
                             int(request.POST['abstencoes']) + 
@@ -3589,7 +3593,6 @@ class VotacaoEmBlocoNominalView(TemplateView):
 
     def get_success_url(self):
         pk = self.kwargs['pk']
-        import ipdb; ipdb.set_trace()
         if self.request.POST['origem2']=='ordem':
             return reverse('sapl.sessao:ordemdia_list',
                         kwargs={'pk': pk})
@@ -3598,6 +3601,8 @@ class VotacaoEmBlocoNominalView(TemplateView):
                         kwargs={'pk': pk})
 
     def form_invalid(self, form):
+        #TODO dados são perdidos
+
         errors_tuple = [(form[e].label, form.errors[e])
                         for e in form.errors if e in form.fields]
         error_message = '''<ul>'''
@@ -3609,13 +3614,13 @@ class VotacaoEmBlocoNominalView(TemplateView):
 
         messages.add_message(self.request, messages.ERROR, error_message)
 
-        if self.request.POST['origem2'] == 'ordem':
-            view = 'sapl.sessao:votacaobloconom'
-        elif self.request.POST['origem2'] == 'expediente':
-            view = 'sapl.sessao:votacaobloconom'
-        else:
-            view = None
+        # if self.request.POST['origem2'] == 'ordem':
+        #     view = 'sapl.sessao:votacaobloconom'
+        # elif self.request.POST['origem2'] == 'expediente':
+        #     view = 'sapl.sessao:votacaobloconom'
+        # else:
+        #     view = None
 
         return HttpResponseRedirect(reverse(
-            view,
+            'sapl.sessao:votacaobloconom',
             kwargs={'pk': self.kwargs['pk']}))
