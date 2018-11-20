@@ -3427,7 +3427,6 @@ class VotacaoEmBlocoNominalView(TemplateView):
                         sessao_plenaria_id=kwargs['pk'])
                 context.update({'expedientes':expedientes})
             total = presentes.count()
-            import ipdb; ipdb.set_trace()
             context.update({'parlamentares':self.get_parlamentares(request)})
 
         return self.render_to_response(context)
@@ -3438,14 +3437,16 @@ class VotacaoEmBlocoNominalView(TemplateView):
             presencas = PresencaOrdemDia.objects.filter(
                         sessao_plenaria_id=self.kwargs['pk'])
             ordens_id = request.POST.getlist('marcadas_id_2')
-            voto_parlamentar = VotoParlamentar.objects.filter(
-                ordem=self.kwargs['oid']) #TODO
+            for oid in ordens_id:
+                voto_parlamentar = VotoParlamentar.objects.filter(
+                    ordem=oid) #TODO
         else:
             presencas = PresencaOrdemDia.objects.filter(
                         sessao_plenaria_id=self.kwargs['pk'])
             expedientes_id = request.POST.getlist('marcadas_id_2')
-            voto_parlamentar = VotoParlamentar.objects.filter(
-                expediente=self.kwargs['oid']) #TODO
+            for eid in expedientes_id:
+                voto_parlamentar = VotoParlamentar.objects.filter(
+                    expediente=eid) #TODO
 
         presentes = [p.parlamentar for p in presencas]
 
