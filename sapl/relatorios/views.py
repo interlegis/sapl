@@ -704,11 +704,10 @@ def get_sessao_plenaria(sessao, casa):
         if resultados:
             for i in resultados:
                 dic_votacao["nom_resultado"] = i.tipo_resultado_votacao.nome
-                if votacao.observacao:
+                if i.observacao:
                     dic_votacao["votacao_observacao"] = i.observacao
         else:
             dic_votacao["nom_resultado"] = "Matéria não votada"
-            dic_votacao["votacao_observacao"] = " "
         lst_votacao.append(dic_votacao)
 
     # Lista dos oradores nas Explicações Pessoais
@@ -1116,7 +1115,6 @@ def get_pauta_sessao(sessao, casa):
             sessao_plenaria=sessao):
         materia = MateriaLegislativa.objects.filter(
             id=votacao.materia.id).first()
-
         dic_votacao = {}
         dic_votacao["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_votacao["num_ordem"] = votacao.numero_ordem

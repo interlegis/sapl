@@ -1,5 +1,5 @@
 {% extends "crud/detail.html" %}
-{% load i18n crispy_forms_tags %}
+{% load i18n crispy_forms_tags%}
 
 {% block detail_content %}
 <form method="post">
@@ -55,8 +55,7 @@
 				<br>
 				<legend>Situação da Votação:</legend>
 
-				<div id="soma_votos">
-				</div>
+				<div id="soma_votos"></div>
 				<input type="hidden" id="votos_sim" name="votos_sim" value="">
 				<input type="hidden" id="votos_nao" name="votos_nao" value="">
 				<input type="hidden" id="abstencoes" name="abstencoes" value="">

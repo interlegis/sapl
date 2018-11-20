@@ -1,26 +1,7 @@
 {% extends "crud/detail.html" %}
-{% load i18n %}
-{% load crispy_forms_tags %}
-{% block actions %}{% endblock %}
-
-{% block sections_nav %}
-{% endblock %}
+{% load i18n crispy_forms_tags %}
 
 {% block detail_content %}
-    {% block buttons %}
-
-      {% comment %} {% if filter_url and not filter.form.errors %}
-            <div class="actions btn-group pull-right" role="group">
-              <a href="{% url 'sapl.sessao:votacao_bloco_expediente' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-            </div>
-
-            <div class="actions btn-group pull-right" role="group">
-              <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias do Expediente' %}</a>
-            </div>
-
-      {% endif %} {% endcomment %}
-
-    {% endblock %}
 
   <p></p>
         
