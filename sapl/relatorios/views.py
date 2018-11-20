@@ -466,6 +466,29 @@ def get_espelho(mats):
     return materias
 
 
+def remove_html_comments(text):
+    """
+        Assume comentários bem formados <!-- texto --> e
+        não aninhados como <!-- <!-- texto --> -->
+    :param text:
+    :return:
+    """
+    clean_text = text
+    start = clean_text.find('<!--')
+    while start > -1:
+        end = clean_text.find('-->') + 2
+        output_text = []
+        for idx, i in enumerate(clean_text):
+            if not start <= idx <= end:
+                output_text.append(i)
+        clean_text = ''.join(output_text)
+        start = clean_text.find('<!--')
+
+    # por algum motivo usar clean_text ao invés de len(clean_text)
+    #  não tava funcionando
+    return clean_text if len(clean_text) > 0 else text
+
+
 def get_sessao_plenaria(sessao, casa):
 
     inf_basicas_dic = {}
@@ -534,6 +557,9 @@ def get_sessao_plenaria(sessao, casa):
         # escape special character '&'
         #   https://github.com/interlegis/sapl/issues/1009
         conteudo = conteudo.replace('&', '&amp;')
+
+        # https://github.com/interlegis/sapl/issues/2386
+        conteudo = remove_html_comments(conteudo)
 
         dic_expedientes["txt_expediente"] = conteudo
 

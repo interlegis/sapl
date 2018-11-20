@@ -1343,7 +1343,7 @@ class DispositivoRegistroAlteracaoForm(Form):
             'dispositivo_alterado',
             data_sapl_ta='DispositivoSearch',
             data_field='dispositivo_alterado',
-            data_type_selection='radio',
+            data_type_selection='checkbox',
             template="compilacao/layout/dispositivo_radio.html")
 
         layout.append(Fieldset(_('Registro de Alteração - '
@@ -1378,6 +1378,14 @@ class DispositivoRegistroRevogacaoForm(Form):
         required=False,
         queryset=Dispositivo.objects.all())
 
+    revogacao_em_bloco = forms.ChoiceField(
+        label=_(
+            'Revogar todos os dispositivos internos dos '
+            'dispositivos abaixo selecionados?'),
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect(),
+        required=True)
+
     dispositivo_search_form = forms.CharField(widget=forms.HiddenInput(),
                                               required=False)
 
@@ -1391,11 +1399,12 @@ class DispositivoRegistroRevogacaoForm(Form):
             'dispositivo_revogado',
             data_sapl_ta='DispositivoSearch',
             data_field='dispositivo_revogado',
-            data_type_selection='radio',
+            data_type_selection='checkbox',
             template="compilacao/layout/dispositivo_radio.html")
 
         layout.append(Fieldset(_('Registro de Revogação - '
                                  'Seleção do Dispositivo a ser Revogado'),
+                               Field(InlineRadios('revogacao_em_bloco')),
                                row_dispositivo,
                                css_class="col-md-12"))
         layout.append(Field('dispositivo_search_form'))
@@ -1439,7 +1448,7 @@ class DispositivoRegistroInclusaoForm(Form):
             'dispositivo_base_para_inclusao',
             data_sapl_ta='DispositivoSearch',
             data_field='dispositivo_base_para_inclusao',
-            data_type_selection='radio',
+            data_type_selection='checkbox',
             template="compilacao/layout/dispositivo_radio.html")
 
         layout.append(Fieldset(_('Registro de Inclusão - '

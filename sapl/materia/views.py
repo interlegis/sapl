@@ -2179,6 +2179,10 @@ class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
         if context['quantidade'] > 20:
             materias = materias[:20]
 
+        for m in materias:
+            if len(m.ementa) > 100:
+                m.ementa = m.ementa[0:99] + "[...]"
+
         context['materias'] = materias
 
         return gerar_pdf_impressos(self.request, context,
@@ -2267,7 +2271,8 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
             self.messages.add_message(self.request, messages.INFO, mensagem)
 
             return self.render_to_response(context)
-
+        if len(materia.ementa) > 301:
+            materia.ementa = materia.ementa[0:300] + '[...]'
         context['materia'] = materia
         context['despachos'] = materia.despachoinicial_set.all().values_list(
             'comissao__nome', flat=True)

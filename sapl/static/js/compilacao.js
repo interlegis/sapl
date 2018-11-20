@@ -24,6 +24,7 @@ function insertWaitAjax(element) {
 
 function DispostivoSearch(opts) {
     $(function() {
+        let formData = {}
         var container_ds = $('body').children("#container_ds");
         if (container_ds.length > 0)
             $(container_ds).remove();
@@ -67,6 +68,7 @@ function DispostivoSearch(opts) {
             onChangeFieldSelects();
 
             var onChangeParamTA = function(event) {
+
                 var tipo_ta = $("select[name='tipo_ta']").val();
                 var tipo_model = $("select[name='tipo_model']").val();
                 var num_ta = $("input[name='num_ta']").val();
@@ -79,15 +81,22 @@ function DispostivoSearch(opts) {
 
                 if (rotulo_dispositivo.length > 0 || texto_dispositivo.length > 0) {
                     $("input[name='dispositivos_internos']").prop('disabled', false);
+                    $("input[name='dispositivos_internos']").each((idx, element) => {
+                        element.parentElement.classList.remove('disabled')
+                    });                    
                     $("input[name='dispositivos_internos']").closest('#div_id_dispositivos_internos').css('opacity','1');
                 }
                 else {
                     $("input[name='dispositivos_internos']").filter('[value="False"]').prop('checked', true);
                     $("input[name='dispositivos_internos']").prop('disabled', true);
+
+                    $("input[name='dispositivos_internos']").each((idx, element) => {
+                        element.parentElement.classList.add('disabled')
+                    });                    
                     $("input[name='dispositivos_internos']").closest('#div_id_dispositivos_internos').css('opacity','0.3');
                     dispositivos_internos = 'False';
                 }
-                var formData = {
+                formData = {
                     'tipo_ta'               : tipo_ta,
                     'tipo_model'            : tipo_model,
                     'num_ta'                : num_ta,
@@ -101,12 +110,15 @@ function DispostivoSearch(opts) {
                     'data_function'         : data_function,
                 };
 
+                window.localStorage.setItem("dispositivo_search_form_data", JSON.stringify(formData))
+
+
                 url = '/ta/search_fragment_form';
                 $('.result-busca-dispositivo').html('');
                 insertWaitAjax('.result-busca-dispositivo')
                 $.get(url, formData).done(function( data ) {
                     $('.result-busca-dispositivo').html(data);
-
+                    //OptionalCustomFrontEnd().init();
                     if (data_type_selection == 'checkbox') {
                         var tas = $('.result-busca-dispositivo').find('input[name="ta_select_all"]');
                         tas.off();
@@ -125,11 +137,17 @@ function DispostivoSearch(opts) {
 
                 if (rotulo_dispositivo.length > 0 || texto_dispositivo.length > 0) {
                     $("input[name='dispositivos_internos']").prop('disabled', false);
+                    $("input[name='dispositivos_internos']").each((idx, element) => {
+                        element.parentElement.classList.remove('disabled')
+                    });        
                     $("input[name='dispositivos_internos']").closest('#div_id_dispositivos_internos').css('opacity','1');
                 }
                 else {
                     $("input[name='dispositivos_internos']").filter('[value="False"]').prop('checked', true);
                     $("input[name='dispositivos_internos']").prop('disabled', true);
+                    $("input[name='dispositivos_internos']").each((idx, element) => {
+                        element.parentElement.classList.add('disabled')
+                    });        
                     $("input[name='dispositivos_internos']").closest('#div_id_dispositivos_internos').css('opacity','0.3');
                     dispositivos_internos = 'False';
                 }
@@ -150,6 +168,7 @@ function DispostivoSearch(opts) {
                 $.get(opts['url_form'], function(data) {
                     container_ds.html(data);
                     var modal_ds = $('#modal-ds');
+                    OptionalCustomFrontEnd().init();
 
                     modal_ds.find("select[name='tipo_ta']").change(function(event) {
                         var url = '';
@@ -166,6 +185,9 @@ function DispostivoSearch(opts) {
                                 for (var i in data[item])
                                     select.append($("<option>").attr('value',i).text(data[item][i]));
                             }
+                            setTimeout(function() {
+                                $("select[name='tipo_model']").val(formData.tipo_model);
+                            }, 200)
                             //select.change(onChangeParamTA)
                         });
                     });
@@ -222,8 +244,31 @@ function DispostivoSearch(opts) {
 
                     });
 
+
+                    try {
+                        formData = JSON.parse(window.localStorage.getItem("dispositivo_search_form_data"))
+                        $("input[name='num_ta']").val(formData.num_ta);
+                        $("input[name='ano_ta']").val(formData.ano_ta);
+                        $("input[name='rotulo_dispositivo']").val(formData.rotulo);
+                        $("input[name='texto_dispositivo']").val(formData.texto);
+                        $("select[name='max_results']").val(formData.max_results);
+                    } catch (e) {
+
+                    }
+
+                    setTimeout(function() {
+                        try {
+                            $("select[name='tipo_ta']").val(formData.tipo_ta);
+                            $("select[name='tipo_ta']").trigger('change')
+                            //modal_ds.find(".btn-busca").trigger('click')
+                            //onChangeParamTA();
+                        } catch (e) {
+    
+                        }
+    
+                    }, 200)
+
                     modal_ds.modal('show');
-                    onChangeParamTA();
                 })
             });
         });

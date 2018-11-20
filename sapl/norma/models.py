@@ -119,7 +119,7 @@ class NormaJuridica(models.Model):
     assuntos = models.ManyToManyField(
         AssuntoNorma, blank=True,
         verbose_name=_('Assuntos'))
-    data_vigencia = models.DateField(blank=True, null=True)
+    data_vigencia = models.DateField(blank=True, null=True, verbose_name=_('Data Fim Vigência'))
     timestamp = models.DateTimeField(null=True)
 
     texto_articulado = GenericRelation(
