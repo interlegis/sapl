@@ -32,7 +32,7 @@
 			<div class="alert alert-info alert-dismissible fade in" role="alert">
 				<div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
 			</div>
-			<a href="{% url 'sapl.sessao:sessaoplenaria_detail' object.pk %}" class="btn btn-warning">Voltar</a>
+			<a href="{% url 'sapl.sessao:sessaoplenaria_detail' pk %}" class="btn btn-warning">Voltar</a>
 		{% else %}
 			
 			<fieldset class="form-group">

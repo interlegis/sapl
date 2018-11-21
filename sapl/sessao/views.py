@@ -3278,7 +3278,7 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         if not 'context' in locals():
-            context = {}
+            context = {'pk': self.kwargs['pk']}
 
         if 'origem' in request.POST:
             marcadas = request.POST.getlist('marcadas_id_1')
@@ -3415,7 +3415,7 @@ class VotacaoEmBlocoNominalView(TemplateView):
         form = VotacaoNominalForm(request.POST)
 
         if not 'context' in locals():
-            context = {}
+            context = {'pk': self.kwargs['pk']}
 
         if 'origem' in request.POST:
             # form = VotacaoNominalForm(request.POST)
