@@ -136,7 +136,7 @@ class MandatoForm(ModelForm):
         existe_mandato = Mandato.objects.filter(
             parlamentar=data['parlamentar'],
             legislatura=data['legislatura']).exists()
-        if existe_mandato:
+        if existe_mandato and data['titular']:
             self.logger.error("Mandato nesta legislatura (parlamentar={}, legislatura={}) já existe."
                               .format(data['parlamentar'], data['legislatura']))
             raise ValidationError(_('Mandato nesta legislatura já existe.'))
