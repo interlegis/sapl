@@ -49,14 +49,14 @@ class AutorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MateriaLegislativaSerializer(serializers.ModelSerializer):
+class MateriaLegislativaOldSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MateriaLegislativa
         fields = '__all__'
 
 
-class SessaoPlenariaSerializer(serializers.ModelSerializer):
+class SessaoPlenariaOldSerializer(serializers.ModelSerializer):
 
     codReuniao = serializers.SerializerMethodField('get_pk_sessao')
     codReuniaoPrincipal = serializers.SerializerMethodField('get_pk_sessao')

@@ -4,7 +4,8 @@ from rest_framework.routers import DefaultRouter
 
 from sapl.api.views import (AutoresPossiveisListView, AutoresProvaveisListView,
                             AutorListView, MateriaLegislativaViewSet,
-                            ModelChoiceView, SessaoPlenariaViewSet)
+                            ModelChoiceView, SessaoPlenariaViewSet,
+                            SaplSetViews)
 
 from .apps import AppConfig
 
@@ -12,9 +13,17 @@ app_name = AppConfig.name
 
 
 router = DefaultRouter()
-router.register(r'materia', MateriaLegislativaViewSet)
+router.register(r'materia$', MateriaLegislativaViewSet)
 router.register(r'sessao-plenaria', SessaoPlenariaViewSet)
+
+
+for app, built_sets in SaplSetViews.items():
+    for view_prefix, viewset in built_sets.items():
+        router.register(app + '/' + view_prefix, viewset)
+
+
 urlpatterns_router = router.urls
+
 
 urlpatterns_api = [
 
@@ -36,5 +45,9 @@ if settings.DEBUG:
 
 urlpatterns = [
     url(r'^api/', include(urlpatterns_api)),
-    url(r'^api/', include(urlpatterns_router))
+    url(r'^api/', include(urlpatterns_router)),
+
+    # implementar caminho para autenticação
+    # https://www.django-rest-framework.org/tutorial/4-authentication-and-permissions/
+    # url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
