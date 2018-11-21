@@ -3281,22 +3281,21 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
             context = {'pk': self.kwargs['pk']}
 
         if 'origem' in request.POST:
-            marcadas = request.POST.getlist('marcadas_id_1')
 
-            qtde_presentes = PresencaOrdemDia.objects.filter(
+            context.update({'resultado_votacao': TipoResultadoVotacao.objects.all(),
+                            'origem': request.POST['origem']})
+            if request.POST['origem'] == 'ordem':
+                ordens = OrdemDia.objects.filter(id__in=request.POST.getlist('marcadas_id_1'))
+                qtde_presentes = PresencaOrdemDia.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk']).count()
-
-            origem = request.POST['origem']
-
-            context.update({'total_presentes': qtde_presentes,
-                            'resultado_votacao': TipoResultadoVotacao.objects.all(),
-                            'origem': origem})
-            if origem == 'ordem':
-                ordens = OrdemDia.objects.filter(id__in=marcadas)
-                context.update({'ordens':ordens})
+                context.update({'ordens':ordens,
+                                'total_presentes': qtde_presentes})
             else:
-                expedientes = ExpedienteMateria.objects.filter(id__in=marcadas)
-                context.update({'expedientes':expedientes})
+                expedientes = ExpedienteMateria.objects.filter(id__in=request.POST.getlist('marcadas_id_1'))
+                qtde_presentes = SessaoPlenariaPresenca.objects.filter(
+                    sessao_plenaria_id=self.kwargs['pk']).count()
+                context.update({'expedientes':expedientes,
+                                'total_presentes': qtde_presentes})
         
         if 'salvar-votacao' in request.POST:
             form = VotacaoForm(request.POST)
@@ -3313,7 +3312,8 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
 
                 if qtde_votos != qtde_presentes:
                     form._errors["total_votos"] = ErrorList([u""])
-                    return self.render_to_response(context)
+                    form.add_error(None, 'O total de votos não corresponde com a quantidade de presentes!')
+                    return self.form_invalid(form,context)
 
                 origem = request.POST['origem2']
                 
@@ -3337,7 +3337,7 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
                             username = request.user.username
                             self.logger.error('user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
                                             'e da ordem de id={}. '.format(ordem.materia.id, ordem.id) + str(e))
-                            return self.form_invalid(form)
+                            return self.form_invalid(form, context)
                         else:
                             ordem.resultado = resultado.nome
                             ordem.votacao_aberta = False
@@ -3362,22 +3362,25 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
                             username = request.user.username
                             self.logger.error('user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
                                             'e da ordem de id={}. '.format(expediente.materia.id, expediente.id) + str(e))
-                            return self.form_invalid(form)
+                            return self.form_invalid(form, context)
                         else:
                             expediente.resultado = resultado.nome
                             expediente.votacao_aberta = False
                             expediente.save()
 
                 return HttpResponseRedirect(self.get_success_url(origem))
+
+            else:
+                return self.form_invalid(form, context)
         
         if 'cancelar-votacao' in request.POST:
             if request.POST['origem2'] == 'ordem':
-                ordens = OrdemDia.objects.filter(id__in=request.POST['ordens'])
+                ordens = OrdemDia.objects.filter(id__in=request.POST.getlist('ordens'))
                 for ordem in ordens:
                     ordem.votacao_aberta = False
                     ordem.save()
             else:
-                expedientes = ExpedienteMateria.objects.filter(id__in=request.POST['expedientes'])
+                expedientes = ExpedienteMateria.objects.filter(id__in=request.POST.getlist('expedientes'))
                 for expediente in expedientes:
                     expediente.votacao_aberta = False
                     expediente.save()
@@ -3398,17 +3401,47 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
             return reverse('sapl.sessao:expedientemateria_list',
                         kwargs={'pk': pk})
 
+    def form_invalid(self, form, context):
+
+        errors_tuple = [(form[e].label, form.errors[e])
+                        for e in form.errors if e in form.fields]
+        error_message = '<ul>'
+        for e in errors_tuple:
+            error_message += '<li><b>%s</b>: %s</li>' % (e[0], e[1][0])
+        for e in form.non_field_errors():
+            error_message += '<li>%s</li>' % e
+        error_message += '</ul>'
+
+        messages.add_message(self.request, messages.ERROR, error_message)
+        
+        if self.request.POST['origem2'] == 'ordem':
+            ordens = OrdemDia.objects.filter(id__in=self.request.POST.getlist('ordens'))
+            qtde_presentes = PresencaOrdemDia.objects.filter(
+                    sessao_plenaria_id=self.kwargs['pk']).count()
+            context.update({'ordens': ordens,
+                            'total_presentes': qtde_presentes})
+        elif self.request.POST['origem2'] == 'expediente':
+            expedientes = ExpedienteMateria.objects.filter(id__in=self.request.POST.getlist('expedientes'))
+            qtde_presentes = SessaoPlenariaPresenca.objects.filter(
+                sessao_plenaria_id=self.kwargs['pk']).count()
+            context.update({'expedientes': expedientes,
+                            'total_presentes': qtde_presentes})
+
+        context.update({'resultado_votacao': TipoResultadoVotacao.objects.all(),
+                        'form': form,
+                        'origem': self.request.POST['origem2']})
+
+        import ipdb; ipdb.set_trace()
+
+        return self.render_to_response(context)
+
+
 class VotacaoEmBlocoNominalView(TemplateView):
     """
         Votação Nominal
     """
     template_name = 'sessao/votacao/votacao_nominal_bloco.html'
     logger = logging.getLogger(__name__)
-
-    def get(self, request, *args, **kwargs):
-        import ipdb; ipdb.set_trace()
-        pass
-
 
     def post(self, request, *args, **kwargs):
         username = request.user.username
@@ -3418,38 +3451,33 @@ class VotacaoEmBlocoNominalView(TemplateView):
             context = {'pk': self.kwargs['pk']}
 
         if 'origem' in request.POST:
-            # form = VotacaoNominalForm(request.POST)
-
-            marcadas = request.POST.getlist('marcadas_id_2')
-
-            origem = request.POST['origem']
 
             context.update({'resultado_votacao': TipoResultadoVotacao.objects.all(),
-                            'origem': origem,
+                            'origem': request.POST['origem'],
                             'form': form})
-            if origem == 'ordem':
-                ordens = OrdemDia.objects.filter(id__in=marcadas)
+            if request.POST['origem'] == 'ordem':
+                ordens = OrdemDia.objects.filter(id__in=request.POST.getlist('marcadas_id_2'))
                 presentes = PresencaOrdemDia.objects.filter(
                         sessao_plenaria_id=kwargs['pk'])
                 context.update({'ordens':ordens})
             else:
-                expedientes = ExpedienteMateria.objects.filter(id__in=marcadas)
-                presentes = PresencaOrdemDia.objects.filter(
-                        sessao_plenaria_id=kwargs['pk'])
+                expedientes = ExpedienteMateria.objects.filter(id__in=request.POST.getlist('marcadas_id_2'))
+                presentes = SessaoPlenariaPresenca.objects.filter(
+                    sessao_plenaria_id=kwargs['pk'])
                 context.update({'expedientes':expedientes})
             total = presentes.count()
             context.update({'parlamentares':self.get_parlamentares(),
                             'total':total})
         
         if 'cancelar-votacao' in request.POST:
-            if request.POST['origem'] == 'ordem':
-                for ordem_id in request.POST['ordens']:
+            if request.POST['origem2'] == 'ordem':
+                for ordem_id in request.POST.getlist('ordens'):
                     ordem = OrdemDia.objects.get(id=ordem_id)
                     fechar_votacao_materia(ordem)
                 return HttpResponseRedirect(reverse(
                     'sapl.sessao:ordemdia_list', kwargs={'pk': self.kwargs['pk']}))
             else:
-                for expediente_id in request.POST['expedientes']:
+                for expediente_id in request.POST.getlist('expedientes'):
                     expediente = ExpedienteMateria.objects.get(id=expediente_id)
                     fechar_votacao_materia(expediente)
                 return HttpResponseRedirect(reverse(
@@ -3462,7 +3490,7 @@ class VotacaoEmBlocoNominalView(TemplateView):
                 if form.cleaned_data['resultado_votacao'] == None:
                     form.add_error(None, 'Não é possível finalizar a votação sem '
                                         'nenhum resultado da votação')
-                    return self.form_invalid(form)
+                    return self.form_invalid(form, context)
 
                 qtde_votos = (int(request.POST['votos_sim']) +
                             int(request.POST['votos_nao']) +
@@ -3477,7 +3505,7 @@ class VotacaoEmBlocoNominalView(TemplateView):
                                     'nenhum voto')
                     form.add_error(None, 'Não é possível finalizar a votação sem '
                                         'nenhum voto')
-                    return self.form_invalid(form)
+                    return self.form_invalid(form, context)
                 
                 if origem=='ordem':
                     for ordem_id in request.POST.getlist('ordens'):
@@ -3517,7 +3545,7 @@ class VotacaoEmBlocoNominalView(TemplateView):
                         votacao__isnull=True).delete()
                     
                 else:
-                    for expediente_id in request.POST['expedientes']:
+                    for expediente_id in request.POST.getlist('expedientes'):
                         expediente = ExpedienteMateria.objects.get(id=expediente_id)
                         RegistroVotacao.objects.filter(
                             expediente_id=expediente_id).delete()
@@ -3557,24 +3585,39 @@ class VotacaoEmBlocoNominalView(TemplateView):
                 return HttpResponseRedirect(self.get_success_url())
 
             else:
-                return self.form_invalid(form)
+                return self.form_invalid(form, context)
 
         return self.render_to_response(context)
 
     def get_parlamentares(self):
 
-        if self.request.POST['origem']=='ordem':
-            presencas = PresencaOrdemDia.objects.filter(
-                        sessao_plenaria_id=self.kwargs['pk'])
-            ordens_id = self.request.POST.getlist('marcadas_id_2')
-            voto_parlamentar = VotoParlamentar.objects.filter(
-                ordem=ordens_id[0])
+        if 'origem' in self.request.POST:
+            if self.request.POST['origem'] == 'ordem':
+                presencas = PresencaOrdemDia.objects.filter(
+                            sessao_plenaria_id=self.kwargs['pk'])
+                ordens_id = self.request.POST.getlist('marcadas_id_2')
+                voto_parlamentar = VotoParlamentar.objects.filter(
+                    ordem=ordens_id[0])
+            else:
+                presencas = PresencaOrdemDia.objects.filter(
+                            sessao_plenaria_id=self.kwargs['pk'])
+                expedientes_id = self.request.POST.getlist('marcadas_id_2')
+                voto_parlamentar = VotoParlamentar.objects.filter(
+                    expediente=expedientes_id[0])
+        #origem2
         else:
-            presencas = PresencaOrdemDia.objects.filter(
-                        sessao_plenaria_id=self.kwargs['pk'])
-            expedientes_id = self.request.POST.getlist('marcadas_id_2')
-            voto_parlamentar = VotoParlamentar.objects.filter(
-                expediente=expedientes_id[0])
+            if self.request.POST['origem2'] == 'ordem':
+                presencas = PresencaOrdemDia.objects.filter(
+                            sessao_plenaria_id=self.kwargs['pk'])
+                ordens_id = self.request.POST.getlist('ordens')
+                voto_parlamentar = VotoParlamentar.objects.filter(
+                    ordem=ordens_id[0])
+            else:
+                presencas = PresencaOrdemDia.objects.filter(
+                            sessao_plenaria_id=self.kwargs['pk'])
+                expedientes_id = self.request.POST.getlist('expedientes')
+                voto_parlamentar = VotoParlamentar.objects.filter(
+                    expediente=expedientes_id[0])
 
         presentes = [p.parlamentar for p in presencas]
 
@@ -3592,16 +3635,14 @@ class VotacaoEmBlocoNominalView(TemplateView):
                     yield [parlamentar, voto.voto]
 
     def get_success_url(self):
-        pk = self.kwargs['pk']
         if self.request.POST['origem2']=='ordem':
             return reverse('sapl.sessao:ordemdia_list',
-                        kwargs={'pk': pk})
+                        kwargs={'pk': self.kwargs['pk']})
         else:
             return reverse('sapl.sessao:expedientemateria_list',
-                        kwargs={'pk': pk})
+                        kwargs={'pk': self.kwargs['pk']})
 
-    def form_invalid(self, form):
-        #TODO dados são perdidos
+    def form_invalid(self, form, context):
 
         errors_tuple = [(form[e].label, form.errors[e])
                         for e in form.errors if e in form.fields]
@@ -3614,13 +3655,22 @@ class VotacaoEmBlocoNominalView(TemplateView):
 
         messages.add_message(self.request, messages.ERROR, error_message)
 
-        # if self.request.POST['origem2'] == 'ordem':
-        #     view = 'sapl.sessao:votacaobloconom'
-        # elif self.request.POST['origem2'] == 'expediente':
-        #     view = 'sapl.sessao:votacaobloconom'
-        # else:
-        #     view = None
+        if self.request.POST['origem2'] == 'ordem':
+            ordens = OrdemDia.objects.filter(id__in=self.request.POST.getlist('ordens'))
+            presentes = PresencaOrdemDia.objects.filter(
+                sessao_plenaria_id=self.kwargs['pk'])
+            context.update({'ordens': ordens})
+        elif self.request.POST['origem2'] == 'expediente':
+            expedientes = ExpedienteMateria.objects.filter(id__in=self.request.POST.getlist('expedientes'))
+            presentes = SessaoPlenariaPresenca.objects.filter(
+                sessao_plenaria_id=self.kwargs['pk'])
+            context.update({'expedientes': expedientes})
 
-        return HttpResponseRedirect(reverse(
-            'sapl.sessao:votacaobloconom',
-            kwargs={'pk': self.kwargs['pk']}))
+        total = presentes.count()
+        context.update({'parlamentares':self.get_parlamentares(),
+                        'total':total,
+                        'resultado_votacao': TipoResultadoVotacao.objects.all(),
+                        'form': form,
+                        'origem': self.request.POST['origem2']})
+
+        return self.render_to_response(context)
