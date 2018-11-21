@@ -1083,8 +1083,7 @@ def get_pauta_sessao(sessao, casa):
     inf_basicas_dic["nom_camara"] = casa.nome
 
     lst_expediente_materia = []
-    for expediente_materia in ExpedienteMateria.objects.filter(
-            data_ordem=sessao.data_inicio, sessao_plenaria=sessao):
+    for expediente_materia in ExpedienteMateria.objects.filter(sessao_plenaria=sessao):
 
         materia = MateriaLegislativa.objects.filter(
             id=expediente_materia.materia.id).first()
