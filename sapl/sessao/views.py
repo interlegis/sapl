@@ -3086,7 +3086,6 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                      'sessao.change_ordemdia')
 def mudar_ordem_materia_sessao(request):
     # Pega os dados vindos da requisição
-    # import ipdb; ipdb.set_trace()
     posicao_inicial = int(request.POST['pos_ini']) + 1
     posicao_final = int(request.POST['pos_fim']) + 1
     pk_sessao = int(request.POST['pk_sessao'])
