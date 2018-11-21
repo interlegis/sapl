@@ -1335,7 +1335,7 @@ class ResumoView(DetailView):
         ).order_by('parlamentar__nome_parlamentar')
 
         parlamentares_sessao = [p.parlamentar for p in presencas]
-        
+
         context.update({'presenca_sessao': parlamentares_sessao})
 
 
@@ -3086,6 +3086,7 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                      'sessao.change_ordemdia')
 def mudar_ordem_materia_sessao(request):
     # Pega os dados vindos da requisição
+    # import ipdb; ipdb.set_trace()
     posicao_inicial = int(request.POST['pos_ini']) + 1
     posicao_final = int(request.POST['pos_fim']) + 1
     pk_sessao = int(request.POST['pk_sessao'])
@@ -3099,7 +3100,7 @@ def mudar_ordem_materia_sessao(request):
     elif materia == 'ordem':
         materia = OrdemDia
     else:
-        return
+        return JsonResponse({}, safe=False)
 
     # Testa se existe alguma matéria na posição recebida
     try:
@@ -3138,7 +3139,7 @@ def mudar_ordem_materia_sessao(request):
     materia_1.numero_ordem = posicao_final
     materia_1.save()
 
-    return
+    return JsonResponse({}, safe=False)
 
 
 class JustificativaAusenciaCrud(MasterDetailCrud):
