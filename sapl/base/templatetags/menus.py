@@ -89,7 +89,7 @@ def nav_run(context, path=None):
                                       %s
                                 """) % (
                 yaml_path, rm.app_name, str(e)))
-
+    
     return {'menu': menu}
 
 

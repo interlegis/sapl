@@ -1,5 +1,5 @@
 {% extends "crud/detail.html" %}
-{% load i18n %}
+{% load i18n crispy_forms_tags%}
 
 {% block detail_content %}
 <form id="form-votacao" method="post">
@@ -7,23 +7,6 @@
 
 	<fieldset class="form-group">
 		<legend>Votação Simbólica</legend>
-
-		{% if form.errors %}
-			<div class="alert-box alert">
-				<b><h4>Os seguintes erros foram encontrados:</h4></b>
-				<ul>
-					{% for field in form %}
-						{% if field.errors %}
-							{% if field.label == 'total'%}
-								<li>O total de votos não corresponde com a quantidade de presentes!</li>
-							{% else %}
-								<li>O campo <b>{{field.label}}</b> é obrigatório!</li>
-							{% endif %}
-						{% endif %}
-					{% endfor %}
-				</ul>
-			</div>
-		{% endif %}
 		
 		<div>
 			{% if ordens %}
@@ -86,7 +69,7 @@
 				</div>
 			</div>
 
-			<input type="hidden" id="origem2" name="origem2" value="{{origem}}">
+			<input type="hidden" id="origem" name="origem" value="{{origem}}">
 
 			<br /><br />
 			<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Salvar" class="btn btn-primary" />

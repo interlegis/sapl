@@ -1,4 +1,4 @@
-
+from django.contrib import messages
 from datetime import datetime
 
 from crispy_forms.helper import FormHelper
@@ -426,12 +426,34 @@ class OcorrenciaSessaoForm(ModelForm):
 
 
 class VotacaoForm(forms.Form):
-    votos_sim = forms.CharField(label='Sim')
-    votos_nao = forms.CharField(label='Não')
-    abstencoes = forms.CharField(label='Abstenções')
-    total_votos = forms.CharField(required=False, label='total')
+    votos_sim = forms.IntegerField(label='Sim')
+    votos_nao = forms.IntegerField(label='Não')
+    abstencoes = forms.IntegerField(label='Abstenções')
+    total_presentes = forms.IntegerField(required=False, widget=forms.HiddenInput())
+    voto_presidente = forms.IntegerField(label='A totalização inclui o voto do Presidente?')
+    total_votos = forms.IntegerField(required=False, label='total')
     observacao = forms.CharField(required=False , label='Observação')
     resultado_votacao = forms.CharField(label='Resultado da Votação')
+
+    def clean(self):
+        cleaned_data = super(VotacaoForm, self).clean()
+        if not self.is_valid():
+            return cleaned_data
+
+        votos_sim = cleaned_data['votos_sim']
+        votos_nao = cleaned_data['votos_nao']
+        abstencoes = cleaned_data['abstencoes']
+        qtde_presentes = cleaned_data['total_presentes']
+        qtde_votos = votos_sim + votos_nao + abstencoes
+        voto_presidente = cleaned_data['voto_presidente']
+
+        if not voto_presidente:
+            qtde_presentes -= 1
+
+        if qtde_votos != qtde_presentes:
+            raise ValidationError('O total de votos não corresponde com a quantidade de presentes!')
+
+        return cleaned_data
 
     # def save(self, commit=False):
     #     #TODO Verificar se esse códido é utilizado

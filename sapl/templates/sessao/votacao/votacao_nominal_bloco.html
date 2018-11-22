@@ -28,7 +28,7 @@
 				<br />
 			{% endfor %}
 		{% endif %}
-		{% if total == 0 %}
+		{% if total_presentes == 0 %}
 			<div class="alert alert-info alert-dismissible fade in" role="alert">
 				<div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
 			</div>
@@ -84,7 +84,7 @@
 				</div>
 			</div>
 
-			<input type="hidden" id="origem2" name="origem2" value="{{origem}}">
+			<input type="hidden" id="origem" name="origem" value="{{origem}}">
 
 			<br /><br />
 			<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Fechar Votação" class="btn btn-primary" />

@@ -1,11 +1,10 @@
 {% extends "crud/detail.html" %}
 {% load i18n crispy_forms_tags %}
 
-{% block detail_content %}
-
-  <p></p>
-        
-          <form method="POST" enctype="application/x-www-form-urlencoded" id="form" action="{% url 'sapl.sessao:votacaoblocosimb' pk %}">
+{% comment %} {% block title %} {{sessao}} {% endblock title %} {% endcomment %}
+{% block base_content %}
+  
+  <form method="POST" enctype="application/x-www-form-urlencoded" id="form" action="{% url 'sapl.sessao:votacaoblocosimb' pk %}">
           {% csrf_token %}
             <br><br>
             <table class="table table-striped table-bordered">
@@ -17,9 +16,9 @@
                 <tr>
                     <td class="col-md-12">
                       <fieldset id="tipo_votacao" name="tipo">
-                        <input type="radio" name="tipo_votacao" id="tipo_votacao1" value="1" onchange="alteraTipoVotacao()" checked="checked"> <label for="tipo">Simbólica</label>
+                        <input type="radio" name="tipo_votacao" id="tipo_votacao_1" value="1" onchange="alteraTipoVotacao()" checked="checked"> <label for="tipo">Simbólica</label>
                         </br>
-                        <input type="radio" name="tipo_votacao" id="tipo_votacao2" value="2" onchange="alteraTipoVotacao()" > <label for="tipo">Nominal</label>
+                        <input type="radio" name="tipo_votacao" id="tipo_votacao_2" value="2" onchange="alteraTipoVotacao()" > <label for="tipo">Nominal</label>
                         </br>
                       </fieldset>
                     </td>
@@ -44,7 +43,7 @@
                 {% for o in ordem_dia %}
                   <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% else %}Nominal{% endif %}"  {% if o.tipo_votacao == 2 %} style="display:none;" {% endif %}>
                         <td>
-                            <input type="checkbox" name="marcadas_id_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
+                            <input type="checkbox" name="marcadas_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
                             <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
                             {% if o.materia.numeracao_set.last %}
                               <strong>Processo:</strong> &nbsp; {{o.materia.numeracao_set.last}}</br>
@@ -90,12 +89,13 @@
             </tr>
           </table>
 
-{% endblock detail_content %}
+{% endblock base_content %}
 
 {% block extra_js %}
 	<script>
     $(document).ready(function(){
       checa_tipo_votacao();
+      $('#tipo_votacao_1').prop('checked', true)
     });
 
 		$(window).on('beforeunload', function () {
@@ -105,9 +105,9 @@
 	</script>
 
   <script language="JavaScript">
-		function checkAll(ele) {
-      let checkboxes = document.getElementsByName('marcadas_id_1');
-      if (ele.checked) {
+		function checkAll(elem) {
+      let checkboxes = document.getElementsByName('marcadas_1');
+      if (elem.checked) {
          for (let i = 0; i < checkboxes.length; i++) {
              if (checkboxes[i].type == 'checkbox') {
                  checkboxes[i].checked = true;
@@ -121,8 +121,8 @@
          }
      }
 
-      checkboxes = document.getElementsByName('marcadas_id_2');
-      if (ele.checked) {
+      checkboxes = document.getElementsByName('marcadas_2');
+      if (elem.checked) {
          for (let i = 0; i < checkboxes.length; i++) {
              if (checkboxes[i].type == 'checkbox') {
                  checkboxes[i].checked = true;
@@ -147,7 +147,7 @@
 
     function checa_tipo_votacao(){
       tipo_votacao = document.querySelector('input[name="tipo_votacao"]:checked').value;
-      numero_ordens = document.getElementsByName('marcadas_id_'+tipo_votacao).length;
+      numero_ordens = document.getElementsByName('marcadas_'+tipo_votacao).length;
 
       if(numero_ordens == 0){
         document.getElementById('frase_selecione').style.display = 'none';
@@ -163,6 +163,7 @@
         document.getElementById('but_reg').style.display = '';
         document.getElementById('nenhuma_ordem').style.display = 'none';
       }
+
       if(tipo_votacao == "1"){
         $('#form').attr("action", "{% url 'sapl.sessao:votacaoblocosimb' pk %}")
       }

@@ -1,23 +1,7 @@
 {% extends "crud/detail.html" %}
 {% load i18n crispy_forms_tags %}
 
-{% block detail_content %}
-    {% comment %} {% block buttons %}
-
-      {% if filter_url and not filter.form.errors %}
-            <div class="actions btn-group pull-right" role="group">
-              <a href="{% url 'sapl.sessao:votacao_bloco_expediente' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-            </div>
-
-            <div class="actions btn-group pull-right" role="group">
-              <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias do Expediente' %}</a>
-            </div>
-
-      {% endif %}
-
-    {% endblock %} 
-
-  <p></p> {% endcomment %}
+{% block base_content %}
         
   <form method="POST" enctype="application/x-www-form-urlencoded" id="form" action="{% url 'sapl.sessao:votacaoblocosimb' pk %}">
   {% csrf_token %}
@@ -31,9 +15,9 @@
       <tr>
         <td class="col-md-12">
           <fieldset id="tipo_votacao" name="tipo">
-            <input type="radio" name="tipo_votacao" id="tipo_votacao1" value="1" onchange="alteraTipoVotacao()" checked="checked"> <label for="tipo">Simbólica</label>
+            <input type="radio" name="tipo_votacao" id="tipo_votacao_1" value="1" onchange="alteraTipoVotacao()" checked="checked"> <label for="tipo">Simbólica</label>
             </br>
-            <input type="radio" name="tipo_votacao" id="tipo_votacao2" value="2" onchange="alteraTipoVotacao()" > <label for="tipo">Nominal</label>
+            <input type="radio" name="tipo_votacao" id="tipo_votacao_2" value="2" onchange="alteraTipoVotacao()" > <label for="tipo">Nominal</label>
             </br>
           </fieldset>
         </td>
@@ -58,7 +42,7 @@
       {% for o in expedientes %}
         <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% else %}Nominal{% endif %}"  {% if o.tipo_votacao == 2 %} style="display:none;" {% endif %}>
           <td>
-            <input type="checkbox" name="marcadas_id_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
+            <input type="checkbox" name="marcadas_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
             <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
             {% if o.materia.numeracao_set.last %}
               <strong>Processo:</strong> &nbsp; {{o.materia.numeracao_set.last}}</br>
@@ -103,13 +87,13 @@
     </tr>
   </table>
 
-{% endblock detail_content %}
+{% endblock base_content %}
 
 {% block extra_js %}
 	<script>
     $(document).ready(function(){
       checa_tipo_votacao();
-      $('#tipo_votacao1').prop('checked', true)
+      $('#tipo_votacao_1').prop('checked', true)
     });
 
 		$(window).on('beforeunload', function () {
@@ -120,7 +104,7 @@
 
   <script language="JavaScript">
 		function checkAll(elem) {
-      let checkboxes = document.getElementsByName('marcadas_id_1');
+      let checkboxes = document.getElementsByName('marcadas_1');
       if (elem.checked) {
          for (let i = 0; i < checkboxes.length; i++) {
              if (checkboxes[i].type == 'checkbox') {
@@ -135,7 +119,7 @@
          }
      }
 
-      checkboxes = document.getElementsByName('marcadas_id_2');
+      checkboxes = document.getElementsByName('marcadas_2');
       if (elem.checked) {
          for (let i = 0; i < checkboxes.length; i++) {
              if (checkboxes[i].type == 'checkbox') {
@@ -161,7 +145,7 @@
 
     function checa_tipo_votacao(){
       tipo_votacao = document.querySelector('input[name="tipo_votacao"]:checked').value;
-      numero_ordens = document.getElementsByName('marcadas_id_'+tipo_votacao).length;
+      numero_ordens = document.getElementsByName('marcadas_'+tipo_votacao).length;
 
       if(numero_ordens == 0){
         document.getElementById('frase_selecione').style.display = 'none';
