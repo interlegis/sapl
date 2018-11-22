@@ -172,6 +172,7 @@ rules_group_sessao = {
         (sessao.RegistroVotacao, __base__),
         (sessao.VotoParlamentar, __base__),
         (sessao.JustificativaAusencia, __base__),
+        (sessao.RetiradaPauta, __base__)
     ]
 }
 
@@ -269,6 +270,7 @@ rules_group_geral = {
         (sessao.JustificativaAusencia, __base__),
         (sessao.Bloco, __base__),
         (sessao.ResumoOrdenacao, __base__),
+        (sessao.TipoRetiradaPauta, __base__),
 
         (lexml.LexmlProvedor, __base__),
         (lexml.LexmlPublicador, __base__),

@@ -2,6 +2,7 @@ from operator import xor
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
@@ -584,6 +585,18 @@ class ResumoOrdenacao(models.Model):
     def __str__(self):
         return 'Ordenação do Resumo de uma Sessão'
 
+@reversion.register()
+class TipoRetiradaPauta(models.Model):
+    descricao = models.CharField(max_length=150, verbose_name=_('Descrição'))
+
+    class Meta:
+        verbose_name = _('Tipo de Retidara de Pauta')
+        verbose_name_plural = _('Tipos de Retirada de Pauta')
+        ordering = ['descricao']
+
+    def __str__(self):
+        return self.descricao
+
 
 @reversion.register()
 class TipoJustificativa(models.Model):
@@ -662,3 +675,55 @@ class JustificativaAusencia(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
+class RetiradaPauta(models.Model):
+    materia = models.ForeignKey(MateriaLegislativa,
+                                on_delete=models.CASCADE,
+                                verbose_name=_('Matéria'))
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        on_delete=models.CASCADE,
+                                        verbose_name=_('Sessão Plenária'),
+                                        blank=True,
+                                        null=True)
+    ordem = models.ForeignKey(OrdemDia,
+                              blank=True,
+                              null=True,
+                              on_delete=models.CASCADE)
+    expediente = models.ForeignKey(ExpedienteMateria,
+                                   blank=True,
+                                   null=True,
+                                   on_delete=models.CASCADE)
+    data = models.DateField(verbose_name=_('Data'),
+                            default=timezone.now)
+    observacao = models.TextField(blank=True,
+                                  verbose_name=_('Observações'))
+    parlamentar = models.ForeignKey(Parlamentar,
+                                    on_delete=models.PROTECT,
+                                    verbose_name=_('Requerente'),
+                                    blank=True,
+                                    null=True)
+    tipo_de_retirada = models.ForeignKey(TipoRetiradaPauta,
+                                         on_delete=models.PROTECT,
+                                         verbose_name=_('Motivo de Retirada de Pauta'))
+
+    class Meta:
+        verbose_name = _('Retirada de Pauta')
+        verbose_name_plural = _('Retirada de Pauta')
+
+    def __str__(self):
+        return _('Ordem: %(ordem)s - Requerente: %(requerente)s - '
+                 'Matéria: %(materia)s') % {
+                     'ordem': self.ordem,
+                     'requerente': self.parlamentar,
+                     'materia': self.materia}
+
+    def clean(self):
+        """Exatamente um dos campos ordem ou expediente deve estar preenchido.
+        """
+        # TODO remover esse método quando OrdemDia e ExpedienteMateria
+        # forem reestruturados e os campos ordem e expediente forem unificados
+        if not xor(bool(self.ordem), bool(self.expediente)):
+            raise ValidationError(
+                'ReritadaPauta deve ter exatamente um dos campos '
+                'ordem ou expediente preenchido. Ambos estão preenchidos: '
+                '{}, {}'. format(self.ordem, self.expediente))
