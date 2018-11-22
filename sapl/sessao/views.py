@@ -3384,6 +3384,9 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
                 for expediente in expedientes:
                     expediente.votacao_aberta = False
                     expediente.save()
+            
+            origem = request.POST['origem2']
+            return HttpResponseRedirect(self.get_success_url(origem))
 
         return self.render_to_response(context)
 
@@ -3430,8 +3433,6 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
         context.update({'resultado_votacao': TipoResultadoVotacao.objects.all(),
                         'form': form,
                         'origem': self.request.POST['origem2']})
-
-        import ipdb; ipdb.set_trace()
 
         return self.render_to_response(context)
 
