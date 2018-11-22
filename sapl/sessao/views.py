@@ -43,24 +43,22 @@ from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm)
-from .models import (Bancada, Bloco, CargoBancada, CargoMesa, ExpedienteMateria,
-                     ExpedienteSessao, JustificativaAusencia, OcorrenciaSessao, IntegranteMesa,
+                    VotacaoNominalForm, RetiradaPautaForm)
+from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
+                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
-                     TipoJustificativa, TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar)
+                     TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
+                     RetiradaPauta, TipoJustificativa, JustificativaAusencia)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
-
-
-TipoResultadoVotacaoCrud = CrudAux.build(
-    TipoResultadoVotacao, 'tipo_resultado_votacao')
+TipoResultadoVotacaoCrud = CrudAux.build(TipoResultadoVotacao, 'tipo_resultado_votacao')
+TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
 
 
 def reordernar_materias_expediente(request, pk):
@@ -221,7 +219,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
         exist_resultado = obj.registrovotacao_set.filter(
             materia=obj.materia).exists()
-        if not exist_resultado:
+        exist_retirada = obj.retiradapauta_set.filter(
+            materia=obj.materia).exists()
+        if not exist_resultado and not exist_retirada:
             if obj.votacao_aberta:
                 url = ''
                 if is_expediente:
@@ -294,6 +294,19 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     resultado = btn_abrir
                 else:
                     resultado = '''Não há resultado'''
+
+        elif exist_retirada:
+            retirada = obj.retiradapauta_set.filter(
+                materia_id=obj.materia_id).last()
+            retirada_descricao = retirada.tipo_de_retirada.descricao
+            retirada_observacao = retirada.observacao
+            url = reverse('sapl.sessao:retiradapauta_detail',
+                           kwargs={'pk': retirada.id})
+            resultado = ('<a href="%s">%s<br/>%s</a>' %
+                         (url,
+                          retirada_descricao,
+                          retirada_observacao))
+
         else:
             resultado = obj.registrovotacao_set.filter(
                 materia_id=obj.materia_id).last()
@@ -1342,8 +1355,6 @@ class ResumoView(DetailView):
 
         context.update({'presenca_sessao': parlamentares_sessao,
                         'justificativa_ausencia': ausentes_sessao})
-
-        context.update({'presenca_sessao': parlamentares_sessao})
 
 
         # =====================================================================
@@ -3106,7 +3117,7 @@ def mudar_ordem_materia_sessao(request):
     elif materia == 'ordem':
         materia = OrdemDia
     else:
-        return
+        return JsonResponse({}, safe=False)
 
     # Testa se existe alguma matéria na posição recebida
     try:
@@ -3145,7 +3156,7 @@ def mudar_ordem_materia_sessao(request):
     materia_1.numero_ordem = posicao_final
     materia_1.save()
 
-    return
+    return JsonResponse({}, safe=False)
 
 
 class JustificativaAusenciaCrud(MasterDetailCrud):
@@ -3221,6 +3232,41 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
         def get_initial(self):
             sessao_plenaria = JustificativaAusencia.objects.get(
                 id=self.kwargs['pk']).sessao_plenaria
+            return {'sessao_plenaria': sessao_plenaria}
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+        pass
+
+
+class RetiradaPautaCrud(MasterDetailCrud):
+    model = RetiradaPauta
+    public = [RP_LIST, RP_DETAIL, ]
+    parent_field = 'sessao_plenaria'
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['tipo_de_retirada', 'materia', 'observacao', 'parlamentar']
+
+    class ListView(MasterDetailCrud.ListView):
+        paginate_by = 10
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = RetiradaPautaForm
+        layout_key = None
+
+        def get_initial(self):
+            sessao_plenaria = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+            return {'sessao_plenaria': sessao_plenaria}
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:retiradapauta_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = RetiradaPautaForm
+        layout_key = None
+
+        def get_initial(self):
+            sessao_plenaria = RetiradaPauta.objects.get(id=self.kwargs['pk']).sessao_plenaria
             return {'sessao_plenaria': sessao_plenaria}
 
     class DeleteView(MasterDetailCrud.DeleteView):
