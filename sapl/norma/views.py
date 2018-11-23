@@ -37,7 +37,7 @@ TipoNormaCrud = CrudAux.build(
     list_field_names=['sigla', 'descricao', 'equivalente_lexml'])
 TipoVinculoNormaJuridicaCrud = CrudAux.build(
     TipoVinculoNormaJuridica, '',
-    list_field_names=['sigla', 'descricao_ativa', 'descricao_passiva'])
+    list_field_names=['sigla', 'descricao_ativa', 'descricao_passiva', 'revoga_integramente'])
 
 
 class NormaRelacionadaCrud(MasterDetailCrud):
