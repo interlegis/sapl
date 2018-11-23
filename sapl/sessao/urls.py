@@ -114,7 +114,7 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/presencaordemdia$',
         PresencaOrdemDiaView.as_view(),
         name='presencaordemdia'),
-    url(r'^sessao/(?P<pk>\d+)/votacao_bloco_ordem_dia$',
+    url(r'^sessao/(?P<pk>\d+)/votacao_bloco_ordemdia$',
         VotacaoEmBlocoOrdemDia.as_view(),
         name='votacao_bloco_ordemdia'),
     url(r'^sessao/(?P<pk>\d+)/votacao_bloco/votnom$',

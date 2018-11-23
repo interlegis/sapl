@@ -3248,6 +3248,7 @@ class VotacaoEmBlocoOrdemDia(ListView):
     app_label = AppConfig.label
     logger = logging.getLogger(__name__)
     context_object_name = 'ordem_dia'
+    parent_field = 'sessao_plenaria'
 
     def get_queryset(self):
         return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'], 
