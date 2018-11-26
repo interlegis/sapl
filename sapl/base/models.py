@@ -8,7 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 #from model_utils import Choices
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
-from datetime import timedelta
 
 TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensiva')),
                                  ('R', _('Restritiva')))
@@ -123,7 +122,6 @@ class AppConfig(models.Model):
         max_length=1, choices=ASSINATURA_ATA_CHOICES, default='T')
 
     cronometro_discurso = models.DurationField(
-        default=timedelta(minutes=40),
         verbose_name=_('Cronômetro do Discurso'),
         blank=True,
         null=True)
