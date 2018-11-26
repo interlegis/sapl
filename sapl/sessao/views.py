@@ -3228,10 +3228,12 @@ class VotacaoEmBlocoExpediente(ListView):
     context_object_name = 'expedientes'
     logger = logging.getLogger(__name__)
 
+
     def get_queryset(self):
         kwargs = self.kwargs
         return ExpedienteMateria.objects.filter(sessao_plenaria_id=kwargs['pk'], 
                                                 resultado='')
+
 
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoExpediente, self).get_context_data(**kwargs)
@@ -3250,9 +3252,11 @@ class VotacaoEmBlocoOrdemDia(ListView):
     context_object_name = 'ordem_dia'
     parent_field = 'sessao_plenaria'
 
+
     def get_queryset(self):
         return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'], 
                                        resultado='')
+
 
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoOrdemDia, self).get_context_data(**kwargs)
@@ -3271,6 +3275,7 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
 
     template_name = 'sessao/votacao/votacao_simbolica_bloco.html'
     logger = logging.getLogger(__name__)
+
 
     def post(self, request, *args, **kwargs):
         
@@ -3384,6 +3389,7 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
         for tipo in TipoResultadoVotacao.objects.all():
             yield tipo
 
+
     def get_success_url(self):
         if self.request.POST['origem']=='ordem':
             return reverse('sapl.sessao:ordemdia_list',
@@ -3391,6 +3397,7 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
         else:
             return reverse('sapl.sessao:expedientemateria_list',
                         kwargs={'pk': self.kwargs['pk']})
+
 
     def form_invalid(self, form, context):
 
@@ -3579,6 +3586,7 @@ class VotacaoEmBlocoNominalView(TemplateView):
 
         return self.render_to_response(context)
 
+
     def get_parlamentares(self):
         
         #campos hidden ainda não preenchidos
@@ -3626,6 +3634,7 @@ class VotacaoEmBlocoNominalView(TemplateView):
                 else:
                     yield [parlamentar, voto.voto]
 
+
     def get_success_url(self):
         if self.request.POST['origem']=='ordem':
             return reverse('sapl.sessao:ordemdia_list',
@@ -3633,6 +3642,7 @@ class VotacaoEmBlocoNominalView(TemplateView):
         else:
             return reverse('sapl.sessao:expedientemateria_list',
                         kwargs={'pk': self.kwargs['pk']})
+
 
     def form_invalid(self, form, context):
 
