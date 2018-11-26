@@ -846,18 +846,19 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             messages.add_message(self.request, messages.ERROR, msg)
 
         else:
-            m, s, x = cronometro_discurso.isoformat().split(':')
-            cronometro_discurso = int(m) * 60 + int(s)
-
-            m, s, x = cronometro_aparte.isoformat().split(':')
-            cronometro_aparte = int(m) * 60 + int(s)
-
-            m, s, x = cronometro_ordem.isoformat().split(':')
-            cronometro_ordem = int(m) * 60 + int(s)
-
-            m, s, x = cronometro_consideracoes.isoformat().split(':')
-            cronometro_consideracoes = int(m) * 60 + int(s)
-
+            # import ipdb; ipdb.set_trace()
+            # m, s, x = cronometro_discurso.isoformat().split(':')
+            # cronometro_discurso = int(m) * 60 + int(s)
+            cronometro_discurso = cronometro_discurso.seconds
+            # m, s, x = cronometro_aparte.isoformat().split(':')
+            # cronometro_aparte = int(m) * 60 + int(s)
+            cronometro_aparte = cronometro_aparte.seconds
+            # m, s, x = cronometro_ordem.isoformat().split(':')
+            # cronometro_ordem = int(m) * 60 + int(s)
+            cronometro_ordem = cronometro_ordem.seconds
+            # m, s, x = cronometro_consideracoes.isoformat().split(':')
+            # cronometro_consideracoes = int(m) * 60 + int(s)
+            cronometro_consideracoes = cronometro_consideracoes.seconds
         context = TemplateView.get_context_data(self, **kwargs)
         context.update({
             'head_title': str(_('Painel Plenário')),

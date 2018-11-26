@@ -340,7 +340,6 @@ def cronometro_painel(request):
 def get_cronometro_status(request, name):
     logger = logging.getLogger(__name__)
     username = request.user.username
-
     try:
         logger.debug("user=" + username + ". Tentando obter cronometro.")
         cronometro = request.session[name]

@@ -229,10 +229,11 @@ def cronometro_to_seconds(value):
     if not AppConfig.attr('cronometro_' + value):
         return 0
 
-    m, s, x = AppConfig.attr(
-        'cronometro_' + value).isoformat().split(':')
+    # m, s, x = AppConfig.attr(
+    #     'cronometro_' + value).isoformat().split(':')
 
-    return 60 * int(m) + int(s)
+    # return 60 * int(m) + int(s)
+    return AppConfig.attr('cronometro_' + value).seconds
 
 
 @register.filter

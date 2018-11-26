@@ -46,8 +46,8 @@ function refreshMask() {
     $('.titulo_eleitor').mask("0000.0000.0000.0000", {placeholder:"____.____.____.____"});
     $('.dateinput').mask('00/00/0000', {placeholder:"__/__/____"});
     $('.hora').mask("00:00", {placeholder:"hh:mm"});
-    $('.hora_hms').mask("00:00:00", {placeholder:"hh:mm:ss"});
-    $('.cronometro').mask("00:00", {placeholder:"mm:ss"});
+    $('.hora_hms').mask("00:00:00", {placeholder:"mm:ss"});
+    $('.cronometro').mask("00:00:00", {placeholder:"hh:mm:ss"});
 }
 
 function autorModal() {
