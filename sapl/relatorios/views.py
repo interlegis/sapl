@@ -600,7 +600,7 @@ def get_sessao_plenaria(sessao, casa):
         dic_expediente_materia["nom_resultado"] = ''
 
         autoria = Autoria.objects.filter(
-            materia=materia, primeiro_autor=True).first()
+            materia=materia).first()
 
         if autoria is not None:
             autor = Autor.objects.filter(id=autoria.autor.id)
