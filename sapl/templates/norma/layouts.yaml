@@ -58,7 +58,7 @@ LegislacaoCitadaDetail:
 
 TipoVinculoNormaJuridica:
   {% trans 'Tipo de Vínculo entre Normas Jurídicas' %}:
-  - sigla:2 descricao_ativa descricao_passiva revoga_integramente
+  - sigla:2 descricao_ativa descricao_passiva revoga_integralmente
 
 NormaRelacionada:
   {% trans 'Norma Relacionada' %}:

@@ -258,7 +258,7 @@ class TipoVinculoNormaJuridica(models.Model):
         max_length=50, blank=True, verbose_name=_('Descrição Ativa'))
     descricao_passiva = models.CharField(
         max_length=50, blank=True, verbose_name=_('Descrição Passiva'))
-    revoga_integramente = models.BooleanField(verbose_name=_('Revoga Integralmente?'),
+    revoga_integralmente = models.BooleanField(verbose_name=_('Revoga Integralmente?'),
                                               choices=YES_NO_CHOICES,
                                               default=False)
 
