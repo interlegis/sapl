@@ -572,9 +572,7 @@ def get_sessao_plenaria(sessao, casa):
     for expediente_materia in ExpedienteMateria.objects.filter(
             sessao_plenaria=sessao):
         # seleciona os detalhes de uma matéria
-        materia = MateriaLegislativa.objects.filter(
-            id=expediente_materia.materia.id).first()
-
+        materia = expediente_materia.materia
         dic_expediente_materia = {}
         dic_expediente_materia["num_ordem"] = expediente_materia.numero_ordem
         dic_expediente_materia["id_materia"] = (materia.tipo.sigla + ' ' +
@@ -585,7 +583,7 @@ def get_sessao_plenaria(sessao, casa):
 
         numeracao = Numeracao.objects.filter(
             materia=expediente_materia.materia).first()
-        if numeracao is not None:
+        if numeracao:
             dic_expediente_materia["des_numeracao"] = (
                 str(numeracao.numero_materia) + '/' + str(
                     numeracao.ano_materia))
@@ -596,29 +594,16 @@ def get_sessao_plenaria(sessao, casa):
 
         dic_expediente_materia["txt_ementa"] = str(materia.ementa)
         dic_expediente_materia["ordem_observacao"] = expediente_materia.observacao
-        dic_expediente_materia["nom_autor"] = ' '
         dic_expediente_materia["nom_resultado"] = ''
 
-        autoria = Autoria.objects.filter(
-            materia=materia, primeiro_autor=True).first()
-
-        if autoria is not None:
-            autor = Autor.objects.filter(id=autoria.autor.id)
-
-            if autor is not None:
-                autor = autor.first()
-
-            if autor.tipo == 'Parlamentar':
-                parlamentar = Parlamentar.objects.filter(
-                    id=autor.parlamentar.id)
-                dic_expediente_materia["nom_autor"] = str(
-                    parlamentar.nome_completo)
-            elif autor.tipo == 'Comissao':
-                comissao = Comissao.objects.filter(id=autor.comissao.id)
-                dic_expediente_materia["nom_autor"] = str(comissao)
-            else:
-                dic_expediente_materia["nom_autor"] = str(autor.nome)
-        elif autoria is None:
+        dic_expediente_materia["nom_autor"] = ''
+        autoria = expediente_materia.materia.autoria_set.all()
+        if autoria:
+            dic_expediente_materia['num_autores'] = 'Autor ' if len(autoria) == 1 else 'Autores'
+            for autor in autoria:
+                dic_expediente_materia['nom_autor'] += autor.autor.nome + ', '
+            dic_expediente_materia['nom_autor'] = dic_expediente_materia['nom_autor'][:-2]
+        else:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
         dic_expediente_materia["votacao_observacao"] = ' '
@@ -674,9 +659,7 @@ def get_sessao_plenaria(sessao, casa):
     for votacao in OrdemDia.objects.filter(
             sessao_plenaria=sessao):
         # seleciona os detalhes de uma matéria
-        materia = MateriaLegislativa.objects.filter(
-            id=votacao.materia.id).first()
-
+        materia = votacao.materia
         dic_votacao = {}
         dic_votacao["nom_resultado"] = ''
         dic_votacao["num_ordem"] = votacao.numero_ordem
@@ -687,9 +670,9 @@ def get_sessao_plenaria(sessao, casa):
             str(materia.ano))
         dic_votacao["des_numeracao"] = ' '
 
-        numeracao = Numeracao.objects.filter(
-            materia=votacao.materia).first()
-        if numeracao is not None:
+        numeracao = materia.numeracao_set.first()
+        if numeracao:
+            
             dic_votacao["des_numeracao"] = (
                 str(numeracao.numero_materia) +
                 '/' +
@@ -703,26 +686,14 @@ def get_sessao_plenaria(sessao, casa):
         dic_votacao["txt_ementa"] = html.unescape(materia.ementa)
         dic_votacao["ordem_observacao"] = html.unescape(votacao.observacao)
 
-        dic_votacao["nom_autor"] = ' '
-        autoria = Autoria.objects.filter(
-            materia=materia, primeiro_autor=True).first()
-
-        if autoria is not None:
-            autor = Autor.objects.filter(id=autoria.autor.id)
-            if autor is not None:
-                autor = autor.first()
-
-            if autor.tipo == 'Parlamentar':
-                parlamentar = Parlamentar.objects.filter(
-                    id=autor.parlamentar.id)
-                dic_votacao["nom_autor"] = str(parlamentar.nome_completo)
-            elif autor.tipo == 'Comissao':
-                comissao = Comissao.objects.filter(
-                    id=autor.comissao.id)
-                dic_votacao["nom_autor"] = str(comissao)
-            else:
-                dic_votacao["nom_autor"] = str(autor.nome)
-        elif autoria is None:
+        dic_votacao["nom_autor"] = ''
+        autoria = materia.autoria_set.all()
+        if autoria:
+            dic_votacao['num_autores'] = 'Autor ' if len(autoria) == 1 else 'Autores'
+            for autor in autoria:
+                dic_votacao['nom_autor'] += autor.autor.nome + ', '
+            dic_votacao['nom_autor'] = dic_votacao['nom_autor'][:-2]
+        else:
             dic_votacao["nom_autor"] = 'Desconhecido'
 
         dic_votacao["votacao_observacao"] = ' '
