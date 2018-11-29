@@ -93,7 +93,7 @@ def br(obj):
 
 def guess_extension(fullname, buffer):
     # um corte de apenas 1024 impediu a detecção correta de .docx
-    mime = magic.from_buffer(buffer[:4096], mime=True)
+    mime = magic.from_buffer(buffer, mime=True)
     extensao = EXTENSOES.get(mime)
     if extensao is not None:
         return extensao
