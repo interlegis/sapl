@@ -120,8 +120,6 @@ def inf_basicas(inf_basicas_dic):
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Abertura: </b> ' + \
         dat_inicio_sessao + ' <b>- </b> ' + hr_inicio_sessao + '</para>\n'
 
-    data_fim_sessao = dat_fim_sessao + ' <b>- </b> ' if dat_fim_sessao else ''
-
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Encerramento: </b> ' + \
         dat_fim_sessao +  ' <b>- </b> ' + hr_fim_sessao + '</para>\n'
 
@@ -169,7 +167,7 @@ def expedientes(lst_expedientes):
     tmp += '\t\t<para style="P2">\n'
     tmp += '\t\t\t<font color="white"> </font>\n'
     tmp += '\t\t</para>\n'
-    for idx, expediente in enumerate(lst_expedientes):
+    for expediente in lst_expedientes:
         tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
             expediente['nom_expediente'] + ': </b></para>\n' + \
             '<para style="P3">' + \
@@ -195,7 +193,6 @@ def expediente_materia(lst_expediente_materia):
             'des_turno']) + '</para>\n' + '<para style="P3"><b>'+ expediente_materia['num_autores'] + ': </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + expediente_materia['ordem_observacao'] + '</para></td>\n'
-        # tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
             str(expediente_materia['nom_resultado']) + \
             '</b></para>\n' + '<para style="P3">'
@@ -297,7 +294,7 @@ def ocorrencias(lst_ocorrencias):
     tmp += '\t\t<para style="P2">\n'
     tmp += '\t\t\t<font color="white"> </font>\n'
     tmp += '\t\t</para>\n'
-    for idx, ocorrencia in enumerate(lst_ocorrencias):
+    for ocorrencia in lst_ocorrencias:
         tmp += '\t\t<para style="P3">' + \
                str(ocorrencia.conteudo) + '</para>\n'
         tmp += '\t\t<para style="P2">\n'

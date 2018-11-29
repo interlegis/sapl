@@ -600,8 +600,8 @@ def get_sessao_plenaria(sessao, casa):
         autoria = expediente_materia.materia.autoria_set.all()
         if autoria:
             dic_expediente_materia['num_autores'] = 'Autor ' if len(autoria) == 1 else 'Autores'
-            for autor in autoria:
-                dic_expediente_materia['nom_autor'] += autor.autor.nome + ', '
+            for a in autoria:
+                dic_expediente_materia['nom_autor'] += a.autor.nome + ', '
             dic_expediente_materia['nom_autor'] = dic_expediente_materia['nom_autor'][:-2]
         else:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
@@ -690,8 +690,8 @@ def get_sessao_plenaria(sessao, casa):
         autoria = materia.autoria_set.all()
         if autoria:
             dic_votacao['num_autores'] = 'Autor ' if len(autoria) == 1 else 'Autores'
-            for autor in autoria:
-                dic_votacao['nom_autor'] += autor.autor.nome + ', '
+            for a in autoria:
+                dic_votacao['nom_autor'] += a.autor.nome + ', '
             dic_votacao['nom_autor'] = dic_votacao['nom_autor'][:-2]
         else:
             dic_votacao["nom_autor"] = 'Desconhecido'
