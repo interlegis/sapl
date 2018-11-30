@@ -20,7 +20,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao)
 from sapl.settings import STATIC_ROOT
-from sapl.utils import LISTA_DE_UFS, ExtraiTag, TrocaTag, filiacao_data
+from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
@@ -317,7 +317,7 @@ def relatorio_ordem_dia(request):
     return response
 
 
-def relatorio_documento_administrativo(request):
+def relatorio_documento_administrativo():
     '''
         pdf_documento_administrativo_gerar.py
     '''
@@ -383,7 +383,7 @@ def get_documento_administrativo(docs):
     return documentos
 
 
-def relatorio_espelho(request):
+def relatorio_espelho():
     '''
         pdf_espelho_gerar.py
     '''
@@ -588,20 +588,20 @@ def get_sessao_plenaria(sessao, casa):
                 str(numeracao.numero_materia) + '/' + str(
                     numeracao.ano_materia))
 
-        turno, _ = get_turno(dic_expediente_materia, materia, sessao.data_inicio)
+        turno, _ = get_turno(materia)
 
         dic_expediente_materia["des_turno"] = turno
-
         dic_expediente_materia["txt_ementa"] = str(materia.ementa)
         dic_expediente_materia["ordem_observacao"] = expediente_materia.observacao
         dic_expediente_materia["nom_resultado"] = ''
 
         dic_expediente_materia["nom_autor"] = ''
-        autoria = expediente_materia.materia.autoria_set.all()
+        autoria = materia.autoria_set.all()
+        dic_expediente_materia['num_autores'] = 'Autores' if len(autoria) > 1 else 'Autor'
         if autoria:
-            dic_expediente_materia['num_autores'] = 'Autor ' if len(autoria) == 1 else 'Autores'
             for a in autoria:
-                dic_expediente_materia['nom_autor'] += a.autor.nome + ', '
+                if a.autor.nome:
+                    dic_expediente_materia['nom_autor'] += a.autor.nome + ', '
             dic_expediente_materia['nom_autor'] = dic_expediente_materia['nom_autor'][:-2]
         else:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
@@ -678,7 +678,7 @@ def get_sessao_plenaria(sessao, casa):
                 '/' +
                 str(numeracao.ano_materia))
 
-        turno, _ = get_turno(dic_votacao, materia, sessao.data_inicio)
+        turno, _ = get_turno(materia)
 
         dic_votacao["des_turno"] = turno
 
@@ -688,10 +688,11 @@ def get_sessao_plenaria(sessao, casa):
 
         dic_votacao["nom_autor"] = ''
         autoria = materia.autoria_set.all()
+        dic_votacao['num_autores'] = 'Autores' if len(autoria) > 1 else 'Autor'
         if autoria:
-            dic_votacao['num_autores'] = 'Autor ' if len(autoria) == 1 else 'Autores'
             for a in autoria:
-                dic_votacao['nom_autor'] += a.autor.nome + ', '
+                if a.autor.nome:
+                    dic_votacao['nom_autor'] += a.autor.nome + ', '
             dic_votacao['nom_autor'] = dic_votacao['nom_autor'][:-2]
         else:
             dic_votacao["nom_autor"] = 'Desconhecido'
@@ -759,20 +760,19 @@ def get_sessao_plenaria(sessao, casa):
             lst_ocorrencias)
 
 
-def get_turno(dic, materia, sessao_data_inicio):
-    descricao_turno = ' '
-    descricao_tramitacao = ' '
-    tramitacao = None
-    if tramitacao is None:
-        tramitacao = materia.tramitacao_set.last()
+def get_turno(materia):
+    descricao_turno = ''
+    descricao_tramitacao = ''
+    tramitacao = materia.tramitacao_set.last()
 
-    if tramitacao is not None:
-        for t in Tramitacao.TURNO_CHOICES:
-            if t[0] == tramitacao.turno:
-                descricao_turno = t[1]
-                break
+    if tramitacao:
+        if tramitacao.turno:
+            for t in Tramitacao.TURNO_CHOICES:
+                if t[0] == tramitacao.turno:
+                    descricao_turno = str(t[1])
+                    break
         descricao_tramitacao = tramitacao.status.descricao if tramitacao.status else 'Não informada'
-    return (descricao_turno, descricao_tramitacao)
+    return descricao_turno, descricao_tramitacao
 
 
 def relatorio_sessao_plenaria(request, pk):
@@ -790,7 +790,6 @@ def relatorio_sessao_plenaria(request, pk):
     if not casa:
         raise Http404
 
-    cabecalho = get_cabecalho(casa)
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
@@ -820,10 +819,8 @@ def relatorio_sessao_plenaria(request, pk):
         lst_expedientes[idx]['txt_expediente'] = txt_expedientes
 
     pdf = pdf_sessao_plenaria_gerar.principal(
-        cabecalho,
         rodape,
         imagem,
-        None,
         inf_basicas_dic,
         lst_mesa,
         lst_presenca_sessao,
@@ -926,7 +923,7 @@ def relatorio_protocolo(request):
     return response
 
 
-def relatorio_etiqueta_protocolo(request, nro, ano):
+def relatorio_etiqueta_protocolo(nro, ano):
     '''
         pdf_etiqueta_protocolo_gerar.py
     '''
@@ -1019,7 +1016,6 @@ def relatorio_pauta_sessao(request, pk):
 
     casa = CasaLegislativa.objects.first()
 
-    cabecalho = get_cabecalho(casa)
     rodape = get_rodape(casa)
     imagem = get_imagem(casa)
 
@@ -1027,9 +1023,7 @@ def relatorio_pauta_sessao(request, pk):
 
     lst_expediente_materia, lst_votacao, inf_basicas_dic = get_pauta_sessao(
         sessao, casa)
-    pdf = pdf_pauta_sessao_gerar.principal(cabecalho,
-                                           rodape,
-                                           sessao,
+    pdf = pdf_pauta_sessao_gerar.principal(rodape,
                                            imagem,
                                            inf_basicas_dic,
                                            lst_expediente_materia,
@@ -1072,34 +1066,22 @@ def get_pauta_sessao(sessao, casa):
         dic_expediente_materia["des_numeracao"] = ' '
 
         numeracao = Numeracao.objects.filter(materia=materia)
-        if numeracao is not None:
+        if numeracao:
             numeracao = numeracao.first()
             dic_expediente_materia["des_numeracao"] = str(numeracao)
 
-        dic_expediente_materia["nom_autor"] = ' '
-        autoria = Autoria.objects.filter(
-            materia=materia, primeiro_autor=True).first()
-
-        if autoria is not None:
-            autor = Autor.objects.filter(id=autoria.autor.id)
-
-            if autor is not None:
-                autor = autor.first()
-
-            if autor.tipo == 'Parlamentar':
-                parlamentar = Parlamentar.objects.filter(
-                    id=autor.parlamentar.id)
-                dic_expediente_materia["nom_autor"] = str(
-                    parlamentar.nome_completo)
-            elif autor.tipo == 'Comissao':
-                comissao = Comissao.objects.filter(id=autor.comissao.id)
-                dic_expediente_materia["nom_autor"] = str(comissao)
-            else:
-                dic_expediente_materia["nom_autor"] = str(autor.nome)
-        elif autoria is None:
+        dic_expediente_materia["nom_autor"] = ''
+        autoria = materia.autoria_set.all()
+        dic_expediente_materia['num_autores'] = 'Autores' if len(autoria) > 1 else 'Autor'
+        if autoria:
+            for a in autoria:
+                if a.autor.nome:
+                    dic_expediente_materia['nom_autor'] += a.autor.nome + ', '
+            dic_expediente_materia['nom_autor'] = dic_expediente_materia['nom_autor'][:-2]
+        else:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
-        turno, tramitacao = get_turno(dic_expediente_materia, materia, sessao.data_inicio)
+        turno, tramitacao = get_turno(materia)
 
         dic_expediente_materia["des_turno"] = turno
         dic_expediente_materia["des_situacao"] = tramitacao
@@ -1127,30 +1109,19 @@ def get_pauta_sessao(sessao, casa):
             dic_votacao["des_numeracao"] = str(
                  numeracao.numero_materia) + '/' + str(numeracao.ano_materia)
 
-        turno, tramitacao = get_turno(dic_votacao, materia, sessao.data_inicio)
+        turno, tramitacao = get_turno(materia)
         dic_votacao["des_turno"] = turno
         dic_votacao["des_situacao"] = tramitacao
 
-        dic_votacao["nom_autor"] = ' '
-        autoria = Autoria.objects.filter(
-            materia=materia, primeiro_autor=True).first()
-
-        if autoria is not None:
-            autor = Autor.objects.filter(id=autoria.autor.id)
-            if autor is not None:
-                autor = autor.first()
-
-            if autor.tipo == 'Parlamentar':
-                parlamentar = Parlamentar.objects.filter(
-                    id=autor.parlamentar.id)
-                dic_votacao["nom_autor"] = str(parlamentar.nome_completo)
-            elif autor.tipo == 'Comissao':
-                comissao = Comissao.objects.filter(
-                    id=autor.comissao.id)
-                dic_votacao["nom_autor"] = str(comissao)
-            else:
-                dic_votacao["nom_autor"] = str(autor.nome)
-        elif autoria is None:
+        dic_votacao["nom_autor"] = ''
+        autoria = materia.autoria_set.all()
+        dic_votacao['num_autores'] = 'Autores' if len(autoria) > 1 else 'Autor'
+        if autoria:
+            for a in autoria:
+                if a.autor.nome:
+                    dic_votacao['nom_autor'] += a.autor.nome + ', '
+            dic_votacao['nom_autor'] = dic_votacao['nom_autor'][:-2]
+        else:
             dic_votacao["nom_autor"] = 'Desconhecido'
 
         lst_votacao.append(dic_votacao)

@@ -124,10 +124,10 @@ def expediente_materia(lst_expediente_materia):
     for expediente_materia in lst_expediente_materia:
         tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + \
                expediente_materia["tipo_materia"] + ' No. ' + \
-               expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Autor: </b>' + \
+               expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>' + expediente_materia['num_autores'] + ': </b>' + \
                expediente_materia['nom_autor'] + '</para></td>\n'
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
-        tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
+        tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + expediente_materia['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3">' + \
             str(expediente_materia['des_situacao']) + '</para></td></tr>\n'
 
@@ -151,10 +151,10 @@ def votacao(lst_votacao):
                votacao["tipo_materia"] + ' No. ' + \
                str(votacao['id_materia']) + '</para>\n' + '<para style="P3"><b>Processo: </b>' + \
                str(votacao['des_numeracao']) + '</para>\n' + '<para style="P3"><b>Turno: </b>' + \
-               str(votacao['des_turno']) + '</para>\n' + '<para style="P3"><b>Autor: </b>' + \
+               str(votacao['des_turno']) + '</para>\n' + '<para style="P3"><b>'+votacao['num_autores']+': </b>' + \
                str(votacao['nom_autor']) + '</para></td>\n'
-        tmp += '<td><para style="P4">' + \
-            str(votacao['txt_ementa']) + '</para></td>\n'
+        txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
+        tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + votacao['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3">' + \
             str(votacao['des_situacao']) + '</para></td></tr>\n'
 
@@ -162,7 +162,7 @@ def votacao(lst_votacao):
     return tmp
 
 
-def principal(cabecalho_dic, rodape_dic, sessao, imagem, inf_basicas_dic, lst_expediente_materia, lst_votacao):
+def principal(rodape_dic, imagem, inf_basicas_dic, lst_expediente_materia, lst_votacao):
     """
     """
 

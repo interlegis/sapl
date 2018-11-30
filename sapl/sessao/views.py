@@ -195,7 +195,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
             '-data_tramitacao'
         ).first()
         turno = '  '
-        if tramitacao is not None:
+        if tramitacao:
             for t in Tramitacao.TURNO_CHOICES:
                 if t[0] == tramitacao.turno:
                     turno = t[1]
