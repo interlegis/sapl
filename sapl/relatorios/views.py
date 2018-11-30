@@ -317,7 +317,7 @@ def relatorio_ordem_dia(request):
     return response
 
 
-def relatorio_documento_administrativo():
+def relatorio_documento_administrativo(request):
     '''
         pdf_documento_administrativo_gerar.py
     '''
@@ -383,7 +383,7 @@ def get_documento_administrativo(docs):
     return documentos
 
 
-def relatorio_espelho():
+def relatorio_espelho(request):
     '''
         pdf_espelho_gerar.py
     '''
@@ -923,7 +923,7 @@ def relatorio_protocolo(request):
     return response
 
 
-def relatorio_etiqueta_protocolo(nro, ano):
+def relatorio_etiqueta_protocolo(request, nro, ano):
     '''
         pdf_etiqueta_protocolo_gerar.py
     '''
