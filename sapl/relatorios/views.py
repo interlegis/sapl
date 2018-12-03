@@ -16,7 +16,8 @@ from sapl.parlamentares.models import CargoMesa, Filiacao, Parlamentar
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       TramitacaoAdministrativo)
 from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
-                                IntegranteMesa, Orador, OradorExpediente,
+                                IntegranteMesa, JustificativaAusencia,
+                                Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao)
 from sapl.settings import STATIC_ROOT
@@ -538,6 +539,20 @@ def get_sessao_plenaria(sessao, casa):
         dic_presenca['sgl_partido'] = partido_sigla
         lst_presenca_sessao.append(dic_presenca)
 
+    # Lista de ausencias na sessão
+    lst_ausencia_sessao = []
+    ausencia = JustificativaAusencia.objects.filter(
+        sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
+    for ausente in ausencia:
+        dic_ausencia = {}
+        dic_ausencia['parlamentar'] = ausente.parlamentar
+        dic_ausencia['justificativa'] = ausente.tipo_ausencia
+        if ausente.ausencia == 1:
+            dic_ausencia['tipo'] = 'Matéria'
+        else:
+            dic_ausencia['tipo'] = 'Sessão'
+
+        lst_ausencia_sessao.append(dic_ausencia)
 
     # Exibe os Expedientes
     lst_expedientes = []
@@ -751,6 +766,7 @@ def get_sessao_plenaria(sessao, casa):
     return (inf_basicas_dic,
             lst_mesa,
             lst_presenca_sessao,
+            lst_ausencia_sessao,
             lst_expedientes,
             lst_expediente_materia,
             lst_oradores_expediente,
@@ -803,6 +819,7 @@ def relatorio_sessao_plenaria(request, pk):
     (inf_basicas_dic,
      lst_mesa,
      lst_presenca_sessao,
+     lst_ausencia_sessao,
      lst_expedientes,
      lst_expediente_materia,
      lst_oradores_expediente,
@@ -824,6 +841,7 @@ def relatorio_sessao_plenaria(request, pk):
         inf_basicas_dic,
         lst_mesa,
         lst_presenca_sessao,
+        lst_ausencia_sessao,
         lst_expedientes,
         lst_expediente_materia,
         lst_oradores_expediente,

@@ -7,4 +7,29 @@
         <div class="col-md-12">{{p.nome_parlamentar}} / {{ p|filiacao_data_filter:object.data_inicio }}</div>
       {% endfor %}
     </div>
+  </br></br></br>
+    <div class="row">
+    <legend>Justificativas de Ausência na Sessão</legend>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Parlamentar</th>
+              <th>Justificativa</th>
+              <th>Ausente em</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for j in justificativa_ausencia %}
+              <tr>
+                <td>  {{ j.parlamentar }}  </td>
+                <td> {{ j.tipo_ausencia }} </td>
+                {% if j.ausencia == 1 %}
+                    <td> Matéria </td>
+                {% else %}
+                  <td> Sessão </td>
+                {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
 </fieldset>

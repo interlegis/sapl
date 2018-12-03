@@ -37,7 +37,7 @@ TipoNormaCrud = CrudAux.build(
     list_field_names=['sigla', 'descricao', 'equivalente_lexml'])
 TipoVinculoNormaJuridicaCrud = CrudAux.build(
     TipoVinculoNormaJuridica, '',
-    list_field_names=['sigla', 'descricao_ativa', 'descricao_passiva'])
+    list_field_names=['sigla', 'descricao_ativa', 'descricao_passiva', 'revoga_integralmente'])
 
 
 class NormaRelacionadaCrud(MasterDetailCrud):
@@ -208,7 +208,7 @@ class NormaCrud(Crud):
 
         def get_initial(self):
             username = self.request.user.username
-            
+
             try:
                 self.logger.debug('user=' + username + '. Tentando obter objeto de modelo da esfera da federação.')
                 esfera = sapl.base.models.AppConfig.objects.last(

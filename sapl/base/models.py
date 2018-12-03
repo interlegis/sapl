@@ -121,22 +121,22 @@ class AppConfig(models.Model):
         verbose_name=_('Quem deve assina a ata'),
         max_length=1, choices=ASSINATURA_ATA_CHOICES, default='T')
 
-    cronometro_discurso = models.TimeField(
+    cronometro_discurso = models.DurationField(
         verbose_name=_('Cronômetro do Discurso'),
         blank=True,
         null=True)
 
-    cronometro_aparte = models.TimeField(
+    cronometro_aparte = models.DurationField(
         verbose_name=_('Cronômetro do Aparte'),
         blank=True,
         null=True)
 
-    cronometro_ordem = models.TimeField(
+    cronometro_ordem = models.DurationField(
         verbose_name=_('Cronômetro da Ordem'),
         blank=True,
         null=True)
 
-    cronometro_consideracoes = models.TimeField(
+    cronometro_consideracoes = models.DurationField(
         verbose_name=_('Cronômetro de Considerações Finais'),
         blank=True,
         null=True)

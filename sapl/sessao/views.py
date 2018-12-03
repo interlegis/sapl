@@ -846,18 +846,11 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             messages.add_message(self.request, messages.ERROR, msg)
 
         else:
-            m, s, x = cronometro_discurso.isoformat().split(':')
-            cronometro_discurso = int(m) * 60 + int(s)
-
-            m, s, x = cronometro_aparte.isoformat().split(':')
-            cronometro_aparte = int(m) * 60 + int(s)
-
-            m, s, x = cronometro_ordem.isoformat().split(':')
-            cronometro_ordem = int(m) * 60 + int(s)
-
-            m, s, x = cronometro_consideracoes.isoformat().split(':')
-            cronometro_consideracoes = int(m) * 60 + int(s)
-
+            cronometro_discurso = cronometro_discurso.seconds
+            cronometro_aparte = cronometro_aparte.seconds
+            cronometro_ordem = cronometro_ordem.seconds
+            cronometro_consideracoes = cronometro_consideracoes.seconds
+        
         context = TemplateView.get_context_data(self, **kwargs)
         context.update({
             'head_title': str(_('Painel Plenário')),
@@ -1349,7 +1342,12 @@ class ResumoView(DetailView):
 
         parlamentares_sessao = [p.parlamentar for p in presencas]
 
-        context.update({'presenca_sessao': parlamentares_sessao})
+        ausentes_sessao = JustificativaAusencia.objects.filter(
+            sessao_plenaria_id=self.object.id
+        ).order_by('parlamentar__nome_parlamentar')
+
+        context.update({'presenca_sessao': parlamentares_sessao,
+                        'justificativa_ausencia': ausentes_sessao})
 
 
         # =====================================================================
@@ -1383,10 +1381,13 @@ class ResumoView(DetailView):
                 turno = get_turno(tramitacao.turno)
 
             rv = m.registrovotacao_set.first()
+            rp = m.retiradapauta_set.filter(materia=m.materia).first()
             if rv:
                 resultado = rv.tipo_resultado_votacao.nome
                 resultado_observacao = rv.observacao
-
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
             else:
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
@@ -1474,9 +1475,13 @@ class ResumoView(DetailView):
 
             # Verificar resultado
             rv = o.registrovotacao_set.filter(materia=o.materia).first()
+            rp = o.retiradapauta_set.filter(materia=o.materia).first()
             if rv:
                 resultado = rv.tipo_resultado_votacao.nome
                 resultado_observacao = rv.observacao
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
             else:
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')

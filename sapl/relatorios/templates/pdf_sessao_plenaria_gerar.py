@@ -142,7 +142,7 @@ def mesa(lst_mesa):
     return tmp
 
 
-def presenca(lst_presenca_sessao):
+def presenca(lst_presenca_sessao,lst_ausencia_sessao):
     """
 
     """
@@ -155,6 +155,19 @@ def presenca(lst_presenca_sessao):
         tmp += '\t\t<para style="P2" spaceAfter="5">' + \
             str(presenca['nom_parlamentar']) + '/' + \
             str(presenca['sgl_partido']) + '</para>\n'
+
+    tmp += '\t\t<para style="P1">Justificativas de Ausência da Sessão</para>\n'
+    tmp += '\t\t<para style="P2">\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
+    tmp += '\t\t</para>\n'
+    tmp += '<blockTable style="repeater" repeatRows="1">\n'
+    tmp += '<tr><td >Parlamentar</td><td>Justificativa</td><td>Ausente em</td></tr>\n'
+    for ausencia in lst_ausencia_sessao:
+        tmp += '<tr><td>' + \
+            str(ausencia['parlamentar']) + '</td><td> ' + \
+            str(ausencia['justificativa']) + '</td><td>' + \
+            str(ausencia['tipo']) + '</td></tr>\n'
+    tmp += '</blockTable>'
     return tmp
 
 
@@ -329,7 +342,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
         'cont_mult': '',
         'exp': expedientes(lst_expedientes),
         'id_basica': inf_basicas(inf_basicas_dic),
-        'lista_p': presenca(lst_presenca_sessao),
+        'lista_p': presenca(lst_presenca_sessao,lst_ausencia_sessao),
         'lista_p_o_d': presenca_ordem_dia(lst_presenca_ordem_dia),
         'mat_exp': expediente_materia(lst_expediente_materia),
         'mat_o_d': votacao(lst_votacao),
@@ -355,7 +368,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
     else:
         tmp += inf_basicas(inf_basicas_dic)
         tmp += mesa(lst_mesa)
-        tmp += presenca(lst_presenca_sessao)
+        tmp += presenca(lst_presenca_sessao,lst_ausencia_sessao)
         tmp += expedientes(lst_expedientes)
         tmp += expediente_materia(lst_expediente_materia)
         tmp += oradores_expediente(lst_oradores_expediente)
