@@ -1388,10 +1388,13 @@ class ResumoView(DetailView):
                 turno = get_turno(tramitacao.turno)
 
             rv = m.registrovotacao_set.first()
+            rp = m.retiradapauta_set.filter(materia=m.materia).first()
             if rv:
                 resultado = rv.tipo_resultado_votacao.nome
                 resultado_observacao = rv.observacao
-
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
             else:
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
@@ -1479,9 +1482,13 @@ class ResumoView(DetailView):
 
             # Verificar resultado
             rv = o.registrovotacao_set.filter(materia=o.materia).first()
+            rp = o.retiradapauta_set.filter(materia=o.materia).first()
             if rv:
                 resultado = rv.tipo_resultado_votacao.nome
                 resultado_observacao = rv.observacao
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
             else:
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
