@@ -31,7 +31,7 @@ def gera_tipo_vinculo(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('norma', '0007_auto_20170904_1708'),
+        ('norma', '0017_auto_20181127_0955'),
     ]
 
     operations = [
