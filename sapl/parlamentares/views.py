@@ -498,7 +498,7 @@ class ParlamentarCrud(Crud):
             if legislatura_id >= 0:
                 return queryset.filter(
                     mandato__legislatura_id=legislatura_id).annotate(
-                        mandato_titular=F('mandato__titular'))
+                        mandato_titular=F('mandato__titular')).distinct()
             else:
                 try:
                     self.logger.debug("user=" + username + ". Tentando obter o mais recente registro do objeto Legislatura.")
