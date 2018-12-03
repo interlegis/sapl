@@ -158,11 +158,12 @@
               </br>
                 Texto Original
               </br>
-              &nbsp;&nbsp;&nbsp;&nbsp;
+              {% if object.materia_de_vinculo.texto_original %}
                   <a href="{{object.materia_de_vinculo.texto_original.url}}">
                     {{object.materia_de_vinculo.texto_original| to_str | split:"/" | get_last_item_from_list:-1}}
                   </a>
-                </br>
+              {% endif %}
+              </br>
           </div>
         </div>
       </div>
