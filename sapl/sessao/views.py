@@ -1403,7 +1403,8 @@ class ResumoView(DetailView):
                    'resultado_observacao': resultado_observacao,
                    'autor': autor,
                    'numero_protocolo': m.materia.numero_protocolo,
-                   'numero_processo': m.materia.numeracao_set.last()
+                   'numero_processo': m.materia.numeracao_set.last(),
+                   'observacao': m.observacao
                    }
             materias_expediente.append(mat)
 
