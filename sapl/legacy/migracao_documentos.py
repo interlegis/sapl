@@ -1,6 +1,6 @@
 import os
-import shutil
 import re
+import shutil
 from glob import glob
 from os.path import join
 
@@ -189,3 +189,27 @@ def migrar_documentos(repo):
         print('\n#### Encerrado ####\n\n'
               '{} documentos sobraram sem ser migrados!!!'.format(
                   len(sobrando)))
+
+
+def corrigir_documentos_para_existentes(repo):
+
+    for model, campos_bases in DOCS.items():
+        if model == Parlamentar:
+            continue
+        for campo, base_origem in campos_bases:
+            print('#### Corrigindo {} de {} ####'.format(campo,
+                                                         model.__name__))
+            upload_to = model._meta.get_field(campo).upload_to
+            for obj in model.objects.all():
+                if getattr(obj, campo):
+                    continue
+                dir_upload_to = os.path.join(
+                    repo.working_dir, upload_to(obj, ''))
+                achados = glob(dir_upload_to + '*')
+                if achados:
+                    assert len(achados) == 1, 'Mais de um doc achado'
+                    [achado] = achados
+                    destino = upload_to(obj, os.path.basename(achado))
+                    print('-- {}'.format(destino))
+                    setattr(obj, campo, destino)
+                    obj.save()

@@ -37,7 +37,7 @@ TipoNormaCrud = CrudAux.build(
     list_field_names=['sigla', 'descricao', 'equivalente_lexml'])
 TipoVinculoNormaJuridicaCrud = CrudAux.build(
     TipoVinculoNormaJuridica, '',
-    list_field_names=['sigla', 'descricao_ativa', 'descricao_passiva'])
+    list_field_names=['sigla', 'descricao_ativa', 'descricao_passiva', 'revoga_integralmente'])
 
 
 class NormaRelacionadaCrud(MasterDetailCrud):
@@ -208,7 +208,7 @@ class NormaCrud(Crud):
 
         def get_initial(self):
             username = self.request.user.username
-            
+
             try:
                 self.logger.debug('user=' + username + '. Tentando obter objeto de modelo da esfera da federação.')
                 esfera = sapl.base.models.AppConfig.objects.last(
@@ -274,16 +274,19 @@ def recuperar_norma(request):
 def recuperar_numero_norma(request):
     tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
-    param = {'tipo': tipo}
-    param['ano'] = ano if ano else timezone.now().year
+    param = {'tipo': tipo,
+             'ano': ano if ano else timezone.now().year
+             }
     norma = NormaJuridica.objects.filter(**param).order_by(
-        'tipo', 'ano', 'numero').values_list('numero', 'ano').last()
+        'tipo', 'ano', 'numero').values_list('numero', flat=True)
     if norma:
-        response = JsonResponse({'numero': int(re.sub("[^0-9].*", '', norma[0])) + 1,
-                                 'ano': norma[1]})
+        numeros = sorted([int(re.sub("[^0-9].*", '', n)) for n in norma])
+        next_num = numeros.pop() + 1
+        response = JsonResponse({'numero': next_num,
+                                 'ano': param['ano']})
     else:
         response = JsonResponse(
-            {'numero': 1, 'ano': ano})
+            {'numero': 1, 'ano': param['ano']})
 
     return response
 

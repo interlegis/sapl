@@ -43,24 +43,22 @@ from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm)
-from .models import (Bancada, Bloco, CargoBancada, CargoMesa, ExpedienteMateria,
-                     ExpedienteSessao, JustificativaAusencia, OcorrenciaSessao, IntegranteMesa,
+                    VotacaoNominalForm, RetiradaPautaForm)
+from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
+                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
-                     TipoJustificativa, TipoResultadoVotacao, TipoSessaoPlenaria,
-                     VotoParlamentar)
+                     TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
+                     RetiradaPauta, TipoJustificativa, JustificativaAusencia)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
-
-
-TipoResultadoVotacaoCrud = CrudAux.build(
-    TipoResultadoVotacao, 'tipo_resultado_votacao')
+TipoResultadoVotacaoCrud = CrudAux.build(TipoResultadoVotacao, 'tipo_resultado_votacao')
+TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
 
 
 def reordernar_materias_expediente(request, pk):
@@ -197,7 +195,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
             '-data_tramitacao'
         ).first()
         turno = '  '
-        if tramitacao is not None:
+        if tramitacao:
             for t in Tramitacao.TURNO_CHOICES:
                 if t[0] == tramitacao.turno:
                     turno = t[1]
@@ -221,7 +219,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
         exist_resultado = obj.registrovotacao_set.filter(
             materia=obj.materia).exists()
-        if not exist_resultado:
+        exist_retirada = obj.retiradapauta_set.filter(
+            materia=obj.materia).exists()
+        if not exist_resultado and not exist_retirada:
             if obj.votacao_aberta:
                 url = ''
                 if is_expediente:
@@ -294,6 +294,19 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     resultado = btn_abrir
                 else:
                     resultado = '''Não há resultado'''
+
+        elif exist_retirada:
+            retirada = obj.retiradapauta_set.filter(
+                materia_id=obj.materia_id).last()
+            retirada_descricao = retirada.tipo_de_retirada.descricao
+            retirada_observacao = retirada.observacao
+            url = reverse('sapl.sessao:retiradapauta_detail',
+                           kwargs={'pk': retirada.id})
+            resultado = ('<a href="%s">%s<br/>%s</a>' %
+                         (url,
+                          retirada_descricao,
+                          retirada_observacao))
+
         else:
             resultado = obj.registrovotacao_set.filter(
                 materia_id=obj.materia_id).last()
@@ -833,18 +846,11 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             messages.add_message(self.request, messages.ERROR, msg)
 
         else:
-            m, s, x = cronometro_discurso.isoformat().split(':')
-            cronometro_discurso = int(m) * 60 + int(s)
-
-            m, s, x = cronometro_aparte.isoformat().split(':')
-            cronometro_aparte = int(m) * 60 + int(s)
-
-            m, s, x = cronometro_ordem.isoformat().split(':')
-            cronometro_ordem = int(m) * 60 + int(s)
-
-            m, s, x = cronometro_consideracoes.isoformat().split(':')
-            cronometro_consideracoes = int(m) * 60 + int(s)
-
+            cronometro_discurso = cronometro_discurso.seconds
+            cronometro_aparte = cronometro_aparte.seconds
+            cronometro_ordem = cronometro_ordem.seconds
+            cronometro_consideracoes = cronometro_consideracoes.seconds
+        
         context = TemplateView.get_context_data(self, **kwargs)
         context.update({
             'head_title': str(_('Painel Plenário')),
@@ -1335,8 +1341,13 @@ class ResumoView(DetailView):
         ).order_by('parlamentar__nome_parlamentar')
 
         parlamentares_sessao = [p.parlamentar for p in presencas]
-        
-        context.update({'presenca_sessao': parlamentares_sessao})
+
+        ausentes_sessao = JustificativaAusencia.objects.filter(
+            sessao_plenaria_id=self.object.id
+        ).order_by('parlamentar__nome_parlamentar')
+
+        context.update({'presenca_sessao': parlamentares_sessao,
+                        'justificativa_ausencia': ausentes_sessao})
 
 
         # =====================================================================
@@ -1370,10 +1381,13 @@ class ResumoView(DetailView):
                 turno = get_turno(tramitacao.turno)
 
             rv = m.registrovotacao_set.first()
+            rp = m.retiradapauta_set.filter(materia=m.materia).first()
             if rv:
                 resultado = rv.tipo_resultado_votacao.nome
                 resultado_observacao = rv.observacao
-
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
             else:
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
@@ -1461,9 +1475,13 @@ class ResumoView(DetailView):
 
             # Verificar resultado
             rv = o.registrovotacao_set.filter(materia=o.materia).first()
+            rp = o.retiradapauta_set.filter(materia=o.materia).first()
             if rv:
                 resultado = rv.tipo_resultado_votacao.nome
                 resultado_observacao = rv.observacao
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
             else:
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
@@ -3099,7 +3117,7 @@ def mudar_ordem_materia_sessao(request):
     elif materia == 'ordem':
         materia = OrdemDia
     else:
-        return
+        return JsonResponse({}, safe=False)
 
     # Testa se existe alguma matéria na posição recebida
     try:
@@ -3138,7 +3156,7 @@ def mudar_ordem_materia_sessao(request):
     materia_1.numero_ordem = posicao_final
     materia_1.save()
 
-    return
+    return JsonResponse({}, safe=False)
 
 
 class JustificativaAusenciaCrud(MasterDetailCrud):
@@ -3676,3 +3694,37 @@ class VotacaoEmBlocoNominalView(TemplateView):
                         'origem': self.request.POST['origem']})
 
         return self.render_to_response(context)
+
+class RetiradaPautaCrud(MasterDetailCrud):
+    model = RetiradaPauta
+    public = [RP_LIST, RP_DETAIL, ]
+    parent_field = 'sessao_plenaria'
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['tipo_de_retirada', 'materia', 'observacao', 'parlamentar']
+
+    class ListView(MasterDetailCrud.ListView):
+        paginate_by = 10
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = RetiradaPautaForm
+        layout_key = None
+
+        def get_initial(self):
+            sessao_plenaria = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+            return {'sessao_plenaria': sessao_plenaria}
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:retiradapauta_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = RetiradaPautaForm
+        layout_key = None
+
+        def get_initial(self):
+            sessao_plenaria = RetiradaPauta.objects.get(id=self.kwargs['pk']).sessao_plenaria
+            return {'sessao_plenaria': sessao_plenaria}
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+        pass

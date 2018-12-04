@@ -178,6 +178,7 @@ def test_mandato_form_duplicado():
         'legislatura': str(legislatura.pk),
         'data_expedicao_diploma': '01/07/2015',
         'data_inicio_mandato': legislatura.data_inicio,
+        'titular':True,
     })
 
     assert not form.is_valid()

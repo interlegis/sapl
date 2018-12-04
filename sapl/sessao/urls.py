@@ -10,8 +10,9 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
                                PresencaOrdemDiaView, PresencaView,
-                               ResumoOrdenacaoView, ResumoView, ResumoAtaView, SessaoCrud,
+                               ResumoOrdenacaoView, ResumoView, ResumoAtaView, RetiradaPautaCrud, SessaoCrud,
                                TipoJustificativaCrud, TipoExpedienteCrud, TipoResultadoVotacaoCrud,
+                               TipoExpedienteCrud, TipoResultadoVotacaoCrud,TipoRetiradaPautaCrud,
                                TipoSessaoCrud, VotacaoEditView,
                                VotacaoExpedienteEditView,
                                VotacaoExpedienteView, VotacaoNominalEditView,
@@ -41,7 +42,7 @@ urlpatterns = [
                              OradorExpedienteCrud.get_urls() +
                              ExpedienteMateriaCrud.get_urls() +
                              JustificativaAusenciaCrud.get_urls() +
-                             MateriaOrdemDiaCrud.get_urls())),
+                             MateriaOrdemDiaCrud.get_urls() + RetiradaPautaCrud.get_urls())),
 
     url(r'^sessao/(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
 
@@ -78,6 +79,8 @@ urlpatterns = [
         include(TipoExpedienteCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-justificativa/',
          include(TipoJustificativaCrud.get_urls())),
+    url(r'^sistema/sessao-plenaria/tipo-retirada-pauta/',
+        include(TipoRetiradaPautaCrud.get_urls())),
     url(r'^sistema/bancada/',
         include(BancadaCrud.get_urls())),
     url(r'^sistema/bloco/',
@@ -173,5 +176,5 @@ urlpatterns = [
         name='votacao_simbolica_transparencia'),
     url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
-        name='mudar_ordem_materia_sessao'), 
+        name='mudar_ordem_materia_sessao'),
 ]

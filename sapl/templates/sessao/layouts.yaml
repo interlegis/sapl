@@ -91,11 +91,21 @@ TipoJustificativa:
 
 JustificativaAusencia:
   {% trans 'Justificativa de Ausência' %}:
-  - parlamentar 
+  - parlamentar
   - data hora
   - upload_anexo
   - tipo_ausencia
   - ausencia
   - materias_do_expediente
   - materias_da_ordem_do_dia
+  - observacao
+
+TipoRetiradaPauta:
+  {% trans 'Tipo Retirada Pauta'%}:
+  - descricao
+
+RetiradaPauta:
+  {% trans 'Retirada de Pauta' %}:
+  - tipo_de_retirada materia
+  - data parlamentar
   - observacao

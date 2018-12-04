@@ -14,6 +14,8 @@
       url: orador_list
     - title: {% trans 'Ocorrências da Sessão' %}
       url: ocorrencia_sessao
+    - title: {% trans 'Retirada de Pauta'%}
+      url: retiradapauta_list
 
 - title: {% trans 'Expedientes' %}
   children:
