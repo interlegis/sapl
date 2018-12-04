@@ -316,7 +316,7 @@ def ocorrencias(lst_ocorrencias):
     return tmp
 
 
-def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores, lst_ocorrencias):
+def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores, lst_ocorrencias):
     """
     """
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"
