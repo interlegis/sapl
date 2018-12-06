@@ -1,23 +1,24 @@
 <fieldset>
   
-    <p align="justify">
-
-      <strong>Matérias da Ordem do Dia: </strong> 
-      {% for m in materias_ordem %}
-            <b>{{m.numero}} - {{m.titulo}} </b>
-            {% if m.turno %}
-            Turno:{{m.turno}}
-            {% endif %}
-            	Autor{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
-            {% if m.numero_protocolo %}
-            	Número de Protocolo: {{ m.numero_protocolo }}
-            {% endif %}
-            {% if m.numero_processo %}
-            	Processo: {{ m.numero_processo }}
-            {% endif %}
-          	{{m.ementa|safe}}
-          	{{m.resultado}} {{m.resultado_observacao}}  
-      {% endfor %}
+	<p align="justify">
+	{% if materias_ordem %}
+		<strong>Matérias da Ordem do Dia: </strong> 
+		{% for m in materias_ordem %}
+			<b>{{m.numero}} - {{m.titulo}} </b>
+			{% if m.turno %}
+			Turno:{{m.turno}}
+			{% endif %}
+				Autor{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
+			{% if m.numero_protocolo %}
+				Número de Protocolo: {{ m.numero_protocolo }}
+			{% endif %}
+			{% if m.numero_processo %}
+				Processo: {{ m.numero_processo }}
+			{% endif %}
+			{{m.ementa|safe}}
+			{{m.resultado}} {{m.resultado_observacao}}  
+		{% endfor %}
+	{% endif %}
     </p>
 
 </fieldset>
