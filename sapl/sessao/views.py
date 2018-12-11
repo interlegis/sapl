@@ -2766,6 +2766,7 @@ class PautaSessaoDetailView(DetailView):
 
             mat = {'id': m.materia_id,
                    'ementa': ementa,
+                   'observacao': m.observacao,
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
@@ -2829,6 +2830,7 @@ class PautaSessaoDetailView(DetailView):
 
             mat = {'id': o.materia_id,
                    'ementa': ementa,
+                   'observacao': o.observacao,
                    'titulo': titulo,
                    'numero': numero,
                    'resultado': resultado,
