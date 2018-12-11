@@ -1058,16 +1058,16 @@ class FichaPesquisaAdmForm(forms.Form):
 
 
 class FichaSelecionaAdmForm(forms.Form):
-    materia = forms.ModelChoiceField(
+    documento = forms.ModelChoiceField(
         widget=forms.RadioSelect,
-        queryset=DocumentoAcessorioAdministrativo.objects.all(),
+        queryset=DocumentoAdministrativo.objects.all(),
         label='')
 
     def __init__(self, *args, **kwargs):
         super(FichaSelecionaAdmForm, self).__init__(*args, **kwargs)
 
         row1 = to_row(
-            [('materia', 12)])
+            [('documento', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(

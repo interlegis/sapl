@@ -1091,14 +1091,14 @@ class FichaPesquisaAdmView(PermissionRequiredMixin, FormView):
         data_inicial = form.data['data_inicial']
         data_final = form.data['data_final']
 
-        url = reverse('sapl.materia:impressos_ficha_seleciona')
+        url = reverse('sapl.materia:impressos_ficha_seleciona_adm')
         url = url + '?tipo=%s&data_inicial=%s&data_final=%s' % (
             tipo_documento, data_inicial, data_final)
 
         return HttpResponseRedirect(url)
 
 
-class FichaSelecionaView(PermissionRequiredMixin, FormView):
+class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
     logger = logging.getLogger(__name__)
     form_class = FichaSelecionaAdmForm
     template_name = 'materia/impressos/ficha_seleciona.html'
@@ -1109,9 +1109,9 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
             'data_inicial' not in self.request.GET or
                 'data_final' not in self.request.GET):
             return HttpResponseRedirect(reverse(
-                'sapl.materia:impressos_ficha_pesquisa'))
+                'sapl.materia:impressos_ficha_pesquisa_adm'))
 
-        context = super(FichaSelecionaView, self).get_context_data(
+        context = super(FichaSelecionaAdmView, self).get_context_data(
             **kwargs)
 
         tipo = self.request.GET['tipo']
@@ -1120,14 +1120,14 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
         data_final = datetime.strptime(
             self.request.GET['data_final'], "%d/%m/%Y").date()
 
-        materia_list = MateriaLegislativa.objects.filter(
+        documento_list = DocumentoAdministrativo.objects.filter(
             tipo=tipo,
-            data_apresentacao__range=(data_inicial, data_final))
-        context['quantidade'] = len(materia_list)
-        materia_list = materia_list[:100]
+            data__range=(data_inicial, data_final))
+        context['quantidade'] = len(documento_list)
+        documento_list = documento_list[:100]
 
-        context['form'].fields['materia'].choices = [
-            (m.id, str(m)) for m in materia_list]
+        context['form'].fields['documento'].choices = [
+            (d.id, str(d)) for d in documento_list]
 
         username = self.request.user.username
 
@@ -1153,21 +1153,19 @@ class FichaSelecionaView(PermissionRequiredMixin, FormView):
 
         try:
             self.logger.debug(
-                "user=" + username + ". Tentando obter objeto MateriaLegislativa com id={}".format(form.data['materia']))
-            materia = MateriaLegislativa.objects.get(
-                id=form.data['materia'])
+                "user=" + username + ". Tentando obter objeto DocumentoAdministrativo com id={}".format(form.data['documento']))
+            documento = DocumentoAdministrativo.objects.get(
+                id=form.data['documento'])
         except ObjectDoesNotExist:
             self.logger.error(
-                "user=" + username + ". Esta MáteriaLegislativa não existe (id={}).".format(form.data['materia']))
-            mensagem = _('Esta Máteria não existe!')
+                "user=" + username + ". Este DocumentoAdministrativo não existe (id={}).".format(form.data['documento']))
+            mensagem = _('Este Documento Administrativo não existe.')
             self.messages.add_message(self.request, messages.INFO, mensagem)
 
             return self.render_to_response(context)
-        if len(materia.ementa) > 301:
-            materia.ementa = materia.ementa[0:300] + '[...]'
-        context['materia'] = materia
-        context['despachos'] = materia.despachoinicial_set.all().values_list(
-            'comissao__nome', flat=True)
+        if len(documento.assunto) > 301:
+            documento.assunto = documento.assunto[0:300] + '[...]'
+        context['documento'] = documento
 
         return gerar_pdf_impressos(self.request, context,
-                                   'materia/impressos/ficha_pdf.html')
+                                   'materia/impressos/ficha_adm_pdf.html')
