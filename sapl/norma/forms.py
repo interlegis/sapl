@@ -64,7 +64,7 @@ class NormaFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = NormaJuridica
-        fields = ['tipo', 'numero', 'ano', 'data',
+        fields = ['tipo', 'numero', 'ano', 'data', 'data_vigencia',
                   'data_publicacao', 'ementa', 'assuntos']
 
     def __init__(self, *args, **kwargs):
@@ -73,13 +73,14 @@ class NormaFilterSet(django_filters.FilterSet):
         row1 = to_row([('tipo', 4), ('numero', 4), ('ano', 4)])
         row2 = to_row([('data', 6), ('data_publicacao', 6)])
         row3 = to_row([('ementa', 6), ('assuntos', 6)])
-        row4 = to_row([('o',6), ('indexacao', 6)])
+        row4 = to_row([('data_vigencia', 12)])
+        row5 = to_row([('o',6), ('indexacao', 6)])
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Norma'),
-                     row1, row2, row3, row4,
+                     row1, row2, row3, row4, row5,
                      form_actions(label='Pesquisar'))
         )
 
@@ -120,6 +121,7 @@ class NormaJuridicaForm(ModelForm):
                   'numero_materia',
                   'ano_materia',
                   'data_publicacao',
+                  'data_vigencia',
                   'veiculo_publicacao',
                   'pagina_inicio_publicacao',
                   'pagina_fim_publicacao',
@@ -342,6 +344,8 @@ class NormaRelacionadaForm(ModelForm):
     def save(self, commit=False):
         relacionada = super(NormaRelacionadaForm, self).save(commit)
         relacionada.norma_relacionada = self.cleaned_data['norma_relacionada']
+        relacionada.norma_relacionada.data_vigencia = relacionada.norma_principal.data
+        relacionada.norma_relacionada.save()
         relacionada.save()
         return relacionada
 

@@ -47,7 +47,7 @@ function refreshMask() {
     $('.dateinput').mask('00/00/0000', {placeholder:"__/__/____"});
     $('.hora').mask("00:00", {placeholder:"hh:mm"});
     $('.hora_hms').mask("00:00:00", {placeholder:"hh:mm:ss"});
-    $('.cronometro').mask("00:00", {placeholder:"mm:ss"});
+    $('.cronometro').mask("00:00:00", {placeholder:"hh:mm:ss"});
 }
 
 function autorModal() {
@@ -192,20 +192,12 @@ function OptionalCustomFrontEnd() {
                     _label = $('<label[for='+this.id+']/>').insertBefore(this)
                 }
             }
-            /*var _controls = _label.closest('.controls');
-
-            if (!_controls.length) {
-                _controls = $('<div class="controls"/>').insertBefore(_label)
-                _controls.append(_label)
-            }*/
 
             if (this.type === "checkbox") {
-                _label.addClass('checkbox-inline');
                 _label.prepend(_this);
                 _this.checkbox();
             }
             else if (this.type === "radio") {
-                _label.addClass('radio-inline');
                 _label.prepend(_this);
                 _this.radio();
 

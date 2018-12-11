@@ -120,8 +120,6 @@ def inf_basicas(inf_basicas_dic):
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Abertura: </b> ' + \
         dat_inicio_sessao + ' <b>- </b> ' + hr_inicio_sessao + '</para>\n'
 
-    data_fim_sessao = dat_fim_sessao + ' <b>- </b> ' if dat_fim_sessao else ''
-
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Encerramento: </b> ' + \
         dat_fim_sessao +  ' <b>- </b> ' + hr_fim_sessao + '</para>\n'
 
@@ -144,7 +142,7 @@ def mesa(lst_mesa):
     return tmp
 
 
-def presenca(lst_presenca_sessao):
+def presenca(lst_presenca_sessao,lst_ausencia_sessao):
     """
 
     """
@@ -157,6 +155,19 @@ def presenca(lst_presenca_sessao):
         tmp += '\t\t<para style="P2" spaceAfter="5">' + \
             str(presenca['nom_parlamentar']) + '/' + \
             str(presenca['sgl_partido']) + '</para>\n'
+
+    tmp += '\t\t<para style="P1">Justificativas de Ausência da Sessão</para>\n'
+    tmp += '\t\t<para style="P2">\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
+    tmp += '\t\t</para>\n'
+    tmp += '<blockTable style="repeater" repeatRows="1">\n'
+    tmp += '<tr><td >Parlamentar</td><td>Justificativa</td><td>Ausente em</td></tr>\n'
+    for ausencia in lst_ausencia_sessao:
+        tmp += '<tr><td>' + \
+            str(ausencia['parlamentar']) + '</td><td> ' + \
+            str(ausencia['justificativa']) + '</td><td>' + \
+            str(ausencia['tipo']) + '</td></tr>\n'
+    tmp += '</blockTable>'
     return tmp
 
 
@@ -169,7 +180,7 @@ def expedientes(lst_expedientes):
     tmp += '\t\t<para style="P2">\n'
     tmp += '\t\t\t<font color="white"> </font>\n'
     tmp += '\t\t</para>\n'
-    for idx, expediente in enumerate(lst_expedientes):
+    for expediente in lst_expedientes:
         tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
             expediente['nom_expediente'] + ': </b></para>\n' + \
             '<para style="P3">' + \
@@ -191,10 +202,10 @@ def expediente_materia(lst_expediente_materia):
     tmp += '<blockTable style="repeater" repeatRows="1">\n'
     tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
     for expediente_materia in lst_expediente_materia:
-        tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + str(expediente_materia[
-            'des_turno']) + '</para>\n' + '<para style="P3"><b>Autor: </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
+        tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + expediente_materia[
+        'des_turno'] + '</para>\n' + '<para style="P3"><b>'+ expediente_materia['num_autores'] + ': </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
-        tmp += '<td><para style="P4">' + txt_ementa + '</para></td>\n'
+        tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + expediente_materia['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
             str(expediente_materia['nom_resultado']) + \
             '</b></para>\n' + '<para style="P3">'
@@ -254,8 +265,8 @@ def votacao(lst_votacao):
     tmp += '<blockTable style="repeater" repeatRows="1">\n'
     tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
     for votacao in lst_votacao:
-        tmp += '<tr><td><para style="P3"><b>' + str(votacao['num_ordem']) + '</b> - ' + votacao['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno:</b> ' + str(votacao[
-            'des_turno']) + '</para>\n' + '<para style="P3"><b>Autor: </b>' + str(votacao['nom_autor']) + '</para></td>\n'
+        tmp += '<tr><td><para style="P3"><b>' + str(votacao['num_ordem']) + '</b> - ' + votacao['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno:</b> ' + votacao[
+            'des_turno'] + '</para>\n' + '<para style="P3"><b>'+ votacao['num_autores'] +': </b>' + str(votacao['nom_autor']) + '</para></td>\n'
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
         tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + votacao['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
@@ -296,7 +307,7 @@ def ocorrencias(lst_ocorrencias):
     tmp += '\t\t<para style="P2">\n'
     tmp += '\t\t\t<font color="white"> </font>\n'
     tmp += '\t\t</para>\n'
-    for idx, ocorrencia in enumerate(lst_ocorrencias):
+    for ocorrencia in lst_ocorrencias:
         tmp += '\t\t<para style="P3">' + \
                str(ocorrencia.conteudo) + '</para>\n'
         tmp += '\t\t<para style="P2">\n'
@@ -305,7 +316,7 @@ def ocorrencias(lst_ocorrencias):
     return tmp
 
 
-def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores, lst_ocorrencias):
+def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores, lst_ocorrencias):
     """
     """
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"
@@ -331,7 +342,7 @@ def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_me
         'cont_mult': '',
         'exp': expedientes(lst_expedientes),
         'id_basica': inf_basicas(inf_basicas_dic),
-        'lista_p': presenca(lst_presenca_sessao),
+        'lista_p': presenca(lst_presenca_sessao,lst_ausencia_sessao),
         'lista_p_o_d': presenca_ordem_dia(lst_presenca_ordem_dia),
         'mat_exp': expediente_materia(lst_expediente_materia),
         'mat_o_d': votacao(lst_votacao),
@@ -352,11 +363,12 @@ def principal(cabecalho_dic, rodape_dic, imagem, sessao, inf_basicas_dic, lst_me
         tmp += dict_ord_template[ordenacao.oitavo]
         tmp += dict_ord_template[ordenacao.nono]
         tmp += dict_ord_template[ordenacao.decimo]
+        tmp += dict_ord_template[ordenacao.decimo_primeiro]
 
     else:
         tmp += inf_basicas(inf_basicas_dic)
         tmp += mesa(lst_mesa)
-        tmp += presenca(lst_presenca_sessao)
+        tmp += presenca(lst_presenca_sessao,lst_ausencia_sessao)
         tmp += expedientes(lst_expedientes)
         tmp += expediente_materia(lst_expediente_materia)
         tmp += oradores_expediente(lst_oradores_expediente)

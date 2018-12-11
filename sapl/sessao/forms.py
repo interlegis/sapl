@@ -1,3 +1,4 @@
+
 from datetime import datetime
 
 from crispy_forms.helper import FormHelper
@@ -22,11 +23,11 @@ from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone)
+from .models import (Bancada, Bloco, ExpedienteMateria, Orador, JustificativaAusencia,
+                     OradorExpediente, OrdemDia, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoResultadoVotacao, OcorrenciaSessao,
+                     RetiradaPauta, TipoRetiradaPauta)
 
-from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
-                     Orador, OradorExpediente, OrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
-                     OcorrenciaSessao)
 
 
 def recupera_anos():
@@ -59,7 +60,7 @@ ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
                     ('mesa_d', 'Mesa Diretora'),
                     ('oradores_exped', 'Oradores do Expediente'),
                     ('oradores_expli', 'Oradores das Explicações Pessoais'),
-                    ('ocorrencia_sessao', 'Ocorrências da Sessão')]
+                    ('ocorr_sessao', 'Ocorrências da Sessão')]
 
 
 class SessaoPlenariaForm(ModelForm):
@@ -189,6 +190,100 @@ class SessaoPlenariaForm(ModelForm):
 
         return self.cleaned_data
 
+
+class RetiradaPautaForm(ModelForm):
+
+    tipo_de_retirada = forms.ModelChoiceField(required=True,
+                                              empty_label='------------',
+                                              queryset=TipoRetiradaPauta.objects.all())
+    expediente = forms.ModelChoiceField(required=False,
+                                        label='Matéria do Expediente',
+                                        queryset=ExpedienteMateria.objects.all())
+    ordem = forms.ModelChoiceField(required=False,
+                                   label='Matéria da Ordem do Dia',
+                                   queryset=OrdemDia.objects.all())
+    materia = forms.ModelChoiceField(required=False,
+                                     widget=forms.HiddenInput(),
+                                     queryset=MateriaLegislativa.objects.all())
+
+    class Meta:
+        model = RetiradaPauta
+        fields = ['ordem',
+                  'expediente',
+                  'parlamentar',
+                  'tipo_de_retirada',
+                  'data',
+                  'observacao',
+                  'materia']
+
+    def __init__(self, *args, **kwargs):
+
+        row1 = to_row([('tipo_de_retirada', 5),
+                      ('parlamentar', 4),
+                      ('data', 3)])
+        row2 = to_row([('ordem', 6),
+                      ('expediente', 6)])
+        row3 = to_row([('observacao',12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Retirada de Pauta'),
+                     row1, row2, row3))
+
+        q = Q(sessao_plenaria=kwargs['initial']['sessao_plenaria'])
+        ordens = OrdemDia.objects.filter(q)
+        expedientes = ExpedienteMateria.objects.filter(q)
+        retiradas_ordem = [r.ordem for r in RetiradaPauta.objects.filter(q, ordem__in=ordens)]
+        retiradas_expediente = [r.expediente for r in RetiradaPauta.objects.filter(q, expediente__in=expedientes)]
+        setOrdem = set(ordens) - set(retiradas_ordem)
+        setExpediente = set(expedientes) - set(retiradas_expediente)
+
+        super(RetiradaPautaForm, self).__init__(
+            *args, **kwargs)
+
+        if self.instance.pk:
+            setOrdem = set(ordens)
+            setExpediente = set(expedientes)
+
+        presencas = SessaoPlenariaPresenca.objects.filter(
+            q).order_by('parlamentar__nome_parlamentar')
+        presentes = [p.parlamentar for p in presencas]
+
+        self.fields['expediente'].choices = [
+            (None, "------------")] + [(e.id, e.materia) for e in setExpediente]
+        self.fields['ordem'].choices = [
+            (None, "------------")] + [(o.id, o.materia) for o in setOrdem]
+        self.fields['parlamentar'].choices = [
+            (None, "------------")] + [(p.id, p) for p in presentes]
+
+    def clean(self):
+
+        super(RetiradaPautaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        sessao_plenaria = self.instance.sessao_plenaria
+        if self.cleaned_data['data'] < sessao_plenaria.data_inicio:
+            raise ValidationError(_("Data de retirada de pauta anterior à abertura da Sessão."))
+        if sessao_plenaria.data_fim and self.cleaned_data['data'] > sessao_plenaria.data_fim:
+            raise ValidationError(_("Data de retirada de pauta posterior ao encerramento da Sessão."))
+
+        if self.cleaned_data['ordem'] and self.cleaned_data['ordem'].registrovotacao_set.exists():
+            raise ValidationError(_("Essa matéria já foi votada, portanto não pode ser retirada de pauta."))
+        elif self.cleaned_data['expediente'] and self.cleaned_data['expediente'].registrovotacao_set.exists():
+            raise ValidationError(_("Essa matéria já foi votada, portanto não pode ser retirada de pauta."))
+
+        return self.cleaned_data
+
+    def save(self, commit=False):
+        retirada = super(RetiradaPautaForm, self).save(commit=False)
+        if retirada.ordem:
+            retirada.materia = retirada.ordem.materia
+        elif retirada.expediente:
+            retirada.materia = retirada.expediente.materia
+        retirada.save()
+        return retirada
 
 class BancadaForm(ModelForm):
 
@@ -638,6 +733,8 @@ class ResumoOrdenacaoForm(forms.Form):
                              choices=ORDENACAO_RESUMO)
     decimo = forms.ChoiceField(label='10°',
                                choices=ORDENACAO_RESUMO)
+    decimo_primeiro = forms.ChoiceField(label='11°',
+                               choices=ORDENACAO_RESUMO)
 
     def __init__(self, *args, **kwargs):
         super(ResumoOrdenacaoForm, self).__init__(*args, **kwargs)
@@ -662,12 +759,14 @@ class ResumoOrdenacaoForm(forms.Form):
             [('nono', 12)])
         row10 = to_row(
             [('decimo', 12)])
+        row11 = to_row(
+            [('decimo_primeiro', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
-                     row6, row7, row8, row9, row10,
+                     row6, row7, row8, row9, row10,row11,
                      form_actions(label='Atualizar'))
         )
 

@@ -119,7 +119,7 @@ class NormaJuridica(models.Model):
     assuntos = models.ManyToManyField(
         AssuntoNorma, blank=True,
         verbose_name=_('Assuntos'))
-    data_vigencia = models.DateField(blank=True, null=True)
+    data_vigencia = models.DateField(blank=True, null=True, verbose_name=_('Data Fim Vigência'))
     timestamp = models.DateTimeField(null=True)
 
     texto_articulado = GenericRelation(
@@ -258,6 +258,9 @@ class TipoVinculoNormaJuridica(models.Model):
         max_length=50, blank=True, verbose_name=_('Descrição Ativa'))
     descricao_passiva = models.CharField(
         max_length=50, blank=True, verbose_name=_('Descrição Passiva'))
+    revoga_integralmente = models.BooleanField(verbose_name=_('Revoga Integralmente?'),
+                                              choices=YES_NO_CHOICES,
+                                              default=False)
 
     class Meta:
         verbose_name = _('Tipo de Vínculo entre Normas Jurídicas')

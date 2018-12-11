@@ -121,6 +121,7 @@ if context.REQUEST['data'] != '':
                 autoria = autoria[0]
                 autor = context.zsql.autor_obter_zsql(
                     cod_autor=autoria.cod_autor)
+                
                 if len(autor) > 0:
                     autor = autor[0]
 
