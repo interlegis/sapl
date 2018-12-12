@@ -23,6 +23,7 @@ from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
 from sapl.audiencia.models import AudienciaPublica,TipoAudienciaPublica
 from sapl.comissoes.models import Reuniao, Comissao
 from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
+from sapl.norma.models import (NormaJuridica)
 from sapl.parlamentares.models import SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
@@ -686,6 +687,46 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
             Fieldset(_('Atas das Sessões Plenárias'),
                      row1, form_actions(label='Pesquisar'))
         )
+
+
+class RelatorioNormasMesFilterSet(django_filters.FilterSet):
+
+    ano = django_filters.ChoiceFilter(required=True,
+                                      label='Ano da Norma',
+                                      choices=RANGE_ANOS)
+
+    filter_overrides = {models.DateField: {
+        'filter_class': django_filters.DateFromToRangeFilter,
+        'extra': lambda f: {
+            'label': '%s (%s)' % (f.verbose_name, _('Ano')),
+            'widget': RangeWidgetOverride}
+    }}
+
+
+    class Meta:
+        model = NormaJuridica
+        fields = ['ano']
+    
+    def __init__(self, *args, **kwargs):
+        super(RelatorioNormasMesFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['ano'].label = 'Ano'
+        self.form.fields['ano'].required = True
+
+        row1 = to_row([('ano', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Normas por mês do ano.'),
+                     row1, form_actions(label='Pesquisar'))
+        )
+
+    @property
+    def qs(self):
+        parent = super(RelatorioNormasMesFilterSet, self).qs
+        return parent.distinct().order_by('data')
 
 
 class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):

@@ -30,6 +30,7 @@ from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
+from sapl.norma.models import (NormaJuridica)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.utils import (parlamentares_ativos,
@@ -45,7 +46,7 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioMateriasTramitacaoilterSet,
                     RelatorioPresencaSessaoFilterSet,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
-                    UsuarioEditForm)
+                    UsuarioEditForm, RelatorioNormasMesFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -740,6 +741,39 @@ class RelatorioMateriasPorAutorView(FilterView):
         context['periodo'] = (
             self.request.GET['data_apresentacao_0'] +
             ' - ' + self.request.GET['data_apresentacao_1'])
+
+        return context
+
+
+class RelatorioAtosPublicadosMesView(FilterView):
+    model = NormaJuridica
+    filterset_class = RelatorioNormasMesFilterSet
+    template_name = 'base/RelatorioNormaMes_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioAtosPublicadosMesView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Normas')
+
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+        context['ano'] = self.request.GET['ano']
+
+        normas_mes = {}
+
+        # for norma in context['object_list']:
+        #     import ipdb; ipdb.set_trace()
+        #     pass
+
+    #     context['periodo'] = (
+    #         self.request.GET['data_inicio_0'] +
+    #         ' - ' + self.request.GET['data_inicio_1'])
 
         return context
 
