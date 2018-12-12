@@ -574,7 +574,7 @@ class ParlamentarCrud(Crud):
 
                 # Caso encontre UMA filiação nessas condições
                 else:
-                    self.logger.info("user=" + username + ". Filiação encontrada com sucesso.")
+                    self.logger.debug("user=" + username + ". Filiação encontrada com sucesso.")
                     row[1] = (filiacao.partido.sigla, None, None)
 
             return context
