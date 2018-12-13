@@ -1,3 +1,5 @@
+import logging
+
 from django import template
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -5,6 +7,8 @@ import yaml
 
 
 register = template.Library()
+
+logger = logging.getLogger(__name__)
 
 
 @register.inclusion_tag('menus/menu.html', takes_context=True)
@@ -84,12 +88,12 @@ def nav_run(context, path=None):
             menu = yaml.load(rendered)
             resolve_urls_inplace(menu, root_pk, rm, context)
         except Exception as e:
-            print(_("""Erro na conversão do yaml %s. App: %s.
+            raise Exception(_("""Erro na conversão do yaml %s. App: %s.
                                     Erro:
                                       %s
                                 """) % (
                 yaml_path, rm.app_name, str(e)))
-    
+
     return {'menu': menu}
 
 
@@ -113,25 +117,61 @@ def resolve_urls_inplace(menu, pk, rm, context):
                 menu['url'] = ''
                 menu['active'] = ''
             else:
-                if ':' in url_name:
+                if '/' in url_name:
+                    pass
+                elif ':' in url_name:
                     try:
-                        menu['url'] = reverse('%s' % menu['url'],
-                                              kwargs={'pk': pk})
+                        menu['url'] = reverse('%s' % menu['url'])
                     except:
                         try:
-                            menu['url'] = reverse('%s' % menu['url'])
+                            menu['url'] = reverse('%s' % menu['url'],
+                                                  kwargs={'pk': pk})
                         except:
-                            pass
+                            # tem que ser root_pk pois quando está sendo
+                            # renderizado um detail, update, delete
+                            # e ainda sim é necessário colocar o menu,
+                            # nestes, casos o pk da url é do detail, e não
+                            # do master, porém, os menus do subnav, apontam para
+                            # outras áreas que as urls destas são construídas
+                            # com pk do master, e não do detail... por isso
+                            # no contexto deve ter, ou root_pk, ou object
+                            # sendo que qualquer um dos dois,deverá ser o
+                            # master.
+                            # Estes detalhes são relevantes quando usa-se
+                            # o menu isolado. Por outro lado, quando usado
+                            # conjuntamente com o crud, este configura o contexto
+                            # como se deve para o menus.py
+                            log = """
+                            Erro na construção do Menu:
+                            menu: {}
+                            url: {}
+                            1) Verifique se a url existe 
+                            2) Se existe no contexto um desses itens:
+                                - context['root_pk'] pk do master
+                                - context['object'] objeto do master
+                            """.format(menu['title'], menu['url'])
+                            logger.error(log)
+                            raise Exception(log)
+
                 else:
                     try:
                         menu['url'] = reverse('%s:%s' % (
-                            rm.app_name, menu['url']), kwargs={'pk': pk})
+                            rm.app_name, menu['url']))
                     except:
                         try:
                             menu['url'] = reverse('%s:%s' % (
-                                rm.app_name, menu['url']))
+                                rm.app_name, menu['url']), kwargs={'pk': pk})
                         except:
-                            pass
+                            log = """Erro na construção do Menu:
+                            menu: {}
+                            url: {}
+                            1) Verifique se a url existe 
+                            2) Se existe no contexto um desses itens:
+                                - context['root_pk'] pk do master
+                                - context['object'] objeto do master
+                            """.format(menu['title'], menu['url'])
+                            logger.error(log)
+                            raise Exception(log)
 
                 menu['active'] = 'active'\
                     if context['request'].path == menu['url'] else ''
