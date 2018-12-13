@@ -3297,7 +3297,7 @@ class VotacaoEmBlocoExpediente(ListView):
         context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         context['pk'] = self.kwargs['pk']
-        context.update({'subnav_template_name': 'sessao/subnav.yaml'})
+        context['root_pk'] = self.kwargs['pk']
         return context
 
 
