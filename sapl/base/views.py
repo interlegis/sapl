@@ -790,6 +790,7 @@ class RelatorioNormasVigenciaView(FilterView):
                         self).get_context_data(**kwargs)
         context['title'] = _('Normas por vigência')
 
+        # import ipdb; ipdb.set_trace()
         # Verifica se os campos foram preenchidos
         if not self.filterset.form.is_valid():
             return context
@@ -800,7 +801,6 @@ class RelatorioNormasVigenciaView(FilterView):
         context['show_results'] = show_results_filter_set(qr)
         context['ano'] = self.request.GET['ano']
 
-        # import ipdb; ipdb.set_trace()
         return context
 
 
