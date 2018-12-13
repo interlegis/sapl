@@ -729,6 +729,58 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
         return parent.distinct().order_by('data')
 
 
+class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
+
+    ano = django_filters.ChoiceFilter(required=True,
+                                      label='Ano da Norma',
+                                      choices=RANGE_ANOS)
+
+    vigencia = forms.ChoiceField(
+        label=_('Vigente'),
+        choices=[(True, "Vigente"), (False, "Não vigente")],
+        widget=forms.RadioSelect(),
+        required=True,
+        help_text=_('Se vc está trocando ou removendo o usuário deste Autor, '
+                    'como o Sistema deve proceder com o usuário que está sendo'
+                    ' desvinculado?'))
+
+    # filter_overrides = {models.DateField: {
+    #     'filter_class': django_filters.DateFromToRangeFilter,
+    #     'extra': lambda f: {
+    #         'label': '%s (%s)' % (f.verbose_name, _('Ano')),
+    #         'widget': RangeWidgetOverride}
+    # }}
+    @property
+    def qs(self):
+        parent = super(RelatorioNormasVigenciaFilterSet, self).qs
+        return parent.distinct().order_by('data')
+
+    class Meta:
+        model = NormaJuridica
+        # fields = ['ano', 'vigencia']
+    
+    def __init__(self, *args, **kwargs):
+        super(RelatorioNormasVigenciaFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['ano'].label = 'Ano'
+        # self.filters['vigencia'].label = 'Vigência'
+        self.form.fields['ano'].required = True
+        # self.form.fields['vigencia'].required = True
+
+        row1 = to_row([('ano', 12)])
+        # row2 = to_row([('vigencia', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Normas por vigência.'),
+                     row1,  
+                     form_actions(label='Pesquisar'))
+        )
+
+
+
 class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
     filter_overrides = {models.DateField: {

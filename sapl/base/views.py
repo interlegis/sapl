@@ -1,5 +1,6 @@
 import logging
 import os
+import collections
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -46,7 +47,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioMateriasTramitacaoilterSet,
                     RelatorioPresencaSessaoFilterSet,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
-                    UsuarioEditForm, RelatorioNormasMesFilterSet)
+                    UsuarioEditForm, RelatorioNormasMesFilterSet,
+                    RelatorioNormasVigenciaFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -745,13 +747,13 @@ class RelatorioMateriasPorAutorView(FilterView):
         return context
 
 
-class RelatorioAtosPublicadosMesView(FilterView):
+class RelatorioNormasPublicadasMesView(FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasMesFilterSet
     template_name = 'base/RelatorioNormaMes_filter.html'
 
     def get_context_data(self, **kwargs):
-        context = super(RelatorioAtosPublicadosMesView,
+        context = super(RelatorioNormasPublicadasMesView,
                         self).get_context_data(**kwargs)
         context['title'] = _('Normas')
 
@@ -765,17 +767,42 @@ class RelatorioAtosPublicadosMesView(FilterView):
         context['show_results'] = show_results_filter_set(qr)
         context['ano'] = self.request.GET['ano']
 
-        normas_mes = {}
-
-        # for norma in context['object_list']:
-        #     import ipdb; ipdb.set_trace()
-        #     pass
-
-    #     context['periodo'] = (
-    #         self.request.GET['data_inicio_0'] +
-    #         ' - ' + self.request.GET['data_inicio_1'])
+        normas_mes = collections.OrderedDict()
+        meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
+                7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
+        for norma in context['object_list']:
+            if not meses[norma.data.month] in normas_mes:
+                normas_mes[meses[norma.data.month]] = []
+            normas_mes[meses[norma.data.month]].append(norma)
+        
+        context['normas_mes'] = normas_mes
 
         return context
+
+
+class RelatorioNormasVigenciaView(FilterView):
+    model = NormaJuridica
+    filterset_class = RelatorioNormasVigenciaFilterSet
+    template_name = 'base/RelatorioNormasVigencia_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioNormasVigenciaView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Normas por vigência')
+
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+        context['ano'] = self.request.GET['ano']
+
+        # import ipdb; ipdb.set_trace()
+        return context
+
 
 
 class ListarUsuarioView(PermissionRequiredMixin, ListView):
