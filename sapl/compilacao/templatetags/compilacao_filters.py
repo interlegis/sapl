@@ -83,6 +83,9 @@ def nota_automatica(dispositivo, ta_pub_list):
     if dispositivo.ta_publicado:
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
 
+        if d.auto_inserido:
+            d = d.dispositivo_pai
+
         ta_publicado = ta_pub_list[dispositivo.ta_publicado_id] if\
             ta_pub_list else dispositivo.ta_publicado
 
