@@ -288,7 +288,7 @@ def parlamentares_frente_selected(request):
     return JsonResponse({'id_list': list(lista_parlamentar_id)})
 
 
-class FrenteCrud(CrudAux):
+class FrenteCrud(Crud):
     model = Frente
     help_topic = 'tipo_situa_militar'
     public = [RP_DETAIL, RP_LIST]
