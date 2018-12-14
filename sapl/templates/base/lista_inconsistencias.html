@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load tz %}
+{% load common_tags %}
+{% block base_content %}
+    <fieldset>
+        <h1>Lista de Inconsistências</h1>
+            <table class="table table-striped table-hover">
+                <tbody>
+                  {% for campo, valor in tabela_inconsistencias %}
+                    <tr>
+                      <td>
+                         <a href="{% url 'sapl.base:lista_protocolos_duplicados' %}">{{ campo }}</a>
+                      </td>
+                      <td>{{ valor }}</td>
+                     </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+    </fieldset>
+    {% include 'paginacao.html'%}
+{% endblock base_content %}
