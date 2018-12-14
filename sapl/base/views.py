@@ -1,6 +1,7 @@
+import collections
+import datetime
 import logging
 import os
-import collections
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -785,12 +786,34 @@ class RelatorioNormasVigenciaView(FilterView):
     filterset_class = RelatorioNormasVigenciaFilterSet
     template_name = 'base/RelatorioNormasVigencia_filter.html'
 
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(RelatorioNormasVigenciaView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+        qs = self.get_queryset().order_by('data').distinct()
+        if kwargs['data']:
+            ano = kwargs['data']['ano']
+            vigencia = kwargs['data']['vigencia']
+            qs = qs.filter(ano=ano)
+            if vigencia == 'True':
+                qs_dt_not_null = qs.filter(data_vigencia__isnull=True)
+                qs = (qs_dt_not_null | qs.filter(data_vigencia__gte=datetime.datetime.now().date())).distinct()
+            else:
+                qs = qs.filter(data_vigencia__lt=datetime.datetime.now().date())
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
+
     def get_context_data(self, **kwargs):
         context = super(RelatorioNormasVigenciaView,
                         self).get_context_data(**kwargs)
         context['title'] = _('Normas por vigência')
 
-        # import ipdb; ipdb.set_trace()
         # Verifica se os campos foram preenchidos
         if not self.filterset.form.is_valid():
             return context
@@ -800,6 +823,7 @@ class RelatorioNormasVigenciaView(FilterView):
 
         context['show_results'] = show_results_filter_set(qr)
         context['ano'] = self.request.GET['ano']
+        context['vigencia'] = 'Vigente' if self.request.GET['vigencia'] == 'True' else 'Não vigente'
 
         return context
 

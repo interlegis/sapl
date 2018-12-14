@@ -733,8 +733,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
-                                      choices=RANGE_ANOS,
-                                      method='filter_vigencia')
+                                      choices=RANGE_ANOS)
 
     vigencia = forms.ChoiceField(
         label=_('Vigência'),
@@ -765,11 +764,6 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         return qs_override_django_filter(self)
-
-    def filter_vigencia(self, qs, *args, **kwargs):
-        import ipdb; ipdb.set_trace()
-        parent = super(RelatorioNormasVigenciaFilterSet, self).qs
-        return parent.distinct().order_by('data')
 
 
 class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
