@@ -127,6 +127,9 @@ class MateriaSimplificadaForm(ModelForm):
                   'numero_protocolo', 'regime_tramitacao',
                   'em_tramitacao', 'ementa', 'tipo_apresentacao',
                   'texto_original']
+        widgets = {
+            'numero_protocolo': forms.TextInput(attrs={'readonly': True}),
+        }
 
     def __init__(self, *args, **kwargs):
 
