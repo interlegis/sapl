@@ -803,8 +803,10 @@ class RelatorioNormasVigenciaView(FilterView):
             else:
                 qs = qs.filter(data_vigencia__lt=datetime.datetime.now().date())
 
+            # import ipdb; ipdb.set_trace()
+
         kwargs.update({
-            'queryset': qs,
+            'queryset': qs
         })
         return kwargs
 
@@ -818,12 +820,23 @@ class RelatorioNormasVigenciaView(FilterView):
         if not self.filterset.form.is_valid():
             return context
 
+        normas_totais = NormaJuridica.objects.filter(ano=self.request.GET['ano'])
+        
+        context['quant_total'] = len(normas_totais)
+        if self.request.GET['vigencia'] == 'True':
+            context['vigencia'] = 'Vigente'
+            context['quant_vigente'] = len(context['object_list'])
+            context['quant_nao_vigente'] = context['quant_total'] - context['quant_vigente']
+        else:
+            context['vigencia'] = 'Não vigente'
+            context['quant_nao_vigente'] = len(context['object_list'])
+            context['quant_vigente'] = context['quant_total'] - context['quant_nao_vigente']
+
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
         context['ano'] = self.request.GET['ano']
-        context['vigencia'] = 'Vigente' if self.request.GET['vigencia'] == 'True' else 'Não vigente'
 
         return context
 
