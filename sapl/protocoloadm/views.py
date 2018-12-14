@@ -29,6 +29,7 @@ from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
@@ -38,7 +39,7 @@ from sapl.utils import (create_barcode, get_base_url, get_client_ip,
 from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
-                    DocumentoAdministrativoForm, ProtocoloDocumentForm,
+                    DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm, ProtocoloDocumentForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
                     TramitacaoAdmEditForm, TramitacaoAdmForm,
                     DesvincularDocumentoForm, DesvincularMateriaForm,
@@ -1073,3 +1074,98 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
         materia.numero_protocolo = None
         materia.save()
         return redirect(self.get_success_url())
+
+
+class ImpressosView(PermissionRequiredMixin, TemplateView):
+    template_name = 'materia/impressos/impressos.html'
+    permission_required = ('materia.can_access_impressos', )
+
+
+class FichaPesquisaAdmView(PermissionRequiredMixin, FormView):
+    form_class = FichaPesquisaAdmForm
+    template_name = 'materia/impressos/ficha.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def form_valid(self, form):
+        tipo_documento = form.data['tipo_documento']
+        data_inicial = form.data['data_inicial']
+        data_final = form.data['data_final']
+
+        url = reverse('sapl.materia:impressos_ficha_seleciona_adm')
+        url = url + '?tipo=%s&data_inicial=%s&data_final=%s' % (
+            tipo_documento, data_inicial, data_final)
+
+        return HttpResponseRedirect(url)
+
+
+class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
+    logger = logging.getLogger(__name__)
+    form_class = FichaSelecionaAdmForm
+    template_name = 'materia/impressos/ficha_seleciona.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def get_context_data(self, **kwargs):
+        if ('tipo' not in self.request.GET or
+            'data_inicial' not in self.request.GET or
+                'data_final' not in self.request.GET):
+            return HttpResponseRedirect(reverse(
+                'sapl.materia:impressos_ficha_pesquisa_adm'))
+
+        context = super(FichaSelecionaAdmView, self).get_context_data(
+            **kwargs)
+
+        tipo = self.request.GET['tipo']
+        data_inicial = datetime.strptime(
+            self.request.GET['data_inicial'], "%d/%m/%Y").date()
+        data_final = datetime.strptime(
+            self.request.GET['data_final'], "%d/%m/%Y").date()
+
+        documento_list = DocumentoAdministrativo.objects.filter(
+            tipo=tipo,
+            data__range=(data_inicial, data_final))
+        context['quantidade'] = len(documento_list)
+        documento_list = documento_list[:100]
+
+        context['form'].fields['documento'].choices = [
+            (d.id, str(d)) for d in documento_list]
+
+        username = self.request.user.username
+
+        if context['quantidade'] > 100:
+            self.logger.info('user=' + username + '. Sua pesquisa (tipo={}, data_inicial={}, data_final={}) retornou mais do que '
+                             '100 impressos. Por questões de '
+                             'performance, foram retornados '
+                             'apenas os 100 primeiros. Caso '
+                             'queira outros, tente fazer uma '
+                             'pesquisa mais específica'.format(tipo, data_inicial, data_final))
+            messages.info(self.request, _('Sua pesquisa retornou mais do que '
+                                          '100 impressos. Por questões de '
+                                          'performance, foram retornados '
+                                          'apenas os 100 primeiros. Caso '
+                                          'queira outros, tente fazer uma '
+                                          'pesquisa mais específica'))
+
+        return context
+
+    def form_valid(self, form):
+        context = {}
+        username = self.request.user.username
+
+        try:
+            self.logger.debug(
+                "user=" + username + ". Tentando obter objeto DocumentoAdministrativo com id={}".format(form.data['documento']))
+            documento = DocumentoAdministrativo.objects.get(
+                id=form.data['documento'])
+        except ObjectDoesNotExist:
+            self.logger.error(
+                "user=" + username + ". Este DocumentoAdministrativo não existe (id={}).".format(form.data['documento']))
+            mensagem = _('Este Documento Administrativo não existe.')
+            self.messages.add_message(self.request, messages.INFO, mensagem)
+
+            return self.render_to_response(context)
+        if len(documento.assunto) > 301:
+            documento.assunto = documento.assunto[0:300] + '[...]'
+        context['documento'] = documento
+
+        return gerar_pdf_impressos(self.request, context,
+                                   'materia/impressos/ficha_adm_pdf.html')

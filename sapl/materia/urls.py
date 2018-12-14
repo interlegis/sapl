@@ -26,6 +26,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 proposicao_texto, recuperar_materia,
                                 ExcluirTramitacaoEmLoteView, RetornarProposicao)
 from sapl.norma.views import NormaPesquisaSimplesView
+from sapl.protocoloadm.views import (FichaPesquisaAdmView, FichaSelecionaAdmView)
 
 from .apps import AppConfig
 
@@ -47,6 +48,12 @@ urlpatterns_impressos = [
     url(r'^materia/impressos/norma-pesquisa/$',
         NormaPesquisaSimplesView.as_view(),
         name='impressos_norma_pesquisa'),
+    url(r'^materia/impressos/ficha-pesquisa-adm/$',
+        FichaPesquisaAdmView.as_view(),
+        name= 'impressos_ficha_pesquisa_adm'),
+    url(r'^materia/impressos/ficha-seleciona-adm/$',
+        FichaSelecionaAdmView.as_view(),
+        name= 'impressos_ficha_seleciona_adm'),
 ]
 
 urlpatterns_materia = [
