@@ -34,7 +34,7 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarParlMandatosIntersecaoView,
                     ListarAutoresDuplicadosView,
                     ListarBancadaComissaoAutorExternoView,
-                    ListarLegislaturaInfindavelView)
+                    ListarLegislaturaInfindavelView)s
 
 app_name = AppConfig.name
 
