@@ -1,5 +1,6 @@
 <fieldset>
   <p align="justify">
+  {% if materia_expediente %}
       <strong>Matérias do Expediente: </strong> 
       {% for m in materia_expediente %}
             <b>{{m.numero}} - {{m.titulo}}</b>
@@ -21,5 +22,6 @@
 			{{m.ementa|safe}}
          	   {{m.resultado}} {{m.resultado_observacao}}</td>
       {% endfor %}
+	{% endif %}
 	</p>
 </fieldset>
