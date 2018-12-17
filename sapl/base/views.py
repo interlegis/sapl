@@ -934,8 +934,49 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              'Protocolos que excedem o limite de matérias vinculadas',
              len(protocolos_com_materias()))
              )
+        tabela.append(
+            ('materias_com_protocolo_inexistente',
+             'Matérias Legislativas com protocolo inexistente',
+             len(materias_com_protocolo_inexistente())
+             )
+        )
 
         return tabela
+
+
+def materias_com_protocolo_inexistente():
+    materias = []
+    for materia in MateriaLegislativa.objects.all().order_by('-ano'):
+        if materia.numero_protocolo:
+            exists = Protocolo.objects.filter(
+                ano=materia.ano, numero=materia.numero_protocolo).exists()
+            if not exists:
+                materias.append(
+                    (materia, materia.ano, materia.numero_protocolo))
+    return materias
+
+
+class ListarMateriasCProtocoloInexistenteV(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/materias_com_protocolo_inexistente.html'
+    context_object_name = 'materias_com_protocolo_inexistente'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return materias_com_protocolo_inexistente()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarProtocolosComMateriasView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = '--.'
+        return context
 
 
 def protocolos_com_materias():
