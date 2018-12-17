@@ -1105,14 +1105,55 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
     permission_required = ('base.list_appconfig',)
 
     def get_queryset(self):
-        tabela = {}
-        tabela['Protocolos Duplicados'] = len(protocolo_duplicados())
+        tabela = []
+        tabela.append(
+            ('protocolos_duplicados',
+             'Protocolos duplicados',
+             len(protocolos_duplicados()))
+             )
+        tabela.append(
+            ('protocolos_com_materias',
+             'Protocolos que excedem o limite de matérias vinculadas',
+             len(protocolos_com_materias()))
+             )
 
-        t = tabela.items()
-        return t
+        return tabela
 
 
-def protocolo_duplicados():
+def protocolos_com_materias():
+    protocolos = []
+    for protocolo in Protocolo.objects.all():
+        materias_protocolo = MateriaLegislativa.objects.filter(
+            ano=protocolo.ano, numero_protocolo=protocolo.numero)
+        if len(materias_protocolo) > 1:
+            protocolos.append((protocolo, len(materias_protocolo)))
+    return protocolos
+
+
+class ListarProtocolosComMateriasView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/protocolos_com_materias.html'
+    context_object_name = 'protocolos_com_materias'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return protocolos_com_materias()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarProtocolosComMateriasView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = '--.'
+        return context
+
+
+def protocolos_duplicados():
     protocolos = {}
     for p in Protocolo.objects.all():
         key = "{}/{}".format(p.numero, p.ano)
@@ -1132,7 +1173,7 @@ class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return protocolo_duplicados()
+        return protocolos_duplicados()
 
     def get_context_data(self, **kwargs):
         context = super(
