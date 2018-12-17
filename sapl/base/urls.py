@@ -25,7 +25,8 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     RelatorioPresencaSessaoView, 
                     RelatorioReuniaoView, SaplSearchView,
                     RelatorioNormasPublicadasMesView,
-                    RelatorioNormasVigenciaView)
+                    RelatorioNormasVigenciaView,
+                    EstatisticasAcessoNormas)
 
 app_name = AppConfig.name
 
@@ -94,6 +95,8 @@ urlpatterns = [
         RelatorioNormasPublicadasMesView.as_view(), name='normas_por_mes'),
     url(r'^sistema/relatorios/relatorio-por-vigencia$',
         RelatorioNormasVigenciaView.as_view(), name='normas_por_vigencia'),
+    url(r'^sistema/relatorios/estatisticas-acesso$',
+        EstatisticasAcessoNormas.as_view(), name='estatisticas_acesso'),
     url(r'^sistema/relatorios/materia-por-ano-autor-tipo$',
         RelatorioMateriasPorAnoAutorTipoView.as_view(),
         name='materia_por_ano_autor_tipo'),

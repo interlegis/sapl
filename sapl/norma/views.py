@@ -24,7 +24,7 @@ from sapl.utils import show_results_filter_set
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm, AutoriaNormaForm)
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
-                     TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma)
+                     TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma, NormaEstatisticas)
 
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
@@ -190,7 +190,11 @@ class NormaCrud(Crud):
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
     class DetailView(Crud.DetailView):
-        pass
+        def get(self, request, *args, **kwargs):
+            NormaEstatisticas.objects.create(usuario=str(self.request.user),
+                                             norma_id=kwargs['pk'])
+            return super().get(request, *args, **kwargs)
+            
 
     class DeleteView(Crud.DeleteView):
 
@@ -225,7 +229,7 @@ class NormaCrud(Crud):
     class ListView(Crud.ListView, RedirectView):
 
         def get_redirect_url(self, *args, **kwargs):
-            namespace = self.model._meta.app_config.name
+            namespace = self.model._meta.app_config.name    
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
         def get(self, request, *args, **kwargs):
