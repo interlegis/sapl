@@ -131,10 +131,12 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/$',
         ListarInconsistenciasView.as_view(),
         name='lista_inconsistencias'),
-
     url(r'^sistema/inconsistencias/protocolos_duplicados$',
         ListarProtocolosDuplicadosView.as_view(),
         name='lista_protocolos_duplicados'),
+    url(r'^sistema/inconsistencias/protocolos_com_materias$',
+        ListarProtocolosComMateriasView.as_view(),
+        name='lista_protocolos_com_materias'),
 
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')
