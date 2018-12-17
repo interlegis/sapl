@@ -156,7 +156,6 @@ urlpatterns = [
         name='lista_bancada_comissao_autor_externo'),
 
 
-
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')
         (TemplateView.as_view(template_name='sistema.html')),
