@@ -285,7 +285,6 @@ class RelatoriosListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(TemplateView, self).get_context_data(**kwargs)
-
         estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
         if estatisticas_acesso_normas == 'S':
             context['estatisticas_acesso_normas'] = True
@@ -293,6 +292,7 @@ class RelatoriosListView(TemplateView):
             context['estatisticas_acesso_normas'] = False
 
         return context
+
 
 class RelatorioAtasView(FilterView):
     model = SessaoPlenaria
@@ -806,7 +806,6 @@ class RelatorioNormasVigenciaView(FilterView):
     filterset_class = RelatorioNormasVigenciaFilterSet
     template_name = 'base/RelatorioNormasVigencia_filter.html'
 
-
     def get_filterset_kwargs(self, filterset_class):
         super(RelatorioNormasVigenciaView,
               self).get_filterset_kwargs(filterset_class)
@@ -898,12 +897,6 @@ class EstatisticasAcessoNormas(FilterView):
         
         context['normas_mes'] = normas_mes
         context['meses_sem_acesso'] = meses_sem_acesso
-
-        quant_normas_mes = {}
-        for key in normas_mes.keys():
-            quant_normas_mes[key] = len(normas_mes[key])
-
-        context['quant_normas_mes'] = quant_normas_mes
 
         return context
 
