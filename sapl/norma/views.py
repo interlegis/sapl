@@ -1,6 +1,8 @@
 
-import re
 import logging
+import re
+import sapl
+import weasyprint
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,8 +15,6 @@ from django.views.generic import TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
-import weasyprint
-import sapl
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -191,8 +191,10 @@ class NormaCrud(Crud):
 
     class DetailView(Crud.DetailView):
         def get(self, request, *args, **kwargs):
-            NormaEstatisticas.objects.create(usuario=str(self.request.user),
-                                             norma_id=kwargs['pk'])
+            estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
+            if estatisticas_acesso_normas == 'S':
+                NormaEstatisticas.objects.create(usuario=str(self.request.user),
+                                                norma_id=kwargs['pk'])
             return super().get(request, *args, **kwargs)
             
 

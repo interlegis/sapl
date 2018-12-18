@@ -92,6 +92,11 @@ class AppConfig(models.Model):
         verbose_name=_('Relatórios de atos acessados'),
         choices=RELATORIO_ATOS_ACESSADOS, default='N')
 
+    estatisticas_acesso_normas = models.CharField(
+        max_length=1,
+        verbose_name=_('Estatísticas de acesso a normas'),
+        choices=RELATORIO_ATOS_ACESSADOS, default='N')
+
     sequencia_numeracao = models.CharField(
         max_length=1,
         verbose_name=_('Sequência de numeração'),

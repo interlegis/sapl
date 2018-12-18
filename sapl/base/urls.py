@@ -26,7 +26,8 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     RelatorioReuniaoView, SaplSearchView,
                     RelatorioNormasPublicadasMesView,
                     RelatorioNormasVigenciaView,
-                    EstatisticasAcessoNormas)
+                    EstatisticasAcessoNormas,
+                    RelatoriosListView)
 
 app_name = AppConfig.name
 
@@ -87,8 +88,8 @@ urlpatterns = [
     url(r'^sistema/app-config/', include(AppConfigCrud.get_urls())),
 
     # TODO mover estas telas para a app 'relatorios'
-    url(r'^sistema/relatorios/$', TemplateView.as_view(
-        template_name='base/relatorios_list.html'), name='relatorios_list'),
+    url(r'^sistema/relatorios/$', 
+        RelatoriosListView.as_view(), name='relatorios_list'),
     url(r'^sistema/relatorios/materia-por-autor$',
         RelatorioMateriasPorAutorView.as_view(), name='materia_por_autor'),
     url(r'^sistema/relatorios/relatorio-por-mes$',

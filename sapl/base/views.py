@@ -280,6 +280,20 @@ class AutorCrud(CrudAux):
             return url_reverse
 
 
+class RelatoriosListView(TemplateView):
+    template_name='base/relatorios_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TemplateView, self).get_context_data(**kwargs)
+
+        estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
+        if estatisticas_acesso_normas == 'S':
+            context['estatisticas_acesso_normas'] = True
+        else:
+            context['estatisticas_acesso_normas'] = False
+
+        return context
+
 class RelatorioAtasView(FilterView):
     model = SessaoPlenaria
     filterset_class = RelatorioAtasFilterSet
@@ -874,12 +888,16 @@ class EstatisticasAcessoNormas(FilterView):
             norma_est = [norma, len(NormaEstatisticas.objects.filter(norma=norma))]
             normas_mes[meses[norma.data.month]].append(norma_est)
         
+        meses_sem_acesso = []
         # Ordena por acesso e limita em 5
         for n in normas_mes:
             sorted_by_value = sorted(normas_mes[n], key=lambda kv: kv[1], reverse=True)
             normas_mes[n] = sorted_by_value[0:5]
+            if all(v[1]==0 for v in normas_mes[n]):
+                meses_sem_acesso.append(n)
         
         context['normas_mes'] = normas_mes
+        context['meses_sem_acesso'] = meses_sem_acesso
 
         quant_normas_mes = {}
         for key in normas_mes.keys():

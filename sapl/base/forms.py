@@ -1140,7 +1140,8 @@ class ConfiguracoesAppForm(ModelForm):
                   'cronometro_consideracoes',
                   'mostrar_brasao_painel',
                   'receber_recibo_proposicao',
-                  'assinatura_ata']
+                  'assinatura_ata',
+                  'estatisticas_acesso_normas']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
