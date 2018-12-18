@@ -86,11 +86,6 @@ class AppConfig(models.Model):
         max_length=1,
         verbose_name=_('Visibilidade dos Documentos Administrativos'),
         choices=TIPO_DOCUMENTO_ADMINISTRATIVO, default='O')
-    
-    relatorios_atos = models.CharField(
-        max_length=1,
-        verbose_name=_('Relatórios de atos acessados'),
-        choices=RELATORIO_ATOS_ACESSADOS, default='N')
 
     estatisticas_acesso_normas = models.CharField(
         max_length=1,
