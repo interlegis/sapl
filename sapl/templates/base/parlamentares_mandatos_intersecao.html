@@ -20,7 +20,7 @@
                   {% for parlamentar, mandato_a, mandato_b in parlamentares_mandatos_intersecao %}
                     <tr>
                       <td>
-                         <a href="{% url 'sapl_index' %}parlamentar/{{ parlamentar.pk }}">{{ parlamentar }}</a>
+                         <a href="{% url 'sapl.materia:pesquisar_materia' %}">{{ parlamentar }}</a>
                       </td>
                       <td>{{ mandato_a }}</td>
                       <td>{{ mandato_b }}</td>
