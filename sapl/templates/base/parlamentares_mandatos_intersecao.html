@@ -11,19 +11,19 @@
             <table class="table table-striped table-hover">
                 <thead>
                   <tr>
-                    <th>Matéria Legislativa</th>
-                    <th>Ano</th>
-                    <th>Número Protocolo</th>
+                    <th>Parlamentar</th>
+                    <th>Mandato 1</th>
+                    <th>Mandato 2</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {% for materia, ano, numero_protocolo in parlamentares_mandatos_intersecao %}
+                  {% for parlamentar, mandato_a, mandato_b in parlamentares_mandatos_intersecao %}
                     <tr>
                       <td>
-                         <a href="{% url 'sapl.materia:pesquisar_materia' %}">{{ materia }}</a>
+                         <a href="{% url 'sapl.materia:pesquisar_materia' %}">{{ parlamentar }}</a>
                       </td>
-                      <td>{{ ano }}</td>
-                      <td>{{ numero_protocolo }}</td>
+                      <td>{{ mandato_a }}</td>
+                      <td>{{ mandato_b }}</td>
                      </tr>
                   {% endfor %}
                 </tbody>

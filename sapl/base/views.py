@@ -942,7 +942,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              len(materias_protocolo_inexistente()))
              )
         tabela.append(
-            ('parlamentares_mandato_intersecao',
+            ('parlamentares_mandatos_intersecao',
              'Parlamentares com mandatos com interseção',
              len(parlamentares_mandatos_intersecao()))
              )
@@ -958,23 +958,28 @@ def parlamentares_mandatos_intersecao():
         if mandatos and length > 1:
             for i in range(0, length-1):
                 for j in range(i+1, length):
-                    mandato1 = mandatos[i]
-                    mandato2 = mandatos[j]
-                    exists = intervalos_tem_intersecao(mandato1.data_inicio_mandato, mandato1.data_fim_mandato, mandato2.data_inicio_mandato, mandato2.data_fim_mandato)
+                    mandato = mandatos[i]
+                    prox_mandato = mandatos[j]
+                    exists = intervalos_tem_intersecao(
+                        mandato.data_inicio_mandato,
+                        mandato.data_fim_mandato,
+                        prox_mandato.data_inicio_mandato,
+                        prox_mandato.data_fim_mandato)
                     if exists:
-                        intersecoes.append((parlamentar, mandato1, mandato2))
+                        intersecoes.append(
+                            (parlamentar, mandato, prox_mandato))
     return intersecoes
 
 
 class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
     model = get_user_model()
-    template_name = 'base/parlamentares_mandato_intersecao.html'
+    template_name = 'base/parlamentares_mandatos_intersecao.html'
     context_object_name = 'parlamentares_mandatos_intersecao'
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
 
     def get_queryset(self):
-        return parlamentares_mandato_intersecao()
+        return parlamentares_mandatos_intersecao()
 
     def get_context_data(self, **kwargs):
         context = super(
@@ -985,7 +990,8 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = '--.'
+            ] = 'Nenhum parlamentar com mandatos com interseção cadastrado no'
+        + ' sistema.'
         return context
 
 
@@ -1021,7 +1027,8 @@ class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = '--.'
+            ] = 'Nenhuma matéria legislativa vinculada a um protocolo'
+        + ' inexistente cadastrada no sistema.'
         return context
 
 
@@ -1054,7 +1061,8 @@ class ListarProtocolosMateriasView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = '--.'
+            ] = 'Nenhum protocolo vinculado a mais de uma matéria'
+        + ' legislativa cadastrado no sistema.'
         return context
 
 
