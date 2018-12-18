@@ -35,11 +35,13 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
+from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.utils import (parlamentares_ativos,
-                        show_results_filter_set, mail_service_configured)
+                        show_results_filter_set, mail_service_configured,
+                        intervalos_tem_intersecao)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
@@ -930,21 +932,64 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              len(protocolos_duplicados()))
              )
         tabela.append(
-            ('protocolos_com_materias',
+            ('protocolos_materias',
              'Protocolos que excedem o limite de matérias vinculadas',
-             len(protocolos_com_materias()))
+             len(protocolos_materias()))
              )
         tabela.append(
-            ('materias_com_protocolo_inexistente',
+            ('materias_protocolo_inexistente',
              'Matérias Legislativas com protocolo inexistente',
-             len(materias_com_protocolo_inexistente())
+             len(materias_protocolo_inexistente()))
              )
-        )
+        tabela.append(
+            ('parlamentares_mandato_intersecao',
+             'Parlamentares com mandatos com interseção',
+             len(parlamentares_mandatos_intersecao()))
+             )
 
         return tabela
 
 
-def materias_com_protocolo_inexistente():
+def parlamentares_mandatos_intersecao():
+    intersecoes = []
+    for parlamentar in Parlamentar.objects.all():
+        mandatos = parlamentar.mandato_set.all()
+        length = len(mandatos)
+        if mandatos and length > 1:
+            for i in range(0, length-1):
+                for j in range(i+1, length):
+                    mandato1 = mandatos[i]
+                    mandato2 = mandatos[j]
+                    exists = intervalos_tem_intersecao(mandato1.data_inicio_mandato, mandato1.data_fim_mandato, mandato2.data_inicio_mandato, mandato2.data_fim_mandato)
+                    if exists:
+                        intersecoes.append((parlamentar, mandato1, mandato2))
+    return intersecoes
+
+
+class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/parlamentares_mandato_intersecao.html'
+    context_object_name = 'parlamentares_mandatos_intersecao'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return parlamentares_mandato_intersecao()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarParlMandatosIntersecaoView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = '--.'
+        return context
+
+
+def materias_protocolo_inexistente():
     materias = []
     for materia in MateriaLegislativa.objects.all().order_by('-ano'):
         if materia.numero_protocolo:
@@ -956,19 +1001,20 @@ def materias_com_protocolo_inexistente():
     return materias
 
 
-class ListarMateriasCProtocoloInexistenteV(PermissionRequiredMixin, ListView):
+class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
     model = get_user_model()
-    template_name = 'base/materias_com_protocolo_inexistente.html'
-    context_object_name = 'materias_com_protocolo_inexistente'
+    template_name = 'base/materias_protocolo_inexistente.html'
+    context_object_name = 'materias_protocolo_inexistente'
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
 
     def get_queryset(self):
-        return materias_com_protocolo_inexistente()
+        return materias_protocolo_inexistente()
 
     def get_context_data(self, **kwargs):
         context = super(
-            ListarProtocolosComMateriasView, self).get_context_data(**kwargs)
+            ListarMatProtocoloInexistenteView, self
+            ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
@@ -979,7 +1025,7 @@ class ListarMateriasCProtocoloInexistenteV(PermissionRequiredMixin, ListView):
         return context
 
 
-def protocolos_com_materias():
+def protocolos_materias():
     protocolos = []
     for protocolo in Protocolo.objects.all():
         materias_protocolo = MateriaLegislativa.objects.filter(
@@ -989,19 +1035,19 @@ def protocolos_com_materias():
     return protocolos
 
 
-class ListarProtocolosComMateriasView(PermissionRequiredMixin, ListView):
+class ListarProtocolosMateriasView(PermissionRequiredMixin, ListView):
     model = get_user_model()
-    template_name = 'base/protocolos_com_materias.html'
-    context_object_name = 'protocolos_com_materias'
+    template_name = 'base/protocolos_materias.html'
+    context_object_name = 'protocolos_materias'
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
 
     def get_queryset(self):
-        return protocolos_com_materias()
+        return protocolos_materias()
 
     def get_context_data(self, **kwargs):
         context = super(
-            ListarProtocolosComMateriasView, self).get_context_data(**kwargs)
+            ListarProtocolosMateriasView, self).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(

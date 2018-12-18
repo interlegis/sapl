@@ -28,7 +28,10 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     RelatorioNormasVigenciaView,
                     EstatisticasAcessoNormas,
                     RelatoriosListView,
-                    ListarInconsistenciasView, ListarProtocolosDuplicadosView)
+                    ListarInconsistenciasView, ListarProtocolosDuplicadosView,
+                    ListarProtocolosMateriasView,
+                    ListarMatProtocoloInexistenteView,
+                    ListarParlMandatosIntersecaoView)
 
 app_name = AppConfig.name
 
@@ -134,12 +137,15 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/protocolos_duplicados$',
         ListarProtocolosDuplicadosView.as_view(),
         name='lista_protocolos_duplicados'),
-    url(r'^sistema/inconsistencias/protocolos_com_materias$',
-        ListarProtocolosComMateriasView.as_view(),
-        name='lista_protocolos_com_materias'),
-    url(r'^sistema/inconsistencias/materias_com_protocolo_inexistente$',
-        ListarMateriasCProtocoloInexistenteV.as_view(),
-        name='lista_materias_com_protocolo_inexistente'),
+    url(r'^sistema/inconsistencias/protocolos_materias$',
+        ListarProtocolosMateriasView.as_view(),
+        name='lista_protocolos_materias'),
+    url(r'^sistema/inconsistencias/materias_protocolo_inexistente$',
+        ListarMatProtocoloInexistenteView.as_view(),
+        name='lista_materias_protocolo_inexistente'),
+    url(r'^sistema/inconsistencias/parlamentares_mandatos_intersecao$',
+        ListarParlMandatosIntersecaoView.as_view(),
+        name='lista_parlamentares_mandatos_intersecao'),
 
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')
