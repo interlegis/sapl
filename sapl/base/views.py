@@ -885,7 +885,7 @@ class EstatisticasAcessoNormas(FilterView):
                 from norma_normaestatisticas
                 where ano = {}
                 group by mes, ano, norma_id
-                order by mes asc, ano;
+                order by mes desc;
                 '''.format(context['ano'])
         cursor = connection.cursor()
         cursor.execute(query)
