@@ -3,6 +3,7 @@ from django.db import models
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import datetime
 import reversion
 
 from sapl.base.models import Autor
@@ -194,8 +195,9 @@ class NormaJuridica(models.Model):
 class NormaEstatisticas(models.Model):
     usuario = models.CharField(max_length=50)
     horario_acesso = models.DateTimeField(
-        blank=True, null=True,
-        auto_now=True)
+        blank=True, null=True)
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                           choices=RANGE_ANOS, default=datetime.date.today().year)
     norma = models.ForeignKey(NormaJuridica,
                              on_delete=models.CASCADE)
     def __str__(self):

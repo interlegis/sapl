@@ -1,4 +1,4 @@
-
+import datetime
 import logging
 import re
 import sapl
@@ -194,7 +194,9 @@ class NormaCrud(Crud):
             estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
             if estatisticas_acesso_normas == 'S':
                 NormaEstatisticas.objects.create(usuario=str(self.request.user),
-                                                norma_id=kwargs['pk'])
+                                                norma_id=kwargs['pk'],
+                                                ano = datetime.date.today().year,
+                                                horario_acesso=datetime.datetime.now())
             return super().get(request, *args, **kwargs)
             
 

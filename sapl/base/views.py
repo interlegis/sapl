@@ -10,6 +10,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
+from django.db import connection
 from django.db.models import Count
 from django.http import Http404, HttpResponseRedirect
 from django.template import TemplateDoesNotExist
@@ -49,7 +50,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioPresencaSessaoFilterSet,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
-                    RelatorioNormasVigenciaFilterSet)
+                    RelatorioNormasVigenciaFilterSet,
+                    EstatisticasAcessoNormasFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -859,8 +861,8 @@ class RelatorioNormasVigenciaView(FilterView):
 
 
 class EstatisticasAcessoNormas(FilterView):
-    model = NormaJuridica
-    filterset_class = RelatorioNormasMesFilterSet
+    model = NormaEstatisticas
+    filterset_class = EstatisticasAcessoNormasFilterSet
     template_name = 'base/EstatisticasAcessoNormas_filter.html'
 
     def get_context_data(self, **kwargs):
@@ -877,26 +879,36 @@ class EstatisticasAcessoNormas(FilterView):
 
         context['show_results'] = show_results_filter_set(qr)
         context['ano'] = self.request.GET['ano']
+        
+        query = '''
+                select norma_id, ano, extract(month from horario_acesso) as mes, count(*)
+                from norma_normaestatisticas
+                where ano = {}
+                group by mes, ano, norma_id
+                order by mes asc, ano;
+                '''.format(context['ano'])
+        cursor = connection.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
 
         normas_mes = collections.OrderedDict()
         meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
                 7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
-        for norma in context['object_list']:
-            if not meses[norma.data.month] in normas_mes:
-                normas_mes[meses[norma.data.month]] = []
-            norma_est = [norma, len(NormaEstatisticas.objects.filter(norma=norma))]
-            normas_mes[meses[norma.data.month]].append(norma_est)
         
-        meses_sem_acesso = []
+        for row in rows:
+            if not meses[int(row[2])] in normas_mes:
+                normas_mes[meses[int(row[2])]] = []
+            norma_est = [NormaJuridica.objects.get(id=row[0]), row[3]]
+            normas_mes[meses[int(row[2])]].append(norma_est)
+        
         # Ordena por acesso e limita em 5
         for n in normas_mes:
             sorted_by_value = sorted(normas_mes[n], key=lambda kv: kv[1], reverse=True)
             normas_mes[n] = sorted_by_value[0:5]
-            if all(v[1]==0 for v in normas_mes[n]):
-                meses_sem_acesso.append(n)
+
+        import ipdb; ipdb.set_trace()
         
         context['normas_mes'] = normas_mes
-        context['meses_sem_acesso'] = meses_sem_acesso
 
         return context
 
