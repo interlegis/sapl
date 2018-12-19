@@ -757,7 +757,6 @@ class AnexadaForm(ModelForm):
 
 class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
-
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano da Matéria',
                                       choices=ANO_CHOICES)
@@ -1031,8 +1030,6 @@ class AutoriaMultiCreateForm(Form):
 
 
 class AcessorioEmLoteFilterSet(django_filters.FilterSet):
-
-
 
     class Meta:
         filter_overrides = {models.DateField: {

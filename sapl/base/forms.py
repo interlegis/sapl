@@ -722,7 +722,6 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
 class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
-
     @property
     def qs(self):
         parent = super(RelatorioHistoricoTramitacaoFilterSet, self).qs
@@ -761,7 +760,6 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
-
 
     @property
     def qs(self):
