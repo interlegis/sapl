@@ -23,6 +23,7 @@ from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
 from sapl.audiencia.models import AudienciaPublica,TipoAudienciaPublica
 from sapl.comissoes.models import Reuniao, Comissao
 from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
+from sapl.norma.models import (NormaJuridica)
 from sapl.parlamentares.models import SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
@@ -654,14 +655,13 @@ class AutorFormForAdmin(AutorForm):
 
 class RelatorioAtasFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-            'widget': RangeWidgetOverride}
-    }}
-
     class Meta:
+        filter_overrides = {models.DateField: {
+            'filter_class': django_filters.DateFromToRangeFilter,
+            'extra': lambda f: {
+                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+                'widget': RangeWidgetOverride}
+        }}
         model = SessaoPlenaria
         fields = ['data_inicio']
 
@@ -688,16 +688,92 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
         )
 
 
-class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
+class RelatorioNormasMesFilterSet(django_filters.FilterSet):
+
+    ano = django_filters.ChoiceFilter(required=True,
+                                      label='Ano da Norma',
+                                      choices=RANGE_ANOS)
 
     filter_overrides = {models.DateField: {
         'filter_class': django_filters.DateFromToRangeFilter,
         'extra': lambda f: {
-            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+            'label': '%s (%s)' % (f.verbose_name, _('Ano')),
             'widget': RangeWidgetOverride}
     }}
 
+
     class Meta:
+        model = NormaJuridica
+        fields = ['ano']
+    
+    def __init__(self, *args, **kwargs):
+        super(RelatorioNormasMesFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['ano'].label = 'Ano'
+        self.form.fields['ano'].required = True
+
+        row1 = to_row([('ano', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Normas por mês do ano.'),
+                     row1, form_actions(label='Pesquisar'))
+        )
+
+    @property
+    def qs(self):
+        parent = super(RelatorioNormasMesFilterSet, self).qs
+        return parent.distinct().order_by('data')
+
+
+class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
+
+    ano = django_filters.ChoiceFilter(required=True,
+                                      label='Ano da Norma',
+                                      choices=RANGE_ANOS)
+
+    vigencia = forms.ChoiceField(
+        label=_('Vigência'),
+        choices=[(True, "Vigente"), (False, "Não vigente")],
+        widget=forms.RadioSelect(),
+        required=True)
+
+    
+    def __init__(self, *args, **kwargs):
+        super(RelatorioNormasVigenciaFilterSet, self).__init__(
+            *args, **kwargs)
+            
+        self.filters['ano'].label = 'Ano'
+        self.form.fields['ano'].required = True
+        self.form.fields['vigencia'] = self.vigencia
+
+        row1 = to_row([('ano', 12)])
+        row2 = to_row([('vigencia', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Normas por vigência.'),
+                     row1, row2,
+                     form_actions(label='Pesquisar'))
+        )
+
+    @property
+    def qs(self):
+        return qs_override_django_filter(self)
+
+
+class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
+
+    class Meta:
+        filter_overrides = {models.DateField: {
+            'filter_class': django_filters.DateFromToRangeFilter,
+            'extra': lambda f: {
+                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+                'widget': RangeWidgetOverride}
+        }}
         model = SessaoPlenaria
         fields = ['data_inicio']
 
@@ -724,19 +800,18 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
 class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-            'widget': RangeWidgetOverride}
-    }}
-
     @property
     def qs(self):
         parent = super(RelatorioHistoricoTramitacaoFilterSet, self).qs
         return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
 
     class Meta:
+        filter_overrides = {models.DateField: {
+            'filter_class': django_filters.DateFromToRangeFilter,
+            'extra': lambda f: {
+                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+                'widget': RangeWidgetOverride}
+        }}
         model = MateriaLegislativa
         fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
                   'tramitacao__status', 'tramitacao__data_tramitacao']
@@ -764,19 +839,18 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-            'widget': RangeWidgetOverride}
-    }}
-
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
         return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
 
     class Meta:
+        filter_overrides = {models.DateField: {
+            'filter_class': django_filters.DateFromToRangeFilter,
+            'extra': lambda f: {
+                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+                'widget': RangeWidgetOverride}
+        }}
         model = MateriaLegislativa
         fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
                   'tramitacao__status', 'tramitacao__data_fim_prazo']
@@ -936,13 +1010,6 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
 
 class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-            'widget': RangeWidgetOverride}
-    }}
-
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
     @property
@@ -952,6 +1019,12 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
             .order_by('autoria__autor', '-autoria__primeiro_autor', 'tipo', '-ano', '-numero')
 
     class Meta:
+        filter_overrides = {models.DateField: {
+            'filter_class': django_filters.DateFromToRangeFilter,
+            'extra': lambda f: {
+                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+                'widget': RangeWidgetOverride}
+        }}
         model = MateriaLegislativa
         fields = ['tipo', 'data_apresentacao']
 
@@ -1061,7 +1134,8 @@ class ConfiguracoesAppForm(ModelForm):
                   'cronometro_consideracoes',
                   'mostrar_brasao_painel',
                   'receber_recibo_proposicao',
-                  'assinatura_ata']
+                  'assinatura_ata',
+                  'estatisticas_acesso_normas']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)

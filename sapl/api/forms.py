@@ -5,9 +5,8 @@ from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django_filters.filters import DateFilter, MethodFilter, ModelChoiceFilter
+from django_filters.filters import CharFilter, ModelChoiceFilter, DateFilter
 from rest_framework import serializers
-from rest_framework.compat import django_filters
 from rest_framework.filters import FilterSet
 
 from sapl.base.models import Autor, TipoAutor
@@ -16,9 +15,9 @@ from sapl.utils import generic_relations_for_model
 
 
 class SaplGenericRelationSearchFilterSet(FilterSet):
-    q = MethodFilter()
+    q = CharFilter(method='filter_q')
 
-    def filter_q(self, queryset, value):
+    def filter_q(self, queryset, name, value):
 
         query = value.split(' ')
         if query:
@@ -87,12 +86,12 @@ class SearchForFieldField(MultiValueField):
         return None
 
 
-class SearchForFieldFilter(django_filters.filters.MethodFilter):
+class SearchForFieldFilter(CharFilter):
     field_class = SearchForFieldField
 
 
 class AutorChoiceFilterSet(SaplGenericRelationSearchFilterSet):
-    q = MethodFilter()
+    q = CharFilter(method='filter_q')
     tipo = ModelChoiceFilter(queryset=TipoAutor.objects.all())
 
     class Meta:
@@ -101,18 +100,18 @@ class AutorChoiceFilterSet(SaplGenericRelationSearchFilterSet):
                   'tipo',
                   'nome', ]
 
-    def filter_q(self, queryset, value):
+    def filter_q(self, queryset, name,value):
         return SaplGenericRelationSearchFilterSet.filter_q(
             self, queryset, value).distinct('nome').order_by('nome')
 
 
 class AutorSearchForFieldFilterSet(AutorChoiceFilterSet):
-    q = SearchForFieldFilter()
+    q = SearchForFieldFilter(method='filter_q')
 
     class Meta(AutorChoiceFilterSet.Meta):
         pass
 
-    def filter_q(self, queryset, value):
+    def filter_q(self, queryset, name, value):
 
         value[0] = value[0].split(',')
         value[1] = value[1].split(',')
@@ -128,7 +127,7 @@ class AutorSearchForFieldFilterSet(AutorChoiceFilterSet):
 class AutoresPossiveisFilterSet(FilterSet):
     logger = logging.getLogger(__name__)
     data_relativa = DateFilter(method='filter_data_relativa')
-    tipo = MethodFilter()
+    tipo = CharFilter(method='filter_tipo')
 
     class Meta:
         model = Autor
@@ -137,10 +136,11 @@ class AutoresPossiveisFilterSet(FilterSet):
     def filter_data_relativa(self, queryset, name, value):
         return queryset
 
-    def filter_tipo(self, queryset, value):
-        
+    def filter_tipo(self, queryset, name, value):
+
         try:
-            self.logger.debug("Tentando obter TipoAutor correspondente à pk {}.".format(value))
+            self.logger.debug(
+                "Tentando obter TipoAutor correspondente à pk {}.".format(value))
             tipo = TipoAutor.objects.get(pk=value)
         except:
             self.logger.error("TipoAutor(pk={}) inexistente.".format(value))

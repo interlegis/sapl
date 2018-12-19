@@ -23,6 +23,9 @@ AppConfig:
   {% trans 'Textos Articulados' %}:
   - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
 
+  {% trans 'Estatísticas de acesso' %}:
+  - estatisticas_acesso_normas
+  
   {% trans 'Assinaturas' %}:
   - assinatura_ata
 

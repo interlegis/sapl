@@ -14,15 +14,21 @@
 		th, td {
 			padding: 5px;
 		}
+		@media print {
+    		.hide-print {
+        		display :  none;
+    		}
+		}
+    	@page {
+        	size:  auto;   /* auto is the initial value */
+        	margin: 0mm;  /* this affects the margin in the printer settings */
+    	}
 	</style>
 
 	<div align="center">
-		<input type="submit" value="Imprimir" onclick="window.print();" class="btn btn-success"/>
-		<input type="submit" value="Fechar" onclick="window.close();" class="btn btn-success"/>
+		<input type="submit" value="Imprimir" onclick="window.print();" class="btn btn-success hide-print"/>
+		<input type="submit" value="Fechar" onclick="window.close();" class="btn btn-success hide-print"/>
 	</div>
-
-	<br />
-
 	<table>
 		<tr><td colspan="2" align="center">
 				<img height="90" width="90"

@@ -66,13 +66,6 @@ class AcompanhamentoDocumentoForm(ModelForm):
 
 class ProtocoloFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateTimeField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': 'Data (%s)' % (_('Inicial - Final')),
-            'widget': RangeWidgetOverride}
-    }}
-
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano',
                                       choices=ANO_CHOICES)
@@ -99,6 +92,12 @@ class ProtocoloFilterSet(django_filters.FilterSet):
     o = AnoNumeroOrderingFilter()
 
     class Meta:
+        filter_overrides = {models.DateTimeField: {
+            'filter_class': django_filters.DateFromToRangeFilter,
+            'extra': lambda f: {
+                'label': 'Data (%s)' % (_('Inicial - Final')),
+                'widget': RangeWidgetOverride}
+        }}
         model = Protocolo
         fields = ['numero',
                   'tipo_documento',
@@ -154,13 +153,6 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
 class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': 'Data (%s)' % (_('Inicial - Final')),
-            'widget': RangeWidgetOverride}
-    }}
-
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano',
                                       choices=ANO_CHOICES)
@@ -176,6 +168,12 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
     o = AnoNumeroOrderingFilter()
 
     class Meta:
+        filter_overrides = {models.DateField: {
+            'filter_class': django_filters.DateFromToRangeFilter,
+            'extra': lambda f: {
+                'label': 'Data (%s)' % (_('Inicial - Final')),
+                'widget': RangeWidgetOverride}
+        }}
         model = DocumentoAdministrativo
         fields = ['tipo',
                   'numero',
@@ -1000,3 +998,80 @@ def filtra_tramitacao_adm_destino_and_status(status, destino):
         status=status,
         unidade_tramitacao_destino=destino).distinct().values_list(
             'documento_id', flat=True)
+
+class FichaPesquisaAdmForm(forms.Form):
+
+    logger = logging.getLogger(__name__)
+
+    tipo_documento = forms.ModelChoiceField(
+        label=TipoDocumentoAdministrativo._meta.verbose_name,
+        queryset=TipoDocumentoAdministrativo.objects.all(),
+        empty_label='Selecione')
+
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    data_final = forms.DateField(
+        label='Data Final',
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(FichaPesquisaAdmForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('tipo_documento', 6),
+             ('data_inicial', 3),
+             ('data_final', 3)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Formulário de Ficha'),
+                row1,
+                form_actions(label='Pesquisar')
+            )
+        )
+
+    def clean(self):
+        super(FichaPesquisaAdmForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
+        if cleaned_data['data_final'] < cleaned_data['data_inicial']:
+            self.logger.error("A Data Final ({}) não pode ser menor que a Data Inicial ({})."
+                              .format(cleaned_data['data_final'], cleaned_data['data_inicial']))
+            raise ValidationError(_(
+                'A Data Final não pode ser menor que a Data Inicial'))
+
+        return cleaned_data
+
+
+class FichaSelecionaAdmForm(forms.Form):
+    documento = forms.ModelChoiceField(
+        widget=forms.RadioSelect,
+        queryset=DocumentoAdministrativo.objects.all(),
+        label='')
+
+    def __init__(self, *args, **kwargs):
+        super(FichaSelecionaAdmForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('documento', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Selecione a ficha que deseja imprimir'),
+                row1,
+                form_actions(label='Gerar Impresso')
+            )
+        )

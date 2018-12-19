@@ -1319,6 +1319,9 @@ class TextEditView(CompMixin, TemplateView):
         if dispositivo.ta_publicado_id:
             d = dispositivo.dispositivo_atualizador.dispositivo_pai
 
+            if d.auto_inserido:
+                d = d.dispositivo_pai
+
             ta_publicado = lista_ta_publicado[dispositivo.ta_publicado_id] if\
                 lista_ta_publicado else dispositivo.ta_publicado
 

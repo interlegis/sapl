@@ -15,6 +15,7 @@ See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 """
 import logging
 import socket
+import sys
 
 from decouple import config
 from dj_database_url import parse as db_url
@@ -335,12 +336,16 @@ LOGGING = {
 }
 
 
-def excepthook(*args):
-    logging.getLogger(BASE_DIR.name).error(
-        'Uncaught exception:', exc_info=args)
+def uncaught_exceptions(type, value, error_traceback):
+    import traceback
+    logger = logging.getLogger(__name__)
+    error_msg = ''.join(traceback.format_tb(error_traceback))
+    logger.error(error_msg)
+    print(error_msg)
 
-# sys.excepthook = excepthook"""
 
+# captura exceções que não foram tratadas
+sys.excepthook = uncaught_exceptions
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # default

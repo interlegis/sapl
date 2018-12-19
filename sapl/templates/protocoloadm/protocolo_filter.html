@@ -62,6 +62,13 @@
                 <strong>Anulado por: </strong>{{ p.user_anulacao }} - IP {{ p.ip_anulacao }}</br>
                 <strong>Motivo Anulação: </strong>{{ p.justificativa_anulacao }}</br>
               {% endif %}
+              {% if p.tipo_documento and p.documentoadministrativo_set.first %}
+                <strong>Documentos vinculados: </strong>
+                <a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' p.documentoadministrativo_set.first.pk %}">
+                {{ p.documentoadministrativo_set.first.tipo }} - {{ p.documentoadministrativo_set.first.numero }} /
+                {{ p.documentoadministrativo_set.first.ano }}
+                </a>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}

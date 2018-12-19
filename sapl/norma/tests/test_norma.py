@@ -7,6 +7,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.norma.forms import (NormaJuridicaForm, NormaPesquisaSimplesForm,
                               NormaRelacionadaForm)
 from sapl.norma.models import NormaJuridica, TipoNormaJuridica
+from sapl.base.models import AppConfig
 
 
 @pytest.mark.django_db(transaction=False)
@@ -15,6 +16,7 @@ def test_incluir_norma_submit(admin_client):
     tipo = mommy.make(TipoNormaJuridica,
                       sigla='T',
                       descricao='Teste')
+    config = mommy.make(AppConfig)
 
     # Testa POST
     response = admin_client.post(reverse('sapl.norma:normajuridica_create'),

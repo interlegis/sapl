@@ -221,6 +221,7 @@ class Reuniao(models.Model):
         null=True,
         verbose_name=_('Horário de Início (hh:mm)'))
     hora_fim = models.TimeField(
+        blank=True,
         null=True,
         verbose_name=_('Horário de Término (hh:mm)'))
     local_reuniao = models.CharField(

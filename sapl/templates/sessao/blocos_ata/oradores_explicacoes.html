@@ -1,9 +1,11 @@
 <fieldset>
     <p align="justify">
+	{% if oradores_explicacoes %}
      <strong>Oradores das Explicações Pessoais: </strong>
-     {% for o in oradores_explicacoes %}
-        <b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_atual }} ;  
-        {{o.url_discurso}}
-     {% endfor %}
+		{% for o in oradores_explicacoes %}
+			<b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_atual }} ;  
+			{{o.url_discurso}}
+		{% endfor %}
+	{% endif %}
     </p>
 </fieldset>

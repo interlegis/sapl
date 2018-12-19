@@ -288,7 +288,7 @@ def parlamentares_frente_selected(request):
     return JsonResponse({'id_list': list(lista_parlamentar_id)})
 
 
-class FrenteCrud(CrudAux):
+class FrenteCrud(Crud):
     model = Frente
     help_topic = 'tipo_situa_militar'
     public = [RP_DETAIL, RP_LIST]
@@ -574,7 +574,7 @@ class ParlamentarCrud(Crud):
 
                 # Caso encontre UMA filiação nessas condições
                 else:
-                    self.logger.info("user=" + username + ". Filiação encontrada com sucesso.")
+                    self.logger.debug("user=" + username + ". Filiação encontrada com sucesso.")
                     row[1] = (filiacao.partido.sigla, None, None)
 
             return context

@@ -23,9 +23,8 @@ from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone)
-
 from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
-                     Orador, OradorExpediente, OrdemDia, SessaoPlenaria,
+                     Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
                      OcorrenciaSessao, RegistroVotacao, RetiradaPauta, TipoRetiradaPauta)
 
@@ -872,7 +871,8 @@ class JustificativaAusenciaForm(ModelForm):
         ordens = OrdemDia.objects.filter(q)
         expedientes = ExpedienteMateria.objects.filter(q)
         legislatura = kwargs['initial']['sessao_plenaria'].legislatura
-        mandato = Mandato.objects.filter(legislatura=legislatura)
+        mandato = Mandato.objects.filter(
+            legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
         parlamentares = [m.parlamentar for m in mandato]
 
 
@@ -881,9 +881,14 @@ class JustificativaAusenciaForm(ModelForm):
 
         presencas = SessaoPlenariaPresenca.objects.filter(
             q).order_by('parlamentar__nome_parlamentar')
+        presencas_ordem = PresencaOrdemDia.objects.filter(
+            q).order_by('parlamentar__nome_parlamentar')
 
         presentes = [p.parlamentar for p in presencas]
-        setFinal = set(parlamentares) - set(presentes)
+        presentes_ordem = [p.parlamentar for p in presencas_ordem]
+
+        presentes_ambos = set(presentes).intersection(set(presentes_ordem))
+        setFinal = set(parlamentares) - presentes_ambos
 
         self.fields['materias_do_expediente'].choices = [
             (e.id, e.materia) for e in expedientes]
