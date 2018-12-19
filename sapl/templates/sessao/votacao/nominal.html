@@ -72,46 +72,46 @@
 			window.history.back();
 		}
 
-                function conta_votos() {
-                        var votos_sim = 0;
-                        var votos_nao = 0;
-                        var votos_abstencao = 0;
-                        var nao_votou = 0;
-                        $('[name=voto_parlamentar]').each(function() {
-                          if (($(this).is(':hidden')) == false) {
-                            switch ($(this).val().substring(0,4)) {
-                              case "Sim:":
-                                votos_sim = votos_sim + 1;
-                                break;
-                              case "Não:":
-                                votos_nao = votos_nao + 1;
-                                break;
-                              case "Abst":
-                                votos_abstencao = votos_abstencao + 1;
-                                break;
-                              case "Não ":
-                                nao_votou = nao_votou + 1;
-                                break;
-                            };
-                          };
-                        });
+		function conta_votos() {
+			var votos_sim = 0;
+			var votos_nao = 0;
+			var votos_abstencao = 0;
+			var nao_votou = 0;
+			$('[name=voto_parlamentar]').each(function() {
+				if (($(this).is(':hidden')) == false) {
+					switch ($(this).val().substring(0,4)) {
+						case "Sim:":
+							votos_sim = votos_sim + 1;
+							break;
+						case "Não:":
+							votos_nao = votos_nao + 1;
+							break;
+						case "Abst":
+							votos_abstencao = votos_abstencao + 1;
+							break;
+						case "Não ":
+							nao_votou = nao_votou + 1;
+							break;
+					};
+				};
+			});
 
-                  $("#soma_votos").empty();
-                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Sim: " + votos_sim + "</div></div>");
-                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Não: " + votos_nao + "</div></div>");
-                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Abstenções: " + votos_abstencao + "</div></div>");
-                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Ainda não votaram: " + nao_votou + "</div></div>");
-                        var t = setTimeout(function(){
-                             conta_votos()
-                         }, 500);
-                }
-                conta_votos();
+			$("#soma_votos").empty();
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Sim: " + votos_sim + "</div></div>");
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Não: " + votos_nao + "</div></div>");
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Abstenções: " + votos_abstencao + "</div></div>");
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Ainda não votaram: " + nao_votou + "</div></div>");
+			var t = setTimeout(function(){
+						conta_votos()
+				}, 500);
+		}
+		conta_votos();
 
-                window.onload = conta_votos();
+		window.onload = conta_votos();
 
 		$(window).on('beforeunload', function () {
-            $("input[type=submit], input[type=button]").prop("disabled", "disabled");
-        });
+				$("input[type=submit], input[type=button]").prop("disabled", "disabled");
+		});
 
 	</script>
 {% endblock extra_js%}

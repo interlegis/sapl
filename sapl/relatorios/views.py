@@ -1111,7 +1111,6 @@ def get_pauta_sessao(sessao, casa):
             sessao_plenaria=sessao):
         materia = MateriaLegislativa.objects.filter(
             id=votacao.materia.id).first()
-
         dic_votacao = {}
         dic_votacao["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
         dic_votacao["num_ordem"] = votacao.numero_ordem

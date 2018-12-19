@@ -1,4 +1,4 @@
-
+from django.contrib import messages
 from datetime import datetime
 
 from crispy_forms.helper import FormHelper
@@ -23,11 +23,10 @@ from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone)
-from .models import (Bancada, Bloco, ExpedienteMateria, Orador, JustificativaAusencia,
-                     OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoResultadoVotacao, OcorrenciaSessao,
-                     RetiradaPauta, TipoRetiradaPauta)
-
+from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
+                     Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
+                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
+                     OcorrenciaSessao, RegistroVotacao, RetiradaPauta, TipoRetiradaPauta)
 
 
 def recupera_anos():
@@ -520,11 +519,42 @@ class OcorrenciaSessaoForm(ModelForm):
 
 
 class VotacaoForm(forms.Form):
-    votos_sim = forms.CharField(label='Sim')
-    votos_nao = forms.CharField(label='Não')
-    abstencoes = forms.CharField(label='Abstenções')
-    total_votos = forms.CharField(required=False, label='total')
+    votos_sim = forms.IntegerField(label='Sim')
+    votos_nao = forms.IntegerField(label='Não')
+    abstencoes = forms.IntegerField(label='Abstenções')
+    total_presentes = forms.IntegerField(required=False, widget=forms.HiddenInput())
+    voto_presidente = forms.IntegerField(label='A totalização inclui o voto do Presidente?')
+    total_votos = forms.IntegerField(required=False, label='total')
+    observacao = forms.CharField(required=False , label='Observação')
     resultado_votacao = forms.CharField(label='Resultado da Votação')
+
+    def clean(self):
+        cleaned_data = super(VotacaoForm, self).clean()
+        if not self.is_valid():
+            return cleaned_data
+
+        votos_sim = cleaned_data['votos_sim']
+        votos_nao = cleaned_data['votos_nao']
+        abstencoes = cleaned_data['abstencoes']
+        qtde_presentes = cleaned_data['total_presentes']
+        qtde_votos = votos_sim + votos_nao + abstencoes
+        voto_presidente = cleaned_data['voto_presidente']
+
+        if not voto_presidente:
+            qtde_presentes -= 1
+
+        if qtde_votos != qtde_presentes:
+            raise ValidationError('O total de votos não corresponde com a quantidade de presentes!')
+
+        return cleaned_data
+
+    # def save(self, commit=False):
+    #     #TODO Verificar se esse códido é utilizado
+
+    #     votacao = super(VotacaoForm, self).save(commit) 
+    #     votacao.materia = self.cleaned_data['materia']
+    #     votacao.save()
+    #     return votacao
 
 
 class VotacaoNominalForm(forms.Form):
@@ -891,3 +921,79 @@ class JustificativaAusenciaForm(ModelForm):
             justificativa.materias_do_expediente.clear()
             justificativa.materias_da_ordem_do_dia.clear()
         return justificativa
+
+
+class VotacaoEmBlocoFilterSet(MateriaLegislativaFilterSet):
+
+    o = MateriaPesquisaOrderingFilter()
+    tramitacao__status = django_filters.ModelChoiceFilter(
+        required=True,
+        queryset=StatusTramitacao.objects.all(),
+        label=_('Status da Matéria'))
+
+    class Meta:
+        model = MateriaLegislativa
+        fields = ['tramitacao__status',
+                  'numero',
+                  'numero_protocolo',
+                  'ano',
+                  'tipo',
+                  'data_apresentacao',
+                  'data_publicacao',
+                  'autoria__autor__tipo',
+                  # FIXME 'autoria__autor__partido',
+                  'relatoria__parlamentar_id',
+                  'local_origem_externa',
+                  'em_tramitacao',
+                  ]
+
+    def __init__(self, *args, **kwargs):
+        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
+        # self.filters['autoria__autor__partido'].label = 'Partido do Autor'
+        self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
+
+        row1 = to_row(
+            [('tramitacao__status', 12)])
+        row2 = to_row(
+            [('tipo', 12)])
+        row3 = to_row(
+            [('numero', 4),
+             ('ano', 4),
+             ('numero_protocolo', 4)])
+        row4 = to_row(
+            [('data_apresentacao', 6),
+             ('data_publicacao', 6)])
+        row5 = to_row(
+            [('autoria__autor', 0),
+             (Button('pesquisar',
+                     'Pesquisar Autor',
+                     css_class='btn btn-primary btn-sm'), 2),
+             (Button('limpar',
+                     'limpar Autor',
+                     css_class='btn btn-primary btn-sm'), 10)])
+        row6 = to_row(
+            [('autoria__autor__tipo', 6),
+             # ('autoria__autor__partido', 6)
+             ])
+        row7 = to_row(
+            [('relatoria__parlamentar_id', 6),
+             ('local_origem_externa', 6)])
+        row8 = to_row(
+            [('em_tramitacao', 6),
+             ('o', 6)])
+        row9 = to_row(
+            [('ementa', 12)])
+
+        self.form.helper = FormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Matéria'),
+                     row1, row2, row3,
+                     HTML(autor_label),
+                     HTML(autor_modal),
+                     row4, row5, row6, row7, row8, row9,
+                     form_actions(label='Pesquisar'))
+        )

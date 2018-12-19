@@ -1,0 +1,80 @@
+{% extends "crud/detail.html" %}
+{% load i18n crispy_forms_tags%}
+
+{% block detail_content %}
+<form id="form-votacao" method="post">
+	{% csrf_token %}
+
+	<fieldset class="form-group">
+		<legend>Votação Simbólica</legend>
+		
+		<div>
+			{% if ordens %}
+				{% for o in ordens %}
+					<input type="hidden" id="ordens" name="ordens" value="{{o.id}}">
+					<b>Matéria:</b> {{o.materia|safe}}
+					<br />
+					<b>Ementa:</b> {{o.materia.ementa|safe}}
+					<br /> <br />
+				{% endfor %}
+			{% else %}
+				{% for e in expedientes %}
+					<input type="hidden" id="expedientes" name="expedientes" value="{{e.id}}">
+					<b>Matéria:</b> {{e.materia|safe}}
+					<br />
+					<b>Ementa:</b> {{e.materia.ementa|safe}}
+					<br /> <br />
+				{% endfor %}
+			{% endif %}
+			<b>Total presentes:</b> {{total_presentes}} (com presidente)
+			<input type="hidden" id="total_presentes" name="total_presentes" value="{{total_presentes}}">
+		</div>
+		<br />
+		{% if total_presentes == 0 %}
+			<div class="alert alert-info alert-dismissible fade in" role="alert">
+				<div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
+			</div>
+			<a href="{% url 'sapl.sessao:sessaoplenaria_detail' pk %}" class="btn btn-warning">Voltar</a>
+		{% else %}
+
+			<div class="row">
+				<div class="col-md-4">Sim: <input type="text" id="votos_sim" name="votos_sim" value="" class="form-control"/></div>
+				<div class="col-md-4">Não: <input type="text" id="votos_nao" name="votos_nao" value="" class="form-control"/></div>
+				<div class="col-md-4">Abstenções: <input type="text" id="abstencoes" name="abstencoes" value="" class="form-control"/></div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-6">
+					A totalização inclui o voto do Presidente?
+					<select id="voto_presidente" name="voto_presidente" class="form-control">
+						<option value="1">Sim</option>
+						<option value="0" selected>Não</option>
+					</select>
+				</div>
+
+				<div class="col-md-6">
+					Resultado da Votação
+					<select id="resultado_votacao" name="resultado_votacao" class="form-control">
+						{% for tipo in resultado_votacao %}
+							<option value="{{tipo.id}}">{{tipo.nome}}</option>
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-12">
+					Observações
+					<textarea id="observacao" name="observacao" cols="10" rows="10" class="form-control"></textarea>
+				</div>
+			</div>
+
+			<input type="hidden" id="origem" name="origem" value="{{origem}}">
+
+			<br /><br />
+			<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Salvar" class="btn btn-primary" />
+			<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="btn btn-warning" />
+		{% endif %}
+	</fieldset>
+</form>
+{% endblock detail_content %}
