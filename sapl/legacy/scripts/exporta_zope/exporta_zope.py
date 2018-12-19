@@ -395,16 +395,17 @@ def _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar, mtimes):
 
     try:
         sapl = find_sapl(app)
-        if sapl == {'id': 'sapl'}:
+        if ('sapl_documentos' in app and
+                type(app['sapl_documentos']).__name__ == 'Folder'):
             # em algumas instalações sapl_documentos está direto na raiz
             docs = br(app['sapl_documentos'])
         else:
             # caso mais comum
             docs = br(sapl['sapl_documentos'])
 
-            # extrai folhas XSLT (segunda tentativa)
-            if 'XSLT' in sapl:
-                dump_folder(br(sapl['XSLT']), destino, salvar, mtimes)
+        # extrai folhas XSLT (segunda tentativa)
+        if 'XSLT' in sapl:
+            dump_folder(br(sapl['XSLT']), destino, salvar, mtimes)
 
         # extrai documentos
         with logando_nao_identificados():
