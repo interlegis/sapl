@@ -23,7 +23,11 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,
                     RelatorioPresencaSessaoView, 
-                    RelatorioReuniaoView, SaplSearchView)
+                    RelatorioReuniaoView, SaplSearchView,
+                    RelatorioNormasPublicadasMesView,
+                    RelatorioNormasVigenciaView,
+                    EstatisticasAcessoNormas,
+                    RelatoriosListView)
 
 app_name = AppConfig.name
 
@@ -84,10 +88,16 @@ urlpatterns = [
     url(r'^sistema/app-config/', include(AppConfigCrud.get_urls())),
 
     # TODO mover estas telas para a app 'relatorios'
-    url(r'^sistema/relatorios/$', TemplateView.as_view(
-        template_name='base/relatorios_list.html'), name='relatorios_list'),
+    url(r'^sistema/relatorios/$', 
+        RelatoriosListView.as_view(), name='relatorios_list'),
     url(r'^sistema/relatorios/materia-por-autor$',
         RelatorioMateriasPorAutorView.as_view(), name='materia_por_autor'),
+    url(r'^sistema/relatorios/relatorio-por-mes$',
+        RelatorioNormasPublicadasMesView.as_view(), name='normas_por_mes'),
+    url(r'^sistema/relatorios/relatorio-por-vigencia$',
+        RelatorioNormasVigenciaView.as_view(), name='normas_por_vigencia'),
+    url(r'^sistema/relatorios/estatisticas-acesso$',
+        EstatisticasAcessoNormas.as_view(), name='estatisticas_acesso'),
     url(r'^sistema/relatorios/materia-por-ano-autor-tipo$',
         RelatorioMateriasPorAnoAutorTipoView.as_view(),
         name='materia_por_ano_autor_tipo'),

@@ -1,6 +1,8 @@
 
-import re
 import logging
+import re
+import sapl
+import weasyprint
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,8 +15,6 @@ from django.views.generic import TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
-import weasyprint
-import sapl
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -24,7 +24,7 @@ from sapl.utils import show_results_filter_set
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm, AutoriaNormaForm)
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
-                     TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma)
+                     TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma, NormaEstatisticas)
 
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
@@ -190,7 +190,13 @@ class NormaCrud(Crud):
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
     class DetailView(Crud.DetailView):
-        pass
+        def get(self, request, *args, **kwargs):
+            estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
+            if estatisticas_acesso_normas == 'S':
+                NormaEstatisticas.objects.create(usuario=str(self.request.user),
+                                                norma_id=kwargs['pk'])
+            return super().get(request, *args, **kwargs)
+            
 
     class DeleteView(Crud.DeleteView):
 
@@ -225,7 +231,7 @@ class NormaCrud(Crud):
     class ListView(Crud.ListView, RedirectView):
 
         def get_redirect_url(self, *args, **kwargs):
-            namespace = self.model._meta.app_config.name
+            namespace = self.model._meta.app_config.name    
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
         def get(self, request, *args, **kwargs):

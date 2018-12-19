@@ -191,6 +191,18 @@ class NormaJuridica(models.Model):
                                  update_fields=update_fields)
 
 
+class NormaEstatisticas(models.Model):
+    usuario = models.CharField(max_length=50)
+    horario_acesso = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True)
+    norma = models.ForeignKey(NormaJuridica,
+                             on_delete=models.CASCADE)
+    def __str__(self):
+        return _('Usuário: %(usuario)s, Norma: %(norma)s') % {
+            'usuario': self.usuario, 'norma': self.norma}
+
+
 @reversion.register()
 class AutoriaNorma(models.Model):
     autor = models.ForeignKey(Autor,

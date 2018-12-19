@@ -1,3 +1,5 @@
+import collections
+import datetime
 import logging
 import os
 
@@ -30,6 +32,7 @@ from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
+from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
 from sapl.utils import (parlamentares_ativos,
@@ -45,7 +48,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioMateriasTramitacaoilterSet,
                     RelatorioPresencaSessaoFilterSet,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
-                    UsuarioEditForm)
+                    UsuarioEditForm, RelatorioNormasMesFilterSet,
+                    RelatorioNormasVigenciaFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -274,6 +278,20 @@ class AutorCrud(CrudAux):
                     'user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
 
             return url_reverse
+
+
+class RelatoriosListView(TemplateView):
+    template_name='base/relatorios_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TemplateView, self).get_context_data(**kwargs)
+        estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
+        if estatisticas_acesso_normas == 'S':
+            context['estatisticas_acesso_normas'] = True
+        else:
+            context['estatisticas_acesso_normas'] = False
+
+        return context
 
 
 class RelatorioAtasView(FilterView):
@@ -740,6 +758,145 @@ class RelatorioMateriasPorAutorView(FilterView):
         context['periodo'] = (
             self.request.GET['data_apresentacao_0'] +
             ' - ' + self.request.GET['data_apresentacao_1'])
+
+        return context
+
+
+class RelatorioNormasPublicadasMesView(FilterView):
+    model = NormaJuridica
+    filterset_class = RelatorioNormasMesFilterSet
+    template_name = 'base/RelatorioNormaMes_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioNormasPublicadasMesView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Normas')
+
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+        context['ano'] = self.request.GET['ano']
+
+        normas_mes = collections.OrderedDict()
+        meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
+                7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
+        for norma in context['object_list']:
+            if not meses[norma.data.month] in normas_mes:
+                normas_mes[meses[norma.data.month]] = []
+            normas_mes[meses[norma.data.month]].append(norma)
+        
+        context['normas_mes'] = normas_mes
+        
+        quant_normas_mes = {}
+        for key in normas_mes.keys():
+            quant_normas_mes[key] = len(normas_mes[key])
+
+        context['quant_normas_mes'] = quant_normas_mes
+
+        return context
+
+
+class RelatorioNormasVigenciaView(FilterView):
+    model = NormaJuridica
+    filterset_class = RelatorioNormasVigenciaFilterSet
+    template_name = 'base/RelatorioNormasVigencia_filter.html'
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(RelatorioNormasVigenciaView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+        qs = self.get_queryset().order_by('data').distinct()
+        if kwargs['data']:
+            ano = kwargs['data']['ano']
+            vigencia = kwargs['data']['vigencia']
+            qs = qs.filter(ano=ano)
+            if vigencia == 'True':
+                qs_dt_not_null = qs.filter(data_vigencia__isnull=True)
+                qs = (qs_dt_not_null | qs.filter(data_vigencia__gte=datetime.datetime.now().date())).distinct()
+            else:
+                qs = qs.filter(data_vigencia__lt=datetime.datetime.now().date())
+
+        kwargs.update({
+            'queryset': qs
+        })
+        return kwargs
+
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioNormasVigenciaView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Normas por vigência')
+
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        normas_totais = NormaJuridica.objects.filter(ano=self.request.GET['ano'])
+        
+        context['quant_total'] = len(normas_totais)
+        if self.request.GET['vigencia'] == 'True':
+            context['vigencia'] = 'Vigente'
+            context['quant_vigente'] = len(context['object_list'])
+            context['quant_nao_vigente'] = context['quant_total'] - context['quant_vigente']
+        else:
+            context['vigencia'] = 'Não vigente'
+            context['quant_nao_vigente'] = len(context['object_list'])
+            context['quant_vigente'] = context['quant_total'] - context['quant_nao_vigente']
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+        context['ano'] = self.request.GET['ano']
+
+        return context
+
+
+class EstatisticasAcessoNormas(FilterView):
+    model = NormaJuridica
+    filterset_class = RelatorioNormasMesFilterSet
+    template_name = 'base/EstatisticasAcessoNormas_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(EstatisticasAcessoNormas,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Normas')
+
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+        context['ano'] = self.request.GET['ano']
+
+        normas_mes = collections.OrderedDict()
+        meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
+                7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
+        for norma in context['object_list']:
+            if not meses[norma.data.month] in normas_mes:
+                normas_mes[meses[norma.data.month]] = []
+            norma_est = [norma, len(NormaEstatisticas.objects.filter(norma=norma))]
+            normas_mes[meses[norma.data.month]].append(norma_est)
+        
+        meses_sem_acesso = []
+        # Ordena por acesso e limita em 5
+        for n in normas_mes:
+            sorted_by_value = sorted(normas_mes[n], key=lambda kv: kv[1], reverse=True)
+            normas_mes[n] = sorted_by_value[0:5]
+            if all(v[1]==0 for v in normas_mes[n]):
+                meses_sem_acesso.append(n)
+        
+        context['normas_mes'] = normas_mes
+        context['meses_sem_acesso'] = meses_sem_acesso
 
         return context
 

@@ -139,6 +139,7 @@ rules_group_norma = {
         (norma.NormaRelacionada, __base__),
         (norma.AnexoNormaJuridica, __base__),
         (norma.AutoriaNorma, __base__),
+        (norma.NormaEstatisticas, __base__),
 
         # Publicacao está com permissão apenas para norma e não para matéria
         # e proposições apenas por análise do contexto, não é uma limitação
@@ -242,6 +243,7 @@ rules_group_geral = {
         (norma.AssuntoNorma, __base__),
         (norma.TipoNormaJuridica, __base__),
         (norma.TipoVinculoNormaJuridica, __base__),
+        (norma.NormaEstatisticas, __base__),
 
         (parlamentares.Legislatura, __base__),
         (parlamentares.SessaoLegislativa, __base__),
