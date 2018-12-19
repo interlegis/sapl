@@ -41,13 +41,6 @@ ORDENACAO_CHOICES = [('', '---------'),
 
 class NormaFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-            'widget': RangeWidgetOverride}
-    }}
-
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano',
                                       choices=ANO_CHOICES)
@@ -63,6 +56,12 @@ class NormaFilterSet(django_filters.FilterSet):
     o = NormaPesquisaOrderingFilter()
 
     class Meta:
+        filter_overrides = {models.DateField: {
+            'filter_class': django_filters.DateFromToRangeFilter,
+            'extra': lambda f: {
+                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+                'widget': RangeWidgetOverride}
+        }}
         model = NormaJuridica
         fields = ['tipo', 'numero', 'ano', 'data', 'data_vigencia',
                   'data_publicacao', 'ementa', 'assuntos']
