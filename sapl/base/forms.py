@@ -748,6 +748,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         self.filters['ano'].label = 'Ano'
         self.form.fields['ano'].required = True
         self.form.fields['vigencia'] = self.vigencia
+        self.form.fields['vigencia'].initial = True
 
         row1 = to_row([('ano', 12)])
         row2 = to_row([('vigencia', 12)])
