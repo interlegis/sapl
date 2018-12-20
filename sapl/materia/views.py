@@ -1810,6 +1810,8 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['show_results'] = show_results_filter_set(qr)
 
+        context['USE_SOLR'] = settings.USE_SOLR if hasattr(settings, 'USE_SOLR') else False
+
         return context
 
 

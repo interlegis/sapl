@@ -15,6 +15,7 @@ from django.views.generic import TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+from sapl import settings
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -107,6 +108,7 @@ class NormaPesquisaView(FilterView):
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
+        context['USE_SOLR'] = settings.USE_SOLR if hasattr(settings, 'USE_SOLR') else False
 
         return context
 
