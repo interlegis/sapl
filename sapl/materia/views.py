@@ -2039,24 +2039,41 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         if not request.POST['data_encaminhamento']:
             data_encaminhamento = None
         else:
-            data_encaminhamento = tz.localize(datetime.strptime(
-                request.POST['data_encaminhamento'], "%d/%m/%Y"))
+            try:
+                data_encaminhamento = tz.localize(datetime.strptime(
+                    request.POST['data_encaminhamento'], "%d/%m/%Y"))
+            except ValueError:
+                msg = _('Formato da data de encaminhamento incorreto.')
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs)
 
         if request.POST['data_fim_prazo'] == '':
             data_fim_prazo = None
         else:
-            data_fim_prazo = tz.localize(datetime.strptime(
-                request.POST['data_fim_prazo'], "%d/%m/%Y"))
+            try:
+                data_fim_prazo = tz.localize(datetime.strptime(
+                    request.POST['data_fim_prazo'], "%d/%m/%Y"))
+            except ValueError:
+                msg = _('Formato da data fim do prazo incorreto.')
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs)
 
         # issue https://github.com/interlegis/sapl/issues/1123
         # TODO: usar Form
         urgente = request.POST['urgente'] == 'True'
         flag_error = False
         for materia_id in marcadas:
+            try:
+                data_tramitacao = tz.localize(datetime.strptime(
+                        request.POST['data_tramitacao'], "%d/%m/%Y"))
+            except ValueError:
+                msg = _('Formato da data da tramitação incorreto.')
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs)
+            
             t = Tramitacao(
                 materia_id=materia_id,
-                data_tramitacao=tz.localize(datetime.strptime(
-                    request.POST['data_tramitacao'], "%d/%m/%Y")),
+                data_tramitacao=data_tramitacao,
                 data_encaminhamento=data_encaminhamento,
                 data_fim_prazo=data_fim_prazo,
                 unidade_tramitacao_local_id=request.POST[
