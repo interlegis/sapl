@@ -728,43 +728,32 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
         return parent.distinct().order_by('data')
 
 
-class EstatisticasAcessoNormasFilterSet(django_filters.FilterSet):
+class EstatisticasAcessoNormasForm(Form):
 
-    ano = django_filters.ChoiceFilter(required=True,
-                                      label='Ano de acesso',
-                                      choices=RANGE_ANOS)
-
-    filter_overrides = {models.DateField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': '%s (%s)' % (f.verbose_name, _('Ano')),
-            'widget': RangeWidgetOverride}
-    }}
-
+    ano = forms.ChoiceField(required=True,
+                            label='Ano de acesso',
+                            choices=RANGE_ANOS)
 
     class Meta:
-        model = NormaEstatisticas
         fields = ['ano']
     
     def __init__(self, *args, **kwargs):
-        super(EstatisticasAcessoNormasFilterSet, self).__init__(
+        super(EstatisticasAcessoNormasForm, self).__init__(
             *args, **kwargs)
-        self.filters['ano'].label = 'Ano'
-        self.form.fields['ano'].required = True
 
         row1 = to_row([('ano', 12)])
 
-        self.form.helper = FormHelper()
-        self.form.helper.form_method = 'GET'
-        self.form.helper.layout = Layout(
+        self.helper = FormHelper()
+        self.helper.form_method = 'GET'
+        self.helper.layout = Layout(
             Fieldset(_('Normas por acessos nos meses do ano.'),
                      row1, form_actions(label='Pesquisar'))
         )
 
-    @property
-    def qs(self):
-        parent = super(EstatisticasAcessoNormasFilterSet, self).qs
-        return parent.distinct().order_by('horario_acesso')
+    def clean(self):
+        super(EstatisticasAcessoNormasForm, self).clean()
+
+        return self.cleaned_data
 
 
 class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):

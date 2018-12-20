@@ -51,7 +51,7 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
                     RelatorioNormasVigenciaFilterSet,
-                    EstatisticasAcessoNormasFilterSet)
+                    EstatisticasAcessoNormasForm)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -860,24 +860,20 @@ class RelatorioNormasVigenciaView(FilterView):
         return context
 
 
-class EstatisticasAcessoNormas(FilterView):
-    model = NormaEstatisticas
-    filterset_class = EstatisticasAcessoNormasFilterSet
+class EstatisticasAcessoNormas(TemplateView):
     template_name = 'base/EstatisticasAcessoNormas_filter.html'
 
-    def get_context_data(self, **kwargs):
+    def get(self, request, *args, **kwargs):
         context = super(EstatisticasAcessoNormas,
                         self).get_context_data(**kwargs)
         context['title'] = _('Normas')
 
-        # Verifica se os campos foram preenchidos
-        if not self.filterset.form.is_valid():
-            return context
+        form = EstatisticasAcessoNormasForm(request.GET or None)
+        context['form'] = form
 
-        qr = self.request.GET.copy()
-        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        if not form.is_valid():
+            return self.render_to_response(context)
 
-        context['show_results'] = show_results_filter_set(qr)
         context['ano'] = self.request.GET['ano']
         
         query = '''
@@ -905,12 +901,10 @@ class EstatisticasAcessoNormas(FilterView):
         for n in normas_mes:
             sorted_by_value = sorted(normas_mes[n], key=lambda kv: kv[1], reverse=True)
             normas_mes[n] = sorted_by_value[0:5]
-
-        import ipdb; ipdb.set_trace()
         
         context['normas_mes'] = normas_mes
 
-        return context
+        return self.render_to_response(context)
 
 
 class ListarUsuarioView(PermissionRequiredMixin, ListView):
