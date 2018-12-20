@@ -54,7 +54,7 @@ create_env
 
 NUM_SHARDS=""${NUM_SHARDS-1}"
 RF=""${RF-1}"
-MAX_SHARDS_PER_NODE=""${NUM_SHARDS-1}"
+MAX_SHARDS_PER_NODE=""${MAX_SHARDS_PER_NODE-1}"
 
 # Verifica se a variável USE_SOLR foi definida e é igual a True
 if [[ ! -z "$USE_SOLR" ]] && [[ "$USE_SOLR" = "True" ]]; then
