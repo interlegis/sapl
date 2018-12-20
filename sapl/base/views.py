@@ -1170,8 +1170,7 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum parlamentar com mandatos com interseção cadastrado no'
-        + ' sistema.'
+            ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1207,8 +1206,7 @@ class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhuma matéria legislativa vinculada a um protocolo'
-        + ' inexistente cadastrada no sistema.'
+            ] = 'Nenhuma encontrada.'
         return context
 
 
@@ -1241,8 +1239,7 @@ class ListarProtocolosMateriasView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum protocolo vinculado a mais de uma matéria'
-        + ' legislativa cadastrado no sistema.'
+            ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1277,7 +1274,7 @@ class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum protocolo duplicado cadastrado no sistema.'
+            ] = 'Nenhum encontrado.'
         return context
 
 
