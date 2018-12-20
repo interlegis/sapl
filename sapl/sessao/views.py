@@ -3280,7 +3280,7 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
         pass
 
 
-class VotacaoEmBlocoExpediente(ListView):
+class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
 
     model = ExpedienteMateria
     template_name = 'sessao/votacao/votacao_bloco_expediente.html'
@@ -3303,7 +3303,7 @@ class VotacaoEmBlocoExpediente(ListView):
         return context
 
 
-class VotacaoEmBlocoOrdemDia(ListView):
+class VotacaoEmBlocoOrdemDia(PermissionRequiredForAppCrudMixin, ListView):
     model = OrdemDia
     template_name = 'sessao/votacao/votacao_bloco_ordem.html'
     app_label = AppConfig.label
@@ -3325,7 +3325,7 @@ class VotacaoEmBlocoOrdemDia(ListView):
         return context
 
 
-class VotacaoEmBlocoSimbolicaView(TemplateView):
+class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateView):
 
     """
         Votação Simbólica
@@ -3502,7 +3502,7 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
         return self.render_to_response(context)
 
 
-class VotacaoEmBlocoNominalView(TemplateView):
+class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView):
     """
         Votação Nominal
     """
