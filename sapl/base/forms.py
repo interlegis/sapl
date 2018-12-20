@@ -766,7 +766,8 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         label=_('Vigência'),
         choices=[(True, "Vigente"), (False, "Não vigente")],
         widget=forms.RadioSelect(),
-        required=True)
+        required=True,
+        initial=True)
 
     
     def __init__(self, *args, **kwargs):
@@ -776,7 +777,6 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         self.filters['ano'].label = 'Ano'
         self.form.fields['ano'].required = True
         self.form.fields['vigencia'] = self.vigencia
-        self.form.fields['vigencia'].initial = True
 
         row1 = to_row([('ano', 12)])
         row2 = to_row([('vigencia', 12)])
