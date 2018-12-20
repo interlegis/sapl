@@ -694,15 +694,13 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
                                       label='Ano da Norma',
                                       choices=RANGE_ANOS)
 
-    filter_overrides = {models.DateField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': '%s (%s)' % (f.verbose_name, _('Ano')),
-            'widget': RangeWidgetOverride}
-    }}
-
-
     class Meta:
+        filter_overrides = {models.DateField: {
+            'filter_class': django_filters.DateFromToRangeFilter,
+            'extra': lambda f: {
+                'label': '%s (%s)' % (f.verbose_name, _('Ano')),
+                'widget': RangeWidgetOverride}
+        }}
         model = NormaJuridica
         fields = ['ano']
     
