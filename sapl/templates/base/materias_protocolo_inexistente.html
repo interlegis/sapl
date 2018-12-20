@@ -20,7 +20,7 @@
                   {% for materia, ano, numero_protocolo in materias_protocolo_inexistente %}
                     <tr>
                       <td>
-                         <a href="{% url 'sapl.materia:pesquisar_materia' %}?&numero={{materia.numero}}&numero_protocolo={{numero_protocolo}}&ano={{ano}}">{{ materia }}</a>
+                         <a href="{% url 'sapl_index' %}materia/{{ materia.pk }}">{{ materia }}</a>
                       </td>
                       <td>{{ ano }}</td>
                       <td>{{ numero_protocolo }}</td>
