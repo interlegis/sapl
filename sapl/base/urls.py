@@ -31,7 +31,8 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarInconsistenciasView, ListarProtocolosDuplicadosView,
                     ListarProtocolosMateriasView,
                     ListarMatProtocoloInexistenteView,
-                    ListarParlMandatosIntersecaoView)
+                    ListarParlMandatosIntersecaoView,
+                    ListarAutoresDuplicadosView)
 
 app_name = AppConfig.name
 
@@ -146,6 +147,9 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/parlamentares_mandatos_intersecao$',
         ListarParlMandatosIntersecaoView.as_view(),
         name='lista_parlamentares_mandatos_intersecao'),
+    url(r'^sistema/inconsistencias/autores_duplicados$',
+        ListarAutoresDuplicadosView.as_view(),
+        name='lista_autores_duplicados'),
 
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')
