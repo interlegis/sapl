@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 create_env() {
     echo "[ENV FILE] creating .env file..."
@@ -48,17 +48,32 @@ create_env
 
 #python3 manage.py bower install
 
-/bin/sh busy-wait.sh $DATABASE_URL
+/bin/bash busy-wait.sh $DATABASE_URL
 
 ## SOLR
+USE_SOLR="${USE_SOLR:=False}"
+SOLR_URL="${SOLR_URL:='http://saplsolr:8983'}"
+SOLR_COLLECTION="${SOLR_COLLECTION:='sapl_$RANDOM'}"
 
 NUM_SHARDS=${NUM_SHARDS:=1}
 RF=${RF:=1}
 MAX_SHARDS_PER_NODE=${MAX_SHARDS_PER_NODE:=1}
 
 if [ "${USE_SOLR-False}" == "True" ]; then
+
+    echo "SOLR configurations"
+    echo "==================="
+    echo "URL: $SOLR_URL"
+    echo "COLLECTION: $SOLR_COLLECTION"
+    echo "NUM_SHARDS: $NUM_SHARDS"
+    echo "REPLICATION FACTOR: $RF"
+    echo "MAX SHARDS PER NODE: $MAX_SHARDS_PER_NODE"
+    echo "========================================="
+
     python3 solr_api.py -u $SOLR_URL -c $SOLR_COLLECTION -s $NUM_SHARDS -rf $RF -ms $MAX_SHARDS_PER_NODE &
     # python3 manage.py rebuild_index --noinput &
+else
+    echo "Suporte a SOLR não inicializado."
 fi
 
 # manage.py migrate --noinput nao funcionava
