@@ -1436,25 +1436,70 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         tabela.append(
             ('protocolos_duplicados',
              'Protocolos duplicados',
-             len(protocolos_duplicados()))
+             len(protocolos_duplicados())
              )
+        )
         tabela.append(
             ('protocolos_materias',
              'Protocolos que excedem o limite de matérias vinculadas',
-             len(protocolos_materias()))
+             len(protocolos_materias())
              )
+        )
         tabela.append(
             ('materias_protocolo_inexistente',
              'Matérias Legislativas com protocolo inexistente',
-             len(materias_protocolo_inexistente()))
+             len(materias_protocolo_inexistente())
              )
+        )
         tabela.append(
             ('parlamentares_mandatos_intersecao',
              'Parlamentares com mandatos com interseção',
-             len(parlamentares_mandatos_intersecao()))
+             len(parlamentares_mandatos_intersecao())
              )
+        )
+        tabela.append(
+            ('autores_duplicados',
+             'Autores duplicados',
+             len(autores_duplicados()) 
+            )
+        )
 
         return tabela
+
+
+def autores_duplicados():
+    autores = {}
+    for a in Autor.objects.all():
+        key = "{}".format(a.nome)
+        val = autores.get(key, list())
+        val.append(a)
+        autores[key] = val
+
+    lista_duplicados = [v for (k, v) in autores.items() if len(v) > 1]
+    return [(v[0], len(v)) for v in lista_duplicados]
+
+
+class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/autores_duplicados.html'
+    context_object_name = 'autores_duplicados'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return autores_duplicados()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarAutoresDuplicadosView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
 
 
 def parlamentares_mandatos_intersecao():
