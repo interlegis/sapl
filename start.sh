@@ -69,6 +69,8 @@ if [ "${USE_SOLR-False}" == "True" ]; then
     echo "REPLICATION FACTOR: $RF"
     echo "MAX SHARDS PER NODE: $MAX_SHARDS_PER_NODE"
     echo "========================================="
+    
+    /bin/bash check_solr.sh
 
     python3 solr_api.py -u $SOLR_URL -c $SOLR_COLLECTION -s $NUM_SHARDS -rf $RF -ms $MAX_SHARDS_PER_NODE &
     # python3 manage.py rebuild_index --noinput &
