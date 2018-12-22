@@ -37,7 +37,7 @@ create_env() {
     echo "DEFAULT_FROM_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "SERVER_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "USE_SOLR = ""${USE_SOLR-False}" >> $FILENAME
-    echo "SOLR_COLLECTION = ""${SOLR_COLLECTION-'sapl'}" >> $FILENAME
+    echo "SOLR_COLLECTION = ""${SOLR_COLLECTION-'sapl_$RANDOM'}" >> $FILENAME
     echo "SOLR_URL = ""${SOLR_URL-'http://saplsolr:8983'}" >> $FILENAME
 
     
