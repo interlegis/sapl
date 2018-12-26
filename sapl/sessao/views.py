@@ -1902,7 +1902,8 @@ class VotacaoView(SessaoPermissionMixin):
                 qtde_presentes -= 1
 
             if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
-                form._errors["total_votos"] = ErrorList([u""])
+                msg = _('O total de votos não corresponde com a quantidade de presentes!')
+                messages.add_message(request, messages.ERROR, msg)
                 return self.render_to_response(context)
             elif (qtde_presentes == qtde_votos):
                 try:
@@ -3330,7 +3331,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
     """
         Votação Simbólica
     """
-
+    app_label = AppConfig.label
     template_name = 'sessao/votacao/votacao_simbolica_bloco.html'
     logger = logging.getLogger(__name__)
 
@@ -3506,6 +3507,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
     """
         Votação Nominal
     """
+    app_label = AppConfig.label
     template_name = 'sessao/votacao/votacao_nominal_bloco.html'
     logger = logging.getLogger(__name__)
 
