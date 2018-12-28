@@ -540,10 +540,10 @@ class VotacaoForm(forms.Form):
         qtde_votos = votos_sim + votos_nao + abstencoes
         voto_presidente = cleaned_data['voto_presidente']
 
-        if not voto_presidente:
+        if qtde_presentes and not voto_presidente:
             qtde_presentes -= 1
 
-        if qtde_votos != qtde_presentes:
+        if qtde_presentes and qtde_votos != qtde_presentes:
             raise ValidationError('O total de votos não corresponde com a quantidade de presentes!')
 
         return cleaned_data
