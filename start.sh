@@ -38,7 +38,7 @@ create_env() {
     echo "SERVER_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "USE_SOLR = ""${USE_SOLR-False}" >> $FILENAME
     echo "SOLR_COLLECTION = ""${SOLR_COLLECTION-'sapl_$RANDOM'}" >> $FILENAME
-    echo "SOLR_URL = ""${SOLR_URL-'http://saplsolr:8983'}" >> $FILENAME
+    echo "SOLR_URL = ""${SOLR_URL-'http://localhost:8983'}" >> $FILENAME
 
     
     echo "[ENV FILE] done."
@@ -50,9 +50,15 @@ create_env
 
 /bin/bash busy-wait.sh $DATABASE_URL
 
+
+# manage.py migrate --noinput nao funcionava
+yes yes | python3 manage.py migrate
+# python3 manage.py collectstatic --no-input
+
+
 ## SOLR
 USE_SOLR="${USE_SOLR:=False}"
-SOLR_URL="${SOLR_URL:='http://saplsolr:8983'}"
+SOLR_URL="${SOLR_URL:='http://localhost:8983'}"
 SOLR_COLLECTION="${SOLR_COLLECTION:='sapl_$RANDOM'}"
 
 NUM_SHARDS=${NUM_SHARDS:=1}
@@ -77,11 +83,6 @@ if [ "${USE_SOLR-False}" == "True" ]; then
 else
     echo "Suporte a SOLR não inicializado."
 fi
-
-# manage.py migrate --noinput nao funcionava
-yes yes | python3 manage.py migrate
-# python3 manage.py collectstatic --no-input
-
 
 echo "Criando usuário admin..."
 
