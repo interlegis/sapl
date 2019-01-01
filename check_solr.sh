@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Pass the base SOLR URL as parameter, i.e., bash check_solr http://localhost:8983
+
+SOLR_URL=$1
+
 echo "Waiting for solr connection at $SOLR_URL ..."
 while true; do
    echo "$SOLR_URL/solr/admin/collections?action=LIST"
