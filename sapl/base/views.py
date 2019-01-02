@@ -38,7 +38,7 @@ from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca)
+                                SessaoPlenariaPresenca, Bancada)
 from sapl.utils import (parlamentares_ativos,
                         show_results_filter_set, mail_service_configured,
                         intervalos_tem_intersecao)
@@ -953,16 +953,91 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         tabela.append(
             ('autores_duplicados',
              'Autores duplicados',
-             len(autores_duplicados()) 
-            )
+             len(autores_duplicados())
+             )
+        )
+        tabela.append(
+            ('bancada_comissao_autor_externo',
+             'Bancadas e Comissões com autor externo',
+             len(bancada_comissao_autor_externo())
+             )
         )
 
         return tabela
 
 
+def bancada_comissao_autor_externo():
+    lista_bancada_autor_externo = []
+    lista_comissao_autor_externo = []
+
+    tipo_autor_externo = TipoAutor.objects.filter(descricao='Externo')
+
+    for bancada in Bancada.objects.all():
+        autor_externo = bancada.autor.filter(tipo=tipo_autor_externo)
+
+        # if len(autor_externo) == 1:
+
+        if len(autor_externo) > 0:
+            q_autor_externo = bancada.autor.get(tipo=tipo_autor_externo)
+            lista_bancada_autor_externo.append(
+                (q_autor_externo, bancada, 'Bancada')
+            )
+
+        # elif len(autor_externo) > 1:
+        #    q_autor_externo = bancada.autor.get(tipo=tipo_autor_externo)
+        #    for autor in q_autor_externo:
+        #        lista_bancada_autor_externo.append(
+        #            (q_autor_externo, bancada, 'Bancada')
+        #        )
+
+    for comissao in Comissao.objects.all():
+        autor_externo = comissao.autor.filter(tipo=tipo_autor_externo)
+
+        # if len(autor_externo) == 1:
+
+        if len(autor_externo) > 0:
+            q_autor_externo = comissao.autor.get(tipo=tipo_autor_externo)
+            lista_comissao_autor_externo.append(
+                (q_autor_externo, comissao, 'Comissão')
+            )
+
+        # elif len(autor_externo) > 1:
+        #     q_autor_externo = comissao.autor.get(tipo=tipo_autor_externo)
+        #     for autor in q_autor_externo:
+        #         lista_comissao_autor_externo.append(
+        #             (q_autor_externo, comissao, 'Comissão')
+        #         )
+
+    return lista_bancada_autor_externo + lista_comissao_autor_externo
+
+
+class ListarBancadaComissaoAutorExternoView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/bancada_comissao_autor_externo.html'
+    context_object_name = 'bancada_comissao_autor_externo'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return bancada_comissao_autor_externo()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarBancadaComissaoAutorExternoView, self
+            ).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
+
+
 def autores_duplicados():
     autores = {}
-    for a in Autor.objects.all():
+    for a in Autor.objects.all().order_by('nome'):
         key = "{}".format(a.nome)
         val = autores.get(key, list())
         val.append(a)
@@ -997,7 +1072,7 @@ class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
 
 def parlamentares_mandatos_intersecao():
     intersecoes = []
-    for parlamentar in Parlamentar.objects.all():
+    for parlamentar in Parlamentar.objects.all().order_by('nome_completo'):
         mandatos = parlamentar.mandato_set.all()
         length = len(mandatos)
         if mandatos and length > 1:
