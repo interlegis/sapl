@@ -36,7 +36,6 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarBancadaComissaoAutorExternoView,
                     ListarLegislaturaInfindavelView)
 
-
 app_name = AppConfig.name
 
 admin_user = [
