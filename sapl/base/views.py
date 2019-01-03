@@ -972,7 +972,7 @@ def bancada_comissao_autor_externo():
 
     tipo_autor_externo = TipoAutor.objects.filter(descricao='Externo')
 
-    for bancada in Bancada.objects.all():
+    for bancada in Bancada.objects.all().order_by('nome'):
         autor_externo = bancada.autor.filter(tipo=tipo_autor_externo)
 
         # if len(autor_externo) == 1:
@@ -990,7 +990,7 @@ def bancada_comissao_autor_externo():
         #            (q_autor_externo, bancada, 'Bancada')
         #        )
 
-    for comissao in Comissao.objects.all():
+    for comissao in Comissao.objects.all().order_by('nome'):
         autor_externo = comissao.autor.filter(tipo=tipo_autor_externo)
 
         # if len(autor_externo) == 1:
@@ -1116,7 +1116,7 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
 
 def materias_protocolo_inexistente():
     materias = []
-    for materia in MateriaLegislativa.objects.all().order_by('-ano'):
+    for materia in MateriaLegislativa.objects.order_by('-ano', 'numero'):
         if materia.numero_protocolo:
             exists = Protocolo.objects.filter(
                 ano=materia.ano, numero=materia.numero_protocolo).exists()
@@ -1152,7 +1152,7 @@ class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
 
 def protocolos_materias():
     protocolos = []
-    for protocolo in Protocolo.objects.all():
+    for protocolo in Protocolo.objects.order_by('-ano', 'numero'):
         materias_protocolo = MateriaLegislativa.objects.filter(
             ano=protocolo.ano, numero_protocolo=protocolo.numero)
         if len(materias_protocolo) > 1:
@@ -1185,7 +1185,7 @@ class ListarProtocolosMateriasView(PermissionRequiredMixin, ListView):
 
 def protocolos_duplicados():
     protocolos = {}
-    for p in Protocolo.objects.all():
+    for p in Protocolo.objects.order_by('-ano', 'numero'):
         key = "{}/{}".format(p.numero, p.ano)
         val = protocolos.get(key, list())
         val.append(p)
