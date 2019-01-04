@@ -32,7 +32,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField, ImageThumbnailFileInput,
                         RangeWidgetOverride, autor_label, autor_modal,
                         models_with_gr_for_model, qs_override_django_filter,
-                        choice_anos_com_normas)
+                        choice_anos_com_normas, choice_anos_com_materias)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -749,7 +749,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
-                                      choices=RANGE_ANOS)
+                                      choices=choice_anos_com_normas)
 
     vigencia = forms.ChoiceField(
         label=_('Vigência'),
@@ -958,7 +958,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Matéria',
-                                      choices=RANGE_ANOS)
+                                      choices=choice_anos_com_materias)
 
     tramitacao__unidade_tramitacao_destino = django_filters.ModelChoiceFilter(
         queryset=UnidadeTramitacao.objects.all(),
@@ -1002,7 +1002,7 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Matéria',
-                                      choices=RANGE_ANOS)
+                                      choices=choice_anos_com_materias)
 
     class Meta:
         model = MateriaLegislativa
