@@ -37,10 +37,6 @@ NATUREZA_PROCESSO = [('', '---------'),
                      ('1', 'Legislativo')]
 
 
-def ANO_CHOICES():
-    return [('', '---------')] + RANGE_ANOS
-
-
 EM_TRAMITACAO = [('', '---------'),
                  (0, 'Sim'),
                  (1, 'Não')]
@@ -73,7 +69,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano',
-                                      choices=ANO_CHOICES)
+                                      choices=RANGE_ANOS)
 
     assunto_ementa = django_filters.CharFilter(lookup_expr='icontains')
 
@@ -160,7 +156,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano',
-                                      choices=ANO_CHOICES)
+                                      choices=RANGE_ANOS)
 
     tramitacao = django_filters.ChoiceFilter(required=False,
                                              label='Em Tramitação?',

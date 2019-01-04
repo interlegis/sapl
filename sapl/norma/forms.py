@@ -21,10 +21,6 @@ from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelac
                      TipoNormaJuridica, AutoriaNorma)
 
 
-def ANO_CHOICES():
-    return [('', '---------')] + RANGE_ANOS
-
-
 def get_esferas():
     return [('E', 'Estadual'),
             ('F', 'Federal'),
@@ -44,7 +40,7 @@ class NormaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano',
-                                      choices=ANO_CHOICES)
+                                      choices=RANGE_ANOS)
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
@@ -103,7 +99,7 @@ class NormaJuridicaForm(ModelForm):
     ano_materia = forms.ChoiceField(
         label='Ano Matéria',
         required=False,
-        choices=ANO_CHOICES,
+        choices=RANGE_ANOS,
         widget=forms.Select(attrs={'autocomplete': 'off'})
     )
 

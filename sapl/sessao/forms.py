@@ -43,11 +43,11 @@ def recupera_anos():
 
 
 def ANO_CHOICES():
-    return [('', '---------')] + recupera_anos()
+    return recupera_anos()
 
 
-MES_CHOICES = [('', '---------')] + RANGE_MESES
-DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
+MES_CHOICES = RANGE_MESES
+DIA_CHOICES = RANGE_DIAS_MES
 
 
 ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),

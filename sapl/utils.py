@@ -322,6 +322,11 @@ LISTA_DE_UFS = [
 RANGE_ANOS = [(year, year) for year in range(timezone.now().year,
                                              1889, -1)]
 
+
+def ANO_CHOICES():
+    return [('', '---------')] + RANGE_ANOS
+
+
 RANGE_MESES = [
     (1, 'Janeiro'),
     (2, 'Fevereiro'),

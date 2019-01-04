@@ -51,10 +51,6 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
 
 
-def ANO_CHOICES():
-    return [('', '---------')] + RANGE_ANOS
-
-
 def em_tramitacao():
     return [('', 'Tanto Faz'),
             (1, 'Sim'),
@@ -764,7 +760,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano da Matéria',
-                                      choices=ANO_CHOICES)
+                                      choices=RANGE_ANOS)
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
