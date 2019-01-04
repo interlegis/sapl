@@ -1,6 +1,6 @@
 
-import django_filters
 import logging
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
@@ -9,6 +9,7 @@ from django.db import models
 from django.forms import ModelForm, widgets, ModelChoiceField
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -73,7 +74,7 @@ class NormaFilterSet(django_filters.FilterSet):
         row2 = to_row([('data', 6), ('data_publicacao', 6)])
         row3 = to_row([('ementa', 6), ('assuntos', 6)])
         row4 = to_row([('data_vigencia', 12)])
-        row5 = to_row([('o',6), ('indexacao', 6)])
+        row5 = to_row([('o', 6), ('indexacao', 6)])
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
@@ -131,9 +132,8 @@ class NormaJuridicaForm(ModelForm):
                   'assuntos']
         widgets = {'assuntos': widgets.CheckboxSelectMultiple}
 
-
     def clean(self):
-        
+
         cleaned_data = super(NormaJuridicaForm, self).clean()
 
         if not self.is_valid():
@@ -142,8 +142,10 @@ class NormaJuridicaForm(ModelForm):
         import re
         has_digits = re.sub('[^0-9]', '', cleaned_data['numero'])
         if not has_digits:
-            self.logger.error("Número de norma ({}) não pode conter somente letras.".format(cleaned_data['numero']))
-            raise ValidationError('Número de norma não pode conter somente letras')
+            self.logger.error("Número de norma ({}) não pode conter somente letras.".format(
+                cleaned_data['numero']))
+            raise ValidationError(
+                'Número de norma não pode conter somente letras')
 
         if self.instance.numero != cleaned_data['numero']:
             norma = NormaJuridica.objects.filter(ano=cleaned_data['ano'],
@@ -157,7 +159,7 @@ class NormaJuridicaForm(ModelForm):
                                       "e Número no sistema")
         if (cleaned_data['tipo_materia'] and
             cleaned_data['numero_materia'] and
-            cleaned_data['ano_materia']):
+                cleaned_data['ano_materia']):
             try:
                 self.logger.debug("Tentando obter objeto MateriaLegislativa com tipo={}, numero={}, ano={}."
                                   .format(cleaned_data['tipo_materia'], cleaned_data['numero_materia'], cleaned_data['ano_materia']))
@@ -168,9 +170,9 @@ class NormaJuridicaForm(ModelForm):
 
             except ObjectDoesNotExist:
                 self.logger.error("Matéria Legislativa %s/%s (%s) é inexistente." % (
-                        self.cleaned_data['numero_materia'],
-                        self.cleaned_data['ano_materia'],
-                        cleaned_data['tipo_materia'].descricao))
+                    self.cleaned_data['numero_materia'],
+                    self.cleaned_data['ano_materia'],
+                    cleaned_data['tipo_materia'].descricao))
                 raise forms.ValidationError(
                     _("Matéria Legislativa %s/%s (%s) é inexistente." % (
                         self.cleaned_data['numero_materia'],
@@ -178,7 +180,7 @@ class NormaJuridicaForm(ModelForm):
                         cleaned_data['tipo_materia'].descricao)))
             else:
                 self.logger.info("MateriaLegislativa com tipo={}, numero={}, ano={} obtida com sucesso."
-                                  .format(cleaned_data['tipo_materia'], cleaned_data['numero_materia'], cleaned_data['ano_materia']))
+                                 .format(cleaned_data['tipo_materia'], cleaned_data['numero_materia'], cleaned_data['ano_materia']))
                 cleaned_data['materia'] = materia
 
         else:
@@ -198,10 +200,11 @@ class NormaJuridicaForm(ModelForm):
         texto_integral = self.cleaned_data.get('texto_integral', False)
         if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
             max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
-            tam_fornecido = str( texto_integral.size / (1024*1024) )
-            self.logger.error("Arquivo muito grande ({}MB). ( Tamanho máximo permitido: {}MB )".format(tam_fornecido, max_size))
+            tam_fornecido = str(texto_integral.size / (1024 * 1024))
+            self.logger.error("Arquivo muito grande ({}MB). ( Tamanho máximo permitido: {}MB )".format(
+                tam_fornecido, max_size))
             raise ValidationError(
-                  "Arquivo muito grande. ( > {0}MB )".format(max_size))
+                "Arquivo muito grande. ( > {0}MB )".format(max_size))
         return texto_integral
 
     def save(self, commit=False):
@@ -256,10 +259,12 @@ class AutoriaNormaForm(ModelForm):
 
         if ((not pk and autorias.exists()) or
                 (pk and autorias.exclude(pk=pk).exists())):
-            self.logger.error("Autor ({}) já foi cadastrado.".format(cd['autor']))
+            self.logger.error(
+                "Autor ({}) já foi cadastrado.".format(cd['autor']))
             raise ValidationError(_('Esse Autor já foi cadastrado.'))
 
         return cd
+
 
 class AnexoNormaJuridicaForm(ModelForm):
     class Meta:
@@ -270,6 +275,7 @@ class AnexoNormaJuridicaForm(ModelForm):
         }
 
     logger = logging.getLogger(__name__)
+
     def clean(self):
         cleaned_data = super(AnexoNormaJuridicaForm, self).clean()
         if not self.is_valid():
@@ -277,10 +283,11 @@ class AnexoNormaJuridicaForm(ModelForm):
         anexo_arquivo = self.cleaned_data.get('anexo_arquivo', False)
         if anexo_arquivo and anexo_arquivo.size > MAX_DOC_UPLOAD_SIZE:
             max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
-            tam_fornecido = str( anexo_arquivo.size / (1024*1024) )
-            self.logger.error("Arquivo muito grande ({}MB). ( Tamanho máximo permitido: {}MB )".format(tam_fornecido, max_size))
+            tam_fornecido = str(anexo_arquivo.size / (1024 * 1024))
+            self.logger.error("Arquivo muito grande ({}MB). ( Tamanho máximo permitido: {}MB )".format(
+                tam_fornecido, max_size))
             raise ValidationError(
-                 "Arquivo muito grande. ( > {0}MB )".format(max_size))
+                "Arquivo muito grande. ( > {0}MB )".format(max_size))
         return cleaned_data
 
     def save(self, commit=False):
@@ -292,7 +299,6 @@ class AnexoNormaJuridicaForm(ModelForm):
         anexo.anexo_arquivo = self.cleaned_data['anexo_arquivo']
         anexo.save()
         return anexo
-
 
 
 class NormaRelacionadaForm(ModelForm):
@@ -310,6 +316,7 @@ class NormaRelacionadaForm(ModelForm):
         widget=forms.Textarea(attrs={'disabled': 'disabled'}))
 
     logger = logging.getLogger(__name__)
+
     class Meta:
         model = NormaRelacionada
         fields = ['tipo', 'numero', 'ano', 'ementa', 'tipo_vinculo']
@@ -325,17 +332,20 @@ class NormaRelacionadaForm(ModelForm):
         cleaned_data = self.cleaned_data
 
         try:
-            self.logger.debug("Tentando obter objeto NormaJuridica com numero={}, ano={}, tipo={}.".format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            self.logger.debug("Tentando obter objeto NormaJuridica com numero={}, ano={}, tipo={}.".format(
+                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
             norma_relacionada = NormaJuridica.objects.get(
                 numero=cleaned_data['numero'],
                 ano=cleaned_data['ano'],
                 tipo=cleaned_data['tipo'])
         except ObjectDoesNotExist:
-            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={} não existe.".format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={} não existe.".format(
+                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
             msg = _('A norma a ser relacionada não existe.')
             raise ValidationError(msg)
         else:
-            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={} obtida com sucesso.".format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={} obtida com sucesso.".format(
+                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
             cleaned_data['norma_relacionada'] = norma_relacionada
 
         return cleaned_data
@@ -408,7 +418,8 @@ class NormaPesquisaSimplesForm(forms.Form):
 
         if (data_inicial and data_final and
                 data_inicial > data_final):
-            self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(data_final, data_inicial))
+            self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(
+                data_final, data_inicial))
             raise ValidationError(_(
                 'A Data Final não pode ser menor que a Data Inicial'))
         else:
@@ -416,7 +427,7 @@ class NormaPesquisaSimplesForm(forms.Form):
             condicao2 = not data_inicial and data_final
             if condicao1 or condicao2:
                 self.logger.error("Caso pesquise por data, os campos de Data Inicial e "
-                            "Data Final devem ser preenchidos obrigatoriamente")
+                                  "Data Final devem ser preenchidos obrigatoriamente")
                 raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e ' +
                                         'Data Final devem ser preenchidos obrigatoriamente'))
 
