@@ -40,11 +40,12 @@ from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
+from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, gerar_hash_arquivo,
-                        models_with_gr_for_model, qs_override_django_filter)
+                        models_with_gr_for_model, qs_override_django_filter,
+                        choice_anos_com_materias)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -760,7 +761,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano da Matéria',
-                                      choices=RANGE_ANOS)
+                                      choices=choice_anos_com_materias)
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 

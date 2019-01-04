@@ -22,28 +22,12 @@ from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
-                        autor_modal, timezone)
+                        autor_modal, timezone, choice_anos_com_sessaoplenaria)
 
 from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
                      OcorrenciaSessao, RegistroVotacao, RetiradaPauta, TipoRetiradaPauta)
-
-
-def recupera_anos():
-    try:
-        anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
-        # a listagem deve ser em ordem descrescente, mas por algum motivo
-        # a adicao de .order_by acima depois do all() nao surte efeito
-        # apos a adicao do .dates(), por isso o reversed() abaixo
-        anos = [(k.year, k.year) for k in reversed(anos_list)]
-        return anos
-    except Exception:
-        return []
-
-
-def ANO_CHOICES():
-    return recupera_anos()
 
 
 MES_CHOICES = RANGE_MESES
@@ -580,9 +564,11 @@ class VotacaoEditForm(forms.Form):
 
 class SessaoPlenariaFilterSet(django_filters.FilterSet):
 
-    data_inicio__year = django_filters.ChoiceFilter(required=False,
-                                                    label='Ano',
-                                                    choices=ANO_CHOICES)
+    data_inicio__year = django_filters.ChoiceFilter(
+        required=False,
+        label='Ano',
+        choices=choice_anos_com_sessaoplenaria
+    )
     data_inicio__month = django_filters.ChoiceFilter(required=False,
                                                      label='Mês',
                                                      choices=MES_CHOICES)

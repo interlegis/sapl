@@ -13,9 +13,11 @@ import django_filters
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.materia.forms import choice_anos_com_materias
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import NormaPesquisaOrderingFilter, RANGE_ANOS, RangeWidgetOverride
+from sapl.utils import NormaPesquisaOrderingFilter, RangeWidgetOverride,\
+    choice_anos_com_normas
 
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, AutoriaNorma)
@@ -40,7 +42,7 @@ class NormaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano',
-                                      choices=RANGE_ANOS)
+                                      choices=choice_anos_com_normas)
 
     ementa = django_filters.CharFilter(lookup_expr='icontains')
 
@@ -99,7 +101,7 @@ class NormaJuridicaForm(ModelForm):
     ano_materia = forms.ChoiceField(
         label='Ano Matéria',
         required=False,
-        choices=RANGE_ANOS,
+        choices=choice_anos_com_materias,
         widget=forms.Select(attrs={'autocomplete': 'off'})
     )
 

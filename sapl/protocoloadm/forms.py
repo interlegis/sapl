@@ -19,7 +19,8 @@ from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
-                        RangeWidgetOverride, autor_label, autor_modal)
+                        RangeWidgetOverride, autor_label, autor_modal,
+                        choice_anos_com_protocolo)
 
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
@@ -69,7 +70,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano',
-                                      choices=RANGE_ANOS)
+                                      choices=choice_anos_com_protocolo)
 
     assunto_ementa = django_filters.CharFilter(lookup_expr='icontains')
 

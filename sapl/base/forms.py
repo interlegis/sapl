@@ -1,4 +1,3 @@
-import django_filters
 import logging
 
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
@@ -14,15 +13,17 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.forms import Form, ModelForm
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
+import django_filters
 
+from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.models import Autor, TipoAutor
+from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.audiencia.models import AudienciaPublica,TipoAudienciaPublica
-from sapl.comissoes.models import Reuniao, Comissao
-from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
+from sapl.materia.models import (
+    MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.norma.models import (NormaJuridica)
 from sapl.parlamentares.models import SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria
@@ -30,9 +31,11 @@ from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField, ImageThumbnailFileInput,
                         RangeWidgetOverride, autor_label, autor_modal,
-                        models_with_gr_for_model, qs_override_django_filter)
+                        models_with_gr_for_model, qs_override_django_filter,
+                        choice_anos_com_normas)
 
 from .models import AppConfig, CasaLegislativa
+
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('A', _('Associar um usuário existente')),
@@ -84,7 +87,8 @@ class UsuarioCreateForm(ModelForm):
 
         data = self.cleaned_data
         if data['password1'] != data['password2']:
-            self.logger.error('Erro de validação. Senhas informadas ({}, {}) são diferentes.'.format(data['password1'], data['password2']))
+            self.logger.error('Erro de validação. Senhas informadas ({}, {}) são diferentes.'.format(
+                data['password1'], data['password2']))
             raise ValidationError('Senhas informadas são diferentes')
 
         return data
@@ -121,8 +125,10 @@ class UsuarioEditForm(ModelForm):
     # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
     ROLES = []
 
-    password1 = forms.CharField(required=False, widget=forms.PasswordInput, label='Senha')
-    password2 = forms.CharField(required=False, widget=forms.PasswordInput, label='Confirmar senha')
+    password1 = forms.CharField(
+        required=False, widget=forms.PasswordInput, label='Senha')
+    password2 = forms.CharField(
+        required=False, widget=forms.PasswordInput, label='Confirmar senha')
     user_active = forms.ChoiceField(choices=YES_NO_CHOICES, required=True,
                                     label="Usuário ativo?", initial='True')
     roles = forms.MultipleChoiceField(
@@ -159,19 +165,22 @@ class UsuarioEditForm(ModelForm):
 
         data = self.cleaned_data
         if data['password1'] and data['password1'] != data['password2']:
-            self.logger.error('Erro de validação. Senhas informadas ({}, {}) são diferentes.'.format(data['password1'], data['password2']))
+            self.logger.error('Erro de validação. Senhas informadas ({}, {}) são diferentes.'.format(
+                data['password1'], data['password2']))
             raise ValidationError('Senhas informadas são diferentes')
 
         return data
 
+
 class SessaoLegislativaForm(ModelForm):
     logger = logging.getLogger(__name__)
+
     class Meta:
         model = SessaoLegislativa
         exclude = []
 
     def clean(self):
-        
+
         cleaned_data = super(SessaoLegislativaForm, self).clean()
 
         if not self.is_valid():
@@ -186,13 +195,18 @@ class SessaoLegislativaForm(ModelForm):
         data_fim_leg = legislatura.data_fim
         pk = self.initial['id'] if self.initial else None
         # Queries para verificar se existem Sessões Legislativas no período selecionado no form
-        # Caso onde a data_inicio e data_fim são iguais a de alguma sessão já criada
+        # Caso onde a data_inicio e data_fim são iguais a de alguma sessão já
+        # criada
         primeiro_caso = Q(data_inicio=data_inicio, data_fim=data_fim)
-        # Caso onde a data_inicio está entre o início e o fim de uma Sessão já existente
-        segundo_caso = Q(data_inicio__lt=data_inicio, data_fim__range=(data_inicio, data_fim))
-        # Caso onde a data_fim está entre o início e o fim de uma Sessão já existente
-        terceiro_caso = Q(data_inicio__range=(data_inicio, data_fim), data_fim__gt=data_fim)
-        sessoes_existentes = SessaoLegislativa.objects.filter(primeiro_caso|segundo_caso|terceiro_caso).\
+        # Caso onde a data_inicio está entre o início e o fim de uma Sessão já
+        # existente
+        segundo_caso = Q(data_inicio__lt=data_inicio,
+                         data_fim__range=(data_inicio, data_fim))
+        # Caso onde a data_fim está entre o início e o fim de uma Sessão já
+        # existente
+        terceiro_caso = Q(data_inicio__range=(
+            data_inicio, data_fim), data_fim__gt=data_fim)
+        sessoes_existentes = SessaoLegislativa.objects.filter(primeiro_caso | segundo_caso | terceiro_caso).\
             exclude(pk=pk)
 
         if sessoes_existentes:
@@ -216,39 +230,41 @@ class SessaoLegislativaForm(ModelForm):
 
         if numero <= ult and flag_edit:
             self.logger.error('O número da SessaoLegislativa ({}) é menor ou igual '
-                        'que o de Sessões Legislativas passadas ({})'.format(numero, ult))
+                              'que o de Sessões Legislativas passadas ({})'.format(numero, ult))
             raise ValidationError('O número da Sessão Legislativa não pode ser menor ou igual '
                                   'que o de Sessões Legislativas passadas')
 
         if data_inicio < data_inicio_leg or \
-            data_inicio > data_fim_leg:
+                data_inicio > data_fim_leg:
             self.logger.error('A data de início ({}) da SessaoLegislativa está compreendida '
-                            'fora da data início ({}) e fim ({}) da Legislatura '
-                            'selecionada'.format(data_inicio, data_inicio_leg, data_fim_leg))
+                              'fora da data início ({}) e fim ({}) da Legislatura '
+                              'selecionada'.format(data_inicio, data_inicio_leg, data_fim_leg))
             raise ValidationError('A data de início da Sessão Legislativa deve estar compreendida '
                                   'entre a data início e fim da Legislatura selecionada')
 
         if data_fim > data_fim_leg or \
-            data_fim < data_inicio_leg:
+                data_fim < data_inicio_leg:
             self.logger.error('A data de fim ({}) da SessaoLegislativa está compreendida '
-                        'fora da data início ({}) e fim ({}) da Legislatura '
-                        'selecionada.'.format(data_fim, data_inicio_leg, data_fim_leg))
+                              'fora da data início ({}) e fim ({}) da Legislatura '
+                              'selecionada.'.format(data_fim, data_inicio_leg, data_fim_leg))
             raise ValidationError('A data de fim da Sessão Legislativa deve estar compreendida '
                                   'entre a data início e fim da Legislatura selecionada')
 
         if data_inicio > data_fim:
-            self.logger.error('Data início ({}) superior à data fim ({}).'.format(data_inicio, data_fim))
-            raise ValidationError('Data início não pode ser superior à data fim')
+            self.logger.error(
+                'Data início ({}) superior à data fim ({}).'.format(data_inicio, data_fim))
+            raise ValidationError(
+                'Data início não pode ser superior à data fim')
 
         data_inicio_intervalo = cleaned_data['data_inicio_intervalo']
         data_fim_intervalo = cleaned_data['data_fim_intervalo']
 
         if data_inicio_intervalo and data_fim_intervalo and \
-            data_inicio_intervalo > data_fim_intervalo:
-                self.logger.error('Data início de intervalo ({}) superior à '
-                                'data fim de intervalo ({}).'.format(data_inicio_intervalo, data_fim_intervalo))
-                raise ValidationError('Data início de intervalo não pode ser '
-                                      'superior à data fim de intervalo')
+                data_inicio_intervalo > data_fim_intervalo:
+            self.logger.error('Data início de intervalo ({}) superior à '
+                              'data fim de intervalo ({}).'.format(data_inicio_intervalo, data_fim_intervalo))
+            raise ValidationError('Data início de intervalo não pode ser '
+                                  'superior à data fim de intervalo')
 
         if data_inicio_intervalo:
             if data_inicio_intervalo < data_inicio or \
@@ -256,9 +272,9 @@ class SessaoLegislativaForm(ModelForm):
                     data_inicio_intervalo > data_fim or \
                     data_inicio_intervalo > data_fim_leg:
                 self.logger.error('A data de início do intervalo ({}) não está compreendida entre '
-                            'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
-                            'própria Sessão Legislativa ({} e {}).'
-                            .format(data_inicio_intervalo, data_inicio_leg, data_fim_leg, data_inicio, data_fim))
+                                  'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
+                                  'própria Sessão Legislativa ({} e {}).'
+                                  .format(data_inicio_intervalo, data_inicio_leg, data_fim_leg, data_inicio, data_fim))
                 raise ValidationError('A data de início do intervalo deve estar compreendida entre '
                                       'as datas de início e fim tanto da Legislatura quanto da '
                                       'própria Sessão Legislativa')
@@ -268,9 +284,9 @@ class SessaoLegislativaForm(ModelForm):
                     data_fim_intervalo < data_inicio or \
                     data_fim_intervalo < data_inicio_leg:
                 self.logger.error('A data de fim do intervalo ({}) não está compreendida entre '
-                            'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
-                            'própria Sessão Legislativa ({} e {}).'
-                            .format(data_fim_intervalo, data_inicio_leg, data_fim_leg, data_inicio, data_fim))
+                                  'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
+                                  'própria Sessão Legislativa ({} e {}).'
+                                  .format(data_fim_intervalo, data_inicio_leg, data_fim_leg, data_inicio, data_fim))
                 raise ValidationError('A data de fim do intervalo deve estar compreendida entre '
                                       'as datas de início e fim tanto da Legislatura quanto da '
                                       'própria Sessão Legislativa')
@@ -464,7 +480,8 @@ class AutorForm(ModelForm):
 
     def valida_igualdade(self, texto1, texto2, msg):
         if texto1 != texto2:
-            self.logger.error('Textos diferentes. ("{}" e "{}")'.format(texto1, texto2))
+            self.logger.error(
+                'Textos diferentes. ("{}" e "{}")'.format(texto1, texto2))
             raise ValidationError(msg)
         return True
 
@@ -479,7 +496,7 @@ class AutorForm(ModelForm):
 
         if 'action_user' not in cd or not cd['action_user']:
             self.logger.error('Não Informado se o Autor terá usuário '
-                            'vinculado para acesso ao Sistema.')
+                              'vinculado para acesso ao Sistema.')
             raise ValidationError(_('Informe se o Autor terá usuário '
                                     'vinculado para acesso ao Sistema.'))
 
@@ -490,9 +507,9 @@ class AutorForm(ModelForm):
                         get_user_model().USERNAME_FIELD) != cd['username']:
                     if 'status_user' not in cd or not cd['status_user']:
                         self.logger.error('Foi trocado ou removido o usuário deste Autor ({}), '
-                                        'mas não foi informado como se deve proceder '
-                                        'com o usuário que está sendo desvinculado? ({})'
-                                        .format(cd['username'], get_user_model().USERNAME_FIELD))
+                                          'mas não foi informado como se deve proceder '
+                                          'com o usuário que está sendo desvinculado? ({})'
+                                          .format(cd['username'], get_user_model().USERNAME_FIELD))
                         raise ValidationError(
                             _('Foi trocado ou removido o usuário deste Autor, '
                               'mas não foi informado como se deve proceder '
@@ -509,7 +526,8 @@ class AutorForm(ModelForm):
         if cd['action_user'] == 'A':
             param_username = {get_user_model().USERNAME_FIELD: cd['username']}
             if not User.objects.filter(**param_username).exists():
-                self.logger.error('Não existe usuário com username "%s". ' % cd['username'])
+                self.logger.error(
+                    'Não existe usuário com username "%s". ' % cd['username'])
                 raise ValidationError(
                     _('Não existe usuário com username "%s". '
                       'Para utilizar esse username você deve selecionar '
@@ -524,7 +542,8 @@ class AutorForm(ModelForm):
             param_username = {
                 'user__' + get_user_model().USERNAME_FIELD: cd['username']}
             if qs_autor.filter(**param_username).exists():
-                self.logger.error('Já existe um Autor para este usuário ({}).'.format(cd['username']))
+                self.logger.error(
+                    'Já existe um Autor para este usuário ({}).'.format(cd['username']))
                 raise ValidationError(
                     _('Já existe um Autor para este usuário.'))
 
@@ -548,7 +567,7 @@ class AutorForm(ModelForm):
         else:
             if 'autor_related' not in cd or not cd['autor_related']:
                 self.logger.error('Registro de %s não escolhido para ser '
-                                'vinculado ao cadastro de Autor' % tipo.descricao)
+                                  'vinculado ao cadastro de Autor' % tipo.descricao)
                 raise ValidationError(
                     _('Um registro de %s deve ser escolhido para ser '
                       'vinculado ao cadastro de Autor') % tipo.descricao)
@@ -556,7 +575,7 @@ class AutorForm(ModelForm):
             if not tipo.content_type.model_class().objects.filter(
                     pk=cd['autor_related']).exists():
                 self.logger.error('O Registro definido (%s-%s) não está na base '
-                                'de %s.' % (cd['autor_related'], cd['q'], tipo.descricao))
+                                  'de %s.' % (cd['autor_related'], cd['q'], tipo.descricao))
                 raise ValidationError(
                     _('O Registro definido (%s-%s) não está na base de %s.'
                       ) % (cd['autor_related'], cd['q'], tipo.descricao))
@@ -567,7 +586,7 @@ class AutorForm(ModelForm):
             if qs_autor_selected.exists():
                 autor = qs_autor_selected.first()
                 self.logger.error('Já existe um autor Cadastrado para '
-                                '%s' % autor.autor_related)
+                                  '%s' % autor.autor_related)
                 raise ValidationError(
                     _('Já existe um autor Cadastrado para %s'
                       ) % autor.autor_related)
@@ -692,7 +711,7 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
-                                      choices=RANGE_ANOS)
+                                      choices=choice_anos_com_normas)
 
     class Meta:
         filter_overrides = {models.DateField: {
@@ -703,7 +722,7 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
         }}
         model = NormaJuridica
         fields = ['ano']
-    
+
     def __init__(self, *args, **kwargs):
         super(RelatorioNormasMesFilterSet, self).__init__(
             *args, **kwargs)
@@ -738,11 +757,10 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         widget=forms.RadioSelect(),
         required=True)
 
-    
     def __init__(self, *args, **kwargs):
         super(RelatorioNormasVigenciaFilterSet, self).__init__(
             *args, **kwargs)
-            
+
         self.filters['ano'].label = 'Ano'
         self.form.fields['ano'].required = True
         self.form.fields['vigencia'] = self.vigencia
@@ -885,7 +903,7 @@ class RelatorioReuniaoFilterSet(django_filters.FilterSet):
     class Meta:
         model = Reuniao
         fields = ['comissao', 'data',
-                  'nome','tema']
+                  'nome', 'tema']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioReuniaoFilterSet, self).__init__(
@@ -904,6 +922,7 @@ class RelatorioReuniaoFilterSet(django_filters.FilterSet):
                      row1, row2,
                      form_actions(label='Pesquisar'))
         )
+
 
 class RelatorioAudienciaFilterSet(django_filters.FilterSet):
 
@@ -935,7 +954,6 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
         )
 
 
-
 class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
@@ -954,7 +972,6 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
     def qs(self):
         parent = super(RelatorioMateriasTramitacaoilterSet, self).qs
         return parent.distinct().order_by('-ano', 'tipo', '-numero')
-
 
     class Meta:
         model = MateriaLegislativa
@@ -1143,7 +1160,6 @@ class ConfiguracoesAppForm(ModelForm):
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_consideracoes'].widget.attrs['class'] = 'cronometro'
 
-
     def clean_mostrar_brasao_painel(self):
         mostrar_brasao_painel = self.cleaned_data.get(
             'mostrar_brasao_painel', False)
@@ -1155,7 +1171,7 @@ class ConfiguracoesAppForm(ModelForm):
 
         if (not bool(casa.logotipo) and mostrar_brasao_painel):
             self.logger.error('Não há logitipo configurado para esta '
-                            'CasaLegislativa ({}).'.format(casa))
+                              'CasaLegislativa ({}).'.format(casa))
             raise ValidationError("Não há logitipo configurado para esta "
                                   "Casa legislativa.")
 
@@ -1190,7 +1206,7 @@ class RecuperarSenhaForm(PasswordResetForm):
         if not email_existente:
             msg = 'Não existe nenhum usuário cadastrado com este e-mail.'
             self.logger.error('Não existe nenhum usuário cadastrado com este e-mail ({}).'
-                            .format(self.data['email']))
+                              .format(self.data['email']))
             raise ValidationError(msg)
 
         return self.cleaned_data
@@ -1257,33 +1273,41 @@ class AlterarSenhaForm(Form):
         new_password2 = data['new_password2']
 
         if new_password1 != new_password2:
-            self.logger.error("'Nova Senha' ({}) diferente de 'Confirmar Senha' ({})".format(new_password1, new_password2))
-            raise ValidationError("'Nova Senha' diferente de 'Confirmar Senha'")
+            self.logger.error("'Nova Senha' ({}) diferente de 'Confirmar Senha' ({})".format(
+                new_password1, new_password2))
+            raise ValidationError(
+                "'Nova Senha' diferente de 'Confirmar Senha'")
 
         # TODO: colocar mais regras como: tamanho mínimo,
         # TODO: caracteres alfanuméricos, maiúsculas (?),
         # TODO: senha atual igual a senha anterior, etc
 
         if len(new_password1) < 6:
-            self.logger.error('A senha informada ({}) não tem o mínimo de 6 caracteres.'.format(new_password1))
-            raise ValidationError("A senha informada deve ter no mínimo 6 caracteres")
+            self.logger.error(
+                'A senha informada ({}) não tem o mínimo de 6 caracteres.'.format(new_password1))
+            raise ValidationError(
+                "A senha informada deve ter no mínimo 6 caracteres")
 
         username = data['username']
         old_password = data['old_password']
         user = User.objects.get(username=username)
 
         if user.is_anonymous():
-            self.logger.error('Não é possível alterar senha de usuário anônimo ({}).'.format(username))
-            raise ValidationError("Não é possível alterar senha de usuário anônimo")
+            self.logger.error(
+                'Não é possível alterar senha de usuário anônimo ({}).'.format(username))
+            raise ValidationError(
+                "Não é possível alterar senha de usuário anônimo")
 
         if not user.check_password(old_password):
             self.logger.error('Senha atual informada ({}) não confere '
-                            'com a senha armazenada.'.format(old_password))
+                              'com a senha armazenada.'.format(old_password))
             raise ValidationError("Senha atual informada não confere "
                                   "com a senha armazenada")
 
         if user.check_password(new_password1):
-            self.logger.error('Nova senha ({}) igual à senha anterior.'.format(new_password1))
-            raise ValidationError("Nova senha não pode ser igual à senha anterior")
+            self.logger.error(
+                'Nova senha ({}) igual à senha anterior.'.format(new_password1))
+            raise ValidationError(
+                "Nova senha não pode ser igual à senha anterior")
 
         return self.cleaned_data

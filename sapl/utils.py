@@ -319,12 +319,8 @@ LISTA_DE_UFS = [
     ('EX', 'Exterior'),
 ]
 
-RANGE_ANOS = [(year, year) for year in range(timezone.now().year,
+RANGE_ANOS = [(year, year) for year in range(timezone.now().year + 1,
                                              1889, -1)]
-
-
-def ANO_CHOICES():
-    return [('', '---------')] + RANGE_ANOS
 
 
 RANGE_MESES = [
@@ -343,6 +339,48 @@ RANGE_MESES = [
 ]
 
 RANGE_DIAS_MES = [(n, n) for n in range(1, 32)]
+
+
+def ANO_CHOICES():
+    return [('', '---------')] + RANGE_ANOS
+
+
+def choice_anos(model):
+    try:
+        anos_list = model.objects.all().distinct(
+            'ano').order_by('-ano').values_list('ano', 'ano')
+        return anos_list
+    except Exception:
+        return []
+
+
+def choice_anos_com_materias():
+    from sapl.materia.models import MateriaLegislativa
+    return choice_anos(MateriaLegislativa)
+
+
+def choice_anos_com_normas():
+    from sapl.norma.models import NormaJuridica
+    return choice_anos(NormaJuridica)
+
+
+def choice_anos_com_protocolo():
+    from sapl.protocoloadm.models import Protocolo
+    return choice_anos(Protocolo)
+
+
+def choice_anos_com_sessaoplenaria():
+    try:
+        from sapl.sessao.models import SessaoPlenaria
+        anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
+        # a listagem deve ser em ordem descrescente, mas por algum motivo
+        # a adicao de .order_by acima depois do all() nao surte efeito
+        # apos a adicao do .dates(), por isso o reversed() abaixo
+        anos = [(k.year, k.year) for k in reversed(anos_list)]
+        return anos
+    except Exception:
+        return []
+
 
 TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.oasis.opendocument.text',

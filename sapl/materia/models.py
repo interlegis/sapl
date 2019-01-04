@@ -2,7 +2,6 @@
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
 from django.db import models
 from django.db.models.functions import Concat
 from django.template import defaultfilters
@@ -269,9 +268,9 @@ class MateriaLegislativa(models.Model):
                 if protocolo.timestamp:
                     return protocolo.timestamp.date()
                 elif protocolo.data:
-                    return protocolo.data  
+                    return protocolo.data
 
-            return ''           
+            return ''
 
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
@@ -728,8 +727,8 @@ class Proposicao(models.Model):
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
     cancelado = models.BooleanField(verbose_name=_('Cancelada ?'),
-                                  choices=YES_NO_CHOICES,
-                                  default=False)
+                                    choices=YES_NO_CHOICES,
+                                    default=False)
 
     """# Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
     # de uma já existente
