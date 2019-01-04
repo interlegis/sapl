@@ -17,10 +17,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for autor, objeto, descricao_objeto in bancada_comissao_autor_externo %}
+                  {% for autor, objeto, descricao_objeto, link in bancada_comissao_autor_externo %}
                     <tr>
                         <td>{{ descricao_objeto }}</td>
-                        <td>{{ objeto }}</td>
+                        <td>
+                            <a href="{% url 'sapl_index' %}{{ link }}/{{ objeto.pk }}">{{ objeto }}</a>
+                        </td>
                         <td>
                             <a href="{% url 'sapl_index' %}sistema/autor/{{ autor.pk }}">{{ autor.nome }}</a>
                         </td>

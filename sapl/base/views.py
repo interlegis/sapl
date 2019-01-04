@@ -980,7 +980,7 @@ def bancada_comissao_autor_externo():
         if len(autor_externo) > 0:
             q_autor_externo = bancada.autor.get(tipo=tipo_autor_externo)
             lista_bancada_autor_externo.append(
-                (q_autor_externo, bancada, 'Bancada')
+                (q_autor_externo, bancada, 'Bancada', 'sistema/bancada')
             )
 
         # elif len(autor_externo) > 1:
@@ -998,7 +998,7 @@ def bancada_comissao_autor_externo():
         if len(autor_externo) > 0:
             q_autor_externo = comissao.autor.get(tipo=tipo_autor_externo)
             lista_comissao_autor_externo.append(
-                (q_autor_externo, comissao, 'Comissão')
+                (q_autor_externo, comissao, 'Comissão', 'comissao')
             )
 
         # elif len(autor_externo) > 1:
