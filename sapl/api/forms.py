@@ -160,14 +160,12 @@ class AutoresPossiveisFilterSet(FilterSet):
         tipo = self.form.cleaned_data['tipo'] \
             if 'tipo' in self.form.cleaned_data else None
 
-        if not tipo and not data_relativa:
+        if not tipo:
             return qs
 
-        if tipo:
-            # não precisa de try except, já foi validado em filter_tipo
-            tipo = TipoAutor.objects.get(pk=tipo)
-            if not tipo.content_type:
-                return qs
+        tipo = TipoAutor.objects.get(pk=tipo)
+        if not tipo.content_type:
+            return qs
 
         filter_for_model = 'filter_%s' % tipo.content_type.model
 
