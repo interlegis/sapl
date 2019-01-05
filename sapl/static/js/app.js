@@ -195,10 +195,22 @@ function OptionalCustomFrontEnd() {
 
             if (this.type === "checkbox") {
                 _label.prepend(_this);
+
+                var _div = _label.closest('.checkbox');
+                if (_div.length == 0) {
+                    _label.addClass('checkbox-inline')
+                }
+
                 _this.checkbox();
             }
             else if (this.type === "radio") {
                 _label.prepend(_this);
+
+                var _div = _label.closest('.radio');
+                if (_div.length == 0) {
+                    _label.addClass('radio-inline')
+                }
+
                 _this.radio();
 
             }
