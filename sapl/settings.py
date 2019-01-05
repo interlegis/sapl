@@ -90,6 +90,7 @@ INSTALLED_APPS = (
     'haystack',
     'sass_processor',
     'rest_framework',
+    'django_filters',
     'reversion',
     'reversion_compare',
     'whoosh',
@@ -110,7 +111,7 @@ SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
 SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
 
 if USE_SOLR:
-    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor' #enable auto-index
+    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'  # enable auto-index
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
     SEARCH_URL = ('URL', '{}/solr/{}'.format(SOLR_URL, SOLR_COLLECTION))
 
@@ -118,7 +119,7 @@ if USE_SOLR:
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': SEARCH_BACKEND,
-         SEARCH_URL[0]: SEARCH_URL[1],
+        SEARCH_URL[0]: SEARCH_URL[1],
         'BATCH_SIZE': 1000,
         'TIMEOUT': 60,
     },
@@ -166,7 +167,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
     "DEFAULT_FILTER_BACKENDS": (
         "rest_framework.filters.SearchFilter",
-        "rest_framework.filters.DjangoFilterBackend",
+        'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
 
