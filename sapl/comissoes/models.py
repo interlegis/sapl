@@ -1,7 +1,7 @@
-import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar
@@ -256,19 +256,6 @@ class Reuniao(models.Model):
     def __str__(self):
         return self.nome
 
-    def delete(self, using=None, keep_parents=False):
-        if self.upload_pauta:
-            self.upload_pauta.delete()
-
-        if self.upload_ata:
-            self.upload_ata.delete()
-
-        if self.upload_anexo:
-            self.upload_anexo.delete()
-
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
-
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
@@ -328,13 +315,6 @@ class DocumentoAcessorio(models.Model):
         return _('%(nome)s por %(autor)s') % {
             'nome': self.nome,
             'autor': self.autor}
-
-    def delete(self, using=None, keep_parents=False):
-        if self.arquivo:
-            self.arquivo.delete()
-
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):

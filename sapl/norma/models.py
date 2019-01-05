@@ -119,7 +119,8 @@ class NormaJuridica(models.Model):
     assuntos = models.ManyToManyField(
         AssuntoNorma, blank=True,
         verbose_name=_('Assuntos'))
-    data_vigencia = models.DateField(blank=True, null=True, verbose_name=_('Data Fim Vigência'))
+    data_vigencia = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Fim Vigência'))
     timestamp = models.DateTimeField(null=True)
 
     texto_articulado = GenericRelation(
@@ -166,13 +167,6 @@ class NormaJuridica(models.Model):
             'numero': self.numero,
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
-    def delete(self, using=None, keep_parents=False):
-        if self.texto_integral:
-            self.texto_integral.delete()
-
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
-
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
@@ -197,7 +191,8 @@ class NormaEstatisticas(models.Model):
         blank=True, null=True,
         auto_now=True)
     norma = models.ForeignKey(NormaJuridica,
-                             on_delete=models.CASCADE)
+                              on_delete=models.CASCADE)
+
     def __str__(self):
         return _('Usuário: %(usuario)s, Norma: %(norma)s') % {
             'usuario': self.usuario, 'norma': self.norma}
@@ -224,6 +219,7 @@ class AutoriaNorma(models.Model):
     def __str__(self):
         return _('Autoria: %(autor)s - %(norma)s') % {
             'autor': self.autor, 'norma': self.norma}
+
 
 @reversion.register()
 class LegislacaoCitada(models.Model):
@@ -271,8 +267,8 @@ class TipoVinculoNormaJuridica(models.Model):
     descricao_passiva = models.CharField(
         max_length=50, blank=True, verbose_name=_('Descrição Passiva'))
     revoga_integralmente = models.BooleanField(verbose_name=_('Revoga Integralmente?'),
-                                              choices=YES_NO_CHOICES,
-                                              default=False)
+                                               choices=YES_NO_CHOICES,
+                                               default=False)
 
     class Meta:
         verbose_name = _('Tipo de Vínculo entre Normas Jurídicas')
@@ -318,8 +314,8 @@ class AnexoNormaJuridica(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Norma Juridica'))
     assunto_anexo = models.TextField(
-        blank = True,
-        default = "",
+        blank=True,
+        default="",
         verbose_name=_('Assunto do Anexo'),
         max_length=250
     )

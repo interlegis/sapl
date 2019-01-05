@@ -273,9 +273,6 @@ class MateriaLegislativa(models.Model):
             return ''
 
     def delete(self, using=None, keep_parents=False):
-        if self.texto_original:
-            self.texto_original.delete()
-
         for p in self.proposicao.all():
             p.conteudo_gerado_related = None
             p.cancelado = True
@@ -473,8 +470,6 @@ class DocumentoAcessorio(models.Model):
             'autor': self.autor}
 
     def delete(self, using=None, keep_parents=False):
-        if self.arquivo:
-            self.arquivo.delete()
 
         for p in self.proposicao.all():
             p.conteudo_gerado_related = None
@@ -787,13 +782,6 @@ class Proposicao(models.Model):
                 self.data_envio if self.data_envio else timezone.now(),
                 "d \d\e F \d\e Y"
             )}
-
-    def delete(self, using=None, keep_parents=False):
-        if self.texto_original:
-            self.texto_original.delete()
-
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):

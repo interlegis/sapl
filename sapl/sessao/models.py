@@ -186,19 +186,6 @@ class SessaoPlenaria(models.Model):
             # XXX check if it shouldn't be legislatura.numero
             'legislatura_id': self.legislatura.numero}
 
-    def delete(self, using=None, keep_parents=False):
-        if self.upload_pauta:
-            self.upload_pauta.delete()
-
-        if self.upload_ata:
-            self.upload_ata.delete()
-
-        if self.upload_anexo:
-            self.upload_anexo.delete()
-
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
-
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
@@ -576,7 +563,8 @@ class ResumoOrdenacao(models.Model):
     oitavo = models.CharField(max_length=30)
     nono = models.CharField(max_length=30)
     decimo = models.CharField(max_length=30)
-    decimo_primeiro = models.CharField(max_length=30,default="Ocorrências da Sessão")
+    decimo_primeiro = models.CharField(
+        max_length=30, default="Ocorrências da Sessão")
 
     class Meta:
         verbose_name = _('Ordenação do Resumo de uma Sessão')
@@ -584,6 +572,7 @@ class ResumoOrdenacao(models.Model):
 
     def __str__(self):
         return 'Ordenação do Resumo de uma Sessão'
+
 
 @reversion.register()
 class TipoRetiradaPauta(models.Model):
@@ -651,13 +640,6 @@ class JustificativaAusencia(models.Model):
     def __str__(self):
         return 'Justificativa de Ausência'
 
-    def delete(self, using=None, keep_parents=False):
-        if self.upload_anexo:
-            self.upload_anexo.delete()
-
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
-
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
@@ -675,6 +657,7 @@ class JustificativaAusencia(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
 
 class RetiradaPauta(models.Model):
     materia = models.ForeignKey(MateriaLegislativa,

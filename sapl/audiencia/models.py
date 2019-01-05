@@ -1,11 +1,11 @@
-import reversion
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
+
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Parlamentar)
-
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         restringe_tipos_de_arquivo_txt, texto_upload_path)
 
@@ -39,7 +39,6 @@ class TipoAudienciaPublica(models.Model):
         max_length=50, verbose_name=_('Nome do Tipo de Audiência Pública'), default='Audiência Pública')
     tipo = models.CharField(
         max_length=1, verbose_name=_('Tipo de Audiência Pública'), choices=TIPO_AUDIENCIA_CHOICES, default='A')
-
 
     class Meta:
         verbose_name = _('Tipo de Audiência Pública')
@@ -111,19 +110,6 @@ class AudienciaPublica(models.Model):
     def __str__(self):
         return self.nome
 
-    def delete(self, using=None, keep_parents=False):
-        if self.upload_pauta:
-            self.upload_pauta.delete()
-
-        if self.upload_ata:
-            self.upload_ata.delete()
-
-        if self.upload_anexo:
-            self.upload_anexo.delete()
-
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
-
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
@@ -159,7 +145,7 @@ class AnexoAudienciaPublica(models.Model):
         null=True,
         upload_to=texto_upload_path,
         verbose_name=_('Arquivo'))
-    data = models.DateField(auto_now=timezone.now,blank=True, null=True)
+    data = models.DateField(auto_now=timezone.now, blank=True, null=True)
     assunto = models.TextField(
         blank=True, verbose_name=_('Assunto'))
 
@@ -169,13 +155,6 @@ class AnexoAudienciaPublica(models.Model):
 
     def __str__(self):
         return self.assunto
-
-    def delete(self, using=None, keep_parents=False):
-        if self.arquivo:
-            self.arquivo.delete()
-
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
