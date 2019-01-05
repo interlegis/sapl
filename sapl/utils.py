@@ -349,7 +349,7 @@ def choice_anos(model):
     try:
         anos_list = model.objects.all().distinct(
             'ano').order_by('-ano').values_list('ano', 'ano')
-        return anos_list
+        return list(anos_list)
     except Exception:
         return []
 
