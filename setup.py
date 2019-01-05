@@ -12,11 +12,6 @@ install_requires = [
     'dj-database-url==0.4.1',
     'django-haystack==2.6.0',
     'django>=1.10,<1.11',
-    # TODO O django-admin-bootstrapped 2.5.7 não inseriu a mudança que permite
-    # a compatibilidade com Django 1.9+. A linha abaixo será mudada quando uma
-    # nova versão do django-admin-bootstrapped for lançada
-    # 'git+git://github.com/django-admin-bootstrapped/
-    #      django-admin-bootstrapped.git',
     'django-bootstrap3==7.0.1',
     'django-bower==5.2.0',
     'django-braces==1.9.0',
@@ -32,12 +27,11 @@ install_requires = [
     'drfdocs',
     'easy-thumbnails==2.5',
     'django-image-cropping==1.1.0',
-    # 'git+git://github.com/interlegis/trml2pdf.git',
     'libsass==0.11.1',
     'psycopg2==2.7.4',
     'python-decouple==3.0',
     'pytz==2016.4',
-    'pyyaml==3.11',
+    'pyyaml==4.2b1',
     'rtyaml==0.0.3',
     'textract==1.5.0',
     'unipath==1.1',
@@ -49,6 +43,9 @@ install_requires = [
     'whoosh==2.7.4',
     'django-speedinfo==1.3.5',
     'django-reversion-compare==0.8.4'
+    # 'git+git://github.com/interlegis/trml2pdf.git',
+    # 'git+git://github.com/jasperlittle/django-rest-framework-docs'
+    # 'git+git://github.com/rubgombar1/django-admin-bootstrapped.git''
 ]
 setup(
     name='interlegis-sapl',
