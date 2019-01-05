@@ -100,8 +100,7 @@ INSTALLED_APPS = (
 # FTS = Full Text Search
 # Desabilita a indexação textual até encontramos uma solução para a issue
 # https://github.com/interlegis/sapl/issues/2055
-#HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'  # Disable auto index
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'  # Disable auto index
 SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
 SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
 
@@ -111,9 +110,9 @@ SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
 SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
 
 if USE_SOLR:
+    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor' #enable auto-index
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
     SEARCH_URL = ('URL', '{}/solr/{}'.format(SOLR_URL, SOLR_COLLECTION))
-
 
 #  BATCH_SIZE: default is 1000 if omitted, avoid Too Large Entity Body errors
 HAYSTACK_CONNECTIONS = {
