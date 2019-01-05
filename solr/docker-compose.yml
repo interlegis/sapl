@@ -31,8 +31,8 @@ services:
         ADMIN_PASSWORD: interlegis
         ADMIN_EMAIL: email@dominio.net
         DEBUG: 'False'
-        USE_TLS: 'False'
         EMAIL_PORT: 587
+        EMAIL_USE_TLS: 'False'
         EMAIL_HOST: smtp.dominio.net
         EMAIL_HOST_USER: usuariosmtp
         EMAIL_HOST_PASSWORD: senhasmtp
