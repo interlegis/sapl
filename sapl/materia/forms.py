@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
-from django.db.models import Max
+from django.db.models import Max, Q, F
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.forms.forms import Form
 from django.forms.models import ModelMultipleChoiceField
@@ -37,7 +37,7 @@ from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
-from sapl.parlamentares.models import Legislatura
+from sapl.parlamentares.models import Legislatura, Partido
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
@@ -52,10 +52,17 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
 
 
-def em_tramitacao():
+def CHOICE_TRAMITACAO():
     return [('', 'Tanto Faz'),
             (1, 'Sim'),
             (0, 'Não')]
+
+
+def CHOICE_TIPO_LISTAGEM():
+    return [
+        (1, _('Detalhada')),
+        (2, _('Simplificada')),
+    ]
 
 
 class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
@@ -767,32 +774,43 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     autoria__primeiro_autor = django_filters.BooleanFilter(
         required=False,
-        label='Primeiro Autor',
-        widget=forms.HiddenInput())
+        label=_('Primeiro Autor'))
 
-    ementa = django_filters.CharFilter(lookup_expr='icontains')
+    autoria__autor__parlamentar_set__filiacao__partido = django_filters.ModelChoiceFilter(
+        queryset=Partido.objects.all(),
+        label=_('Matérias por Partido'))
+
+    ementa = django_filters.CharFilter(
+        label=_('Pesquisar expressões na ementa'),
+        method='filter_ementa'
+    )
     indexacao = django_filters.CharFilter(lookup_expr='icontains',
                                           label=_('Indexação'))
 
     em_tramitacao = django_filters.ChoiceFilter(required=False,
                                                 label='Em tramitação',
-                                                choices=em_tramitacao)
+                                                choices=CHOICE_TRAMITACAO)
 
     materiaassunto__assunto = django_filters.ModelChoiceFilter(
         queryset=AssuntoMateria.objects.all(),
-        label=_('Assunto da Matéria'))
+        label=_('Assunto'))
 
     numeracao__numero_materia = django_filters.NumberFilter(
         required=False,
-        label=_('Número do Processo'))
+        label=_('Número do processo'))
 
-    o = MateriaPesquisaOrderingFilter()
+    o = MateriaPesquisaOrderingFilter(help_text='')
+
+    tipo_listagem = forms.ChoiceField(
+        required=True,
+        choices=CHOICE_TIPO_LISTAGEM,
+        label=_('Tipo da Listagem do Resultado da Pesquisa'))
 
     class Meta:
         filter_overrides = {models.DateField: {
             'filter_class': django_filters.DateFromToRangeFilter,
             'extra': lambda f: {
-                'label': '%s (%s)' % (f.verbose_name, _('Inicial Final')),
+                'label': '%s (%s)' % (f.verbose_name, _('Inicial / Final')),
                 'widget': RangeWidgetOverride}
         }}
         model = MateriaLegislativa
@@ -805,7 +823,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'data_publicacao',
                   'autoria__autor__tipo',
                   'autoria__primeiro_autor',
-                  # FIXME 'autoria__autor__partido',
+                  'autoria__autor__parlamentar_set__filiacao__partido',
                   'relatoria__parlamentar_id',
                   'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
@@ -814,16 +832,36 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'em_tramitacao',
                   ]
 
+    def filter_ementa(self, queryset, name, value):
+        texto = value.split()
+        q = Q()
+        for t in texto:
+            q &= Q(ementa__icontains=t)
+
+        return queryset.filter(q)
+
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
 
-        self.filters['tipo'].label = 'Tipo de Matéria'
-        self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
-        # self.filters['autoria__autor__partido'].label = 'Partido do Autor'
-        self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
+        # self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters[
+            'autoria__autor__parlamentar_set__filiacao__partido'
+        ].label = 'Partido do Autor'
+
+        self.filters['autoria__autor__tipo'].label = _('Tipo de Autor')
+        self.filters['relatoria__parlamentar_id'].label = _('Relatoria')
+        self.filters['tramitacao__unidade_tramitacao_destino'].label = _(
+            'Unidade de tramitação atual')
+        self.filters['tramitacao__status'].label = _(
+            'Status da tramitação atual')
+        self.filters['tramitacao__status'].label = _(
+            'Status da tramitação atual')
+
+        self.filters['o'].label = _('Ordenação')
+        self.form.fields['tipo_listagem'] = self.tipo_listagem
 
         row1 = to_row(
-            [('tipo', 12)])
+            [('tipo', 5), ('ementa', 7)])
         row2 = to_row(
             [('numero', 3),
              ('numeracao__numero_materia', 3),
@@ -832,47 +870,78 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         row3 = to_row(
             [('data_apresentacao', 6),
              ('data_publicacao', 6)])
-        row4 = to_row(
-            [('autoria__autor', 0),
-             ('autoria__primeiro_autor', 0),
-             (Button('pesquisar',
-                     'Pesquisar Autor',
-                     css_class='btn btn-primary btn-sm'), 2),
-             (Button('limpar',
-                     'limpar Autor',
-                     css_class='btn btn-primary btn-sm'), 10)])
-        row5 = to_row(
-            [('autoria__autor__tipo', 12),
-             # ('autoria__autor__partido', 6)
-             ])
+        row4 = to_row([
+            ('autoria__autor', 0),
+            (Button('pesquisar',
+                    'Pesquisar Autor',
+                    css_class='btn btn-primary btn-sm'), 2),
+            (Button('limpar',
+                    'limpar Autor',
+                    css_class='btn btn-primary btn-sm'), 2),
+            ('autoria__primeiro_autor', 2),
+            ('autoria__autor__tipo', 3),
+            ('autoria__autor__parlamentar_set__filiacao__partido', 3)
+        ])
         row6 = to_row(
             [('relatoria__parlamentar_id', 6),
              ('local_origem_externa', 6)])
         row7 = to_row(
-            [('tramitacao__unidade_tramitacao_destino', 6),
-             ('tramitacao__status', 6)])
-        row8 = to_row(
-            [('em_tramitacao', 6),
-             ('o', 6)])
+            [('tramitacao__unidade_tramitacao_destino', 5),
+             ('tramitacao__status', 5),
+             ('em_tramitacao', 2)
+             ])
         row9 = to_row(
             [('materiaassunto__assunto', 6), ('indexacao', 6)])
-        row10 = to_row(
-            [('ementa', 12)])
+
+        row8 = to_row(
+            [
+                ('o', 8),
+                ('tipo_listagem', 4)
+            ])
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa de Matéria'),
-                     row1, row2, row3,
+            Fieldset(_('Pesquisa Básica'),
+                     row1, row2),
+
+            Fieldset(_('Como listar os resultados da pesquisa'),
+                     row8
+                     ),
+            Fieldset(_('Pesquisa Avançada'),
+                     row3,
                      HTML(autor_label),
                      HTML(autor_modal),
-                     row4, row5, row6, row7, row8, row9, row10,
-                     form_actions(label='Pesquisar'))
+                     row4, row6, row7, row9,
+                     form_actions(label=_('Pesquisar')))
+
+
+
         )
 
     @property
     def qs(self):
-        return qs_override_django_filter(self)
+        qs = qs_override_django_filter(self)
+
+        if hasattr(self.form, 'cleaned_data') and self.form.cleaned_data[
+                'autoria__autor__parlamentar_set__filiacao__partido']:
+
+            q_data_inicio_e_fim = Q(data_apresentacao__gte=F(
+                'autoria__autor__parlamentar_set__filiacao__data'),
+                data_apresentacao__lte=F(
+                    'autoria__autor__parlamentar_set__filiacao__data_desfiliacao'))
+
+            q_data_inicio = Q(
+                data_apresentacao__gte=F(
+                    'autoria__autor__parlamentar_set__filiacao__data'),
+                autoria__autor__parlamentar_set__filiacao__data_desfiliacao__isnull=True
+            )
+
+            qs = qs.filter(
+                q_data_inicio_e_fim | q_data_inicio
+            )
+
+        return qs
 
 
 def pega_ultima_tramitacao():

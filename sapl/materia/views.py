@@ -1747,41 +1747,51 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         kwargs = {'data': self.request.GET or None}
 
-        status_tramitacao = self.request.GET.get('tramitacao__status')
-        unidade_destino = self.request.GET.get(
-            'tramitacao__unidade_tramitacao_destino')
+        tipo_listagem = self.request.GET.get('tipo_listagem', '1')
+        tipo_listagem = '1' if not tipo_listagem else tipo_listagem
 
         qs = self.get_queryset().distinct()
+        if tipo_listagem == '1':
 
-        if status_tramitacao and unidade_destino:
-            lista = filtra_tramitacao_destino_and_status(status_tramitacao,
-                                                         unidade_destino)
-            qs = qs.filter(id__in=lista).distinct()
+            status_tramitacao = self.request.GET.get('tramitacao__status')
+            unidade_destino = self.request.GET.get(
+                'tramitacao__unidade_tramitacao_destino')
 
-        elif status_tramitacao:
-            lista = filtra_tramitacao_status(status_tramitacao)
-            qs = qs.filter(id__in=lista).distinct()
+            if status_tramitacao and unidade_destino:
+                lista = filtra_tramitacao_destino_and_status(status_tramitacao,
+                                                             unidade_destino)
+                qs = qs.filter(id__in=lista).distinct()
 
-        elif unidade_destino:
-            lista = filtra_tramitacao_destino(unidade_destino)
-            qs = qs.filter(id__in=lista).distinct()
+            elif status_tramitacao:
+                lista = filtra_tramitacao_status(status_tramitacao)
+                qs = qs.filter(id__in=lista).distinct()
+
+            elif unidade_destino:
+                lista = filtra_tramitacao_destino(unidade_destino)
+                qs = qs.filter(id__in=lista).distinct()
+
+            qs = qs.prefetch_related("autoria_set",
+                                     "autoria_set__autor",
+                                     "numeracao_set",
+                                     "anexadas",
+                                     "tipo",
+                                     "texto_articulado",
+                                     "tramitacao_set",
+                                     "tramitacao_set__status",
+                                     "tramitacao_set__unidade_tramitacao_local",
+                                     "tramitacao_set__unidade_tramitacao_destino",
+                                     "normajuridica_set",
+                                     "registrovotacao_set",
+                                     "documentoacessorio_set")
+        else:
+
+            qs = qs.prefetch_related("autoria_set",
+                                     "numeracao_set",
+                                     "autoria_set__autor",
+                                     "tipo",)
 
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', 'tipo__sigla', '-numero')
-
-        qs = qs.prefetch_related("autoria_set",
-                                 "autoria_set__autor",
-                                 "numeracao_set",
-                                 "anexadas",
-                                 "tipo",
-                                 "texto_articulado",
-                                 "tramitacao_set",
-                                 "tramitacao_set__status",
-                                 "tramitacao_set__unidade_tramitacao_local",
-                                 "tramitacao_set__unidade_tramitacao_destino",
-                                 "normajuridica_set",
-                                 "registrovotacao_set",
-                                 "documentoacessorio_set")
 
         kwargs.update({
             'queryset': qs,
@@ -1794,7 +1804,10 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['title'] = _('Pesquisar Matéria Legislativa')
 
-        self.filterset.form.fields['o'].label = _('Ordenação')
+        tipo_listagem = self.request.GET.get('tipo_listagem', '1')
+        tipo_listagem = '1' if not tipo_listagem else tipo_listagem
+
+        context['tipo_listagem'] = tipo_listagem
 
         qr = self.request.GET.copy()
         if 'page' in qr:
@@ -1810,7 +1823,8 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['show_results'] = show_results_filter_set(qr)
 
-        context['USE_SOLR'] = settings.USE_SOLR if hasattr(settings, 'USE_SOLR') else False
+        context['USE_SOLR'] = settings.USE_SOLR if hasattr(
+            settings, 'USE_SOLR') else False
 
         return context
 
@@ -2067,12 +2081,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         for materia_id in marcadas:
             try:
                 data_tramitacao = tz.localize(datetime.strptime(
-                        request.POST['data_tramitacao'], "%d/%m/%Y"))
+                    request.POST['data_tramitacao'], "%d/%m/%Y"))
             except ValueError:
                 msg = _('Formato da data da tramitação incorreto.')
                 messages.add_message(request, messages.ERROR, msg)
                 return self.get(request, self.kwargs)
-            
+
             t = Tramitacao(
                 materia_id=materia_id,
                 data_tramitacao=data_tramitacao,

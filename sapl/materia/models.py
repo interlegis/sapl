@@ -142,15 +142,17 @@ def anexo_upload_path(instance, filename):
 @reversion.register()
 class MateriaLegislativa(models.Model):
 
-    tipo = models.ForeignKey(TipoMateriaLegislativa,
-                             on_delete=models.PROTECT,
-                             verbose_name=_('Tipo'))
+    tipo = models.ForeignKey(
+        TipoMateriaLegislativa,
+        on_delete=models.PROTECT,
+        verbose_name=TipoMateriaLegislativa._meta.verbose_name)
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
     numero_protocolo = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Núm. Protocolo'))
-    data_apresentacao = models.DateField(verbose_name=_('Data Apresentação'))
+        blank=True, null=True, verbose_name=_('Número do Protocolo'))
+    data_apresentacao = models.DateField(
+        verbose_name=_('Data de Apresentação'))
     tipo_apresentacao = models.CharField(
         max_length=1, blank=True,
         verbose_name=_('Tipo de Apresentação'),
@@ -160,7 +162,7 @@ class MateriaLegislativa(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Regime Tramitação'))
     data_publicacao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Publicação'))
+        blank=True, null=True, verbose_name=_('Data de Publicação'))
     tipo_origem_externa = models.ForeignKey(
         TipoMateriaLegislativa,
         blank=True,
@@ -176,7 +178,7 @@ class MateriaLegislativa(models.Model):
         blank=True, null=True, verbose_name=_('Data'))
     local_origem_externa = models.ForeignKey(
         Origem, blank=True, null=True,
-        on_delete=models.PROTECT, verbose_name=_('Local Origem'))
+        on_delete=models.PROTECT, verbose_name=_('Local de Origem'))
     apelido = models.CharField(
         max_length=50, blank=True, verbose_name=_('Apelido'))
     dias_prazo = models.PositiveIntegerField(
