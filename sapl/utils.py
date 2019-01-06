@@ -208,19 +208,27 @@ class RangeWidgetOverride(forms.MultiWidget):
 
     def __init__(self, attrs=None):
         widgets = (forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
+                                   attrs={'class': 'dateinput form-control',
                                           'placeholder': 'Inicial'}),
                    forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
+                                   attrs={'class': 'dateinput form-control',
                                           'placeholder': 'Final'}))
         super(RangeWidgetOverride, self).__init__(widgets, attrs)
 
     def decompress(self, value):
         if value:
             return [value.start, value.stop]
-        return [None, None]
+        return []
 
-    def format_output(self, rendered_widgets):
+    def render(self, name, value, attrs=None, renderer=None):
+        rendered_widgets = []
+        for i, x in enumerate(self.widgets):
+            rendered_widgets.append(
+                x.render(
+                    '%s_%d' % (name, i), value[i] if value else ''
+                )
+            )
+
         html = '<div class="col-sm-6">%s</div><div class="col-sm-6">%s</div>'\
             % tuple(rendered_widgets)
         return '<div class="row">%s</div>' % html

@@ -17,8 +17,8 @@ install_requires = [
     'dj-database-url==0.5.0',
     'django-bower==5.2.0',
     'django-braces==1.9.0',
+    'django-crispy-forms==1.7.2',
 
-    'django-crispy-forms==1.6.1',
     'django-extensions==1.9.8',
     'django-extra-views==0.11.0',
     'django-floppyforms==1.6.2',
@@ -46,7 +46,7 @@ install_requires = [
     # 'git+git://github.com/interlegis/trml2pdf.git',
     # 'git+git://github.com/jasperlittle/django-rest-framework-docs'
     # 'git+git://github.com/rubgombar1/django-admin-bootstrapped.git''
-    
+
     #'django-compressor==2.2',
 ]
 setup(
