@@ -10,15 +10,14 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 install_requires = [
     'django>=1.11,<2.0',
-    'django-haystack==2.8.1',
     'django-bootstrap3==11.0.0',
+    'django-haystack==2.8.1',
     'django-filter==2.0.0',
     'djangorestframework==3.9.0',
-
-    'dj-database-url==0.4.1',
+    'dj-database-url==0.5.0',
     'django-bower==5.2.0',
     'django-braces==1.9.0',
-    'django-compressor==2.0',
+
     'django-crispy-forms==1.6.1',
     'django-extensions==1.9.8',
     'django-extra-views==0.11.0',
@@ -47,6 +46,8 @@ install_requires = [
     # 'git+git://github.com/interlegis/trml2pdf.git',
     # 'git+git://github.com/jasperlittle/django-rest-framework-docs'
     # 'git+git://github.com/rubgombar1/django-admin-bootstrapped.git''
+    
+    #'django-compressor==2.2',
 ]
 setup(
     name='interlegis-sapl',
