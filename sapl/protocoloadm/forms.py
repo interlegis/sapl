@@ -29,12 +29,11 @@ from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
 
 
 TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'),
-                   ('2', 'Interno'), ('', '---------')]
+                   ('2', 'Interno')]
 TIPOS_PROTOCOLO_CREATE = [
     ('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno')]
 
-NATUREZA_PROCESSO = [('', '---------'),
-                     ('0', 'Administrativo'),
+NATUREZA_PROCESSO = [('0', 'Administrativo'),
                      ('1', 'Legislativo')]
 
 
@@ -68,13 +67,18 @@ class AcompanhamentoDocumentoForm(ModelForm):
 
 class ProtocoloFilterSet(django_filters.FilterSet):
 
-    ano = django_filters.ChoiceFilter(required=False,
-                                      label='Ano',
-                                      choices=choice_anos_com_protocolo)
+    ano = django_filters.ChoiceFilter(
+        required=False,
+        label='Ano',
+        choices=choice_anos_com_protocolo)
 
-    assunto_ementa = django_filters.CharFilter(lookup_expr='icontains')
+    assunto_ementa = django_filters.CharFilter(
+        label=_('Assunto'),
+        lookup_expr='icontains')
 
-    interessado = django_filters.CharFilter(lookup_expr='icontains')
+    interessado = django_filters.CharFilter(
+        label=_('Interessado'),
+        lookup_expr='icontains')
 
     autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
@@ -91,7 +95,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         widget=forms.Select(
             attrs={'class': 'selector'}))
 
-    o = AnoNumeroOrderingFilter()
+    o = AnoNumeroOrderingFilter(help_text='')
 
     class Meta:
         filter_overrides = {models.DateTimeField: {
@@ -109,9 +113,6 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
     def __init__(self, *args, **kwargs):
         super(ProtocoloFilterSet, self).__init__(*args, **kwargs)
-
-        self.filters['autor'].label = 'Tipo de Matéria'
-        self.filters['assunto_ementa'].label = 'Assunto'
 
         row1 = to_row(
             [('numero', 4),
@@ -136,9 +137,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                      'Limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
         row5 = to_row(
-            [('tipo_processo', 12)])
-        row6 = to_row(
-            [('o', 12)])
+            [('tipo_processo', 6), ('o', 6)])
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
@@ -146,9 +145,10 @@ class ProtocoloFilterSet(django_filters.FilterSet):
             Fieldset(_('Pesquisar Protocolo'),
                      row1, row2,
                      row3,
+                     row5,
                      HTML(autor_label),
                      HTML(autor_modal),
-                     row4, row5, row6,
+                     row4,
                      form_actions(label='Pesquisar'))
         )
 

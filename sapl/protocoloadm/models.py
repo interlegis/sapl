@@ -1,8 +1,8 @@
-import reversion
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
@@ -78,13 +78,13 @@ class Protocolo(models.Model):
         blank=True,
         null=True,
         on_delete=models.PROTECT,
-        verbose_name=_('Tipo de documento'))
+        verbose_name=_('Tipo de Documento'))
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa,
         blank=True,
         null=True,
         on_delete=models.PROTECT,
-        verbose_name=_('Tipo Matéria'))
+        verbose_name=_('Tipo de Matéria'))
     numero_paginas = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número de Páginas'))
     observacao = models.TextField(
@@ -299,10 +299,12 @@ class TramitacaoAdministrativo(models.Model):
             'documento': self.documento, 'status': self.status
         }
 
+
 @reversion.register()
 class AcompanhamentoDocumento(models.Model):
     usuario = models.CharField(max_length=50)
-    documento = models.ForeignKey(DocumentoAdministrativo, on_delete=models.CASCADE)
+    documento = models.ForeignKey(
+        DocumentoAdministrativo, on_delete=models.CASCADE)
     email = models.EmailField(
         max_length=100, verbose_name=_('E-mail'))
     data_cadastro = models.DateField(auto_now_add=True)
