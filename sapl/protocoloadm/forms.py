@@ -20,7 +20,8 @@ from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal,
-                        choice_anos_com_protocolo)
+                        choice_anos_com_protocolo,
+                        choice_anos_com_documentoadministrativo)
 
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
@@ -37,9 +38,7 @@ NATUREZA_PROCESSO = [('0', 'Administrativo'),
                      ('1', 'Legislativo')]
 
 
-EM_TRAMITACAO = [('', '---------'),
-                 (0, 'Sim'),
-                 (1, 'Não')]
+EM_TRAMITACAO = [(0, 'Sim'), (1, 'Não')]
 
 
 class AcompanhamentoDocumentoForm(ModelForm):
@@ -155,19 +154,24 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
 class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
-    ano = django_filters.ChoiceFilter(required=False,
-                                      label='Ano',
-                                      choices=RANGE_ANOS)
+    ano = django_filters.ChoiceFilter(
+        required=False,
+        label='Ano',
+        choices=choice_anos_com_documentoadministrativo)
 
     tramitacao = django_filters.ChoiceFilter(required=False,
                                              label='Em Tramitação?',
-                                             choices=EM_TRAMITACAO)
+                                             choices=YES_NO_CHOICES)
 
-    assunto = django_filters.CharFilter(lookup_expr='icontains')
+    assunto = django_filters.CharFilter(
+        label=_('Assunto'),
+        lookup_expr='icontains')
 
-    interessado = django_filters.CharFilter(lookup_expr='icontains')
+    interessado = django_filters.CharFilter(
+        label=_('Interessado'),
+        lookup_expr='icontains')
 
-    o = AnoNumeroOrderingFilter()
+    o = AnoNumeroOrderingFilter(help_text='')
 
     class Meta:
         filter_overrides = {models.DateField: {
@@ -190,37 +194,38 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
         local_atual = 'tramitacaoadministrativo__unidade_tramitacao_destino'
         self.filters['tipo'].label = 'Tipo de Documento'
+        self.filters['protocolo__numero'].label = 'Núm. Protocolo'
         self.filters['tramitacaoadministrativo__status'].label = 'Situação'
         self.filters[local_atual].label = 'Localização Atual'
 
         row1 = to_row(
-            [('tipo', 6),
-             ('numero', 6)])
+            [('tipo', 8),
+             ('o', 4), ])
 
         row2 = to_row(
-            [('ano', 4),
+            [('numero', 2),
+             ('ano', 2),
              ('protocolo__numero', 2),
              ('numero_externo', 2),
              ('data', 4)])
 
         row3 = to_row(
-            [('interessado', 4),
-             ('assunto', 4),
-             ('tramitacao', 4)])
+            [('interessado', 6),
+             ('assunto', 6)])
 
         row4 = to_row(
-            [('tramitacaoadministrativo__unidade_tramitacao_destino', 6),
-             ('tramitacaoadministrativo__status', 6)])
-
-        row5 = to_row(
-            [('o', 12)])
+            [
+                ('tramitacao', 2),
+                ('tramitacaoadministrativo__status', 5),
+                ('tramitacaoadministrativo__unidade_tramitacao_destino', 5),
+            ])
 
         self.form.helper = FormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar Documento'),
                      row1, row2,
-                     row3, row4, row5,
+                     row3, row4,
                      form_actions(label='Pesquisar'))
         )
 

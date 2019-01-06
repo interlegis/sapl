@@ -369,6 +369,11 @@ def choice_anos_com_protocolo():
     return choice_anos(Protocolo)
 
 
+def choice_anos_com_documentoadministrativo():
+    from sapl.protocoloadm.models import DocumentoAdministrativo
+    return choice_anos(DocumentoAdministrativo)
+
+
 def choice_anos_com_sessaoplenaria():
     try:
         from sapl.sessao.models import SessaoPlenaria
