@@ -21,7 +21,7 @@ from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal,
                         choice_anos_com_protocolo,
-                        choice_anos_com_documentoadministrativo)
+                        choice_anos_com_documentoadministrativo, ANO_CHOICES)
 
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
@@ -707,12 +707,13 @@ class DocumentoAdministrativoForm(ModelForm):
 
     data = forms.DateField(initial=timezone.now)
 
-    ano_protocolo = forms.ChoiceField(required=False,
-                                      label=Protocolo._meta.
-                                      get_field('ano').verbose_name,
-                                      choices=RANGE_ANOS,
-                                      widget=forms.Select(
-                                          attrs={'class': 'selector'}))
+    ano_protocolo = forms.ChoiceField(
+        required=False,
+        label=Protocolo._meta.
+        get_field('ano').verbose_name,
+        choices=[('', '---------')] + choice_anos_com_protocolo(),
+        widget=forms.Select(
+            attrs={'class': 'selector'}))
 
     numero_protocolo = forms.IntegerField(required=False,
                                           label=Protocolo._meta.
@@ -829,7 +830,7 @@ class DocumentoAdministrativoForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [('tipo', 4), ('numero', 4), ('ano', 4)])
+            [('tipo', 6), ('numero', 3), ('ano', 3)])
 
         row2 = to_row(
             [('data', 4), ('numero_protocolo', 4), ('ano_protocolo', 4)])
@@ -838,7 +839,7 @@ class DocumentoAdministrativoForm(ModelForm):
             [('assunto', 12)])
 
         row4 = to_row(
-            [('interessado', 8), ('tramitacao', 2), (InlineRadios('restrito'), 2)])
+            [('interessado', 7), ('tramitacao', 2), (InlineRadios('restrito'), 3)])
 
         row5 = to_row(
             [('texto_integral', 12)])
