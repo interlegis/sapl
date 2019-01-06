@@ -6,6 +6,7 @@ from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.db.models import Q
 from django.forms import ModelForm, widgets, ModelChoiceField
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -44,7 +45,9 @@ class NormaFilterSet(django_filters.FilterSet):
                                       label='Ano',
                                       choices=choice_anos_com_normas)
 
-    ementa = django_filters.CharFilter(lookup_expr='icontains')
+    ementa = django_filters.CharFilter(
+        method='filter_ementa',
+        label=_('Pesquisar expressões na ementa da norma'))
 
     indexacao = django_filters.CharFilter(lookup_expr='icontains',
                                           label=_('Indexação'))
@@ -52,7 +55,7 @@ class NormaFilterSet(django_filters.FilterSet):
     assuntos = django_filters.ModelChoiceFilter(
         queryset=AssuntoNorma.objects.all())
 
-    o = NormaPesquisaOrderingFilter()
+    o = NormaPesquisaOrderingFilter(help_text='')
 
     class Meta:
         filter_overrides = {models.DateField: {
@@ -81,6 +84,14 @@ class NormaFilterSet(django_filters.FilterSet):
                      row1, row2, row3, row4, row5,
                      form_actions(label='Pesquisar'))
         )
+
+    def filter_ementa(self, queryset, name, value):
+        texto = value.split()
+        q = Q()
+        for t in texto:
+            q &= Q(ementa__icontains=t)
+
+        return queryset.filter(q)
 
 
 class NormaJuridicaForm(ModelForm):
