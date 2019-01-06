@@ -32,8 +32,8 @@ whoosh==2.7.4
 django-speedinfo==1.3.5
 django-reversion-compare==0.8.4
 
-#git+git://github.com/interlegis/trml2pdf.git
-#git+git://github.com/jasperlittle/django-rest-framework-docs
-#git+git://github.com/rubgombar1/django-admin-bootstrapped.git
+git+git://github.com/interlegis/trml2pdf.git
+git+git://github.com/jasperlittle/django-rest-framework-docs
+git+git://github.com/rubgombar1/django-admin-bootstrapped.git
 
 #django-compressor==2.2
