@@ -1,10 +1,10 @@
 from datetime import date, timedelta
 
-import pytest
 from django.core.urlresolvers import reverse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+import pytest
 
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
@@ -368,6 +368,9 @@ def test_documento_administrativo_invalido():
 def test_documento_administrativo_protocolo_inexistente():
 
     tipo = mommy.make(TipoDocumentoAdministrativo)
+    protocolo = mommy.make(Protocolo,
+                           ano=2017,
+                           numero=10)
 
     form = DocumentoAdministrativoForm(data={'ano': '2017',
                                              'tipo': str(tipo.pk),
