@@ -20,10 +20,10 @@ install_requires = [
     'django-crispy-forms==1.7.2',
     'django-floppyforms==1.7.0',
     'django-extra-views==0.12.0',
+    'django-model-utils==3.1.2',
+    'django-sass-processor==0.7.2',
 
     'django-extensions==1.9.8',
-    'django-model-utils==3.1.1',
-    'django-sass-processor==0.5.8',
     'drfdocs',
     'easy-thumbnails==2.5',
     'django-image-cropping==1.1.0',
