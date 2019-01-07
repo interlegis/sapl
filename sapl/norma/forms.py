@@ -57,13 +57,7 @@ class NormaFilterSet(django_filters.FilterSet):
 
     o = NormaPesquisaOrderingFilter(help_text='')
 
-    class Meta:
-        filter_overrides = {models.DateField: {
-            'filter_class': django_filters.DateFromToRangeFilter,
-            'extra': lambda f: {
-                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-                'widget': RangeWidgetOverride}
-        }}
+    class Meta(FilterOverridesMetaMixin):
         model = NormaJuridica
         fields = ['tipo', 'numero', 'ano', 'data', 'data_vigencia',
                   'data_publicacao', 'ementa', 'assuntos']

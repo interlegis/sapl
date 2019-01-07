@@ -96,13 +96,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
     o = AnoNumeroOrderingFilter(help_text='')
 
-    class Meta:
-        filter_overrides = {models.DateTimeField: {
-            'filter_class': django_filters.DateFromToRangeFilter,
-            'extra': lambda f: {
-                'label': 'Data (%s)' % (_('Inicial - Final')),
-                'widget': RangeWidgetOverride}
-        }}
+    class Meta(FilterOverridesMetaMixin):
         model = Protocolo
         fields = ['numero',
                   'tipo_documento',
@@ -112,6 +106,8 @@ class ProtocoloFilterSet(django_filters.FilterSet):
 
     def __init__(self, *args, **kwargs):
         super(ProtocoloFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['timestamp'].label = 'Data (Inicial - Final)'
 
         row1 = to_row(
             [('numero', 4),
@@ -173,13 +169,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
     o = AnoNumeroOrderingFilter(help_text='')
 
-    class Meta:
-        filter_overrides = {models.DateField: {
-            'filter_class': django_filters.DateFromToRangeFilter,
-            'extra': lambda f: {
-                'label': 'Data (%s)' % (_('Inicial - Final')),
-                'widget': RangeWidgetOverride}
-        }}
+    class Meta(FilterOverridesMetaMixin):
         model = DocumentoAdministrativo
         fields = ['tipo',
                   'numero',

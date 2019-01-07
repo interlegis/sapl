@@ -56,10 +56,11 @@ class Protocolo(models.Model):
                                            null=False,
                                            choices=RANGE_ANOS,
                                            verbose_name=_('Ano do Protocolo'))
-    # TODO: Remover esses dois campos após migração,
-    # TODO: pois timestamp supre a necessidade
+
+    # FIXME: https://github.com/interlegis/sapl/issues/2337
     data = models.DateField(null=True, blank=True)
     hora = models.TimeField(null=True, blank=True)
+
     # Não foi utilizado auto_now_add=True em timestamp porque
     # ele usa datetime.now que não é timezone aware.
     timestamp = models.DateTimeField(default=timezone.now)

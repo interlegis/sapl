@@ -32,7 +32,8 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         ChoiceWithoutValidationField, ImageThumbnailFileInput,
                         RangeWidgetOverride, autor_label, autor_modal,
                         models_with_gr_for_model, qs_override_django_filter,
-                        choice_anos_com_normas, choice_anos_com_materias)
+                        choice_anos_com_normas, choice_anos_com_materias,
+                        FilterOverridesMetaMixin)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -674,13 +675,7 @@ class AutorFormForAdmin(AutorForm):
 
 class RelatorioAtasFilterSet(django_filters.FilterSet):
 
-    class Meta:
-        filter_overrides = {models.DateField: {
-            'filter_class': django_filters.DateFromToRangeFilter,
-            'extra': lambda f: {
-                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-                'widget': RangeWidgetOverride}
-        }}
+    class Meta(FilterOverridesMetaMixin):
         model = SessaoPlenaria
         fields = ['data_inicio']
 
@@ -714,12 +709,6 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
                                       choices=choice_anos_com_normas)
 
     class Meta:
-        filter_overrides = {models.DateField: {
-            'filter_class': django_filters.DateFromToRangeFilter,
-            'extra': lambda f: {
-                'label': '%s (%s)' % (f.verbose_name, _('Ano')),
-                'widget': RangeWidgetOverride}
-        }}
         model = NormaJuridica
         fields = ['ano']
 
@@ -784,13 +773,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
 
 class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
-    class Meta:
-        filter_overrides = {models.DateField: {
-            'filter_class': django_filters.DateFromToRangeFilter,
-            'extra': lambda f: {
-                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-                'widget': RangeWidgetOverride}
-        }}
+    class Meta(FilterOverridesMetaMixin):
         model = SessaoPlenaria
         fields = ['data_inicio']
 
@@ -822,13 +805,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
         parent = super(RelatorioHistoricoTramitacaoFilterSet, self).qs
         return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
 
-    class Meta:
-        filter_overrides = {models.DateField: {
-            'filter_class': django_filters.DateFromToRangeFilter,
-            'extra': lambda f: {
-                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-                'widget': RangeWidgetOverride}
-        }}
+    class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
         fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
                   'tramitacao__status', 'tramitacao__data_tramitacao']
@@ -861,13 +838,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
         return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
 
-    class Meta:
-        filter_overrides = {models.DateField: {
-            'filter_class': django_filters.DateFromToRangeFilter,
-            'extra': lambda f: {
-                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-                'widget': RangeWidgetOverride}
-        }}
+    class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
         fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
                   'tramitacao__status', 'tramitacao__data_fim_prazo']
@@ -1034,13 +1005,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
         return parent.distinct().filter(autoria__primeiro_autor=True)\
             .order_by('autoria__autor', '-autoria__primeiro_autor', 'tipo', '-ano', '-numero')
 
-    class Meta:
-        filter_overrides = {models.DateField: {
-            'filter_class': django_filters.DateFromToRangeFilter,
-            'extra': lambda f: {
-                'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
-                'widget': RangeWidgetOverride}
-        }}
+    class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
         fields = ['tipo', 'data_apresentacao']
 

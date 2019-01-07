@@ -16,6 +16,7 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
 from django.core.mail import get_connection
+from django.db import models
 from django.db.models import Q
 from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
@@ -405,6 +406,21 @@ def choice_force_optional(callable):
     def _func():
         return [('', '---------')] + callable()
     return _func
+
+
+FILTER_OVERRIDES_DATEFIELD = {
+    'filter_class': django_filters.DateFromToRangeFilter,
+    'extra': lambda f: {
+        'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+        'widget': RangeWidgetOverride
+    }
+}
+
+
+class FilterOverridesMetaMixin:
+    filter_overrides = {
+        models.DateField: FILTER_OVERRIDES_DATEFIELD
+    }
 
 
 TIPOS_TEXTO_PERMITIDOS = (
