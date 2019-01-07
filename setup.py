@@ -26,10 +26,9 @@ install_requires = [
     'django-reversion-compare==0.8.6'
     'django-speedinfo==1.4.0',
     'django-extensions==2.1.4',
-
-    'drfdocs',
+    'django-image-cropping==1.2.0',
     'easy-thumbnails==2.5',
-    'django-image-cropping==1.1.0',
+
     'libsass==0.11.1',
     'psycopg2==2.7.4',
     'python-decouple==3.0',
@@ -43,6 +42,8 @@ install_requires = [
     'gunicorn==19.6.0',
     'WeasyPrint==0.42',
     'whoosh==2.7.4',
+    
+    'drfdocs',
     # 'git+git://github.com/interlegis/trml2pdf.git',
     # 'git+git://github.com/jasperlittle/django-rest-framework-docs'
     # 'git+git://github.com/rubgombar1/django-admin-bootstrapped.git''
