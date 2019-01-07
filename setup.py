@@ -24,6 +24,7 @@ install_requires = [
     'django-sass-processor==0.7.2',
     'django-reversion==3.0.2',
     'django-reversion-compare==0.8.6'
+    'django-speedinfo==1.4.0',
 
     'django-extensions==1.9.8',
     'drfdocs',
@@ -42,7 +43,6 @@ install_requires = [
     'gunicorn==19.6.0',
     'WeasyPrint==0.42',
     'whoosh==2.7.4',
-    'django-speedinfo==1.3.5',
     # 'git+git://github.com/interlegis/trml2pdf.git',
     # 'git+git://github.com/jasperlittle/django-rest-framework-docs'
     # 'git+git://github.com/rubgombar1/django-admin-bootstrapped.git''
