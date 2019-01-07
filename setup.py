@@ -34,13 +34,13 @@ install_requires = [
     'pyyaml==4.2b1',
     'pytz==2018.9',
     'rtyaml==0.0.5',
+    'WeasyPrint==44',
 
     'textract==1.5.0',
     'unipath==1.1',
     'pysolr==3.6.0',
     'python-magic==0.4.12',
     'gunicorn==19.6.0',
-    'WeasyPrint==0.42',
     'whoosh==2.7.4',
 
     'drfdocs',
