@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
@@ -191,7 +192,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date.today() + timedelta(
+         'data_tramitacao': timezone.now().date() + timedelta(
              days=1)},
         follow=True)
 
@@ -370,7 +371,9 @@ def test_documento_administrativo_protocolo_inexistente():
     tipo = mommy.make(TipoDocumentoAdministrativo)
     protocolo = mommy.make(Protocolo,
                            ano=2017,
-                           numero=10)
+                           numero=10,
+                           anulado=False,
+                           tipo_documento=tipo)
 
     form = DocumentoAdministrativoForm(data={'ano': '2017',
                                              'tipo': str(tipo.pk),

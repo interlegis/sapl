@@ -20,8 +20,8 @@ from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal,
-                        choice_anos_com_protocolo,
-                        choice_anos_com_documentoadministrativo, ANO_CHOICES)
+                        choice_anos_com_protocolo, choice_force_optional,
+                        choice_anos_com_documentoadministrativo)
 
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
@@ -711,7 +711,7 @@ class DocumentoAdministrativoForm(ModelForm):
         required=False,
         label=Protocolo._meta.
         get_field('ano').verbose_name,
-        choices=[('', '---------')] + choice_anos_com_protocolo(),
+        choices=choice_force_optional(choice_anos_com_protocolo),
         widget=forms.Select(
             attrs={'class': 'selector'}))
 

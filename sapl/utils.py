@@ -387,6 +387,26 @@ def choice_anos_com_sessaoplenaria():
         return []
 
 
+def choice_force_optional(callable):
+    """ Django-filter faz algo que tenha o mesmo sentido em ChoiceFilter,
+        no entanto, as funções choice_anos_... podem ser usadas em formulários
+        comuns de adição e/ou edição, com a particularidade de terem
+        required=False.
+        Neste caso para ser possível contar com a otimização de apenas mostrar anos
+        que estejam na base de dados e ainda colocar o item opcional '---------',
+        é necessário encapsular então, as funções choice_anos_... com a
+        esta função choice_force_optional... isso ocorre e foi aplicado
+        inicialmente no cadastro de documentos administrativos onde tem-se
+        opcionalmente a possibilidade de colocar o ano do protocolo.
+        Em ChoiceFilter choice_force_optional não deve ser usado pois duplicaria
+        o item opcional '---------' já que ChoiceFilter já o adiciona, como dito
+        anteriormente.
+    """
+    def _func():
+        return [('', '---------')] + callable()
+    return _func
+
+
 TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.oasis.opendocument.text',
     'application/x-vnd.oasis.opendocument.text',
