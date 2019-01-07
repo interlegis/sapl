@@ -30,10 +30,10 @@ install_requires = [
     'easy-thumbnails==2.5',
     'libsass==0.17.0',
     'python-decouple==3.1',
-
-    'psycopg2==2.7.4',
-    'pytz==2016.4',
+    'psycopg2-binary==2.7.6.1',
     'pyyaml==4.2b1',
+
+    'pytz==2016.4',
     'rtyaml==0.0.3',
     'textract==1.5.0',
     'unipath==1.1',
