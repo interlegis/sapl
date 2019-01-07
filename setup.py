@@ -19,8 +19,8 @@ install_requires = [
     'django-braces==1.9.0',
     'django-crispy-forms==1.7.2',
     'django-floppyforms==1.7.0',
+    'django-extra-views==0.12.0',
 
-    'django-extra-views==0.11.0',
     'django-extensions==1.9.8',
     'django-model-utils==3.1.1',
     'django-sass-processor==0.5.8',
