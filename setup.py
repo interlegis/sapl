@@ -25,8 +25,8 @@ install_requires = [
     'django-reversion==3.0.2',
     'django-reversion-compare==0.8.6'
     'django-speedinfo==1.4.0',
+    'django-extensions==2.1.4',
 
-    'django-extensions==1.9.8',
     'drfdocs',
     'easy-thumbnails==2.5',
     'django-image-cropping==1.1.0',

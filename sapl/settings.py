@@ -75,21 +75,19 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
 
     'djangobower',
     'bootstrap3',
     'crispy_forms',
     'floppyforms',
+    'sass_processor',
 
     'rest_framework',
     'django_filters',
 
-
-
-    'django_extensions',
     'easy_thumbnails',
     'image_cropping',
-    'sass_processor',
 
     'reversion',
     'reversion_compare',

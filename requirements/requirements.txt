@@ -14,10 +14,10 @@ django-sass-processor==0.7.2
 django-reversion==3.0.2
 django-reversion-compare==0.8.6
 django-speedinfo==1.4.0
+django-extensions==2.1.4
 
-django-extensions==1.9.8
-easy-thumbnails==2.5
 django-image-cropping==1.2
+easy-thumbnails==2.5
 libsass==0.11.1
 psycopg2-binary==2.7.4
 python-decouple==3.0
