@@ -32,8 +32,8 @@ install_requires = [
     'python-decouple==3.1',
     'psycopg2-binary==2.7.6.1',
     'pyyaml==4.2b1',
+    'pytz==2018.9',
 
-    'pytz==2016.4',
     'rtyaml==0.0.3',
     'textract==1.5.0',
     'unipath==1.1',
