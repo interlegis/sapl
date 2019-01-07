@@ -79,20 +79,25 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # more
-    'django_extensions',
     'djangobower',
-    'bootstrap3',  # basically for django_admin_bootstrapped
+    'bootstrap3',
     'crispy_forms',
-    'easy_thumbnails',
-    'image_cropping',
     'floppyforms',
-    'haystack',
-    'sass_processor',
+
     'rest_framework',
     'django_filters',
+
+
+
+    'django_extensions',
+    'easy_thumbnails',
+    'image_cropping',
+    'sass_processor',
+
     'reversion',
     'reversion_compare',
+
+    'haystack',
     'whoosh',
     'speedinfo',
 
