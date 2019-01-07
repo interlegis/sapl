@@ -29,7 +29,7 @@ install_requires = [
     'django-image-cropping==1.2.0',
     'easy-thumbnails==2.5',
 
-    'libsass==0.11.1',
+    'libsass==0.17.0',
     'psycopg2==2.7.4',
     'python-decouple==3.0',
     'pytz==2016.4',
@@ -42,7 +42,7 @@ install_requires = [
     'gunicorn==19.6.0',
     'WeasyPrint==0.42',
     'whoosh==2.7.4',
-    
+
     'drfdocs',
     # 'git+git://github.com/interlegis/trml2pdf.git',
     # 'git+git://github.com/jasperlittle/django-rest-framework-docs'

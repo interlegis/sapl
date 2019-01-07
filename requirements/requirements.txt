@@ -15,10 +15,10 @@ django-reversion==3.0.2
 django-reversion-compare==0.8.6
 django-speedinfo==1.4.0
 django-extensions==2.1.4
-
 django-image-cropping==1.2
 easy-thumbnails==2.5
-libsass==0.11.1
+libsass==0.17.0
+
 psycopg2-binary==2.7.4
 python-decouple==3.0
 pytz==2016.4
@@ -32,8 +32,8 @@ gunicorn==19.6.0
 WeasyPrint==0.42
 whoosh==2.7.4
 
-git+git://github.com/interlegis/trml2pdf.git
-git+git://github.com/jasperlittle/django-rest-framework-docs
-git+git://github.com/rubgombar1/django-admin-bootstrapped.git
+#git+git://github.com/interlegis/trml2pdf.git
+#git+git://github.com/jasperlittle/django-rest-framework-docs
+#git+git://github.com/rubgombar1/django-admin-bootstrapped.git
 
 #django-compressor==2.2
