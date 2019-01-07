@@ -193,12 +193,16 @@ class NormaJuridica(models.Model):
                                  update_fields=update_fields)
 
 
+def get_ano_atual():
+    return timezone.now().year
+
+
 class NormaEstatisticas(models.Model):
     usuario = models.CharField(max_length=50)
     horario_acesso = models.DateTimeField(
         blank=True, null=True)
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
-                                           choices=RANGE_ANOS, default=lambda:timezone.now().year)
+                                           choices=RANGE_ANOS, default=get_ano_atual)
     norma = models.ForeignKey(NormaJuridica,
                              on_delete=models.CASCADE)
     def __str__(self):
