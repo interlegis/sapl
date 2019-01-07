@@ -22,8 +22,8 @@ python-decouple==3.1
 psycopg2-binary==2.7.6.1
 pyyaml==4.2b1
 pytz==2018.9
+rtyaml==0.0.5
 
-rtyaml==0.0.3
 textract==1.5.0
 unipath==1.1
 pysolr==3.6.0
@@ -32,8 +32,8 @@ gunicorn==19.6.0
 WeasyPrint==0.42
 whoosh==2.7.4
 
-#git+git://github.com/interlegis/trml2pdf.git
-#git+git://github.com/jasperlittle/django-rest-framework-docs
-#git+git://github.com/rubgombar1/django-admin-bootstrapped.git
+git+git://github.com/interlegis/trml2pdf.git
+git+git://github.com/jasperlittle/django-rest-framework-docs
+git+git://github.com/rubgombar1/django-admin-bootstrapped.git
 
 #django-compressor==2.2
