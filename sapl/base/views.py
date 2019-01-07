@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import connection
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404, HttpResponseRedirect
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
@@ -375,8 +375,13 @@ class RelatorioPresencaSessaoView(FilterView):
         # Completa o dicionario as informacoes parlamentar/sessao/ordem
         parlamentares_presencas = []
         for i, p in enumerate(parlamentares_qs):
+            m = p.mandato_set.filter(Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__gte=_range[1]) |
+                                     Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__isnull=True) |
+                                     Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]))
+            m = m.last()
             parlamentares_presencas.append({
                 'parlamentar': p,
+                'titular': m.titular,
                 'sessao_porc': 0,
                 'ordemdia_porc': 0
             })

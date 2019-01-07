@@ -1,9 +1,9 @@
-from django.contrib import messages
 from datetime import datetime
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
+from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
@@ -22,31 +22,16 @@ from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
-                        autor_modal, timezone)
+                        autor_modal, timezone, choice_anos_com_sessaoplenaria)
+
 from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
                      OcorrenciaSessao, RegistroVotacao, RetiradaPauta, TipoRetiradaPauta)
 
 
-def recupera_anos():
-    try:
-        anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
-        # a listagem deve ser em ordem descrescente, mas por algum motivo
-        # a adicao de .order_by acima depois do all() nao surte efeito
-        # apos a adicao do .dates(), por isso o reversed() abaixo
-        anos = [(k.year, k.year) for k in reversed(anos_list)]
-        return anos
-    except Exception:
-        return []
-
-
-def ANO_CHOICES():
-    return [('', '---------')] + recupera_anos()
-
-
-MES_CHOICES = [('', '---------')] + RANGE_MESES
-DIA_CHOICES = [('', '---------')] + RANGE_DIAS_MES
+MES_CHOICES = RANGE_MESES
+DIA_CHOICES = RANGE_DIAS_MES
 
 
 ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
@@ -218,11 +203,11 @@ class RetiradaPautaForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row([('tipo_de_retirada', 5),
-                      ('parlamentar', 4),
-                      ('data', 3)])
+                       ('parlamentar', 4),
+                       ('data', 3)])
         row2 = to_row([('ordem', 6),
-                      ('expediente', 6)])
-        row3 = to_row([('observacao',12)])
+                       ('expediente', 6)])
+        row3 = to_row([('observacao', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
@@ -232,8 +217,10 @@ class RetiradaPautaForm(ModelForm):
         q = Q(sessao_plenaria=kwargs['initial']['sessao_plenaria'])
         ordens = OrdemDia.objects.filter(q)
         expedientes = ExpedienteMateria.objects.filter(q)
-        retiradas_ordem = [r.ordem for r in RetiradaPauta.objects.filter(q, ordem__in=ordens)]
-        retiradas_expediente = [r.expediente for r in RetiradaPauta.objects.filter(q, expediente__in=expedientes)]
+        retiradas_ordem = [
+            r.ordem for r in RetiradaPauta.objects.filter(q, ordem__in=ordens)]
+        retiradas_expediente = [r.expediente for r in RetiradaPauta.objects.filter(
+            q, expediente__in=expedientes)]
         setOrdem = set(ordens) - set(retiradas_ordem)
         setExpediente = set(expedientes) - set(retiradas_expediente)
 
@@ -264,25 +251,30 @@ class RetiradaPautaForm(ModelForm):
 
         sessao_plenaria = self.instance.sessao_plenaria
         if self.cleaned_data['data'] < sessao_plenaria.data_inicio:
-            raise ValidationError(_("Data de retirada de pauta anterior à abertura da Sessão."))
+            raise ValidationError(
+                _("Data de retirada de pauta anterior à abertura da Sessão."))
         if sessao_plenaria.data_fim and self.cleaned_data['data'] > sessao_plenaria.data_fim:
-            raise ValidationError(_("Data de retirada de pauta posterior ao encerramento da Sessão."))
+            raise ValidationError(
+                _("Data de retirada de pauta posterior ao encerramento da Sessão."))
 
         if self.cleaned_data['ordem'] and self.cleaned_data['ordem'].registrovotacao_set.exists():
-            raise ValidationError(_("Essa matéria já foi votada, portanto não pode ser retirada de pauta."))
+            raise ValidationError(
+                _("Essa matéria já foi votada, portanto não pode ser retirada de pauta."))
         elif self.cleaned_data['expediente'] and self.cleaned_data['expediente'].registrovotacao_set.exists():
-            raise ValidationError(_("Essa matéria já foi votada, portanto não pode ser retirada de pauta."))
+            raise ValidationError(
+                _("Essa matéria já foi votada, portanto não pode ser retirada de pauta."))
 
         return self.cleaned_data
 
     def save(self, commit=False):
-        retirada = super(RetiradaPautaForm, self).save(commit=False)
+        retirada = super(RetiradaPautaForm, self).save(commit=commit)
         if retirada.ordem:
             retirada.materia = retirada.ordem.materia
         elif retirada.expediente:
             retirada.materia = retirada.expediente.materia
         retirada.save()
         return retirada
+
 
 class BancadaForm(ModelForm):
 
@@ -522,10 +514,12 @@ class VotacaoForm(forms.Form):
     votos_sim = forms.IntegerField(label='Sim')
     votos_nao = forms.IntegerField(label='Não')
     abstencoes = forms.IntegerField(label='Abstenções')
-    total_presentes = forms.IntegerField(required=False, widget=forms.HiddenInput())
-    voto_presidente = forms.IntegerField(label='A totalização inclui o voto do Presidente?')
+    total_presentes = forms.IntegerField(
+        required=False, widget=forms.HiddenInput())
+    voto_presidente = forms.IntegerField(
+        label='A totalização inclui o voto do Presidente?')
     total_votos = forms.IntegerField(required=False, label='total')
-    observacao = forms.CharField(required=False , label='Observação')
+    observacao = forms.CharField(required=False, label='Observação')
     resultado_votacao = forms.CharField(label='Resultado da Votação')
 
     def clean(self):
@@ -540,18 +534,19 @@ class VotacaoForm(forms.Form):
         qtde_votos = votos_sim + votos_nao + abstencoes
         voto_presidente = cleaned_data['voto_presidente']
 
-        if not voto_presidente:
+        if qtde_presentes and not voto_presidente:
             qtde_presentes -= 1
 
-        if qtde_votos != qtde_presentes:
-            raise ValidationError('O total de votos não corresponde com a quantidade de presentes!')
+        if qtde_presentes and qtde_votos != qtde_presentes:
+            raise ValidationError(
+                'O total de votos não corresponde com a quantidade de presentes!')
 
         return cleaned_data
 
     # def save(self, commit=False):
     #     #TODO Verificar se esse códido é utilizado
 
-    #     votacao = super(VotacaoForm, self).save(commit) 
+    #     votacao = super(VotacaoForm, self).save(commit)
     #     votacao.materia = self.cleaned_data['materia']
     #     votacao.save()
     #     return votacao
@@ -569,9 +564,11 @@ class VotacaoEditForm(forms.Form):
 
 class SessaoPlenariaFilterSet(django_filters.FilterSet):
 
-    data_inicio__year = django_filters.ChoiceFilter(required=False,
-                                                    label='Ano',
-                                                    choices=ANO_CHOICES)
+    data_inicio__year = django_filters.ChoiceFilter(
+        required=False,
+        label='Ano',
+        choices=choice_anos_com_sessaoplenaria
+    )
     data_inicio__month = django_filters.ChoiceFilter(required=False,
                                                      label='Mês',
                                                      choices=MES_CHOICES)
@@ -764,7 +761,7 @@ class ResumoOrdenacaoForm(forms.Form):
     decimo = forms.ChoiceField(label='10°',
                                choices=ORDENACAO_RESUMO)
     decimo_primeiro = forms.ChoiceField(label='11°',
-                               choices=ORDENACAO_RESUMO)
+                                        choices=ORDENACAO_RESUMO)
 
     def __init__(self, *args, **kwargs):
         super(ResumoOrdenacaoForm, self).__init__(*args, **kwargs)
@@ -796,7 +793,7 @@ class ResumoOrdenacaoForm(forms.Form):
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
-                     row6, row7, row8, row9, row10,row11,
+                     row6, row7, row8, row9, row10, row11,
                      form_actions(label='Atualizar'))
         )
 
@@ -875,7 +872,6 @@ class JustificativaAusenciaForm(ModelForm):
             legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
         parlamentares = [m.parlamentar for m in mandato]
 
-
         super(JustificativaAusenciaForm, self).__init__(
             *args, **kwargs)
 
@@ -900,7 +896,7 @@ class JustificativaAusenciaForm(ModelForm):
             ("0", "------------")] + [(p.id, p) for p in setFinal]
 
     def clean(self):
-        cleaned_data = super(JustificativaAusenciaForm, self).clean()
+        super(JustificativaAusenciaForm, self).clean()
 
         if not self.is_valid():
             return self.cleaned_data
@@ -913,7 +909,7 @@ class JustificativaAusenciaForm(ModelForm):
         else:
             return self.cleaned_data
 
-    def save(self, commit=False):
+    def save(self):
 
         justificativa = super().save(True)
 

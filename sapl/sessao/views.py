@@ -1902,7 +1902,8 @@ class VotacaoView(SessaoPermissionMixin):
                 qtde_presentes -= 1
 
             if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
-                form._errors["total_votos"] = ErrorList([u""])
+                msg = _('O total de votos não corresponde com a quantidade de presentes!')
+                messages.add_message(request, messages.ERROR, msg)
                 return self.render_to_response(context)
             elif (qtde_presentes == qtde_votos):
                 try:
@@ -3280,7 +3281,7 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
         pass
 
 
-class VotacaoEmBlocoExpediente(ListView):
+class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
 
     model = ExpedienteMateria
     template_name = 'sessao/votacao/votacao_bloco_expediente.html'
@@ -3303,7 +3304,7 @@ class VotacaoEmBlocoExpediente(ListView):
         return context
 
 
-class VotacaoEmBlocoOrdemDia(ListView):
+class VotacaoEmBlocoOrdemDia(PermissionRequiredForAppCrudMixin, ListView):
     model = OrdemDia
     template_name = 'sessao/votacao/votacao_bloco_ordem.html'
     app_label = AppConfig.label
@@ -3325,12 +3326,12 @@ class VotacaoEmBlocoOrdemDia(ListView):
         return context
 
 
-class VotacaoEmBlocoSimbolicaView(TemplateView):
+class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateView):
 
     """
         Votação Simbólica
     """
-
+    app_label = AppConfig.label
     template_name = 'sessao/votacao/votacao_simbolica_bloco.html'
     logger = logging.getLogger(__name__)
 
@@ -3502,10 +3503,11 @@ class VotacaoEmBlocoSimbolicaView(TemplateView):
         return self.render_to_response(context)
 
 
-class VotacaoEmBlocoNominalView(TemplateView):
+class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView):
     """
         Votação Nominal
     """
+    app_label = AppConfig.label
     template_name = 'sessao/votacao/votacao_nominal_bloco.html'
     logger = logging.getLogger(__name__)
 

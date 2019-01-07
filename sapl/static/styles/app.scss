@@ -110,16 +110,6 @@ fieldset {
   margin-right: $grid-gutter-width / 2;
 }
 
-.controls-file {
-  padding: 10px;
-  border: 1px solid #d6e1e5;
-  border-radius: 4px;
-  label.checkbox-inline {
-    margin: 0px;
-    display: block;
-  }
-}
-
 .help-block-danger {
   margin: $grid-gutter-width / 2;
   padding: $grid-gutter-width / 2;
@@ -217,12 +207,11 @@ nav {
   }
 }
 
-.controls-radio-checkbox {
+.controls-radio-checkbox, .controls-file {
   padding: 0px;
   border: 1px solid #d6e1e5;
   border-radius: 4px;
   min-height: 20px;
-
   
   .checkbox, .radio, .checkbox-inline, .radio-inline  {
     padding: 8px 8px 8px 36px;
@@ -247,36 +236,6 @@ nav {
     padding: $grid-gutter-width / 2;
     border: 2px dashed #d6e1e5;
   }
-
-}
-  .controls-radio-checkbox__old {
-    padding: 0px;
-    border: 1px solid #d6e1e5;
-    border-radius: 4px;
-    min-height: 20px;
-  label {
-    padding: 0;
-    line-height: 2.7;
-    padding-left: 36px;
-    .icons {
-      top:  8px;
-      left: 8px;
-    }
-
-    &.checkbox-inline, &.radio-inline, {
-      padding-right: 8px;
-      .icons {
-        top:  8px;
-        left: 8px;
-      }
-    }
-  }
-  .checkbox, .radio, .checkbox-inline, .radio-inline  {
-    margin: 0;
-    &:hover {
-      background-color: #d6e1e5;
-    }
-  }
 }
 
 .manual {
@@ -298,7 +257,9 @@ nav {
     }
   }
 }
-
+.controls-file {
+  padding: 15px;
+}
 .container-tabaux {
   .sidebar-tabaux {
     background: #fafafa;

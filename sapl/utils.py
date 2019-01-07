@@ -16,6 +16,7 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
 from django.core.mail import get_connection
+from django.db import models
 from django.db.models import Q
 from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
@@ -319,8 +320,9 @@ LISTA_DE_UFS = [
     ('EX', 'Exterior'),
 ]
 
-RANGE_ANOS = [(year, year) for year in range(timezone.now().year,
+RANGE_ANOS = [(year, year) for year in range(timezone.now().year + 1,
                                              1889, -1)]
+
 
 RANGE_MESES = [
     (1, 'Janeiro'),
@@ -338,6 +340,88 @@ RANGE_MESES = [
 ]
 
 RANGE_DIAS_MES = [(n, n) for n in range(1, 32)]
+
+
+def ANO_CHOICES():
+    return [('', '---------')] + RANGE_ANOS
+
+
+def choice_anos(model):
+    try:
+        anos_list = model.objects.all().distinct(
+            'ano').order_by('-ano').values_list('ano', 'ano')
+        return list(anos_list)
+    except Exception:
+        return []
+
+
+def choice_anos_com_materias():
+    from sapl.materia.models import MateriaLegislativa
+    return choice_anos(MateriaLegislativa)
+
+
+def choice_anos_com_normas():
+    from sapl.norma.models import NormaJuridica
+    return choice_anos(NormaJuridica)
+
+
+def choice_anos_com_protocolo():
+    from sapl.protocoloadm.models import Protocolo
+    return choice_anos(Protocolo)
+
+
+def choice_anos_com_documentoadministrativo():
+    from sapl.protocoloadm.models import DocumentoAdministrativo
+    return choice_anos(DocumentoAdministrativo)
+
+
+def choice_anos_com_sessaoplenaria():
+    try:
+        from sapl.sessao.models import SessaoPlenaria
+        anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
+        # a listagem deve ser em ordem descrescente, mas por algum motivo
+        # a adicao de .order_by acima depois do all() nao surte efeito
+        # apos a adicao do .dates(), por isso o reversed() abaixo
+        anos = [(k.year, k.year) for k in reversed(anos_list)]
+        return anos
+    except Exception:
+        return []
+
+
+def choice_force_optional(callable):
+    """ Django-filter faz algo que tenha o mesmo sentido em ChoiceFilter,
+        no entanto, as funções choice_anos_... podem ser usadas em formulários
+        comuns de adição e/ou edição, com a particularidade de terem
+        required=False.
+        Neste caso para ser possível contar com a otimização de apenas mostrar anos
+        que estejam na base de dados e ainda colocar o item opcional '---------',
+        é necessário encapsular então, as funções choice_anos_... com a
+        esta função choice_force_optional... isso ocorre e foi aplicado
+        inicialmente no cadastro de documentos administrativos onde tem-se
+        opcionalmente a possibilidade de colocar o ano do protocolo.
+        Em ChoiceFilter choice_force_optional não deve ser usado pois duplicaria
+        o item opcional '---------' já que ChoiceFilter já o adiciona, como dito
+        anteriormente.
+    """
+    def _func():
+        return [('', '---------')] + callable()
+    return _func
+
+
+FILTER_OVERRIDES_DATEFIELD = {
+    'filter_class': django_filters.DateFromToRangeFilter,
+    'extra': lambda f: {
+        'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+        'widget': RangeWidgetOverride
+    }
+}
+
+
+class FilterOverridesMetaMixin:
+    filter_overrides = {
+        models.DateField: FILTER_OVERRIDES_DATEFIELD
+    }
+
 
 TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.oasis.opendocument.text',

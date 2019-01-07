@@ -3,11 +3,13 @@
 {% load crispy_forms_tags %}
 
   {% block actions %}
+
     <div class="actions btn-group pull-right" role="group">
-      <!--
-      <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-default">
-          Pesquisa Textual
-      </a> -->
+      {% if USE_SOLR %}
+          <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-default">
+              Pesquisa Textual
+          </a>
+      {% endif %}
 
       {% if perms.materia.add_materialegislativa %}
       <a href="{% url 'sapl.materia:materialegislativa_create' %}" class="btn btn-default">
@@ -32,7 +34,11 @@
         </thead>
         {% if paginator.count %}
           {% if paginator.count > 1 %}
-            <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
+            {% if not tipo_listagem or tipo_listagem == '1' %}
+              <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa detalhada concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
+            {% else %}
+              <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa simplificada concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
+          {% endif %}
           {% elif paginator.count == 1 %}
             <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
           {% endif %}
@@ -61,92 +67,96 @@
 
                 {% endif %}
                 {% if m.autoria_set.all %}
-		<strong>Autor:</strong>
-		{% for a in m.autoria_set.all %}
+                  <strong>Autor:</strong>
+                  {% for a in m.autoria_set.all %}
                     {% if not forloop.first %}
                          </br> {{a.autor}}
                     {% else %}
                          &nbsp;{{a.autor}}
                     {% endif %}
-                {% endfor %}
-                </br>
-                {% endif %}
-                {% if m.tramitacao_set.last.unidade_tramitacao_destino %}
-                <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino}}</br>
-                {% endif %}
-                {% if m.tramitacao_set.last.status %}
-                  <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status}}</br>
-                  <strong>Data Fim Prazo (Tramitação):</strong>&nbsp;{{m.tramitacao_set.last.data_fim_prazo|default_if_none:""}}</br>
-                {% endif %}
-                {% if m.registrovotacao_set.exists %}
-                    <strong>Data Votação:</strong>
-                    {% for rv in m.registrovotacao_set.all %}
-                        {% if rv.ordem %}
-                          <a href="{% url 'sapl.sessao:ordemdia_list' rv.ordem.sessao_plenaria_id %}">
-                            {{ rv.ordem.sessao_plenaria.data_inicio }}
-                          </a>
-                        {% elif rv.expediente %}
-                          <a href="{% url 'sapl.sessao:expedientemateria_list' rv.expediente.sessao_plenaria_id %}">
-                            {{ rv.expediente.sessao_plenaria.data_inicio }}
-                          </a>
-                        {% endif %}
-                        </br>
-                    {% endfor %}
-                {% endif %}
-                {% if m.tramitacao_set.last.data_tramitacao %}
-                <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao}}</br>
-                <strong>Ultima Ação:</strong> &nbsp; {{m.tramitacao_set.last.texto}}</br>
-                {% endif %}
-                {% if m.anexo_de.exists %}
-                  {% for a in m.materia_anexada_set.all %}
-                  <strong>Matéria Anexadora: </strong>&nbsp;
-                  <a href="{% url 'sapl.materia:materialegislativa_detail' a.materia_principal.id %}">
-                      {{ a.materia_principal }}&nbsp;
-                  </a>
-                  <strong>Data Anexação:</strong> {{a.data_anexacao}}
-                  </br>
                   {% endfor %}
-                {% endif %}
-                {% if m.anexadas.all.exists %}
-                  {% for anexada in m.materia_principal_set.all %}
-                  <strong>Matéria Anexada: </strong>&nbsp;
-                  <a href="{% url 'sapl.materia:materialegislativa_detail' anexada.materia_anexada.id %}">
-                      {{ anexada.materia_anexada }}&nbsp;
-                  </a>
-                  <strong>Data Anexação:</strong> {{anexada.data_anexacao}}
                   </br>
-                  {% endfor %}
                 {% endif %}
-                {% if m.documentoacessorio_set.all.exists %}
-                    <strong>Documentos Acessórios:</strong>
-                    <a href="{% url 'sapl.materia:documentoacessorio_list' m.id %}">
-                        {{ m.documentoacessorio_set.all.count }}
+                
+                {% if not tipo_listagem or tipo_listagem == '1' %}
+                  
+                  {% if m.tramitacao_set.last.unidade_tramitacao_destino %}
+                  <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino}}</br>
+                  {% endif %}
+                  {% if m.tramitacao_set.last.status %}
+                    <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status}}</br>
+                    <strong>Data Fim Prazo (Tramitação):</strong>&nbsp;{{m.tramitacao_set.last.data_fim_prazo|default_if_none:""}}</br>
+                  {% endif %}
+                  {% if m.registrovotacao_set.exists %}
+                      <strong>Data Votação:</strong>
+                      {% for rv in m.registrovotacao_set.all %}
+                          {% if rv.ordem %}
+                            <a href="{% url 'sapl.sessao:ordemdia_list' rv.ordem.sessao_plenaria_id %}">
+                              {{ rv.ordem.sessao_plenaria.data_inicio }}
+                            </a>
+                          {% elif rv.expediente %}
+                            <a href="{% url 'sapl.sessao:expedientemateria_list' rv.expediente.sessao_plenaria_id %}">
+                              {{ rv.expediente.sessao_plenaria.data_inicio }}
+                            </a>
+                          {% endif %}
+                          </br>
+                      {% endfor %}
+                  {% endif %}
+                  {% if m.tramitacao_set.last.data_tramitacao %}
+                  <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao}}</br>
+                  <strong>Ultima Ação:</strong> &nbsp; {{m.tramitacao_set.last.texto}}</br>
+                  {% endif %}
+                  {% if m.anexo_de.exists %}
+                    {% for a in m.materia_anexada_set.all %}
+                    <strong>Matéria Anexadora: </strong>&nbsp;
+                    <a href="{% url 'sapl.materia:materialegislativa_detail' a.materia_principal.id %}">
+                        {{ a.materia_principal }}&nbsp;
                     </a>
+                    <strong>Data Anexação:</strong> {{a.data_anexacao}}
                     </br>
-                {% endif %}
-                {% if m.texto_original %}<strong><a href="{{m.texto_original.url}}">Texto Original</a></strong></br>{% endif %}
-                {% if m.texto_articulado.exists %}<strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong></br>{% endif %}
-                {% if m.normajuridica_set.exists %}
-                    {% for nr in m.normajuridica_set.all %}
-                      <strong>Norma Jurídica Vinculada: </strong>
-                      <a href="{% url 'sapl.norma:normajuridica_detail' nr.id %}">
-                        {{ nr }}
+                    {% endfor %}
+                  {% endif %}
+                  {% if m.anexadas.all.exists %}
+                    {% for anexada in m.materia_principal_set.all %}
+                    <strong>Matéria Anexada: </strong>&nbsp;
+                    <a href="{% url 'sapl.materia:materialegislativa_detail' anexada.materia_anexada.id %}">
+                        {{ anexada.materia_anexada }}&nbsp;
+                    </a>
+                    <strong>Data Anexação:</strong> {{anexada.data_anexacao}}
+                    </br>
+                    {% endfor %}
+                  {% endif %}
+                  {% if m.documentoacessorio_set.all.exists %}
+                      <strong>Documentos Acessórios:</strong>
+                      <a href="{% url 'sapl.materia:documentoacessorio_list' m.id %}">
+                          {{ m.documentoacessorio_set.all.count }}
                       </a>
                       </br>
+                  {% endif %}
+                  {% if m.texto_original %}<strong><a href="{{m.texto_original.url}}">Texto Original</a></strong></br>{% endif %}
+                  {% if m.texto_articulado.exists %}<strong><a href="{% url 'sapl.materia:materia_ta' m.id%}">Texto Articulado</a></strong></br>{% endif %}
+                  {% if m.normajuridica_set.exists %}
+                      {% for nr in m.normajuridica_set.all %}
+                        <strong>Norma Jurídica Vinculada: </strong>
+                        <a href="{% url 'sapl.norma:normajuridica_detail' nr.id %}">
+                          {{ nr }}
+                        </a>
+                        </br>
+                      {% endfor %}
+                  {% endif %}
+                  {% if m.audienciapublica_set.exists %}
+                    <strong>Audiência(s) Pública(s): </strong>
+                    {% for ap in m.audienciapublica_set.all %}
+                      <a href="{% url 'sapl.audiencia:audienciapublica_detail' ap.id %}">
+                          {{ ap.nome }}
+                      </a>
+                      {% if not forloop.last %},&nbsp;{% endif %}
                     {% endfor %}
-                {% endif %}
-                {% if m.audienciapublica_set.exists %}
-                  <strong>Audiência(s) Pública(s): </strong>
-                  {% for ap in m.audienciapublica_set.all %}
-                    <a href="{% url 'sapl.audiencia:audienciapublica_detail' ap.id %}">
-                        {{ ap.nome }}
-                    </a>
-                    {% if not forloop.last %},&nbsp;{% endif %}
-                  {% endfor %}
-                {% endif %}
-                <p></p>
-                {% if m.em_tramitacao and mail_service_configured %}
-                  <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
+                  {% endif %}
+                  <p></p>
+                  {% if m.em_tramitacao and mail_service_configured %}
+                    <a href="{% url 'sapl.materia:acompanhar_materia' m.id %}">Acompanhar Matéria</a>
+                  {% endif %}
                 {% endif %}
                 </td>
             </tr>
