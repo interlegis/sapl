@@ -281,7 +281,6 @@ class Parlamentar(models.Model):
             ('nome_completo', '__icontains'),
             ('nome_parlamentar', '__icontains'),
             ('filiacao__partido__sigla', '__icontains'),
-            ('filiacao__partido', '__exact'),
         ))
 
     class Meta:
