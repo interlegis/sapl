@@ -1658,13 +1658,34 @@ class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
 
 
 def protocolos_materias():
-    protocolos = []
-    for protocolo in Protocolo.objects.order_by('-ano', 'numero'):
-        materias_protocolo = MateriaLegislativa.objects.filter(
-            ano=protocolo.ano, numero_protocolo=protocolo.numero)
-        if len(materias_protocolo) > 1:
-            protocolos.append((protocolo, len(materias_protocolo)))
-    return protocolos
+    lista_protocolos_materias = []
+    protocolos = {}
+    
+    for m in MateriaLegislativa.objects.order_by('-ano', 'numero_protocolo'):
+        key = "{}/{}".format(m.numero_protocolo, m.ano)
+        val = protocolos.get(key, list())
+        val.append(m)
+        protocolos[key] = val
+
+    for k, v in protocolos.items():
+        if 'None' not in k:
+            if Protocolo.objects.filter(numero=int(k.split('/')[0]),
+                                        ano=int(k.split('/')[1])
+                                        ).exists():
+                if len(v) > 1:
+                    p = Protocolo.objects.filter(numero=int(k.split('/')[0]),
+                                                 ano=int(k.split('/')[1]))
+                    lista_protocolos_materias.append((p[0], len(v)))
+    
+    return lista_protocolos_materias
+    
+    # protocolos = []
+    # for protocolo in Protocolo.objects.order_by('-ano', 'numero'):
+    #     materias_protocolo = MateriaLegislativa.objects.filter(
+    #         ano=protocolo.ano, numero_protocolo=protocolo.numero)
+    #     if len(materias_protocolo) > 1:
+    #         protocolos.append((protocolo, len(materias_protocolo)))
+    # return protocolos
 
 
 class ListarProtocolosMateriasView(PermissionRequiredMixin, ListView):
