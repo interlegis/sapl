@@ -21,7 +21,8 @@ from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal,
                         choice_anos_com_protocolo, choice_force_optional,
-                        choice_anos_com_documentoadministrativo)
+                        choice_anos_com_documentoadministrativo,
+                        FilterOverridesMetaMixin)
 
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
