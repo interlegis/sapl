@@ -26,7 +26,7 @@ import weasyprint
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
-from sapl.base.models import Autor, CasaLegislativa
+from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
 from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -783,15 +783,22 @@ class ProposicaoCrud(Crud):
                         msg_error = _('Proposição não possui nenhum tipo de '
                                       'Texto associado.')
                     else:
-                        p.data_devolucao = None
-                        p.data_envio = timezone.now()
-                        p.save()
-
                         if p.texto_articulado.exists():
                             ta = p.texto_articulado.first()
                             ta.privacidade = STATUS_TA_IMMUTABLE_RESTRICT
                             ta.editing_locked = True
                             ta.save()
+
+                            receber_recibo = BaseAppConfig.attr(
+                                'receber_recibo_proposicao')
+
+                            if not receber_recibo:
+                                ta = p.texto_articulado.first()
+                                p.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(p.pk)
+
+                        p.data_devolucao = None
+                        p.data_envio = timezone.now()
+                        p.save()
 
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
