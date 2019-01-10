@@ -21,7 +21,6 @@ from django.db.models import Q
 from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
 import django_filters
-from django_filters.filterset import STRICTNESS
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 import magic
@@ -209,19 +208,27 @@ class RangeWidgetOverride(forms.MultiWidget):
 
     def __init__(self, attrs=None):
         widgets = (forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
+                                   attrs={'class': 'dateinput form-control',
                                           'placeholder': 'Inicial'}),
                    forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
+                                   attrs={'class': 'dateinput form-control',
                                           'placeholder': 'Final'}))
         super(RangeWidgetOverride, self).__init__(widgets, attrs)
 
     def decompress(self, value):
         if value:
             return [value.start, value.stop]
-        return [None, None]
+        return []
 
-    def format_output(self, rendered_widgets):
+    def render(self, name, value, attrs=None, renderer=None):
+        rendered_widgets = []
+        for i, x in enumerate(self.widgets):
+            rendered_widgets.append(
+                x.render(
+                    '%s_%d' % (name, i), value[i] if value else ''
+                )
+            )
+
         html = '<div class="col-sm-6">%s</div><div class="col-sm-6">%s</div>'\
             % tuple(rendered_widgets)
         return '<div class="row">%s</div>' % html
@@ -685,12 +692,12 @@ def qs_override_django_filter(self):
         valid = self.is_bound and self.form.is_valid()
 
         if self.is_bound and not valid:
-            if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+            """if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
                 raise forms.ValidationError(self.form.errors)
-            elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
-                self._qs = self.queryset.none()
-                return self._qs
-                # else STRICTNESS.IGNORE...  ignoring
+            elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:"""
+            self._qs = self.queryset.none()
+            return self._qs
+            # else STRICTNESS.IGNORE...  ignoring
 
         # start with all the results and filter from there
         qs = self.queryset.all()
@@ -703,12 +710,12 @@ def qs_override_django_filter(self):
                 try:
                     value = self.form.fields[name].clean(raw_value)
                 except forms.ValidationError:
-                    if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                    """if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
                         raise
-                    elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
-                        self._qs = self.queryset.none()
-                        return self._qs
-                        # else STRICTNESS.IGNORE...  ignoring
+                    elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:"""
+                    self._qs = self.queryset.none()
+                    return self._qs
+                    # else STRICTNESS.IGNORE...  ignoring
 
             if value is not None:  # valid & clean data
                 qs = qs._next_is_sticky()

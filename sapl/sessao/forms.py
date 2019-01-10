@@ -3,7 +3,6 @@ from datetime import datetime
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
-from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
@@ -12,22 +11,21 @@ from django.forms import ModelForm
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 import django_filters
-from floppyforms import widgets
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
+from sapl.parlamentares.models import Parlamentar, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone, choice_anos_com_sessaoplenaria)
 
 from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoJustificativa, TipoResultadoVotacao,
-                     OcorrenciaSessao, RegistroVotacao, RetiradaPauta, TipoRetiradaPauta)
+                     SessaoPlenariaPresenca, TipoResultadoVotacao,
+                     OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta)
 
 
 MES_CHOICES = RANGE_MESES

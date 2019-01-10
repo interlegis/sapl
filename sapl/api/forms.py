@@ -6,8 +6,8 @@ from django.forms.widgets import MultiWidget, TextInput
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_filters.filters import CharFilter, ModelChoiceFilter, DateFilter
+from django_filters.rest_framework.filterset import FilterSet
 from rest_framework import serializers
-from rest_framework.filters import FilterSet
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.parlamentares.models import Legislatura

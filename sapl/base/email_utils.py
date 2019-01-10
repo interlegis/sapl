@@ -18,7 +18,7 @@ def load_email_templates(templates, context={}):
     emails = []
     for t in templates:
         tpl = loader.get_template(t)
-        email = tpl.render(Context(context))
+        email = tpl.render(context)
         if t.endswith(".html"):
             email = email.replace('\n', '').replace('\r', '')
         emails.append(email)

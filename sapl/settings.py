@@ -22,9 +22,6 @@ from dj_database_url import parse as db_url
 from easy_thumbnails.conf import Settings as thumbnail_settings
 from unipath import Path
 
-from .temp_suppress_crispy_form_warnings import \
-    SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
-
 
 host = socket.gethostbyname_ex(socket.gethostname())[0]
 
@@ -78,20 +75,24 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # more
     'django_extensions',
+
     'djangobower',
-    'bootstrap3',  # basically for django_admin_bootstrapped
+    'bootstrap3',
     'crispy_forms',
+    'floppyforms',
+    'sass_processor',
+
+    'rest_framework',
+    'django_filters',
+
     'easy_thumbnails',
     'image_cropping',
-    'floppyforms',
-    'haystack',
-    'sass_processor',
-    'rest_framework',
+
     'reversion',
     'reversion_compare',
+
+    'haystack',
     'whoosh',
     'speedinfo',
 
@@ -110,7 +111,7 @@ SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
 SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
 
 if USE_SOLR:
-    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor' #enable auto-index
+    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'  # enable auto-index
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
     SEARCH_URL = ('URL', '{}/solr/{}'.format(SOLR_URL, SOLR_COLLECTION))
 
@@ -118,7 +119,7 @@ if USE_SOLR:
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': SEARCH_BACKEND,
-         SEARCH_URL[0]: SEARCH_URL[1],
+        SEARCH_URL[0]: SEARCH_URL[1],
         'BATCH_SIZE': 1000,
         'TIMEOUT': 60,
     },
@@ -166,7 +167,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
     "DEFAULT_FILTER_BACKENDS": (
         "rest_framework.filters.SearchFilter",
-        "rest_framework.filters.DjangoFilterBackend",
+        'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
 
@@ -282,6 +283,7 @@ DAB_FIELD_RENDERER = \
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap3'
 CRISPY_FAIL_SILENTLY = not DEBUG
+FLOPPY_FORMS_USE_GIS = False
 
 BOWER_COMPONENTS_ROOT = PROJECT_DIR.child("bower")
 BOWER_INSTALLED_APPS = (
@@ -339,6 +341,22 @@ LOGGING = {
     }
 }
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # default
+    'sapl.hashers.ZopeSHA1PasswordHasher',
+]
+
+
+def remove_warnings():
+    import warnings
+    warnings.filterwarnings(
+        'ignore', module='floppyforms',
+        message='Unable to import floppyforms.gis'
+    )
+
+
+remove_warnings()
+
 
 def uncaught_exceptions(type, value, error_traceback):
     import traceback
@@ -350,8 +368,3 @@ def uncaught_exceptions(type, value, error_traceback):
 
 # captura exceções que não foram tratadas
 sys.excepthook = uncaught_exceptions
-
-PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # default
-    'sapl.hashers.ZopeSHA1PasswordHasher',
-]
