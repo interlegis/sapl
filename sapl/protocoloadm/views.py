@@ -659,6 +659,15 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         return reverse('sapl.protocoloadm:materia_continuar', kwargs={
             'pk': protocolo.pk})
 
+    def get_initial(self):
+        initial = super().get_initial()
+
+        initial['user_data_hora_manual'] = self.request.user.username
+        initial['ip_data_hora_manual'] = get_client_ip(self.request)
+        initial['data'] = datetime.now().date
+        initial['hora'] = datetime.now().time
+        return initial
+
     def form_valid(self, form):
         protocolo = form.save(commit=False)
         username = self.request.user.username
@@ -718,6 +727,16 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.numero_paginas = self.request.POST['numero_paginas']
         protocolo.observacao = self.request.POST['observacao']
         protocolo.assunto_ementa = self.request.POST['assunto_ementa']
+
+        if form.cleaned_data['data_hora_manual'] == 'True':
+            protocolo.timestamp = None
+            protocolo.user_data_hora_manual = username
+            protocolo.ip_data_hora_manual = get_client_ip(self.request)
+        else:
+            protocolo.data = None
+            protocolo.hora = None
+            protocolo.user_data_hora_manual = ''
+            protocolo.ip_data_hora_manual = ''
 
         protocolo.save()
         data = form.cleaned_data

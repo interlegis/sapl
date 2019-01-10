@@ -57,13 +57,29 @@ class Protocolo(models.Model):
                                            choices=RANGE_ANOS,
                                            verbose_name=_('Ano do Protocolo'))
 
-    # FIXME: https://github.com/interlegis/sapl/issues/2337
-    data = models.DateField(null=True, blank=True)
-    hora = models.TimeField(null=True, blank=True)
+    data = models.DateField(null=True, blank=True,
+                            verbose_name=_('Data do Protocolo'),
+                            help_text=_('Informado manualmente'))
+    hora = models.TimeField(null=True, blank=True,
+                            verbose_name=_('Hora do Protocolo'),
+                            help_text=_('Informado manualmente'))
+    timestamp_data_hora_manual = models.DateTimeField(default=timezone.now)
+    user_data_hora_manual = models.CharField(
+        max_length=20, blank=True,
+        verbose_name=_('IP'),
+        help_text=_('Usuário que está realizando Protocolo e informando '
+                    'data e hora manualmente.'))
+    ip_data_hora_manual = models.CharField(
+        max_length=15, blank=True,
+        verbose_name=_('IP'),
+        help_text=_('Endereço IP da estação de trabalho '
+                    'do usuário que está realizando Protocolo e informando '
+                    'data e hora manualmente.'))
 
     # Não foi utilizado auto_now_add=True em timestamp porque
     # ele usa datetime.now que não é timezone aware.
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateTimeField(
+        default=timezone.now, null=True, blank=True)
     tipo_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
     tipo_processo = models.PositiveIntegerField()

@@ -65,7 +65,11 @@
 		</tr>
 		<tr>
 			<th>Data / Horário</th>
-			<td>{{ protocolo.timestamp|date:"d/m/Y" }} - {{ protocolo.timestamp|date:"H:i:s" }}</td>
+			{% if protocolo.timestamp %}
+				<td>{{ protocolo.timestamp|date:"d/m/Y" }} - {{ protocolo.timestamp|date:"H:i:s" }}</td>
+			{% else %}
+				<td>{{ protocolo.data|date:"d/m/Y" }} - {{ protocolo.hora|date:"H:i:s" }}</td>
+			{% endif %}
 		</tr>
 		{% if protocolo.tipo_processo == 1 %}
 			<tr>
