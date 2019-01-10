@@ -4,7 +4,6 @@ from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from model_utils import Choices
-import datetime
 import reversion
 
 from sapl.base.models import Autor
