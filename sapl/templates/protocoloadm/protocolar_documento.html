@@ -14,3 +14,17 @@
 {% block detail_content %}
 	{% crispy form %}
 {% endblock detail_content %}
+
+{% block extra_js %}
+   <script language="Javascript">
+      $(document).ready(function() {
+        $("input[name=data_hora_manual]").change(function(event) {
+          if (this.value === 'True' && this.checked)
+            $("#protocolo_data_hora_manual").removeClass('hidden');
+          else if (this.value === 'False' && this.checked)
+            $("#protocolo_data_hora_manual").addClass('hidden');
+        });
+        $("input[name=data_hora_manual]").trigger('change')
+      });
+   </script>
+{% endblock %}

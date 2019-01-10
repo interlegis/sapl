@@ -345,6 +345,12 @@ class ProtocoloDocumentForm(ModelForm):
     numero = forms.IntegerField(
         required=False, label=_('Número de Protocolo (opcional)'))
 
+    data_hora_manual = forms.ChoiceField(
+        label=_('Informar data e hora manualmente?'),
+        widget=forms.RadioSelect(),
+        choices=YES_NO_CHOICES,
+        initial=False)
+
     class Meta:
         model = Protocolo
         fields = ['tipo_protocolo',
@@ -353,7 +359,9 @@ class ProtocoloDocumentForm(ModelForm):
                   'assunto',
                   'interessado',
                   'observacao',
-                  'numero'
+                  'numero',
+                  'data',
+                  'hora',
                   ]
 
     def __init__(self, *args, **kwargs):
@@ -361,30 +369,56 @@ class ProtocoloDocumentForm(ModelForm):
         row1 = to_row(
             [(InlineRadios('tipo_protocolo'), 12)])
         row2 = to_row(
-            [('tipo_documento', 6),
-             ('numero_paginas', 6)])
-        row3 = to_row(
-            [('assunto', 12)])
+            [('tipo_documento', 5),
+             ('numero_paginas', 2),
+             (Div(), 1),
+             (InlineRadios('data_hora_manual'), 4),
+             ])
+        row3 = to_row([
+            (Div(), 2),
+            (Alert(
+                """
+                Usuário: <strong>{}</strong> - {}<br> 
+                IP: <strong>{}</strong> - {}<br>
+                
+                """.format(
+                    kwargs['initial']['user_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'user_data_hora_manual').help_text,
+                    kwargs['initial']['ip_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'ip_data_hora_manual').help_text,
+
+                ),
+                dismiss=False,
+                css_class='alert-info'), 6),
+            ('data', 2),
+            ('hora', 2),
+        ])
         row4 = to_row(
-            [('interessado', 12)])
+            [('assunto', 12)])
         row5 = to_row(
-            [('observacao', 12)])
+            [('interessado', 12)])
         row6 = to_row(
+            [('observacao', 12)])
+        row7 = to_row(
             [('numero', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação de Documento'),
                      row1,
-                     row2,
+                     row2),
+            Fieldset(_('Protocolo com data e hora informados manualmente'),
                      row3,
-                     row4,
-                     row5,
-                     HTML("&nbsp;"),
-                     ),
+                     css_id='protocolo_data_hora_manual',
+                     css_class='hidden'),
+            row4,
+            row5,
+            HTML("&nbsp;"),
             Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece '
                        'a partir do número a ser informado)'),
-                     row6,
+                     row7,
                      HTML("&nbsp;"),
                      form_actions(label=_('Protocolar Documento'))
                      )
