@@ -10,10 +10,11 @@ from django.http import Http404
 from django.utils.decorators import classonlymethod
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
+from django_filters.rest_framework.backends import DjangoFilterBackend
+from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
 from rest_framework import serializers as rest_serializers
 from rest_framework.decorators import list_route, detail_route
-from rest_framework.filters import DjangoFilterBackend, FilterSet
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import (IsAuthenticated,
