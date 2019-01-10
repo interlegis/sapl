@@ -497,8 +497,8 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         initial['user_data_hora_manual'] = self.request.user.username
         initial['ip_data_hora_manual'] = get_client_ip(self.request)
-        initial['data'] = datetime.now().date
-        initial['hora'] = datetime.now().time
+        initial['data'] = timezone.localdate(timezone.now())
+        initial['hora'] = timezone.localtime(timezone.now())
         return initial
 
     def form_valid(self, form):
@@ -684,8 +684,8 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         initial['user_data_hora_manual'] = self.request.user.username
         initial['ip_data_hora_manual'] = get_client_ip(self.request)
-        initial['data'] = datetime.now().date
-        initial['hora'] = datetime.now().time
+        initial['data'] = timezone.localdate(timezone.now())
+        initial['hora'] = timezone.localtime(timezone.now())
         return initial
 
     def form_valid(self, form):
