@@ -18,6 +18,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import get_connection
 from django.db import models
 from django.db.models import Q
+from django.forms.widgets import SplitDateTimeWidget
 from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
 import django_filters
@@ -230,6 +231,23 @@ class RangeWidgetOverride(forms.MultiWidget):
             )
 
         html = '<div class="col-sm-6">%s</div><div class="col-sm-6">%s</div>'\
+            % tuple(rendered_widgets)
+        return '<div class="row">%s</div>' % html
+
+
+class CustomSplitDateTimeWidget(SplitDateTimeWidget):
+    def render(self, name, value, attrs=None, renderer=None):
+        rendered_widgets = []
+        for i, x in enumerate(self.widgets):
+            x.attrs['class'] += ' form-control'
+            rendered_widgets.append(
+                x.render(
+                    '%s_%d' % (name, i), self.decompress(
+                        value)[i] if value else ''
+                )
+            )
+
+        html = '<div class="col-6">%s</div><div class="col-6">%s</div>'\
             % tuple(rendered_widgets)
         return '<div class="row">%s</div>' % html
 

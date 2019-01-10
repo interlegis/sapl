@@ -1,7 +1,7 @@
-import html
-import re
-import logging
 from datetime import datetime as dt
+import html
+import logging
+import re
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
@@ -581,7 +581,6 @@ def get_sessao_plenaria(sessao, casa):
         if dic_expedientes:
             lst_expedientes.append(dic_expedientes)
 
-
     # Lista das matérias do Expediente, incluindo o resultado das votacoes
     lst_expediente_materia = []
     for expediente_materia in ExpedienteMateria.objects.filter(
@@ -612,7 +611,8 @@ def get_sessao_plenaria(sessao, casa):
 
         dic_expediente_materia["nom_autor"] = ''
         autoria = materia.autoria_set.all()
-        dic_expediente_materia['num_autores'] = 'Autores' if len(autoria) > 1 else 'Autor'
+        dic_expediente_materia['num_autores'] = 'Autores' if len(
+            autoria) > 1 else 'Autor'
         if autoria:
             for a in autoria:
                 if a.autor.nome:
@@ -687,7 +687,7 @@ def get_sessao_plenaria(sessao, casa):
 
         numeracao = materia.numeracao_set.first()
         if numeracao:
-            
+
             dic_votacao["des_numeracao"] = (
                 str(numeracao.numero_materia) +
                 '/' +
@@ -762,7 +762,6 @@ def get_sessao_plenaria(sessao, casa):
 
         lst_ocorrencias.append(o)
 
-
     return (inf_basicas_dic,
             lst_mesa,
             lst_presenca_sessao,
@@ -810,10 +809,12 @@ def relatorio_sessao_plenaria(request, pk):
     imagem = get_imagem(casa)
 
     try:
-        logger.debug("user=" + username + ". Tentando obter SessaoPlenaria com id={}.".format(pk))
+        logger.debug("user=" + username +
+                     ". Tentando obter SessaoPlenaria com id={}.".format(pk))
         sessao = SessaoPlenaria.objects.get(id=pk)
     except ObjectDoesNotExist as e:
-        logger.error("user=" + username + ". Essa SessaoPlenaria não existe (pk={}). ".format(pk) + str(e))
+        logger.error("user=" + username +
+                     ". Essa SessaoPlenaria não existe (pk={}). ".format(pk) + str(e))
         raise Http404('Essa página não existe')
 
     (inf_basicas_dic,
@@ -828,11 +829,10 @@ def relatorio_sessao_plenaria(request, pk):
      lst_oradores,
      lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
 
-
     for idx in range(len(lst_expedientes)):
         txt_expedientes = lst_expedientes[idx]['txt_expediente']
         txt_expedientes = TrocaTag(txt_expedientes, '<table', 'table>', 6, 6,
-        'expedientes', '</para><blockTable style = "', 'blockTable><para>')
+                                   'expedientes', '</para><blockTable style = "', 'blockTable><para>')
         lst_expedientes[idx]['txt_expediente'] = txt_expedientes
 
     pdf = pdf_sessao_plenaria_gerar.principal(
@@ -868,7 +868,7 @@ def get_protocolos(prots):
                 ts.strftime("%H:%m")
         else:
             dic['data'] = protocolo.data.strftime("%d/%m/%Y") + ' - <b>Horário:</b>' \
-                          + protocolo.hora.strftime("%H:%m")
+                + protocolo.hora.strftime("%H:%m")
 
         dic['txt_assunto'] = protocolo.assunto_ementa
 
@@ -979,8 +979,8 @@ def get_etiqueta_protocolos(prots):
 
         dic['titulo'] = str(p.numero) + '/' + str(p.ano)
 
-        tz_hora = timezone.localtime(p.timestamp)
         if p.timestamp:
+            tz_hora = timezone.localtime(p.timestamp)
             dic['data'] = '<b>Data: </b>' + tz_hora.strftime(
                 "%d/%m/%Y") + ' - <b>Horário: </b>' + tz_hora.strftime("%H:%M")
         else:
@@ -1072,7 +1072,8 @@ def get_pauta_sessao(sessao, casa):
             id=expediente_materia.materia.id).first()
 
         dic_expediente_materia = {}
-        dic_expediente_materia["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
+        dic_expediente_materia["tipo_materia"] = materia.tipo.sigla + \
+            ' - ' + materia.tipo.descricao
         dic_expediente_materia["num_ordem"] = str(
             expediente_materia.numero_ordem)
         dic_expediente_materia["id_materia"] = str(
@@ -1090,7 +1091,8 @@ def get_pauta_sessao(sessao, casa):
 
         dic_expediente_materia["nom_autor"] = ''
         autoria = materia.autoria_set.all()
-        dic_expediente_materia['num_autores'] = 'Autores' if len(autoria) > 1 else 'Autor'
+        dic_expediente_materia['num_autores'] = 'Autores' if len(
+            autoria) > 1 else 'Autor'
         if autoria:
             for a in autoria:
                 if a.autor.nome:
@@ -1112,7 +1114,8 @@ def get_pauta_sessao(sessao, casa):
         materia = MateriaLegislativa.objects.filter(
             id=votacao.materia.id).first()
         dic_votacao = {}
-        dic_votacao["tipo_materia"] = materia.tipo.sigla + ' - ' + materia.tipo.descricao
+        dic_votacao["tipo_materia"] = materia.tipo.sigla + \
+            ' - ' + materia.tipo.descricao
         dic_votacao["num_ordem"] = votacao.numero_ordem
         dic_votacao["id_materia"] = str(
             materia.numero) + "/" + str(materia.ano)
@@ -1124,7 +1127,7 @@ def get_pauta_sessao(sessao, casa):
         numeracao = Numeracao.objects.filter(materia=votacao.materia).first()
         if numeracao:
             dic_votacao["des_numeracao"] = str(
-                 numeracao.numero_materia) + '/' + str(numeracao.ano_materia)
+                numeracao.numero_materia) + '/' + str(numeracao.ano_materia)
 
         turno, tramitacao = get_turno(materia)
         dic_votacao["des_turno"] = turno

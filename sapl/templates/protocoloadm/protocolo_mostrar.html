@@ -4,6 +4,14 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
+{% block actions %}
+
+  {{ block.super }}
+  <div class="actions btn-group pull-right grid-gutter-width-right " role="group">
+    <a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+  </div>
+{% endblock %}
+
 {% block detail_content %}
         <strong>Protocolo: </strong>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }} - 
         <a href="{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}"><img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a></br>
@@ -12,7 +20,7 @@
 	{% if protocolo.timestamp %}
       <strong>Data Protocolo:</strong> {{ protocolo.timestamp|localtime|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ protocolo.timestamp|localtime|date:"G:i:s" }}</br>
     {% else %}
-      <strong>Data Protocolo:</strong> {{ protocolo.data|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ protocolo.hora|date:"G:i:s" }}</br>
+      <strong>Data Protocolo:</strong> {{ protocolo.data|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ protocolo.hora|date:"G:i:s" }} - {% if not protocolo.timestamp %}  Informado Manualmente por: {{protocolo.user_data_hora_manual}}{% endif %}</br>
     {% endif %}
 
 	{% if protocolo.tipo_processo == 0 %}

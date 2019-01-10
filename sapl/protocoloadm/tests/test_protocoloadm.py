@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from django.core.urlresolvers import reverse
 from django.utils import timezone
@@ -392,29 +392,42 @@ def test_documento_administrativo_protocolo_inexistente():
 
 def test_protocolo_documento_form_invalido():
 
-    form = ProtocoloDocumentForm(data={})
+    form = ProtocoloDocumentForm(
+        data={},
+        initial={
+            'user_data_hora_manual': '',
+            'ip_data_hora_manual': '',
+            'data': timezone.localdate(timezone.now()),
+            'hora':  timezone.localtime(timezone.now())})
 
     assert not form.is_valid()
 
     errors = form.errors
 
+    assert errors['data_hora_manual'] == [_('Este campo é obrigatório.')]
     assert errors['tipo_protocolo'] == [_('Este campo é obrigatório.')]
     assert errors['interessado'] == [_('Este campo é obrigatório.')]
     assert errors['tipo_documento'] == [_('Este campo é obrigatório.')]
     assert errors['numero_paginas'] == [_('Este campo é obrigatório.')]
     assert errors['assunto'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 5
+    assert len(errors) == 6
 
 
 def test_protocolo_materia_invalido():
 
-    form = ProtocoloMateriaForm(data={})
+    form = ProtocoloMateriaForm(data={},
+                                initial={
+        'user_data_hora_manual': '',
+        'ip_data_hora_manual': '',
+        'data': timezone.localdate(timezone.now()),
+        'hora':  timezone.localtime(timezone.now())})
 
     assert not form.is_valid()
 
     errors = form.errors
 
+    assert errors['data_hora_manual'] == [_('Este campo é obrigatório.')]
     assert errors['assunto_ementa'] == [_('Este campo é obrigatório.')]
     assert errors['tipo_autor'] == [_('Este campo é obrigatório.')]
     assert errors['tipo_materia'] == [_('Este campo é obrigatório.')]
@@ -422,4 +435,4 @@ def test_protocolo_materia_invalido():
     assert errors['autor'] == [_('Este campo é obrigatório.')]
     assert errors['vincular_materia'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 6
+    assert len(errors) == 7
