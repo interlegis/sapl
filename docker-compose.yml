@@ -21,6 +21,7 @@ sapl:
     EMAIL_USE_TLS: 'False'
     EMAIL_HOST: smtp.dominio.net
     EMAIL_HOST_USER: usuariosmtp
+    EMAIL_SEND_USER: usuariosmtp
     EMAIL_HOST_PASSWORD: senhasmtp
     TZ: America/Sao_Paulo
   volumes:
