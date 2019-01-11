@@ -19,9 +19,7 @@
                 <tbody>
                   {% for autor, quantidade in autores_duplicados %}
                     <tr>
-                      <td>
-                         <a href="{% url 'sapl_index' %}sistema/autor/{{ autor.pk }}"> {{ autor }}</a>
-                      </td>
+                      <td> {{ autor }}</td>
                       <td>{{ autor.tipo }}</td>
                       <td>{{ quantidade }}</td>
                      </tr>
