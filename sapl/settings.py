@@ -277,7 +277,15 @@ WEBPACK_LOADER = {
 
 STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
-STATICFILES_DIRS = (BASE_DIR.child("static"),)
+# STATICFILES_DIRS = (BASE_DIR.child("static"),)
+
+
+STATICFILES_DIRS = (
+    # BASE_DIR.child("static"),
+    FRONTEND_DIR.child('bundle').child('dist'),
+)
+
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
