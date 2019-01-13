@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n staticfiles %}
+{% load webpack_static from webpack_loader %}
 
 {% block title %}
 
@@ -10,13 +11,13 @@
         <div class="homeBlock">
             <div class="homeFront">
                 <div class="homeIcon">
-                    <img src="{% static 'img/icon_mesa_diretora.png' %}" alt="Mesa Diretora">
+                    <img src="{% webpack_static 'img/icon_mesa_diretora.png' %}" alt="Mesa Diretora">
                 </div>
                 <h2>Mesa Diretora</h2>
             </div>
             <div class="homeContent">
                 <div class="homeTitle">
-                    <img src="{% static 'img/icon_mesa_diretora.png' %}">
+                    <img src="{% webpack_static 'img/icon_mesa_diretora.png' %}">
                     <h2>Mesa Diretora</h2>
                 </div>
                 <p>
@@ -33,13 +34,13 @@
         <div class="homeBlock">
             <div class="homeFront">
                 <div class="homeIcon">
-                    <img src="{% static 'img/icon_comissoes.png' %}" alt="Comissões">
+                    <img src="{% webpack_static 'img/icon_comissoes.png' %}" alt="Comissões">
                 </div>
                 <h2>Comissões</h2>
             </div>
             <div class="homeContent">
                 <div class="homeTitle">
-                    <img src="{% static 'img/icon_comissoes.png' %}">
+                    <img src="{% webpack_static 'img/icon_comissoes.png' %}">
                     <h2>Comissões</h2>
                 </div>
                 <p>
@@ -56,13 +57,13 @@
         <div class="homeBlock">
             <div class="homeFront">
                 <div class="homeIcon">
-                    <img src="{% static 'img/icon_parlamentares.png' %}" alt="Parlamentares">
+                    <img src="{% webpack_static 'img/icon_parlamentares.png' %}" alt="Parlamentares">
                 </div>
                 <h2>Parlamentares</h2>
             </div>
             <div class="homeContent">
                 <div class="homeTitle">
-                    <img src="{% static 'img/icon_parlamentares.png' %}">
+                    <img src="{% webpack_static 'img/icon_parlamentares.png' %}">
                     <h2>Parlamentares</h2>
                 </div>
                 <p>
@@ -79,13 +80,13 @@
         <div class="homeBlock">
             <div class="homeFront">
                 <div class="homeIcon">
-                    <img src="{% static 'img/icon_pautas.png' %}" alt="Pautas das Sessões">
+                    <img src="{% webpack_static 'img/icon_pautas.png' %}" alt="Pautas das Sessões">
                 </div>
                 <h2>Pautas das Sessões</h2>
             </div>
             <div class="homeContent">
                 <div class="homeTitle">
-                    <img src="{% static 'img/icon_pautas.png' %}">
+                    <img src="{% webpack_static 'img/icon_pautas.png' %}">
                     <h2>Pautas das<br>Sessões</h2>
                 </div>
                 <p>
@@ -103,13 +104,13 @@
         <div class="homeBlock">
             <div class="homeFront">
                 <div class="homeIcon">
-                    <img src="{% static 'img/icon_plenarias.png' %}" alt="Sessão Plenária">
+                    <img src="{% webpack_static 'img/icon_plenarias.png' %}" alt="Sessão Plenária">
                 </div>
                 <h2>Sessão Plenária</h2>
             </div>
             <div class="homeContent">
                 <div class="homeTitle">
-                    <img src="{% static 'img/icon_plenarias.png' %}">
+                    <img src="{% webpack_static 'img/icon_plenarias.png' %}">
                     <h2>Sessão Plenária</h2>
                 </div>
                 <p>
@@ -128,13 +129,13 @@
         <div class="homeBlock">
             <div class="homeFront">
                 <div class="homeIcon">
-                    <img src="{% static 'img/icon_materia_legislativa.png' %}" alt="Matérias Legislativas">
+                    <img src="{% webpack_static 'img/icon_materia_legislativa.png' %}" alt="Matérias Legislativas">
                 </div>
                 <h2>Matérias Legislativas</h2>
             </div>
             <div class="homeContent">
                 <div class="homeTitle">
-                    <img src="{% static 'img/icon_materia_legislativa.png' %}">
+                    <img src="{% webpack_static 'img/icon_materia_legislativa.png' %}">
                     <h2>Matérias<br>Legislativas</h2>
                 </div>
                 <p>
@@ -151,13 +152,13 @@
         <div class="homeBlock">
             <div class="homeFront">
                 <div class="homeIcon">
-                    <img src="{% static 'img/icon_normas_juridicas.png' %}" alt="Normas Jurídicas">
+                    <img src="{% webpack_static 'img/icon_normas_juridicas.png' %}" alt="Normas Jurídicas">
                 </div>
                 <h2>Normas Jurídicas</h2>
             </div>
             <div class="homeContent">
                 <div class="homeTitle">
-                    <img src="{% static 'img/icon_normas_juridicas.png' %}">
+                    <img src="{% webpack_static 'img/icon_normas_juridicas.png' %}">
                     <h2>Normas Jurídicas</h2>
                 </div>
                 <p>
@@ -172,13 +173,13 @@
         <div class="homeBlock">
             <div class="homeFront">
                 <div class="homeIcon">
-                    <img src="{% static 'img/icon_relatorios.png' %}" alt="Relatórios">
+                    <img src="{% webpack_static 'img/icon_relatorios.png' %}" alt="Relatórios">
                 </div>
                 <h2>Relatórios</h2>
             </div>
             <div class="homeContent">
                 <div class="homeTitle">
-                    <img src="{% static 'img/icon_relatorios.png' %}">
+                    <img src="{% webpack_static 'img/icon_relatorios.png' %}">
                     <h2>Relatórios</h2>
                 </div>
                 <p>

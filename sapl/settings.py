@@ -269,6 +269,9 @@ WEBPACK_LOADER = {
         'CACHE': not DEBUG,
         'BUNDLE_DIR_NAME': 'bundle/dist/',
         'STATS_FILE': FRONTEND_DIR.child('webpack-stats.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
     }
 }
 
@@ -282,7 +285,7 @@ STATIC_ROOT = PROJECT_DIR.child("collected_static")
 
 STATICFILES_DIRS = (
     # BASE_DIR.child("static"),
-    FRONTEND_DIR.child('bundle').child('dist'),
+    FRONTEND_DIR.child('dist'),
 )
 
 

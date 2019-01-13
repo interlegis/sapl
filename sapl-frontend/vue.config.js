@@ -1,4 +1,5 @@
 const webpack = require('webpack')
+const path = require('path')
 
 const BundleTracker = require('webpack-bundle-tracker')
 const dotenv = require('dotenv')
@@ -24,10 +25,13 @@ module.exports = {
       .public('')
       .host('localhost')
       .port(8080)
-      .hotOnly(true)
-      .watchOptions({ poll: 1000 })
+      .hot(true)
+      .watchOptions({ poll: true })
+      .watchContentBase( true )
       .https(false)
       .headers({ 'Access-Control-Allow-Origin': '\*' })
+      .contentBase( [path.join(__dirname, 'public'), path.join(__dirname, 'src', 'assets')] )
+
 
     config.entryPoints.delete('app')
     
