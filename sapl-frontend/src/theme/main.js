@@ -1,4 +1,4 @@
-import './scss/app.scss'
+import "./scss/app.scss";
 
 //eslint-disable-next-line
 let theme_lib = THEME_CUSTOM
