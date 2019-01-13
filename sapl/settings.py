@@ -27,6 +27,8 @@ host = socket.gethostbyname_ex(socket.gethostname())[0]
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
+FRONTEND_DIR = PROJECT_DIR.child('sapl-frontend')
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
@@ -92,6 +94,8 @@ INSTALLED_APPS = (
     'haystack',
     'whoosh',
     'speedinfo',
+
+    'webpack_loader',
 
 ) + SAPL_APPS
 
@@ -258,6 +262,15 @@ DATE_INPUT_FORMATS = ('%d/%m/%Y', '%m-%d-%Y', '%Y-%m-%d')
 LOCALE_PATHS = (
     'locale',
 )
+
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': not DEBUG,
+        'BUNDLE_DIR_NAME': 'bundle/dist/',
+        'STATS_FILE': FRONTEND_DIR.child('webpack-stats.json'),
+    }
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/

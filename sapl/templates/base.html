@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 {% load i18n staticfiles menus %}
 {% load common_tags %}
+{% load render_bundle from webpack_loader %}
+
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!-->
 <html class="no-js" lang="pt-br">
@@ -27,6 +29,8 @@
                               {# Scripts #}
                               {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
       {% endcomment %}
+            {% render_bundle 'app' 'css' %}
+
     {% endblock %}
   </head>
 
@@ -163,7 +167,9 @@
             {% endblock base_header %}
 
             {# Content per se #}
-            {% block base_content %}{% endblock %}
+            {% block base_content %}
+              <div id="app"></div>
+            {% endblock %}
 
           </div>
         </main>
@@ -231,6 +237,8 @@
     {% endif %}
 
     {% block foot_js %}
+      {% render_bundle 'app' 'js' %}
+
       {% comment "" %}
       
         <!-- Bootstrap core JavaScript ================================================== -->

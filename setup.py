@@ -24,6 +24,7 @@ install_requires = [
     'django-speedinfo==1.4.0',
     'django-extensions==2.1.4',
     'django-image-cropping==1.2.0',
+    'django-webpack-loader==0.6.0',
     'easy-thumbnails==2.5',
     'python-decouple==3.1',
     'psycopg2-binary==2.7.6.1',
