@@ -40,8 +40,8 @@ install_requires = [
     'whoosh==2.7.4',
 
     # 'git+git://github.com/interlegis/trml2pdf.git',
-    # 'git+git://github.com/jasperlittle/django-rest-framework-docs'
-    # 'git+git://github.com/rubgombar1/django-admin-bootstrapped.git''
+    # 'git+git://github.com/jasperlittle/django-rest-framework-docs',
+    # 'git+git://github.com/interlegis/django-admin-bootstrapped.git@custom-for-sap31',
 
     #'django-compressor==2.2',
     #'django-bootstrap3==11.0.0',
