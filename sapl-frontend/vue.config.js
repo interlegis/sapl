@@ -1,4 +1,8 @@
+const webpack = require('webpack')
+
 const BundleTracker = require('webpack-bundle-tracker')
+const dotenv = require('dotenv')
+dotenv.config({ path: '../sapl/.env' })
 
 module.exports = {
   publicPath: 'http://localhost:8080/',
@@ -32,9 +36,15 @@ module.exports = {
       .add('./src/hellow/main.js')
       .end()
       
-      // then add your own
     config.entry('theme')
       .add('./src/theme/main.js')
+      .end()
+      
+    config
+      .plugin('theme')
+      .use(webpack.DefinePlugin, [{
+        THEME_CUSTOM: JSON.stringify(process.env.THEME_CUSTOM)
+      }])
       .end()
       
   }
