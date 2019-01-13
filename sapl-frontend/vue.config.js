@@ -36,10 +36,14 @@ module.exports = {
         path.join(__dirname, 'public'), 
         path.join(__dirname, 'src', 'assets'),
         path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'), 
-      
       ] )
 
     config.entryPoints.delete('app')
+
+    config.entry(THEME_CUSTOM)
+      //.add('./src/theme/main.js')
+      .add(THEME_CUSTOM + '/src/main.js')
+      .end()
     
     config.entry('hellow')
       .add('./src/hellow/main.js')
@@ -52,9 +56,6 @@ module.exports = {
       }])
       .end()*/
       
-    config.entry(THEME_CUSTOM)
-      .add(THEME_CUSTOM + '/src/main.js')
-      .end()
       
   }
 }
