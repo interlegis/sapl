@@ -29,7 +29,7 @@
                               {# Scripts #}
                               {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
       {% endcomment %}
-            {% render_bundle 'hellow' 'css' %}
+            {% render_bundle 'theme' 'css' %}
 
     {% endblock %}
   </head>
@@ -238,7 +238,7 @@
     {% endif %}
 
     {% block foot_js %}
-      {% render_bundle 'hellow' 'js' %}
+      {% render_bundle 'theme' 'js' %}
 
       {% comment "" %}
       

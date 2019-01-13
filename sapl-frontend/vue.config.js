@@ -46,6 +46,5 @@ module.exports = {
         THEME_CUSTOM: JSON.stringify(process.env.THEME_CUSTOM)
       }])
       .end()
-      
   }
 }
