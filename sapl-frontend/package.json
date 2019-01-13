@@ -10,7 +10,8 @@
   "dependencies": {
     "vue": "^2.5.21",
     "vue-router": "^3.0.1",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "webpack-bundle-tracker": "^0.4.2-beta"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.3.0",
