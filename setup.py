@@ -10,7 +10,6 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 install_requires = [
     'django>=1.11,<2.0',
-    'django-bootstrap3==11.0.0',
     'django-haystack==2.8.1',
     'django-filter==2.0.0',
     'djangorestframework==3.9.0',

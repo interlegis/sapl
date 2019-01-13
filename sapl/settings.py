@@ -78,7 +78,6 @@ INSTALLED_APPS = (
     'django_extensions',
 
     'djangobower',
-    'bootstrap3',
     'crispy_forms',
     'floppyforms',
     'sass_processor',
