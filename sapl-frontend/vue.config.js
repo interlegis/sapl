@@ -1,3 +1,4 @@
+
 const BundleTracker = require('webpack-bundle-tracker')
 
 module.exports = {
@@ -26,5 +27,12 @@ module.exports = {
       .https(false)
       .headers({ 'Access-Control-Allow-Origin': '\*' })
 
+    config.entryPoints.delete('app')
+    
+      // then add your own
+    config.entry('hellow')
+      .add('./src/hellow/main.js')
+      .end()
+      
   }
 }
