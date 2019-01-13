@@ -1,10 +1,8 @@
-
 const BundleTracker = require('webpack-bundle-tracker')
 
 module.exports = {
   publicPath: 'http://localhost:8080/',
   outputDir: './dist/',
-  
 
   chainWebpack: config => {
 
@@ -32,6 +30,11 @@ module.exports = {
       // then add your own
     config.entry('hellow')
       .add('./src/hellow/main.js')
+      .end()
+      
+      // then add your own
+    config.entry('theme')
+      .add('./src/theme/main.js')
       .end()
       
   }
