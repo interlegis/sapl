@@ -14,20 +14,17 @@ install_requires = [
     'django-filter==2.0.0',
     'djangorestframework==3.9.0',
     'dj-database-url==0.5.0',
-    'django-bower==5.2.0',
     'django-braces==1.9.0',
     'django-crispy-forms==1.7.2',
     'django-floppyforms==1.7.0',
     'django-extra-views==0.12.0',
     'django-model-utils==3.1.2',
-    'django-sass-processor==0.7.2',
     'django-reversion==3.0.2',
     'django-reversion-compare==0.8.6'
     'django-speedinfo==1.4.0',
     'django-extensions==2.1.4',
     'django-image-cropping==1.2.0',
     'easy-thumbnails==2.5',
-    'libsass==0.17.0',
     'python-decouple==3.1',
     'psycopg2-binary==2.7.6.1',
     'pyyaml==4.2b1',
@@ -47,6 +44,10 @@ install_requires = [
     # 'git+git://github.com/rubgombar1/django-admin-bootstrapped.git''
 
     #'django-compressor==2.2',
+    #'django-bootstrap3==11.0.0',
+    #'django-bower==5.2.0',
+    #'django-sass-processor==0.7.2',
+    #'libsass==0.17.0',
 ]
 setup(
     name='interlegis-sapl',

@@ -77,10 +77,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_extensions',
 
-    'djangobower',
     'crispy_forms',
     'floppyforms',
-    'sass_processor',
 
     'rest_framework',
     'django_filters',
@@ -270,8 +268,6 @@ STATICFILES_DIRS = (BASE_DIR.child("static"),)
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'djangobower.finders.BowerFinder',
-    'sass_processor.finders.CssFinder',
 )
 
 MEDIA_ROOT = PROJECT_DIR.child("media")
@@ -281,28 +277,10 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap3'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 CRISPY_FAIL_SILENTLY = not DEBUG
 FLOPPY_FORMS_USE_GIS = False
-
-BOWER_COMPONENTS_ROOT = PROJECT_DIR.child("bower")
-BOWER_INSTALLED_APPS = (
-    'jquery#3.1.1',
-    'bootstrap-sass#3.3.7',
-    'components-font-awesome#4.5.0',
-    'tinymce#4.3.8',
-    'jquery-ui#1.12.1',
-    'jQuery-Mask-Plugin#1.14.0',
-    'jsdiff#2.2.2',
-    'https://github.com/interlegis/drunken-parrot-flat-ui.git',
-    'jquery-query-object#2.2.3',
-)
-
-# Additional search paths for SASS files when using the @import statement
-SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
-    'bower_components', 'bootstrap-sass', 'assets', 'stylesheets'),
-)
 
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
