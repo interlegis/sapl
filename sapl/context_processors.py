@@ -22,3 +22,7 @@ def mail_service_configured(request):
         logger.warning(_('Servidor de email não configurado.'))
         return {'mail_service_configured': False}
     return {'mail_service_configured': True}
+
+
+def THEME_CUSTOM(request):
+    return {"THEME_CUSTOM": settings.THEME_CUSTOM}

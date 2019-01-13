@@ -190,6 +190,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'sapl.context_processors.parliament_info',
                 'sapl.context_processors.mail_service_configured',
+                'sapl.context_processors.THEME_CUSTOM'
             ],
             'debug': DEBUG
         },
@@ -274,7 +275,7 @@ WEBPACK_LOADER = {
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
     }
 }
-
+THEME_CUSTOM = config('THEME_CUSTOM', default='sapl-oficial-theme')
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 

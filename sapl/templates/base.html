@@ -30,7 +30,7 @@
                               {# Scripts #}
                               {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
       {% endcomment %}
-            {% render_bundle 'theme' 'css' %}
+            {% render_bundle THEME_CUSTOM 'css' %}
 
     {% endblock %}
   </head>
@@ -233,7 +233,7 @@
     {% endif %}
 
     {% block foot_js %}
-      {% render_bundle 'theme' 'js' %}
+      {% render_bundle THEME_CUSTOM 'js' %}
 
       {% comment "" %}
       
