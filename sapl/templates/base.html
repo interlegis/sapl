@@ -48,7 +48,7 @@
           <div class="collapse navbar-collapse" id="navbarNav">
               {% block sections_navbar %} {% navbar 'navbar.yaml' %}{% endblock sections_navbar %}
 
-              <ul class="nav navbar-nav navbar-right" id="autenticacao">
+              <ul class="nav navbar-nav justify-content-end" id="autenticacao">
                 <li class="nav-item dropdown pesquisa">
                   <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="{% webpack_static 'img/search.png' %}"><span class="caret"></span></a>
                     <ul class="dropdown-menu">
