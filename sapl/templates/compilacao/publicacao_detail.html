@@ -13,7 +13,7 @@
 {% block editions %}
 <div class="actions btn-group float-right" role="group">
     <a href="{% url 'sapl.compilacao:ta_pub_edit' object.ta.pk object.pk %}" class="btn btn-outline-primary">{% trans 'Editar' %}</a>
-    <a href="{% url 'sapl.compilacao:ta_pub_delete' object.ta.pk object.pk %}" class="btn btn-outline-primary btn-excluir">{% trans 'Excluir' %}</a>
+    <a href="{% url 'sapl.compilacao:ta_pub_delete' object.ta.pk object.pk %}" class="btn btn-outline-primary btn-outline-danger">{% trans 'Excluir' %}</a>
 </div>
 {% endblock editions %}
 

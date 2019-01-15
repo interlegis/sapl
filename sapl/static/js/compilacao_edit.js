@@ -102,7 +102,7 @@ function DispositivoEdit() {
         var btns_excluir = _this.find('.btns-excluir');
         _this.find('.dpt-actions-bottom').first().append(btns_excluir);
 
-        btns_excluir.find('.btn-excluir').on('click', instance.bindActionsClick);
+        btns_excluir.find('.btn-outline-danger').on('click', instance.bindActionsClick);
     }
 
     instance.get_form_alteracao = function () {

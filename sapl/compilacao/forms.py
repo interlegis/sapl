@@ -680,7 +680,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
         if not (inst.tipo_dispositivo.dispositivo_de_alteracao and
                 inst.tipo_dispositivo.dispositivo_de_articulacao):
             btns_excluir = [
-                HTML('<a class="btn btn-danger btn-excluir" '
+                HTML('<a class="btn btn-danger btn-outline-danger" '
                      'action="json_delete_item_dispositivo" '
                      'title="%s" '
                      'pk="%s" '
@@ -696,7 +696,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                 if texto_articulado_do_editor else 0):
             btns_excluir.append(
                 HTML(
-                    '<a class="btn btn-danger btn-excluir" '
+                    '<a class="btn btn-danger btn-outline-danger" '
                     'action="json_delete_bloco_dispositivo" '
                     'title="%s" '
                     'pk="%s" '

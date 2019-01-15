@@ -41,7 +41,7 @@
               <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Texto' %}</a>
         {% endif %}
         {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
-              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-outline-primary {% if object.editing_locked %}btn-excluir{%else%}btn-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
+              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-outline-primary {% if object.editing_locked %}btn-outline-danger{%else%}btn-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
         {% endif %}
 
 	     </div>

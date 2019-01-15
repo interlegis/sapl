@@ -20,7 +20,7 @@
       </div>
       <div class="panel-body text-center">
         <a href="{% url 'sapl.materia:proposicao_detail' object.pk %}" class="btn btn-inverse">{% trans 'Cancelar'  %}</a>
-        <a href="{% url 'sapl.materia:proposicao_detail' object.pk %}?action=return" class="btn btn-outline-primary btn-excluir">{% trans 'Confirmar' %}</a>
+        <a href="{% url 'sapl.materia:proposicao_detail' object.pk %}?action=return" class="btn btn-outline-primary btn-outline-danger">{% trans 'Confirmar' %}</a>
       </div>
     </div>
   </form>
