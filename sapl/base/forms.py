@@ -394,7 +394,7 @@ class AutorForm(ModelForm):
                       placeholder=_('Pesquisar por possíveis autores para '
                                     'o Tipo de Autor selecionado.')),
                 StrictButton(
-                    _('Filtrar'), css_class='btn-default btn-filtrar-autor',
+                    _('Filtrar'), css_class='btn-outline-dark btn-filtrar-autor',
                     type='button')),
             css_class='hidden',
             data_action='create',

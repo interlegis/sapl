@@ -6,18 +6,18 @@
 
     <div class="actions btn-group pull-right" role="group">
       {% if USE_SOLR %}
-          <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-default">
+          <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-outline-dark">
               Pesquisa Textual
           </a>
       {% endif %}
 
       {% if perms.materia.add_materialegislativa %}
-      <a href="{% url 'sapl.materia:materialegislativa_create' %}" class="btn btn-default">
+      <a href="{% url 'sapl.materia:materialegislativa_create' %}" class="btn btn-outline-dark">
           {% blocktrans with verbose_name=view.verbose_name %} Adicionar Matéria Legislativa {% endblocktrans %}
       </a>
       {% endif %}
     {% if show_results %}
-        <a href="{% url 'sapl.materia:pesquisar_materia' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+        <a href="{% url 'sapl.materia:pesquisar_materia' %}" class="btn btn-outline-dark">{% trans 'Fazer nova pesquisa' %}</a>
     {% endif %}
     </div>
   {% endblock %}

@@ -19,9 +19,9 @@
     {% if user == object.autor.user  %}
       {% block editions_actions_return %}
         <div class="actions btn-group" role="group">
-          <a class="btn btn-default" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
+          <a class="btn btn-outline-dark" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
           {% if not object.data_recebimento %}
-            <a href="{% url 'sapl.materia:retornar-proposicao' object.pk %}" class="btn btn-default btn-excluir">{% trans 'Retornar Proposição Enviada' %}</a>
+            <a href="{% url 'sapl.materia:retornar-proposicao' object.pk %}" class="btn btn-outline-dark btn-excluir">{% trans 'Retornar Proposição Enviada' %}</a>
           {% endif %}
         </div>
       {% endblock %}
@@ -35,8 +35,8 @@
       </div>
 
       <div class="actions btn-group" role="group">
-        <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
-        <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
+        <a href="{{ view.update_url }}" class="btn btn-outline-dark">{% trans 'Editar' %}</a>
+        <a href="{{ view.delete_url }}" class="btn btn-outline-dark btn-excluir">{% trans 'Excluir' %}</a>
       </div>
     {% endblock %}
   {% endif %}

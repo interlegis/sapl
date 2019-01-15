@@ -1,13 +1,13 @@
 {% load i18n compilacao_filters %}
 
 {% if not node.dispositivos_filhos_set.exists %}
-  <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-default {%if active%}btn-primary{%endif%}">
+  <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-outline-dark {%if active%}btn-primary{%endif%}">
     {{node|nomenclatura}}
   </a>
 
 {% else %}
   <div class="cp-nav-parents btn-group btn-group-sm" role="group">
-    <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-default {%if active%}btn-primary{%endif%}">
+    <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-outline-dark {%if active%}btn-primary{%endif%}">
       {% if not node.rotulo and node.nivel == 0 %}{{node.dispositivo0}} - {% endif %}{{node|nomenclatura}}
       <span class="caret"></span>
     </a>

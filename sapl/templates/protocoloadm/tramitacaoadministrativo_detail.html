@@ -4,12 +4,12 @@
 {% load common_tags %}
 
 <div class="actions btn-group pull-right" role="group">
-<a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' root_pk %}" class="btn btn-default">{% trans 'Início' %}</a>
+<a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' root_pk %}" class="btn btn-outline-dark">{% trans 'Início' %}</a>
   {% if perms|get_change_perm:view %}
-    <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+    <a href="{{ view.update_url }}" class="btn btn-outline-dark">{% trans 'Editar' %}</a>
   {% endif %}
   {% if perms|get_delete_perm:view %}
-    <a href="{{ view.delete_url }}" class="btn btn-default">{% trans 'Excluir' %}</a>
+    <a href="{{ view.delete_url }}" class="btn btn-outline-dark">{% trans 'Excluir' %}</a>
   {% endif %}
 </div>
 {% endblock actions %}

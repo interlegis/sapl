@@ -6,7 +6,7 @@
 {% block more_buttons %}
 
 {% if perms|get_add_perm:view %}
-    <a href="{% url 'sapl.materia:autoria_multicreate' root_pk %}" class="btn btn-default">
+    <a href="{% url 'sapl.materia:autoria_multicreate' root_pk %}" class="btn btn-outline-dark">
       {% trans "Adicionar Várias Autorias" %}
     </a>
 {% endif %}
