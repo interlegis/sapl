@@ -45,8 +45,8 @@ module.exports = {
       //.add(THEME_CUSTOM + '/src/main.js')
       .end()
     
-    config.entry('hellow')
-      .add('./src/hellow/main.js')
+    config.entry('global')
+      .add('./src/global/main.js')
       .end()
 
     /*config
