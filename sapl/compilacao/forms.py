@@ -714,7 +714,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
         buttons = FormActions(*more, css_class='form-group')
 
-        _fields = [Div(*layout, css_class="row-fluid")] + \
+        _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
         self.helper.layout = Layout(*_fields)
 
@@ -1364,7 +1364,7 @@ class DispositivoRegistroAlteracaoForm(Form):
 
         buttons = FormActions(*more, css_class='form-group')
 
-        _fields = [Div(*layout, css_class="row-fluid")] + \
+        _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
 
         self.helper = FormHelper()
@@ -1421,7 +1421,7 @@ class DispositivoRegistroRevogacaoForm(Form):
 
         buttons = FormActions(*more, css_class='form-group')
 
-        _fields = [Div(*layout, css_class="row-fluid")] + \
+        _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
 
         self.helper = FormHelper()
@@ -1471,7 +1471,7 @@ class DispositivoRegistroInclusaoForm(Form):
 
         buttons = FormActions(*more, css_class='form-group')
 
-        _fields = [Div(*layout, css_class="row-fluid")] + \
+        _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
 
         self.helper = FormHelper()

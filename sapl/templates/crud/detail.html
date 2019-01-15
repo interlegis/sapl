@@ -58,7 +58,7 @@
       {% for fieldset in view.layout_display %}
         <h2 class="legend">{{ fieldset.legend }}</h2>
         {% for row in fieldset.rows %}
-          <div class="row-fluid">
+          <div class="row">
             {% for column in row %}
               {% if column.verbose_name or column.text %}
                 <div class="col-sm-{{ column.span }}">

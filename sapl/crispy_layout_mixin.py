@@ -21,7 +21,7 @@ def to_column(name_span):
 
 
 def to_row(names_spans):
-    return Div(*map(to_column, names_spans), css_class='row-fluid')
+    return Div(*map(to_column, names_spans), css_class='row')
 
 
 def to_fieldsets(fields):
