@@ -35,7 +35,7 @@ def to_fieldsets(fields):
 
 
 def form_actions(more=[Div(css_class='clearfix')],
-                 label=_('Salvar'), name='salvar', css_class='pull-right', disabled=True):
+                 label=_('Salvar'), name='salvar', css_class='float-right', disabled=True):
 
     if disabled:
         doubleclick = 'this.form.submit();this.disabled=true;'

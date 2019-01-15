@@ -1,7 +1,7 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% block editions %}
-  <div class="actions btn-group pull-right" role="group">
+  <div class="actions btn-group float-right" role="group">
     <a href="{% url 'sapl.protocoloadm:protocolar_mat' %}" class="btn btn-outline-primary">{% trans 'Protocolar Matéria' %}</a>
     <a href="{% url 'sapl.protocoloadm:protocolar_doc' %}" class="btn btn-outline-primary">{% trans 'Protocolar Documento' %}</a>
     <a href="{% url 'sapl.protocoloadm:anular_protocolo' %}" class="btn btn-outline-primary btn-excluir">{% trans 'Anular Protocolo' %}</a>

@@ -3,7 +3,7 @@
 {% block actions %}
 {% load common_tags %}
 
-<div class="actions btn-group pull-right" role="group">
+<div class="actions btn-group float-right" role="group">
 <a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' root_pk %}" class="btn btn-outline-primary">{% trans 'Início' %}</a>
   {% if perms|get_change_perm:view %}
     <a href="{{ view.update_url }}" class="btn btn-outline-primary">{% trans 'Editar' %}</a>

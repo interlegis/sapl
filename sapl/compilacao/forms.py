@@ -261,7 +261,7 @@ class NotaForm(ModelForm):
             Button(
                 'submit-form',
                 'Salvar',
-                css_class='btn btn-primary pull-right')
+                css_class='btn btn-primary float-right')
         )
 
         self.helper = FormHelper()
@@ -333,7 +333,7 @@ class VideForm(ModelForm):
             Button(
                 'submit-form',
                 'Salvar',
-                css_class='btn-primary pull-right')
+                css_class='btn-primary float-right')
         )
 
         dispositivo_ref = Field(
@@ -706,11 +706,11 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                                  _('Excluir Bloco Completo.'))))
 
         if btns_excluir and (not inst.auto_inserido or inst.ta_publicado):
-            css_class = 'btn-group pull-right btns-excluir'
+            css_class = 'btn-group float-right btns-excluir'
             more.append(Div(*btns_excluir, css_class=css_class))
 
         if not inst.tipo_dispositivo.dispositivo_de_articulacao:
-            more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+            more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 
@@ -1319,7 +1319,7 @@ class TextNotificacoesForm(Form):
         field_type_notificacoes = to_row([(InlineCheckboxes(
             'type_notificacoes'), 10),
             (Submit('submit-form', _('Filtrar'),
-                    css_class='btn btn-primary pull-right'), 2)])
+                    css_class='btn btn-primary float-right'), 2)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(field_type_notificacoes)
@@ -1360,7 +1360,7 @@ class DispositivoRegistroAlteracaoForm(Form):
             HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
                  _('Cancelar')),
         ]
-        more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+        more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 
@@ -1417,7 +1417,7 @@ class DispositivoRegistroRevogacaoForm(Form):
             HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
                  _('Cancelar')),
         ]
-        more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+        more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 
@@ -1467,7 +1467,7 @@ class DispositivoRegistroInclusaoForm(Form):
             HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
                  _('Cancelar')),
         ]
-        # more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+        # more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 

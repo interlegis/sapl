@@ -33,7 +33,7 @@
   {% block actions %}
     <div class="clearfix hidden-print">
 
-      <div class="actions btn-group pull-right" role="group">
+      <div class="actions btn-group float-right" role="group">
         {% if perms.compilacao.change_textoarticulado and object|can_use_dynamic_editing:user %}
           <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Metadados do Texto Articulado' %}</a>
         {% endif %}

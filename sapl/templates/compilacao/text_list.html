@@ -28,7 +28,7 @@
 	{% if perms.compilacao.change_dispositivo_edicao_dinamica %}
     {% block actions %}
       <div class="clearfix">
-        <div class="actions btn-group pull-right" role="group">
+        <div class="actions btn-group float-right" role="group">
   		  <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Texto' %}</a>
         </div>
       </div>
@@ -44,7 +44,7 @@
 
   {% if object_list %}
     <div class="clearfix">
-      <div class="actions btn-group pull-right" role="group">
+      <div class="actions btn-group float-right" role="group">
         <a class="btn btn-outline-primary" id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
         <a class="btn btn-outline-primary" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
       </div>

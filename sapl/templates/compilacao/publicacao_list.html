@@ -12,7 +12,7 @@
 {% block base_content %}
 
   {% if perms.compilacao.add_publicacao %}
-    <div class="actions btn-group pull-right" role="group">
+    <div class="actions btn-group float-right" role="group">
       <a href="{{ view.create_url }}" class="btn btn-outline-primary">
         {% trans 'Adicionar'%} {%model_verbose_name 'sapl.compilacao.models.Publicacao'%}
       </a>

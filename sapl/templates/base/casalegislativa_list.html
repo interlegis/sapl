@@ -4,7 +4,7 @@
 {% block base_content %}
   {% if not rows %}
     <p>{{ NO_ENTRIES_MSG }}</p>
-    <div class="actions btn-group pull-right" role="group">
+    <div class="actions btn-group float-right" role="group">
       <a href="{{ view.create_url }}" class="btn btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
       </a>

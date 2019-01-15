@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block actions %}
-  <div class="actions btn-group pull-right" role="group">
+  <div class="actions btn-group float-right" role="group">
     {% if perms.sessao %}
       <a href="{% url 'sapl.sessao:sessaoplenaria_create' %}" class="btn btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}

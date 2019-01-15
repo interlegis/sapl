@@ -6,7 +6,7 @@
   {% if not ano %}
     {% crispy form %}
   {% else %}
-    <div class="actions btn-group pull-right" role="group">
+    <div class="actions btn-group float-right" role="group">
       <a href="{% url 'sapl.base:estatisticas_acesso' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
     </div>
     <br /><br /><br /><br />

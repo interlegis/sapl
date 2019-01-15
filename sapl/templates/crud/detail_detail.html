@@ -30,7 +30,7 @@
 
 
       {% if view.update_url or view.delete_url %}
-        <div class="actions btn-group pull-right " role="group">
+        <div class="actions btn-group float-right " role="group">
           {% if view.update_url %}
             <a href="{{ view.update_url }}" class="btn btn-outline-primary">{% trans 'Editar' %}</a>
           {% endif %}
@@ -64,7 +64,7 @@
     {% endfor %}
   {% endblock detail_content %}
 
-  <div class="actions btn-group pull-right btn-group-lg" role="group">
+  <div class="actions btn-group float-right btn-group-lg" role="group">
     {% if view.detail_set_create_url %}
     <a href="{{ view.detail_set_create_url }}" class="btn btn-outline-primary">
       {% blocktrans with verbose_name=view.verbose_name_set %} Adicionar {{ verbose_name }} {% endblocktrans %}

@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block sections_nav %}
-<div class="actions btn-group pull-right" role="group">
+<div class="actions btn-group float-right" role="group">
   <a href="{% url 'sapl.protocoloadm:proposicao_receber' %}" class="btn btn-outline-primary">{% trans 'Incorporar Proposições' %}</a>
   <a href="{% url 'sapl.protocoloadm:proposicao_naorecebidas' %}" class="btn btn-outline-primary">{% trans 'Proposições Não Recebidas' %}</a>
   <a href="{% url 'sapl.protocoloadm:proposicao_naoincorporadas' %}" class="btn btn-outline-primary">{% trans 'Proposições Não Incorporadas' %}</a>

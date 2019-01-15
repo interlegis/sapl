@@ -1552,7 +1552,7 @@ class DevolverProposicaoForm(forms.ModelForm):
                 to_column(
                     (form_actions(label=_('Devolver'),
                                   name='devolver',
-                                  css_class='btn-danger pull-right'), 12)
+                                  css_class='btn-danger float-right'), 12)
                 )
             )
         )
