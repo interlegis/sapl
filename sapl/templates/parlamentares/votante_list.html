@@ -6,7 +6,7 @@
   {% if not rows %}
     <div class="actions btn-group pull-right btn-group-lg" role="group">
       {% if view.create_url %}
-      <a href="{{ view.create_url }}" class="btn btn-outline-dark">
+      <a href="{{ view.create_url }}" class="btn btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %} Vincular {{ verbose_name }} {% endblocktrans %}
       </a>
       {% endif %}

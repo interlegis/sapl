@@ -8,14 +8,14 @@
 {% block actions %}
   <div class="actions btn-group pull-right" role="group">
     {% if perms.protocoloadm.add_documentoadministrativo %}
-      <a href="{% url 'sapl.protocoloadm:documentoadministrativo_create' %}" class="btn btn-outline-dark">
+      <a href="{% url 'sapl.protocoloadm:documentoadministrativo_create' %}" class="btn btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Documento Administrativo {% endblocktrans %}
       </a>
     {% endif %}
   </div>
   {% if show_results %}
     <div class="actions btn-group pull-right" role="group">
-      <a href="{% url 'sapl.protocoloadm:pesq_doc_adm' %}" class="btn btn-outline-dark">{% trans 'Fazer Nova Pesquisa' %}</a>
+      <a href="{% url 'sapl.protocoloadm:pesq_doc_adm' %}" class="btn btn-outline-primary">{% trans 'Fazer Nova Pesquisa' %}</a>
     </div>
   {% endif %}
 {% endblock actions %}

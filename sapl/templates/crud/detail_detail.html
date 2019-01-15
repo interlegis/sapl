@@ -7,13 +7,13 @@
     {% block actions %}
       <div class="actions btn-group btn-group-sm" role="group">
         {% if view.detail_root_detail_url %}
-          <a href="{{ view.detail_root_detail_url }}" class="btn btn-outline-dark">{% trans 'Retornar para' %} {{view.detail_root_detail_verbose_name}}</a>
+          <a href="{{ view.detail_root_detail_url }}" class="btn btn-outline-primary">{% trans 'Retornar para' %} {{view.detail_root_detail_verbose_name}}</a>
         {% endif %}
         {% if view.detail_list_url %}
-          <a href="{{ view.detail_list_url }}" class="btn btn-outline-dark">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
+          <a href="{{ view.detail_list_url }}" class="btn btn-outline-primary">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
         {% endif %}
         {% if view.detail_create_url %}
-          <a href="{{ view.detail_create_url }}" class="btn btn-outline-dark">
+          <a href="{{ view.detail_create_url }}" class="btn btn-outline-primary">
             {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
           </a>
         {% endif %}
@@ -21,7 +21,7 @@
       {% if view.extras_url %}
         <div class="actions btn-group btn-group-sm" role="group">
           {% for href, css_class, text in view.extras_url %}
-            <a href="{{href}}" class="btn btn-outline-dark {{css_class}}">
+            <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
               {{text}}
             </a>
           {% endfor %}
@@ -32,10 +32,10 @@
       {% if view.update_url or view.delete_url %}
         <div class="actions btn-group pull-right " role="group">
           {% if view.update_url %}
-            <a href="{{ view.update_url }}" class="btn btn-outline-dark">{% trans 'Editar' %}</a>
+            <a href="{{ view.update_url }}" class="btn btn-outline-primary">{% trans 'Editar' %}</a>
           {% endif %}
           {% if view.delete_url %}
-            <a href="{{ view.delete_url }}" class="btn btn-outline-dark btn-excluir">{% trans 'Excluir' %}</a>
+            <a href="{{ view.delete_url }}" class="btn btn-outline-primary btn-excluir">{% trans 'Excluir' %}</a>
           {% endif %}
         </div>
       {% endif %}
@@ -66,7 +66,7 @@
 
   <div class="actions btn-group pull-right btn-group-lg" role="group">
     {% if view.detail_set_create_url %}
-    <a href="{{ view.detail_set_create_url }}" class="btn btn-outline-dark">
+    <a href="{{ view.detail_set_create_url }}" class="btn btn-outline-primary">
       {% blocktrans with verbose_name=view.verbose_name_set %} Adicionar {{ verbose_name }} {% endblocktrans %}
     </a>
     {% endif %}

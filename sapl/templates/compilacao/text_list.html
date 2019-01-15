@@ -29,7 +29,7 @@
     {% block actions %}
       <div class="clearfix">
         <div class="actions btn-group pull-right" role="group">
-  		  <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-outline-dark">{% trans 'Editar Texto' %}</a>
+  		  <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Texto' %}</a>
         </div>
       </div>
     {% endblock actions %}
@@ -45,8 +45,8 @@
   {% if object_list %}
     <div class="clearfix">
       <div class="actions btn-group pull-right" role="group">
-        <a class="btn btn-outline-dark" id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
-        <a class="btn btn-outline-dark" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
+        <a class="btn btn-outline-primary" id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
+        <a class="btn btn-outline-primary" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
       </div>
     </div>
   {% endif %}

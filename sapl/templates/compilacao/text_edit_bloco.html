@@ -7,7 +7,7 @@
       <div class="dpt-actions">
       </div>
       <div class="dpt-actions-fixed">
-        <a class="btn-dpt-edit btn btn-outline-dark btn-sm" pk="{{node.dpt.pk}}" title=""><span class="deactivate">{% trans 'Editar'%} </span><span class="activate">{% trans 'Em Edição'%}: </span>{% if not node.td.rotulo_prefixo_texto %}{{ node.td.nome }} {% endif %}{{ node.dpt.rotulo }}</a>
+        <a class="btn-dpt-edit btn btn-outline-primary btn-sm" pk="{{node.dpt.pk}}" title=""><span class="deactivate">{% trans 'Editar'%} </span><span class="activate">{% trans 'Em Edição'%}: </span>{% if not node.td.rotulo_prefixo_texto %}{{ node.td.nome }} {% endif %}{{ node.dpt.rotulo }}</a>
         <div class="btn-group">
           <a class="btn-dpt-edit btn btn-warning btn-sm activate" pk="{{node.dpt.pk}}" action="editor-help" data-toggle="modal" data-target="#modal-help"><span class="deactivate"></span><span class="activate"><i class="fa fa-question" aria-hidden="true"></i></span></a>
         </div>

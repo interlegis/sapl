@@ -10,13 +10,13 @@
 
         <div class="actions btn-group btn-group-sm" role="group">
           {% if view.list_url %}
-            <a href="{{ view.list_url }}" class="btn btn-outline-dark">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
+            <a href="{{ view.list_url }}" class="btn btn-outline-primary">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
           {% endif %}
           {% if view.search_url %}
-            <a href="{{ view.search_url }}" class="btn btn-outline-dark">{% trans 'Fazer Nova Pesquisa' %}</a>
+            <a href="{{ view.search_url }}" class="btn btn-outline-primary">{% trans 'Fazer Nova Pesquisa' %}</a>
           {% endif %}
           {% if view.create_url %}
-            <a href="{{ view.create_url }}" class="btn btn-outline-dark">
+            <a href="{{ view.create_url }}" class="btn btn-outline-primary">
               {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
             </a>
           {% endif %}
@@ -24,7 +24,7 @@
           {% if view.extras_url %}
             <div class="actions btn-group btn-group-sm" role="group">
           {% for href, css_class, text in view.extras_url %}
-            <a href="{{href}}" class="btn btn-outline-dark {{css_class}}">
+            <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
                   {{text}}
                 </a>
               {% endfor %}
@@ -40,10 +40,10 @@
           {% if view.update_url or view.delete_url %}
             <div class="actions btn-group" role="group">
               {% if view.update_url %}
-                <a href="{{ view.update_url }}" class="btn btn-outline-dark">{% trans 'Editar' %}</a>
+                <a href="{{ view.update_url }}" class="btn btn-outline-primary">{% trans 'Editar' %}</a>
               {% endif %}
               {% if view.delete_url %}
-                <a href="{{ view.delete_url }}" class="btn btn-outline-dark btn-excluir">{% trans 'Excluir' %}</a>
+                <a href="{{ view.delete_url }}" class="btn btn-outline-primary btn-excluir">{% trans 'Excluir' %}</a>
               {% endif %}
             </div>
           {% endif %}

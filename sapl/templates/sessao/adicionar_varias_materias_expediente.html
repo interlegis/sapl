@@ -11,11 +11,11 @@
 
       {% if filter_url and not filter.form.errors %}
             <div class="actions btn-group pull-right" role="group">
-              <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-outline-dark">{% trans 'Fazer nova pesquisa' %}</a>
+              <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
             </div>
 
             <div class="actions btn-group pull-right" role="group">
-              <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-outline-dark">{% trans 'Matérias do Expediente' %}</a>
+              <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-outline-primary">{% trans 'Matérias do Expediente' %}</a>
             </div>
 
       {% endif %}
