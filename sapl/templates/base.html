@@ -20,15 +20,20 @@
       {% comment "" %}
       
                               <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
-                              <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
-                              <link rel="stylesheet" href="{% static 'drunken-parrot-flat-ui/css/drunken-parrot.css' %}">
                               <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
 
-                              <link rel="stylesheet" href="{% static 'jquery-ui/themes/cupertino/jquery-ui.min.css' %}">
-                              <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
 
                               {# Scripts #}
                               {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
+
+
+        {# Incorporado  em sapl-frontend#}
+                              <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
+                              <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+                              <link rel="stylesheet" href="{% static 'jquery-ui/themes/cupertino/jquery-ui.min.css' %}">
+                              <link rel="stylesheet" href="{% static 'drunken-parrot-flat-ui/css/drunken-parrot.css' %}">
+
+
       {% endcomment %}
       {% render_bundle  'global' 'css' %}
       {% render_bundle THEME_CUSTOM 'css' %}
@@ -241,9 +246,7 @@
       
         <!-- Bootstrap core JavaScript ================================================== -->
         <!-- Placed at the end of the document so the pages load faster -->
-        <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
 
-        <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'jquery-ui/ui/i18n/datepicker-pt-BR.js' %}"></script>
 
         <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
@@ -258,6 +261,12 @@
         <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
 
         <script type="text/javascript" src="{% static 'jquery-query-object/jquery.query-object.js' %}"></script>
+
+
+        {# Incorporado  em sapl-frontend#}
+        <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
+
       {% endcomment %}
 
       {% block extra_js %}{% endblock %}
