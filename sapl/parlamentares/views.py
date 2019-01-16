@@ -301,9 +301,18 @@ class FrenteCrud(Crud):
         def form_valid(self, form):
             return super(Crud.CreateView, self).form_valid(form)
 
+    class DetailView(Crud.DetailView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
     class UpdateView(Crud.UpdateView):
         form_class = FrenteForm
-
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
 
 
 class MandatoCrud(MasterDetailCrud):
