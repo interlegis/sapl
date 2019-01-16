@@ -64,7 +64,7 @@
     {% endfor %}
   {% endblock detail_content %}
 
-  <div class="actions btn-group float-right btn-group-lg" role="group">
+  <div class="actions btn-group mb-3" role="group">
     {% if view.detail_set_create_url %}
     <a href="{{ view.detail_set_create_url }}" class="btn btn-outline-primary">
       {% blocktrans with verbose_name=view.verbose_name_set %} Adicionar {{ verbose_name }} {% endblocktrans %}
