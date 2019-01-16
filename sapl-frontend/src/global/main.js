@@ -1,4 +1,4 @@
-import jQuery from 'jquery'
-import './functions'
+import jQuery from "jquery";
+import "./functions";
 
-window.$ = window.jQuery = jQuery
+window.$ = window.jQuery = jQuery;
