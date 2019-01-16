@@ -3,6 +3,7 @@
 {% load tz %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load webpack_static from webpack_loader %}
 
 {% block actions %}
 
@@ -14,7 +15,7 @@
 
 {% block detail_content %}
         <strong>Protocolo: </strong>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }} - 
-        <a href="{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}"><img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a></br>
+        <a href="{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}"><img src="{% webpack_static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a></br>
 
 	<strong>Assunto: </strong> {{ protocolo.assunto_ementa|default:"Não informado" }}</br>
 	{% if protocolo.timestamp %}
