@@ -1,17 +1,8 @@
 {% extends "protocoloadm/protocoloadm_detail.html" %}
 {% load i18n %}
-{% load crispy_forms_tags %}
 
-
-{% block actions %}
-
-  {{ block.super }}
-  <div class="actions btn-group float-right grid-gutter-width-right " role="group">
-    <a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
-  </div>
-{% endblock %}
-
+{% load crispy_forms_tags %}  
 {% block detail_content %}
-	<div>{{ message }} </div>
+	<div>{{ message }}</div>
     {% crispy form %}
 {% endblock detail_content %}

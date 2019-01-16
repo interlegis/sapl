@@ -24,9 +24,9 @@
           {% if view.extras_url %}
             <div class="actions btn-group btn-group-sm" role="group">
           {% for href, css_class, text in view.extras_url %}
-            <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
-                  {{text}}
-                </a>
+              <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
+                {{text}}
+              </a>
               {% endfor %}
             </div>
           {% endif %}
