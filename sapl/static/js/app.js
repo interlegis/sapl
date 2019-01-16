@@ -190,7 +190,7 @@ function OptionalCustomFrontEnd() {
             if (_label.length === 0) {
                 _label = $('label[for='+this.id+']');
                 if (_label.length === 0) {
-                    _label = $('<label[for='+this.id+']/>').insertBefore(this)
+                    _label = $('<label for='+this.id+'/>').insertBefore(this)
                 }
             }
 
