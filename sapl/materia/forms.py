@@ -2046,15 +2046,10 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         self.instance.results['messages']['success'].append(_(
             'Protocolo realizado com sucesso'))
 
-        # FIXME qdo protocoloadm estiver homologado, verifique a necessidade
-        # de redirecionamento para o protocolo.
-        # complete e libere código abaixo para tal.
-
-        """
         self.instance.results['url'] = reverse(
-            'sapl.protocoloadm:...',
+            'sapl.protocoloadm:protocolo_mostrar',
             kwargs={'pk': protocolo.pk})
-        """
+
         conteudo_gerado.numero_protocolo = protocolo.numero
         conteudo_gerado.save()
 
