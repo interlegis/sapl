@@ -250,23 +250,24 @@
 
         <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
 
-        <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'jsdiff/diff.min.js' %}"></script>
 
-        <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/checkbox.js' %}"></script>
-        <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/radio.js' %}"></script>
 
-        <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
 
         <script type="text/javascript" src="{% static 'jquery-query-object/jquery.query-object.js' %}"></script>
 
 
         {# Incorporado  em sapl-frontend#}
+        <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
+        <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
         <script type="text/javascript" src="{% static 'jquery-ui/ui/i18n/datepicker-pt-BR.js' %}"></script>
 
+        #Eliminado
+        <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/checkbox.js' %}"></script>
+        <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/radio.js' %}"></script>
       {% endcomment %}
 
       {% block extra_js %}{% endblock %}
