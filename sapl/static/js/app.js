@@ -33,10 +33,6 @@ function removeTinymce() {
     }
 }
 
-function refreshDatePicker() {
-    $.datepicker.setDefaults($.datepicker.regional['pt-BR']);
-    $('.dateinput').datepicker();
-}
 
 
 function OptionalCustomFrontEnd() {
