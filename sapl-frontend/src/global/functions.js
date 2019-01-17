@@ -140,7 +140,7 @@ window.refreshMask = function() {
     placeholder: "____.____.____.____"
   });
   $(".dateinput").mask("00/00/0000", { placeholder: "__/__/____" });
-  $(".hora, input[name=hora_inicio], input[name=hora_fim]").mask("00:00", {
+  $(".hora, input[name=hora_inicio], input[name=hora_fim], input[name=hora]").mask("00:00", {
     placeholder: "hh:mm"
   });
   $(".hora_hms").mask("00:00:00", { placeholder: "hh:mm:ss" });
