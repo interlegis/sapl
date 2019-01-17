@@ -118,7 +118,6 @@ window.autorModal = function() {
     get_nome_autor("#id_autoria__autor");*/
 };
 
-
 window.refreshMask = function () {
   $('.telefone').mask("(99) 9999-9999", {placeholder:"(__) ____ -____"});
   $('.cpf').mask("000.000.000-00", {placeholder:"___.___.___-__"});
@@ -130,9 +129,4 @@ window.refreshMask = function () {
   $('.hora_hms').mask("00:00:00", {placeholder:"hh:mm:ss"});
   $('.timeinput').mask("00:00:00", {placeholder:"hh:mm:ss"});
   $('.cronometro').mask("00:00:00", {placeholder:"hh:mm:ss"});
-}
-
-window.refreshDatePicker = function() {
-    $.datepicker.setDefaults($.datepicker.regional['pt-BR']);
-    $('.dateinput').datepicker();
 }
