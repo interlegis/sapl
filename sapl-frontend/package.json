@@ -12,6 +12,7 @@
     "bootstrap-material-design": "^4.1.1",
     "dotenv": "^6.2.0",
     "jquery": "^3.3.1",
+    "jquery-mask-plugin": "^1.14.15",
     "jquery-ui": "^1.12.1",
     "popper.js": "^1.14.6",
     "sapl-oficial-theme": "../../sapl-oficial-theme",
