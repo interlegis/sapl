@@ -1,6 +1,7 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load staticfiles %}
+{% load webpack_static from webpack_loader %}
 {% block actions %} {% endblock %}
 
 {% block title %}
@@ -12,7 +13,7 @@
 
 {% block detail_content %}
 
-  <audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"></audio>
+  <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
   <div class="row">
     <div class="col-md-6"><a href="" onclick="window.open('{% url 'sapl.painel:painel_principal' pk %}','Comprovante','width=800, height=800, scrollbars=yes'); return false;" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>

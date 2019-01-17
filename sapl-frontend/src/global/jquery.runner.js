@@ -293,4 +293,4 @@
 
   _$.fn.runner.format = formatTime;
 
-}).call(this);
+}).call(window);
