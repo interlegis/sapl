@@ -2175,7 +2175,7 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
-    html = template.render(RequestContext(request, context))
+    html = template.render(context, request)
 
     pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()
                           ).write_pdf()
