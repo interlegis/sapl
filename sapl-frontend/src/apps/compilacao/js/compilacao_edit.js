@@ -112,7 +112,7 @@ function DispositivoEdit() {
 
         var dpt_form = _this.children().filter('.dpt-form').children().first();
         var url_search = dpt_form[0]['id_dispositivo_search_form'].value;
-        DispostivoSearch({
+        DispositivoSearch({
           'url_form': url_search,
           'text_button': 'Selecionar'
         });
@@ -134,7 +134,7 @@ function DispositivoEdit() {
 
         var dpt_form = _this.children().filter('.dpt-form').children().first();
         var url_search = dpt_form[0]['id_dispositivo_search_form'].value;
-        DispostivoSearch({
+        DispositivoSearch({
           'url_form': url_search,
           'text_button': 'Selecionar',
           'post_selected': instance.allowed_inserts_registro_inclusao,
@@ -159,7 +159,7 @@ function DispositivoEdit() {
 
         var dpt_form = _this.children().filter('.dpt-form').children().first();
         var url_search = dpt_form[0]['id_dispositivo_search_form'].value;
-        DispostivoSearch({
+        DispositivoSearch({
           'url_form': url_search,
           'text_button': 'Selecionar'
         });

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_loader_css %}
+    {% render_bundle 'global' 'css' %}
+    {% render_bundle 'compilacao' 'css' %}
+    {% render_bundle THEME_CUSTOM 'css' %}
+{% endblock %}
+
+{% block webpack_loader_js %}
+    {% render_bundle 'global' 'js' %}
+    {% render_bundle 'compilacao' 'js' %}
+    {% render_bundle THEME_CUSTOM 'js' %}
+{% endblock %}

@@ -2,13 +2,6 @@
 {% load i18n %}
 {% load compilacao_filters %}
 {% load common_tags %}
-{% load staticfiles %}
-{% load sass_tags %}
-
-{% block head_content %}
-  {{block.super}}
-  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
-{% endblock %}
 
 {% block title %}
   <h2 class="page-header">{% if object.content_object.title_type %}{{object.content_object.title_type}}{%else%}{{object}}{% endif %}{% comment %}<small><i>{% trans 'Texto Multivigente em Edição' %}</i></small>{% endcomment %}</h2>
@@ -112,16 +105,3 @@
   {% include 'compilacao/text_list_bloco.html'%}
   </div>
 {% endblock base_content %}
-
-{% block extra_js %}
-
-  {{block.super}}
-
-  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
-
-  {% if perms.compilacao.add_nota %}
-    <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
-  {% endif %}
-
-{% endblock %}

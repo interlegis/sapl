@@ -24,7 +24,7 @@ function onEventsDneExec(pk, model) {
     }
     else if (model == 'vide') {
 
-        DispostivoSearch({
+        DispositivoSearch({
           'url_form': '/ta/search_form',
           'text_button': 'Definir Dispositivo'
         });

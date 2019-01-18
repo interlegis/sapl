@@ -1,3 +1,5 @@
+let JsDiff = require('diff');
+
 function isElementInViewport (el) {
 
     //special bonus for those using jQuery
@@ -141,38 +143,8 @@ function textoVigente(item, link) {
     }
 }
 
-$(document).ready(function() {
-
-    setTimeout(function() {
-        var href = location.href.split('#')
-        if (href.length == 2) {
-            try {
-                $('html, body').animate({
-                    scrollTop: $('#dptt' + href[1] ).offset().top - window.innerHeight / 9
-                }, 0);
-            }
-            catch(err) {
-            }
-        }
-    }, 100);
-
-    $("#btn_font_menos").click(function() {
-        $(".dpt").css("font-size", "-=1");
-    });
-    $("#btn_font_mais").click(function() {
-        $(".dpt").css("font-size", "+=1");
-    });
-
-    $(".dpt.bloco_alteracao .dpt").each(function() {
-        var nivel = parseInt($(this).attr('nivel'));
-
-        $(this).css('z-index', 15-nivel)
-
-    });
-
-
-    /*$(".indent").each(function() {
-        $(this).removeClass('indent');
-        $(this.parentElement).addClass('indent');
-    });*/
-});
+export default {
+    isElementInViewport,
+    textoMultiVigente,
+    textoVigente
+}

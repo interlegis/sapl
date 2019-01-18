@@ -35,8 +35,10 @@
 
 
       {% endcomment %}
-      {% render_bundle  'global' 'css' %}
-      {% render_bundle THEME_CUSTOM 'css' %}
+      {% block webpack_loader_css %}
+        {% render_bundle  'global' 'css' %}
+        {% render_bundle THEME_CUSTOM 'css' %}
+      {% endblock webpack_loader_css %}
 
     {% endblock %}
   </head>
@@ -239,8 +241,10 @@
     {% endif %}
 
     {% block foot_js %}
-      {% render_bundle  'global' 'js' %}      
-      {% render_bundle THEME_CUSTOM 'js' %}
+      {% block webpack_loader_js %}
+        {% render_bundle  'global' 'js' %}      
+        {% render_bundle THEME_CUSTOM 'js' %}
+      {% endblock webpack_loader_js %}
 
       {% comment "" %}
       
