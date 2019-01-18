@@ -1,14 +1,16 @@
 {% load i18n %}
-{% load staticfiles sass_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
 <!DOCTYPE HTML>
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="text/javascript" src="{% static 'jquery/dist/jquery.js' %}"></script>
-      <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
+
+    {% render_bundle 'global'%}
+    {% render_bundle THEME_CUSTOM %}
 
     <style type="text/css">
         html, body {

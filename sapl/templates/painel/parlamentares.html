@@ -1,5 +1,7 @@
 {% load i18n %}                                                                                                              
-{% load staticfiles %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
 <!DOCTYPE HTML>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!-->
@@ -11,7 +13,10 @@
       <!-- TODO: does it need this head_title here? -->
       <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <script type="text/javascript" src="{% static 'foundation/js/vendor/jquery.js' %}"></script>
+
+        {% render_bundle 'global'%}
+        {% render_bundle THEME_CUSTOM %}
+
 
       <STYLE type="text/css">
         @media screen {
