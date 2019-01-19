@@ -31,8 +31,7 @@ function onEventsDneExec(pk, model) {
     }
 }
 
-
-var onSubmitEditNVForm = function(event) {
+function onSubmitEditNVForm(event) {
 
     var url = '';
     var model = 'nota';
@@ -76,7 +75,7 @@ var onSubmitEditNVForm = function(event) {
         }
     );
 }
-var onDelete = function(event) {
+function onDelete(event) {
 
     var model = $(event).attr('model');
 
@@ -138,6 +137,9 @@ function onReadyNotasVides() {
     });
 }
 
-$(document).ready(function() {
-    onReadyNotasVides()
-});
+export default {
+    onEventsDneExec,
+    onSubmitEditNVForm,
+    onDelete,
+    onReadyNotasVides
+}

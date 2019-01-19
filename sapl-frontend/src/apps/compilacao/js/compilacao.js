@@ -168,7 +168,7 @@
           $.get(opts['url_form'], function(data) {
             container_ds.html(data);
             var modal_ds = $('#modal-ds');
-            OptionalCustomFrontEnd().init();
+            //OptionalCustomFrontEnd().init();
 
             modal_ds.find("select[name='tipo_ta']").change(function(event) {
               var url = '';
