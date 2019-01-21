@@ -706,8 +706,11 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
 
 def ultimo_ano_com_norma():
     anos_normas = choice_anos_com_normas()
-    return anos_normas[0]
     
+    if anos_normas:
+        return anos_normas[0]
+    return ''
+
 
 class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
