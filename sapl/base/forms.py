@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.forms import Form, ModelForm
+from django.utils import timezone
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import django_filters
@@ -22,9 +23,10 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.materia.models import (
-    MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
-from sapl.norma.models import (NormaJuridica)
+from sapl.audiencia.models import AudienciaPublica,TipoAudienciaPublica
+from sapl.comissoes.models import Reuniao, Comissao
+from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
+from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
@@ -734,17 +736,53 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
         return parent.distinct().order_by('data')
 
 
+class EstatisticasAcessoNormasForm(Form):
+
+    ano = forms.ChoiceField(required=True,
+                            label='Ano de acesso',
+                            choices=RANGE_ANOS,
+                            initial=timezone.now().year)
+
+    class Meta:
+        fields = ['ano']
+    
+    def __init__(self, *args, **kwargs):
+        super(EstatisticasAcessoNormasForm, self).__init__(
+            *args, **kwargs)
+
+        row1 = to_row([('ano', 12)])
+
+        self.helper = FormHelper()
+        self.helper.form_method = 'GET'
+        self.helper.layout = Layout(
+            Fieldset(_('Normas por acessos nos meses do ano.'),
+                     row1, form_actions(label='Pesquisar'))
+        )
+
+    def clean(self):
+        super(EstatisticasAcessoNormasForm, self).clean()
+
+        return self.cleaned_data
+
+
+def ultimo_ano_com_norma():
+    anos_normas = choice_anos_com_normas()
+    return anos_normas[0]
+
+
 class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
-                                      choices=choice_anos_com_normas)
+                                      choices=choice_anos_com_normas,
+                                      initial=ultimo_ano_com_norma)
 
     vigencia = forms.ChoiceField(
         label=_('Vigência'),
         choices=[(True, "Vigente"), (False, "Não vigente")],
         widget=forms.RadioSelect(),
-        required=True)
+        required=True,
+        initial=True)
 
     def __init__(self, *args, **kwargs):
         super(RelatorioNormasVigenciaFilterSet, self).__init__(
@@ -753,7 +791,6 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         self.filters['ano'].label = 'Ano'
         self.form.fields['ano'].required = True
         self.form.fields['vigencia'] = self.vigencia
-        self.form.fields['vigencia'].initial = True
 
         row1 = to_row([('ano', 12)])
         row2 = to_row([('vigencia', 12)])

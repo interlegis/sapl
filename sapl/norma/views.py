@@ -1,4 +1,3 @@
-
 import logging
 import re
 
@@ -198,7 +197,9 @@ class NormaCrud(Crud):
             estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
             if estatisticas_acesso_normas == 'S':
                 NormaEstatisticas.objects.create(usuario=str(self.request.user),
-                                                 norma_id=kwargs['pk'])
+                                                 norma_id=kwargs['pk'],
+                                                 ano=timezone.now().year,
+                                                 horario_acesso=timezone.now())
             return super().get(request, *args, **kwargs)
 
     class DeleteView(Crud.DeleteView):

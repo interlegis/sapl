@@ -2,6 +2,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 from model_utils import Choices
 import reversion
 
@@ -192,11 +193,16 @@ class NormaJuridica(models.Model):
                                  update_fields=update_fields)
 
 
+def get_ano_atual():
+    return timezone.now().year
+
+
 class NormaEstatisticas(models.Model):
     usuario = models.CharField(max_length=50)
     horario_acesso = models.DateTimeField(
-        blank=True, null=True,
-        auto_now=True)
+        blank=True, null=True)
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                           choices=RANGE_ANOS, default=get_ano_atual)
     norma = models.ForeignKey(NormaJuridica,
                               on_delete=models.CASCADE)
 

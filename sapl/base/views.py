@@ -10,10 +10,12 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
+from django.db import connection
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponseRedirect
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import string_concat
@@ -49,7 +51,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioPresencaSessaoFilterSet,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
-                    RelatorioNormasVigenciaFilterSet)
+                    RelatorioNormasVigenciaFilterSet,
+                    EstatisticasAcessoNormasForm)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -820,7 +823,9 @@ class RelatorioNormasVigenciaView(FilterView):
         if kwargs['data']:
             ano = kwargs['data']['ano']
             vigencia = kwargs['data']['vigencia']
-            qs = qs.filter(ano=ano)
+            if ano:
+                qs = qs.filter(ano=ano)
+            
             if vigencia == 'True':
                 qs_dt_not_null = qs.filter(data_vigencia__isnull=True)
                 qs = (qs_dt_not_null | qs.filter(data_vigencia__gte=datetime.datetime.now().date())).distinct()
@@ -863,47 +868,51 @@ class RelatorioNormasVigenciaView(FilterView):
         return context
 
 
-class EstatisticasAcessoNormas(FilterView):
-    model = NormaJuridica
-    filterset_class = RelatorioNormasMesFilterSet
+class EstatisticasAcessoNormas(TemplateView):
     template_name = 'base/EstatisticasAcessoNormas_filter.html'
 
-    def get_context_data(self, **kwargs):
+    def get(self, request, *args, **kwargs):
         context = super(EstatisticasAcessoNormas,
                         self).get_context_data(**kwargs)
         context['title'] = _('Normas')
 
-        # Verifica se os campos foram preenchidos
-        if not self.filterset.form.is_valid():
-            return context
+        form = EstatisticasAcessoNormasForm(request.GET or None)
+        context['form'] = form
 
-        qr = self.request.GET.copy()
-        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        if not form.is_valid():
+            return self.render_to_response(context)
 
-        context['show_results'] = show_results_filter_set(qr)
         context['ano'] = self.request.GET['ano']
+        
+        query = '''
+                select norma_id, ano, extract(month from horario_acesso) as mes, count(*)
+                from norma_normaestatisticas
+                where ano = {}
+                group by mes, ano, norma_id
+                order by mes desc;
+                '''.format(context['ano'])
+        cursor = connection.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
 
         normas_mes = collections.OrderedDict()
         meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
                 7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
-        for norma in context['object_list']:
-            if not meses[norma.data.month] in normas_mes:
-                normas_mes[meses[norma.data.month]] = []
-            norma_est = [norma, len(NormaEstatisticas.objects.filter(norma=norma))]
-            normas_mes[meses[norma.data.month]].append(norma_est)
         
-        meses_sem_acesso = []
+        for row in rows:
+            if not meses[int(row[2])] in normas_mes:
+                normas_mes[meses[int(row[2])]] = []
+            norma_est = [NormaJuridica.objects.get(id=row[0]), row[3]]
+            normas_mes[meses[int(row[2])]].append(norma_est)
+        
         # Ordena por acesso e limita em 5
         for n in normas_mes:
             sorted_by_value = sorted(normas_mes[n], key=lambda kv: kv[1], reverse=True)
             normas_mes[n] = sorted_by_value[0:5]
-            if all(v[1]==0 for v in normas_mes[n]):
-                meses_sem_acesso.append(n)
         
         context['normas_mes'] = normas_mes
-        context['meses_sem_acesso'] = meses_sem_acesso
 
-        return context
+        return self.render_to_response(context)
 
 
 class ListarUsuarioView(PermissionRequiredMixin, ListView):
