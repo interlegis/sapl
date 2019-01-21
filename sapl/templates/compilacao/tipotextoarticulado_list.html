@@ -15,7 +15,7 @@
   {% endblock actions %}
 
     <div class="row container-tabaux">
-      <div class="{% if perms.base.menu_tabelas_auxiliares %}col-sm-9{% endif %}">
+      <div class="{% if perms.base.view_tabelas_auxiliares %}col-sm-9{% endif %}">
         {% if not object_list %}
         <p>{{ NO_ENTRIES_MSG }}</p>
         {% else %}
@@ -40,7 +40,7 @@
         {%endif%}
         {% include 'paginacao.html'%}
       </div>
-      {% if perms.base.menu_tabelas_auxiliares %}
+      {% if perms.base.view_tabelas_auxiliares %}
         <div class="col-sm-3 sidebar-tabaux">
             <h3>{% trans "Tabelas Auxiliares" %}</h3>
             {% subnav 'menu_tabelas_auxiliares.yaml'%}

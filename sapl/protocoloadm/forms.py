@@ -1,9 +1,9 @@
 
 import logging
 
-from crispy_forms.bootstrap import InlineRadios
+from crispy_forms.bootstrap import InlineRadios, Alert
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
@@ -18,11 +18,12 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
+from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal,
                         choice_anos_com_protocolo, choice_force_optional,
                         choice_anos_com_documentoadministrativo,
-                        FilterOverridesMetaMixin)
+                        FilterOverridesMetaMixin, choice_anos_com_materias)
 
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
@@ -344,6 +345,12 @@ class ProtocoloDocumentForm(ModelForm):
     numero = forms.IntegerField(
         required=False, label=_('Número de Protocolo (opcional)'))
 
+    data_hora_manual = forms.ChoiceField(
+        label=_('Informar data e hora manualmente?'),
+        widget=forms.RadioSelect(),
+        choices=YES_NO_CHOICES,
+        initial=False)
+
     class Meta:
         model = Protocolo
         fields = ['tipo_protocolo',
@@ -352,7 +359,9 @@ class ProtocoloDocumentForm(ModelForm):
                   'assunto',
                   'interessado',
                   'observacao',
-                  'numero'
+                  'numero',
+                  'data',
+                  'hora',
                   ]
 
     def __init__(self, *args, **kwargs):
@@ -360,30 +369,56 @@ class ProtocoloDocumentForm(ModelForm):
         row1 = to_row(
             [(InlineRadios('tipo_protocolo'), 12)])
         row2 = to_row(
-            [('tipo_documento', 6),
-             ('numero_paginas', 6)])
-        row3 = to_row(
-            [('assunto', 12)])
+            [('tipo_documento', 5),
+             ('numero_paginas', 2),
+             (Div(), 1),
+             (InlineRadios('data_hora_manual'), 4),
+             ])
+        row3 = to_row([
+            (Div(), 2),
+            (Alert(
+                """
+                Usuário: <strong>{}</strong> - {}<br> 
+                IP: <strong>{}</strong> - {}<br>
+                
+                """.format(
+                    kwargs['initial']['user_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'user_data_hora_manual').help_text,
+                    kwargs['initial']['ip_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'ip_data_hora_manual').help_text,
+
+                ),
+                dismiss=False,
+                css_class='alert-info'), 6),
+            ('data', 2),
+            ('hora', 2),
+        ])
         row4 = to_row(
-            [('interessado', 12)])
+            [('assunto', 12)])
         row5 = to_row(
-            [('observacao', 12)])
+            [('interessado', 12)])
         row6 = to_row(
+            [('observacao', 12)])
+        row7 = to_row(
             [('numero', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação de Documento'),
                      row1,
-                     row2,
+                     row2),
+            Fieldset(_('Protocolo com data e hora informados manualmente'),
                      row3,
-                     row4,
-                     row5,
-                     HTML("&nbsp;"),
-                     ),
+                     css_id='protocolo_data_hora_manual',
+                     css_class='hidden'),
+            row4,
+            row5,
+            HTML("&nbsp;"),
             Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece '
                        'a partir do número a ser informado)'),
-                     row6,
+                     row7,
                      HTML("&nbsp;"),
                      form_actions(label=_('Protocolar Documento'))
                      )
@@ -419,10 +454,11 @@ class ProtocoloMateriaForm(ModelForm):
     ano_materia = forms.CharField(
         label=_('Ano matéria'), required=False)
 
-    vincular_materia = forms.ChoiceField(label=_('Vincular a matéria existente?'),
-                                         widget=forms.RadioSelect(),
-                                         choices=YES_NO_CHOICES,
-                                         initial=False)
+    vincular_materia = forms.ChoiceField(
+        label=_('Vincular a matéria existente?'),
+        widget=forms.RadioSelect(),
+        choices=YES_NO_CHOICES,
+        initial=False)
 
     numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
 
@@ -435,6 +471,12 @@ class ProtocoloMateriaForm(ModelForm):
     numero = forms.IntegerField(
         required=False, label=_('Número de Protocolo (opcional)'))
 
+    data_hora_manual = forms.ChoiceField(
+        label=_('Informar data e hora manualmente?'),
+        widget=forms.RadioSelect(),
+        choices=YES_NO_CHOICES,
+        initial=False)
+
     class Meta:
         model = Protocolo
         fields = ['tipo_materia',
@@ -446,7 +488,9 @@ class ProtocoloMateriaForm(ModelForm):
                   'numero_materia',
                   'ano_materia',
                   'vincular_materia',
-                  'numero'
+                  'numero',
+                  'data',
+                  'hora',
                   ]
 
     def clean_autor(self):
@@ -506,28 +550,55 @@ class ProtocoloMateriaForm(ModelForm):
              ('tipo_autor', 3),
              ('autor', 3)])
         row2 = to_row(
-            [(InlineRadios('vincular_materia'), 4),
-             ('numero_materia', 4),
-             ('ano_materia', 4), ])
-        row3 = to_row(
-            [('assunto_ementa', 12)])
+            [(InlineRadios('vincular_materia'), 3),
+             ('numero_materia', 2),
+             ('ano_materia', 2),
+             (Div(), 1),
+             (InlineRadios('data_hora_manual'), 4),
+             ])
+        row3 = to_row([
+            (Div(), 2),
+            (Alert(
+                """
+                Usuário: <strong>{}</strong> - {}<br> 
+                IP: <strong>{}</strong> - {}<br>
+                
+                """.format(
+                    kwargs['initial']['user_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'user_data_hora_manual').help_text,
+                    kwargs['initial']['ip_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'ip_data_hora_manual').help_text,
+
+                ),
+                dismiss=False,
+                css_class='alert-info'), 6),
+            ('data', 2),
+            ('hora', 2),
+        ])
         row4 = to_row(
-            [('observacao', 12)])
+            [('assunto_ementa', 12)])
         row5 = to_row(
+            [('observacao', 12)])
+        row6 = to_row(
             [('numero', 12)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
                      row1,
-                     row2,
+                     row2),
+            Fieldset(_('Protocolo com data e hora informados manualmente'),
                      row3,
-                     row4,
-                     HTML("&nbsp;"),
-                     ),
+                     css_id='protocolo_data_hora_manual',
+                     css_class='hidden'),
+            row4,
+            row5,
+            HTML("&nbsp;"),
             Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece'
                        ' a partir do número a ser informado)'),
-                     row5,
+                     row6,
                      HTML("&nbsp;"),
                      form_actions(label=_('Protocolar Matéria')))
         )
@@ -855,15 +926,15 @@ class DesvincularDocumentoForm(ModelForm):
 
     logger = logging.getLogger(__name__)
 
-    numero = forms.CharField(required=True,
-                             label=DocumentoAdministrativo._meta.
-                             get_field('numero').verbose_name
-                             )
-    ano = forms.ChoiceField(required=True,
-                            label=DocumentoAdministrativo._meta.
-                            get_field('ano').verbose_name,
-                            choices=RANGE_ANOS,
-                            widget=forms.Select(attrs={'class': 'selector'}))
+    numero = forms.CharField(
+        required=True,
+        label=DocumentoAdministrativo._meta.get_field('numero').verbose_name)
+
+    ano = forms.ChoiceField(
+        required=True,
+        label=DocumentoAdministrativo._meta.get_field('ano').verbose_name,
+        choices=choice_anos_com_documentoadministrativo,
+        widget=forms.Select(attrs={'class': 'selector'}))
 
     def clean(self):
         super(DesvincularDocumentoForm, self).clean()
@@ -929,7 +1000,7 @@ class DesvincularMateriaForm(forms.Form):
                              label=_('Número da Matéria'))
     ano = forms.ChoiceField(required=True,
                             label=_('Ano da Matéria'),
-                            choices=RANGE_ANOS,
+                            choices=choice_anos_com_materias,
                             widget=forms.Select(attrs={'class': 'selector'}))
     tipo = forms.ModelChoiceField(label=_('Tipo de Matéria'),
                                   required=True,

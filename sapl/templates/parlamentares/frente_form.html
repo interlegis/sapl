@@ -26,7 +26,8 @@
       <div class="row-fluid">
         <div class="col-md-12" >
           <div class="checkbox">
-            <input id="id_selecionar_ativos" type="checkbox">
+            <label for="id_selecionar_ativos">
+            <input id="id_selecionar_ativos" type="checkbox" name="id_selecionar_ativos"/>
             <b><h4>Listar somente os parlamentares ativos</h4></b>
           </div>
         </div>
@@ -57,16 +58,15 @@
     function selecionar_parlamentares_frente() {
         // Seleciona automaticamente todos os parlamentares
         // que já estão presentes naquela frente
-        var update_view = {{ update_view }}
-        if (update_view == 1) {
-            var frente_id = {{ object.id }}
-            $.get("/sistema/frente/parlamentares-frente-selected",
-                {frente_id: frente_id},
-                function (data) {
-                  id_list = data['id_list'];
-                  $("div.controls select").val(id_list);
-                });
-        }
+        {% if  object.id  %}
+          var frente_id = {{ object.id }}
+          $.get("/sistema/frente/parlamentares-frente-selected",
+              {frente_id: frente_id},
+              function (data) {
+                id_list = data['id_list'];
+                $("#id_parlamentares").val(id_list);
+              });
+        {% endif %}
     }
 
     function atualiza_parlamentares() {

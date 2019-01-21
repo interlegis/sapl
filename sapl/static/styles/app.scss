@@ -451,6 +451,9 @@ nav {
     overflow-x: auto;
   }
 }
+.lista-parlamentares .table td {
+  vertical-align: middle;
+}
 
 @media (min-width: 1092px) and (max-width: 1199px) {
   .container {

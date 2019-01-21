@@ -47,6 +47,7 @@ function refreshMask() {
     $('.dateinput').mask('00/00/0000', {placeholder:"__/__/____"});
     $('.hora').mask("00:00", {placeholder:"hh:mm"});
     $('.hora_hms').mask("00:00:00", {placeholder:"hh:mm:ss"});
+    $('.timeinput').mask("00:00:00", {placeholder:"hh:mm:ss"});
     $('.cronometro').mask("00:00:00", {placeholder:"hh:mm:ss"});
 }
 
@@ -189,7 +190,7 @@ function OptionalCustomFrontEnd() {
             if (_label.length === 0) {
                 _label = $('label[for='+this.id+']');
                 if (_label.length === 0) {
-                    _label = $('<label[for='+this.id+']/>').insertBefore(this)
+                    _label = $('<label for='+this.id+'/>').insertBefore(this)
                 }
             }
 

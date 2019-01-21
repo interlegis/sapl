@@ -147,6 +147,7 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
       EMAIL_PORT = [Insira este parâmetro]
       EMAIL_HOST = [Insira este parâmetro]
       EMAIL_HOST_USER = [Insira este parâmetro]
+      EMAIL_SEND_USER = [Insira este parâmetro]
       EMAIL_HOST_PASSWORD = [Insira este parâmetro]
       DEFAULT_FROM_EMAIL = [Insira este parâmetro]
       SERVER_EMAIL = [Insira este parâmetro]

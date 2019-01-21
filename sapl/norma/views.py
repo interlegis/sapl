@@ -1,7 +1,5 @@
 import logging
 import re
-import sapl
-import weasyprint
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,7 +12,10 @@ from django.views.generic import TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+import weasyprint
+
 from sapl import settings
+import sapl
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -107,7 +108,8 @@ class NormaPesquisaView(FilterView):
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
-        context['USE_SOLR'] = settings.USE_SOLR if hasattr(settings, 'USE_SOLR') else False
+        context['USE_SOLR'] = settings.USE_SOLR if hasattr(
+            settings, 'USE_SOLR') else False
 
         return context
 
@@ -199,7 +201,6 @@ class NormaCrud(Crud):
                                                  ano=timezone.now().year,
                                                  horario_acesso=timezone.now())
             return super().get(request, *args, **kwargs)
-            
 
     class DeleteView(Crud.DeleteView):
 
@@ -219,12 +220,14 @@ class NormaCrud(Crud):
             username = self.request.user.username
 
             try:
-                self.logger.debug('user=' + username + '. Tentando obter objeto de modelo da esfera da federação.')
+                self.logger.debug(
+                    'user=' + username + '. Tentando obter objeto de modelo da esfera da federação.')
                 esfera = sapl.base.models.AppConfig.objects.last(
                 ).esfera_federacao
                 self.initial['esfera_federacao'] = esfera
             except:
-                self.logger.error('user=' + username + '. Erro ao obter objeto de modelo da esfera da federação.')
+                self.logger.error(
+                    'user=' + username + '. Erro ao obter objeto de modelo da esfera da federação.')
                 pass
             self.initial['complemento'] = False
             return self.initial
@@ -234,7 +237,7 @@ class NormaCrud(Crud):
     class ListView(Crud.ListView, RedirectView):
 
         def get_redirect_url(self, *args, **kwargs):
-            namespace = self.model._meta.app_config.name    
+            namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
         def get(self, request, *args, **kwargs):
@@ -333,6 +336,7 @@ class AutoriaNormaCrud(MasterDetailCrud):
             })
             return initial
 
+
 class ImpressosView(PermissionRequiredMixin, TemplateView):
     template_name = 'materia/impressos/impressos.html'
     permission_required = ('materia.can_access_impressos', )
@@ -340,7 +344,7 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
-    html = template.render(RequestContext(request, context))
+    html = template.render(context, request)
     pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()
                           ).write_pdf()
 

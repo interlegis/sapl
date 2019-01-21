@@ -1298,41 +1298,14 @@ class TipoProposicaoForm(ModelForm):
 
 class TipoProposicaoSelect(Select):
 
-    def render_tipo_option(self, selected_choices, option_value, option_label,
-                           data_has_perfil=False):
-        if option_value is None:
-            option_value = ''
-        option_value = force_text(option_value)
-        if option_value in selected_choices:
-            selected_html = mark_safe(' selected="selected"')
-            if not self.allow_multiple_selected:
-                # Only allow for a single selection.
-                selected_choices.remove(option_value)
-        else:
-            selected_html = ''
-        return format_html(
-            '<option value="{}"{} data-has-perfil={}>{}</option>',
-            option_value,
-            selected_html,
-            str(data_has_perfil),
-            force_text(option_label))
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected,
+                                       index, subindex=subindex, attrs=attrs)
+        if value:
+            tipo = TipoProposicao.objects.get(id=value)
+            option['attrs']['data-has-perfil'] = str(tipo.perfis.exists())
 
-    def render_options(self, selected_choices):
-        # Normalize to strings.
-        selected_choices = set(force_text(v) for v in selected_choices)
-        output = []
-        output.append(
-            self.render_tipo_option(
-                selected_choices, '', self.choices.field.empty_label))
-
-        for tipo in self.choices.queryset.all():
-            output.append(
-                self.render_tipo_option(
-                    selected_choices,
-                    str(tipo.pk),
-                    str(tipo),
-                    data_has_perfil=tipo.perfis.exists()))
-        return '\n'.join(output)
+        return option
 
 
 class ProposicaoForm(forms.ModelForm):
@@ -2046,15 +2019,10 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         self.instance.results['messages']['success'].append(_(
             'Protocolo realizado com sucesso'))
 
-        # FIXME qdo protocoloadm estiver homologado, verifique a necessidade
-        # de redirecionamento para o protocolo.
-        # complete e libere código abaixo para tal.
-
-        """
         self.instance.results['url'] = reverse(
-            'sapl.protocoloadm:...',
+            'sapl.protocoloadm:protocolo_mostrar',
             kwargs={'pk': protocolo.pk})
-        """
+
         conteudo_gerado.numero_protocolo = protocolo.numero
         conteudo_gerado.save()
 
