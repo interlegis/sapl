@@ -49,9 +49,9 @@ module.exports = {
       .add('./src/global/main.js')
       .end()
 
-    config.entry('compilacao')
-      .add('./src/apps/compilacao/main.js')
-      .end()
+    //config.entry('compilacao')
+     // .add('./src/apps/compilacao/main.js')
+     // .end()
 
     /*config
       .plugin('theme')

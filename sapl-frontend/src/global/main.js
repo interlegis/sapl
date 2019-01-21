@@ -1,15 +1,16 @@
 import jQuery from "jquery";
+window.$ = window.jQuery = jQuery;
 
-import "bootstrap";
+require('imports-loader?window.jQuery=jquery!./jquery.runner.js');
 
 import "jquery-mask-plugin";
 
 import "webpack-jquery-ui/dialog";
 import "webpack-jquery-ui/sortable";
 
+import "bootstrap";
+
 import "./functions";
-require('imports-loader?window.jQuery=jquery!./jquery.runner.js');
-window.$ = window.jQuery = jQuery;
 
 window.autorModal();
 window.refreshMask();
