@@ -1,5 +1,4 @@
 // TODO: migrar compilacao para VueJs
-
 import compilacao from "./js/compilacao";
 import compilacao_view from "./js/compilacao_view";
 import compilacao_notas from "./js/compilacao_notas";

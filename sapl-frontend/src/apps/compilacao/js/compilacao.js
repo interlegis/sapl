@@ -1,4 +1,6 @@
-  function SetCookie(cookieName,cookieValue,nDays) {
+
+
+function SetCookie(cookieName,cookieValue,nDays) {
     var today = new Date();
     var expire = new Date();
     if (nDays==null || nDays==0) nDays=1;
@@ -269,6 +271,7 @@
             }, 200)
 
             modal_ds.modal('show');
+            
           })
         });
       });
