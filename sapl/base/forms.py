@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.forms import Form, ModelForm
+from django.utils import timezone
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import django_filters
@@ -739,7 +740,8 @@ class EstatisticasAcessoNormasForm(Form):
 
     ano = forms.ChoiceField(required=True,
                             label='Ano de acesso',
-                            choices=RANGE_ANOS)
+                            choices=RANGE_ANOS,
+                            initial=timezone.now().year)
 
     class Meta:
         fields = ['ano']
@@ -763,11 +765,17 @@ class EstatisticasAcessoNormasForm(Form):
         return self.cleaned_data
 
 
+def ultimo_ano_com_norma():
+    anos_normas = choice_anos_com_normas()
+    return anos_normas[0]
+
+
 class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
-                                      choices=choice_anos_com_normas)
+                                      choices=choice_anos_com_normas,
+                                      initial=ultimo_ano_com_norma)
 
     vigencia = forms.ChoiceField(
         label=_('Vigência'),

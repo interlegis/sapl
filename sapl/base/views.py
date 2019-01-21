@@ -15,6 +15,7 @@ from django.db.models import Count, Q
 from django.http import Http404, HttpResponseRedirect
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import string_concat
@@ -822,7 +823,9 @@ class RelatorioNormasVigenciaView(FilterView):
         if kwargs['data']:
             ano = kwargs['data']['ano']
             vigencia = kwargs['data']['vigencia']
-            qs = qs.filter(ano=ano)
+            if ano:
+                qs = qs.filter(ano=ano)
+            
             if vigencia == 'True':
                 qs_dt_not_null = qs.filter(data_vigencia__isnull=True)
                 qs = (qs_dt_not_null | qs.filter(data_vigencia__gte=datetime.datetime.now().date())).distinct()
