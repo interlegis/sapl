@@ -57,13 +57,10 @@
 
 {% endblock base_content %}
 
-  {% block javascript %}
-
-
+{% block extra_js %}
   <script>
-  {% if not user.is_authenticated %}
-   $("#autenticacao") .css("display","none");
-  {% endif %}
+    {% if not user.is_authenticated %}
+        $("#autenticacao") .css("display","none");
+    {% endif %}
   </script>
-
-  {% endblock %}
+{% endblock %}

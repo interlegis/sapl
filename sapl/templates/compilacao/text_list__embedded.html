@@ -78,9 +78,14 @@
   </ul>
   {% include 'compilacao/text_list_bloco.html'%}
   </div>
-<script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
+
+
+{% block extra_js %}
+  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
 
   {% if perms.compilacao.add_nota %}
   <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
   {% endif %}
+
+{% endblock %}

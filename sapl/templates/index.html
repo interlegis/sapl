@@ -192,11 +192,15 @@
     </div>
 
 </div>
-<script>
-$(document).on('keyup', (e) => {
-  if (e.keyCode == 86){
-    window.open("{% url 'sapl.painel:voto_individual' %}",'Voto Individual','width=1000, height=800, scrollbars=yes');
-};
-});
-</script>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).on('keyup', (e) => {
+            if (e.keyCode == 86){
+                window.open("{% url 'sapl.painel:voto_individual' %}",'Voto Individual','width=1000, height=800, scrollbars=yes');
+            };
+        });
+    </script>
 {% endblock %}
