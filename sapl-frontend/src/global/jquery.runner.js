@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*!
  * jQuery-runner - v2.3.3 - 2014-08-06
  * https://github.com/jylauril/jquery-runner/
@@ -292,5 +293,4 @@
   };
 
   _$.fn.runner.format = formatTime;
-
 }).call(window);
