@@ -1,23 +1,21 @@
-FROM alpine:3.8
+FROM debian:9.6-slim
 
-ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
-                   python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev \
-                   nodejs npm py3-lxml py3-magic postgresql-client poppler-utils antiword \
+ENV BUILD_PACKAGES apt-file apt-utils libpq-dev graphviz-dev graphviz build-essential git pkg-config \
+                   python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt-dev \
+                   nodejs nodejs python3-lxml python3-magic postgresql-client poppler-utils antiword \
                    curl jq openssh-client vim openssh-client bash
 
-RUN apk update --update-cache && apk upgrade
+RUN apt-get update && apt-get upgrade -y
 
-RUN apk --update add fontconfig ttf-dejavu && fc-cache -fv
+RUN apt-get install -y fontconfig ttf-dejavu && fc-cache -fv
 
-RUN apk add --no-cache python3 nginx tzdata && \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
+RUN apt-get install -y python3 python3-pip nginx tzdata && \
     pip3 install --upgrade pip setuptools && \
     rm -r /root/.cache && \
     rm -f /etc/nginx/conf.d/*
 
 RUN mkdir -p /var/interlegis/sapl && \
-    apk add --update --no-cache $BUILD_PACKAGES && \
+    apt-get install -y $BUILD_PACKAGES && \
     npm install -g bower && \
     npm cache verify
 
