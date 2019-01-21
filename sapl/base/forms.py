@@ -704,11 +704,17 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
         )
 
 
+def ultimo_ano_com_norma():
+    anos_normas = choice_anos_com_normas()
+    return anos_normas[0]
+    
+
 class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
-                                      choices=choice_anos_com_normas)
+                                      choices=choice_anos_com_normas,
+                                      initial=ultimo_ano_com_norma)
 
     class Meta:
         model = NormaJuridica
@@ -763,11 +769,6 @@ class EstatisticasAcessoNormasForm(Form):
         super(EstatisticasAcessoNormasForm, self).clean()
 
         return self.cleaned_data
-
-
-def ultimo_ano_com_norma():
-    anos_normas = choice_anos_com_normas()
-    return anos_normas[0]
 
 
 class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
