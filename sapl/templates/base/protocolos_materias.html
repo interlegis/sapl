@@ -19,7 +19,7 @@
                   {% for protocolo, quantidade in protocolos_materias %}
                     <tr>
                       <td>
-                         <a href="{% url 'sapl.materia:pesquisar_materia' %}?numero_protocolo={{protocolo.numero}}&ano={{protocolo.ano}}">{{ protocolo }}</a>
+                         <a href="{% url 'sapl.materia:pesquisar_materia' %}?tipo=&ementa=&numero=&numeracao__numero_materia=&numero_protocolo={{protocolo.numero}}&ano={{protocolo.ano}}&o=&tipo_listagem=1&data_apresentacao_0=&data_apresentacao_1=&data_publicacao_0=&data_publicacao_1=&autoria__autor=&autoria__primeiro_autor=1&autoria__autor__tipo=&autoria__autor__parlamentar_set__filiacao__partido=&relatoria__parlamentar_id=&local_origem_externa=&tramitacao__unidade_tramitacao_destino=&tramitacao__status=&em_tramitacao=&materiaassunto__assunto=&indexacao=">{{ protocolo }}</a>
                       </td>
                       <td>{{ quantidade }}</td>
                      </tr>
