@@ -6,6 +6,10 @@ ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git 
                    python3-psycopg2 poppler-utils antiword curl jq vim openssh-client bash \
                    software-properties-common python3-setuptools python3-venv
 
+RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
+ && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+ENV LANG en_US.utf8
+
 RUN apt-get update && mkdir -p /usr/share/man/man1 && \
     mkdir -p /usr/share/man/man7 && apt-get upgrade -y && \
     apt-get install apt-utils -y
