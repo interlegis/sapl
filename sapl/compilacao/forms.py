@@ -251,6 +251,8 @@ class NotaForm(ModelForm):
             ('publicidade', 6),
             ('publicacao', 3),
             ('efetividade', 3),
+            ('dispositivo', 0),
+            ('pk', 0),
         ])
 
         buttons = FormActions(
