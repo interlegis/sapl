@@ -1,23 +1,30 @@
-FROM debian:9.6-slim
+FROM debian:jessie-slim
 
-ENV BUILD_PACKAGES apt-file apt-utils libpq-dev graphviz-dev graphviz build-essential git pkg-config \
-                   python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt-dev \
-                   nodejs nodejs python3-lxml python3-magic postgresql-client poppler-utils antiword \
-                   curl jq openssh-client vim openssh-client bash
+ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git pkg-config \
+                   python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev pgadmin3 \
+                   python3-lxml python3-magic postgresql-contrib postgresql-client \
+                   python3-psycopg2 poppler-utils antiword curl jq vim openssh-client bash \
+                   software-properties-common python3-setuptools python3-venv
 
-RUN apt-get update && apt-get upgrade -y
+RUN apt-get update && mkdir -p /usr/share/man/man1 && \
+    mkdir -p /usr/share/man/man7 && apt-get upgrade -y && \
+    apt-get install apt-utils -y
 
 RUN apt-get install -y fontconfig ttf-dejavu && fc-cache -fv
 
 RUN apt-get install -y python3 python3-pip nginx tzdata && \
     pip3 install --upgrade pip setuptools && \
-    rm -r /root/.cache && \
     rm -f /etc/nginx/conf.d/*
 
 RUN mkdir -p /var/interlegis/sapl && \
-    apt-get install -y $BUILD_PACKAGES && \
-    npm install -g bower && \
-    npm cache verify
+    apt-get install -y $BUILD_PACKAGES
+
+RUN curl -sL https://deb.nodesource.com/setup_7.x | bash - && \
+    apt-get update && \
+    apt-get install -y nodejs
+
+RUN npm install -g bower && \
+    npm cache clean
 
 WORKDIR /var/interlegis/sapl/
 
