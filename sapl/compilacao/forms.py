@@ -359,13 +359,15 @@ class VideForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Div(
-                Div(HTML(_('Vides')), css_class='panel-heading'),
+                Div(HTML(_('Vides')), css_class='car-header'),
                 Div(
                     to_column((fields_form[0], 6)),
                     to_column((fields_form[1], 6)),
-                    css_class="panel-body"
+                    to_column(('dispositivo_base', 0)),
+                    to_column(('pk', 0)),
+                    css_class="card-body"
                 ),
-                css_class="panel panel-primary"
+                css_class="card bg-light"
             )
         )
 
