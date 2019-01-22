@@ -268,7 +268,7 @@ class NotaForm(ModelForm):
         self.helper.layout = Layout(
 
             Div(
-                Div(HTML(_('Notas')), css_class='panel-heading'),
+                Div(HTML(_('Notas')), css_class='card-header bg-bg-light'),
                 Div(
                     row1,
                     to_row([(Field(
@@ -279,9 +279,9 @@ class NotaForm(ModelForm):
                         placeholder=_('URL Externa (opcional)')), 12)]),
                     row3,
                     to_row([(buttons, 12)]),
-                    css_class="panel-body"
+                    css_class="card-body"
                 ),
-                css_class="panel panel-primary"
+                css_class="card"
             )
         )
 

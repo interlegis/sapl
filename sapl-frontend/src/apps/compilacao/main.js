@@ -1,8 +1,13 @@
 // TODO: migrar compilacao para VueJs
-import compilacao from "./js/compilacao";
-import compilacao_view from "./js/compilacao_view";
-import compilacao_notas from "./js/compilacao_notas";
+
+import "./scss/compilacao.scss";
+
+import compilacao from "./js/old/compilacao";
+import compilacao_view from "./js/old/compilacao_view";
+import compilacao_notas from "./js/old/compilacao_notas";
 import _ from "lodash";
+
+
 
 //import "./js/compilacao_edit";
 
