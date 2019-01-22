@@ -4,6 +4,7 @@ import logging
 import sys
 
 from braces.views import FormMessagesMixin
+from bs4 import BeautifulSoup
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -2940,13 +2941,10 @@ class DispositivoDinamicEditView(
                 if texto != texto_atualizador else ''
             visibilidade = request.POST['visibilidade']
 
-            # if d.texto != '':
-            #    d.texto = texto
-            #    d.save()
-            #    return self.get(request, *args, **kwargs)
             d_texto = d.texto
             d.texto = texto.strip()
             d.texto_atualizador = texto_atualizador.strip()
+
             d.visibilidade = not visibilidade or visibilidade == 'True'
             d.save()
 
