@@ -35,7 +35,7 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar
+from sapl.parlamentares.models import Parlamentar, Legislatura
 from sapl.protocoloadm.models import Protocolo
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, Bancada)
@@ -1469,8 +1469,48 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              len(bancada_comissao_autor_externo())
              )
         )
+        tabela.append(
+            ('legislatura_anterior_infindavel',
+             'Legislaturas anteriores sem data fim',
+             len(legislatura_anterior_infindavel())
+            )
+        )
 
         return tabela
+
+
+def legislatura_anterior_infindavel():
+    legislaturas = []
+
+    for legislatura in Legislatura.objects.all():
+        if legislatura.data_fim == None:
+            legislaturas.append(legislatura)
+
+    return legislaturas
+
+
+class ListarLegislaturaAnteriorInfindavelView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/legislatura_anterior_infindavel.html'
+    context_object_name = 'legislatura_anterior_infindavel'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return legislatura_anterior_infindavel()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarLegislaturaAnteriorInfindavelView, self
+            ).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhuma encontrada.'
+        return context
 
 
 def bancada_comissao_autor_externo():
