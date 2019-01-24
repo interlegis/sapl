@@ -34,7 +34,11 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarParlMandatosIntersecaoView,
                     ListarAutoresDuplicadosView,
                     ListarBancadaComissaoAutorExternoView,
+<<<<<<< HEAD
                     ListarLegislaturaInfindavelView)
+=======
+                    ListarLegislaturaAnteriorInfindavelView)
+>>>>>>> Identificar legislatura infindável
 
 app_name = AppConfig.name
 
@@ -158,7 +162,6 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/legislatura_infindavel$',
         ListarLegislaturaInfindavelView.as_view(),
         name='lista_legislatura_infindavel'),
-
 
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')
