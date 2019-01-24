@@ -12,7 +12,7 @@
     name: "jQuery-runner"
   };
 
-  _$ = this.jQuery || this.Zepto || this.$;
+  _$ = $;
 
   if (!(_$ && _$.fn)) {
     throw new Error('[' + meta.name + '] jQuery or jQuery-like library is required for this plugin to work');

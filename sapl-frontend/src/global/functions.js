@@ -1,5 +1,3 @@
-import $ from "jquery";
-
 window.getCookie = function(name) {
   var cookieValue = null;
   if (document.cookie && document.cookie !== "") {

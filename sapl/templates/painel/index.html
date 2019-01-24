@@ -250,7 +250,7 @@
 
               if (data["status_painel"] == true) {
                   presentes.append('<table id="parlamentares_list">');
-                  jQuery.each(presentes_list, function (index, parlamentar) {
+                  $.each(presentes_list, function (index, parlamentar) {
 
 
                     if (parlamentar.voto == 'Voto Informado'){
@@ -274,7 +274,7 @@
                   if (data["oradores"].length > 0){
                     $('#aparecer_oradores').show();
                     oradores.append('<table id="oradores_list">');
-                    jQuery.each(oradores_list, function (index, orador) {
+                    $.each(oradores_list, function (index, orador) {
                       $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
                           orador.numero + 'º &nbsp' +
                           orador.nome +'</td></tr>')

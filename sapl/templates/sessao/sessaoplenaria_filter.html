@@ -60,25 +60,25 @@
   if(querystring.length != 0){
     $('#id_data_inicio__year').on({
       change: function(){
-        window.location.search = jQuery.query.set("data_inicio__year", $('#id_data_inicio__year').val());
+        window.location.search = $.query.set("data_inicio__year", $('#id_data_inicio__year').val());
       }
     })
 
     $('#id_data_inicio__month').on({
       change: function(){
-        window.location.search = jQuery.query.set("data_inicio__month", $('#id_data_inicio__month').val());
+        window.location.search = $.query.set("data_inicio__month", $('#id_data_inicio__month').val());
       }
     })
 
     $('#id_data_inicio__day').on({
       change: function(){
-        window.location.search = jQuery.query.set("data_inicio__day", $('#id_data_inicio__day').val());
+        window.location.search = $.query.set("data_inicio__day", $('#id_data_inicio__day').val());
       }
     })
 
     $('#id_tipo').on({
       change: function(){
-        window.location.search = jQuery.query.set("tipo", $('#id_tipo').val());
+        window.location.search = $.query.set("tipo", $('#id_tipo').val());
       }
     })
   }

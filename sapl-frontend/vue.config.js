@@ -40,6 +40,17 @@ module.exports = {
 
     config.entryPoints.delete('app')
 
+    config
+      .plugin('provide')
+      .use(require('webpack/lib/ProvidePlugin'), [{
+        $: 'jquery',
+        jquery: 'jquery',
+        'window.jQuery': 'jquery',
+        jQuery: 'jquery',
+        _: 'lodash'
+      }])
+      
+
     config.entry(THEME_CUSTOM)
       .add('./src/theme-dev/main.js')
       //.add(THEME_CUSTOM + '/src/main.js')
@@ -59,7 +70,6 @@ module.exports = {
         THEME_CUSTOM: JSON.stringify(THEME_CUSTOM)
       }])
       .end()*/
-      
       
   }
 }
