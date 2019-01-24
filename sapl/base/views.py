@@ -1470,38 +1470,38 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              )
         )
         tabela.append(
-            ('legislatura_anterior_infindavel',
-             'Legislaturas anteriores sem data fim',
-             len(legislatura_anterior_infindavel())
+            ('legislatura_infindavel',
+             'Legislaturas sem data fim',
+             len(legislatura_infindavel())
             )
         )
 
         return tabela
 
 
-def legislatura_anterior_infindavel():
+def legislatura_infindavel():
     legislaturas = []
 
-    for legislatura in Legislatura.objects.all():
+    for legislatura in Legislatura.objects.all().order_by('-numero'):
         if legislatura.data_fim == None:
             legislaturas.append(legislatura)
 
     return legislaturas
 
 
-class ListarLegislaturaAnteriorInfindavelView(PermissionRequiredMixin, ListView):
+class ListarLegislaturaInfindavelView(PermissionRequiredMixin, ListView):
     model = get_user_model()
-    template_name = 'base/legislatura_anterior_infindavel.html'
-    context_object_name = 'legislatura_anterior_infindavel'
+    template_name = 'base/legislatura_infindavel.html'
+    context_object_name = 'legislatura_infindavel'
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
 
     def get_queryset(self):
-        return legislatura_anterior_infindavel()
+        return legislatura_infindavel()
 
     def get_context_data(self, **kwargs):
         context = super(
-            ListarLegislaturaAnteriorInfindavelView, self
+            ListarLegislaturaInfindavelView, self
             ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']

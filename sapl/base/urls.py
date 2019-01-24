@@ -34,7 +34,7 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarParlMandatosIntersecaoView,
                     ListarAutoresDuplicadosView,
                     ListarBancadaComissaoAutorExternoView,
-                    ListarLegislaturaAnteriorInfindavelView)
+                    ListarLegislaturaInfindavelView)
 
 app_name = AppConfig.name
 
@@ -155,9 +155,9 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/bancada_comissao_autor_externo$',
         ListarBancadaComissaoAutorExternoView.as_view(),
         name='lista_bancada_comissao_autor_externo'),
-    url(r'^sistema/inconsistencias/legislatura_anterior_infindavel$',
-        ListarLegislaturaAnteriorInfindavelView.as_view(),
-        name='lista_legislatura_anterior_infindavel'),
+    url(r'^sistema/inconsistencias/legislatura_infindavel$',
+        ListarLegislaturaInfindavelView.as_view(),
+        name='lista_legislatura_infindavel'),
 
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')
