@@ -88,6 +88,7 @@ target/
 .ipynb_checkpoints/
 *.ipynb
 .vscode/*
+*/.vscode/*
 
 # specific to this project
 whoosh_index
