@@ -3,6 +3,7 @@ import json
 import logging
 
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -30,7 +31,8 @@ from sapl.parlamentares.apps import AppConfig
 from sapl.utils import parlamentares_ativos
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm)
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm,
+                    EditarNomePartidoForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -45,7 +47,6 @@ TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
 
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
-
 
 class SessaoLegislativaCrud(CrudAux):
     model = SessaoLegislativa
@@ -767,6 +768,37 @@ class MesaDiretoraView(FormView):
                 'cargos_vagos': cargos_vagos
             })
 
+
+class EditaNomePartidoView(PermissionRequiredMixin, FormView):
+    form_class = EditarNomePartidoForm
+    template_name = 'parlamentares/altera_nome_partido_form.html'
+    permission_required = ('parlamentares.change_partido',)
+
+    def get_initial(self):
+        initial = super(EditaNomePartidoView, self).get_initial()
+        initial['partido_pk'] = self.kwargs['pk']
+        return initial
+    
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        obj = Partido.objects.get(id=self.kwargs['pk'])
+        observacao = "Este partido teve o nome alterado de " + obj.nome + \
+                     " (" + obj.sigla + ") para " + data['nome'] + " (" + data['sigla'] \
+                     + ") em " + data['data_alteracao'].strftime("%d/%m/%Y") + "."
+        obj.nome = data['nome']
+        obj.sigla = data['sigla']
+        obj.observacao += '\n\n' + observacao
+        obj.save()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        url_reverse = reverse('sapl.parlamentares:partido_detail',
+                                  kwargs={'pk': self.kwargs['pk']})
+
+        return url_reverse
+    
 
 def altera_field_mesa(request):
     """

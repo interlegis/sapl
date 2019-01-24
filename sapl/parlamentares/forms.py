@@ -18,11 +18,11 @@ from image_cropping.widgets import CropWidget, ImageCropWidget
 from sapl.utils import FileFieldCheckMixin
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
 from sapl.rules import SAPL_GROUP_VOTANTE
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Votante)
+                     Mandato, Parlamentar, Votante, Partido)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -501,3 +501,43 @@ class VotanteForm(ModelForm):
         votante.user = u
         votante.save()
         return votante
+
+
+class EditarNomePartidoForm(forms.Form):
+    sigla = forms.CharField(label="Sigla")
+    nome = forms.CharField(label="Novo Nome")
+    data_alteracao = forms.DateField(label="Data de alteração")
+    partido_pk = forms.CharField(
+        widget=forms.HiddenInput(), required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(EditarNomePartidoForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('sigla', 2)])
+        row2 = to_row([('nome', 8)])
+        row3 = to_row([('data_alteracao', 2)])
+        row4 = to_row([('partido_pk', 2)])
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Alteração do nome do partido'),
+                    row1, row2, row3, row4))
+
+
+    def clean(self):
+        super(EditarNomePartidoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+        obj = Partido.objects.get(id=self.cleaned_data['partido_pk'])
+
+        if obj.sigla == self.cleaned_data['sigla']:
+            raise ValidationError("Sigla do partido igual à silga atual. Formulário inválido.")
+
+        if obj.nome == self.cleaned_data['nome']:
+            raise ValidationError("Nome do partido igual ao nome atual. Formulário inválido.")
+
+        if not self.cleaned_data['data_alteracao'] <= timezone.now().date():
+            raise ValidationError("Data de alteração maior que data atual. Formulário inválido.")
+
+        return self.cleaned_data
