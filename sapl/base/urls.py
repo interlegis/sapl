@@ -34,11 +34,8 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarParlMandatosIntersecaoView,
                     ListarAutoresDuplicadosView,
                     ListarBancadaComissaoAutorExternoView,
-<<<<<<< HEAD
                     ListarLegislaturaInfindavelView)
-=======
-                    ListarLegislaturaAnteriorInfindavelView)
->>>>>>> Identificar legislatura infindável
+
 
 app_name = AppConfig.name
 
