@@ -202,7 +202,8 @@ class MateriaLegislativaForm(ModelForm):
                                                         widget=forms.HiddenInput())
             self.fields['autor'] = forms.CharField(required=False,
                                                    widget=forms.HiddenInput())
-            self.fields['numero_protocolo'].widget.attrs['readonly'] = True
+            if kwargs['instance'].numero_protocolo:
+                self.fields['numero_protocolo'].widget.attrs['readonly'] = True
 
     def clean(self):
         super(MateriaLegislativaForm, self).clean()
