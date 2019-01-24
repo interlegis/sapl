@@ -496,3 +496,9 @@ class VotanteForm(ModelForm):
         votante.user = u
         votante.save()
         return votante
+
+
+class EditarNomePartidoForm(forms.Form):
+    sigla = forms.CharField(label="Sigla")
+    nome = forms.CharField(label="Novo Nome")
+    data_alteracao = forms.DateField(label="Data de alteração")

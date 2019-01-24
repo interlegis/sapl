@@ -754,6 +754,11 @@ class MesaDiretoraView(FormView):
             })
 
 
+class EditaNomePartidoView(FormView):
+    # form_class = EditarNomePartidoForm
+    # template_name = 'materia/impressos/etiqueta.html'
+    pass
+
 def altera_field_mesa(request):
     """
         Essa função lida com qualquer alteração nos campos
