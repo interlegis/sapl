@@ -7,7 +7,7 @@ ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git 
                    software-properties-common python3-setuptools python3-venv
 
 RUN apt-get update && apt-get install -y locales
-RUN locale-gen en_US en_US.UTF-8 pt_BR.UTF-8 && dpkg-reconfigure locales
+RUN locale-gen en_US en_US.UTF-8 && locale-gen pt_BR pt_BR.UTF-8 && dpkg-reconfigure locales
 #  && update-locale LANG=pt_BR.UTF-8
 ENV LANG pt_BR.UTF-8
 
