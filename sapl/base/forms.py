@@ -28,7 +28,7 @@ from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
 from sapl.materia.models import (
     MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import SessaoLegislativa
+from sapl.parlamentares.models import SessaoLegislativa, Partido
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -1322,3 +1322,16 @@ class AlterarSenhaForm(Form):
                 "Nova senha não pode ser igual à senha anterior")
 
         return self.cleaned_data
+
+class PartidoForm(ModelForm):
+
+    class Meta:
+        model = Partido
+        exclude = []
+
+    def __init__(self, *args, **kwargs):
+
+        super(PartidoForm, self).__init__(*args, **kwargs)
+
+        self.fields['nome'].widget.attrs['readonly'] = True
+        self.fields['sigla'].widget.attrs['readonly'] = True
