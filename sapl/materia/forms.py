@@ -802,7 +802,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
     o = MateriaPesquisaOrderingFilter(help_text='')
 
     tipo_listagem = forms.ChoiceField(
-        required=True,
+        required=False,
         choices=CHOICE_TIPO_LISTAGEM,
         label=_('Tipo da Listagem do Resultado da Pesquisa'))
 
