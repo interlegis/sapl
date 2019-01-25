@@ -3,6 +3,7 @@ import json
 import logging
 
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -29,7 +30,8 @@ from sapl.parlamentares.apps import AppConfig
 from sapl.utils import parlamentares_ativos
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm)
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm,
+                    EditarNomePartidoForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -45,7 +47,6 @@ TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
 
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
-
 
 class SessaoLegislativaCrud(CrudAux):
     model = SessaoLegislativa
@@ -754,10 +755,15 @@ class MesaDiretoraView(FormView):
             })
 
 
-class EditaNomePartidoView(FormView):
-    # form_class = EditarNomePartidoForm
-    # template_name = 'materia/impressos/etiqueta.html'
-    pass
+class EditaNomePartidoView(PermissionRequiredMixin, FormView):
+    form_class = EditarNomePartidoForm
+    template_name = 'parlamentares/altera_nome_partido_form.html'
+    success_url = reverse_lazy('sapl.parlamentares:altera_nome_partido')
+    permission_required = ('parlamentares.altera_nome_partido',)
+
+    def form_valid(self, form):
+        return super().form_valid(form)
+    
 
 def altera_field_mesa(request):
     """

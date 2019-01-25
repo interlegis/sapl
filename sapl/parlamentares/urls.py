@@ -17,7 +17,8 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       frente_atualiza_lista_parlamentares,
                                       insere_parlamentar_composicao,
                                       parlamentares_frente_selected,
-                                      remove_parlamentar_composicao)
+                                      remove_parlamentar_composicao,
+                                      EditaNomePartidoView)
 
 from .apps import AppConfig
 
@@ -60,6 +61,8 @@ urlpatterns = [
     url(r'^sistema/parlamentar/tipo-militar/',
         include(TipoMilitarCrud.get_urls())),
     url(r'^sistema/parlamentar/partido/', include(PartidoCrud.get_urls())),
+    url(r'^sistema/parlamentar/partido/(?P<pk>\d+)/altera-nome',
+        EditaNomePartidoView.as_view(), name='altera_nome_partido'),
 
     url(r'^sistema/mesa-diretora/sessao-legislativa/',
         include(SessaoLegislativaCrud.get_urls())),

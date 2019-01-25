@@ -991,3 +991,6 @@ class VotacaoEmBlocoFilterSet(MateriaLegislativaFilterSet):
                      row4, row5, row6, row7, row8, row9,
                      form_actions(label='Pesquisar'))
         )
+
+class PartidoForm(forms.ModelForm):
+    pass
