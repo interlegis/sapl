@@ -337,6 +337,7 @@ a:link:after, a:visited:after {
           min-height: 2.5em;
           &:hover {
             ul {
+              font-size: 1rem;
               transition: opacity 0.5s linear, clip 0s 0.3s;
               clip: auto;
               opacity: 1;

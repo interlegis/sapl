@@ -32,11 +32,11 @@ function onSubmitEditNVForm (event) {
   let url = ''
   let model = 'nota'
   let idEdit = null
-  let idDispositivo = $('#idDispositivo').val()
+  let idDispositivo = $('#id_dispositivo').val()
 
   if (idDispositivo === null) { // trata-se de um vide
     // $('#idDispositivo_ref').remove()
-    idDispositivo = $('#idDispositivo_base').val()
+    idDispositivo = $('#id_dispositivo_base').val()
     model = 'vide'
   }
 

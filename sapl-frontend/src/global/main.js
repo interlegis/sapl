@@ -1,6 +1,4 @@
 // eslint-disable-next-line
-require('imports-loader?window.jQuery=jquery!./jquery.runner.js')
-
 import 'jquery-mask-plugin'
 
 import 'webpack-jquery-ui/dialog'
@@ -11,6 +9,8 @@ import 'bootstrap'
 import './functions'
 
 import './image_cropping'
+
+require('imports-loader?window.jQuery=jquery!./jquery.runner.js')
 
 window.jQuery = jQuery
 window.$ = jQuery

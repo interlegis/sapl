@@ -5,14 +5,13 @@ const BundleTracker = require('webpack-bundle-tracker')
 const dotenv = require('dotenv')
 dotenv.config({ path: '../sapl/.env' })
 
-var THEME_CUSTOM = process.env.THEME_CUSTOM === undefined ? "sapl-oficial-theme" : process.env.THEME_CUSTOM
+var THEME_CUSTOM = process.env.THEME_CUSTOM === undefined ? 'sapl-oficial-theme' : process.env.THEME_CUSTOM
 
 module.exports = {
   publicPath: 'http://localhost:8080/',
   outputDir: './dist/',
 
   chainWebpack: config => {
-
     config.optimization
       .splitChunks(false)
 
@@ -20,7 +19,7 @@ module.exports = {
       .plugin('BundleTracker')
       .use(BundleTracker, [{ filename: './webpack-stats.json' }])
 
-    config.devtool = "source-map"
+    config.devtool = 'source-map'
 
     config.resolve.alias
       .set('__STATIC__', 'static')
@@ -31,14 +30,14 @@ module.exports = {
       .port(8080)
       .hot(true)
       .watchOptions({ poll: true })
-      .watchContentBase( true )
+      .watchContentBase(true)
       .https(false)
-      .headers({ 'Access-Control-Allow-Origin': '\*' })
-      .contentBase( [
-        path.join(__dirname, 'public'), 
+      .headers({ 'Access-Control-Allow-Origin': '*' })
+      .contentBase([
+        path.join(__dirname, 'public'),
         path.join(__dirname, 'src', 'assets'),
-        path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'), 
-      ] )
+        path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public')
+      ])
 
     config.entryPoints.delete('app')
 
@@ -51,13 +50,12 @@ module.exports = {
         jQuery: 'jquery',
         _: 'lodash'
       }])
-      
 
     config.entry(THEME_CUSTOM)
       .add('./src/theme-dev/main.js')
-      //.add(THEME_CUSTOM + '/src/main.js')
+      // .add(THEME_CUSTOM + '/src/main.js')
       .end()
-    
+
     config.entry('global')
       .add('./src/global/main.js')
       .end()
@@ -66,12 +64,11 @@ module.exports = {
       .add('./src/apps/compilacao/main.js')
       .end()
 
-    /*config
+    /* config
       .plugin('theme')
       .use(webpack.DefinePlugin, [{
         THEME_CUSTOM: JSON.stringify(THEME_CUSTOM)
       }])
-      .end()*/
-      
+      .end() */
   }
 }

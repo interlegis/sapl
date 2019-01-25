@@ -23,7 +23,8 @@ from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                     TipoTextoArticulado, TipoVide,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
-from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row
+from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row,\
+    form_actions
 from sapl.utils import YES_NO_CHOICES
 
 error_messages = {
@@ -256,19 +257,22 @@ class NotaForm(ModelForm):
         ])
 
         buttons = FormActions(
-            HTML('<a class="btn btn-inverse btn-close-container">'
-                 '%s</a>' % _('Cancelar')),
+            *[
+                HTML('<a href="" class="btn btn-dark '
+                     'btn-close-container">%s</a>' % _('Cancelar'))
+            ],
             Button(
                 'submit-form',
                 'Salvar',
-                css_class='btn btn-primary float-right')
+                css_class='btn btn-primary float-right'),
+            css_class='form-group row justify-content-between mr-1 ml-1'
         )
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
 
             Div(
-                Div(HTML(_('Notas')), css_class='card-header bg-bg-light'),
+                Div(HTML(_('Notas')), css_class='card-header bg-light'),
                 Div(
                     row1,
                     to_row([(Field(
@@ -327,14 +331,13 @@ class VideForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        buttons = FormActions(
-            HTML('<a class="btn btn-inverse btn-close-container">'
-                 '%s</a>' % _('Cancelar')),
-            Button(
-                'submit-form',
-                'Salvar',
-                css_class='btn-primary float-right')
-        )
+        buttons = form_actions(
+            label=_('Salvar'),
+            more=[
+                HTML('<a href="" class="btn btn-dark '
+                     'btn-close-container">%s</a>' % _('Cancelar'))
+            ],
+            disabled=False)
 
         dispositivo_ref = Field(
             'dispositivo_ref',
