@@ -18,7 +18,7 @@ from floppyforms.widgets import ClearableFileInput
 from image_cropping.widgets import CropWidget, ImageCropWidget
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
 from sapl.rules import SAPL_GROUP_VOTANTE
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
@@ -502,3 +502,23 @@ class EditarNomePartidoForm(forms.Form):
     sigla = forms.CharField(label="Sigla")
     nome = forms.CharField(label="Novo Nome")
     data_alteracao = forms.DateField(label="Data de alteração")
+
+    def __init__(self, *args, **kwargs):
+        super(EditarNomePartidoForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('sigla', 12)])
+        row2 = to_row([('nome', 6)])
+        row3 = to_row([('data_alteracao', 12)])
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Alteração do nome do partido'),
+                     row1, row2, row3))
+
+    def clean(self):
+        super(EditarNomePartidoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        return self.cleaned_data

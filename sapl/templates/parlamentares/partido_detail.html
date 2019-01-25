@@ -1,0 +1,12 @@
+{% extends 'crud/detail.html' %}
+{% load i18n %}
+
+{% block actions %}
+
+    {{ block.super }}
+    <div class="actions btn-group pull-right grid-gutter-width-right " role="group">
+        <a href="{% url 'sapl.parlamentares:altera_nome_partido' object.id %}" class="btn btn-default">{% trans 'Alterar o nome do partido' %}</a>
+    </div>
+
+
+{% endblock actions %}
