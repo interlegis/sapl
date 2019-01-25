@@ -1,19 +1,19 @@
+// eslint-disable-next-line
+require('imports-loader?window.jQuery=jquery!./jquery.runner.js')
 
-require("imports-loader?window.jQuery=jquery!./jquery.runner.js");
+import 'jquery-mask-plugin'
 
-import "jquery-mask-plugin";
+import 'webpack-jquery-ui/dialog'
+import 'webpack-jquery-ui/sortable'
 
-import "webpack-jquery-ui/dialog";
-import "webpack-jquery-ui/sortable";
+import 'bootstrap'
 
-import "bootstrap";
+import './functions'
 
-import "./functions";
-
-import "./image_cropping";
+import './image_cropping'
 
 window.jQuery = jQuery
 window.$ = jQuery
 
-window.autorModal();
-window.refreshMask();
+window.autorModal()
+window.refreshMask()

@@ -306,6 +306,9 @@ a:link:after, a:visited:after {
       }
     }
 
+    .card-header {
+      font-size: 1.7rem;
+    }
 
     .dn { /* Notas de Dispositivo*/
       font-weight: normal;
@@ -464,7 +467,7 @@ a:link:after, a:visited:after {
         .dne-form {
           margin: 1em -2em 0em;
           text-align: left;
-          font-size: 1.6rem;
+          font-size: 1rem;
         }
       }
 

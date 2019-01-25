@@ -1,11 +1,11 @@
-let JsDiff = require("diff");
+let JsDiff = require('diff')
 
-function isElementInViewport(el) {
-  if (typeof jQuery === "function" && el instanceof jQuery) {
-    el = el[0];
+function isElementInViewport (el) {
+  if (typeof jQuery === 'function' && el instanceof jQuery) {
+    el = el[0]
   }
 
-  var rect = el.getBoundingClientRect();
+  let rect = el.getBoundingClientRect()
 
   return (
     rect.top >= 0 &&
@@ -13,92 +13,91 @@ function isElementInViewport(el) {
     rect.bottom <=
       (window.innerHeight || document.documentElement.clientHeight) &&
     rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-  );
+  )
 }
 
-function textoMultiVigente(item, diff) {
-  var elv = null;
-  var ldpts = $(".dptt");
-  for (var i = 0; i < ldpts.length; i++) {
-    if ($(ldpts[i]).hasClass("displaynone")) continue;
+function textoMultiVigente (item, diff) {
+  let elv = null
+  let ldpts = $('.dptt')
+  for (let i = 0; i < ldpts.length; i++) {
+    if ($(ldpts[i]).hasClass('displaynone')) continue
     if (isElementInViewport(ldpts[i])) {
-      if (i + 1 < ldpts.length) elv = ldpts[i + 1];
+      if (i + 1 < ldpts.length) elv = ldpts[i + 1]
       else {
-        elv = ldpts[i];
+        elv = ldpts[i]
       }
-      break;
+      break
     }
   }
 
-  $(".cp .tipo-vigencias a").removeClass("selected");
-  $(item).addClass("selected");
-  $(".dptt.desativado").removeClass("displaynone");
-  $(".dtxt").removeClass("displaynone");
-  $(".dtxt.diff").remove();
-  $(".nota-alteracao").removeClass("displaynone");
+  $('.cp .tipo-vigencias a').removeClass('selected')
+  $(item).addClass('selected')
+  $('.dptt.desativado').removeClass('displaynone')
+  $('.dtxt').removeClass('displaynone')
+  $('.dtxt.diff').remove()
+  $('.nota-alteracao').removeClass('displaynone')
 
   if (diff) {
-    $(".dtxt[id^='da'").each(function() {
-      if (
-        $(this)
-          .html()
-          .search(/<\/\w+>/g) > 0
-      )
-        return;
+    $('.dtxt[id^="da"').each(function () {
+      if ($(this)
+        .html()
+        .search(/<\/\w+>/g) > 0) {
+        return
+      }
 
-      var pk = $(this).attr("pk");
-      var pks = $(this).attr("pks");
+      let pk = $(this).attr('pk')
+      let pks = $(this).attr('pks')
 
-      var a = $("#d" + pks)
+      let a = $('#d' + pks)
         .contents()
-        .filter(function() {
-          return this.nodeType === Node.TEXT_NODE;
-        });
-      var b = $("#da" + pk)
+        .filter(function () {
+          return this.nodeType === Node.TEXT_NODE
+        })
+      let b = $('#da' + pk)
         .contents()
-        .filter(function() {
-          return this.nodeType === Node.TEXT_NODE;
-        });
+        .filter(function () {
+          return this.nodeType === Node.TEXT_NODE
+        })
 
-      var diff = JsDiff.diffWordsWithSpace($(a).text(), $(b).text());
+      let diff = JsDiff.diffWordsWithSpace($(a).text(), $(b).text())
 
       if (diff.length > 0) {
-        $("#d" + pks)
-          .closest(".desativado")
-          .addClass("displaynone");
+        $('#d' + pks)
+          .closest('.desativado')
+          .addClass('displaynone')
 
-        var clone = $("#da" + pk).clone();
-        $("#da" + pk).after(clone);
-        $("#da" + pk).addClass("displaynone");
+        let clone = $('#da' + pk).clone()
+        $('#da' + pk).after(clone)
+        $('#da' + pk).addClass('displaynone')
         $(clone)
-          .addClass("diff")
-          .html("");
+          .addClass('diff')
+          .html('')
 
-        diff.forEach(function(part) {
-          //var color = part.added ? "#018" : part.removed ? "#faa" : "";
+        diff.forEach(function (part) {
+          // let color = part.added ? '#018' : part.removed ? '#faa' : ''
 
-          var span = document.createElement("span");
+          let span = document.createElement('span')
 
-          var value = part.value;
+          let value = part.value
 
           if (part.removed) {
-            $(span).addClass("desativado");
-            value += " ";
+            $(span).addClass('desativado')
+            value += ' '
           } else if (part.added) {
-            $(span).addClass("added");
+            $(span).addClass('added')
           }
 
-          span.appendChild(document.createTextNode(value));
-          $(clone).append(span);
-        });
+          span.appendChild(document.createTextNode(value))
+          $(clone).append(span)
+        })
       }
-    });
-    //textoVigente(item, true);
+    })
+    // textoVigente(item, true)
   }
 
   if (elv) {
     try {
-      $("html, body").animate(
+      $('html, body').animate(
         {
           scrollTop:
             $(elv)
@@ -106,37 +105,37 @@ function textoMultiVigente(item, diff) {
               .offset().top - 60
         },
         0
-      );
+      )
     } catch (err) {
-      console.log(err);
+      console.log(err)
     }
   }
 }
 
-function textoVigente(item, link) {
-  var elv = null;
-  var ldpts = $(".dptt");
-  for (var i = 0; i < ldpts.length; i++) {
-    if ($(ldpts[i]).hasClass("displaynone")) continue;
+function textoVigente (item, link) {
+  let elv = null
+  let ldpts = $('.dptt')
+  for (let i = 0; i < ldpts.length; i++) {
+    if ($(ldpts[i]).hasClass('displaynone')) continue
     if (isElementInViewport(ldpts[i])) {
-      if (i + 1 < ldpts.length) elv = ldpts[i + 1];
+      if (i + 1 < ldpts.length) elv = ldpts[i + 1]
       else {
-        elv = ldpts[i];
+        elv = ldpts[i]
       }
-      break;
+      break
     }
   }
 
-  $(".cp .tipo-vigencias a").removeClass("selected");
-  $(item).addClass("selected");
+  $('.cp .tipo-vigencias a').removeClass('selected')
+  $(item).addClass('selected')
 
-  $(".dptt.desativado").addClass("displaynone");
-  $(".nota-alteracao").removeClass("displaynone");
-  if (!link) $(".nota-alteracao").addClass("displaynone");
+  $('.dptt.desativado').addClass('displaynone')
+  $('.nota-alteracao').removeClass('displaynone')
+  if (!link) $('.nota-alteracao').addClass('displaynone')
 
   if (elv) {
     try {
-      $("html, body").animate(
+      $('html, body').animate(
         {
           scrollTop:
             $(elv)
@@ -144,9 +143,9 @@ function textoVigente(item, link) {
               .offset().top - 60
         },
         0
-      );
+      )
     } catch (err) {
-      console.log(err);
+      console.log(err)
     }
   }
 }
@@ -155,4 +154,4 @@ export default {
   isElementInViewport,
   textoMultiVigente,
   textoVigente
-};
+}

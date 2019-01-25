@@ -1,145 +1,134 @@
 
-function onEventsDneExec(pk, model) {
+function onEventsDneExec (pk, model) {
+  $('html, body').animate({
+    scrollTop: $('#dne' + pk).offset().top - window.innerHeight / 5
+  }, 300)
 
-    $('html, body').animate({
-        scrollTop: $('#dne' + pk ).offset().top - window.innerHeight / 5
-    }, 300);
+  window.refreshDatePicker()
 
-    refreshDatePicker();
+  $('#dne' + pk + ' #button-id-submit-form').click(onSubmitEditNVForm)
+  $('#dne' + pk + ' .btn-close-container').click(function () {
+    $(this).closest('.dne-nota').removeClass('dne-nota')
+    $(this).closest('.dne-form').html('')
+  })
 
-    $('#dne'+pk+" #button-id-submit-form").click(onSubmitEditNVForm);
-    $('#dne'+pk+" .btn-close-container").click(function(){
-        $(this).closest('.dne-nota').removeClass('dne-nota');
-        $(this).closest('.dne-form').html('');
-    });
-
-    if (model == 'nota') {
-        $('#dne'+pk+" select[name='tipo']").change(function(event) {
-            var url = '';
-            url = 'text/'+pk+'/nota/create?action=modelo_nota&id_tipo='+this.value;
-            $.get(url).done(function( data ) {
-                $('#dne'+pk+" textarea[name='texto']").val(data);
-            });
-        });
-    }
-    else if (model == 'vide') {
-
-        DispositivoSearch({
-          'url_form': '/ta/search_form',
-          'text_button': 'Definir Dispositivo'
-        });
-    }
+  if (model === 'nota') {
+    $('#dne' + pk + ' select[name="tipo"]').change(function (event) {
+      let url = ''
+      url = 'text/' + pk + '/nota/create?action=modelo_nota&id_tipo=' + this.value
+      $.get(url).done(function (data) {
+        $('#dne' + pk + ' textarea[name="texto"]').val(data)
+      })
+    })
+  } else if (model === 'vide') {
+    window.DispositivoSearch({
+      'url_form': '/ta/search_form',
+      'text_button': 'Definir Dispositivo'
+    })
+  }
 }
 
-function onSubmitEditNVForm(event) {
+function onSubmitEditNVForm (event) {
+  let url = ''
+  let model = 'nota'
+  let idEdit = null
+  let idDispositivo = $('#idDispositivo').val()
 
-    var url = '';
-    var model = 'nota';
-    var id_edit = null;
-    var id_dispositivo = $('#id_dispositivo').val();
+  if (idDispositivo === null) { // trata-se de um vide
+    // $('#idDispositivo_ref').remove()
+    idDispositivo = $('#idDispositivo_base').val()
+    model = 'vide'
+  }
 
-    if (id_dispositivo == null) { // trata-se de um vide
-        //$('#id_dispositivo_ref').remove();
-        id_dispositivo = $('#id_dispositivo_base').val();
-        model='vide';
-    }
+  idEdit = $('#id_pk').val()
+  url = 'text/' + idDispositivo + '/' + model + '/'
+  if (idEdit === null || idEdit === '') {
+    url += 'create'
+  } else {
+    url += idEdit + '/edit'
+  }
 
-    id_edit = $('#id_pk').val();
-    url = 'text/'+id_dispositivo+'/'+model+'/'
-    if (id_edit == null || id_edit == '')
-        url += 'create';
-    else
-        url += id_edit+'/edit';
+  console.log($('#dne' + idDispositivo + ' form').serialize())
 
-    console.log($('#dne'+id_dispositivo+" form").serialize());
-
-    $.post( url, $('#dne'+id_dispositivo+" form").serialize(), function(data) {
-
-            if (typeof data == "string") {
-                if (data.indexOf('<form') >= 0) {
-                    $('#dne'+id_dispositivo+' .dne-form').html(data);
-                    onEventsDneExec(id_dispositivo, model);
-                }
-                else {
-                    $('#dne'+id_dispositivo+' .dne-form').closest('.dpt').html(data)
-                    onReadyNotasVides();
-                    try {
-                        $('html, body').animate({
-                        scrollTop: $('#dne' + id_dispositivo ).offset().top - window.innerHeight / 3
-                        }, 300);
-                    }
-                    catch(err) {
-                    }
-                }
-            }
+  $.post(url, $('#dne' + idDispositivo + ' form').serialize(), function (data) {
+    if (typeof data === 'string') {
+      if (data.indexOf('<form') >= 0) {
+        $('#dne' + idDispositivo + ' .dne-form').html(data)
+        onEventsDneExec(idDispositivo, model)
+      } else {
+        $('#dne' + idDispositivo + ' .dne-form').closest('.dpt').html(data)
+        onReadyNotasVides()
+        try {
+          $('html, body').animate({
+            scrollTop: $('#dne' + idDispositivo).offset().top - window.innerHeight / 3
+          }, 300)
+        } catch (err) {
         }
-    );
-}
-function onDelete(event) {
-
-    var model = $(event).attr('model');
-
-    var id_dispositivo =  $(event).closest('.dn').attr('pk');
-    var id_delete = $(event).attr('pk');
-    var url = 'text/'+id_dispositivo+'/'+model+'/'+id_delete+'/delete';
-
-    $.get( url, function(data) {
-        $('#dne'+id_dispositivo+' .dne-form').closest('.dpt').html(data)
-        onReadyNotasVides();
-        }
-    );
+      }
+    }
+  })
 }
 
-function getForm(_this) {
+function onDelete (event) {
+  let model = $(event).attr('model')
 
-    var url = '';
-    var model = $(_this).attr('model');
-    var id_dispositivo = $('.dne-nota .dne-form').closest('.dne').attr('pk');
-    if (id_dispositivo != null) {
-        $('#dne'+id_dispositivo).removeClass('dne-nota');
-        $('#dne'+id_dispositivo+' .dne-form').html('');
-    }
+  let idDispositivo = $(event).closest('.dn').attr('pk')
+  let idDelete = $(event).attr('pk')
+  let url = 'text/' + idDispositivo + '/' + model + '/' + idDelete + '/delete'
 
-    if (_this.className.indexOf('create') >= 0 ) {
-        id_dispositivo = $(_this).attr('pk');
-        url = 'text/'+id_dispositivo+'/'+model+'/create';
-    }
-    else if (_this.className.indexOf('edit') >= 0 ) {
-        var id_edit = $(_this).attr('pk');
-        id_dispositivo = $(_this).closest('.dn').attr('pk');
-        url = 'text/'+id_dispositivo+'/'+model+'/'+id_edit+'/edit'
-    }
-
-    $('#dne'+id_dispositivo).addClass('dne-nota');
-
-    $.get(url).done(function( data ) {
-        $('#dne'+id_dispositivo+' .dne-form').html(data);
-        onEventsDneExec(id_dispositivo, model);
-    }).fail(function() {
-        onReadyNotasVides();
-    });
+  $.get(url, function (data) {
+    $('#dne' + idDispositivo + ' .dne-form').closest('.dpt').html(data)
+    onReadyNotasVides()
+  })
 }
 
-function onReadyNotasVides() {
+function getForm (_this) {
+  let url = ''
+  let model = $(_this).attr('model')
+  let idDispositivo = $('.dne-nota .dne-form').closest('.dne').attr('pk')
+  if (idDispositivo != null) {
+    $('#dne' + idDispositivo).removeClass('dne-nota')
+    $('#dne' + idDispositivo + ' .dne-form').html('')
+  }
 
-    $('.dne-nota').removeClass('dne-nota');
-    $('.dne-form').html('');
+  if (_this.className.indexOf('create') >= 0) {
+    idDispositivo = $(_this).attr('pk')
+    url = 'text/' + idDispositivo + '/' + model + '/create'
+  } else if (_this.className.indexOf('edit') >= 0) {
+    let idEdit = $(_this).attr('pk')
+    idDispositivo = $(_this).closest('.dn').attr('pk')
+    url = 'text/' + idDispositivo + '/' + model + '/' + idEdit + '/edit'
+  }
 
-    $('.dne .btn-action').off();
-    $('.dn .btn-action').off();
+  $('#dne' + idDispositivo).addClass('dne-nota')
 
-    $('.dne .btn-action, .dn .btn-action').not('.btn-nota-delete').not('.btn-vide-delete').click(function(){
-        getForm(this);
-    });
+  $.get(url).done(function (data) {
+    $('#dne' + idDispositivo + ' .dne-form').html(data)
+    onEventsDneExec(idDispositivo, model)
+  }).fail(function () {
+    onReadyNotasVides()
+  })
+}
 
-    $('.dn .btn-nota-delete, .dn .btn-vide-delete').click(function(){
-        onDelete(this);
-    });
+function onReadyNotasVides () {
+  $('.dne-nota').removeClass('dne-nota')
+  $('.dne-form').html('')
+
+  $('.dne .btn-action').off()
+  $('.dn .btn-action').off()
+
+  $('.dne .btn-action, .dn .btn-action').not('.btn-nota-delete').not('.btn-vide-delete').click(function () {
+    getForm(this)
+  })
+
+  $('.dn .btn-nota-delete, .dn .btn-vide-delete').click(function () {
+    onDelete(this)
+  })
 }
 
 export default {
-    onEventsDneExec,
-    onSubmitEditNVForm,
-    onDelete,
-    onReadyNotasVides
+  onEventsDneExec,
+  onSubmitEditNVForm,
+  onDelete,
+  onReadyNotasVides
 }

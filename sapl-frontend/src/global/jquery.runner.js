@@ -5,101 +5,101 @@
  * Copyright (c) 2014 Jyrki Laurila <https://github.com/jylauril>
  */
 (function() {
-  var Runner, formatTime, meta, pad, runners, uid, _$, _requestAnimationFrame, _uid;
+  var Runner, formatTime, meta, pad, runners, uid, _$, _requestAnimationFrame, _uid
 
   meta = {
     version: "2.3.3",
     name: "jQuery-runner"
-  };
-
-  _$ = $;
-
-  if (!(_$ && _$.fn)) {
-    throw new Error('[' + meta.name + '] jQuery or jQuery-like library is required for this plugin to work');
   }
 
-  runners = {};
+  _$ = $
+
+  if (!(_$ && _$.fn)) {
+    throw new Error('[' + meta.name + '] jQuery or jQuery-like library is required for this plugin to work')
+  }
+
+  runners = {}
 
   pad = function(num) {
-    return (num < 10 ? '0' : '') + num;
-  };
+    return (num < 10 ? '0' : '') + num
+  }
 
-  _uid = 1;
+  _uid = 1
 
   uid = function() {
-    return 'runner' + _uid++;
-  };
+    return 'runner' + _uid++
+  }
 
   _requestAnimationFrame = (function(win, raf) {
     return win['r' + raf] || win['webkitR' + raf] || win['mozR' + raf] || win['msR' + raf] || function(fn) {
-      return setTimeout(fn, 30);
-    };
-  })(this, 'equestAnimationFrame');
+      return setTimeout(fn, 30)
+    }
+  })(this, 'equestAnimationFrame')
 
   formatTime = function(time, settings) {
-    var i, len, ms, output, prefix, separator, step, steps, value, _i, _len;
-    settings = settings || {};
-    steps = [3600000, 60000, 1000, 10];
-    separator = ['', ':', ':', '.'];
-    prefix = '';
-    output = '';
-    ms = settings.milliseconds;
-    len = steps.length;
-    value = 0;
+    var i, len, ms, output, prefix, separator, step, steps, value, _i, _len
+    settings = settings || {}
+    steps = [3600000, 60000, 1000, 10]
+    separator = ['', ':', ':', '.']
+    prefix = ''
+    output = ''
+    ms = settings.milliseconds
+    len = steps.length
+    value = 0
     if (time < 0) {
-      time = Math.abs(time);
-      prefix = '-';
+      time = Math.abs(time)
+      prefix = '-'
     }
     for (i = _i = 0, _len = steps.length; _i < _len; i = ++_i) {
-      step = steps[i];
-      value = 0;
+      step = steps[i]
+      value = 0
       if (time >= step) {
-        value = Math.floor(time / step);
-        time -= value * step;
+        value = Math.floor(time / step)
+        time -= value * step
       }
       if ((value || i > 1 || output) && (i !== len - 1 || ms)) {
-        output += (output ? separator[i] : '') + pad(value);
+        output += (output ? separator[i] : '') + pad(value)
       }
     }
-    return prefix + output;
-  };
+    return prefix + output
+  }
 
   Runner = (function() {
     function Runner(items, options, start) {
-      var id;
+      var id
       if (!(this instanceof Runner)) {
-        return new Runner(items, options, start);
+        return new Runner(items, options, start)
       }
-      this.items = items;
-      id = this.id = uid();
-      this.settings = _$.extend({}, this.settings, options);
-      runners[id] = this;
+      this.items = items
+      id = this.id = uid()
+      this.settings = _$.extend({}, this.settings, options)
+      runners[id] = this
       items.each(function(index, element) {
-        _$(element).data('runner', id);
-      });
-      this.value(this.settings.startAt);
+        _$(element).data('runner', id)
+      })
+      this.value(this.settings.startAt)
       if (start || this.settings.autostart) {
-        this.start();
+        this.start()
       }
     }
 
-    Runner.prototype.running = false;
+    Runner.prototype.running = false
 
-    Runner.prototype.updating = false;
+    Runner.prototype.updating = false
 
-    Runner.prototype.finished = false;
+    Runner.prototype.finished = false
 
-    Runner.prototype.interval = null;
+    Runner.prototype.interval = null
 
-    Runner.prototype.total = 0;
+    Runner.prototype.total = 0
 
-    Runner.prototype.lastTime = 0;
+    Runner.prototype.lastTime = 0
 
-    Runner.prototype.startTime = 0;
+    Runner.prototype.startTime = 0
 
-    Runner.prototype.lastLap = 0;
+    Runner.prototype.lastLap = 0
 
-    Runner.prototype.lapTime = 0;
+    Runner.prototype.lapTime = 0
 
     Runner.prototype.settings = {
       autostart: false,
@@ -108,128 +108,128 @@
       startAt: 0,
       milliseconds: true,
       format: null
-    };
+    }
 
     Runner.prototype.value = function(value) {
       this.items.each((function(_this) {
         return function(item, element) {
-          var action;
-          item = _$(element);
-          action = item.is('input') ? 'val' : 'text';
-          item[action](_this.format(value));
-        };
-      })(this));
-    };
+          var action
+          item = _$(element)
+          action = item.is('input') ? 'val' : 'text'
+          item[action](_this.format(value))
+        }
+      })(this))
+    }
 
     Runner.prototype.format = function(value) {
-      var format;
-      format = this.settings.format;
-      format = _$.isFunction(format) ? format : formatTime;
-      return format(value, this.settings);
-    };
+      var format
+      format = this.settings.format
+      format = _$.isFunction(format) ? format : formatTime
+      return format(value, this.settings)
+    }
 
     Runner.prototype.update = function() {
-      var countdown, delta, settings, stopAt, time;
+      var countdown, delta, settings, stopAt, time
       if (!this.updating) {
-        this.updating = true;
-        settings = this.settings;
-        time = _$.now();
-        stopAt = settings.stopAt;
-        countdown = settings.countdown;
-        delta = time - this.lastTime;
-        this.lastTime = time;
+        this.updating = true
+        settings = this.settings
+        time = _$.now()
+        stopAt = settings.stopAt
+        countdown = settings.countdown
+        delta = time - this.lastTime
+        this.lastTime = time
         if (countdown) {
-          this.total -= delta;
+          this.total -= delta
         } else {
-          this.total += delta;
+          this.total += delta
         }
         if (stopAt !== null && ((countdown && this.total <= stopAt) || (!countdown && this.total >= stopAt))) {
-          this.total = stopAt;
-          this.finished = true;
-          this.stop();
-          this.fire('runnerFinish');
+          this.total = stopAt
+          this.finished = true
+          this.stop()
+          this.fire('runnerFinish')
         }
-        this.value(this.total);
-        this.updating = false;
+        this.value(this.total)
+        this.updating = false
       }
-    };
+    }
 
     Runner.prototype.fire = function(event) {
-      this.items.trigger(event, this.info());
-    };
+      this.items.trigger(event, this.info())
+    }
 
     Runner.prototype.start = function() {
-      var step;
+      var step
       if (!this.running) {
-        this.running = true;
+        this.running = true
         if (!this.startTime || this.finished) {
-          this.reset();
+          this.reset()
         }
-        this.lastTime = _$.now();
+        this.lastTime = _$.now()
         step = (function(_this) {
           return function() {
             if (_this.running) {
-              _this.update();
-              _requestAnimationFrame(step);
+              _this.update()
+              _requestAnimationFrame(step)
             }
-          };
-        })(this);
-        _requestAnimationFrame(step);
-        this.fire('runnerStart');
+          }
+        })(this)
+        _requestAnimationFrame(step)
+        this.fire('runnerStart')
       }
-    };
+    }
 
     Runner.prototype.stop = function() {
       if (this.running) {
-        this.running = false;
-        this.update();
-        this.fire('runnerStop');
+        this.running = false
+        this.update()
+        this.fire('runnerStop')
       }
-    };
+    }
 
     Runner.prototype.toggle = function() {
       if (this.running) {
-        this.stop();
+        this.stop()
       } else {
-        this.start();
+        this.start()
       }
-    };
+    }
 
     Runner.prototype.lap = function() {
-      var lap, last;
-      last = this.lastTime;
-      lap = last - this.lapTime;
+      var lap, last
+      last = this.lastTime
+      lap = last - this.lapTime
       if (this.settings.countdown) {
-        lap = -lap;
+        lap = -lap
       }
       if (this.running || lap) {
-        this.lastLap = lap;
-        this.lapTime = last;
+        this.lastLap = lap
+        this.lapTime = last
       }
-      last = this.format(this.lastLap);
-      this.fire('runnerLap');
-      return last;
-    };
+      last = this.format(this.lastLap)
+      this.fire('runnerLap')
+      return last
+    }
 
     Runner.prototype.reset = function(stop) {
-      var nowTime;
+      var nowTime
       if (stop) {
-        this.stop();
+        this.stop()
       }
-      nowTime = _$.now();
+      nowTime = _$.now()
       if (typeof this.settings.startAt === 'number' && !this.settings.countdown) {
-        nowTime -= this.settings.startAt;
+        nowTime -= this.settings.startAt
       }
-      this.startTime = this.lapTime = this.lastTime = nowTime;
-      this.total = this.settings.startAt;
-      this.value(this.total);
-      this.finished = false;
-      this.fire('runnerReset');
-    };
+      this.startTime = this.lapTime = this.lastTime = nowTime
+      this.total = this.settings.startAt
+      this.value(this.total)
+      this.finished = false
+      this.fire('runnerReset')
+    }
 
     Runner.prototype.info = function() {
-      var lap;
-      lap = this.lastLap || 0;
+      var lap
+      lap = this.lastLap || 0
       return {
         running: this.running,
         finished: this.finished,
@@ -239,58 +239,58 @@
         lapTime: lap,
         formattedLapTime: this.format(lap),
         settings: this.settings
-      };
-    };
+      }
+    }
 
-    return Runner;
+    return Runner
 
-  })();
+  })()
 
   _$.fn.runner = function(method, options, start) {
-    var id, runner;
+    var id, runner
     if (!method) {
-      method = 'init';
+      method = 'init'
     }
     if (typeof method === 'object') {
-      start = options;
-      options = method;
-      method = 'init';
+      start = options
+      options = method
+      method = 'init'
     }
-    id = this.data('runner');
-    runner = id ? runners[id] : false;
+    id = this.data('runner')
+    runner = id ? runners[id] : false
     switch (method) {
       case 'init':
-        new Runner(this, options, start);
-        break;
+        new Runner(this, options, start)
+        break
       case 'info':
         if (runner) {
-          return runner.info();
+          return runner.info()
         }
-        break;
+        break
       case 'reset':
         if (runner) {
-          runner.reset(options);
+          runner.reset(options)
         }
-        break;
+        break
       case 'lap':
         if (runner) {
-          return runner.lap();
+          return runner.lap()
         }
-        break;
+        break
       case 'start':
       case 'stop':
       case 'toggle':
         if (runner) {
-          return runner[method]();
+          return runner[method]()
         }
-        break;
+        break
       case 'version':
-        return meta.version;
+        return meta.version
       default:
-        _$.error('[' + meta.name + '] Method ' + method + ' does not exist');
+        _$.error('[' + meta.name + '] Method ' + method + ' does not exist')
     }
-    return this;
-  };
+    return this
+  }
 
-  _$.fn.runner.format = formatTime;
-}).call(window);
+  _$.fn.runner.format = formatTime
+}).call(window)

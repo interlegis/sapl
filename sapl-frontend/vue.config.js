@@ -20,6 +20,8 @@ module.exports = {
       .plugin('BundleTracker')
       .use(BundleTracker, [{ filename: './webpack-stats.json' }])
 
+    config.devtool = "source-map"
+
     config.resolve.alias
       .set('__STATIC__', 'static')
 
