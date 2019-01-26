@@ -331,13 +331,17 @@ class VideForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        buttons = form_actions(
-            label=_('Salvar'),
-            more=[
+        buttons = FormActions(
+            *[
                 HTML('<a href="" class="btn btn-dark '
                      'btn-close-container">%s</a>' % _('Cancelar'))
             ],
-            disabled=False)
+            Button(
+                'submit-form',
+                'Salvar',
+                css_class='btn btn-primary float-right'),
+            css_class='form-group row justify-content-between mr-1 ml-1'
+        )
 
         dispositivo_ref = Field(
             'dispositivo_ref',
@@ -362,15 +366,15 @@ class VideForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Div(
-                Div(HTML(_('Vides')), css_class='car-header'),
+                Div(HTML(_('Vides')), css_class='card-header bg-light'),
                 Div(
                     to_column((fields_form[0], 6)),
                     to_column((fields_form[1], 6)),
                     to_column(('dispositivo_base', 0)),
                     to_column(('pk', 0)),
-                    css_class="card-body"
+                    css_class="card-body row"
                 ),
-                css_class="card bg-light"
+                css_class="card"
             )
         )
 

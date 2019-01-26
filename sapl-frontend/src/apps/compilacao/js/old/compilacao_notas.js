@@ -34,7 +34,7 @@ function onSubmitEditNVForm (event) {
   let idEdit = null
   let idDispositivo = $('#id_dispositivo').val()
 
-  if (idDispositivo === null) { // trata-se de um vide
+  if (idDispositivo === undefined) { // trata-se de um vide
     // $('#idDispositivo_ref').remove()
     idDispositivo = $('#id_dispositivo_base').val()
     model = 'vide'
