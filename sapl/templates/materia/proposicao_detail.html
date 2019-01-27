@@ -62,7 +62,7 @@
       {% if object.data_devolucao %}
 
         <div class="col-sm-9">
-          <div class="alert alert-danger alert-dismissible fade in" role="alert">
+          <div class="alert alert-danger alert-dismissible " role="alert">
             <strong>{% trans "Proposição devolvida em:" %} {{ object.data_devolucao}}</strong>
             <div >{% trans "Justificativa:" %} {{object.justificativa_devolucao}}</div>
           </div>
@@ -92,7 +92,7 @@
           </div>
         {% elif object.data_envio %}
           <div class="col-sm-6">
-            <div class="alert alert-info alert-dismissible fade in" role="alert">
+            <div class="alert alert-info alert-dismissible " role="alert">
               <div >{% trans "Proposição aguardando recebimento" %}</div>
             </div>
           </div>

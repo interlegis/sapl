@@ -54,7 +54,7 @@ function DispositivoSearch (opts) {
           dpts.attr('type', 'hidden')
           $('<a class="text-danger">')
             .insertBefore(dpts)
-            .append($('<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>'))
+            .append($('<span aria-hidden="true">&times;</span>'))
             .on('click', function () {
               if ($(this).closest('ul').find('li').length === 2) {
                 $(this).closest('ul').remove()

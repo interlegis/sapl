@@ -31,7 +31,7 @@
 		</div>
 		<br />
 		{% if total_presentes == 0 %}
-			<div class="alert alert-info alert-dismissible fade in" role="alert">
+			<div class="alert alert-info alert-dismissible " role="alert">
 				<div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
 			</div>
 			<a href="{% url 'sapl.sessao:sessaoplenaria_detail' pk %}" class="btn btn-warning">Voltar</a>
