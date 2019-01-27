@@ -3,6 +3,9 @@ language: python
 python:
   - 3.5
 
+node_js:
+  - 10.15.0
+
 services:
   - postgresql
 

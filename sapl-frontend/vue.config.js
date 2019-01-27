@@ -63,8 +63,7 @@ module.exports = {
         jquery: 'jquery',
         'window.jQuery': 'jquery',
         jQuery: 'jquery',
-        _: 'lodash',
-        Modal: 'exports-loader?Modal!bootstrap/js/dist/modal',
+        _: 'lodash'
       }])
 
     config.entryPoints.delete('app')
