@@ -1,5 +1,16 @@
 {% extends "crud/detail.html" %}
-{% load i18n common_tags staticfiles%}
+{% load i18n common_tags %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_loader_css %}
+    {% render_bundle 'global' 'css' %}
+    {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
+      {% render_bundle 'compilacao' 'css' %}
+    {% endif %}
+    {% render_bundle THEME_CUSTOM 'css' %}
+{% endblock %}
+
+
 
 {% block detail_content %}
       {% for fieldset in view.layout_display %}
@@ -89,6 +100,16 @@
   {% endif %}
 {% endblock detail_content %}
 
+
+{% block webpack_loader_js %}
+    {% render_bundle 'global' 'js' %}
+    {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
+      {% render_bundle 'compilacao' 'js' %}
+    {% endif %}
+    {% render_bundle THEME_CUSTOM 'js' %}
+{% endblock %}
+
+
 {% block extra_js %}
 {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
   <script language="Javascript">
@@ -98,6 +119,7 @@
         $('#textomultivigente').html(data)
         $('cp a[data-toggle="dropdown"]').dropdown()
         $('.dne').remove()
+        $('.dnli ul').remove()
       });
     }
   </script>

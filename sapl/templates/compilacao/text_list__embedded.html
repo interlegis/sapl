@@ -1,15 +1,8 @@
 {% load i18n %}
 {% load compilacao_filters %}
 {% load common_tags %}
-{% load staticfiles %}
-{% load sass_tags %}
 
-{% block head_content %}
-  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
-{% endblock %}
-
-  <div class="cp">
-
+<div class="cp">
   {% if object_list %}
     <div class="clearfix">
       <div class="actions btn-group float-right" role="group">
@@ -77,15 +70,4 @@
       <li><a onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a></li>
   </ul>
   {% include 'compilacao/text_list_bloco.html'%}
-  </div>
-
-
-{% block extra_js %}
-  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/compilacao_view.js' %}"></script>
-
-  {% if perms.compilacao.add_nota %}
-  <script type="text/javascript" src="{% static 'js/compilacao_notas.js' %}"></script>
-  {% endif %}
-
-{% endblock %}
+</div>
