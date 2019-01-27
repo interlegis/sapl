@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*!
  * jQuery Color Animations v2.0pre
  * http://jquery.org/

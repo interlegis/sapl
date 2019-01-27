@@ -1,4 +1,3 @@
-// eslint-disable-next-line
 import 'jquery-mask-plugin'
 
 import 'webpack-jquery-ui/dialog'
@@ -9,9 +8,8 @@ import 'bootstrap'
 
 import './image_cropping'
 
+// eslint-disable-next-line
 require('imports-loader?window.jQuery=jquery!./jquery.runner.js')
-// require(THEME_CUSTOM + '/src/assets/img/authenticated.png')
 
 window.autorModal()
 window.refreshMask()
-

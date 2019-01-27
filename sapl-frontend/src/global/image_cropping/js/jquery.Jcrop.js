@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * jquery.Jcrop.js v0.9.12
  * jQuery Image Cropping Plugin - released under MIT License

@@ -65,7 +65,7 @@ window.autorModal = function () {
         $('#div-resultado')
           .children()
           .remove()
-        if (data.pagination.total_entries == 0) {
+        if (data.pagination.total_entries === 0) {
           $('#selecionar').attr('hidden', 'hidden')
           $('#div-resultado').html(
             "<span class='alert'><strong>Nenhum resultado</strong></span>"

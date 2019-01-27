@@ -1,34 +1,34 @@
-function DispositivoEdit () {
+window.DispositivoEdit = function () {
   // Função única - Singleton pattern - operador new sempre devolve o mesmo objeto
-  var instance
+  let instance
 
-  var editortype = 'textarea'
+  let editortype = 'textarea'
 
-  if (!(this instanceof DispositivoEdit)) {
+  if (!(this instanceof window.DispositivoEdit)) {
     if (!instance) {
-      instance = new DispositivoEdit()
+      instance = new window.DispositivoEdit()
     }
     return instance
   }
   instance = this
-  DispositivoEdit = function () {
+  window.DispositivoEdit = function () {
     return instance
   }
 
   instance.bindActionsEditorType = function (event) {
     editortype = this.getAttribute('editortype')
-    SetCookie('editortype', editortype, 30)
-    var dpt = $(this).closest('.dpt')
+    window.SetCookie('editortype', editortype, 30)
+    let dpt = $(this).closest('.dpt')
 
-    var pk = dpt.attr('pk')
+    let pk = dpt.attr('pk')
     instance.clearEditSelected()
     instance.triggerBtnDptEdit(pk)
   }
 
   instance.bindActionsClick = function (event) {
-    var pk = this.getAttribute('pk')
+    let pk = this.getAttribute('pk')
 
-    var form_data = {
+    let form_data = {
       'action': this.getAttribute('action'),
       'tipo_pk': this.getAttribute('tipo_pk'),
       'perfil_pk': this.getAttribute('perfil_pk'),
@@ -36,7 +36,7 @@ function DispositivoEdit () {
       'pk_bloco': this.getAttribute('pk_bloco')
     }
 
-    var url = pk + '/refresh'
+    let url = pk + '/refresh'
     instance.waitShow()
 
     $.get(url, form_data).done(function (data) {
@@ -50,12 +50,12 @@ function DispositivoEdit () {
   instance.clearEditSelected = function () {
     $('.dpt-selected > .dpt-form').html('')
     $('.dpt-actions, .dpt-actions-bottom').html('')
-    tinymce.remove()
+    window.tinymce.remove()
     $('.dpt-selected').removeClass('dpt-selected')
   }
 
   instance.editDispositivo = function (event) {
-    var obj_click = (event.target.classList.contains('dpt-link')
+    let obj_click = (event.target.classList.contains('dpt-link')
       ? event.target
       : (event.target.parentElement.classList.contains('dpt-link')
         ? event.target.parentElement
@@ -63,15 +63,15 @@ function DispositivoEdit () {
 
     if (obj_click && obj_click.getAttribute('href') && obj_click.getAttribute('href').length > 0) { return }
 
-    var dpt = $(this).closest('.dpt')
+    let dpt = $(this).closest('.dpt')
     if (dpt.hasClass('dpt-selected')) {
-      if (this.getAttribute('action') == 'editor-close') { instance.clearEditSelected() }
+      if (this.getAttribute('action') === 'editor-close') { instance.clearEditSelected() }
       return
     }
     instance.clearEditSelected()
     instance.loadActionsEdit(dpt)
 
-    var formtype = dpt.attr('formtype')
+    let formtype = dpt.attr('formtype')
     dpt.on(formtype, instance[formtype])
     instance.loadForm(dpt, formtype)
   }
@@ -83,34 +83,34 @@ function DispositivoEdit () {
   }
 
   instance.get_form_base = function () {
-    var _this = $(this)
+    let _this = $(this)
     _this.addClass('dpt-selected')
 
-    var dpt_form = _this.children().filter('.dpt-form')
+    let dpt_form = _this.children().filter('.dpt-form')
     dpt_form.find('form').submit(instance.onSubmitEditFormBase)
 
     instance.scrollTo(_this)
     _this.off('get_form_base')
 
-    var btn_fechar = _this.find('.btn-fechar')
+    let btn_fechar = _this.find('.btn-fechar')
     btn_fechar.on('click', function () {
       instance.clearEditSelected()
     })
 
-    var btns_excluir = _this.find('.btns-excluir')
+    let btns_excluir = _this.find('.btns-excluir')
     _this.find('.dpt-actions-bottom').first().append(btns_excluir)
 
     btns_excluir.find('.btn-outline-danger').on('click', instance.bindActionsClick)
   }
 
   instance.get_form_alteracao = function () {
-    var _this = $(this)
+    let _this = $(this)
     _this.off('get_form_alteracao')
     $('.dpt-actions, .dpt-actions-bottom').html('')
 
-    var dpt_form = _this.children().filter('.dpt-form').children().first()
-    var url_search = dpt_form[0]['id_dispositivo_search_form'].value
-    DispositivoSearch({
+    let dpt_form = _this.children().filter('.dpt-form').children().first()
+    let url_search = dpt_form[0]['id_dispositivo_search_form'].value
+    window.DispositivoSearch({
       'url_form': url_search,
       'text_button': 'Selecionar'
     })
@@ -118,7 +118,7 @@ function DispositivoEdit () {
     instance.scrollTo(_this)
     dpt_form.submit(instance.onSubmitFormRegistraAlteracao)
 
-    var btn_fechar = _this.find('.btn-fechar')
+    let btn_fechar = _this.find('.btn-fechar')
     btn_fechar.on('click', function () {
       instance.clearEditSelected()
       instance.triggerBtnDptEdit(_this.attr('pk'))
@@ -126,13 +126,13 @@ function DispositivoEdit () {
   }
 
   instance.get_form_inclusao = function () {
-    var _this = $(this)
+    let _this = $(this)
     _this.off('get_form_inclusao')
     $('.dpt-actions, .dpt-actions-bottom').html('')
 
-    var dpt_form = _this.children().filter('.dpt-form').children().first()
-    var url_search = dpt_form[0]['id_dispositivo_search_form'].value
-    DispositivoSearch({
+    let dpt_form = _this.children().filter('.dpt-form').children().first()
+    let url_search = dpt_form[0]['id_dispositivo_search_form'].value
+    window.DispositivoSearch({
       'url_form': url_search,
       'text_button': 'Selecionar',
       'post_selected': instance.allowed_inserts_registro_inclusao,
@@ -143,7 +143,7 @@ function DispositivoEdit () {
     instance.scrollTo(_this)
     dpt_form.submit(instance.onSubmitFormRegistraInclusao)
 
-    var btn_fechar = _this.find('.btn-fechar')
+    let btn_fechar = _this.find('.btn-fechar')
     btn_fechar.on('click', function () {
       instance.clearEditSelected()
       instance.triggerBtnDptEdit(_this.attr('pk'))
@@ -151,13 +151,13 @@ function DispositivoEdit () {
   }
 
   instance.get_form_revogacao = function () {
-    var _this = $(this)
+    let _this = $(this)
     _this.off('get_form_revogacao')
     $('.dpt-actions, .dpt-actions-bottom').html('')
 
-    var dpt_form = _this.children().filter('.dpt-form').children().first()
-    var url_search = dpt_form[0]['id_dispositivo_search_form'].value
-    DispositivoSearch({
+    let dpt_form = _this.children().filter('.dpt-form').children().first()
+    let url_search = dpt_form[0]['id_dispositivo_search_form'].value
+    window.DispositivoSearch({
       'url_form': url_search,
       'text_button': 'Selecionar'
     })
@@ -165,7 +165,7 @@ function DispositivoEdit () {
     instance.scrollTo(_this)
     dpt_form.submit(instance.onSubmitFormRegistraRevogacao)
 
-    var btn_fechar = _this.find('.btn-fechar')
+    let btn_fechar = _this.find('.btn-fechar')
     btn_fechar.on('click', function () {
       instance.clearEditSelected()
       instance.triggerBtnDptEdit(_this.attr('pk'))
@@ -173,16 +173,16 @@ function DispositivoEdit () {
   }
 
   instance.allowed_inserts_registro_inclusao = function (params) {
-    var dispositivo_base_para_inclusao = $('#id' + params.pk_bloco + " input[name='dispositivo_base_para_inclusao']")
-    if (dispositivo_base_para_inclusao.length == 0) { return }
+    let dispositivo_base_para_inclusao = $('#id' + params.pk_bloco + " input[name='dispositivo_base_para_inclusao']")
+    if (dispositivo_base_para_inclusao.length === 0) { return }
 
-    var pk = dispositivo_base_para_inclusao[0].value
-    var form_data = {
+    let pk = dispositivo_base_para_inclusao[0].value
+    let form_data = {
       'action': 'get_actions_allowed_inserts_registro_inclusao',
       'pk_bloco': params.pk_bloco
     }
 
-    var url = pk + '/refresh'
+    let url = pk + '/refresh'
     instance.waitShow()
 
     $.get(url, form_data).done(function (data) {
@@ -192,8 +192,8 @@ function DispositivoEdit () {
   }
 
   instance.loadActionsEdit = function (dpt) {
-    var pk = dpt.attr('pk')
-    var url = pk + '/refresh?action=get_actions'
+    let pk = dpt.attr('pk')
+    let url = pk + '/refresh?action=get_actions'
     $.get(url).done(function (data) {
       dpt.find('.dpt-actions').first().html(data)
       dpt.find('.btn-action').on('click', instance.bindActionsClick)
@@ -201,7 +201,7 @@ function DispositivoEdit () {
       dpt.find('.btn-compila').on('click', instance.loadFormsCompilacao)
       dpt.find('.btn-editor-type').on('click', instance.bindActionsEditorType)
 
-      if (editortype == 'construct') { dpt.find('.btn-group-inserts').first().addClass('open') }
+      if (editortype === 'construct') { dpt.find('.btn-group-inserts').first().addClass('open') }
 
       dpt.find('.btn-group-inserts button').mouseenter(function (event) {
         dpt.find('.btn-group-inserts').removeClass('open')
@@ -213,17 +213,17 @@ function DispositivoEdit () {
   }
 
   instance.loadForm = function (dpt, trigger) {
-    var pk = dpt.attr('pk')
-    var dpt_form = dpt.children().filter('.dpt-form')
-    if (dpt_form.length == 1) {
-      var url = pk + '/refresh?action=' + trigger
+    let pk = dpt.attr('pk')
+    let dpt_form = dpt.children().filter('.dpt-form')
+    if (dpt_form.length === 1) {
+      let url = pk + '/refresh?action=' + trigger
       $.get(url).done(function (data) {
-        if (editortype != 'construct') {
+        if (editortype !== 'construct') {
           dpt_form.html(data)
-          if (editortype == 'tinymce') {
-            initTextRichEditor()
+          if (editortype === 'tinymce') {
+            window.initTextRichEditor()
           }
-          OptionalCustomFrontEnd().init()
+          // OptionalCustomFrontEnd().init()
         }
         dpt.trigger(trigger)
       }).always(function () {
@@ -233,14 +233,14 @@ function DispositivoEdit () {
   }
 
   instance.loadFormsCompilacao = function (event) {
-    var dpt = $(this).closest('.dpt')
-    var formtype = this.getAttribute('action')
+    let dpt = $(this).closest('.dpt')
+    let formtype = this.getAttribute('action')
     dpt.on(formtype, instance[formtype])
     instance.loadForm(dpt, formtype)
   }
 
   instance.modalMessage = function (message, alert, closeFunction) {
-    if (message != null && message != '') {
+    if (message !== null && message !== '') {
       $('#modal-message #message').html(message)
       $('#modal-message').modal('show')
       $('#modal-message, #modal-message .alert button').off()
@@ -267,9 +267,9 @@ function DispositivoEdit () {
       } else {
         instance.refreshScreenFocusPk(data)
         if (!('message' in data)) { return }
-        var cp_notify = $('.cp-notify')
+        let cp_notify = $('.cp-notify')
         cp_notify.removeClass('hide')
-        var msg = cp_notify.find('.message')
+        let msg = cp_notify.find('.message')
         msg.text(data.message.value)
         msg.removeClass('bg-primary bg-success bg-info bg-warning bg-danger').addClass('bg-' + data.message.type)
         setTimeout(function () {
@@ -284,21 +284,19 @@ function DispositivoEdit () {
     $('.btn-dpt-edit').off()
   }
   instance.onClicks = function (container) {
-    var objects
-    if (container == null) { objects = $('.btn-dpt-edit') } else { objects = $(container).find('.btn-dpt-edit') }
+    let objects
+    if (container === null) { objects = $('.btn-dpt-edit') } else { objects = $(container).find('.btn-dpt-edit') }
     objects.on('click', instance.editDispositivo)
   }
 
   instance.onSubmitFormRegistraAlteracao = function (event) {
-    var _this = this
-
     if (this.dispositivo_alterado === undefined) {
       instance.modalMessage('Nenhum dispositivo selecionado', 'alert-info')
       if (event != null) { event.preventDefault() }
       return
     }
-    var dispositivo_alterado = this.dispositivo_alterado.length === undefined ? [this.dispositivo_alterado ] : Array.from(this.dispositivo_alterado)
-    var form_data = {
+    let dispositivo_alterado = this.dispositivo_alterado.length === undefined ? [ this.dispositivo_alterado ] : Array.from(this.dispositivo_alterado)
+    let form_data = {
       'csrfmiddlewaretoken': this.csrfmiddlewaretoken.value,
       'dispositivo_alterado': dispositivo_alterado.filter(
         function (elem, idx, array) {
@@ -309,10 +307,11 @@ function DispositivoEdit () {
       }),
       'formtype': 'get_form_alteracao'
     }
-    var url = $(this).closest('.dpt').attr('pk') + '/refresh'
+    let url = $(this).closest('.dpt').attr('pk') + '/refresh'
 
     instance.waitShow()
 
+    // eslint-disable-next-line
     $.post(url, form_data, dataType = 'json')
       .done(function (data) {
         instance.clearEditSelected()
@@ -329,14 +328,12 @@ function DispositivoEdit () {
   }
 
   instance.onSubmitFormRegistraInclusao = function (event) {
-    var _this = this
-
-    var form_data = {
+    let form_data = {
       'csrfmiddlewaretoken': this['csrfmiddlewaretoken'].value,
       'dispositivo_base_para_inclusao': this['dispositivo_base_para_inclusao'].value,
       'formtype': 'get_form_inclusao'
     }
-    var url = $(this).closest('.dpt').attr('pk') + '/refresh'
+    let url = $(this).closest('.dpt').attr('pk') + '/refresh'
 
     instance.waitShow()
 
@@ -356,15 +353,13 @@ function DispositivoEdit () {
   }
 
   instance.onSubmitFormRegistraRevogacao = function (event) {
-    var _this = this
-
     if (this.dispositivo_revogado === undefined) {
       instance.modalMessage('Nenhum dispositivo selecionado', 'alert-info')
       if (event != null) { event.preventDefault() }
       return
     }
-    var dispositivo_revogado = this.dispositivo_revogado.length === undefined ? [this.dispositivo_revogado ] : Array.from(this.dispositivo_revogado)
-    var form_data = {
+    let dispositivo_revogado = this.dispositivo_revogado.length === undefined ? [ this.dispositivo_revogado ] : Array.from(this.dispositivo_revogado)
+    let form_data = {
       'csrfmiddlewaretoken': this.csrfmiddlewaretoken.value,
       'dispositivo_revogado': dispositivo_revogado.filter(
         function (elem, idx, array) {
@@ -377,7 +372,7 @@ function DispositivoEdit () {
       'formtype': 'get_form_revogacao'
     }
 
-    var url = $(this).closest('.dpt').attr('pk') + '/refresh'
+    let url = $(this).closest('.dpt').attr('pk') + '/refresh'
 
     instance.waitShow()
 
@@ -397,12 +392,12 @@ function DispositivoEdit () {
   }
 
   instance.onSubmitEditFormBase = function (event) {
-    var _this = this
-    var texto = ''
-    var texto_atualizador = ''
-    var visibilidade = ''
-    var editor_tiny_texto = tinymce.get('id_texto')
-    var editor_tiny_texto_atualizador = tinymce.get('id_texto_atualizador')
+    let _this = this
+    let texto = ''
+    let texto_atualizador = ''
+    let visibilidade = ''
+    let editor_tiny_texto = window.tinymce.get('id_texto')
+    let editor_tiny_texto_atualizador = window.tinymce.get('id_texto_atualizador')
 
     if (editor_tiny_texto != null) { texto = editor_tiny_texto.getContent() } else { texto = this['id_texto'].value }
 
@@ -410,7 +405,7 @@ function DispositivoEdit () {
 
     if ('visibilidade' in this) { visibilidade = this['visibilidade'].value }
 
-    var form_data = {
+    let form_data = {
       'csrfmiddlewaretoken': this['csrfmiddlewaretoken'].value,
       'texto': texto,
       'texto_atualizador': texto_atualizador,
@@ -418,14 +413,14 @@ function DispositivoEdit () {
       'formtype': 'get_form_base'
     }
 
-    var url = $(this).closest('.dpt').attr('pk') + '/refresh'
+    let url = $(this).closest('.dpt').attr('pk') + '/refresh'
 
     instance.waitShow()
 
     $.post(url, form_data)
       .done(function (data) {
         if (typeof data === 'string') { /* if obsoleto */
-          var dpt = $(_this).closest('.dpt')
+          let dpt = $(_this).closest('.dpt')
           dpt = $('#' + dpt.replaceWith(data).attr('id'))
           instance.onClicks(dpt)
           instance.waitHide()
@@ -444,15 +439,15 @@ function DispositivoEdit () {
     if (event != null) { event.preventDefault() }
   }
   instance.refreshContent = function (pais, trigger_edit_pk) {
-    if (pais.length == 0) {
+    if (pais.length === 0) {
       instance.waitHide()
       return
     }
-    var pk = pais.shift()
-    var url = pk + '/refresh'
+    let pk = pais.shift()
+    let url = pk + '/refresh'
 
     $.get(url).done(function (data) {
-      var dpt = $('#id' + pk).closest('.dpt')
+      let dpt = $('#id' + pk).closest('.dpt')
       dpt = $('#' + dpt.replaceWith(data).attr('id'))
       instance.onClicks(dpt)
       instance.reloadFunctionsDraggables()
@@ -464,16 +459,16 @@ function DispositivoEdit () {
   }
   instance.refreshScreenFocusPk = function (data) {
     instance.waitShow()
-    if (data.pai[0] == -1) {
+    if (data.pai[0] === -1) {
       instance.waitShow()
-      href = location.href.split('#')[0]
+      let href = location.href.split('#')[0]
       location.href = href + '#' + data.pk
       location.reload(true)
     } else {
       instance.refreshContent(data.pai, data.pk)
 
       /* setTimeout(function() {
-                for (var pai = 1; pai < data.pai.length; pai++)
+                for (let pai = 1; pai < data.pai.length; pai++)
                     instance.refreshContent(data.pai[pai]);
                 instance.waitHide();
             }, 1000); */
@@ -487,10 +482,10 @@ function DispositivoEdit () {
       start: function (event, ui) {
       },
       stop: function (event, ui) {
-        var pk = ui.item.attr('pk')
-        var bloco_pk = ui.item.closest('.dpt-alts').closest('.dpt').attr('pk')
+        let pk = ui.item.attr('pk')
+        let bloco_pk = ui.item.closest('.dpt-alts').closest('.dpt').attr('pk')
 
-        var url = pk + '/refresh?action=json_drag_move_dpt_alterado&index=' + ui.item.index() + '&bloco_pk=' + bloco_pk
+        let url = pk + '/refresh?action=json_drag_move_dpt_alterado&index=' + ui.item.index() + '&bloco_pk=' + bloco_pk
         $.get(url).done(function (data) {
           console.log(pk + ' - ' + bloco_pk)
           // reloadFunctionsForObjectsOfCompilacao();
@@ -523,8 +518,8 @@ function DispositivoEdit () {
     }
   }
   instance.triggerBtnDptEdit = function (pk) {
-    var btn_dpt_edit = $('#id' + pk + ' > .dpt-text.btn-dpt-edit')
-    if (btn_dpt_edit.length == 0) { btn_dpt_edit = $('#id' + pk + ' > .dpt-actions-fixed > .btn-dpt-edit') }
+    let btn_dpt_edit = $('#id' + pk + ' > .dpt-text.btn-dpt-edit')
+    if (btn_dpt_edit.length === 0) { btn_dpt_edit = $('#id' + pk + ' > .dpt-actions-fixed > .btn-dpt-edit') }
     btn_dpt_edit.trigger('click')
   }
   instance.waitHide = function () {
@@ -536,22 +531,22 @@ function DispositivoEdit () {
 
   instance.init = function () {
     $('.dpt-actions-fixed').first().css('opacity', '1')
-    editortype = ReadCookie('editortype')
-    if (editortype == null || editortype == '') {
+    editortype = window.ReadCookie('editortype')
+    if (editortype === null || editortype === '') {
       editortype = 'textarea'
-      SetCookie('editortype', editortype, 30)
+      window.SetCookie('editortype', editortype, 30)
     }
     // editortype = "textarea";
     instance.offClicks()
     instance.onClicks()
     instance.reloadFunctionsDraggables()
 
-    href = location.href.split('#')
-    if (href.length == 2 && href[1] != '') {
+    let href = location.href.split('#')
+    if (href.length === 2 && href[1] !== '') {
       instance.triggerBtnDptEdit(href[1])
     }
     $('main').click(function (event) {
-      if (event.target == this || event.target == this.firstElementChild) { instance.clearEditSelected() }
+      if (event.target === this || event.target === this.firstElementChild) { instance.clearEditSelected() }
     })
     instance.waitHide()
   }
@@ -559,5 +554,5 @@ function DispositivoEdit () {
 }
 
 $(document).ready(function () {
-  DispositivoEdit()
+  window.DispositivoEdit()
 })

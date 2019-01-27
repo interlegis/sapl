@@ -1,4 +1,3 @@
-const webpack = require('webpack')
 const path = require('path')
 
 const BundleTracker = require('webpack-bundle-tracker')
@@ -12,20 +11,20 @@ module.exports = {
   outputDir: './dist/',
 
   configureWebpack: {
-    devtool: 'cheap-module-eval-source-map',
+    devtool: 'cheap-module-eval-source-map'
   },
 
   chainWebpack: config => {
     config.optimization
       .splitChunks(false)
-    
+
     config
       .plugin('BundleTracker')
       .use(BundleTracker, [{ filename: './webpack-stats.json' }])
-    
+
     config.resolve.alias
       .set('__STATIC__', 'static')
-    
+
     config.devServer
       .public('')
       .host('localhost')
@@ -37,51 +36,25 @@ module.exports = {
       .headers({ 'Access-Control-Allow-Origin': '*' })
       .contentBase([
         path.join(__dirname, 'public'),
-        path.join(__dirname, 'src', 'assets'),
-        //path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'),
-        //path.join(__dirname, 'node_modules', THEME_CUSTOM, 'src', 'assets')
+        path.join(__dirname, 'src', 'assets')
+        // path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'),
+        // path.join(__dirname, 'node_modules', THEME_CUSTOM, 'src', 'assets')
       ])
-    
-      config
-        .plugin('copy')
-        .tap(([options]) => {
-          options.push(
-            {
-          from: path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'),
-          to: path.join(__dirname, 'dist'),
-          toType: 'dir',
-          ignore: [
-            '.DS_Store'
-          ]
-        })
-        return [options]
-      })
 
-
-    /*
-      new CopyWebpackPlugin(
-        [
+    config
+      .plugin('copy')
+      .tap(([options]) => {
+        options.push(
           {
-            from: '/home/leandro/desenvolvimento/envs/sapl/sapl-frontend/public',
-            to: '/home/leandro/desenvolvimento/envs/sapl/sapl-frontend/dist',
+            from: path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'),
+            to: path.join(__dirname, 'dist'),
             toType: 'dir',
             ignore: [
               '.DS_Store'
             ]
-          }
-        ]
-      ),
- config
-      .module
-      .rule('images')
-      .use('url-loader')
-      .loader('url-loader')
-        .tap(options => {
-          options.fallback.options.name = (process.env.NODE_ENV === 'production' 
-                                            ? '/static/' 
-                                            : '') + options.fallback.options.name
-          return options
-        }) */
+          })
+        return [options]
+      })
     config
       .plugin('provide')
       .use(require('webpack/lib/ProvidePlugin'), [{
@@ -92,22 +65,22 @@ module.exports = {
         _: 'lodash'
       }])
     config.entryPoints.delete('app')
-      
+
     config
       .entry(THEME_CUSTOM)
       .add('./src/theme-dev/main.js')
       // .add(THEME_CUSTOM + '/src/main.js')
       .end()
-    
+
     config
       .entry('global')
       .add('./src/global/main.js')
       .end()
-    
+
     config.entry('compilacao')
-    .add('./src/apps/compilacao/main.js')
-    .end()
-    
+      .add('./src/apps/compilacao/main.js')
+      .end()
+
     /* config
     .plugin('theme')
     .use(webpack.DefinePlugin, [{
