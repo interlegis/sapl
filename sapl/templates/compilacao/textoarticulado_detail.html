@@ -4,35 +4,13 @@
 {% load common_tags %}
 
 {% block sections_nav %}
-  <ul class="nav nav-pills navbar-right">
-    {%if object %}
-      <li>
-        {% if request.GET.back_type == 'history' and object.content_object %}
-          <a href="javascript:window.history.back()" title="{% trans 'Voltar para '%}{{object}}">{% trans 'Voltar para '%}{{object}}</a>
-        {% elif object.content_object%}
-          <a href="{% url object|urldetail_content_type:object.content_object object.content_object.pk %}" title="{% trans 'Voltar para '%}{{object}}">{% trans 'Voltar para '%}{{object}}</a>
-        {%else%}
-          <a href="{% url 'sapl.compilacao:ta_detail' object.pk %}">{% trans 'Início' %}</a>
-        {%endif%}
-      </li>
-      {% if object.tipo_ta.publicacao_func %}
-        <li><a href="{% url 'sapl.compilacao:ta_pub_list' object.pk %}">{% model_verbose_name_plural 'sapl.compilacao.models.Publicacao' %}</a></li>
-      {% endif %}
-      {% if perms.compilacao.view_dispositivo_notificacoes %}
-        <li><a href="{% url 'sapl.compilacao:ta_text_notificacoes' object.pk %}">{% trans 'Notificações' %}</a></li>
-      {% endif %}
-      {% block extra_sections_nav %}
-        <li><a href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto' %}</a></li>
-      {% endblock %}
-    {% endif %}
-  </ul>
+  {% include 'compilacao/subnav.html'%}
 {% endblock %}
 
 {% block base_content %}
 
   {% block actions %}
     <div class="clearfix hidden-print">
-
       <div class="actions btn-group float-right" role="group">
         {% if perms.compilacao.change_textoarticulado and object|can_use_dynamic_editing:user %}
           <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Metadados do Texto Articulado' %}</a>
@@ -41,7 +19,7 @@
               <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Texto' %}</a>
         {% endif %}
         {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
-              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-outline-primary {% if object.editing_locked %}btn-outline-danger{%else%}btn-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
+              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn {% if object.editing_locked %}btn-outline-danger{%else%}btn-outline-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
         {% endif %}
 
 	     </div>

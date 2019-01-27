@@ -164,6 +164,27 @@ a:link:after, a:visited:after {
 }
 
 .cp {
+  .cp-vigencias {
+    .nav-link {
+      padding: 0.5rem;
+    }
+    .dropdown-toggle::after {
+      zoom: 0.8;
+      margin: 0;
+    }
+    .dropdown-menu {
+      margin-left: 0.5rem;
+    }
+    .dropdown-item {
+      padding: 0;
+      a {
+        line-height: 1;
+        padding: 0.7rem;
+      }
+    }
+  }
+
+
   .desativado {
 
     .dtxt, .dtxt *, .dpt-link, .dpt-link * {
