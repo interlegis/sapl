@@ -2,8 +2,6 @@
 
 import './scss/compilacao.scss'
 
-import 'bootstrap'
-
 import compilacao from './js/old/compilacao'
 import compilacaoView from './js/old/compilacao_view'
 import compilacaoNotas from './js/old/compilacao_notas'

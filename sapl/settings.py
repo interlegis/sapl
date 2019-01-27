@@ -264,31 +264,25 @@ LOCALE_PATHS = (
     'locale',
 )
 
-
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
-        'BUNDLE_DIR_NAME': 'bundle/dist/',
+        'BUNDLE_DIR_NAME': 'dist/',
         'STATS_FILE': FRONTEND_DIR.child('webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
     }
 }
+
 THEME_CUSTOM = config('THEME_CUSTOM', default='sapl-oficial-theme')
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
-# STATICFILES_DIRS = (BASE_DIR.child("static"),)
-
 
 STATICFILES_DIRS = (
-    # BASE_DIR.child("static"),
     FRONTEND_DIR.child('dist'),
 )
-
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

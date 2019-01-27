@@ -4,16 +4,14 @@ import 'jquery-mask-plugin'
 import 'webpack-jquery-ui/dialog'
 import 'webpack-jquery-ui/sortable'
 
-import 'bootstrap'
-
 import './functions'
+import 'bootstrap'
 
 import './image_cropping'
 
 require('imports-loader?window.jQuery=jquery!./jquery.runner.js')
-
-window.jQuery = jQuery
-window.$ = jQuery
+// require(THEME_CUSTOM + '/src/assets/img/authenticated.png')
 
 window.autorModal()
 window.refreshMask()
+

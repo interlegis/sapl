@@ -1,3 +1,6 @@
+window.jQuery = jQuery
+window.$ = jQuery
+
 window.getCookie = function (name) {
   var cookieValue = null
   if (document.cookie && document.cookie !== '') {
