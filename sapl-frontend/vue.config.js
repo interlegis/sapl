@@ -71,8 +71,8 @@ module.exports = {
 
     config
       .entry(THEME_CUSTOM)
-      .add('./src/theme-dev/main.js')
-      // .add(THEME_CUSTOM + '/src/main.js')
+      // .add('./src/theme-dev/main.js')
+      .add(THEME_CUSTOM + '/src/main.js')
       .end()
 
     config

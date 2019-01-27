@@ -13,3 +13,5 @@ require('imports-loader?window.jQuery=jquery!./jquery.runner.js')
 
 window.autorModal()
 window.refreshMask()
+
+// "sapl-oficial-theme": "../../sapl-oficial-theme",
