@@ -55,6 +55,7 @@ module.exports = {
           })
         return [options]
       })
+
     config
       .plugin('provide')
       .use(require('webpack/lib/ProvidePlugin'), [{
@@ -62,8 +63,10 @@ module.exports = {
         jquery: 'jquery',
         'window.jQuery': 'jquery',
         jQuery: 'jquery',
-        _: 'lodash'
+        _: 'lodash',
+        Modal: 'exports-loader?Modal!bootstrap/js/dist/modal',
       }])
+
     config.entryPoints.delete('app')
 
     config

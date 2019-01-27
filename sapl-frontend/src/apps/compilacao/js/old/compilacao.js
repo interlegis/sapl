@@ -1,3 +1,5 @@
+let _$ = window.$
+
 function SetCookie (cookieName, cookieValue, nDays) {
   let today = new Date()
   let expire = new Date()
@@ -19,22 +21,22 @@ function ReadCookie (cookieName) {
 
 function insertWaitAjax (element) {
   // jQuery(element).append('<div style="text-align:center;'><img src="/static/img/ajax-loader.gif'></div>')
-  jQuery(element).append('<div style="text-align:center;"><i style="font-size: 200%;" class="fa fa-refresh fa-spin"></i></div>')
+  _$(element).append('<div style="text-align:center;"><i style="font-size: 200%;" class="fa fa-refresh fa-spin"></i></div>')
 }
 
 function DispositivoSearch (opts) {
-  $(function () {
+  _$(function () {
     let formData = {}
-    let containerDs = $('body').children('#container_ds')
+    let containerDs = _$('body').children('#container_ds')
     if (containerDs.length > 0) {
-      $(containerDs).remove()
+      _$(containerDs).remove()
     }
-    containerDs = $('<div id="container_ds"/>')
-    $('body').prepend(containerDs)
+    containerDs = _$('<div id="container_ds"/>')
+    _$('body').prepend(containerDs)
 
-    let fields = $('[data-sapl-ta="DispositivoSearch"]')
+    let fields = _$('[data-sapl-ta="DispositivoSearch"]')
     fields.each(function () {
-      let field = $(this)
+      let field = _$(this)
       let dataTypeSelection = field.attr('data-type-selection')
       let dataField = field.attr('data-field')
       let dataFunction = field.attr('data-function')
@@ -45,21 +47,21 @@ function DispositivoSearch (opts) {
           tas.off()
 
           tas.on('change', function (event) {
-            $(this).closest('ul').find('input[name="' + dataField + '"]').prop('checked', this.checked)
-            // $(this).prop('checked', false)
+            _$(this).closest('ul').find('input[name="' + dataField + '"]').prop('checked', this.checked)
+            // _$(this).prop('checked', false)
           })
         } else {
           let dpts = field.find('input')
           dpts.off()
           dpts.attr('type', 'hidden')
-          $('<a class="text-danger">')
+          _$('<a class="text-danger">')
             .insertBefore(dpts)
-            .append($('<span aria-hidden="true">&times;</span>'))
+            .append(_$('<span aria-hidden="true">&times;</span>'))
             .on('click', function () {
-              if ($(this).closest('ul').find('li').length === 2) {
-                $(this).closest('ul').remove()
+              if (_$(this).closest('ul').find('li').length === 2) {
+                _$(this).closest('ul').remove()
               } else {
-                $(this).closest('li').remove()
+                _$(this).closest('li').remove()
               }
             })
         }
@@ -67,30 +69,30 @@ function DispositivoSearch (opts) {
       onChangeFieldSelects()
 
       let onChangeParamTA = function (event) {
-        let tipoTa = $('select[name="tipo_ta"]').val()
-        let tipoModel = $('select[name="tipo_model"]').val()
-        let numTa = $('input[name="num_ta"]').val()
-        let anoTa = $('input[name="ano_ta"]').val()
-        let dispositivosInternos = $('input[name="dispositivos_internos"]:checked').val()
-        let rotuloDispositivo = $('input[name="rotulo_dispositivo"]').val()
-        let textoDispositivo = $('input[name="texto_dispositivo"]').val()
-        let maxResults = $('select[name="max_results"]').val()
+        let tipoTa = _$('select[name="tipo_ta"]').val()
+        let tipoModel = _$('select[name="tipo_model"]').val()
+        let numTa = _$('input[name="num_ta"]').val()
+        let anoTa = _$('input[name="ano_ta"]').val()
+        let dispositivosInternos = _$('input[name="dispositivos_internos"]:checked').val()
+        let rotuloDispositivo = _$('input[name="rotulo_dispositivo"]').val()
+        let textoDispositivo = _$('input[name="texto_dispositivo"]').val()
+        let maxResults = _$('select[name="max_results"]').val()
         let url = ''
 
         if (rotuloDispositivo.length > 0 || textoDispositivo.length > 0) {
-          $('input[name="dispositivos_internos"]').prop('disabled', false)
-          $('input[name="dispositivos_internos"]').each((idx, element) => {
+          _$('input[name="dispositivos_internos"]').prop('disabled', false)
+          _$('input[name="dispositivos_internos"]').each((idx, element) => {
             element.parentElement.classList.remove('disabled')
           })
-          $('input[name="dispositivos_internos"]').closest('#div_id_dispositivos_internos').css('opacity', '1')
+          _$('input[name="dispositivos_internos"]').closest('#div_id_dispositivos_internos').css('opacity', '1')
         } else {
-          $('input[name="dispositivos_internos"]').filter('[value="False"]').prop('checked', true)
-          $('input[name="dispositivos_internos"]').prop('disabled', true)
+          _$('input[name="dispositivos_internos"]').filter('[value="False"]').prop('checked', true)
+          _$('input[name="dispositivos_internos"]').prop('disabled', true)
 
-          $('input[name="dispositivos_internos"]').each((idx, element) => {
+          _$('input[name="dispositivos_internos"]').each((idx, element) => {
             element.parentElement.classList.add('disabled')
           })
-          $('input[name="dispositivos_internos"]').closest('#div_id_dispositivos_internos').css('opacity', '0.3')
+          _$('input[name="dispositivos_internos"]').closest('#div_id_dispositivos_internos').css('opacity', '0.3')
           dispositivosInternos = 'False'
         }
         formData = {
@@ -110,59 +112,59 @@ function DispositivoSearch (opts) {
         window.localStorage.setItem('dispositivo_search_form_data', JSON.stringify(formData))
 
         url = '/ta/search_fragment_form'
-        $('.result-busca-dispositivo').html('')
+        _$('.result-busca-dispositivo').html('')
         insertWaitAjax('.result-busca-dispositivo')
-        $.get(url, formData).done(function (data) {
-          $('.result-busca-dispositivo').html(data)
+        _$.get(url, formData).done(function (data) {
+          _$('.result-busca-dispositivo').html(data)
           // OptionalCustomFrontEnd().init()
           if (dataTypeSelection === 'checkbox') {
-            let tas = $('.result-busca-dispositivo').find('input[name="ta_select_all"]')
+            let tas = _$('.result-busca-dispositivo').find('input[name="ta_select_all"]')
             tas.off()
             tas.on('change', function (event) {
-              $(this).closest('ul').find('input[name="' + dataField + '"]').prop('checked', this.checked)
+              _$(this).closest('ul').find('input[name="' + dataField + '"]').prop('checked', this.checked)
             })
           }
         })
       }
 
       let onKeyPressRotuloBuscaTextual = function (event) {
-        let rotuloDispositivo = $('input[name="rotulo_dispositivo"]').val()
-        let textoDispositivo = $('input[name="texto_dispositivo"]').val()
-        // let dispositivosInternos = $('input[name="dispositivos_internos"]:checked').val()
+        let rotuloDispositivo = _$('input[name="rotulo_dispositivo"]').val()
+        let textoDispositivo = _$('input[name="texto_dispositivo"]').val()
+        // let dispositivosInternos = _$('input[name="dispositivos_internos"]:checked').val()
 
         if (rotuloDispositivo.length > 0 || textoDispositivo.length > 0) {
-          $('input[name="dispositivos_internos"]').prop('disabled', false)
-          $('input[name="dispositivos_internos"]').each((idx, element) => {
+          _$('input[name="dispositivos_internos"]').prop('disabled', false)
+          _$('input[name="dispositivos_internos"]').each((idx, element) => {
             element.parentElement.classList.remove('disabled')
           })
-          $('input[name="dispositivos_internos"]').closest('#div_id_dispositivos_internos').css('opacity', '1')
+          _$('input[name="dispositivos_internos"]').closest('#div_id_dispositivos_internos').css('opacity', '1')
         } else {
-          $('input[name="dispositivos_internos"]').filter('[value="False"]').prop('checked', true)
-          $('input[name="dispositivos_internos"]').prop('disabled', true)
-          $('input[name="dispositivos_internos"]').each((idx, element) => {
+          _$('input[name="dispositivos_internos"]').filter('[value="False"]').prop('checked', true)
+          _$('input[name="dispositivos_internos"]').prop('disabled', true)
+          _$('input[name="dispositivos_internos"]').each((idx, element) => {
             element.parentElement.classList.add('disabled')
           })
-          $('input[name="dispositivos_internos"]').closest('#div_id_dispositivos_internos').css('opacity', '0.3')
+          _$('input[name="dispositivos_internos"]').closest('#div_id_dispositivos_internos').css('opacity', '0.3')
           // dispositivosInternos = 'False'
         }
       }
 
       let buttonDs = field.children('#buttonDs')
       if (buttonDs.length > 0) {
-        $(buttonDs).remove()
+        _$(buttonDs).remove()
       }
-      buttonDs = $('<div id="buttonDs" class="clearfix"/>')
+      buttonDs = _$('<div id="buttonDs" class="clearfix"/>')
       field.prepend(buttonDs)
 
-      let btnOpenSearch = $('<button>')
+      let btnOpenSearch = _$('<button>')
         .text(opts['text_button'])
         .attr('type', 'button')
         .attr('class', 'btn btn-sm btn-success btn-modal-open')
       buttonDs.append(btnOpenSearch)
       btnOpenSearch.on('click', function () {
-        $.get(opts['url_form'], function (data) {
+        _$.get(opts['url_form'], function (data) {
           containerDs.html(data)
-          let modalDs = $('#modal-ds')
+          let modalDs = _$('#modal-ds')
           // OptionalCustomFrontEnd().init()
 
           modalDs.find('select[name="tipo_ta"]').change(function (event) {
@@ -172,17 +174,17 @@ function DispositivoSearch (opts) {
 
             let select = modalDs.find('select[name="tipo_model"]')
             select.empty()
-            $('<option value="">Carregando...</option>').appendTo(select)
+            _$('<option value="">Carregando...</option>').appendTo(select)
 
-            $.get(url).done(function (data) {
+            _$.get(url).done(function (data) {
               select.empty()
               for (let item in data) {
                 for (let i in data[item]) {
-                  select.append($('<option>').attr('value', i).text(data[item][i]))
+                  select.append(_$('<option>').attr('value', i).text(data[item][i]))
                 }
               }
               setTimeout(function () {
-                $('select[name="tipo_model"]').val(formData.tipo_model)
+                _$('select[name="tipo_model"]').val(formData.tipo_model)
               }, 200)
               // select.change(onChangeParamTA)
             })
@@ -222,13 +224,13 @@ function DispositivoSearch (opts) {
               }
 
               // insere os dispositivos não presentes
-              let inputForThis = $(this).find('input')
+              let inputForThis = _$(this).find('input')
 
               inputForThis.each(function () {
                 if (ulLista.find('#' + this.id).length > 0) {
                   return
                 }
-                ulLista.append($(this).closest('li'))
+                ulLista.append(_$(this).closest('li'))
               })
             })
 
@@ -243,19 +245,19 @@ function DispositivoSearch (opts) {
 
           try {
             formData = JSON.parse(window.localStorage.getItem('dispositivo_search_form_data'))
-            $('input[name="num_ta"]').val(formData.num_ta)
-            $('input[name="ano_ta"]').val(formData.ano_ta)
-            $('input[name="rotulo_dispositivo"]').val(formData.rotulo)
-            $('input[name="texto_dispositivo"]').val(formData.texto)
-            $('select[name="max_results"]').val(formData.max_results)
+            _$('input[name="num_ta"]').val(formData.num_ta)
+            _$('input[name="ano_ta"]').val(formData.ano_ta)
+            _$('input[name="rotulo_dispositivo"]').val(formData.rotulo)
+            _$('input[name="texto_dispositivo"]').val(formData.texto)
+            _$('select[name="max_results"]').val(formData.max_results)
           } catch (e) {
             console.log(e)
           }
 
           setTimeout(function () {
             try {
-              $('select[name="tipo_ta"]').val(formData.tipo_ta)
-              $('select[name="tipo_ta"]').trigger('change')
+              _$('select[name="tipo_ta"]').val(formData.tipo_ta)
+              _$('select[name="tipo_ta"]').trigger('change')
               // modalDs.find('.btn-busca').trigger('click')
               // onChangeParamTA()
             } catch (e) {

@@ -1,23 +1,25 @@
 
+let _$ = window.$
+
 function onEventsDneExec (pk, model) {
-  $('html, body').animate({
-    scrollTop: $('#dne' + pk).offset().top - window.innerHeight / 5
+  _$('html, body').animate({
+    scrollTop: _$('#dne' + pk).offset().top - window.innerHeight / 5
   }, 300)
 
   window.refreshDatePicker()
 
-  $('#dne' + pk + ' #button-id-submit-form').click(onSubmitEditNVForm)
-  $('#dne' + pk + ' .btn-close-container').click(function () {
-    $(this).closest('.dne-nota').removeClass('dne-nota')
-    $(this).closest('.dne-form').html('')
+  _$('#dne' + pk + ' #button-id-submit-form').click(onSubmitEditNVForm)
+  _$('#dne' + pk + ' .btn-close-container').click(function () {
+    _$(this).closest('.dne-nota').removeClass('dne-nota')
+    _$(this).closest('.dne-form').html('')
   })
 
   if (model === 'nota') {
-    $('#dne' + pk + ' select[name="tipo"]').change(function (event) {
+    _$('#dne' + pk + ' select[name="tipo"]').change(function (event) {
       let url = ''
       url = 'text/' + pk + '/nota/create?action=modelo_nota&id_tipo=' + this.value
-      $.get(url).done(function (data) {
-        $('#dne' + pk + ' textarea[name="texto"]').val(data)
+      _$.get(url).done(function (data) {
+        _$('#dne' + pk + ' textarea[name="texto"]').val(data)
       })
     })
   } else if (model === 'vide') {
@@ -32,15 +34,15 @@ function onSubmitEditNVForm (event) {
   let url = ''
   let model = 'nota'
   let idEdit = null
-  let idDispositivo = $('#id_dispositivo').val()
+  let idDispositivo = _$('#id_dispositivo').val()
 
   if (idDispositivo === undefined) { // trata-se de um vide
-    // $('#idDispositivo_ref').remove()
-    idDispositivo = $('#id_dispositivo_base').val()
+    // _$('#idDispositivo_ref').remove()
+    idDispositivo = _$('#id_dispositivo_base').val()
     model = 'vide'
   }
 
-  idEdit = $('#id_pk').val()
+  idEdit = _$('#id_pk').val()
   url = 'text/' + idDispositivo + '/' + model + '/'
   if (idEdit === null || idEdit === '') {
     url += 'create'
@@ -48,19 +50,19 @@ function onSubmitEditNVForm (event) {
     url += idEdit + '/edit'
   }
 
-  console.log($('#dne' + idDispositivo + ' form').serialize())
+  // console.log(_$('#dne' + idDispositivo + ' form').serialize())
 
-  $.post(url, $('#dne' + idDispositivo + ' form').serialize(), function (data) {
+  _$.post(url, _$('#dne' + idDispositivo + ' form').serialize(), function (data) {
     if (typeof data === 'string') {
       if (data.indexOf('<form') >= 0) {
-        $('#dne' + idDispositivo + ' .dne-form').html(data)
+        _$('#dne' + idDispositivo + ' .dne-form').html(data)
         onEventsDneExec(idDispositivo, model)
       } else {
-        $('#dne' + idDispositivo + ' .dne-form').closest('.dpt').html(data)
+        _$('#dne' + idDispositivo + ' .dne-form').closest('.dpt').html(data)
         onReadyNotasVides()
         try {
-          $('html, body').animate({
-            scrollTop: $('#dne' + idDispositivo).offset().top - window.innerHeight / 3
+          _$('html, body').animate({
+            scrollTop: _$('#dne' + idDispositivo).offset().top - window.innerHeight / 3
           }, 300)
         } catch (err) {
         }
@@ -70,40 +72,40 @@ function onSubmitEditNVForm (event) {
 }
 
 function onDelete (event) {
-  let model = $(event).attr('model')
+  let model = _$(event).attr('model')
 
-  let idDispositivo = $(event).closest('.dn').attr('pk')
-  let idDelete = $(event).attr('pk')
+  let idDispositivo = _$(event).closest('.dn').attr('pk')
+  let idDelete = _$(event).attr('pk')
   let url = 'text/' + idDispositivo + '/' + model + '/' + idDelete + '/delete'
 
-  $.get(url, function (data) {
-    $('#dne' + idDispositivo + ' .dne-form').closest('.dpt').html(data)
+  _$.get(url, function (data) {
+    _$('#dne' + idDispositivo + ' .dne-form').closest('.dpt').html(data)
     onReadyNotasVides()
   })
 }
 
 function getForm (_this) {
   let url = ''
-  let model = $(_this).attr('model')
-  let idDispositivo = $('.dne-nota .dne-form').closest('.dne').attr('pk')
+  let model = _$(_this).attr('model')
+  let idDispositivo = _$('.dne-nota .dne-form').closest('.dne').attr('pk')
   if (idDispositivo != null) {
-    $('#dne' + idDispositivo).removeClass('dne-nota')
-    $('#dne' + idDispositivo + ' .dne-form').html('')
+    _$('#dne' + idDispositivo).removeClass('dne-nota')
+    _$('#dne' + idDispositivo + ' .dne-form').html('')
   }
 
   if (_this.className.indexOf('create') >= 0) {
-    idDispositivo = $(_this).attr('pk')
+    idDispositivo = _$(_this).attr('pk')
     url = 'text/' + idDispositivo + '/' + model + '/create'
   } else if (_this.className.indexOf('edit') >= 0) {
-    let idEdit = $(_this).attr('pk')
-    idDispositivo = $(_this).closest('.dn').attr('pk')
+    let idEdit = _$(_this).attr('pk')
+    idDispositivo = _$(_this).closest('.dn').attr('pk')
     url = 'text/' + idDispositivo + '/' + model + '/' + idEdit + '/edit'
   }
 
-  $('#dne' + idDispositivo).addClass('dne-nota')
+  _$('#dne' + idDispositivo).addClass('dne-nota')
 
-  $.get(url).done(function (data) {
-    $('#dne' + idDispositivo + ' .dne-form').html(data)
+  _$.get(url).done(function (data) {
+    _$('#dne' + idDispositivo + ' .dne-form').html(data)
     onEventsDneExec(idDispositivo, model)
   }).fail(function () {
     onReadyNotasVides()
@@ -111,17 +113,17 @@ function getForm (_this) {
 }
 
 function onReadyNotasVides () {
-  $('.dne-nota').removeClass('dne-nota')
-  $('.dne-form').html('')
+  _$('.dne-nota').removeClass('dne-nota')
+  _$('.dne-form').html('')
 
-  $('.dne .btn-action').off()
-  $('.dn .btn-action').off()
+  _$('.dne .btn-action').off()
+  _$('.dn .btn-action').off()
 
-  $('.dne .btn-action, .dn .btn-action').not('.btn-nota-delete').not('.btn-vide-delete').click(function () {
+  _$('.dne .btn-action, .dn .btn-action').not('.btn-nota-delete').not('.btn-vide-delete').click(function () {
     getForm(this)
   })
 
-  $('.dn .btn-nota-delete, .dn .btn-vide-delete').click(function () {
+  _$('.dn .btn-nota-delete, .dn .btn-vide-delete').click(function () {
     onDelete(this)
   })
 }

@@ -1,3 +1,4 @@
+let _$ = window.$
 let JsDiff = require('diff')
 
 function isElementInViewport (el) {
@@ -18,9 +19,9 @@ function isElementInViewport (el) {
 
 function textoMultiVigente (item, diff) {
   let elv = null
-  let ldpts = $('.dptt')
+  let ldpts = _$('.dptt')
   for (let i = 0; i < ldpts.length; i++) {
-    if ($(ldpts[i]).hasClass('displaynone')) continue
+    if (_$(ldpts[i]).hasClass('displaynone')) continue
     if (isElementInViewport(ldpts[i])) {
       if (i + 1 < ldpts.length) elv = ldpts[i + 1]
       else {
@@ -30,46 +31,46 @@ function textoMultiVigente (item, diff) {
     }
   }
 
-  $('.cp .tipo-vigencias a').removeClass('selected')
-  $(item).addClass('selected')
-  $('.dptt.desativado').removeClass('displaynone')
-  $('.dtxt').removeClass('displaynone')
-  $('.dtxt.diff').remove()
-  $('.nota-alteracao').removeClass('displaynone')
+  _$('.cp .tipo-vigencias a').removeClass('selected')
+  _$(item).addClass('selected')
+  _$('.dptt.desativado').removeClass('displaynone')
+  _$('.dtxt').removeClass('displaynone')
+  _$('.dtxt.diff').remove()
+  _$('.nota-alteracao').removeClass('displaynone')
 
   if (diff) {
-    $('.dtxt[id^="da"').each(function () {
-      if ($(this)
+    _$('.dtxt[id^="da"').each(function () {
+      if (_$(this)
         .html()
         .search(/<\/\w+>/g) > 0) {
         return
       }
 
-      let pk = $(this).attr('pk')
-      let pks = $(this).attr('pks')
+      let pk = _$(this).attr('pk')
+      let pks = _$(this).attr('pks')
 
-      let a = $('#d' + pks)
+      let a = _$('#d' + pks)
         .contents()
         .filter(function () {
           return this.nodeType === Node.TEXT_NODE
         })
-      let b = $('#da' + pk)
+      let b = _$('#da' + pk)
         .contents()
         .filter(function () {
           return this.nodeType === Node.TEXT_NODE
         })
 
-      let diff = JsDiff.diffWordsWithSpace($(a).text(), $(b).text())
+      let diff = JsDiff.diffWordsWithSpace(_$(a).text(), _$(b).text())
 
       if (diff.length > 0) {
-        $('#d' + pks)
+        _$('#d' + pks)
           .closest('.desativado')
           .addClass('displaynone')
 
-        let clone = $('#da' + pk).clone()
-        $('#da' + pk).after(clone)
-        $('#da' + pk).addClass('displaynone')
-        $(clone)
+        let clone = _$('#da' + pk).clone()
+        _$('#da' + pk).after(clone)
+        _$('#da' + pk).addClass('displaynone')
+        _$(clone)
           .addClass('diff')
           .html('')
 
@@ -81,14 +82,14 @@ function textoMultiVigente (item, diff) {
           let value = part.value
 
           if (part.removed) {
-            $(span).addClass('desativado')
+            _$(span).addClass('desativado')
             value += ' '
           } else if (part.added) {
-            $(span).addClass('added')
+            _$(span).addClass('added')
           }
 
           span.appendChild(document.createTextNode(value))
-          $(clone).append(span)
+          _$(clone).append(span)
         })
       }
     })
@@ -97,10 +98,10 @@ function textoMultiVigente (item, diff) {
 
   if (elv) {
     try {
-      $('html, body').animate(
+      _$('html, body').animate(
         {
           scrollTop:
-            $(elv)
+            _$(elv)
               .parent()
               .offset().top - 60
         },
@@ -114,9 +115,9 @@ function textoMultiVigente (item, diff) {
 
 function textoVigente (item, link) {
   let elv = null
-  let ldpts = $('.dptt')
+  let ldpts = _$('.dptt')
   for (let i = 0; i < ldpts.length; i++) {
-    if ($(ldpts[i]).hasClass('displaynone')) continue
+    if (_$(ldpts[i]).hasClass('displaynone')) continue
     if (isElementInViewport(ldpts[i])) {
       if (i + 1 < ldpts.length) elv = ldpts[i + 1]
       else {
@@ -126,19 +127,19 @@ function textoVigente (item, link) {
     }
   }
 
-  $('.cp .tipo-vigencias a').removeClass('selected')
-  $(item).addClass('selected')
+  _$('.cp .tipo-vigencias a').removeClass('selected')
+  _$(item).addClass('selected')
 
-  $('.dptt.desativado').addClass('displaynone')
-  $('.nota-alteracao').removeClass('displaynone')
-  if (!link) $('.nota-alteracao').addClass('displaynone')
+  _$('.dptt.desativado').addClass('displaynone')
+  _$('.nota-alteracao').removeClass('displaynone')
+  if (!link) _$('.nota-alteracao').addClass('displaynone')
 
   if (elv) {
     try {
-      $('html, body').animate(
+      _$('html, body').animate(
         {
           scrollTop:
-            $(elv)
+            _$(elv)
               .parent()
               .offset().top - 60
         },
