@@ -19,7 +19,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
 
-from sapl.base.forms import SessaoLegislativaForm
+from sapl.base.forms import SessaoLegislativaForm, PartidoForm
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -39,7 +39,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
 
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
-PartidoCrud = CrudAux.build(Partido, 'partidos')
+# PartidoCrud = CrudAux.build(Partido, 'partidos')
 TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
@@ -56,6 +56,13 @@ class SessaoLegislativaCrud(CrudAux):
 
     class UpdateView(CrudAux.UpdateView):
         form_class = SessaoLegislativaForm
+
+
+class PartidoCrud(CrudAux):
+    model = Partido
+
+    class UpdateView(CrudAux.UpdateView):
+        form_class = PartidoForm
 
 
 class VotanteView(MasterDetailCrud):
@@ -758,11 +765,17 @@ class MesaDiretoraView(FormView):
 class EditaNomePartidoView(PermissionRequiredMixin, FormView):
     form_class = EditarNomePartidoForm
     template_name = 'parlamentares/altera_nome_partido_form.html'
-    success_url = reverse_lazy('sapl.parlamentares:altera_nome_partido')
     permission_required = ('parlamentares.altera_nome_partido',)
 
     def form_valid(self, form):
+        import ipdb; ipdb.set_trace()
         return super().form_valid(form)
+
+    def get_success_url(self):
+        url_reverse = reverse('sapl.parlamentares:partido_detail',
+                                  kwargs={'pk': self.kwargs['pk']})
+
+        return url_reverse
     
 
 def altera_field_mesa(request):
