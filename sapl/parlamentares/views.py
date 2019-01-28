@@ -767,15 +767,21 @@ class EditaNomePartidoView(PermissionRequiredMixin, FormView):
     template_name = 'parlamentares/altera_nome_partido_form.html'
     permission_required = ('parlamentares.altera_nome_partido',)
 
+    def get_initial(self):
+        initial = super(EditaNomePartidoView, self).get_initial()
+        initial['partido_pk'] = self.kwargs['pk']
+        return initial
+    
+
     def form_valid(self, form):
         data = form.cleaned_data
         obj = Partido.objects.get(id=self.kwargs['pk'])
-        observacao += "Este partido teve o nome alterado de " + obj.nome + \
+        observacao = "Este partido teve o nome alterado de " + obj.nome + \
                      " (" + obj.sigla + ") para " + data['nome'] + " (" + data['sigla'] \
                      + ") em " + data['data_alteracao'].strftime("%d/%m/%Y") + "."
         obj.nome = data['nome']
         obj.sigla = data['sigla']
-        obj.observacao = observacao
+        obj.observacao += '\n\n' + observacao
         obj.save()
 
         return HttpResponseRedirect(self.get_success_url())
