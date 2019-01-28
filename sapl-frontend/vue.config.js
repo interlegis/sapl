@@ -9,7 +9,6 @@ new SplitByPathPlugin([
   }
 ]) */
 
-
 const BundleTrackerPlugin = require('webpack-bundle-tracker')
 class RelativeBundleTrackerPlugin extends BundleTrackerPlugin {
   convertPathChunks(chunks){
@@ -25,7 +24,6 @@ class RelativeBundleTrackerPlugin extends BundleTrackerPlugin {
   }
 }
 // module.exports = RelativeBundleTrackerPlugin
-
 
 const dotenv = require('dotenv')
 dotenv.config({ path: '../sapl/.env' })
@@ -45,10 +43,6 @@ module.exports = {
     config
       .mode('development')
       .devtool('cheap-module-eval-source-map')
-
-
-    config.optimization
-      .splitChunks(false)
 
     config
       .plugin('RelativeBundleTrackerPlugin')

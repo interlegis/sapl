@@ -15,30 +15,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block head_content %}
       <link rel="icon" href="{% webpack_static 'img/favicon.ico' %}"  type="image/png" >
-
-      {# Styles #}
-      {% comment "" %}
-      
-
-
-
-
-        {# Incorporado  em sapl-frontend#}
-                              <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
-                              <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-                              <link rel="stylesheet" href="{% static 'jquery-ui/themes/cupertino/jquery-ui.min.css' %}">
-                              <link rel="stylesheet" href="{% static 'drunken-parrot-flat-ui/css/drunken-parrot.css' %}">
-                              <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
-                              <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
-                              {# Scripts #}
-                              {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
-
-
-      {% endcomment %}
       {% block webpack_loader_css %}
+        {% render_bundle 'chunk-vendors' 'css' %}
         {% render_bundle  'global' 'css' %}
         {% render_bundle THEME_CUSTOM 'css' %}
       {% endblock webpack_loader_css %}
+
+      {% block webpack_loader_chunks_css %}
+        {% render_bundle  'image_cropping' 'css' %}
+        {% render_bundle  'jquery_mask_plugin' 'css' %}
+      {% endblock webpack_loader_chunks_css %}
 
     {% endblock %}
   </head>
@@ -241,38 +227,36 @@
     {% endif %}
 
     {% block foot_js %}
+
       {% block webpack_loader_js %}
+        {% render_bundle 'chunk-vendors' 'js' %}
         {% render_bundle  'global' 'js' %}      
         {% render_bundle THEME_CUSTOM 'js' %}
       {% endblock webpack_loader_js %}
 
-      {% comment "" %}
-      
-        <!-- Bootstrap core JavaScript ================================================== -->
-        <!-- Placed at the end of the document so the pages load faster -->
+      {% block webpack_loader_chunks_js %}
+        {% comment %}
+          Code Spliting - 
+            O Split Chunks são catalogados no arquivo webpack-stats.json
 
+            Seria mais eficiente importar o que criado (arbitrariamente separado)
+            apenas nos locais que são necessários e aqui em base.html
+            este bloco ficar vazio para extensão quando necessário.
+            Anteriormente tudo já era importado aqui no base.html, só que
+            agora podemos reverter isso refatorando os templates 
+            e importando apenas o que for necessário, onde for.
+            Ou seja:
+              - ou carrega tudo aqui em base.html e, "se quiser", 
+                remove em qualquer html de extensão como foi feito em index.html
+              - ou não carrega nenhum Chunk aqui e carrega apenas onde for necessário
+                - image_cropping, por exemplo, seu js só é usado na edição de parlamentares e
+                  poderia ser importado apenas nesta tela
+                - jquery_mask_plugin só é usado em telas de formulários...
 
-
-
-
-
-        <script type="text/javascript" src="{% static 'jquery-query-object/jquery.query-object.js' %}"></script>
-
-
-        {# Incorporado  em sapl-frontend#}
-        <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
-        <script type="text/javascript" src="{% static 'jsdiff/diff.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
-        <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
-        <script type="text/javascript" src="{% static 'jquery-ui/ui/i18n/datepicker-pt-BR.js' %}"></script>
-
-        #Eliminado
-        <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/checkbox.js' %}"></script>
-        <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/radio.js' %}"></script>
-      {% endcomment %}
+        {% endcomment %}
+        {% render_bundle  'image_cropping' 'js' %}  
+        {% render_bundle  'jquery_mask_plugin' 'js' %}   
+      {% endblock webpack_loader_chunks_js %}
 
       {% block extra_js %}{% endblock %}
 
