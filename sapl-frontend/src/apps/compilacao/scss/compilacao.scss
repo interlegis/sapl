@@ -507,8 +507,13 @@ a:link:after, a:visited:after {
     }
   } /* and dpt */
 
-
   .tipo-vigencias {
+    a {
+      box-shadow: 1px 1px 1px #aaa;
+    }
+  }
+
+  .tipo-vigencias__old {
     list-style: none;
     position: fixed;
     bottom: 0px;
@@ -522,29 +527,23 @@ a:link:after, a:visited:after {
     opacity: 0.9;
     transition: all 0.3s ease-in-out;
 
-    li {
+    a {
+      color: white;
+      padding: 0.3em 1em 0;
       display: inline-block;
-      border-left: 1px solid #fff;
-      float: left;
-      a {
-        color: white;
-        padding: 0.3em 1em 0;
-        display: inline-block;
-        font-size: 110%;
-        cursor: pointer;
-        &.selected {
-          background-color: rgba(0, 0, 0, 0.5);
-        }
-      }
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.2);
+      font-size: 110%;
+      cursor: pointer;
+      &.selected {
+        background-color: rgba(0, 0, 0, 0.5);
       }
     }
     &:hover {
-      opacity: 1;
+      background-color: rgba(0, 0, 0, 0.2);
     }
   }
-
+  &:hover {
+    opacity: 1;
+  }
 } /* end cp */
 
 .cp.cpe {
@@ -557,6 +556,7 @@ a:link:after, a:visited:after {
 
     a.nota-alteracao * {
       color: #02baf2 !important;
+      font-size: 2rem;
     }
   }
 

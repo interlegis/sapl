@@ -47,11 +47,9 @@
           {%endif%}
           {% if node.na %}
             <a class="dpt-link nota-alteracao" href="{% url 'sapl.compilacao:ta_text_edit' node.da.dpt.ta_id %}#{{node.da.dpt.pk}}" title="{% trans 'Abrir Edição do Dispositivo Alterador'%}">
-              <small>
                 {{ node.td.nota_automatica_prefixo_html|safe }}
                 {{ node.na }}
                 {{ node.td.nota_automatica_sufixo_html|safe }}
-              </small>
             </a>
           {% endif %}
       </div>

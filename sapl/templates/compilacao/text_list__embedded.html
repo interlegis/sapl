@@ -66,12 +66,14 @@
     {% endif %}
   {% endfor %}
 
-  <ul class="tipo-vigencias">
-      <li><a class="selected" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a></li>
-      <li><a onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a></li>
-      <li><a onclick="textoMultiVigente(this, false); textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Textos Alteradores'%}">{% trans 'TVL'%}</a></li>
-      <li><a onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a></li>
-  </ul>
+  <div class="tipo-vigencias d-flex fixed-bottom  justify-content-center mb-1">
+    <div class="btn-group">
+      <a class="btn btn-primary active" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a>
+      <a class="btn btn-primary" onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a>
+      <a class="btn btn-primary"  onclick="textoMultiVigente(this, false); textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Textos Alteradores'%}">{% trans 'TVL'%}</a>
+      <a class="btn btn-primary"  onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a>
+    </div>
+  </div>
 
   {% include 'compilacao/text_list_bloco.html'%}
 </div>
