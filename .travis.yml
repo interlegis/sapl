@@ -6,15 +6,8 @@ python:
 services:
   - postgresql
 
-before_install:
-  - nvm install 10.15.0
-  
 install:
   - pip install -r requirements/test-requirements.txt
-  - cd sapl-frontend
-  - yarn install
-  - yarn build
-  - cd ..
 
 before_script:
   - cp sapl/.env_test sapl/.env

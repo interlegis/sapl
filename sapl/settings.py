@@ -27,7 +27,6 @@ host = socket.gethostbyname_ex(socket.gethostname())[0]
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
-FRONTEND_DIR = PROJECT_DIR.child('sapl-frontend')
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -267,8 +266,8 @@ LOCALE_PATHS = (
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
-        'BUNDLE_DIR_NAME': 'dist/',
-        'STATS_FILE': FRONTEND_DIR.child('webpack-stats.json'),
+        'BUNDLE_DIR_NAME': 'sapl/static/',
+        'STATS_FILE':  BASE_DIR.child('static').child('webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
@@ -281,7 +280,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
 
 STATICFILES_DIRS = (
-    FRONTEND_DIR.child('dist'),
+    BASE_DIR.child('static'),
 )
 
 STATICFILES_FINDERS = (

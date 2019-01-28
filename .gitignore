@@ -9,7 +9,6 @@ __pycache__/
 # Nodejs
 node_modules/
 yarn.lock
-webpack-stats.json
 
 # Distribution / packaging
 .Python

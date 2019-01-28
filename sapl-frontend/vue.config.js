@@ -1,6 +1,32 @@
 const path = require('path')
+const each = require('lodash/fp/each')
 
-const BundleTracker = require('webpack-bundle-tracker')
+/* var SplitByPathPlugin = require('webpack-split-by-path');
+new SplitByPathPlugin([
+  {
+    name: 'vendor',
+    path: path.join(__dirname, './node_modules/')
+  }
+]) */
+
+
+const BundleTrackerPlugin = require('webpack-bundle-tracker')
+class RelativeBundleTrackerPlugin extends BundleTrackerPlugin {
+  convertPathChunks(chunks){
+    each(each(chunk => {
+      chunk.path = path.relative(this.options.path, chunk.path)
+    }))(chunks)
+  }
+  writeOutput(compiler, contents) {
+    if (contents.status === 'done')  {
+      this.convertPathChunks(contents.chunks)
+    }
+    super.writeOutput(compiler, contents)
+  }
+}
+// module.exports = RelativeBundleTrackerPlugin
+
+
 const dotenv = require('dotenv')
 dotenv.config({ path: '../sapl/.env' })
 
@@ -8,19 +34,28 @@ var THEME_CUSTOM = process.env.THEME_CUSTOM === undefined ? 'sapl-oficial-theme'
 
 module.exports = {
   publicPath: process.env.NODE_ENV === 'production' ? '/static/' : 'http://localhost:8080/',
-  outputDir: './dist/',
-
-  configureWebpack: {
-    devtool: 'cheap-module-eval-source-map'
-  },
+  outputDir: '../sapl/static/',
 
   chainWebpack: config => {
+
+    config.plugins.delete('html')
+    config.plugins.delete('preload')
+    config.plugins.delete('prefetch')
+
+    config
+      .mode('development')
+      .devtool('cheap-module-eval-source-map')
+
+
     config.optimization
       .splitChunks(false)
 
     config
-      .plugin('BundleTracker')
-      .use(BundleTracker, [{ filename: './webpack-stats.json' }])
+      .plugin('RelativeBundleTrackerPlugin')
+      .use(RelativeBundleTrackerPlugin, [{ 
+        path:'.',
+        filename: '../sapl/static/webpack-stats.json' 
+      }])
 
     config.resolve.alias
       .set('__STATIC__', 'static')
@@ -35,7 +70,7 @@ module.exports = {
       .https(false)
       .headers({ 'Access-Control-Allow-Origin': '*' })
       .contentBase([
-        path.join(__dirname, 'public'),
+        //path.join(__dirname, 'public'),
         path.join(__dirname, 'src', 'assets')
         // path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'),
         // path.join(__dirname, 'node_modules', THEME_CUSTOM, 'src', 'assets')
@@ -47,7 +82,7 @@ module.exports = {
         options.push(
           {
             from: path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'),
-            to: path.join(__dirname, 'dist'),
+            to: path.join(__dirname, '..', 'sapl', 'static'),
             toType: 'dir',
             ignore: [
               '.DS_Store'
