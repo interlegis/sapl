@@ -6,7 +6,8 @@ import compilacao from './js/old/compilacao'
 import compilacaoView from './js/old/compilacao_view'
 import compilacaoNotas from './js/old/compilacao_notas'
 
-// import './js/compilacao_edit'
+import './js/old/compilacao_edit'
+
 
 _.forEach(_.merge(_.merge(compilacao, compilacaoNotas), compilacaoView), function (func, key) {
   window[key] = func

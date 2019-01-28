@@ -1,15 +1,8 @@
 {% extends "compilacao/textoarticulado_detail.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
-{% load staticfiles %}
-{% load sass_tags %}
 {% load crispy_forms_tags %}
 {% load common_tags %}
-
-{% block head_content %}{{block.super}}
-  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
-{% endblock %}
-
 {% block title%}
   <h2 class="page-header">{% if object.content_object.title_type %}{{object.content_object.title_type}}{%else%}{{object}}{% endif %}{% comment %}<small><i>{% trans 'Texto Multivigente em Edição' %}</i></small>{% endcomment %}</h2>
 {% endblock %}
@@ -134,11 +127,4 @@
     </div>
   </div>
 </div>
-
 {% endblock base_content %}
-
-{% block foot_js %}
-  {{block.super}}
-  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/compilacao_edit.js' %}"></script>
-{% endblock %}

@@ -1,9 +1,6 @@
-{% extends "base.html" %}
-{% load i18n crispy_forms_tags compilacao_filters staticfiles sass_tags %}
+{% extends "compilacao/base_compilacao.html" %}
+{% load i18n crispy_forms_tags compilacao_filters %}
 
-{% block head_content %}{{block.super}}
-  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
-{% endblock %}
 {% block sections_nav %}
   <ul class="nav nav-pills navbar-right">
     {% url 'sapl.compilacao:dispositivo_edit' object.ta_id object.pk as edit_url%}
@@ -55,8 +52,4 @@
   {%endif%}
   <br><br>
   {% crispy form %}
-{% endblock %}
-
-{% block extra_js %}
-  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
 {% endblock %}

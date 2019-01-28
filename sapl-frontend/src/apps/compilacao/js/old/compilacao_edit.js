@@ -1,3 +1,6 @@
+
+let _$ = window.$
+
 window.DispositivoEdit = function () {
   // Função única - Singleton pattern - operador new sempre devolve o mesmo objeto
   let instance
@@ -18,7 +21,7 @@ window.DispositivoEdit = function () {
   instance.bindActionsEditorType = function (event) {
     editortype = this.getAttribute('editortype')
     window.SetCookie('editortype', editortype, 30)
-    let dpt = $(this).closest('.dpt')
+    let dpt = _$(this).closest('.dpt')
 
     let pk = dpt.attr('pk')
     instance.clearEditSelected()
@@ -39,7 +42,7 @@ window.DispositivoEdit = function () {
     let url = pk + '/refresh'
     instance.waitShow()
 
-    $.get(url, form_data).done(function (data) {
+    _$.get(url, form_data).done(function (data) {
       instance.clearEditSelected()
       if (data.pk != null) {
         instance.message(data)
@@ -48,10 +51,10 @@ window.DispositivoEdit = function () {
   }
 
   instance.clearEditSelected = function () {
-    $('.dpt-selected > .dpt-form').html('')
-    $('.dpt-actions, .dpt-actions-bottom').html('')
+    _$('.dpt-selected > .dpt-form').html('')
+    _$('.dpt-actions, .dpt-actions-bottom').html('')
     window.tinymce.remove()
-    $('.dpt-selected').removeClass('dpt-selected')
+    _$('.dpt-selected').removeClass('dpt-selected')
   }
 
   instance.editDispositivo = function (event) {
@@ -63,7 +66,7 @@ window.DispositivoEdit = function () {
 
     if (obj_click && obj_click.getAttribute('href') && obj_click.getAttribute('href').length > 0) { return }
 
-    let dpt = $(this).closest('.dpt')
+    let dpt = _$(this).closest('.dpt')
     if (dpt.hasClass('dpt-selected')) {
       if (this.getAttribute('action') === 'editor-close') { instance.clearEditSelected() }
       return
@@ -78,12 +81,12 @@ window.DispositivoEdit = function () {
 
   instance.gc = function () {
     setTimeout(function () {
-      $('.dpt:not(.dpt-selected) > .dpt-form').html('')
+      _$('.dpt:not(.dpt-selected) > .dpt-form').html('')
     }, 500)
   }
 
   instance.get_form_base = function () {
-    let _this = $(this)
+    let _this = _$(this)
     _this.addClass('dpt-selected')
 
     let dpt_form = _this.children().filter('.dpt-form')
@@ -104,9 +107,9 @@ window.DispositivoEdit = function () {
   }
 
   instance.get_form_alteracao = function () {
-    let _this = $(this)
+    let _this = _$(this)
     _this.off('get_form_alteracao')
-    $('.dpt-actions, .dpt-actions-bottom').html('')
+    _$('.dpt-actions, .dpt-actions-bottom').html('')
 
     let dpt_form = _this.children().filter('.dpt-form').children().first()
     let url_search = dpt_form[0]['id_dispositivo_search_form'].value
@@ -126,9 +129,9 @@ window.DispositivoEdit = function () {
   }
 
   instance.get_form_inclusao = function () {
-    let _this = $(this)
+    let _this = _$(this)
     _this.off('get_form_inclusao')
-    $('.dpt-actions, .dpt-actions-bottom').html('')
+    _$('.dpt-actions, .dpt-actions-bottom').html('')
 
     let dpt_form = _this.children().filter('.dpt-form').children().first()
     let url_search = dpt_form[0]['id_dispositivo_search_form'].value
@@ -151,9 +154,9 @@ window.DispositivoEdit = function () {
   }
 
   instance.get_form_revogacao = function () {
-    let _this = $(this)
+    let _this = _$(this)
     _this.off('get_form_revogacao')
-    $('.dpt-actions, .dpt-actions-bottom').html('')
+    _$('.dpt-actions, .dpt-actions-bottom').html('')
 
     let dpt_form = _this.children().filter('.dpt-form').children().first()
     let url_search = dpt_form[0]['id_dispositivo_search_form'].value
@@ -173,7 +176,7 @@ window.DispositivoEdit = function () {
   }
 
   instance.allowed_inserts_registro_inclusao = function (params) {
-    let dispositivo_base_para_inclusao = $('#id' + params.pk_bloco + " input[name='dispositivo_base_para_inclusao']")
+    let dispositivo_base_para_inclusao = _$('#id' + params.pk_bloco + " input[name='dispositivo_base_para_inclusao']")
     if (dispositivo_base_para_inclusao.length === 0) { return }
 
     let pk = dispositivo_base_para_inclusao[0].value
@@ -185,16 +188,16 @@ window.DispositivoEdit = function () {
     let url = pk + '/refresh'
     instance.waitShow()
 
-    $.get(url, form_data).done(function (data) {
-      $('.allowed_inserts').html(data)
-      $('.allowed_inserts').find('.btn-action').on('click', instance.bindActionsClick)
+    _$.get(url, form_data).done(function (data) {
+      _$('.allowed_inserts').html(data)
+      _$('.allowed_inserts').find('.btn-action').on('click', instance.bindActionsClick)
     }).fail(instance.waitHide).always(instance.waitHide)
   }
 
   instance.loadActionsEdit = function (dpt) {
     let pk = dpt.attr('pk')
     let url = pk + '/refresh?action=get_actions'
-    $.get(url).done(function (data) {
+    _$.get(url).done(function (data) {
       dpt.find('.dpt-actions').first().html(data)
       dpt.find('.btn-action').on('click', instance.bindActionsClick)
       // dpt.find('.btn-perfis').on('click', instance.bindActionsClick);
@@ -205,7 +208,7 @@ window.DispositivoEdit = function () {
 
       dpt.find('.btn-group-inserts button').mouseenter(function (event) {
         dpt.find('.btn-group-inserts').removeClass('open')
-        $(this.parentElement).addClass('open')
+        _$(this.parentElement).addClass('open')
       })
 
       instance.gc()
@@ -217,7 +220,7 @@ window.DispositivoEdit = function () {
     let dpt_form = dpt.children().filter('.dpt-form')
     if (dpt_form.length === 1) {
       let url = pk + '/refresh?action=' + trigger
-      $.get(url).done(function (data) {
+      _$.get(url).done(function (data) {
         if (editortype !== 'construct') {
           dpt_form.html(data)
           if (editortype === 'tinymce') {
@@ -233,7 +236,7 @@ window.DispositivoEdit = function () {
   }
 
   instance.loadFormsCompilacao = function (event) {
-    let dpt = $(this).closest('.dpt')
+    let dpt = _$(this).closest('.dpt')
     let formtype = this.getAttribute('action')
     dpt.on(formtype, instance[formtype])
     instance.loadForm(dpt, formtype)
@@ -241,16 +244,16 @@ window.DispositivoEdit = function () {
 
   instance.modalMessage = function (message, alert, closeFunction) {
     if (message !== null && message !== '') {
-      $('#modal-message #message').html(message)
-      $('#modal-message').modal('show')
-      $('#modal-message, #modal-message .alert button').off()
-      $('#modal-message .alert').removeClass('alert-success alert-info alert-warning alert-danger alert-danger')
-      $('#modal-message .alert').addClass(alert)
+      _$('#modal-message #message').html(message)
+      _$('#modal-message').modal('show')
+      _$('#modal-message, #modal-message .alert button').off()
+      _$('#modal-message .alert').removeClass('alert-success alert-info alert-warning alert-danger alert-danger')
+      _$('#modal-message .alert').addClass(alert)
 
-      if (closeFunction != null) { $('#modal-message').on('hidden.bs.modal', closeFunction) }
+      if (closeFunction != null) { _$('#modal-message').on('hidden.bs.modal', closeFunction) }
 
-      $('#modal-message .alert button').on('click', function () {
-        $('#modal-message').modal('hide')
+      _$('#modal-message .alert button').on('click', function () {
+        _$('#modal-message').modal('hide')
       })
       return true
     }
@@ -267,7 +270,7 @@ window.DispositivoEdit = function () {
       } else {
         instance.refreshScreenFocusPk(data)
         if (!('message' in data)) { return }
-        let cp_notify = $('.cp-notify')
+        let cp_notify = _$('.cp-notify')
         cp_notify.removeClass('hide')
         let msg = cp_notify.find('.message')
         msg.text(data.message.value)
@@ -281,11 +284,11 @@ window.DispositivoEdit = function () {
     }
   }
   instance.offClicks = function () {
-    $('.btn-dpt-edit').off()
+    _$('.btn-dpt-edit').off()
   }
   instance.onClicks = function (container) {
     let objects
-    if (container === null) { objects = $('.btn-dpt-edit') } else { objects = $(container).find('.btn-dpt-edit') }
+    if (container == null) { objects = _$('.btn-dpt-edit') } else { objects = _$(container).find('.btn-dpt-edit') }
     objects.on('click', instance.editDispositivo)
   }
 
@@ -307,12 +310,12 @@ window.DispositivoEdit = function () {
       }),
       'formtype': 'get_form_alteracao'
     }
-    let url = $(this).closest('.dpt').attr('pk') + '/refresh'
+    let url = _$(this).closest('.dpt').attr('pk') + '/refresh'
 
     instance.waitShow()
 
     // eslint-disable-next-line
-    $.post(url, form_data, dataType = 'json')
+    _$.post(url, form_data, dataType = 'json')
       .done(function (data) {
         instance.clearEditSelected()
 
@@ -333,11 +336,11 @@ window.DispositivoEdit = function () {
       'dispositivo_base_para_inclusao': this['dispositivo_base_para_inclusao'].value,
       'formtype': 'get_form_inclusao'
     }
-    let url = $(this).closest('.dpt').attr('pk') + '/refresh'
+    let url = _$(this).closest('.dpt').attr('pk') + '/refresh'
 
     instance.waitShow()
 
-    $.post(url, form_data)
+    _$.post(url, form_data)
       .done(function (data) {
         instance.clearEditSelected()
 
@@ -372,11 +375,11 @@ window.DispositivoEdit = function () {
       'formtype': 'get_form_revogacao'
     }
 
-    let url = $(this).closest('.dpt').attr('pk') + '/refresh'
+    let url = _$(this).closest('.dpt').attr('pk') + '/refresh'
 
     instance.waitShow()
 
-    $.post(url, form_data)
+    _$.post(url, form_data)
       .done(function (data) {
         instance.clearEditSelected()
 
@@ -413,15 +416,15 @@ window.DispositivoEdit = function () {
       'formtype': 'get_form_base'
     }
 
-    let url = $(this).closest('.dpt').attr('pk') + '/refresh'
+    let url = _$(this).closest('.dpt').attr('pk') + '/refresh'
 
     instance.waitShow()
 
-    $.post(url, form_data)
+    _$.post(url, form_data)
       .done(function (data) {
         if (typeof data === 'string') { /* if obsoleto */
-          let dpt = $(_this).closest('.dpt')
-          dpt = $('#' + dpt.replaceWith(data).attr('id'))
+          let dpt = _$(_this).closest('.dpt')
+          dpt = _$('#' + dpt.replaceWith(data).attr('id'))
           instance.onClicks(dpt)
           instance.waitHide()
           return
@@ -446,9 +449,9 @@ window.DispositivoEdit = function () {
     let pk = pais.shift()
     let url = pk + '/refresh'
 
-    $.get(url).done(function (data) {
-      let dpt = $('#id' + pk).closest('.dpt')
-      dpt = $('#' + dpt.replaceWith(data).attr('id'))
+    _$.get(url).done(function (data) {
+      let dpt = _$('#id' + pk).closest('.dpt')
+      dpt = _$('#' + dpt.replaceWith(data).attr('id'))
       instance.onClicks(dpt)
       instance.reloadFunctionsDraggables()
 
@@ -476,7 +479,7 @@ window.DispositivoEdit = function () {
   }
 
   instance.reloadFunctionsDraggables = function () {
-    $('.dpt-alts').sortable({
+    _$('.dpt-alts').sortable({
       revert: true,
       distance: 15,
       start: function (event, ui) {
@@ -486,51 +489,51 @@ window.DispositivoEdit = function () {
         let bloco_pk = ui.item.closest('.dpt-alts').closest('.dpt').attr('pk')
 
         let url = pk + '/refresh?action=json_drag_move_dpt_alterado&index=' + ui.item.index() + '&bloco_pk=' + bloco_pk
-        $.get(url).done(function (data) {
+        _$.get(url).done(function (data) {
           console.log(pk + ' - ' + bloco_pk)
           // reloadFunctionsForObjectsOfCompilacao();
         })
       }
     })
 
-    $('.dpt-alts .dpt').draggable({
+    _$('.dpt-alts .dpt').draggable({
       connectToSortable: '.dpt-alts',
       revert: 'invalid',
       zIndex: 1,
       distance: 15,
       drag: function (event, ui) {
-        // $('.dpt-comp-selected').removeClass('dpt-comp-selected');
-        $('.dpt-alts').addClass('drag')
+        // _$('.dpt-comp-selected').removeClass('dpt-comp-selected');
+        _$('.dpt-alts').addClass('drag')
       },
       stop: function (event, ui) {
-        $('.dpt-alts').removeClass('drag')
+        _$('.dpt-alts').removeClass('drag')
       }
     })
 
-    $('.dpt-alts').disableSelection()
+    _$('.dpt-alts').disableSelection()
   }
   instance.scrollTo = function (dpt) {
     try {
-      $('html, body').animate({
+      _$('html, body').animate({
         scrollTop: dpt.offset().top - window.innerHeight / 9
       }, 100)
     } catch (err) {
     }
   }
   instance.triggerBtnDptEdit = function (pk) {
-    let btn_dpt_edit = $('#id' + pk + ' > .dpt-text.btn-dpt-edit')
-    if (btn_dpt_edit.length === 0) { btn_dpt_edit = $('#id' + pk + ' > .dpt-actions-fixed > .btn-dpt-edit') }
+    let btn_dpt_edit = _$('#id' + pk + ' > .dpt-text.btn-dpt-edit')
+    if (btn_dpt_edit.length === 0) { btn_dpt_edit = _$('#id' + pk + ' > .dpt-actions-fixed > .btn-dpt-edit') }
     btn_dpt_edit.trigger('click')
   }
   instance.waitHide = function () {
-    $('#wait_message').addClass('displaynone')
+    _$('#wait_message').addClass('displaynone')
   }
   instance.waitShow = function () {
-    $('#wait_message').removeClass('displaynone')
+    _$('#wait_message').removeClass('displaynone')
   }
 
   instance.init = function () {
-    $('.dpt-actions-fixed').first().css('opacity', '1')
+    _$('.dpt-actions-fixed').first().css('opacity', '1')
     editortype = window.ReadCookie('editortype')
     if (editortype === null || editortype === '') {
       editortype = 'textarea'
@@ -545,7 +548,7 @@ window.DispositivoEdit = function () {
     if (href.length === 2 && href[1] !== '') {
       instance.triggerBtnDptEdit(href[1])
     }
-    $('main').click(function (event) {
+    _$('main').click(function (event) {
       if (event.target === this || event.target === this.firstElementChild) { instance.clearEditSelected() }
     })
     instance.waitHide()
@@ -553,6 +556,6 @@ window.DispositivoEdit = function () {
   instance.init()
 }
 
-$(document).ready(function () {
+_$(document).ready(function () {
   window.DispositivoEdit()
 })
