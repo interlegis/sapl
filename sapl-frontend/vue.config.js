@@ -44,6 +44,7 @@ module.exports = {
       .mode('development')
       .devtool('cheap-module-eval-source-map')
 
+
     config
       .plugin('RelativeBundleTrackerPlugin')
       .use(RelativeBundleTrackerPlugin, [{ 

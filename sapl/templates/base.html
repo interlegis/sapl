@@ -16,7 +16,7 @@
     {% block head_content %}
       <link rel="icon" href="{% webpack_static 'img/favicon.ico' %}"  type="image/png" >
       {% block webpack_loader_css %}
-        {% render_bundle 'chunk-vendors' 'css' %}
+        {% render_chunk_vendors 'css' %}
         {% render_bundle  'global' 'css' %}
       {% endblock webpack_loader_css %}
 
@@ -227,7 +227,7 @@
     {% block foot_js %}
 
       {% block webpack_loader_js %}
-        {% render_bundle 'chunk-vendors' 'js' %}
+        {% render_chunk_vendors 'js' %}
         {% render_bundle  'global' 'js' %}      
       {% endblock webpack_loader_js %}
 

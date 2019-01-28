@@ -8,7 +8,6 @@ import compilacaoNotas from './js/old/compilacao_notas'
 
 import './js/old/compilacao_edit'
 
-
 _.forEach(_.merge(_.merge(compilacao, compilacaoNotas), compilacaoView), function (func, key) {
   window[key] = func
 })
