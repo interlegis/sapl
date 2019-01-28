@@ -768,8 +768,17 @@ class EditaNomePartidoView(PermissionRequiredMixin, FormView):
     permission_required = ('parlamentares.altera_nome_partido',)
 
     def form_valid(self, form):
-        import ipdb; ipdb.set_trace()
-        return super().form_valid(form)
+        data = form.cleaned_data
+        obj = Partido.objects.get(id=self.kwargs['pk'])
+        observacao += "Este partido teve o nome alterado de " + obj.nome + \
+                     " (" + obj.sigla + ") para " + data['nome'] + " (" + data['sigla'] \
+                     + ") em " + data['data_alteracao'].strftime("%d/%m/%Y") + "."
+        obj.nome = data['nome']
+        obj.sigla = data['sigla']
+        obj.observacao = observacao
+        obj.save()
+
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
         url_reverse = reverse('sapl.parlamentares:partido_detail',
