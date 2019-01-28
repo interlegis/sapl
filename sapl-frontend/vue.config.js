@@ -54,7 +54,7 @@ module.exports = {
       .plugin('RelativeBundleTrackerPlugin')
       .use(RelativeBundleTrackerPlugin, [{ 
         path:'.',
-        filename: '../sapl/static/webpack-stats.json' 
+        filename: '../webpack-stats.json' 
       }])
 
     config.resolve.alias

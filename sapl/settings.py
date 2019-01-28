@@ -267,7 +267,7 @@ WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
         'BUNDLE_DIR_NAME': 'sapl/static/',
-        'STATS_FILE':  BASE_DIR.child('static').child('webpack-stats.json'),
+        'STATS_FILE':  PROJECT_DIR.child('webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']

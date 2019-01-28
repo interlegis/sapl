@@ -251,7 +251,7 @@ function DispositivoSearch (opts) {
             _$('input[name="texto_dispositivo"]').val(formData.texto)
             _$('select[name="max_results"]').val(formData.max_results)
           } catch (e) {
-            console.log(e)
+            // console.log(e)
           }
 
           setTimeout(function () {
@@ -261,7 +261,7 @@ function DispositivoSearch (opts) {
               // modalDs.find('.btn-busca').trigger('click')
               // onChangeParamTA()
             } catch (e) {
-              console.log(e)
+              // console.log(e)
             }
           }, 200)
 
