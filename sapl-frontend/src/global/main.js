@@ -1,3 +1,4 @@
+import '@fortawesome/fontawesome-free/css/all.css'
 import 'bootstrap'
 
 import 'webpack-jquery-ui/dialog'
