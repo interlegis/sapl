@@ -765,7 +765,7 @@ class MesaDiretoraView(FormView):
 class EditaNomePartidoView(PermissionRequiredMixin, FormView):
     form_class = EditarNomePartidoForm
     template_name = 'parlamentares/altera_nome_partido_form.html'
-    permission_required = ('parlamentares.altera_nome_partido',)
+    permission_required = ('parlamentares.change_partido',)
 
     def get_initial(self):
         initial = super(EditaNomePartidoView, self).get_initial()
