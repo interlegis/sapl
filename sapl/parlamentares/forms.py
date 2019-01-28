@@ -506,9 +506,9 @@ class EditarNomePartidoForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(EditarNomePartidoForm, self).__init__(*args, **kwargs)
 
-        row1 = to_row([('sigla', 12)])
-        row2 = to_row([('nome', 6)])
-        row3 = to_row([('data_alteracao', 12)])
+        row1 = to_row([('sigla', 2)])
+        row2 = to_row([('nome', 8)])
+        row3 = to_row([('data_alteracao', 2)])
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(
