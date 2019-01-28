@@ -3,11 +3,10 @@
 {% load render_bundle from webpack_loader %}
 
 {% block webpack_loader_css %}
-    {% render_bundle 'global' 'css' %}
-    {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
-      {% render_bundle 'compilacao' 'css' %}
-    {% endif %}
-    {% render_bundle THEME_CUSTOM 'css' %}
+  {{ block.super }}
+  {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
+    {% render_bundle 'compilacao' 'css' %}
+  {% endif %}
 {% endblock %}
 
 
@@ -102,11 +101,10 @@
 
 
 {% block webpack_loader_js %}
-    {% render_bundle 'global' 'js' %}
+    {{ block.super }}
     {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
       {% render_bundle 'compilacao' 'js' %}
     {% endif %}
-    {% render_bundle THEME_CUSTOM 'js' %}
 {% endblock %}
 
 

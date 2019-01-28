@@ -18,12 +18,10 @@
       {% block webpack_loader_css %}
         {% render_bundle 'chunk-vendors' 'css' %}
         {% render_bundle  'global' 'css' %}
-        {% render_bundle THEME_CUSTOM 'css' %}
       {% endblock webpack_loader_css %}
 
       {% block webpack_loader_chunks_css %}
-        {% render_bundle  'image_cropping' 'css' %}
-        {% render_bundle  'jquery_mask_plugin' 'css' %}
+        {% render_bundle THEME_CUSTOM 'css' %}
       {% endblock webpack_loader_chunks_css %}
 
     {% endblock %}
@@ -231,31 +229,10 @@
       {% block webpack_loader_js %}
         {% render_bundle 'chunk-vendors' 'js' %}
         {% render_bundle  'global' 'js' %}      
-        {% render_bundle THEME_CUSTOM 'js' %}
       {% endblock webpack_loader_js %}
 
       {% block webpack_loader_chunks_js %}
-        {% comment %}
-          Code Spliting - 
-            O Split Chunks são catalogados no arquivo webpack-stats.json
-
-            Seria mais eficiente importar o que criado (arbitrariamente separado)
-            apenas nos locais que são necessários e aqui em base.html
-            este bloco ficar vazio para extensão quando necessário.
-            Anteriormente tudo já era importado aqui no base.html, só que
-            agora podemos reverter isso refatorando os templates 
-            e importando apenas o que for necessário, onde for.
-            Ou seja:
-              - ou carrega tudo aqui em base.html e, "se quiser", 
-                remove em qualquer html de extensão como foi feito em index.html
-              - ou não carrega nenhum Chunk aqui e carrega apenas onde for necessário
-                - image_cropping, por exemplo, seu js só é usado na edição de parlamentares e
-                  poderia ser importado apenas nesta tela
-                - jquery_mask_plugin só é usado em telas de formulários...
-
-        {% endcomment %}
-        {% render_bundle  'image_cropping' 'js' %}  
-        {% render_bundle  'jquery_mask_plugin' 'js' %}   
+        {% render_bundle THEME_CUSTOM 'js' %}
       {% endblock webpack_loader_chunks_js %}
 
       {% block extra_js %}{% endblock %}

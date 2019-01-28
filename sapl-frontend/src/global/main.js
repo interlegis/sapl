@@ -5,19 +5,9 @@ import 'webpack-jquery-ui/sortable'
 
 import './functions'
 
-import(
-  /* webpackChunkName: "jquery_mask_plugin" */
-  'jquery-mask-plugin')
-  .then(jquery_mask_plugin => {
-    jquery_mask_plugin.default()
-  })
+import 'jquery-mask-plugin'
 
-import(
-  /* webpackChunkName: "image_cropping" */
-  './image_cropping')
-  .then(image_cropping => {
-    image_cropping.default()
-  })
+import './image_cropping'
 
 // eslint-disable-next-line
 require('imports-loader?window.jQuery=jquery!./jquery.runner.js')
