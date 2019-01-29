@@ -776,12 +776,15 @@ class EditaNomePartidoView(PermissionRequiredMixin, FormView):
     def form_valid(self, form):
         data = form.cleaned_data
         obj = Partido.objects.get(id=self.kwargs['pk'])
-        observacao = "Este partido teve o nome alterado de " + obj.nome + \
+        historico = "Este partido teve o nome alterado de " + obj.nome + \
                      " (" + obj.sigla + ") para " + data['nome'] + " (" + data['sigla'] \
                      + ") em " + data['data_alteracao'].strftime("%d/%m/%Y") + "."
         obj.nome = data['nome']
         obj.sigla = data['sigla']
-        obj.observacao += '\n\n' + observacao
+        if (obj.historico != ''):
+            obj.historico += '\n\n' + historico
+        else:
+            obj.historico = historico
         obj.save()
 
         return HttpResponseRedirect(self.get_success_url())
