@@ -16,6 +16,7 @@ Partido:
   - sigla:2 nome:4 data_criacao data_extincao
   - observacao
   - logo_partido
+  - historico
 
 Dependente:
   {% trans 'Dependentes' %}:
