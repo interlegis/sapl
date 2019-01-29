@@ -55,8 +55,7 @@ def get_cabecalho(casa):
 def get_imagem(casa):
     if casa.logotipo:
         return casa.logotipo.path
-    else:
-        return STATIC_ROOT + '/img/brasao_transp.gif'
+    return STATIC_ROOT + '/img/brasao_transp.gif'
 
 
 def get_rodape(casa):
