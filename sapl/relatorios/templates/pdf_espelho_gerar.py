@@ -7,6 +7,7 @@
    versão: 1.0
 """
 import time
+import os
 
 from trml2pdf import parseString
 
@@ -14,8 +15,9 @@ from trml2pdf import parseString
 def cabecalho(dic_cabecalho, imagem):
     """Gera o codigo rml do cabecalho"""
     tmp_data = ''
-    tmp_data += '\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + \
-        imagem + '"/>\n'
+    if os.path.isfile(imagem):
+        tmp_data += '\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + \
+            imagem + '"/>\n'
     tmp_data += '\t\t\t\t<lines>2cm 25cm 19cm 25cm</lines>\n'
     tmp_data += '\t\t\t\t<setFont name="Helvetica" size="18"/>\n'
     tmp_data += '\t\t\t\t<drawString x="5cm" y="27.2cm">' + \
