@@ -4,6 +4,7 @@
    versão: 1.0
 """
 import time
+import os
 
 from trml2pdf import parseString
 
@@ -12,8 +13,9 @@ def cabecalho(inf_basicas_dic, imagem):
     """
     """
     tmp = ''
-    tmp += '\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + \
-        imagem + '"/>\n'
+    if os.path.isfile(imagem):
+        tmp += '\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + \
+            imagem + '"/>\n'
     tmp += '\t\t\t\t<lines>2cm 25.4cm 19cm 25.4cm</lines>\n'
     tmp += '\t\t\t\t<setFont name="Helvetica-Bold" size="14"/>\n'
     tmp += '\t\t\t\t<drawString x="5cm" y="27.2cm">' + \
