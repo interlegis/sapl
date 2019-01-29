@@ -40,17 +40,14 @@ module.exports = {
     config.plugins.delete('preload')
     config.plugins.delete('prefetch')
 
-
-
     config
       .mode('development')
       .devtool('cheap-module-eval-source-map')
 
-    config
-      .mode('development')
-      .optimization	   
-      .splitChunks(false)
-
+    //config
+    //  .mode('development')
+    //  .optimization	   
+    //  .splitChunks(false)
 
     config
       .plugin('RelativeBundleTrackerPlugin')

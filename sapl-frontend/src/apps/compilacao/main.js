@@ -25,7 +25,7 @@ $(document).ready(function () {
           0
         )
       } catch (err) {
-        console.log(err)
+        // console.log(err)
       }
     }
   }, 100)
@@ -41,5 +41,18 @@ $(document).ready(function () {
     var nivel = parseInt($(this).attr('nivel'))
     $(this).css('z-index', 15 - nivel)
   })
+
+  $('.cp-linha-vigencias > li:not(:first-child):not(:last-child) > a').click(function (event) {
+    $('.cp-linha-vigencias > li').removeClass('active')
+    $(this).closest('li').addClass('active')
+    event.preventDefault()
+  })
+
+  $('main').click(function (event) {
+    if (event.target === this || event.target === this.firstElementChild) {
+      $('.cp-linha-vigencias > li').removeClass('active')
+    }
+  })
+
   window.onReadyNotasVides()
 })
