@@ -28,10 +28,14 @@ class Legislatura(models.Model):
 
     def atual(self):
         current_year = timezone.now().year
+        if not self.data_fim:
+            self.data_fim = timezone.now().date()
         return self.data_inicio.year <= current_year <= self.data_fim.year
 
     @vigencia_atual
     def __str__(self):
+        if not self.data_fim:
+            self.data_fim = timezone.now().date()
         return _('%(numero)sª (%(start)s - %(end)s)') % {
             'numero': self.numero,
             'start': self.data_inicio.year,
