@@ -100,12 +100,20 @@ def logo_upload_path(instance, filename):
 
 @reversion.register()
 class Partido(models.Model):
-    sigla = models.CharField(max_length=9, verbose_name=_('Sigla'))
-    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+    sigla = models.CharField(
+        max_length=9, 
+        verbose_name=_('Sigla'))
+    nome = models.CharField(
+        max_length=50, 
+        verbose_name=_('Nome'))
     data_criacao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Criação'))
+        blank=True, 
+        null=True, 
+        verbose_name=_('Data Criação'))
     data_extincao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Extinção'))
+        blank=True, 
+        null=True, 
+        verbose_name=_('Data Extinção'))
     logo_partido = models.ImageField(
         blank=True,
         null=True,
@@ -113,7 +121,11 @@ class Partido(models.Model):
         verbose_name=_('Logo Partido'),
         validators=[restringe_tipos_de_arquivo_img])
     observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
+        blank=True, 
+        verbose_name=_('Observação'))
+    historico = models.TextField(
+        blank=True,
+        verbose_name=_('Histórico'))
 
     class Meta:
         verbose_name = _('Partido')
