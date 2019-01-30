@@ -1079,7 +1079,7 @@ class ListarBancadaComissaoAutorExternoView(PermissionRequiredMixin, ListView):
 def autores_duplicados():
     autores = {}
     for a in Autor.objects.all().order_by('nome'):
-        key = "{}".format(a.nome)
+        key = a.nome.lower()
         val = autores.get(key, list())
         val.append(a)
         autores[key] = val
