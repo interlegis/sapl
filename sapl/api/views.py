@@ -6,10 +6,12 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.db.models import Q
+from django.db.models.fields.files import FileField
 from django.http import Http404
 from django.utils.decorators import classonlymethod
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
@@ -347,6 +349,14 @@ class SaplApiViewSetConstrutor(ModelViewSet):
                     class Meta:
                         model = _model
                         fields = '__all__'
+                        filter_overrides = {
+                            FileField: {
+                                'filter_class': django_filters.CharFilter,
+                                'extra': lambda f: {
+                                    'lookup_expr': 'exact',
+                                },
+                            },
+                        }
 
                     @classmethod
                     def filter_for_field(cls, f, name, lookup_expr='exact'):
@@ -355,7 +365,7 @@ class SaplApiViewSetConstrutor(ModelViewSet):
                         f, lookup_type = resolve_field(f, lookup_expr)
 
                         default = {
-                            'name': name,
+                            'field_name': name,
                             'label': capfirst(f.verbose_name),
                             'lookup_expr': lookup_expr
                         }

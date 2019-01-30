@@ -109,7 +109,7 @@ class SessaoPlenariaOldSerializer(serializers.ModelSerializer):
         )
 
     def __init__(self, *args, **kwargs):
-        super(SessaoPlenariaSerializer, self).__init__(args, kwargs)
+        super(SessaoPlenariaOldSerializer, self).__init__(args, kwargs)
 
     def get_pk_sessao(self, obj):
         return obj.pk
