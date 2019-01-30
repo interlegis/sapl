@@ -175,6 +175,7 @@ a:link:after, a:visited:after {
     list-style: none;
     margin: 4rem 0 3rem;
     padding: 0;
+    justify-content: center;
     ul {
       list-style: none;
       margin: 0;
@@ -189,6 +190,7 @@ a:link:after, a:visited:after {
       background: black;
       height: 2px;
       text-align: center;
+      max-width: 4rem;
       .circle {
         display: block;
         width:  10px;
@@ -689,12 +691,21 @@ a:link:after, a:visited:after {
       font-size: 2rem;
     }
   }
+  .btn-sm {
+    line-height: 1rem;
+  }
+  .btn-outline-primary {
+   background-color: white;
+   &:hover {
+     background-color: #02baf2;
+   }
+  }
 
   .dpt {
     display: block;
     & > .dpt-actions-fixed {
       position: absolute;
-      right: -0.8em;
+      right: -1em;
       top: -0.8em;
       z-index: 3;
       opacity: 0;
@@ -705,7 +716,7 @@ a:link:after, a:visited:after {
       .deactivate {
         display:inline;
       }
-      .btn-dpt-edit.btn-default {
+      .btn-dpt-edit.btn-outline-primary {
         color: #333;
         &:hover {
           color: #fff;
@@ -832,7 +843,7 @@ a:link:after, a:visited:after {
       & > .dpt-actions, & > .dpt-actions-bottom {
         display: table;
         background-color: #e5e5e5;
-        padding: 1em;
+        padding: 0.8rem 0.6rem 0.2rem 0.6rem;
         margin-bottom: 0em;
         width: 100%;
         & > .btn-action {
@@ -884,7 +895,7 @@ a:link:after, a:visited:after {
     }
     & > .dpt-actions-fixed {
       opacity: 1;
-      top: -12px;
+      top: -15px;
       right: 0.5em;
       .activate {
         display:inline;
@@ -893,11 +904,15 @@ a:link:after, a:visited:after {
         display:none;
       }
       .btn-dpt-edit {
-        padding-top: 2px;
-        padding-bottom: 1px;
-        &.btn-default {
+        padding: 0 6px;
+        line-height: 1.2rem;
+        &.btn-outline-primary {
           background-color: #fad46b;
-          border: 1px solid #fad46b;
+          border: 1px solid #444;
+          &:hover {
+            background-color: #fad46b;
+            border: 1px solid #444;
+          }
         }
       }
     }
@@ -906,26 +921,26 @@ a:link:after, a:visited:after {
       &.dropdown-menu-left {
         right: auto !important;
         left: 0;
-        padding: 2px 0;
-        & > .top.arrow {
-          right: 88%;
-          left: auto;
-        }
+        padding: 0;
       }
       li {
+        line-height: 1;
         a {
-          padding-top: 2px;
-          padding-bottom: 2px;
-
+          display: block;
+          line-height: 1.5rem;
+          padding: 0 0.5rem;
+          white-space: nowrap;
+          &:hover {
+            background-color: #f0f0f0;
+          }
         }
       }
     }
     .btn-group {
       .radius-right {
-        border-bottom-right-radius: 4px !important;
-        border-top-right-radius: 4px !important;
+        border-bottom-right-radius: 0.2rem !important;
+        border-top-right-radius: 0.2rem !important;
       }
-
     }
     &:hover {
       & > .dpt-actions-fixed {
