@@ -32,12 +32,12 @@ from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crud.base import CrudAux, make_pagination
-from sapl.materia.models import (Autoria, MateriaLegislativa,
+from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca)
-from sapl.utils import (parlamentares_ativos,
+from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
@@ -1081,6 +1081,27 @@ class AppConfigCrud(CrudAux):
 
         list_url = ''
         create_url = ''
+
+        def form_valid(self, form):
+            recibo_prop_atual = self.request.POST['receber_recibo_proposicao']
+            recibo_prop_novo = self.request.POST['receber_recibo_proposicao']
+            if recibo_prop_novo == 'False' and recibo_prop_atual:
+                props = Proposicao.objects.filter(hash_code='')
+                for prop in props:
+                    self.gerar_hash(prop)
+            return super().form_valid(form)
+
+        def gerar_hash(self, inst):
+
+            inst.save()
+            if inst.texto_original:
+                inst.hash_code = gerar_hash_arquivo(
+                    inst.texto_original.path, str(inst.pk))
+            elif inst.texto_articulado.exists():
+                ta = inst.texto_articulado.first()
+                inst.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(inst.pk)
+            inst.save()
+            return
 
     class CreateView(CrudAux.CreateView):
 
