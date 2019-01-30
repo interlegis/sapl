@@ -1083,7 +1083,7 @@ class AppConfigCrud(CrudAux):
         create_url = ''
 
         def form_valid(self, form):
-            recibo_prop_atual = self.request.POST['receber_recibo_proposicao']
+            recibo_prop_atual = AppConfig.objects.last().receber_recibo_proposicao
             recibo_prop_novo = self.request.POST['receber_recibo_proposicao']
             if recibo_prop_novo == 'False' and recibo_prop_atual:
                 props = Proposicao.objects.filter(hash_code='')
