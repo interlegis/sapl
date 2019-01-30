@@ -1112,22 +1112,20 @@ class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
 
 def parlamentares_mandatos_intersecao():
     intersecoes = []
+
     for parlamentar in Parlamentar.objects.all().order_by('nome_completo'):
         mandatos = parlamentar.mandato_set.all()
-        length = len(mandatos)
-        if mandatos and length > 1:
-            for i in range(0, length-1):
-                for j in range(i+1, length):
-                    mandato = mandatos[i]
-                    prox_mandato = mandatos[j]
+        combinacoes = itertools.combinations(mandatos, 2)
+
+        for c in combinacoes:
+            if c[0].data_inicio_mandato and c[1].data_inicio_mandato:
+                if c[0].data_fim_mandato and c[1].data_fim_mandato:
                     exists = intervalos_tem_intersecao(
-                        mandato.data_inicio_mandato,
-                        mandato.data_fim_mandato,
-                        prox_mandato.data_inicio_mandato,
-                        prox_mandato.data_fim_mandato)
+                        c[0].data_inicio_mandato, c[0].data_fim_mandato,
+                        c[1].data_inicio_mandato, c[1].data_fim_mandato)
                     if exists:
-                        intersecoes.append(
-                            (parlamentar, mandato, prox_mandato))
+                        intersecoes.append((parlamentar, c[0], c[1]))
+
     return intersecoes
 
 
