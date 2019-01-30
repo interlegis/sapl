@@ -3,24 +3,24 @@
 {% load tz %}
 {% block base_content %}
     <fieldset>
-        <h1>Lista de Legislaturas sem Data Fim</h1>
-        {% if not legislatura_infindavel %}
+        <h1>Lista de Mandatos sem Data Inicial</h1>
+        {% if not mandato_sem_data_inicio %}
             <p>{{ NO_ENTRIES_MSG }}</p>
         {% else %}
             <table class="table table-striped table-hover">
                 <thead>
                   <tr>
-                    <th>Número Legislatura</th>
-                    <th>Data Eleição</th>
-                    <th>Data Início</th>
+                    <th>Parlamentar do Mandato</th>
+                    <th>Legislatura do Mandato</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {% for legislatura in legislatura_infindavel %}
+                  {% for mandato in mandato_sem_data_inicio %}
                     <tr>
-                        <td>{{ legislatura.numero }}</td>
-                        <td>{{ legislatura.data_eleicao }}</td>
-                        <td>{{ legislatura.data_inicio }}</td>
+                        <td>
+                            <a href="{% url 'sapl_index' %}parlamentar/mandato/{{ mandato.pk }}">{{ mandato.parlamentar }}</a>
+                        </td>
+                        <td>{{ mandato.legislatura }}</td>
                     </tr>
                   {% endfor %}
                 </tbody>

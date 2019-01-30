@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load tz %}
-{% load common_tags %}
 {% block base_content %}
     <fieldset>
         <h1>Lista de Autores Duplicados</h1>
@@ -17,11 +16,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for autor, quantidade in autores_duplicados %}
+                  {% for autor, tipo, quantidade in autores_duplicados %}
                     <tr>
-                      <td> {{ autor }}</td>
-                      <td>{{ autor.tipo }}</td>
-                      <td>{{ quantidade }}</td>
+                        <td>{{ autor }}</td>
+                        <td>{{ tipo }}</td>
+                        <td>{{ quantidade }}</td>
                      </tr>
                   {% endfor %}
                 </tbody>

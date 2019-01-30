@@ -36,7 +36,7 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura
+from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
 from sapl.protocoloadm.models import Protocolo
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, Bancada)
@@ -934,9 +934,9 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              )
         )
         tabela.append(
-            ('protocolos_materias',
+            ('protocolos_com_materias',
              'Protocolos que excedem o limite de matérias vinculadas',
-             len(protocolos_materias())
+             len(protocolos_com_materias())
              )
         )
         tabela.append(
@@ -944,6 +944,12 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              'Matérias Legislativas com protocolo inexistente',
              len(materias_protocolo_inexistente())
              )
+        )
+        tabela.append(
+            ('mandato_sem_data_inicio',
+             'Mandatos sem data inicial',
+            len(mandato_sem_data_inicio())
+            )
         )
         tabela.append(
             ('parlamentares_mandatos_intersecao',
@@ -974,13 +980,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
 
 
 def legislatura_infindavel():
-    legislaturas = []
-
-    for legislatura in Legislatura.objects.all().order_by('-numero'):
-        if legislatura.data_fim == None:
-            legislaturas.append(legislatura)
-
-    return legislaturas
+    return Legislatura.objects.filter(data_fim__isnull=True).order_by('-numero')
 
 
 class ListarLegislaturaInfindavelView(PermissionRequiredMixin, ListView):
@@ -1008,46 +1008,27 @@ class ListarLegislaturaInfindavelView(PermissionRequiredMixin, ListView):
 
 
 def bancada_comissao_autor_externo():
-    lista_bancada_autor_externo = []
-    lista_comissao_autor_externo = []
-
     tipo_autor_externo = TipoAutor.objects.filter(descricao='Externo')
 
+    lista_bancada_autor_externo = []
     for bancada in Bancada.objects.all().order_by('nome'):
         autor_externo = bancada.autor.filter(tipo=tipo_autor_externo)
 
-        # if len(autor_externo) == 1:
-
-        if len(autor_externo) > 0:
+        if autor_externo:
             q_autor_externo = bancada.autor.get(tipo=tipo_autor_externo)
             lista_bancada_autor_externo.append(
                 (q_autor_externo, bancada, 'Bancada', 'sistema/bancada')
             )
 
-        # elif len(autor_externo) > 1:
-        #    q_autor_externo = bancada.autor.get(tipo=tipo_autor_externo)
-        #    for autor in q_autor_externo:
-        #        lista_bancada_autor_externo.append(
-        #            (q_autor_externo, bancada, 'Bancada')
-        #        )
-
+    lista_comissao_autor_externo = []
     for comissao in Comissao.objects.all().order_by('nome'):
         autor_externo = comissao.autor.filter(tipo=tipo_autor_externo)
 
-        # if len(autor_externo) == 1:
-
-        if len(autor_externo) > 0:
+        if autor_externo:
             q_autor_externo = comissao.autor.get(tipo=tipo_autor_externo)
             lista_comissao_autor_externo.append(
                 (q_autor_externo, comissao, 'Comissão', 'comissao')
             )
-
-        # elif len(autor_externo) > 1:
-        #     q_autor_externo = comissao.autor.get(tipo=tipo_autor_externo)
-        #     for autor in q_autor_externo:
-        #         lista_comissao_autor_externo.append(
-        #             (q_autor_externo, comissao, 'Comissão')
-        #         )
 
     return lista_bancada_autor_externo + lista_comissao_autor_externo
 
@@ -1077,15 +1058,7 @@ class ListarBancadaComissaoAutorExternoView(PermissionRequiredMixin, ListView):
 
 
 def autores_duplicados():
-    autores = {}
-    for a in Autor.objects.all().order_by('nome'):
-        key = a.nome.lower()
-        val = autores.get(key, list())
-        val.append(a)
-        autores[key] = val
-
-    lista_duplicados = [v for (k, v) in autores.items() if len(v) > 1]
-    return [(v[0], len(v)) for v in lista_duplicados]
+    return [autor.values() for autor in Autor.objects.values('nome', 'tipo__descricao').annotate(count=Count('nome')).filter(count__gt=1)]
 
 
 class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
@@ -1119,13 +1092,18 @@ def parlamentares_mandatos_intersecao():
         combinacoes = itertools.combinations(mandatos, 2)
 
         for c in combinacoes:
-            if c[0].data_inicio_mandato and c[1].data_inicio_mandato:
-                if c[0].data_fim_mandato and c[1].data_fim_mandato:
-                    exists = intervalos_tem_intersecao(
-                        c[0].data_inicio_mandato, c[0].data_fim_mandato,
-                        c[1].data_inicio_mandato, c[1].data_fim_mandato)
-                    if exists:
-                        intersecoes.append((parlamentar, c[0], c[1]))
+            data_inicio_mandato1 = c[0].data_inicio_mandato
+            data_fim_mandato1 = c[0].data_fim_mandato if c[0].data_fim_mandato else timezone.now().date()
+
+            data_inicio_mandato2 = c[1].data_inicio_mandato
+            data_fim_mandato2 = c[1].data_fim_mandato if c[1].data_fim_mandato else timezone.now().date()
+
+            if data_inicio_mandato1 and data_inicio_mandato2:
+                exists = intervalos_tem_intersecao(
+                    data_inicio_mandato1, data_fim_mandato1,
+                    data_inicio_mandato2, data_fim_mandato2)
+                if exists:
+                    intersecoes.append((parlamentar, c[0], c[1]))
 
     return intersecoes
 
@@ -1153,15 +1131,42 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
         return context
 
 
+def mandato_sem_data_inicio():
+    return Mandato.objects.filter(data_inicio_mandato__isnull=True).order_by('parlamentar')
+
+
+class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/mandato_sem_data_inicio.html'
+    context_object_name = 'mandato_sem_data_inicio'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return mandato_sem_data_inicio()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarMandatoSemDataInicioView, self
+            ).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrada.'
+        return context
+
+
 def materias_protocolo_inexistente():
     materias = []
-    for materia in MateriaLegislativa.objects.order_by('-ano', 'numero'):
-        if materia.numero_protocolo:
-            exists = Protocolo.objects.filter(
-                ano=materia.ano, numero=materia.numero_protocolo).exists()
-            if not exists:
-                materias.append(
-                    (materia, materia.ano, materia.numero_protocolo))
+    for materia in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero'):
+        exists = Protocolo.objects.filter(
+            ano=materia.ano, numero=materia.numero_protocolo).exists()
+        if not exists:
+            materias.append(
+                (materia, materia.ano, materia.numero_protocolo))
     return materias
 
 
@@ -1189,50 +1194,32 @@ class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
         return context
 
 
-def protocolos_materias():
-    lista_protocolos_materias = []
+def protocolos_com_materias():
     protocolos = {}
     
-    for m in MateriaLegislativa.objects.order_by('-ano', 'numero_protocolo'):
-        key = "{}/{}".format(m.numero_protocolo, m.ano)
-        val = protocolos.get(key, list())
-        val.append(m)
-        protocolos[key] = val
-
-    for k, v in protocolos.items():
-        if 'None' not in k:
-            if Protocolo.objects.filter(numero=int(k.split('/')[0]),
-                                        ano=int(k.split('/')[1])
-                                        ).exists():
-                if len(v) > 1:
-                    p = Protocolo.objects.filter(numero=int(k.split('/')[0]),
-                                                 ano=int(k.split('/')[1]))
-                    lista_protocolos_materias.append((p[0], len(v)))
+    for m in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero_protocolo'):
+        if Protocolo.objects.filter(numero=m.numero_protocolo, ano=m.ano).exists():
+            key = "{}/{}".format(m.numero_protocolo, m.ano)
+            val = protocolos.get(key, list())
+            val.append(m)
+            protocolos[key] = val
     
-    return lista_protocolos_materias
-    
-    # protocolos = []
-    # for protocolo in Protocolo.objects.order_by('-ano', 'numero'):
-    #     materias_protocolo = MateriaLegislativa.objects.filter(
-    #         ano=protocolo.ano, numero_protocolo=protocolo.numero)
-    #     if len(materias_protocolo) > 1:
-    #         protocolos.append((protocolo, len(materias_protocolo)))
-    # return protocolos
+    return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
 
 
-class ListarProtocolosMateriasView(PermissionRequiredMixin, ListView):
+class ListarProtocolosComMateriasView(PermissionRequiredMixin, ListView):
     model = get_user_model()
-    template_name = 'base/protocolos_materias.html'
-    context_object_name = 'protocolos_materias'
+    template_name = 'base/protocolos_com_materias.html'
+    context_object_name = 'protocolos_com_materias'
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
 
     def get_queryset(self):
-        return protocolos_materias()
+        return protocolos_com_materias()
 
     def get_context_data(self, **kwargs):
         context = super(
-            ListarProtocolosMateriasView, self).get_context_data(**kwargs)
+            ListarProtocolosComMateriasView, self).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
@@ -1251,9 +1238,7 @@ def protocolos_duplicados():
         val.append(p)
         protocolos[key] = val
 
-    lista_duplicados = [v for (k, v) in protocolos.items() if len(v) > 1]
-    return [(v[0], len(v)) for v in lista_duplicados]
-
+    return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
 
 class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
     model = get_user_model()
