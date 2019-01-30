@@ -1,4 +1,5 @@
 import collections
+import itertools
 import datetime
 import logging
 import os
