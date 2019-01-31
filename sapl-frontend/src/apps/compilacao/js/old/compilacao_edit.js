@@ -96,7 +96,8 @@ window.DispositivoEdit = function () {
     _this.off('get_form_base')
 
     let btn_fechar = _this.find('.btn-fechar')
-    btn_fechar.on('click', function () {
+    btn_fechar.on('click', function (event) {
+      event.preventDefault()
       instance.clearEditSelected()
     })
 

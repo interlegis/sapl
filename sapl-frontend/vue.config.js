@@ -11,13 +11,13 @@ new SplitByPathPlugin([
 
 const BundleTrackerPlugin = require('webpack-bundle-tracker')
 class RelativeBundleTrackerPlugin extends BundleTrackerPlugin {
-  convertPathChunks(chunks){
+  convertPathChunks(chunks) {
     each(each(chunk => {
       chunk.path = path.relative(this.options.path, chunk.path)
     }))(chunks)
   }
   writeOutput(compiler, contents) {
-    if (contents.status === 'done')  {
+    if (contents.status === 'done') {
       this.convertPathChunks(contents.chunks)
     }
     super.writeOutput(compiler, contents)
@@ -26,7 +26,9 @@ class RelativeBundleTrackerPlugin extends BundleTrackerPlugin {
 // module.exports = RelativeBundleTrackerPlugin
 
 const dotenv = require('dotenv')
-dotenv.config({ path: '../sapl/.env' })
+dotenv.config({
+  path: '../sapl/.env'
+})
 
 var THEME_CUSTOM = process.env.THEME_CUSTOM === undefined ? 'sapl-oficial-theme' : process.env.THEME_CUSTOM
 
@@ -44,12 +46,15 @@ module.exports = {
       .mode('development')
       .devtool('cheap-module-eval-source-map')
 
+    /* config
+      .optimization
+      .splitChunks(false) */
 
     config
       .plugin('RelativeBundleTrackerPlugin')
-      .use(RelativeBundleTrackerPlugin, [{ 
-        path:'.',
-        filename: '../webpack-stats.json' 
+      .use(RelativeBundleTrackerPlugin, [{
+        path: '.',
+        filename: '../webpack-stats.json'
       }])
 
     config.resolve.alias
@@ -60,18 +65,34 @@ module.exports = {
       .host('localhost')
       .port(8080)
       .hot(true)
-      .watchOptions({ poll: true })
+      .watchOptions({
+        poll: true
+      })
       .watchContentBase(true)
       .https(false)
-      .headers({ 'Access-Control-Allow-Origin': '*' })
+      .headers({
+        'Access-Control-Allow-Origin': '*'
+      })
       .contentBase([
         //path.join(__dirname, 'public'),
         path.join(__dirname, 'src', 'assets')
         // path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'),
         // path.join(__dirname, 'node_modules', THEME_CUSTOM, 'src', 'assets')
       ])
-
     config
+      .plugin('copy')
+      .use(require('copy-webpack-plugin'), [
+        [{
+          from: path.join(__dirname, 'node_modules', THEME_CUSTOM, 'public'),
+          to: path.join(__dirname, '..', 'sapl', 'static'),
+          toType: 'dir',
+          ignore: [
+            '.DS_Store'
+          ]
+        }]
+      ])
+
+    /*config
       .plugin('copy')
       .tap(([options]) => {
         options.push(
@@ -84,7 +105,7 @@ module.exports = {
             ]
           })
         return [options]
-      })
+      }) */
 
     config
       .plugin('provide')

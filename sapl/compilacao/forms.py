@@ -678,7 +678,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
         cancel_label = _('Fechar')
 
         more = [
-            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+            HTML('<a class="btn btn-dark btn-fechar" href="">%s</a>' %
                  cancel_label),
         ]
 
@@ -1364,7 +1364,7 @@ class DispositivoRegistroAlteracaoForm(Form):
         layout.append(Field('dispositivo_search_form'))
 
         more = [
-            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+            HTML('<a class="btn btn-dark btn-fechar" href="">%s</a>' %
                  _('Cancelar')),
         ]
         more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
@@ -1421,7 +1421,7 @@ class DispositivoRegistroRevogacaoForm(Form):
         layout.append(Field('dispositivo_search_form'))
 
         more = [
-            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+            HTML('<a class="btn btn-dark btn-fechar" href="">%s</a>' %
                  _('Cancelar')),
         ]
         more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
@@ -1471,7 +1471,7 @@ class DispositivoRegistroInclusaoForm(Form):
         layout.append(Div(css_class="allowed_inserts col-md-12"))
 
         more = [
-            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+            HTML('<a class="btn btn-dark btn-fechar" href="">%s</a>' %
                  _('Cancelar')),
         ]
         # more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
