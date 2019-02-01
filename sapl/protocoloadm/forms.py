@@ -855,8 +855,8 @@ class DocumentoAdministrativoForm(ModelForm):
                 self.logger.error("Existe mais de um Protocolo com este ano ({}) e número ({}).".format(
                     ano_protocolo, numero_protocolo))
                 msg = _(
-                    'Existe mais de um Protocolo com este ano e número.' % (
-                        numero_protocolo, ano_protocolo))
+                    'Existe mais de um Protocolo com este ano ({}) e número({}).' % (
+                        ano_protocolo, numero_protocolo))
                 raise ValidationError(msg)
 
             inst = self.instance.protocolo
