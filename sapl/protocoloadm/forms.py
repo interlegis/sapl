@@ -831,10 +831,10 @@ class DocumentoAdministrativoForm(ModelForm):
         if not self.instance.pk or mudanca_doc:
             doc_exists = DocumentoAdministrativo.objects.filter(numero=numero_documento,
                                                                 tipo=tipo_documento,
-                                                                ano=ano_protocolo).exists()
+                                                                ano=ano_documento).exists()
             if doc_exists:
                 self.logger.error("DocumentoAdministrativo (numero={}, tipo={} e ano={}) já existe."
-                                  .format(numero_documento, tipo_documento, ano_protocolo))
+                                  .format(numero_documento, tipo_documento, ano_documento))
                 raise ValidationError(_('Documento já existente'))
 
         # campos opcionais, mas que se informados devem ser válidos
