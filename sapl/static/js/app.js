@@ -231,7 +231,7 @@ $(document).ready(function(){
     autorModal();
     initTinymce("texto-rico");
 
-    OptionalCustomFrontEnd();
+    //OptionalCustomFrontEnd();
 });
 
 

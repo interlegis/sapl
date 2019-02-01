@@ -229,7 +229,7 @@ function DispositivoEdit() {
                     if (editortype == 'tinymce' ) {
                         initTinymce();
                     }
-                    OptionalCustomFrontEnd().init();
+                    //OptionalCustomFrontEnd().init();
                 }
                 dpt.trigger(trigger);
             }).always(function() {

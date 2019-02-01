@@ -118,7 +118,7 @@ function DispostivoSearch(opts) {
                 insertWaitAjax('.result-busca-dispositivo')
                 $.get(url, formData).done(function( data ) {
                     $('.result-busca-dispositivo').html(data);
-                    //OptionalCustomFrontEnd().init();
+                    ////OptionalCustomFrontEnd().init();
                     if (data_type_selection == 'checkbox') {
                         var tas = $('.result-busca-dispositivo').find('input[name="ta_select_all"]');
                         tas.off();
@@ -168,7 +168,7 @@ function DispostivoSearch(opts) {
                 $.get(opts['url_form'], function(data) {
                     container_ds.html(data);
                     var modal_ds = $('#modal-ds');
-                    OptionalCustomFrontEnd().init();
+                    //OptionalCustomFrontEnd().init();
 
                     modal_ds.find("select[name='tipo_ta']").change(function(event) {
                         var url = '';
