@@ -1078,7 +1078,6 @@ class AppConfigCrud(CrudAux):
 
     class BaseMixin(CrudAux.BaseMixin):
         form_class = ConfiguracoesAppForm
-
         list_url = ''
         create_url = ''
 
@@ -1092,7 +1091,6 @@ class AppConfigCrud(CrudAux):
             return super().form_valid(form)
 
         def gerar_hash(self, inst):
-
             inst.save()
             if inst.texto_original:
                 inst.hash_code = gerar_hash_arquivo(
@@ -1101,7 +1099,6 @@ class AppConfigCrud(CrudAux):
                 ta = inst.texto_articulado.first()
                 inst.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(inst.pk)
             inst.save()
-            return
 
     class CreateView(CrudAux.CreateView):
 
