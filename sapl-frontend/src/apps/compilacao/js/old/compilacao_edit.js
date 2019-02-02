@@ -26,6 +26,7 @@ window.DispositivoEdit = function () {
     let pk = dpt.attr('pk')
     instance.clearEditSelected()
     instance.triggerBtnDptEdit(pk)
+    event.preventDefault()
   }
 
   instance.bindActionsClick = function (event) {
@@ -124,9 +125,9 @@ window.DispositivoEdit = function () {
 
     let btn_fechar = _this.find('.btn-fechar')
     btn_fechar.on('click', function (event) {
-      event.preventDefault()
       instance.clearEditSelected()
       instance.triggerBtnDptEdit(_this.attr('pk'))
+      event.preventDefault()
     })
   }
 

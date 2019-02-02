@@ -65,11 +65,10 @@
       <button type="button" class="btn btn-outline-primary btn-sm radius-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         <i class="fa fa-edit fa-lg"></i>
       </button>
-      <ul class="dropdown-menu dropdown-menu-right">
-        <div class="arrow top"></div>
-        <li><a class="btn-editor-type" editortype="construct">Construtor</a></li>
-        <li><a class="btn-editor-type" editortype="textarea">Editor Simples</a></li>
-        <li><a class="btn-editor-type" editortype="tinymce">Editor Tinymce</a></li>
+      <ul class="dropdown-menu dropdown-menu-right btns-tipos-editor">
+        <li><a href="" class="btn-editor-type" editortype="construct">Construtor</a></li>
+        <li><a href="" class="btn-editor-type" editortype="textarea">Editor Simples</a></li>
+        <li><a href="" class="btn-editor-type" editortype="tinymce">Editor Tinymce</a></li>
         {% if perms.compilacao.change_dispositivo_edicao_avancada %}
           <li><a class="btn-editor-avancado" href="{% url 'sapl.compilacao:dispositivo_edit' object.ta_id object.pk %}" >Editor Avançado</a></li>
         {% endif %}

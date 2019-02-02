@@ -645,35 +645,6 @@ a:link:after, a:visited:after {
       opacity: 1;
     }
   }
-
-  .tipo-vigencias__old {
-    list-style: none;
-    position: fixed;
-    bottom: 0px;
-    left: 50%;
-    transform: translate(-50%, 0);
-    margin: 0;
-    padding: 0;
-    background-color: $color_buttons;
-    z-index: 1000;
-
-    opacity: 0.9;
-    transition: all 0.3s ease-in-out;
-
-    a {
-      color: white;
-      padding: 0.3em 1em 0;
-      display: inline-block;
-      font-size: 110%;
-      cursor: pointer;
-      &.selected {
-        background-color: rgba(0, 0, 0, 0.5);
-      }
-    }
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.2);
-    }
-  }
   &:hover {
     opacity: 1;
   }
@@ -922,7 +893,9 @@ a:link:after, a:visited:after {
         }
       }
     }
-
+    .btns-tipos-editor {
+      padding: 0;
+    }
     .dropdown-menu {
       &.dropdown-menu-left {
         right: auto !important;
