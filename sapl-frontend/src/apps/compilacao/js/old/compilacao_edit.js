@@ -97,8 +97,8 @@ window.DispositivoEdit = function () {
 
     let btn_fechar = _this.find('.btn-fechar')
     btn_fechar.on('click', function (event) {
-      event.preventDefault()
       instance.clearEditSelected()
+      event.preventDefault()
     })
 
     let btns_excluir = _this.find('.btns-excluir')
@@ -123,7 +123,8 @@ window.DispositivoEdit = function () {
     dpt_form.submit(instance.onSubmitFormRegistraAlteracao)
 
     let btn_fechar = _this.find('.btn-fechar')
-    btn_fechar.on('click', function () {
+    btn_fechar.on('click', function (event) {
+      event.preventDefault()
       instance.clearEditSelected()
       instance.triggerBtnDptEdit(_this.attr('pk'))
     })
@@ -148,9 +149,10 @@ window.DispositivoEdit = function () {
     dpt_form.submit(instance.onSubmitFormRegistraInclusao)
 
     let btn_fechar = _this.find('.btn-fechar')
-    btn_fechar.on('click', function () {
+    btn_fechar.on('click', function (event) {
       instance.clearEditSelected()
       instance.triggerBtnDptEdit(_this.attr('pk'))
+      event.preventDefault()
     })
   }
 
@@ -316,7 +318,7 @@ window.DispositivoEdit = function () {
     instance.waitShow()
 
     // eslint-disable-next-line
-    _$.post(url, form_data, dataType = 'json')
+    _$.post(url, form_data)
       .done(function (data) {
         instance.clearEditSelected()
 
