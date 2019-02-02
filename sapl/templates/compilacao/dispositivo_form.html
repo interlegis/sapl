@@ -2,15 +2,15 @@
 {% load i18n crispy_forms_tags compilacao_filters %}
 
 {% block sections_nav %}
-  <ul class="nav nav-pills navbar-right">
+  <ul class="nav nav-pills justify-content-end">
     {% url 'sapl.compilacao:dispositivo_edit' object.ta_id object.pk as edit_url%}
     {% url 'sapl.compilacao:dispositivo_edit_vigencia' object.ta_id object.pk as edit_vigencia_url %}
     {% url 'sapl.compilacao:dispositivo_edit_alteracao' object.ta_id object.pk as edit_alteracao_url %}
     {% url 'sapl.compilacao:dispositivo_edit_definidor_vigencia' object.ta_id object.pk as edit_definidor_vigencia_url %}
-    {% if perms.compilacao.change_dispositivo_edicao_avancada %}<li {% if request.get_full_path == edit_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_url }}">{% trans 'Dados Básicos' %}</a></li>{% endif %}
-    {% if perms.compilacao.change_dispositivo_edicao_avancada %}<li {% if request.get_full_path == edit_vigencia_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>{% endif %}
-    {% if perms.compilacao.change_dispositivo_de_vigencia_global %}<li {% if request.get_full_path == edit_definidor_vigencia_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_definidor_vigencia_url }}" >{% trans 'Definidor de Vigência' %}</a></li>{% endif %}
-    {% if perms.compilacao.change_dispositivo_registros_compilacao %}<li {% if request.get_full_path == edit_alteracao_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_alteracao_url }}" >{% trans 'Alteração' %}</a></li>{% endif %}
+    {% if perms.compilacao.change_dispositivo_edicao_avancada %}<li class="nav-item"><a class="nav-link btn-warning {% if request.get_full_path == edit_url %}active{%endif%}" href="{{ edit_url }}">{% trans 'Dados Básicos' %}</a></li>{% endif %}
+    {% if perms.compilacao.change_dispositivo_edicao_avancada %}<li class="nav-item"><a class="nav-link btn-warning {% if request.get_full_path == edit_vigencia_url %}active{%endif%}" href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>{% endif %}
+    {% if perms.compilacao.change_dispositivo_de_vigencia_global %}<li class="nav-item"><a class="nav-link btn-danger {% if request.get_full_path == edit_definidor_vigencia_url %}active{%endif%}" href="{{ edit_definidor_vigencia_url }}" >{% trans 'Definidor de Vigência' %}</a></li>{% endif %}
+    {% if perms.compilacao.change_dispositivo_registros_compilacao %}<li class="nav-item"><a class="nav-link btn-danger {% if request.get_full_path == edit_alteracao_url %}class="active{%endif%}" href="{{ edit_alteracao_url }}" >{% trans 'Alteração' %}</a></li>{% endif %}
   </ul>
 {% endblock sections_nav %}{% trans '' %}
 
