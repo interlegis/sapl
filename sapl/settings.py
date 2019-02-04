@@ -278,6 +278,8 @@ STATICFILES_FINDERS = (
 MEDIA_ROOT = PROJECT_DIR.child("media")
 MEDIA_URL = '/media/'
 
+FILE_UPLOAD_PERMISSIONS = 0o644
+
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
