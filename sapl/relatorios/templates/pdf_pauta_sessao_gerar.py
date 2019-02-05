@@ -129,8 +129,8 @@ def expediente_materia(lst_expediente_materia):
                expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>' + expediente_materia['num_autores'] + ': </b>' + \
                expediente_materia['nom_autor'] + '</para></td>\n'
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
-        if len(txt_ementa) > 1600:
-            txt_ementa = txt_ementa[:1600] + "..."
+        if len(txt_ementa) > 1000:
+            txt_ementa = txt_ementa[:1000] + "..."
         tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + expediente_materia['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3">' + \
             str(expediente_materia['des_situacao']) + '</para></td></tr>\n'
@@ -158,8 +158,8 @@ def votacao(lst_votacao):
                str(votacao['des_turno']) + '</para>\n' + '<para style="P3"><b>'+votacao['num_autores']+': </b>' + \
                str(votacao['nom_autor']) + '</para></td>\n'
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
-        if len(txt_ementa) > 1600:
-            txt_ementa = txt_ementa[:1600] + "..."
+        if len(txt_ementa) > 1000:
+            txt_ementa = txt_ementa[:1000] + "..."
         tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + votacao['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3">' + \
             str(votacao['des_situacao']) + '</para></td></tr>\n'
