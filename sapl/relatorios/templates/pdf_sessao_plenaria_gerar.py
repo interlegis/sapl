@@ -208,6 +208,8 @@ def expediente_materia(lst_expediente_materia):
         tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + expediente_materia[
         'des_turno'] + '</para>\n' + '<para style="P3"><b>'+ expediente_materia['num_autores'] + ': </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
+        if len(txt_ementa) > 1000:
+            txt_ementa = txt_ementa[:1000] + "..."
         tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + expediente_materia['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
             str(expediente_materia['nom_resultado']) + \
@@ -271,6 +273,8 @@ def votacao(lst_votacao):
         tmp += '<tr><td><para style="P3"><b>' + str(votacao['num_ordem']) + '</b> - ' + votacao['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno:</b> ' + votacao[
             'des_turno'] + '</para>\n' + '<para style="P3"><b>'+ votacao['num_autores'] +': </b>' + str(votacao['nom_autor']) + '</para></td>\n'
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
+        if len(txt_ementa) > 1000:
+            txt_ementa = txt_ementa[:1000] + "..."
         tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + votacao['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
             str(votacao['nom_resultado']) + \
