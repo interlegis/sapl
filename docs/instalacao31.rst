@@ -28,15 +28,7 @@ Instalar as seguintes dependências do sistema::
     pkg-config postgresql postgresql-contrib pgadmin3 python-psycopg2 \
     software-properties-common build-essential libxml2-dev libjpeg-dev \
     libmysqlclient-dev libssl-dev libffi-dev libxslt1-dev python3-setuptools \
-    python3-pip curl poppler-utils antiword default-jre python3-venv
-
-    sudo -i
-    curl -sL https://deb.nodesource.com/setup_8.x | bash -
-    exit
-    sudo apt-get install nodejs
-
-    sudo npm install npm -g
-    sudo npm install -g bower
+    python3-pip poppler-utils antiword default-jre python3-venv
 
 Instalar o virtualenv usando python 3 para o projeto.
 -----------------------------------------------------
@@ -153,6 +145,8 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
       SERVER_EMAIL = [Insira este parâmetro]
 
       SOLR_URL = '[Insira este parâmetro]'
+      
+      FRONTEND_CUSTOM = [True/False]
 
 
     * Uma configuração mínima para atender os procedimentos acima seria::
@@ -181,14 +175,6 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 
     cd /var/interlegis/sapl
 
-
-* Instalar as dependências do ``bower``::
-
-    eval $(echo "sudo chown -R $USER:$USER /home/$USER/")
-    sudo chown -R $USER:$GROUP ~/.npm
-    sudo chown -R $USER:$GROUP ~/.config
-    ./manage.py bower install
-
 * Atualizar e/ou criar as tabelas da base de dados para refletir o modelo da versão clonada::
 
    ./manage.py migrate
@@ -196,11 +182,6 @@ Copie a chave que aparecerá, edite o arquivo .env e altere o valor do parâmetr
 * Subir o servidor do django::
 
    ./manage.py runserver 0.0.0.0:8001
-
-* Compilar os arquivos de estilização::
-
-   ./manage.py compilescss
-   ./manage.py collectstatic
 
 * Acesse o SAPL em::
 
@@ -236,3 +217,68 @@ Instruções para criação do super usuário e de usuários de testes
     operador_sessao
     operador_painel
     operador_geral
+
+
+Sapl-Frontend
+=============
+
+* O Sapl foi separado em outro projeto, o SAPL Frontend que está aqui no github, no repositório do Interlegis. Veja Aqui: https://github.com/interlegis/sapl-frontend::
+
+* Se seu objetivo é preparar o ambiente de desenvolvimento para colaborar no backend, você não precisa se preocupar com o tutorial abaixo pois na pasta https://github.com/interlegis/sapl/tree/3.1.x/sapl/static já está o código oficial de produção exportado pelo projeto do Sapl-Frontend
+
+* Para colaborar com o Sapl-Frontend ou fazer seu próprio frontend a partir do oficial, siga os passos abaixo:
+
+Preparação do ambiente::
+----------------------
+
+* **Instalação do NodeJs LTS 10.15.x**::
+
+    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+
+* **Instalação do Yarn**::
+
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+    sudo apt-get update && sudo apt-get install yarn
+
+* **Instalação do Vue-Cli**::
+
+    yarn global add @vue/cli
+
+
+Ligado os projetos SAPL e Sapl-Frontend para implementação no Sapl-Frontend
+-----------------------------------------------------------------------------
+
+**É fundamental que o Sapl-Frontend esteja na mesma pasta que o Sapl**
+
+* Como orientado acima, o Sapl foi clonado na pasta `/var/interlegis`. O mesmo deve ser feito com o sapl-frontend, ficando assim::
+
+
+    /var/interlegis/sapl
+    /var/interlegis/sapl-frontend
+
+
+* para tal, execute::
+
+    cd /var/interlegis    
+    git clone git://github.com/interlegis/sapl-frontend
+    
+**Você pode também criar um Fork do sapl-frontend**
+
+* Para fazer um fork e depois clonar, siga as instruções em https://help.github.com/articles/fork-a-repo que basicamente são:
+
+  * Criar uma conta no github - é gratuíto.
+  * Acessar https://github.com/interlegis/sapl-frontend e clicar em **Fork**.
+
+* Será criado um domínio pelo qual será possível **clonar, corrigir, customizar, melhorar, contribuir, etc**::
+
+      cd /var/interlegis
+      git clone git://github.com/[SEU NOME]/sapl-frontend
+
+
+Feito isso, e você ativando a variável de ambiente FRONTEND-CUSTOM=True (vide acima criação do .env), o Sapl (backend) desativa a pasta *static* no seu ambiente de desenvolvimento e no seu ambiente de produção e passa a valer para o Sapl (backend) o que você customizar em sapl-frontend.
+
+**Deste ponto em diante, é exigido o conhecimento que você pode adquirir em https://cli.vuejs.org/guide/ e em https://vuejs.org/v2/guide/ para colaborar com sapl-frontend**
+
+**OBS: após a separação do sapl para o sapl-frontend, o conteúdo da pasta static é compilado e minificado. É gerado pelo build do sapl-frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta static.**
