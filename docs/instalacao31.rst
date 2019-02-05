@@ -247,7 +247,7 @@ Preparação do ambiente::
     yarn global add @vue/cli
 
 
-Ligado os projetos SAPL e Sapl-Frontend para implementação no Sapl-Frontend
+Ligando os projetos SAPL e Sapl-Frontend para implementação no Sapl-Frontend
 -----------------------------------------------------------------------------
 
 **É fundamental que o Sapl-Frontend esteja na mesma pasta que o Sapl**
@@ -277,7 +277,15 @@ Ligado os projetos SAPL e Sapl-Frontend para implementação no Sapl-Frontend
       git clone git://github.com/[SEU NOME]/sapl-frontend
 
 
-Feito isso, e você ativando a variável de ambiente FRONTEND-CUSTOM=True (vide acima criação do .env), o Sapl (backend) desativa a pasta *static* no seu ambiente de desenvolvimento e no seu ambiente de produção e passa a valer para o Sapl (backend) o que você customizar em sapl-frontend.
+Feito isso, e você ativando a variável de ambiente FRONTEND_CUSTOM=True (vide acima criação do .env), o Sapl (backend) desativa a pasta *static* no seu ambiente de desenvolvimento e no seu ambiente de produção e passa a valer para o Sapl (backend) o que você customizar em sapl-frontend. Resumindo:
+
+* Se você está criando um fork do sapl-frontend para ter o sapl com sua cara, ou criando funcionalidades de seu interesse: 
+    
+    FRONTEND_CUSTOM=True
+
+* Se você está colaborando com a evolução oficial do sapl-frontend e enviará seu código para o repositório oficial através de um PR e, por consequência, gerará novos versão de produção a ser colocada na pasta static, então:
+    
+    FRONTEND_CUSTOM=False
 
 **Deste ponto em diante, é exigido o conhecimento que você pode adquirir em https://cli.vuejs.org/guide/ e em https://vuejs.org/v2/guide/ para colaborar com sapl-frontend**
 
