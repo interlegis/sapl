@@ -18,27 +18,26 @@
   <h1><small>{{object.ta}}</small><br>{% trans 'Edição de Dispositivo' %}</h1>
 {% endblock%}
 {% block base_content %}
-  <div class="btn-group btn-group-sm" role="group">
-    <div class="cp-nav-parents btn-group btn-group-sm" role="group">
-      <a href="#" class="btn btn-outline-primary">
-        {% trans "Articulações" %}
-        <span class="caret"></span>
-      </a>
-      <ul class="dropdown-menu">
-        <li>
-          {%for parent in object.select_roots %}
-            <a href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
-              {{parent.dispositivo0}} - {{parent|nomenclatura}}
-            </a>
-          {%endfor %}
-        </li>
-      </ul>
-    </div>
-    {%for parent in object.get_parents_asc %}
-      {%with node=parent active=False template_name='compilacao/dispositivo_form_parents.html' %}
-        {%include template_name%}
-      {%endwith%}
-    {%endfor %}
+    <div class="btn-group btn-group-sm" role="group">
+      <div class="btn-group cp-nav-parents " role="group">
+        <a href="#" class="btn btn-outline-primary">
+          {% trans "Articulações" %}
+        </a>
+        <div class="dropdown-menu">
+            {%for parent in object.select_roots %}
+              <a  class="dropdown-item" href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
+                {{parent.dispositivo0}} - {{parent|nomenclatura}}
+              </a>
+            {%endfor %}
+        </div>
+      </div>
+    
+      {%for parent in object.get_parents_asc %}
+        {%with node=parent active=False template_name='compilacao/dispositivo_form_parents.html' %}
+          {%include template_name%}
+        {%endwith%}
+      {%endfor %}
+
     {%with node=object active=True template_name='compilacao/dispositivo_form_parents.html' %}
       {%include template_name%}
     {%endwith%}

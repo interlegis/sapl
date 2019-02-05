@@ -1,20 +1,20 @@
 {% load i18n compilacao_filters %}
 
 {% if not node.dispositivos_filhos_set.exists %}
-  <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-outline-primary {%if active%}active{%endif%}">
-    {{node|nomenclatura}}
-  </a>
-
+  <div class="btn-group cp-nav-parents " role="group">
+    <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-outline-primary {%if active%}active{%endif%}">
+      {{node|nomenclatura}}
+    </a>
+  </div>
 {% else %}
-  <div class="cp-nav-parents btn-group btn-group-sm" role="group">
+  <div class="btn-group cp-nav-parents " role="group">
     <a href="{% url view.get_url_this_view node.ta_id node.pk %}" class="btn btn-outline-primary {%if active%}active{%endif%}">
       {% if not node.rotulo and node.nivel == 0 %}{{node.dispositivo0}} - {% endif %}{{node|nomenclatura}}
-      <span class="caret"></span>
     </a>
     <div class="dropdown-menu">
         {%for parent in node.dispositivos_filhos_set.all %}
-          <a  class="dropdown-item" href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
-            {{parent|nomenclatura}} {% if parent.ta_publicado_id %}<small class="text-warning">
+          <a class="dropdown-item {%if object == parent%}active{%endif%}" href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
+            {{parent|nomenclatura}} {% if parent.ta_publicado_id %}<small class="text-primary">
               {{ parent.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
               {% nota_automatica parent None %}
               {{ parent.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
