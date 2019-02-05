@@ -16,8 +16,9 @@
       
       <link rel="icon" href="{% webpack_static 'img/favicon.ico' %}"  type="image/png" >
 
-      {% render_bundle  'global' 'css' %}
-      {% render_bundle THEME_CUSTOM 'css' %}
+        {% render_chunk_vendors 'css' %}
+        {% render_bundle  'global' 'css' %}
+
 
     {% endblock %}
   </head>
@@ -104,9 +105,9 @@
 
     {% block foot_js %}
 
-      {% render_bundle  'global' 'js' %}      
-      {% render_bundle THEME_CUSTOM 'js' %}
-    
+      {% render_chunk_vendors 'js' %}
+      {% render_bundle  'global' 'js' %}
+  
       {% block extra_js %}{% endblock %}
 
     {% endblock foot_js %}

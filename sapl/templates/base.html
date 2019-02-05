@@ -21,7 +21,6 @@
       {% endblock webpack_loader_css %}
 
       {% block webpack_loader_chunks_css %}
-        {% render_bundle THEME_CUSTOM 'css' %}
       {% endblock webpack_loader_chunks_css %}
 
     {% endblock %}
@@ -232,7 +231,6 @@
       {% endblock webpack_loader_js %}
 
       {% block webpack_loader_chunks_js %}
-        {% render_bundle THEME_CUSTOM 'js' %}
       {% endblock webpack_loader_chunks_js %}
 
       {% block extra_js %}{% endblock %}

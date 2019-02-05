@@ -189,7 +189,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'sapl.context_processors.parliament_info',
                 'sapl.context_processors.mail_service_configured',
-                'sapl.context_processors.THEME_CUSTOM'
             ],
             'debug': DEBUG
         },
@@ -263,18 +262,18 @@ LOCALE_PATHS = (
     'locale',
 )
 
+FRONTEND_CUSTOM = config('FRONTEND_CUSTOM', default=False, cast=bool)
+
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
         'BUNDLE_DIR_NAME': 'sapl/static/',
-        'STATS_FILE':  PROJECT_DIR.child('webpack-stats.json'),
+        'STATS_FILE':  (PROJECT_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.parent.child('sapl-frontend')).child('webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
     }
 }
-
-THEME_CUSTOM = config('THEME_CUSTOM', default='sapl-oficial-theme')
 
 STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
@@ -282,6 +281,10 @@ STATIC_ROOT = PROJECT_DIR.child("collected_static")
 STATICFILES_DIRS = (
     BASE_DIR.child('static'),
 )
+if FRONTEND_CUSTOM:
+    STATICFILES_DIRS = (
+        PROJECT_DIR.parent.child('sapl-frontend').child('dist')
+    )
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
