@@ -198,13 +198,12 @@ class MateriaLegislativaForm(ModelForm):
         super(MateriaLegislativaForm, self).__init__(*args, **kwargs)
         
         self.fields['ementa'].widget.attrs['maxlength'] = 1000
-        
+
         if self.instance and self.instance.pk:
             self.fields['tipo_autor'] = forms.CharField(required=False,
                                                         widget=forms.HiddenInput())
             self.fields['autor'] = forms.CharField(required=False,
                                                    widget=forms.HiddenInput())
-            
             if kwargs['instance'].numero_protocolo:
                 self.fields['numero_protocolo'].widget.attrs['readonly'] = True
 
