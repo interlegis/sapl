@@ -154,14 +154,6 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
         DATABASE_URL = postgresql://sapl:sapl@localhost:5432/sapl
         SECRET_KEY = 'cole aqui entre as aspas simples a chave gerada pelo comando abaixo'
         DEBUG = True
-        EMAIL_USE_TLS = True
-        EMAIL_PORT = 587
-        EMAIL_HOST =
-        EMAIL_HOST_USER =
-        EMAIL_HOST_PASSWORD =
-        DEFAULT_FROM_EMAIL =
-        SERVER_EMAIL =
-
 
 
 Rodar o comando abaixo, um detalhe importante, esse comando só funciona com o django extensions, mas ele já está presente no arquivo requirements/requirements.txt desse projeto::
