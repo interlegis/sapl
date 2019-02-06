@@ -356,7 +356,8 @@ class NormaRelacionadaForm(ModelForm):
     def save(self, commit=False):
         relacionada = super(NormaRelacionadaForm, self).save(commit)
         relacionada.norma_relacionada = self.cleaned_data['norma_relacionada']
-        relacionada.norma_relacionada.data_vigencia = relacionada.norma_principal.data
+        if relacionada.tipo_vinculo.revoga_integralmente:
+            relacionada.norma_relacionada.data_vigencia = relacionada.norma_principal.data
         relacionada.norma_relacionada.save()
         relacionada.save()
         return relacionada
