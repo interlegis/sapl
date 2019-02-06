@@ -1160,10 +1160,11 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
         super(TramitacaoEmLoteFilterSet, self).__init__(
             *args, **kwargs)
 
-        self.filters['tipo'].label = 'Tipo de Matéria'
-        self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
+        self.filters['tipo'].label = _('Tipo de Matéria')
+        self.filters['data_apresentacao'].label = _('Data (Inicial - Final)')
         self.filters['tramitacao__unidade_tramitacao_destino'
-                     ].label = 'Unidade Destino (Último Destino)'
+                     ].label = _('Unidade Destino (Último Destino)')
+        self.filters['tramitacao__status'].label = _('Status')
         self.form.fields['tipo'].required = True
         self.form.fields['data_apresentacao'].required = False
         self.form.fields['tramitacao__status'].required = True
@@ -1180,7 +1181,7 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitação em Lote'),
-                     row1, row2, form_actions(label='Pesquisar')))
+                     row1, row2, form_actions(label=_('Pesquisar'))))
 
 
 class TipoProposicaoForm(ModelForm):
