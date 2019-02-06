@@ -126,6 +126,7 @@ HAYSTACK_CONNECTIONS = {
 }
 
 MIDDLEWARE = [
+    #'sapl.middleware.exception_logging_middleware.ExceptionLoggingMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -338,6 +339,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'django': {
+            'handlers': ['applogfile'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
     }
 }
 
@@ -358,13 +364,8 @@ def remove_warnings():
 remove_warnings()
 
 
-def uncaught_exceptions(type, value, error_traceback):
-    import traceback
-    logger = logging.getLogger(__name__)
-    error_msg = ''.join(traceback.format_tb(error_traceback))
-    logger.error(error_msg)
-    print(error_msg)
-
 
 # captura exceções que não foram tratadas
-sys.excepthook = uncaught_exceptions
+#sys.excepthook = uncaught_exceptions
+
+#2/0
