@@ -15,8 +15,14 @@
     <!-- TODO: does it need this head_title here? -->
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     
-    
-    {% render_bundle 'global'%}
+      {% block webpack_loader_css %}
+        {% render_chunk_vendors 'css' %}
+        {% render_bundle  'global' 'css' %}
+      {% endblock webpack_loader_css %}
+
+      {% block webpack_loader_chunks_css %}
+      {% endblock webpack_loader_chunks_css %}
+
 
     <style type="text/css">
         html, body {
@@ -144,6 +150,14 @@
       </div>
     </div>
   </body>
+
+      {% block webpack_loader_js %}
+        {% render_chunk_vendors 'js' %}
+        {% render_bundle  'global' 'js' %}      
+      {% endblock webpack_loader_js %}
+
+      {% block webpack_loader_chunks_js %}
+      {% endblock webpack_loader_chunks_js %}
 
   <script type="text/javascript">
     var d = new Date();
