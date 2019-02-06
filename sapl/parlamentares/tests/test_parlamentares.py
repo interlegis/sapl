@@ -311,6 +311,27 @@ def test_legislatura_form_numeros_invalidos():
 
         assert legislatura_form.is_valid()
 
+        legislatura = mommy.make(Legislatura, pk=2,
+                                 numero=1,
+                                 data_inicio='2002-02-01',
+                                 data_fim='2005-12-31',
+                                 data_eleicao='2001-11-01')
+        
+        legislatura2 = mommy.make(Legislatura, pk=3,
+                                 numero=3,
+                                 data_inicio='2008-02-01',
+                                 data_fim='2011-12-31',
+                                 data_eleicao='2007-11-01')
+
+        legislatura_form = LegislaturaForm(data={'numero': '1',
+                                                'data_inicio': '2010-02-01',
+                                                'data_fim': '2013-12-31',
+                                                'data_eleicao': '2009-11-01'
+                                                })
+        legislatura_form.instance = legislatura
+
+        assert not legislatura_form.is_valid()
+
 
 @pytest.mark.django_db(transaction=False)
 def test_valida_campos_obrigatorios_frente_form():
