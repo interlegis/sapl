@@ -196,7 +196,7 @@ class MateriaLegislativaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaForm, self).__init__(*args, **kwargs)
-        
+
         self.fields['ementa'].widget.attrs['maxlength'] = 1000
 
         if self.instance and self.instance.pk:
@@ -989,8 +989,9 @@ class DespachoInicialForm(ModelForm):
         if DespachoInicial.objects.filter(
             materia=self.instance.materia,
             comissao=self.cleaned_data['comissao'],
-        ).exists():
-            msg = _('Esse Despacho já foi cadastrado.')
+        ).exclude(pk=self.instance.pk).exists():
+            msg = _('Já existe um Despacho cadastrado para %s' %
+                    self.cleaned_data['comissao'])
             raise ValidationError(msg)
 
         return self.cleaned_data
