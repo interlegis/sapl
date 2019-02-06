@@ -20,45 +20,58 @@
           <legend>Documento Acessório</legend>
           <div class="row">
             <div class="col-md-4">
+              <div class="form-group">
               <label>Tipo*</label>
               <select name="tipo" class="form-control" required="True">
                 {% for t in tipos_docs %} <option>{{t}}</option> {% endfor %}
               </select>
+              </div>
             </div>
 
             <div class="col-md-4">
+              <div class="form-group">
               <label>Nome*</label>
               <input type="text" name="nome" class="form-control" required="True">
             </div>
+          </div>
 
             <div class="col-md-4">
+              <div class="form-group">
               <label>Data*</label>
               <input type="text" name="data" class="form-control dateinput" required="True">
             </div>
           </div>
+          </div>
 
           <div class="row">
             <div class="col-md-12">
+              <div class="form-group">
               <label>Autor:</label>
               <input type="text" name="autor" class="form-control" required="False">
             </div>
+          </div>
+           </div>
 
           <div class="row">
             <div class="col-md-12">
+              <div class="form-group">
               <label>Ementa</label>
               <textarea name="ementa" class="textarea form-control" cols="40" rows="10"></textarea>
             </div>
           </div>
+          </div>
 
           <div class="row">
             <div class="col-md-12">
+              <div class="form-group">
               <label>Texto Integral*</label>
               <input type="file" name="arquivo" required="True">
             </div>
           </div>
+          </div>
         </fieldset>
 
-        <br /><br /><br />
+        <br />
 
         <fieldset>
           <legend>Matérias para inclusão do Documento Acessório</legend>
