@@ -17,7 +17,7 @@
                    data_relativa : $("#id_data_relativa").val()
                 }
                 $.getJSON("/api/autor/possiveis", json_data, function(data){
-                  $("#div_id_autor .controls").html('');
+                  $("#div_id_autor > div").html('');
                     if (data) {
                       var results = data;
 
@@ -26,7 +26,7 @@
                         if (autores_pre_cadastrados.indexOf(obj.value) !== -1)
                           return ;
 
-                        let input = $('<input/>')
+                        $('<input/>')
                           .attr('type', 'checkbox')
                           .attr('name','autor')
                           .attr('id', 'id_autor_'+idx)
@@ -36,7 +36,7 @@
                               .appendTo(
                                 $('<div class="checkbox">')
                                   .appendTo(
-                                    $("#div_id_autor .controls")
+                                    $("#div_id_autor > div")
                                   )
                                 )
                             )
