@@ -126,7 +126,6 @@ HAYSTACK_CONNECTIONS = {
 }
 
 MIDDLEWARE = [
-    #'sapl.middleware.exception_logging_middleware.ExceptionLoggingMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -362,10 +361,3 @@ def remove_warnings():
 
 
 remove_warnings()
-
-
-
-# captura exceções que não foram tratadas
-#sys.excepthook = uncaught_exceptions
-
-#2/0
