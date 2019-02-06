@@ -31,4 +31,5 @@
         {% endif %}
         <a class="btn btn-default" href="{% url 'sapl.base:user_create' %}">Criar Usuário</a>
     </fieldset>
+    {% include 'paginacao.html'%}
 {% endblock base_content %}
