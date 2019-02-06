@@ -340,6 +340,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'django': {
+            'handlers': ['applogfile'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
     }
 }
 
@@ -358,15 +363,3 @@ def remove_warnings():
 
 
 remove_warnings()
-
-
-def uncaught_exceptions(type, value, error_traceback):
-    import traceback
-    logger = logging.getLogger(__name__)
-    error_msg = ''.join(traceback.format_tb(error_traceback))
-    logger.error(error_msg)
-    print(error_msg)
-
-
-# captura exceções que não foram tratadas
-sys.excepthook = uncaught_exceptions
