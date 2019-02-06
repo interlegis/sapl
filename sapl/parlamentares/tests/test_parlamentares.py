@@ -237,28 +237,79 @@ def test_legislatura_form_invalido():
 @pytest.mark.django_db(transaction=False)
 def test_legislatura_form_datas_invalidas():
 
-    legislatura_form = LegislaturaForm(data={'numero': '1',
+        legislatura_form = LegislaturaForm(data={'numero': '1',
+                                                'data_inicio': '2017-02-01',
+                                                'data_fim': '2021-12-31',
+                                                'data_eleicao': '2016-11-01'
+                                                })
+
+        assert legislatura_form.is_valid()
+
+        legislatura_form = LegislaturaForm(data={'numero': '1',
                                              'data_inicio': '2017-02-01',
                                              'data_fim': '2021-12-31',
                                              'data_eleicao': '2017-02-01'
                                              })
 
-    assert not legislatura_form.is_valid()
+        assert not legislatura_form.is_valid()
 
-    expected = \
+        expected = \
         _("A data início deve ser menor que a data fim "
           "e a data eleição deve ser menor que a data início")
-    assert legislatura_form.errors['__all__'] == [expected]
+        assert legislatura_form.errors['__all__'] == [expected]
 
-    legislatura_form = LegislaturaForm(data={'numero': '1',
+        legislatura_form = LegislaturaForm(data={'numero': '1',
                                              'data_inicio': '2017-02-01',
                                              'data_fim': '2017-01-01',
                                              'data_eleicao': '2016-11-01'
                                              })
 
-    assert not legislatura_form.is_valid()
+        assert not legislatura_form.is_valid()
 
-    assert legislatura_form.errors['__all__'] == [expected]
+        assert legislatura_form.errors['__all__'] == [expected]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_legislatura_form_numeros_invalidos():
+
+        legislatura_form = LegislaturaForm(data={'numero': '5',
+                                                'data_inicio': '2017-02-01',
+                                                'data_fim': '2021-12-31',
+                                                'data_eleicao': '2016-11-01'
+                                                })
+
+        assert legislatura_form.is_valid()
+
+        legislatura = mommy.make(Legislatura, pk=1,
+                                 numero=5,
+                                 data_inicio='2017-02-01',
+                                 data_fim='2021-12-31',
+                                 data_eleicao='2016-11-01')
+
+        legislatura_form = LegislaturaForm(data={'numero': '6',
+                                                'data_inicio': '2014-02-01',
+                                                'data_fim': '2016-12-31',
+                                                'data_eleicao': '2013-11-01'
+                                                })
+
+        assert not legislatura_form.is_valid()
+
+        legislatura_form = LegislaturaForm(data={'numero': '4',
+                                                'data_inicio': '2022-02-01',
+                                                'data_fim': '2025-12-31',
+                                                'data_eleicao': '2021-11-01'
+                                                })
+
+        assert not legislatura_form.is_valid()
+
+        legislatura_form = LegislaturaForm(data={'numero': '5',
+                                                'data_inicio': '2014-02-01',
+                                                'data_fim': '2016-12-31',
+                                                'data_eleicao': '2013-11-01'
+                                                })
+        legislatura_form.instance = legislatura
+
+        assert legislatura_form.is_valid()
 
 
 @pytest.mark.django_db(transaction=False)
