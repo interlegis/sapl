@@ -196,6 +196,8 @@ class MateriaLegislativaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaForm, self).__init__(*args, **kwargs)
+        
+        self.fields['ementa'].widget.attrs['maxlength'] = 1000
 
         if self.instance and self.instance.pk:
             self.fields['tipo_autor'] = forms.CharField(required=False,
