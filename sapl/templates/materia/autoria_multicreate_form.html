@@ -26,21 +26,23 @@
                         if (autores_pre_cadastrados.indexOf(obj.value) !== -1)
                           return ;
 
-                        $('<input/>')
+                        let input = $('<input/>')
                           .attr('type', 'checkbox')
                           .attr('name','autor')
                           .attr('id', 'id_autor_'+idx)
                           .attr('value', obj.value)
                           .appendTo(
-                            $('<label/>').text(obj.text)
+                            $('<label/>')
                               .appendTo(
                                 $('<div class="checkbox">')
-                                  .appendTo($("#div_id_autor .controls")
+                                  .appendTo(
+                                    $("#div_id_autor .controls")
+                                  )
                                 )
-                              )
                             )
+                          .after(obj.text)
+                           
                       });
-                      $('[type=checkbox]').checkbox();
                     }
                 });
             }
