@@ -177,10 +177,10 @@ class LegislaturaForm(ModelForm):
                                     .format(numero)))
         elif proxima_legislatura and proxima_legislatura.numero <= numero:
             self.logger.error("O Número ({}) deve ser menor que {}, pois existe uma "
-                              "legislatura cronologicamente a frente desta que está sendo criada!"
+                              "legislatura cronologicamente à frente desta que está sendo criada!"
                               .format(numero, proxima_legislatura.numero))
             msg_erro = "O Número deve ser menor que {}, pois existe uma " \
-            "legislatura afrente cronologicamente desta que está sendo criada!"
+            "legislatura cronologicamente à frente desta que está sendo criada!"
             msg_erro = msg_erro.format(proxima_legislatura.numero)
             raise ValidationError(_(msg_erro))
 
