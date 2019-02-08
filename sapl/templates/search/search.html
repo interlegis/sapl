@@ -42,7 +42,11 @@
         {% if query %}
             <table class="table table-striped table-bordered">
                 <thead class="thead-default">
-                  <tr><td><h3>Resultados</h3></td></tr>
+                  <tr><td><h3>Resultados - Foram encontrados {{ page.paginator.count }} registros <br/>
+                      {% if page.paginator.count %}
+                        Registros {{ page.start_index }} a {{ page.end_index }} de {{ page.paginator.count }}
+                      {% endif %}
+                  </h3></td></tr>
                 </thead>
 
             {% for result in page.object_list %}
