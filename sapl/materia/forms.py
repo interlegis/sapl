@@ -534,7 +534,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
 
     def __init__(self, *args, **kwargs):
-        if 'data' in kwargs:
+        if 'data' in kwargs and 'instance' in kwargs:
             data_dict = dict(kwargs['data'].items())
             data_dict['unidade_tramitacao_local'] = kwargs['instance'].unidade_tramitacao_local_id
             data_dict['data_tramitacao'] = kwargs['instance'].data_tramitacao
