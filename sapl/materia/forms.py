@@ -268,6 +268,14 @@ class MateriaLegislativaForm(ModelForm):
                                     "pode ser diferente do ano na data de "
                                     "origem externa"))
 
+        try:
+            texto_original = cleaned_data['texto_original']
+            if(texto_original):
+                file = texto_original.file
+        except FileNotFoundError:
+            raise ValidationError(_("O arquivo do texto original não foi encontrado no sistema. "
+                                    "Por favor, insira um arquivo para o texto original "))
+
         return cleaned_data
 
     def save(self, commit=False):
@@ -491,10 +499,13 @@ class TramitacaoForm(ModelForm):
                                   .format(data_prazo_form, data_tram_form))
                 raise ValidationError(msg)
 
+
+
         return cleaned_data
 
 
 class TramitacaoUpdateForm(TramitacaoForm):
+
     unidade_tramitacao_local = forms.ModelChoiceField(
         queryset=UnidadeTramitacao.objects.all(),
         widget=forms.HiddenInput())
@@ -520,6 +531,19 @@ class TramitacaoUpdateForm(TramitacaoForm):
             'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
             'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
         }
+
+
+    def __init__(self, *args, **kwargs):
+        if 'data' in kwargs:
+            data_dict = kwargs['data'].dict()
+            data_dict['unidade_tramitacao_local'] = kwargs['instance'].unidade_tramitacao_local_id
+            data_dict['data_tramitacao'] = kwargs['instance'].data_tramitacao
+            from django.http.request import QueryDict
+            qdict = QueryDict('', mutable=True)
+            qdict.update(data_dict)
+            kwargs.pop('data')
+            kwargs['data'] = qdict
+        super(TramitacaoUpdateForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         super(TramitacaoUpdateForm, self).clean()
