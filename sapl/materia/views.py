@@ -211,7 +211,13 @@ class CriarProtocoloMateriaView(CreateView):
         context['form'].fields['tipo'].initial = protocolo.tipo_materia
         context['form'].fields['numero'].initial = numero
         context['form'].fields['ano'].initial = protocolo.ano
-        context['form'].fields['data_apresentacao'].initial = protocolo.timestamp.date()
+        if protocolo:
+            if protocolo.timestamp:
+                context['form'].fields['data_apresentacao'].initial = protocolo.timestamp.date()
+            elif protocolo.timestamp_data_hora_manual:
+                context['form'].fields['data_apresentacao'].initial = protocolo.timestamp_data_hora_manual.date()
+            elif protocolo.data:
+                context['form'].fields['data_apresentacao'].initial = protocolo.data
         context['form'].fields['numero_protocolo'].initial = protocolo.numero
         context['form'].fields['ementa'].initial = protocolo.assunto_ementa
 

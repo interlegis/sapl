@@ -269,6 +269,8 @@ class MateriaLegislativa(models.Model):
             if protocolo:
                 if protocolo.timestamp:
                     return protocolo.timestamp.date()
+                elif protocolo.timestamp_data_hora_manual:
+                    return protocolo.timestamp_data_hora_manual.date()
                 elif protocolo.data:
                     return protocolo.data
 
