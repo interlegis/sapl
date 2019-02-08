@@ -402,9 +402,9 @@ class AutorForm(ModelForm):
             data_field='autor_related')
 
         autor_select = Row(to_column(('tipo', 3)),
-                           Div(to_column(('nome', 5)),
-                               to_column(('cargo', 4)),
-                               css_class="div_nome_cargo"),
+                           Div(to_column(('nome', 7)),
+                               to_column(('cargo', 5)),
+                               css_class="div_nome_cargo row col"),
                            to_column((autor_related, 9)),
                            to_column((Div(
                                Field('autor_related'),
