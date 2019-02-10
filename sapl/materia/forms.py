@@ -5,7 +5,7 @@ import os
 from crispy_forms.bootstrap import Alert, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
-                                 Layout)
+                                 Layout, Row)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -1191,7 +1191,8 @@ class TipoProposicaoForm(ModelForm):
     content_type = forms.ModelChoiceField(
         queryset=ContentType.objects.all(),
         label=TipoProposicao._meta.get_field('content_type').verbose_name,
-        required=True)
+        required=True,
+        help_text=TipoProposicao._meta.get_field('content_type').help_text)
 
     tipo_conteudo_related_radio = ChoiceWithoutValidationField(
         label="Seleção de Tipo",
@@ -1215,13 +1216,30 @@ class TipoProposicaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        tipo_select = Fieldset(TipoProposicao._meta.verbose_name,
-                               Div(to_column(('descricao', 5)),
-                                   to_column(('content_type', 7)),
-                                   css_class='clearfix'),
-                               to_column(('tipo_conteudo_related_radio', 6)),
-
-                               to_column(('perfis', 6)))
+        tipo_select = Fieldset(
+            TipoProposicao._meta.verbose_name,
+            Row(
+                to_column(
+                    (
+                        Row(
+                            to_column(('descricao', 12)),
+                            to_column(('perfis', 12)),
+                        ),
+                        5
+                    )
+                ),
+                to_column(
+                    (
+                        Row(
+                            to_column(('content_type', 12)),
+                            to_column(('tipo_conteudo_related_radio', 12)),
+                            to_column(('tipo_conteudo_related', 12)),
+                        ),
+                        7
+                    )
+                ),
+            )
+        )
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(tipo_select)
