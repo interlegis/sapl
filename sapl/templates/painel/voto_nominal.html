@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load common_tags %}
 {% load render_bundle from webpack_loader %}
 {% load webpack_static from webpack_loader %}
 
@@ -9,7 +10,9 @@
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    {% render_bundle 'global'%}
+    {% render_chunk_vendors 'css' %}
+    {% render_bundle  'global' 'css' %}
+    {% render_bundle  'painel' 'css' %}
 
     <style type="text/css">
         html, body {
@@ -26,7 +29,6 @@
         #date, #relogio, #resultado_votacao, #blocoprincipal, #blocoerro {
           font-family: Verdana;
         }
-      }
         #votos
         {
             text-align:center;
@@ -35,6 +37,11 @@
         {
             display:inline;
         }
+
+        #voltar {
+          margin-left: 5rem;
+        }
+      }
     </style>
   </head>
   <body>
@@ -122,6 +129,10 @@
     </body>
 </html>
 
+{% render_chunk_vendors 'js' %}
+{% render_bundle  'global' 'js' %}  
+{% render_bundle  'painel' 'js' %}      
+    
 <script type="text/javascript">
   var d = new Date();
   var n = d.toLocaleDateString();

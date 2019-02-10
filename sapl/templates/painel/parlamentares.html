@@ -1,4 +1,6 @@
-{% load i18n %}                                                                                                              
+{% load i18n %}     
+{% load common_tags %}
+                                                                                                         
 {% load render_bundle from webpack_loader %}
 {% load webpack_static from webpack_loader %}
 
@@ -14,7 +16,10 @@
       <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        {% render_bundle 'global'%}
+        {% render_chunk_vendors 'css' %}
+        {% render_bundle  'global' 'css' %}
+        {% render_bundle  'painel' 'css' %}
+
 
 
       <STYLE type="text/css">
@@ -23,6 +28,30 @@
         }
       </STYLE>
       
+    </head>
+    <body>
+        <h1>{{ context.title }}</h1>
+        <input id="json_url" type="hidden" value="{% url 'sapl.painel:dados_painel' %}">        
+        <h3>
+        <span id="sessao_plenaria"></span><br/><br/>
+        <span id="sessao_plenaria_data"></span><br/><br/>
+        <span id="sessao_plenaria_hora_inicio"></span></br><br/>
+        <h2><span id="relogio"></span></h2>
+        <table>
+            <tr>
+               <td>
+                  <ul id="parlamentares">
+                  </ul>
+               </td>
+            </tr>
+        </table>
+        </h3>
+    </body>
+        
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}  
+    {% render_bundle  'painel' 'js' %}      
+        
       <script type="text/javascript">
          $(document).ready(function() {
 
@@ -96,23 +125,4 @@
           })();
          });
       </script>
-    </head>
-    <body>
-        <h1>{{ context.title }}</h1>
-        <input id="json_url" type="hidden" value="{% url 'sapl.painel:dados_painel' %}">        
-        <h3>
-        <span id="sessao_plenaria"></span><br/><br/>
-        <span id="sessao_plenaria_data"></span><br/><br/>
-        <span id="sessao_plenaria_hora_inicio"></span></br><br/>
-        <h2><span id="relogio"></span></h2>
-        <table>
-            <tr>
-               <td>
-                  <ul id="parlamentares">
-                  </ul>
-               </td>
-            </tr>
-        </table>
-        </h3>
-    </body>
 </html>
