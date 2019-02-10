@@ -3,117 +3,103 @@
 {% load common_tags %}
 
 {% block base_content %}
-    <h1><legend>Pesquisa Textual</legend></h1>
+  <h1><legend>Pesquisa Textual</legend></h1>
+  </br>
+  <form method="get" action=".">
+    <div class="row">
+      <div class="col-md-8">
+        {{ form.q|as_crispy_field }}
+      </div>
+    </div>
 
+    <div  class="row">
+      <div class="col-md-8">
+        <h3> Em quais tipos de documento deseja pesquisar?</h3>
+        {{ form.models }}
+      </div>
+    </div>
+
+    <div  class="row">
+      <div class="col-md-12">
+        <input class="btn btn-primary float-right" type="submit" value="Pesquisar">
+      </div>
+    </div>
     </br>
-
-    <form method="get" action=".">
-        <div class="row container-detail clearfix">
-
-            <div  class="row">
-                <div class="col-md-8">
-                    {{ form.q|as_crispy_field }}
-                </div>
-            </div>
-
-            <div  class="row">
-                <div class="col-md-8">
-                    </br>
-                    <h4> Em quais tipos de documento deseja pesquisar?</h4>
-                </div>
-            </div>
-
-            <div  class="row">
-                <div class="col-md-8">
-                    {{ form.models }}
-                </div>
-            </div>
-
-
-            <div  class="row">
-                <div class="col-md-12">
-                    <input class="btn btn-primary float-right" type="submit" value="Pesquisar">
-                </div>
-            </div>
-
-        </div>
-
-        </br>
-        {% if query %}
-            <table class="table table-striped table-bordered">
-                <thead class="thead-default">
-                  <tr><td><h3>Resultados - Foram encontrados {{ page.paginator.count }} registros <br/>
-                      {% if page.paginator.count %}
-                        Registros {{ page.start_index }} a {{ page.end_index }} de {{ page.paginator.count }}
-                      {% endif %}
-                  </h3></td></tr>
-                </thead>
-
-            {% for result in page.object_list %}
-                <tr>
-                    <td>
-                        {% if result.object|search_get_model == 'm' %}
-                            <p>
-                              <strong>Matéria Legislativa: </strong> <a href="{% url 'sapl.materia:materialegislativa_detail' result.object.pk %}">{{ result.object }}</a></br>
-                              {{result.object.ementa}}<br>
-
-                              {% if result.object.texto_original %}
-                                <strong>Texto Original:</strong> <a href="{{result.object.texto_original.url}}"> Clique aqui </a></br>
-                              {% endif %}
-                              {% if result.object.texto_articulado %}
-                                  <strong>Texto Articulado:</strong> <a href="{% url 'sapl.materia:materia_ta' result.object.pk %}"> Clique aqui </a></br>
-                              {% endif %}
-                            </p>
-
-                        {% elif result.object|search_get_model == 'd' %}
-                            <p>
-                              <strong> Documento Acessório: </strong><a href="{% url 'sapl.materia:documentoacessorio_detail' result.object.pk %}">{{ result.object }}</a></br>
-                              {{result.object.ementa}}<br>
-                              {% if result.object.arquivo %}
-                                <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
-                              {% endif %}
-                            </p>
-
-                        {% elif result.object|search_get_model == 'n' %}
-                            <p>
-                              <strong> Norma Jurídica: </strong><a href="{% url 'sapl.norma:normajuridica_detail' result.object.pk %}">{{ result.object }}</a></br>
-                              {{result.object.ementa}}<br>
-                              {% if result.object.texto_integral %}
-                                <strong>Texto Original:</strong> <a href="{{result.object.texto_integral.url}}"> Clique aqui </a></br>
-                              {% endif %}
-                              {% if result.object.texto_articulado %}
-                                  <strong>Texto Articulado:</strong> <a href="{% url 'sapl.norma:norma_ta' result.object.pk %}"> Clique aqui </a></br>
-                              {% endif %}
-                            </p>
-                        {% endif %}
-                    </td>
-                </tr>
-
-                {% empty %}
-                <h3> Nenhum texto encontrado! </h3>
-                <tr>
-                    <td>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-
-            {% if page.has_previous or page.has_next %}
-                <div>
-                    {% if page.has_previous %}
-                      <a href="?q={{ query }}&amp;page={{ page.previous_page_number }}{{ models }}">
-                    {% endif %}&laquo; Anterior{% if page.has_previous %}</a>{% endif %}
-                    |
-                    {% if page.has_next %}
-                      <a href="?q={{ query }}&amp;page={{ page.next_page_number }}{{ models }}">
-                    {% endif %}Próxima &raquo;{% if page.has_next %}</a>{% endif %}
-                </div>
+    {% if query %}
+      <table class="table table-striped table-bordered">
+        <thead class="thead-default">
+          <tr><td><h3>Resultados - Foram encontrados {{ page.paginator.count }} registros <br/>
+            {% if page.paginator.count %}
+            Registros {{ page.start_index }} a {{ page.end_index }} de {{ page.paginator.count }}
             {% endif %}
-        {% else %}
-           {% if 'q=' in request.get_full_path %}
-                <strong><h2>Favor informar um conjunto de caracteres na caixa 'Pesquisar' para realizar a busca</h2></strong>
-           {% endif %}
-        {% endif %}
+          </h3></td></tr>
+        </thead>
 
-    </form>
+      {% for result in page.object_list %}
+        <tr>
+          <td>
+            {% if result.object|search_get_model == 'm' %}
+              <p>
+                <strong>Matéria Legislativa: </strong> <a href="{% url 'sapl.materia:materialegislativa_detail' result.object.pk %}">{{ result.object }}</a></br>
+                {{result.object.ementa}}<br>
+
+                {% if result.object.texto_original %}
+                <strong>Texto Original:</strong> <a href="{{result.object.texto_original.url}}"> Clique aqui </a></br>
+                {% endif %}
+                {% if result.object.texto_articulado %}
+                  <strong>Texto Articulado:</strong> <a href="{% url 'sapl.materia:materia_ta' result.object.pk %}"> Clique aqui </a></br>
+                {% endif %}
+              </p>
+
+            {% elif result.object|search_get_model == 'd' %}
+              <p>
+                <strong> Documento Acessório: </strong><a href="{% url 'sapl.materia:documentoacessorio_detail' result.object.pk %}">{{ result.object }}</a></br>
+                {{result.object.ementa}}<br>
+                {% if result.object.arquivo %}
+                <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
+                {% endif %}
+              </p>
+
+            {% elif result.object|search_get_model == 'n' %}
+              <p>
+                <strong> Norma Jurídica: </strong><a href="{% url 'sapl.norma:normajuridica_detail' result.object.pk %}">{{ result.object }}</a></br>
+                {{result.object.ementa}}<br>
+                {% if result.object.texto_integral %}
+                <strong>Texto Original:</strong> <a href="{{result.object.texto_integral.url}}"> Clique aqui </a></br>
+                {% endif %}
+                {% if result.object.texto_articulado %}
+                  <strong>Texto Articulado:</strong> <a href="{% url 'sapl.norma:norma_ta' result.object.pk %}"> Clique aqui </a></br>
+                {% endif %}
+              </p>
+            {% endif %}
+          </td>
+        </tr>
+
+        {% empty %}
+        <h3> Nenhum texto encontrado! </h3>
+        <tr>
+          <td>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      {% if page.has_previous or page.has_next %}
+        <div>
+          {% if page.has_previous %}
+            <a href="?q={{ query }}&amp;page={{ page.previous_page_number }}{{ models }}">
+          {% endif %}&laquo; Anterior{% if page.has_previous %}</a>{% endif %}
+          |
+          {% if page.has_next %}
+            <a href="?q={{ query }}&amp;page={{ page.next_page_number }}{{ models }}">
+          {% endif %}Próxima &raquo;{% if page.has_next %}</a>{% endif %}
+        </div>
+      {% endif %}
+    {% else %}
+       {% if 'q=' in request.get_full_path %}
+        <strong><h2>Favor informar um conjunto de caracteres na caixa 'Pesquisar' para realizar a busca</h2></strong>
+       {% endif %}
+    {% endif %}
+
+  </form>
 {% endblock %}
