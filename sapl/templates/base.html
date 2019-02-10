@@ -1,6 +1,9 @@
 <!DOCTYPE html>
-{% load i18n staticfiles sass_tags menus %}
+{% load i18n staticfiles menus %}
 {% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!-->
 <html class="no-js" lang="pt-br">
@@ -11,19 +14,15 @@
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block head_content %}
-      <link rel="icon" href="{% static 'img/favicon.ico' %}"  type="image/png" >
+      <link rel="icon" href="{% webpack_static 'img/favicon.ico' %}"  type="image/png">
+      {% block webpack_loader_css %}
+        {% render_chunk_vendors 'css' %}
+        {% render_bundle  'global' 'css' %}
+      {% endblock webpack_loader_css %}
 
-      {# Styles #}
-      <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
-      <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
-      <link rel="stylesheet" href="{% static 'drunken-parrot-flat-ui/css/drunken-parrot.css' %}">
-      <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
+      {% block webpack_loader_chunks_css %}
+      {% endblock webpack_loader_chunks_css %}
 
-      <link rel="stylesheet" href="{% static 'jquery-ui/themes/cupertino/jquery-ui.min.css' %}">
-      <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-
-      {# Scripts #}
-      {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
     {% endblock %}
   </head>
 
@@ -32,55 +31,49 @@
 
       {% if not request|has_iframe %}
       {% block navigation %}
-      <nav class="navbar navbar-inverse navbar-static-top">
-        <div class="container">
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-              <span class="sr-only">Toggle navigation</span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-          </div>
-          <div id="navbar" class="navbar-collapse collapse">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+          <div class="container">
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+              {% block sections_navbar %} {% navbar 'navbar.yaml' %}{% endblock sections_navbar %}
 
-            {% block sections_navbar %} {% navbar 'navbar.yaml' %}{% endblock sections_navbar %}
-
-            <ul class="nav navbar-nav navbar-right" id="autenticacao">
-              <li class="dropdown pesquisa">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="{% static 'img/search.png' %}"><span class="caret"></span></a>
-                  <ul class="dropdown-menu">
-                    <li class="nav__sub-item">
-                      <form class="navbar-form search-form" method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
-                				<input type="text" class="form-control" placeholder="Pesquisar no LexML" />
-                			</form>
-                    </li>
-                  </ul>
-              </li>
-              <li><a href="/sistema/ajuda"><img src="{% static 'img/manual.png' %}"></a></li>
-              {% if not user.is_authenticated %}
-                <li><a href="{% url 'sapl.base:login' %}"><img src="{% static 'img/user.png' %}"></a></li>
-              {% else %}
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img height="30" width="30" src="{% static 'img/authenticated.png' %}"><span class="caret"></span></a>
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li><a>{{user.username}}</a></li>
-                    {% if 'parlamentares.can_vote' in request.user.get_all_permissions %}
-                      <li><a href="" onclick="window.open('{% url 'sapl.painel:voto_individual' %}','Voto Individual','width=1000, height=800, scrollbars=yes')";>
-                        Votar Matéria
-                      </a></li>
-                    {% endif %}
-                    <li><a href="{% url 'sapl.base:alterar_senha' %}">Alterar senha</a></li>
-                    <li><a href="{% url 'sapl.base:logout' %}">Sair</a></li>
-                  </ul>
+              <ul class="nav navbar-nav justify-content-end" id="autenticacao">
+                <li class="nav-item dropdown pesquisa">
+                  <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="{% webpack_static 'img/search.png' %}"><span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                      <li class="dropdown-item">
+                        <form class="navbar-form search-form" method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
+                          <input type="text" class="form-control" placeholder="Pesquisar no LexML" />
+                        </form>
+                      </li>
+                    </ul>
                 </li>
-              {% endif %}
-            </ul>
+                <li class="nav-item"><a class="nav-link"href="/sistema/ajuda"><img src="{% webpack_static 'img/manual.png' %}"></a></li>
+                {% if not user.is_authenticated %}
+                  <li class="nav-item"><a class="nav-link" href="{% url 'sapl.base:login' %}"><img src="{% webpack_static 'img/user.png' %}"></a></li>
+                {% else %}
+                  <li class="nav-item dropdown">
+                      <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img height="30" width="30" src="{% webpack_static 'img/authenticated.png' %}"><span class="caret"></span></a>
+                    </a>
+                    <ul class="dropdown-menu">
+                      <li class="dropdown-item"><a>{{user.username}}</a></li>
+                      {% if 'parlamentares.can_vote' in request.user.get_all_permissions %}
+                        <li class="dropdown-item"><a href="" onclick="window.open('{% url 'sapl.painel:voto_individual' %}','Voto Individual','width=1000, height=800, scrollbars=yes')";>
+                          Votar Matéria
+                        </a></li>
+                      {% endif %}
+                      <li class="dropdown-item"><a href="{% url 'sapl.base:alterar_senha' %}">Alterar senha</a></li>
+                      <li class="dropdown-item"><a href="{% url 'sapl.base:logout' %}">Sair</a></li>
+                    </ul>
+                  </li>
+                {% endif %}
+              </ul>
 
-          </div><!--/.nav-collapse -->
-        </div>
-      </nav>
+            </div><!--/.nav-collapse -->
+          </div>
+        </nav>
       {% endblock navigation %}
 
       {# Header #}
@@ -89,7 +82,7 @@
         <div class="container">
           <div class="navbar-header">
             <a class="navbar-brand" href="/">
-              <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+              <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
               alt="Logo" class="img-responsive" >
               <span class="vcenter">
                 {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
@@ -128,9 +121,9 @@
 
             {# Feedback messages #}
             {% for message in messages %}
-              <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade in" role="alert">
+              <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible" role="alert">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                  <span aria-hidden="true">&times;</span>
                 </button>
                 {{ message|safe }}
               </div>
@@ -160,6 +153,9 @@
             {% endblock base_header %}
 
             {# Content per se #}
+            {% block vue_content %}<div id="app"></div>{% endblock %}
+
+            {# Content per se #}
             {% block base_content %}{% endblock %}
 
           </div>
@@ -177,7 +173,7 @@
 
               <a class="footer__logo" href="#">
                 <a href="http://www.interlegis.leg.br/">
-                  <img src="{% static 'img/logo_interlegis.png' %}" alt="{% trans 'Logo do Interlegis' %} ">
+                  <img src="{% webpack_static 'img/logo_interlegis.png' %}" alt="{% trans 'Logo do Interlegis' %} ">
                 </a>
               </a>
               <p>
@@ -189,7 +185,7 @@
             </div>
             <div class="col-md-4">
               <a class="footer__logo" href="#">
-                <img src="{% static 'img/logo_cc.png' %}" alt="{% trans 'Logo do Creative Commons BY SA' %}">
+                <img src="{% webpack_static 'img/logo_cc.png' %}" alt="{% trans 'Logo do Creative Commons BY SA' %}">
               </a>
               <p>
                 <small>
@@ -228,22 +224,14 @@
     {% endif %}
 
     {% block foot_js %}
-      <!-- Bootstrap core JavaScript ================================================== -->
-      <!-- Placed at the end of the document so the pages load faster -->
-      <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
 
-      <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jquery-ui/ui/i18n/datepicker-pt-BR.js' %}"></script>
+      {% block webpack_loader_js %}
+        {% render_chunk_vendors 'js' %}
+        {% render_bundle  'global' 'js' %}      
+      {% endblock webpack_loader_js %}
 
-      <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
-
-      <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jsdiff/diff.min.js' %}"></script>
-
-      <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
-
-      <script type="text/javascript" src="{% static 'jquery-query-object/jquery.query-object.js' %}"></script>
+      {% block webpack_loader_chunks_js %}
+      {% endblock webpack_loader_chunks_js %}
 
       {% block extra_js %}{% endblock %}
 

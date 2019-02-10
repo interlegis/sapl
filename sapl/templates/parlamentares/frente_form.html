@@ -7,13 +7,13 @@
   <form method="POST">
 	  {% csrf_token %}
 
-    <div class="row-fluid">
+    <div class="row">
       <div class="col-md-12" >
         {{ form.nome|as_crispy_field }}
       </div>
     </div>
 
-    <div class="row-fluid">
+    <div class="row">
       <div class="col-md-6" >
         {{ form.data_criacao|as_crispy_field }}
       </div>
@@ -23,7 +23,7 @@
     </div>
 
     <div id="div_parlamentares">
-      <div class="row-fluid">
+      <div class="row">
         <div class="col-md-12" >
           <div class="checkbox">
             <label for="id_selecionar_ativos">
@@ -33,14 +33,14 @@
         </div>
       </div>
 
-      <div class="row-fluid">
+      <div class="row">
         <div class="col-md-12" >
           {{ form.parlamentares|as_crispy_field }}
         </div>
       </div>
     </div>
 
-    <div class="row-fluid">
+    <div class="row">
       <div class="col-md-12" >
         {{ form.descricao|as_crispy_field }}
       </div>

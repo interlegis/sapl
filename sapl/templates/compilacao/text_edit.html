@@ -1,15 +1,8 @@
 {% extends "compilacao/textoarticulado_detail.html" %}
 {% load i18n %}
 {% load compilacao_filters %}
-{% load staticfiles %}
-{% load sass_tags %}
 {% load crispy_forms_tags %}
 {% load common_tags %}
-
-{% block head_content %}{{block.super}}
-  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
-{% endblock %}
-
 {% block title%}
   <h2 class="page-header">{% if object.content_object.title_type %}{{object.content_object.title_type}}{%else%}{{object}}{% endif %}{% comment %}<small><i>{% trans 'Texto Multivigente em Edição' %}</i></small>{% endcomment %}</h2>
 {% endblock %}
@@ -17,13 +10,13 @@
 {% block actions %}
   {% if perms.compilacao.change_textoarticulado %}
     <div class="clearfix">
-      <div class="actions btn-toolbar pull-right" role="toolbar">
+      <div class="actions btn-toolbar float-right" role="toolbar">
         <div class="actions btn-group" role="group">
           {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
-                <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn btn-default {% if object.editing_locked %}btn-excluir{%else%}btn-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
+                <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn {% if object.editing_locked %}btn-outline-danger{%else%}btn-outline-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
           {% endif %}
 
-          <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-default">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+          <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Metadados do Texto Articulado' %}</a>
           {% include 'compilacao/textoarticulado_menu_config.html' %}
         </div>
       </div>
@@ -62,8 +55,8 @@
   <div class="modal-dialog modal-xs modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans "Fechar" %}"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title" id="myModalLabel">Orientações Gerais <small>Dicas e Boas Práticas</small></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans "Fechar" %}"><span aria-hidden="true">&times;</span></button>
       </div>
       <div class="modal-body">
         {% blocktrans %}
@@ -129,16 +122,9 @@
         {% endblocktrans %}
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Fechar" %}</button>
+        <button type="button" class="btn btn-outline-primary" data-dismiss="modal">{% trans "Fechar" %}</button>
       </div>
     </div>
   </div>
 </div>
-
 {% endblock base_content %}
-
-{% block foot_js %}
-  {{block.super}}
-  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/compilacao_edit.js' %}"></script>
-{% endblock %}

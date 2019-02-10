@@ -394,7 +394,7 @@ class AutorForm(ModelForm):
                       placeholder=_('Pesquisar por possíveis autores para '
                                     'o Tipo de Autor selecionado.')),
                 StrictButton(
-                    _('Filtrar'), css_class='btn-default btn-filtrar-autor',
+                    _('Filtrar'), css_class='btn-outline-primary btn-filtrar-autor',
                     type='button')),
             css_class='hidden',
             data_action='create',
@@ -402,9 +402,9 @@ class AutorForm(ModelForm):
             data_field='autor_related')
 
         autor_select = Row(to_column(('tipo', 3)),
-                           Div(to_column(('nome', 5)),
-                               to_column(('cargo', 4)),
-                               css_class="div_nome_cargo"),
+                           Div(to_column(('nome', 7)),
+                               to_column(('cargo', 5)),
+                               css_class="div_nome_cargo row col"),
                            to_column((autor_related, 9)),
                            to_column((Div(
                                Field('autor_related'),

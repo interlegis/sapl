@@ -1,5 +1,7 @@
-{% load i18n staticfiles sass_tags menus %}
+{% load i18n menus %}
 {% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
 <!DOCTYPE html>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
 <!--[if gt IE 8]><!-->
@@ -11,19 +13,11 @@
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block head_content %}
-      <link rel="icon" href="{% static 'img/favicon.ico' %}"  type="image/png" >
+      <link rel="icon" href="{% webpack_static 'img/favicon.ico' %}"  type="image/png" >
 
-      {# Styles #}
-      <link rel="stylesheet" href="{% static 'components-font-awesome/css/font-awesome.css' %}">
-      <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
-      <link rel="stylesheet" href="{% static 'drunken-parrot-flat-ui/css/drunken-parrot.css' %}">
-      <link rel="stylesheet" href="{% sass_src 'styles/app.scss' %}" type="text/css">
+        {% render_chunk_vendors 'css' %}
+        {% render_bundle  'global' 'css' %}
 
-      <link rel="stylesheet" href="{% static 'jquery-ui/themes/cupertino/jquery-ui.min.css' %}">
-      <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-
-      {# Scripts #}
-      {# modernizr must be in head (see http://modernizr.com/docs/#installing) #}
     {% endblock %}
   </head>
 
@@ -55,7 +49,7 @@
         <div class="container">
           <div class="navbar-header">
             <a class="navbar-brand" href="/">
-              <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+              <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
               alt="Logo" class="img-responsive visible-md-inline-block visible-lg-inline-block" >
               <span class="vcenter">
                 {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
@@ -126,31 +120,13 @@
     {% endif %}
 
     {% block foot_js %}
-      <!-- Bootstrap core JavaScript ================================================== -->
-      <!-- Placed at the end of the document so the pages load faster -->
-      <script type="text/javascript" src="{% static 'bootstrap-sass/assets/javascripts/bootstrap.min.js' %}"></script>
-
-      <script type="text/javascript" src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jquery-ui/ui/i18n/datepicker-pt-BR.js' %}"></script>
-
-      <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jquery-mask-plugin/dist/jquery.mask.js' %}"></script>
-
-      <script src="{% static 'tinymce/tinymce.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'jsdiff/diff.min.js' %}"></script>
-
-      <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/checkbox.js' %}"></script>
-      <script type="text/javascript" src="{% static 'drunken-parrot-flat-ui/js/radio.js' %}"></script>
-
-      <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
-
-      <script type="text/javascript" src="{% static 'jquery-query-object/jquery.query-object.js' %}"></script>
-
+    
+      {% render_chunk_vendors 'js' %}
+      {% render_bundle  'global' 'js' %}    
+    
       {% block extra_js %}{% endblock %}
 
       <script type="text/javascript" >
-
-
         function inIframe () {
           try {
               return window.self !== window.top;

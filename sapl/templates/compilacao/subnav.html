@@ -1,0 +1,25 @@
+{% load i18n %}
+{% load compilacao_filters %}
+{% load common_tags %}
+  <ul class="nav nav-pills justify-content-end">
+    {%if object %}
+      <li class="nav-item">
+        {% if request.GET.back_type == 'history' and object.content_object %}
+          <a class="nav-link" href="javascript:window.history.back()" title="{% trans 'Voltar para '%}{{object}}">{% trans 'Voltar para '%}{{object}}</a>
+        {% elif object.content_object%}
+          <a class="nav-link" href="{% url object|urldetail_content_type:object.content_object object.content_object.pk %}" title="{% trans 'Voltar para '%}{{object}}">{% trans 'Voltar para '%}{{object}}</a>
+        {%else%}
+          <a class="nav-link" href="{% url 'sapl.compilacao:ta_detail' object.pk %}">{% trans 'Início' %}</a>
+        {%endif%}
+      </li>
+      {% if object.tipo_ta.publicacao_func %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'sapl.compilacao:ta_pub_list' object.pk %}">{% model_verbose_name_plural 'sapl.compilacao.models.Publicacao' %}</a></li>
+      {% endif %}
+      {% if perms.compilacao.view_dispositivo_notificacoes %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'sapl.compilacao:ta_text_notificacoes' object.pk %}">{% trans 'Notificações' %}</a></li>
+      {% endif %}
+      {% block extra_sections_nav %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto' %}</a></li>
+      {% endblock %}
+    {% endif %}
+  </ul>	     

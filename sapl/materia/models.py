@@ -42,13 +42,21 @@ class TipoProposicao(models.Model):
         error_messages={
             'unique': _('Já existe um Tipo de Proposição com esta descrição.')
         })
-    content_type = models.ForeignKey(ContentType, default=None,
-                                     on_delete=models.PROTECT,
-                                     verbose_name=_('Definição de Tipo'))
+    content_type = models.ForeignKey(
+        ContentType, default=None,
+        on_delete=models.PROTECT,
+        verbose_name=_('Conversão de Meta-Tipos'),
+        help_text=_("""
+        Quando uma proposição é incorporada, ela é convertida de proposição
+        para outro elemento dentro do Sapl. Existem alguns elementos que
+        uma proposição pode se tornar. Defina este meta-tipo e em seguida
+        escolha um Tipo Correspondente!
+        """)
+    )
     object_id = models.PositiveIntegerField(
         blank=True, null=True, default=None)
     tipo_conteudo_related = SaplGenericForeignKey(
-        'content_type', 'object_id', verbose_name=_('Seleção de Tipo'))
+        'content_type', 'object_id', verbose_name=_('Tipo Correspondente'))
 
     perfis = models.ManyToManyField(
         PerfilEstruturalTextoArticulado,

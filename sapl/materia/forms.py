@@ -5,7 +5,7 @@ import os
 from crispy_forms.bootstrap import Alert, InlineRadios
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
-                                 Layout)
+                                 Layout, Row)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -1191,7 +1191,8 @@ class TipoProposicaoForm(ModelForm):
     content_type = forms.ModelChoiceField(
         queryset=ContentType.objects.all(),
         label=TipoProposicao._meta.get_field('content_type').verbose_name,
-        required=True)
+        required=True,
+        help_text=TipoProposicao._meta.get_field('content_type').help_text)
 
     tipo_conteudo_related_radio = ChoiceWithoutValidationField(
         label="Seleção de Tipo",
@@ -1215,13 +1216,30 @@ class TipoProposicaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        tipo_select = Fieldset(TipoProposicao._meta.verbose_name,
-                               Div(to_column(('descricao', 5)),
-                                   to_column(('content_type', 7)),
-                                   css_class='clearfix'),
-                               to_column(('tipo_conteudo_related_radio', 6)),
-
-                               to_column(('perfis', 6)))
+        tipo_select = Fieldset(
+            TipoProposicao._meta.verbose_name,
+            Row(
+                to_column(
+                    (
+                        Row(
+                            to_column(('descricao', 12)),
+                            to_column(('perfis', 12)),
+                        ),
+                        5
+                    )
+                ),
+                to_column(
+                    (
+                        Row(
+                            to_column(('content_type', 12)),
+                            to_column(('tipo_conteudo_related_radio', 12)),
+                            to_column(('tipo_conteudo_related', 12)),
+                        ),
+                        7
+                    )
+                ),
+            )
+        )
 
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(tipo_select)
@@ -1403,12 +1421,16 @@ class ProposicaoForm(forms.ModelForm):
         fields.append(to_column((
             'texto_original', 7 if self.texto_articulado_proposicao else 12)))
 
-        fields.append(to_column((Fieldset(_('Outras informações - Vincular a Matéria Legislativa Existente'),
-                                          to_column(('tipo_materia', 12)),
-                                          to_column(('numero_materia', 6)),
-                                          to_column(('ano_materia', 6))
-                                          ), 12)),
-                      )
+        fields.append(
+            to_column(
+                (
+                    Fieldset(
+                        _('Outras informações - Vincular a Matéria Legislativa Existente'),
+                        to_row([('tipo_materia', 12), ]),
+                        to_row([('numero_materia', 6),
+                                ('ano_materia', 6)]),
+                    ), 12)),
+        )
         self.helper = FormHelper()
         self.helper.layout = SaplFormLayout(*fields)
 
@@ -1552,7 +1574,7 @@ class DevolverProposicaoForm(forms.ModelForm):
                 to_column(
                     (form_actions(label=_('Devolver'),
                                   name='devolver',
-                                  css_class='btn-danger pull-right'), 12)
+                                  css_class='btn-danger float-right'), 12)
                 )
             )
         )
@@ -1681,31 +1703,42 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         fields = [
             Fieldset(
                 _('Dados Básicos'),
-                to_column(('tipo_readonly', 4)),
-                to_column(('data_envio', 3)),
-                to_column(('autor_readonly', 5)),
-                to_column(('descricao', 12)),
-                to_column(('observacao', 12)))]
+                to_row(
+                    [
+                        ('tipo_readonly', 4),
+                        ('data_envio', 3),
+                        ('autor_readonly', 5),
+                        ('descricao', 12),
+                        ('observacao', 12)
+                    ]
+                )
+            )
+        ]
 
         fields.append(
-            Fieldset(_('Vinculado a Matéria Legislativa'),
-                     to_column(('tipo_materia', 3)),
-                     to_column(('numero_materia', 2)),
-                     to_column(('ano_materia', 2)),
-                     to_column(
-                (Alert(_('O responsável pela incorporação pode '
-                         'alterar a anexação. Limpar os campos '
-                         'de Vinculação gera um %s independente '
-                         'sem anexação se for possível para esta '
-                         'Proposição. Não sendo, a rotina de incorporação '
-                         'não permitirá estes campos serem vazios.'
-                         ) % self.instance.tipo.content_type,
-                       css_class="alert-info",
-                       dismiss=False), 5)),
-                to_column(
-                (Alert('',
-                       css_class="ementa_materia hidden alert-info",
-                       dismiss=False), 12))))
+            Fieldset(
+                _('Vinculado a Matéria Legislativa'),
+                to_row(
+                    [
+                        ('tipo_materia', 3),
+                        ('numero_materia', 2),
+                        ('ano_materia', 2),
+                        (Alert(_('O responsável pela incorporação pode '
+                                 'alterar a anexação. Limpar os campos '
+                                 'de Vinculação gera um %s independente '
+                                 'sem anexação se for possível para esta '
+                                 'Proposição. Não sendo, a rotina de incorporação '
+                                 'não permitirá estes campos serem vazios.'
+                                 ) % self.instance.tipo.content_type,
+                               css_class="alert-info",
+                               dismiss=False), 5),
+                        (Alert('',
+                               css_class="ementa_materia hidden alert-info",
+                               dismiss=False), 12),
+                    ]
+                )
+            )
+        )
 
         itens_incorporacao = []
         if self.instance.tipo.content_type.model_class() == \
@@ -1727,7 +1760,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         )
 
         fields.append(
-            Fieldset(_('Registro de Incorporação'), *itens_incorporacao))
+            Fieldset(_('Registro de Incorporação'), Row(*itens_incorporacao)))
 
         self.helper = FormHelper()
         self.helper.layout = Layout(*fields)

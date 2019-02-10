@@ -46,14 +46,9 @@ create_env() {
 
 create_env
 
-#python3 manage.py bower install
-
 /bin/bash busy-wait.sh $DATABASE_URL
 
-
-# manage.py migrate --noinput nao funcionava
 yes yes | python3 manage.py migrate
-# python3 manage.py collectstatic --no-input
 
 
 ## SOLR

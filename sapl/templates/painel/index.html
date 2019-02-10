@@ -1,6 +1,8 @@
 {% load i18n %}
-{% load staticfiles sass_tags %}
 {% load common_tags %}
+
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
 
 <!DOCTYPE HTML>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
@@ -9,12 +11,16 @@
 <!--<![endif]-->
   <head>
     <meta charset="UTF-8">
-    <!-- TODO: does it need this head_title here? -->
-    <link rel="stylesheet" href="{% sass_src 'bootstrap-sass/assets/stylesheets/_bootstrap.scss' %}" type="text/css">
-    <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="text/javascript" src="{% static 'jquery/dist/jquery.js' %}"></script>
-      <script type="text/javascript" src="{% static 'js/jquery.runner.js' %}"></script>
+    <!-- TODO: does it need this head_title here? -->
+    <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+    
+      {% block webpack_loader_css %}
+        {% render_chunk_vendors 'css' %}
+        {% render_bundle  'global' 'css' %}
+        {% render_bundle  'painel' 'css' %}
+      {% endblock webpack_loader_css %}
+
 
     <style type="text/css">
         html, body {
@@ -22,126 +28,86 @@
             overflow-x: hidden;
         }
       @media screen {
-        body {
-          background: #1c1b1b;
-        }
         ul, li {
           list-style-type: none;
         }
-        #date, #sessao_plenaria, #sessao_plenaria_data, #sessao_plenaria_hora_inicio, #message, #cronometro_discurso, #cronometro_aparte, #cronometro_ordem, #cronometro_consideracoes, #relogio, #parlamentares, #votacao, #materia_legislativa_texto, #observacao_materia, #resultado_votacao, #orador {
-          font-family: Verdana;
-        }
-      }
-      .center {
-          margin: auto;
-          width: 15%;
-
       }
     </style>
 
   </head>
-  <body>
-    <audio type="hidden" id="audio" src="{% static 'audio/ring.mp3' %}"></audio>
+  <body class="painel-principal">
+      <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
-    <h1 id="title"></h1>
-    <input id="json_url" type="hidden" value="{% url 'sapl.painel:dados_painel' sessao_id %}">
+      <div class="d-flex justify-content-center">
+        <h1 id="sessao_plenaria" class="title text-title"></h1>
+      </div>
+      <div class="row">
+        <div class="col text-center">
+          <span id="sessao_plenaria_data" class="text-value"></span>
+        </div> 
+        <div class="col text-center">
+          <span id="sessao_plenaria_hora_inicio" class="text-value"></span>
+        </div>
+      </div>    
 
-    <h1><b><font color="#4FA64D"><p align="center"><span id="sessao_plenaria"></span></p></font></b></h1>
-
-    <table style="width:90%">
-      <tr>
-        <td style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_data"></span></font></td>
-
-        <td style="text-align:center"><font color="white" size="4"><span id="sessao_plenaria_hora_inicio"></span></font></td>
-      </tr>
-    </table>
-
-    <div class="center">
-      <img src="" id="logo-painel" alt="" width="50%"/>
-    </div>
-
-    <h2><font color="red"><p align="center"><span id="message"></span></p></font></h2>
-
-    <table style="width:90%">
-      <tr>
-        <td style="text-align:center"><font color="white" size="6"><span id="date"></span></font></td>
-
-        <td style="text-align:center"><font color="white" size="6"><span id="relogio"></span></font></td>
-      </tr>
-    </table>
-
-
-    <div class="row container-detail clearfix">
-      <div class="row-fluid">
-        <div class="col-md-4">
-          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Parlamentares</p></b></font></h2>
-          <table align="center">
-            <tr>
-              <td><h4><font color="white"><span id="parlamentares"></span></h4></font></td>
-            </tr>
-          </table>
+      <div class="row justify-content-center">
+        <div class="col-1">
+          <img src="" id="logo-painel" class="logo-painel" alt=""/>
         </div>
       </div>
 
+      <div class="row justify-content-center">
+        <h2 class="text-danger"><span id="message"></span></h2>
+      </div>
 
-      <div class="row-fluid">
-        <div class="col-md-4" id="aparecer_oradores">
-          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Oradores</p></b></font></h2>
-          <table align="center">
-            <tr>
-              <td><h4><font color="white"><span id="orador"></span></h4></font></td>
-            </tr>
-          </table>
+      <div class="row">
+        <div class="col text-center"><span class="text-value" id="date"></span></div>
+        <div class="col text-center"><span class="text-value" id="relogio"></span></div>
+      </div>
+
+      <div class="d-flex justify-content-end painels">
+        <div class="col-md-4 text-center painel">   
+          <h2 class="text-subtitle">Parlamentares</h2>   
+          <span id="parlamentares" class="text-value text-left"></span>
+        </div>
+
+        <div class="col-md-4 text-center painel" id="aparecer_oradores">  
+          <h2 class="text-subtitle">Oradores</h2>  
+          <span id="orador"></span>     
+        </div>
+
+        <div class="col-md-4 text-center painel">  
+          <h2 class="text-subtitle">Cronômetros</h2>
+            <div class="text-value">
+            Discurso: <span id="cronometro_discurso"></span><br>
+            Aparte: <span id="cronometro_aparte"></span><br>
+            Questão de Ordem: <span id="cronometro_ordem"></span><br>
+            Considerações Finais: <span id="cronometro_consideracoes"></span>
+          </div>
+        </div>
+
+        <div class="col-md-4 text-center painel">      
+          <h2 class="text-subtitle">Resultado</h2>   
+            <span id="votacao" class="text-value"></span> 
+            <h2><span id="resultado_votacao" lass="text-title"></span>
+        </div>
+
+        <div class="col-md-4 text-center painel">      
+          <h2 class="text-subtitle">Matéria em Votação</h2>   
+            <span id="materia_legislativa_texto" class="text-value"></span>
+            <span id="observacao_materia" class="text-value"></span>
         </div>
       </div>
-
-
-      <div class="col-md-4">
-        <h2><font color="#459170"><p align="center" style="font-family:Verdana">Cronômetros</p></font></h2>
-        <table align="center">
-          <tr>
-            <td style="font-family:Verdana; text-align:center;"><font size="5" color="white">Discurso: <span id="cronometro_discurso"></span></font></td>
-          </tr>
-          <tr>
-            <td style="font-family:Verdana; text-align:center;"><font size="5" color="white">Aparte: <span id="cronometro_aparte"></span></font></td>
-          </tr>
-          <tr>
-            <td style="font-family:Verdana; text-align:center;"><font size="5" color="white">Questão de Ordem: <span id="cronometro_ordem"></span></font></td>
-          </tr>
-          <tr>
-            <td style="font-family:Verdana; text-align:center;"><font size="5" color="white">Considerações Finais: <span id="cronometro_consideracoes"></span></font></td>
-          </tr>
-        </table>
-      </div>
-
-      <div class="row-fluid">
-        <div class="col-md-4">
-          <h2><font color="#459170"><p align="center" style="font-family:Verdana">Resultado</p></b></font></h2>
-          <table align="center">
-            <tr>
-              <td><h4><font color="white"><span id="votacao"></span></h4></font></td>
-            </tr>
-              </table>
-            <table align="center">
-            <tr>
-              <td style="text-align:center"><h2><font color="#45919D"><span id="resultado_votacao"></span></font></h2></td>
-            </tr>
-          </table>
-        </div>
-      </div>
-        
-
-      </br>
-      <div class="col-md-4">
-        <h2><font color="#459170"><p align="center" style="font-family:Verdana">Matéria em Votação</p></font></h2>
-        <table style="width:75%; border:1px;" align="center">
-          <tr><td style="text-align:center"><h4><font color="white" size="5"> <span id="materia_legislativa_texto"></span></font></h4></td></tr>
-          <tr><td style="text-align:center"><h4><font color="white"><span id="observacao_materia"></span></font></h4></td></tr>
-         
-        </table>
-      </div>
-    </div>
   </body>
+
+  {% block webpack_loader_js %}
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}  
+    {% render_bundle  'painel' 'js' %}      
+  {% endblock webpack_loader_js %}
+
+  {% block webpack_loader_chunks_js %}
+  {% endblock webpack_loader_chunks_js %}
 
   <script type="text/javascript">
     var d = new Date();
@@ -218,7 +184,7 @@
     var counter = 1;
     (function poll() {
         $.ajax({
-           url: $("#json_url").val(),
+           url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
            type: "GET",
            success: function(data) {
               $("#sessao_plenaria").text(data["sessao_plenaria"])
@@ -247,7 +213,7 @@
 
               if (data["status_painel"] == true) {
                   presentes.append('<table id="parlamentares_list">');
-                  jQuery.each(presentes_list, function (index, parlamentar) {
+                  $.each(presentes_list, function (index, parlamentar) {
 
 
                     if (parlamentar.voto == 'Voto Informado'){
@@ -271,7 +237,7 @@
                   if (data["oradores"].length > 0){
                     $('#aparecer_oradores').show();
                     oradores.append('<table id="oradores_list">');
-                    jQuery.each(oradores_list, function (index, orador) {
+                    $.each(oradores_list, function (index, orador) {
                       $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
                           orador.numero + 'º &nbsp' +
                           orador.nome +'</td></tr>')
