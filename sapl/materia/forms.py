@@ -96,7 +96,7 @@ class OrgaoForm(ModelForm):
         orgao = super(OrgaoForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Orgao)
         object_id = orgao.pk
-        tipo = TipoAutor.objects.get(descricao='Órgão')
+        tipo = TipoAutor.objects.get(content_type=content_type)
         nome = orgao.nome + ' - ' + orgao.sigla
         Autor.objects.create(
             content_type=content_type,

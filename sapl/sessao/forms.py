@@ -317,7 +317,7 @@ class BancadaForm(ModelForm):
         bancada = super(BancadaForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Bancada)
         object_id = bancada.pk
-        tipo = TipoAutor.objects.get(descricao__icontains='Bancada')
+        tipo = TipoAutor.objects.get(content_type=content_type)
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,
@@ -352,7 +352,7 @@ class BlocoForm(ModelForm):
         bloco = super(BlocoForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Bloco)
         object_id = bloco.pk
-        tipo = TipoAutor.objects.get(descricao__icontains='Bloco')
+        tipo = TipoAutor.objects.get(content_type=content_type)
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,
