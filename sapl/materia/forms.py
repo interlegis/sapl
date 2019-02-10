@@ -1703,31 +1703,42 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         fields = [
             Fieldset(
                 _('Dados Básicos'),
-                to_column(('tipo_readonly', 4)),
-                to_column(('data_envio', 3)),
-                to_column(('autor_readonly', 5)),
-                to_column(('descricao', 12)),
-                to_column(('observacao', 12)))]
+                to_row(
+                    [
+                        ('tipo_readonly', 4),
+                        ('data_envio', 3),
+                        ('autor_readonly', 5),
+                        ('descricao', 12),
+                        ('observacao', 12)
+                    ]
+                )
+            )
+        ]
 
         fields.append(
-            Fieldset(_('Vinculado a Matéria Legislativa'),
-                     to_column(('tipo_materia', 3)),
-                     to_column(('numero_materia', 2)),
-                     to_column(('ano_materia', 2)),
-                     to_column(
-                (Alert(_('O responsável pela incorporação pode '
-                         'alterar a anexação. Limpar os campos '
-                         'de Vinculação gera um %s independente '
-                         'sem anexação se for possível para esta '
-                         'Proposição. Não sendo, a rotina de incorporação '
-                         'não permitirá estes campos serem vazios.'
-                         ) % self.instance.tipo.content_type,
-                       css_class="alert-info",
-                       dismiss=False), 5)),
-                to_column(
-                (Alert('',
-                       css_class="ementa_materia hidden alert-info",
-                       dismiss=False), 12))))
+            Fieldset(
+                _('Vinculado a Matéria Legislativa'),
+                to_row(
+                    [
+                        ('tipo_materia', 3),
+                        ('numero_materia', 2),
+                        ('ano_materia', 2),
+                        (Alert(_('O responsável pela incorporação pode '
+                                 'alterar a anexação. Limpar os campos '
+                                 'de Vinculação gera um %s independente '
+                                 'sem anexação se for possível para esta '
+                                 'Proposição. Não sendo, a rotina de incorporação '
+                                 'não permitirá estes campos serem vazios.'
+                                 ) % self.instance.tipo.content_type,
+                               css_class="alert-info",
+                               dismiss=False), 5),
+                        (Alert('',
+                               css_class="ementa_materia hidden alert-info",
+                               dismiss=False), 12),
+                    ]
+                )
+            )
+        )
 
         itens_incorporacao = []
         if self.instance.tipo.content_type.model_class() == \
@@ -1749,7 +1760,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         )
 
         fields.append(
-            Fieldset(_('Registro de Incorporação'), *itens_incorporacao))
+            Fieldset(_('Registro de Incorporação'), Row(*itens_incorporacao)))
 
         self.helper = FormHelper()
         self.helper.layout = Layout(*fields)

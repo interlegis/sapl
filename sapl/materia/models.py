@@ -56,7 +56,7 @@ class TipoProposicao(models.Model):
     object_id = models.PositiveIntegerField(
         blank=True, null=True, default=None)
     tipo_conteudo_related = SaplGenericForeignKey(
-        'content_type', 'object_id', verbose_name=_('T'))
+        'content_type', 'object_id', verbose_name=_('Tipo Correspondente'))
 
     perfis = models.ManyToManyField(
         PerfilEstruturalTextoArticulado,
