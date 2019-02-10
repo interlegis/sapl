@@ -126,7 +126,7 @@
   css_class: head_title
   children:
   - title: {% trans 'Tipos de Textos Articulados' %}
-    url: sapl.compilacao:tipo_ta_list
+    url: sapl.compilacao:tipotextoarticulado_list
     css_class: btn btn-link
   - title: {% trans 'Tipos de Publicação' %}
     url: sapl.compilacao:tipopublicacao_list
