@@ -41,8 +41,16 @@ install_requires = [
     'pysolr==3.6.0',
     'whoosh==2.7.4',
 
+    'channels==2.1.7',
+
     # 'git+git://github.com/interlegis/trml2pdf.git',
+<<<<<<< HEAD
     # 'git+git://github.com/interlegis/django-admin-bootstrapped',
+=======
+    # 'git+git://github.com/jasperlittle/django-rest-framework-docs',
+    # 'git+git://github.com/interlegis/django-admin-bootstrapped',
+
+>>>>>>> config inicial
 ]
 setup(
     name='interlegis-sapl',

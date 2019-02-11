@@ -100,6 +100,8 @@ INSTALLED_APPS = (
 
     'webpack_loader',
 
+    'channels',
+
 ) + SAPL_APPS
 
 # FTS = Full Text Search
@@ -204,7 +206,7 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'sapl.wsgi.application'
-
+ASGI_APPLICATION = "sapl.routing.application"
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
