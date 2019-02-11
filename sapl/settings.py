@@ -81,6 +81,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'floppyforms',
 
+    'rest_framework_swagger',
     'rest_framework',
     'django_filters',
 
@@ -139,7 +140,7 @@ MIDDLEWARE = [
     'speedinfo.middleware.ProfilerMiddleware',
 ]
 if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
+    INSTALLED_APPS += ('debug_toolbar', )
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
     INTERNAL_IPS = ('127.0.0.1')
 
@@ -159,6 +160,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "sapl.api.permissions.SaplModelPermissions",

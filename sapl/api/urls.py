@@ -2,6 +2,8 @@ from django.conf import settings
 from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
+from rest_framework_swagger.views import get_swagger_view
+
 from sapl.api.views import (AutoresPossiveisListView, AutoresProvaveisListView,
                             AutorListView, MateriaLegislativaViewSet,
                             ModelChoiceView, SessaoPlenariaViewSet,
@@ -39,9 +41,10 @@ urlpatterns_api = [
 
 ]
 
-if settings.DEBUG:
-    urlpatterns_api += [
-        url(r'^docs', include('rest_framework_docs.urls')), ]
+schema_view = get_swagger_view(title='Pastebin API')
+
+urlpatterns_api += [
+    url(r'^docs', schema_view), ]
 
 urlpatterns = [
     url(r'^api/', include(urlpatterns_api)),

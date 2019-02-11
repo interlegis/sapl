@@ -14,6 +14,7 @@ django-speedinfo==1.4.0
 django-extensions==2.1.4
 django-image-cropping==1.2
 django-webpack-loader==0.6.0
+django-rest-swagger==2.2.0
 easy-thumbnails==2.5
 python-decouple==3.1
 psycopg2-binary==2.7.6.1
@@ -30,7 +31,7 @@ pysolr==3.6.0
 whoosh==2.7.4
 
 git+git://github.com/interlegis/trml2pdf.git
-git+git://github.com/jasperlittle/django-rest-framework-docs
+#git+git://github.com/jasperlittle/django-rest-framework-docs
 git+git://github.com/interlegis/django-admin-bootstrapped
 
 #django-compressor==2.2
