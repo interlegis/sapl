@@ -5,7 +5,6 @@ from django import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-from django.db.models import Q
 from django.db.models.fields.files import FileField
 from django.http import Http404
 from django.utils.decorators import classonlymethod
@@ -16,7 +15,8 @@ from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
 from rest_framework import serializers as rest_serializers
-from rest_framework.decorators import list_route, detail_route
+from rest_framework.decorators import list_route, detail_route,\
+    permission_classes
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import (IsAuthenticated,
@@ -36,7 +36,6 @@ from sapl.base.models import TipoAutor, Autor
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import MateriaLegislativa, Proposicao
 from sapl.parlamentares.models import Parlamentar
-from sapl.rules.map_rules import __base__
 from sapl.sessao.models import SessaoPlenaria
 from sapl.utils import SaplGenericRelation
 
@@ -574,11 +573,31 @@ class _ParlamentarViewSet(SaplSetViews['parlamentares']['parlamentar']):
 
 
 class _ProposicaoViewSet(SaplSetViews['materia']['proposicao']):
+    class ProposicaoPermission(SaplModelPermissions):
+        def has_permission(self, request, view):
+            if request.method == 'GET':
+                return True
+                # se a solicitação é list ou detail, libera o teste de permissão
+                # e deixa o get_queryset filtrar de acordo com a regra de
+                # visibilidade das proposições, ou seja:
+                # 1. proposição incorporada é proposição pública
+                # 2. não incorporada só o autor pode ver
+            else:
+                perm = super().has_permission(request, view)
+                return perm
+                # não é list ou detail, então passa pelas regras de permissão e,
+                # depois disso ainda passa pelo filtro de get_queryset
+
+    permission_classes = (ProposicaoPermission, )
+
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.request.user.is_anonymous():
-            return qs.none()
-        qs = qs.filter(autor__user=self.request.user)
+
+        q = Q(data_recebimento__isnull=False, object_id__isnull=False)
+        if not self.request.user.is_anonymous():
+            q |= Q(autor__user=self.request.user)
+
+        qs = qs.filter(q)
         return qs
 
 
