@@ -7,7 +7,7 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 
-    {% if perms.compilacao.list_tipotextoarticulado %}<li class="dropdown-item"><a href="{% url 'sapl.compilacao:tipo_ta_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoTextoArticulado'%}</a></li>{% endif %}
+    {% if perms.compilacao.list_tipotextoarticulado %}<li class="dropdown-item"><a href="{% url 'sapl.compilacao:tipotextoarticulado_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoTextoArticulado'%}</a></li>{% endif %}
     {% if perms.compilacao.list_tipo_publicacao %}<li class="dropdown-item"><a href="{% url 'sapl.compilacao:tipopublicacao_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoPublicacao'%}</a></li>{% endif %}
     {% if perms.compilacao.list_veiculopublicacao %}<li class="dropdown-item"><a href="{% url 'sapl.compilacao:veiculopublicacao_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.VeiculoPublicacao'%}</a></li>{% endif %}
     {% if perms.compilacao.list_tiponota %}<li class="dropdown-item"><a href="{% url 'sapl.compilacao:tiponota_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoNota'%}</a></li>{% endif %}
