@@ -81,7 +81,8 @@ INSTALLED_APPS = (
     'crispy_forms',
     'floppyforms',
 
-    'rest_framework_swagger',
+    'drf_yasg',
+    #'rest_framework_swagger',
     'rest_framework',
     'django_filters',
 

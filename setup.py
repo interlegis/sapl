@@ -25,6 +25,7 @@ install_requires = [
     'django-extensions==2.1.4',
     'django-image-cropping==1.2.0',
     'django-webpack-loader==0.6.0',
+    'drf-yasg==1.13.0',
     'easy-thumbnails==2.5',
     'python-decouple==3.1',
     'psycopg2-binary==2.7.6.1',
@@ -41,14 +42,7 @@ install_requires = [
     'whoosh==2.7.4',
 
     # 'git+git://github.com/interlegis/trml2pdf.git',
-    # 'git+git://github.com/jasperlittle/django-rest-framework-docs',
     # 'git+git://github.com/interlegis/django-admin-bootstrapped',
-
-    #'django-compressor==2.2',
-    #'django-bootstrap3==11.0.0',
-    #'django-bower==5.2.0',
-    #'django-sass-processor==0.7.2',
-    #'libsass==0.17.0',
 ]
 setup(
     name='interlegis-sapl',
