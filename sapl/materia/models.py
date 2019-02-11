@@ -916,6 +916,9 @@ class Tramitacao(models.Model):
         ('A', 'votacao_unica', _('Votação única em Regime de Urgência')),
         ('B', 'primeira_votacao', _('1ª Votação')),
         ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
+        ('D', 'deliberacao', _('Deliberação')),
+        ('E', 'primeira_segunda_votacao_urgencia', _('1ª e 2ª votações em regime de urgência'))
+
     )
 
     status = models.ForeignKey(StatusTramitacao, on_delete=models.PROTECT,
