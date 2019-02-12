@@ -13,7 +13,8 @@ from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
 from rest_framework import serializers as rest_serializers
-from rest_framework.decorators import list_route, detail_route
+from rest_framework.decorators import list_route, detail_route, action
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.permissions import SaplModelPermissions
@@ -256,13 +257,13 @@ class _AutorViewSet(SaplSetViews['base']['autor']):
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
 
-    @list_route()
+    @action(detail=False)
     def parlamentares(self, request, *args, **kwargs):
         # list /api/base/autor/parlamentares
         content_type = ContentType.objects.get_for_model(Parlamentar)
         return self.list_for_content_type(content_type)
 
-    @list_route()
+    @action(detail=False)
     def comissoes(self, request, *args, **kwargs):
         # list /api/base/autor/comissoes
         content_type = ContentType.objects.get_for_model(Comissao)
@@ -273,7 +274,7 @@ class _AutorViewSet(SaplSetViews['base']['autor']):
 
 class _ParlamentarViewSet(SaplSetViews['parlamentares']['parlamentar']):
 
-    @detail_route()
+    @action(detail=True)
     def proposicoes(self, request, *args, **kwargs):
         # /api/parlamentares/parlamentar/{pk}/proposicoes/
         # recupera proposições enviadas e incorporadas do parlamentar
@@ -300,6 +301,30 @@ class _ParlamentarViewSet(SaplSetViews['parlamentares']['parlamentar']):
 
 
 class _ProposicaoViewSet(SaplSetViews['materia']['proposicao']):
+    """
+    list:
+        Retorna lista de Proposições
+
+        * Permissões:
+
+            * Usuário Dono:
+                * Pode listar todas suas Proposições 
+
+            * Usuário Conectado ou Anônimo:
+                * Pode listar todas as Proposições incorporadas
+
+    retrieve:
+        Retorna uma proposição passada pelo 'id'
+
+        * Permissões:
+
+            * Usuário Dono:
+                * Pode recuperar qualquer de suas Proposições 
+
+            * Usuário Conectado ou Anônimo:
+                * Pode recuperar qualquer das proposições incorporadas
+
+    """
     class ProposicaoPermission(SaplModelPermissions):
         def has_permission(self, request, view):
             if request.method == 'GET':
