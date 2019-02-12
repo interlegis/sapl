@@ -15,7 +15,7 @@ $(document).ready(function(){
       if (atualizar)
         $('#id_nome, #id_q, #id_cargo').val('');
       $('.div_nome_cargo').removeClass('hidden');
-      $("#div_id_autor_related .controls").html('');
+      $("#div_id_autor_related > div").html('');
       $("[data-application='AutorSearch'], .radiogroup-autor-related").addClass('hidden');
     }
     else {
@@ -37,7 +37,7 @@ $(document).ready(function(){
     $.get(url, formData).done(function(data) {
         active('pesquisa');
         if (atualizar) {
-          var radios = $("#div_id_autor_related .form-check").html('');
+          var radios = $("#div_id_autor_related > div").html('');
           data.results.forEach(function (val, index) {
             var html_radio = '<div class="radio"><label><input type="radio" name="autor_related" id="id_id_autor_related_'+index+'" value="'+val.value+'">'+val.text+'</label></div>';
             radios.append(html_radio);
