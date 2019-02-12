@@ -408,7 +408,39 @@ class _DocumentoAcessorioAdministrativoViewSet(
         return qs
 
 
+class _TramitacaoAdministrativoViewSet(
+        SaplSetViews['protocoloadm']['tramitacaoadministrativo']):
+    # TODO: Implementar regras de manutenção das tramitações de docs adms
+
+    permission_classes = (
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        if self.request.user.is_anonymous():
+            qs = qs.exclude(documento__restrito=True)
+        return qs
+
+    def create(self, request, *args, **kwargs):
+        raise Exception(_("POST Create não implementado"))
+
+    def put(self, request, *args, **kwargs):
+        raise Exception(_("PUT Update não implementado"))
+
+    def patch(self, request, *args, **kwargs):
+        raise Exception(_("PATCH Partial Update não implementado"))
+
+    def delete(self, request, *args, **kwargs):
+        raise Exception(_("DELETE Delete não implementado"))
+
+
 SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
+
 SaplSetViews['materia']['proposicao'] = _ProposicaoViewSet
+
 SaplSetViews['parlamentares']['parlamentar'] = _ParlamentarViewSet
+
 SaplSetViews['protocoloadm']['documentoadministrativo'] = _DocumentoAdministrativoViewSet
+SaplSetViews['protocoloadm']['documentoacessorioadministrativo'] = _DocumentoAcessorioAdministrativoViewSet
+SaplSetViews['protocoloadm']['tramitacaoadministrativo'] = _TramitacaoAdministrativoViewSet
