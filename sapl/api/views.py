@@ -18,9 +18,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.permissions import SaplModelPermissions
+from sapl.base.models import Autor
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import Proposicao
 from sapl.parlamentares.models import Parlamentar
+from sapl.utils import models_with_gr_for_model
 
 
 class SaplApiViewSetConstrutor(ModelViewSet):
@@ -203,45 +205,37 @@ SaplSetViews = SaplApiViewSetConstrutor.build_class()
 # das possibilidades para uma classe normal criada a partir de
 # rest_framework.viewsets.ModelViewSet conforme exemplo para a classe autor
 
-# ALGUNS EXEMPLOS
 
-
+# Customização para AutorViewSet com implementação de actions específicas
 class _AutorViewSet(SaplSetViews['base']['autor']):
-    # OBS: esta classe é um exemplo e não contempla uma customização completa.
     """
     Neste exemplo de customização do que foi criado em 
     SaplApiViewSetConstrutor além do ofertado por 
     rest_framework.viewsets.ModelViewSet, dentre outras customizações
-    possíveis, foi adicionado mais duas rotas, que neste exemplo seria:
+    possíveis, foi adicionado as rotas referentes aos relacionamentos genéricos
 
-    padrão de ModelViewSet
-    http://localhost:9000/api/base/autor/       POST   - create
-    http://localhost:9000/api/base/autor/       GET    - list     
-    http://localhost:9000/api/base/autor/{pk}/  GET    - detail          
-    http://localhost:9000/api/base/autor/{pk}/  PUT    - update
-    http://localhost:9000/api/base/autor/{pk}/  DELETE - destroy
+    * padrão de ModelViewSet
+        /api/base/autor/       POST   - create
+        /api/base/autor/       GET    - list     
+        /api/base/autor/{pk}/  GET    - detail          
+        /api/base/autor/{pk}/  PUT    - update      
+        /api/base/autor/{pk}/  PATCH  - partial_update 
+        /api/base/autor/{pk}/  DELETE - destroy
 
-    rotas desta classe local:
-    http://localhost:9000/api/base/autor/parlamentares
-        devolve apenas autores que são parlamentares
-    http://localhost:9000/api/base/autor/comissoes
-        devolve apenas autores que são comissões
+    * rotas desta classe local:
+        /api/base/autor/parlamentar
+            devolve apenas autores que são parlamentares
+        /api/base/autor/comissao
+            devolve apenas autores que são comissões
+        /api/base/autor/bloco
+            devolve apenas autores que são blocos parlamentares
+        /api/base/autor/bancada
+            devolve apenas autores que são bancadas parlamentares        
+        /api/base/autor/frente
+            devolve apenas autores que são Frene parlamentares
+        /api/base/autor/orgao
+            devolve apenas autores que são Órgãos
 
-    estas mesmas listas oferecidas conforme acima, poderiam ser pesquisadas
-    sabendo a informação que propicia seu filtro através, pois do django_filter
-
-    no caso o ambiente de desenvolvimento no momento da escrita desse how-to:
-    http://localhost:9000/api/base/autor/?content_type=26 para parlamentares
-    http://localhost:9000/api/base/autor/?content_type=37 para comissoes
-
-    diferenças como estas podem ser crusciais para uso da api
-        neste caso em específico, content_types não são públicos e não possuem
-        clareza
-        isso:
-        http://localhost:9000/api/base/autor/parlamentares
-        faz o mesmo que isso:
-        http://localhost:9000/api/base/autor/?content_type=26
-        mas o primeiro é indiscutivelmente de melhor compreensão.
 
     """
 
@@ -257,26 +251,40 @@ class _AutorViewSet(SaplSetViews['base']['autor']):
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
 
-    @action(detail=False)
-    def parlamentares(self, request, *args, **kwargs):
-        # list /api/base/autor/parlamentares
-        content_type = ContentType.objects.get_for_model(Parlamentar)
-        return self.list_for_content_type(content_type)
+    @classonlymethod
+    def build_class_with_actions(cls):
 
-    @action(detail=False)
-    def comissoes(self, request, *args, **kwargs):
-        # list /api/base/autor/comissoes
-        content_type = ContentType.objects.get_for_model(Comissao)
-        return self.list_for_content_type(content_type)
-    # Com isso redefinimos AutorViewSet com mais duas rotas
-    # além das rotas padrão
+        models_with_gr_for_autor = models_with_gr_for_model(Autor)
+
+        for _model in models_with_gr_for_autor:
+
+            @action(detail=False, name=_model._meta.model_name)
+            def actionclass(self, request, *args, **kwargs):
+                model = getattr(self, self.action)._AutorViewSet__model
+
+                content_type = ContentType.objects.get_for_model(model)
+                return self.list_for_content_type(content_type)
+
+            func = actionclass
+            func.mapping['get'] = func.kwargs['name']
+            func.url_name = func.kwargs['name']
+            func.url_path = func.kwargs['name']
+            func.__model = _model
+
+            setattr(cls, _model._meta.model_name, func)
+        return cls
 
 
 class _ParlamentarViewSet(SaplSetViews['parlamentares']['parlamentar']):
-
     @action(detail=True)
     def proposicoes(self, request, *args, **kwargs):
-        # /api/parlamentares/parlamentar/{pk}/proposicoes/
+        """
+        Lista de proposições públicas de parlamentar específico
+
+        :param int id: - Identificador do parlamentar que se quer recuperar as proposições
+        :return: uma lista de proposições
+        """
+        # /api/parlamentares/parlamentar/{id}/proposicoes/
         # recupera proposições enviadas e incorporadas do parlamentar
         # deve coincidir com
         # /parlamentar/{pk}/proposicao
@@ -353,6 +361,6 @@ class _ProposicaoViewSet(SaplSetViews['materia']['proposicao']):
         return qs
 
 
-SaplSetViews['base']['autor'] = _AutorViewSet
+SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
 SaplSetViews['materia']['proposicao'] = _ProposicaoViewSet
 SaplSetViews['parlamentares']['parlamentar'] = _ParlamentarViewSet
