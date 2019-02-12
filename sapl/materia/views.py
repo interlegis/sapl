@@ -939,6 +939,7 @@ class ProposicaoCrud(Crud):
             username = request.user.username
 
             if proposicao:
+                msg = ''
                 if proposicao[0][0] and proposicao[0][1]:
                     self.logger.error('user=' + username + '. Proposição (id={}) já foi enviada e recebida.'
                                       'Não pode mais ser editada'.format(kwargs['pk']))
