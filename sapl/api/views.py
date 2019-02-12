@@ -394,6 +394,20 @@ class _DocumentoAdministrativoViewSet(SaplSetViews['protocoloadm']['documentoadm
         return qs
 
 
+class _DocumentoAcessorioAdministrativoViewSet(
+        SaplSetViews['protocoloadm']['documentoacessorioadministrativo']):
+
+    permission_classes = (
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        if self.request.user.is_anonymous():
+            qs = qs.exclude(documento__restrito=True)
+        return qs
+
+
 SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
 SaplSetViews['materia']['proposicao'] = _ProposicaoViewSet
 SaplSetViews['parlamentares']['parlamentar'] = _ParlamentarViewSet
