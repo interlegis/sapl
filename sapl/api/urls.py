@@ -5,10 +5,10 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 
-from sapl.api.views import (AutoresPossiveisListView, AutoresProvaveisListView,
-                            AutorListView, MateriaLegislativaViewSet,
-                            ModelChoiceView, SessaoPlenariaViewSet,
-                            SaplSetViews)
+from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet,\
+    AutoresProvaveisListView, AutoresPossiveisListView, AutorListView,\
+    ModelChoiceView
+from sapl.api.views import SaplSetViews
 
 from .apps import AppConfig
 
@@ -28,18 +28,6 @@ for app, built_sets in SaplSetViews.items():
 
 urlpatterns_router = router.urls
 
-# TODO: refatorar para customização da api automática
-urlpatterns_api = [
-    url(r'^autor/provaveis',
-        AutoresProvaveisListView.as_view(), name='autores_provaveis_list'),
-    url(r'^autor/possiveis',
-        AutoresPossiveisListView.as_view(), name='autores_possiveis_list'),
-
-    url(r'^autor', AutorListView.as_view(), name='autor_list'),
-
-    url(r'^model/(?P<content_type>\d+)/(?P<pk>\d*)$',
-        ModelChoiceView.as_view(), name='model_list'),
-]
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -52,18 +40,30 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-urlpatterns_api += [
+urlpatterns_api = [
     url(r'^docs/swagger(?P<format>\.json|\.yaml)$',
         schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^docs/swagger/$',
         schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     url(r'^docs/redoc/$',
         schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-
 ]
 
+# TODO: refatorar para customização da api automática
+deprecated_urlpatterns_api = [
+    url(r'^autor/provaveis',
+        AutoresProvaveisListView.as_view(), name='autores_provaveis_list'),
+    url(r'^autor/possiveis',
+        AutoresPossiveisListView.as_view(), name='autores_possiveis_list'),
+
+    url(r'^autor', AutorListView.as_view(), name='autor_list'),
+
+    url(r'^model/(?P<content_type>\d+)/(?P<pk>\d*)$',
+        ModelChoiceView.as_view(), name='model_list'),
+]
 
 urlpatterns = [
+    url(r'^api/', include(deprecated_urlpatterns_api)),
     url(r'^api/', include(urlpatterns_api)),
     url(r'^api/', include(urlpatterns_router)),
 
