@@ -13,13 +13,12 @@ from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
 from rest_framework import serializers as rest_serializers
-from rest_framework.decorators import list_route, detail_route, action
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.permissions import SaplModelPermissions
-from sapl.base.models import Autor
-from sapl.comissoes.models import Comissao
+from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import models_with_gr_for_model
@@ -361,6 +360,41 @@ class _ProposicaoViewSet(SaplSetViews['materia']['proposicao']):
         return qs
 
 
+class _DocumentoAdministrativoViewSet(SaplSetViews['protocoloadm']['documentoadministrativo']):
+
+    class DocumentoAdministrativoPermission(SaplModelPermissions):
+        def has_permission(self, request, view):
+            if request.method == 'GET':
+                comportamento = AppConfig.attr('documentos_administrativos')
+                if comportamento == DOC_ADM_OSTENSIVO:
+                    return True
+                    """
+                    Diante da lógica implementada na manutenção de documentos
+                    administrativos:
+                    - Se o comportamento é doc adm ostensivo, deve passar pelo 
+                      teste de permissões sem avaliá-las
+                    - se o comportamento é doc adm restritivo, deve passar pelo
+                      teste de permissões avaliando-as
+                    """
+            return super().has_permission(request, view)
+
+    permission_classes = (DocumentoAdministrativoPermission, )
+
+    def get_queryset(self):
+        """
+        mesmo tendo passado pelo teste de permissões, deve ser filtrado,
+        pelo campo restrito. Sendo este igual a True, disponibilizar apenas
+        a um usuário conectado. Apenas isso, sem critérios outros de permissão, 
+        conforme implementado em DocumentoAdministrativoCrud
+        """
+        qs = super().get_queryset()
+
+        if self.request.user.is_anonymous():
+            qs = qs.exclude(restrito=True)
+        return qs
+
+
 SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
 SaplSetViews['materia']['proposicao'] = _ProposicaoViewSet
 SaplSetViews['parlamentares']['parlamentar'] = _ParlamentarViewSet
+SaplSetViews['protocoloadm']['documentoadministrativo'] = _DocumentoAdministrativoViewSet

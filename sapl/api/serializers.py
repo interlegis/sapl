@@ -30,6 +30,9 @@ class ModelChoiceObjectRelatedField(serializers.RelatedField):
 
 
 class AutorSerializer(serializers.ModelSerializer):
+    # AutorSerializer sendo utilizado pelo gerador automático da api devidos aos
+    # critérios anotados em views.py
+
     autor_related = ModelChoiceObjectRelatedField(read_only=True)
 
     class Meta:
