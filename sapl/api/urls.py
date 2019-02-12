@@ -4,7 +4,6 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
-from rest_framework_swagger.views import get_swagger_view
 
 from sapl.api.views import (AutoresPossiveisListView, AutoresProvaveisListView,
                             AutorListView, MateriaLegislativaViewSet,
@@ -48,6 +47,7 @@ schema_view = get_schema_view(
         default_version='v1',
         description="Sapl API  - Docs - Configuração Básica",
     ),
+    url=settings.SITE_URL,
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
