@@ -15,7 +15,7 @@ from .apps import AppConfig
 from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
 from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     CreateUsuarioView, DeleteUsuarioView, EditUsuarioView,
-                    HelpTopicView, ListarUsuarioView, LogotipoView,
+                    HelpTopicView, PesquisarUsuarioView, LogotipoView,
                     RelatorioAtasView, RelatorioAudienciaView,
                     RelatorioDataFimPrazoTramitacaoView,
                     RelatorioHistoricoTramitacaoView,
@@ -41,7 +41,7 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
 app_name = AppConfig.name
 
 admin_user = [
-    url(r'^sistema/usuario/$', ListarUsuarioView.as_view(), name='user_list'),
+    url(r'^sistema/usuario/$', PesquisarUsuarioView.as_view(), name='usuario'),
     url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
     url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
     url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
