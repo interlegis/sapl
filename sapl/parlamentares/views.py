@@ -464,6 +464,10 @@ class ParlamentarCrud(Crud):
 
         layout_key = 'ParlamentarUpdate'
 
+        def render_to_response(self, context, **response_kwargs):
+            context['form'].helper.include_media = False
+            return super().render_to_response(context, **response_kwargs)
+
     class CreateView(Crud.CreateView):
         form_class = ParlamentarCreateForm
 

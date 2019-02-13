@@ -19,13 +19,14 @@ from django.utils.translation import ugettext_lazy as _
 import django_filters
 
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
+from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.models import Autor, TipoAutor
+from sapl.comissoes.models import Reuniao, Comissao
 from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
-from sapl.audiencia.models import AudienciaPublica,TipoAudienciaPublica
-from sapl.comissoes.models import Reuniao, Comissao
-from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
+from sapl.materia.models import (
+    MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import SessaoLegislativa
 from sapl.sessao.models import SessaoPlenaria
@@ -393,7 +394,7 @@ class AutorForm(ModelForm):
                       placeholder=_('Pesquisar por possíveis autores para '
                                     'o Tipo de Autor selecionado.')),
                 StrictButton(
-                    _('Filtrar'), css_class='btn-default btn-filtrar-autor',
+                    _('Filtrar'), css_class='btn-outline-primary btn-filtrar-autor',
                     type='button')),
             css_class='hidden',
             data_action='create',
@@ -401,9 +402,9 @@ class AutorForm(ModelForm):
             data_field='autor_related')
 
         autor_select = Row(to_column(('tipo', 3)),
-                           Div(to_column(('nome', 5)),
-                               to_column(('cargo', 4)),
-                               css_class="div_nome_cargo"),
+                           Div(to_column(('nome', 7)),
+                               to_column(('cargo', 5)),
+                               css_class="div_nome_cargo row col"),
                            to_column((autor_related, 9)),
                            to_column((Div(
                                Field('autor_related'),
@@ -706,7 +707,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
 
 def ultimo_ano_com_norma():
     anos_normas = choice_anos_com_normas()
-    
+
     if anos_normas:
         return anos_normas[0]
     return ''
@@ -754,7 +755,7 @@ class EstatisticasAcessoNormasForm(Form):
 
     class Meta:
         fields = ['ano']
-    
+
     def __init__(self, *args, **kwargs):
         super(EstatisticasAcessoNormasForm, self).__init__(
             *args, **kwargs)
@@ -857,7 +858,11 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
         self.filters['tipo'].label = 'Tipo de Matéria'
 
+        self.filters['tramitacao__unidade_tramitacao_local'
+                     ].label = _('Unidade Local (Último Local)')
+        self.filters['tramitacao__status'].label = _('Status')
         row1 = to_row([('tramitacao__data_tramitacao', 12)])
+
         row2 = to_row(
             [('tipo', 4),
              ('tramitacao__unidade_tramitacao_local', 4),

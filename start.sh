@@ -46,14 +46,9 @@ create_env() {
 
 create_env
 
-#python3 manage.py bower install
-
 /bin/bash busy-wait.sh $DATABASE_URL
 
-
-# manage.py migrate --noinput nao funcionava
 yes yes | python3 manage.py migrate
-# python3 manage.py collectstatic --no-input
 
 
 ## SOLR
@@ -105,6 +100,14 @@ if [ $lack_pwd -eq 0 ]; then
    # return -1
 fi
 
+echo "-------------------------------------"
+echo "| ███████╗ █████╗ ██████╗ ██╗       |"
+echo "| ██╔════╝██╔══██╗██╔══██╗██║       |"
+echo "| ███████╗███████║██████╔╝██║       |"
+echo "| ╚════██║██╔══██║██╔═══╝ ██║       |"
+echo "| ███████║██║  ██║██║     ███████╗  |"
+echo "| ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝  |"
+echo "-------------------------------------"
 
 /bin/sh gunicorn_start.sh no-venv &
 /usr/sbin/nginx -g "daemon off;"

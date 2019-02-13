@@ -28,6 +28,7 @@ host = socket.gethostbyname_ex(socket.gethostname())[0]
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
 
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -77,12 +78,11 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_extensions',
 
-    'djangobower',
-    'bootstrap3',
     'crispy_forms',
     'floppyforms',
-    'sass_processor',
 
+    'drf_yasg',
+    #'rest_framework_swagger',
     'rest_framework',
     'django_filters',
 
@@ -95,6 +95,8 @@ INSTALLED_APPS = (
     'haystack',
     'whoosh',
     'speedinfo',
+
+    'webpack_loader',
 
 ) + SAPL_APPS
 
@@ -139,10 +141,11 @@ MIDDLEWARE = [
     'speedinfo.middleware.ProfilerMiddleware',
 ]
 if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
+    INSTALLED_APPS += ('debug_toolbar', )
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
     INTERNAL_IPS = ('127.0.0.1')
 
+SITE_URL = config('SITE_URL', cast=str, default='')
 
 CACHES = {
     'default': {
@@ -157,9 +160,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
     ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-        "sapl.api.permissions.DjangoModelPermissions",
+        "sapl.api.permissions.SaplModelPermissions",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
@@ -262,17 +267,33 @@ LOCALE_PATHS = (
     'locale',
 )
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
+FRONTEND_CUSTOM = config('FRONTEND_CUSTOM', default=False, cast=bool)
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': not DEBUG,
+        'BUNDLE_DIR_NAME': 'sapl/static/',
+        'STATS_FILE':  (PROJECT_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.parent.child('sapl-frontend')).child('webpack-stats.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
+    }
+}
 
 STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
-STATICFILES_DIRS = (BASE_DIR.child("static"),)
+
+STATICFILES_DIRS = (
+    BASE_DIR.child('static'),
+)
+if FRONTEND_CUSTOM:
+    STATICFILES_DIRS = (
+        PROJECT_DIR.parent.child('sapl-frontend').child('dist'),
+    )
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'djangobower.finders.BowerFinder',
-    'sass_processor.finders.CssFinder',
 )
 
 MEDIA_ROOT = PROJECT_DIR.child("media")
@@ -282,28 +303,10 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap3'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 CRISPY_FAIL_SILENTLY = not DEBUG
 FLOPPY_FORMS_USE_GIS = False
-
-BOWER_COMPONENTS_ROOT = PROJECT_DIR.child("bower")
-BOWER_INSTALLED_APPS = (
-    'jquery#3.1.1',
-    'bootstrap-sass#3.3.7',
-    'components-font-awesome#4.5.0',
-    'tinymce#4.3.8',
-    'jquery-ui#1.12.1',
-    'jQuery-Mask-Plugin#1.14.0',
-    'jsdiff#2.2.2',
-    'https://github.com/interlegis/drunken-parrot-flat-ui.git',
-    'jquery-query-object#2.2.3',
-)
-
-# Additional search paths for SASS files when using the @import statement
-SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
-    'bower_components', 'bootstrap-sass', 'assets', 'stylesheets'),
-)
 
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False

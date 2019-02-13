@@ -1,19 +1,16 @@
-{% extends "base.html" %}
-{% load i18n crispy_forms_tags compilacao_filters staticfiles sass_tags %}
+{% extends "compilacao/base_compilacao.html" %}
+{% load i18n crispy_forms_tags compilacao_filters %}
 
-{% block head_content %}{{block.super}}
-  <link rel="stylesheet" href="{% sass_src 'styles/compilacao.scss' %}" type="text/css">
-{% endblock %}
 {% block sections_nav %}
-  <ul class="nav nav-pills navbar-right">
+  <ul class="nav nav-pills justify-content-end">
     {% url 'sapl.compilacao:dispositivo_edit' object.ta_id object.pk as edit_url%}
     {% url 'sapl.compilacao:dispositivo_edit_vigencia' object.ta_id object.pk as edit_vigencia_url %}
     {% url 'sapl.compilacao:dispositivo_edit_alteracao' object.ta_id object.pk as edit_alteracao_url %}
     {% url 'sapl.compilacao:dispositivo_edit_definidor_vigencia' object.ta_id object.pk as edit_definidor_vigencia_url %}
-    {% if perms.compilacao.change_dispositivo_edicao_avancada %}<li {% if request.get_full_path == edit_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_url }}">{% trans 'Dados Básicos' %}</a></li>{% endif %}
-    {% if perms.compilacao.change_dispositivo_edicao_avancada %}<li {% if request.get_full_path == edit_vigencia_url %}class="active"{%endif%}><a  class="btn-warning" href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>{% endif %}
-    {% if perms.compilacao.change_dispositivo_de_vigencia_global %}<li {% if request.get_full_path == edit_definidor_vigencia_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_definidor_vigencia_url }}" >{% trans 'Definidor de Vigência' %}</a></li>{% endif %}
-    {% if perms.compilacao.change_dispositivo_registros_compilacao %}<li {% if request.get_full_path == edit_alteracao_url %}class="active"{%endif%}><a  class="btn-danger" href="{{ edit_alteracao_url }}" >{% trans 'Alteração' %}</a></li>{% endif %}
+    {% if perms.compilacao.change_dispositivo_edicao_avancada %}<li class="nav-item"><a class="nav-link btn-warning {% if request.get_full_path == edit_url %}active{%endif%}" href="{{ edit_url }}">{% trans 'Dados Básicos' %}</a></li>{% endif %}
+    {% if perms.compilacao.change_dispositivo_edicao_avancada %}<li class="nav-item"><a class="nav-link btn-warning {% if request.get_full_path == edit_vigencia_url %}active{%endif%}" href="{{ edit_vigencia_url }}" >{% trans 'Vigência' %}</a></li>{% endif %}
+    {% if perms.compilacao.change_dispositivo_de_vigencia_global %}<li class="nav-item"><a class="nav-link btn-danger {% if request.get_full_path == edit_definidor_vigencia_url %}active{%endif%}" href="{{ edit_definidor_vigencia_url }}" >{% trans 'Definidor de Vigência' %}</a></li>{% endif %}
+    {% if perms.compilacao.change_dispositivo_registros_compilacao %}<li class="nav-item"><a class="nav-link btn-danger {% if request.get_full_path == edit_alteracao_url %}class="active{%endif%}" href="{{ edit_alteracao_url }}" >{% trans 'Alteração' %}</a></li>{% endif %}
   </ul>
 {% endblock sections_nav %}{% trans '' %}
 
@@ -21,27 +18,26 @@
   <h1><small>{{object.ta}}</small><br>{% trans 'Edição de Dispositivo' %}</h1>
 {% endblock%}
 {% block base_content %}
-  <div class="btn-group btn-group-sm" role="group">
-    <div class="cp-nav-parents btn-group btn-group-sm" role="group">
-      <a href="#" class="btn btn-default">
-        {% trans "Articulações" %}
-        <span class="caret"></span>
-      </a>
-      <ul class="dropdown-menu">
-        <li>
-          {%for parent in object.select_roots %}
-            <a href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
-              {{parent.dispositivo0}} - {{parent|nomenclatura}}
-            </a>
-          {%endfor %}
-        </li>
-      </ul>
-    </div>
-    {%for parent in object.get_parents_asc %}
-      {%with node=parent active=False template_name='compilacao/dispositivo_form_parents.html' %}
-        {%include template_name%}
-      {%endwith%}
-    {%endfor %}
+    <div class="btn-group btn-group-sm" role="group">
+      <div class="btn-group cp-nav-parents " role="group">
+        <a href="#" class="btn btn-outline-primary">
+          {% trans "Articulações" %}
+        </a>
+        <div class="dropdown-menu">
+            {%for parent in object.select_roots %}
+              <a  class="dropdown-item" href="{% url view.get_url_this_view parent.ta_id parent.pk %}">
+                {{parent.dispositivo0}} - {{parent|nomenclatura}}
+              </a>
+            {%endfor %}
+        </div>
+      </div>
+    
+      {%for parent in object.get_parents_asc %}
+        {%with node=parent active=False template_name='compilacao/dispositivo_form_parents.html' %}
+          {%include template_name%}
+        {%endwith%}
+      {%endfor %}
+
     {%with node=object active=True template_name='compilacao/dispositivo_form_parents.html' %}
       {%include template_name%}
     {%endwith%}
@@ -55,8 +51,4 @@
   {%endif%}
   <br><br>
   {% crispy form %}
-{% endblock %}
-
-{% block extra_js %}
-  <script type="text/javascript" src="{% static 'js/compilacao.js' %}"></script>
 {% endblock %}

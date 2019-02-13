@@ -128,7 +128,7 @@ def montar_helper_autor(self):
     # Adiciona novos botões dentro do form
     self.helper.layout[0][4][0].insert(2, form_actions(more=[
         HTML('<a href="{{ view.cancel_url }}"'
-             ' class="btn btn-inverse">Cancelar</a>')]))
+             ' class="btn btn-dark">Cancelar</a>')]))
 
 
 class SaplGenericForeignKey(GenericForeignKey):

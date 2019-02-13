@@ -1,0 +1,13 @@
+<div{% if formactions.attrs %} {{ formactions.flat_attrs|safe }}{% endif %} class="form-group row">
+    {% if label_class %}
+        <div class="aab {{ label_class }}"></div>
+    {% endif %}
+
+    {% if field_class %}
+        <div class="{{ field_class }}">
+            {{ fields_output|safe }}
+        </div>
+    {% else %}
+        {{ fields_output|safe }}
+    {% endif %}
+</div>

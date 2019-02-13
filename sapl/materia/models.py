@@ -42,13 +42,21 @@ class TipoProposicao(models.Model):
         error_messages={
             'unique': _('Já existe um Tipo de Proposição com esta descrição.')
         })
-    content_type = models.ForeignKey(ContentType, default=None,
-                                     on_delete=models.PROTECT,
-                                     verbose_name=_('Definição de Tipo'))
+    content_type = models.ForeignKey(
+        ContentType, default=None,
+        on_delete=models.PROTECT,
+        verbose_name=_('Conversão de Meta-Tipos'),
+        help_text=_("""
+        Quando uma proposição é incorporada, ela é convertida de proposição
+        para outro elemento dentro do Sapl. Existem alguns elementos que
+        uma proposição pode se tornar. Defina este meta-tipo e em seguida
+        escolha um Tipo Correspondente!
+        """)
+    )
     object_id = models.PositiveIntegerField(
         blank=True, null=True, default=None)
     tipo_conteudo_related = SaplGenericForeignKey(
-        'content_type', 'object_id', verbose_name=_('Seleção de Tipo'))
+        'content_type', 'object_id', verbose_name=_('Tipo Correspondente'))
 
     perfis = models.ManyToManyField(
         PerfilEstruturalTextoArticulado,
@@ -269,6 +277,8 @@ class MateriaLegislativa(models.Model):
             if protocolo:
                 if protocolo.timestamp:
                     return protocolo.timestamp.date()
+                elif protocolo.timestamp_data_hora_manual:
+                    return protocolo.timestamp_data_hora_manual.date()
                 elif protocolo.data:
                     return protocolo.data
 
@@ -906,6 +916,9 @@ class Tramitacao(models.Model):
         ('A', 'votacao_unica', _('Votação única em Regime de Urgência')),
         ('B', 'primeira_votacao', _('1ª Votação')),
         ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
+        ('D', 'deliberacao', _('Deliberação')),
+        ('E', 'primeira_segunda_votacao_urgencia', _('1ª e 2ª votações em regime de urgência'))
+
     )
 
     status = models.ForeignKey(StatusTramitacao, on_delete=models.PROTECT,

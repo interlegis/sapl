@@ -1,5 +1,7 @@
 from django import template
 from django.template.defaultfilters import stringfilter
+from django.utils.safestring import mark_safe
+from webpack_loader import utils
 
 from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposicao
@@ -274,3 +276,13 @@ def filiacao_data_filter(parlamentar, data_inicio):
 @register.filter
 def filiacao_intervalo_filter(parlamentar, date_range):
     return filiacao_data(parlamentar, date_range[0], date_range[1])
+
+
+@register.simple_tag
+def render_chunk_vendors(extension=None):
+    try:
+        tags = utils.get_as_tags(
+            'chunk-vendors', extension=extension, config='DEFAULT', attrs='')
+        return mark_safe('\n'.join(tags))
+    except:
+        return ''

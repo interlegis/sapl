@@ -1,6 +1,5 @@
 from math import ceil
 
-import rtyaml
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
@@ -8,6 +7,7 @@ from django import template
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.translation import ugettext as _
+import rtyaml
 
 
 def heads_and_tails(list_of_lists):
@@ -21,7 +21,7 @@ def to_column(name_span):
 
 
 def to_row(names_spans):
-    return Div(*map(to_column, names_spans), css_class='row-fluid')
+    return Div(*map(to_column, names_spans), css_class='row')
 
 
 def to_fieldsets(fields):
@@ -35,7 +35,8 @@ def to_fieldsets(fields):
 
 
 def form_actions(more=[Div(css_class='clearfix')],
-                 label=_('Salvar'), name='salvar', css_class='pull-right', disabled=True):
+                 label=_('Salvar'), name='salvar',
+                 css_class='float-right', disabled=True):
 
     if disabled:
         doubleclick = 'this.form.submit();this.disabled=true;'
@@ -43,10 +44,12 @@ def form_actions(more=[Div(css_class='clearfix')],
         doubleclick = 'return true;'
 
     return FormActions(
+        *more,
         Submit(name, label, css_class=css_class,
                # para impedir resubmissão do form
                onclick=doubleclick),
-        *more)
+        css_class='form-group row justify-content-between'
+    )
 
 
 class SaplFormLayout(Layout):
@@ -58,7 +61,7 @@ class SaplFormLayout(Layout):
         if not buttons:
             buttons = form_actions(label=save_label, more=[
                 HTML('<a href="{{ view.cancel_url }}"'
-                     ' class="btn btn-inverse">%s</a>' % cancel_label)
+                     ' class="btn btn-dark">%s</a>' % cancel_label)
                 if cancel_label else None])
 
         _fields = list(to_fieldsets(fields))

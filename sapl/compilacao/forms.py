@@ -23,7 +23,8 @@ from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                     TipoTextoArticulado, TipoVide,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
-from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row
+from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row,\
+    form_actions
 from sapl.utils import YES_NO_CHOICES
 
 error_messages = {
@@ -256,19 +257,22 @@ class NotaForm(ModelForm):
         ])
 
         buttons = FormActions(
-            HTML('<a class="btn btn-inverse btn-close-container">'
-                 '%s</a>' % _('Cancelar')),
+            *[
+                HTML('<a href="" class="btn btn-dark '
+                     'btn-close-container">%s</a>' % _('Cancelar'))
+            ],
             Button(
                 'submit-form',
                 'Salvar',
-                css_class='btn btn-primary pull-right')
+                css_class='btn btn-primary float-right'),
+            css_class='form-group row justify-content-between mr-1 ml-1'
         )
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
 
             Div(
-                Div(HTML(_('Notas')), css_class='panel-heading'),
+                Div(HTML(_('Notas')), css_class='card-header bg-light'),
                 Div(
                     row1,
                     to_row([(Field(
@@ -279,9 +283,9 @@ class NotaForm(ModelForm):
                         placeholder=_('URL Externa (opcional)')), 12)]),
                     row3,
                     to_row([(buttons, 12)]),
-                    css_class="panel-body"
+                    css_class="card-body"
                 ),
-                css_class="panel panel-primary"
+                css_class="card"
             )
         )
 
@@ -328,12 +332,15 @@ class VideForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         buttons = FormActions(
-            HTML('<a class="btn btn-inverse btn-close-container">'
-                 '%s</a>' % _('Cancelar')),
+            *[
+                HTML('<a href="" class="btn btn-dark '
+                     'btn-close-container">%s</a>' % _('Cancelar'))
+            ],
             Button(
                 'submit-form',
                 'Salvar',
-                css_class='btn-primary pull-right')
+                css_class='btn btn-primary float-right'),
+            css_class='form-group row justify-content-between mr-1 ml-1'
         )
 
         dispositivo_ref = Field(
@@ -359,15 +366,15 @@ class VideForm(ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Div(
-                Div(HTML(_('Vides')), css_class='car-header'),
+                Div(HTML(_('Vides')), css_class='card-header bg-light'),
                 Div(
                     to_column((fields_form[0], 6)),
                     to_column((fields_form[1], 6)),
                     to_column(('dispositivo_base', 0)),
                     to_column(('pk', 0)),
-                    css_class="card-body"
+                    css_class="card-body row"
                 ),
-                css_class="card bg-light"
+                css_class="card"
             )
         )
 
@@ -671,7 +678,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
         cancel_label = _('Fechar')
 
         more = [
-            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+            HTML('<a class="btn btn-dark btn-fechar" href="">%s</a>' %
                  cancel_label),
         ]
 
@@ -680,7 +687,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
         if not (inst.tipo_dispositivo.dispositivo_de_alteracao and
                 inst.tipo_dispositivo.dispositivo_de_articulacao):
             btns_excluir = [
-                HTML('<a class="btn btn-danger btn-excluir" '
+                HTML('<a class="btn btn-danger btn-outline-danger" '
                      'action="json_delete_item_dispositivo" '
                      'title="%s" '
                      'pk="%s" '
@@ -696,7 +703,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                 if texto_articulado_do_editor else 0):
             btns_excluir.append(
                 HTML(
-                    '<a class="btn btn-danger btn-excluir" '
+                    '<a class="btn btn-danger btn-outline-danger" '
                     'action="json_delete_bloco_dispositivo" '
                     'title="%s" '
                     'pk="%s" '
@@ -706,15 +713,15 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                                  _('Excluir Bloco Completo.'))))
 
         if btns_excluir and (not inst.auto_inserido or inst.ta_publicado):
-            css_class = 'btn-group pull-right btns-excluir'
+            css_class = 'btn-group float-right btns-excluir'
             more.append(Div(*btns_excluir, css_class=css_class))
 
         if not inst.tipo_dispositivo.dispositivo_de_articulacao:
-            more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+            more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 
-        _fields = [Div(*layout, css_class="row-fluid")] + \
+        _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
         self.helper.layout = Layout(*_fields)
 
@@ -1319,7 +1326,7 @@ class TextNotificacoesForm(Form):
         field_type_notificacoes = to_row([(InlineCheckboxes(
             'type_notificacoes'), 10),
             (Submit('submit-form', _('Filtrar'),
-                    css_class='btn btn-primary pull-right'), 2)])
+                    css_class='btn btn-primary float-right'), 2)])
 
         self.helper = FormHelper()
         self.helper.layout = Layout(field_type_notificacoes)
@@ -1357,14 +1364,14 @@ class DispositivoRegistroAlteracaoForm(Form):
         layout.append(Field('dispositivo_search_form'))
 
         more = [
-            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+            HTML('<a class="btn btn-dark btn-fechar" href="">%s</a>' %
                  _('Cancelar')),
         ]
-        more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+        more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 
-        _fields = [Div(*layout, css_class="row-fluid")] + \
+        _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
 
         self.helper = FormHelper()
@@ -1414,14 +1421,14 @@ class DispositivoRegistroRevogacaoForm(Form):
         layout.append(Field('dispositivo_search_form'))
 
         more = [
-            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+            HTML('<a class="btn btn-dark btn-fechar" href="">%s</a>' %
                  _('Cancelar')),
         ]
-        more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+        more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 
-        _fields = [Div(*layout, css_class="row-fluid")] + \
+        _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
 
         self.helper = FormHelper()
@@ -1464,14 +1471,14 @@ class DispositivoRegistroInclusaoForm(Form):
         layout.append(Div(css_class="allowed_inserts col-md-12"))
 
         more = [
-            HTML('<a class="btn btn-inverse btn-fechar">%s</a>' %
+            HTML('<a class="btn btn-dark btn-fechar" href="">%s</a>' %
                  _('Cancelar')),
         ]
-        # more.append(Submit('salvar', _('Salvar'), css_class='pull-right'))
+        # more.append(Submit('salvar', _('Salvar'), css_class='float-right'))
 
         buttons = FormActions(*more, css_class='form-group')
 
-        _fields = [Div(*layout, css_class="row-fluid")] + \
+        _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
 
         self.helper = FormHelper()

@@ -1,25 +1,25 @@
 {% load i18n %}
 {% if menu %}
 
-  <ul class="nav navbar-nav">
+  <ul class="navbar-nav">
     {% for item in menu %}
       {% if item.children %}
-        <li class="dropdown">
-          <a class="dropdown-toggle"href="#fakeLink"  data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle"href="#fakeLink"  data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
             {{ item.title }}
              <span class="caret"></span>
           </a>
           <ul class="dropdown-menu" role="menu">
             {% for subitem in item.children %}
                 {% if subitem.url %}
-                  <li><a href="{{ subitem.url }}">{{ subitem.title }}</a></li>
+                  <li class="dropdown-item"><a href="{{ subitem.url }}">{{ subitem.title }}</a></li>
                 {% endif %}
             {% endfor %}
           </ul>
         </li>
       {% else %}
         {% if item.url %}
-          <li><a href="{{ item.url }}">{% trans item.title %}</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ item.url }}">{% trans item.title %}</a></li>
         {% endif %}
       {% endif %}
     {% endfor %}
