@@ -167,21 +167,22 @@ class LegislaturaForm(ModelForm):
         pk = self.instance.pk
 
         ultima_legislatura = Legislatura.objects.filter(data_inicio__lt=data_inicio
-                                                        ).order_by('-data_inicio').first()
+                                                        ).order_by('-data_inicio').exclude(id=pk).first()
         proxima_legislatura = Legislatura.objects.filter(data_fim__gt=data_fim
-                                                         ).order_by('data_fim').first()
+                                                         ).order_by('data_fim').exclude(id=pk).first()
 
         if ultima_legislatura and ultima_legislatura.numero >= numero:
             self.logger.error("Número ({}) deve ser maior que o da legislatura anterior ({})."
                               .format(numero, ultima_legislatura.numero))
-            raise ValidationError(
-                _("Número deve ser maior que o da legislatura anterior"))
+            raise ValidationError(_("Número deve ser maior que o da legislatura anterior ({})."
+                                    .format(numero)))
         elif proxima_legislatura and proxima_legislatura.numero <= numero:
             self.logger.error("O Número ({}) deve ser menor que {}, pois existe uma "
-                              "legislatura afrente cronologicamente desta que está sendo criada!"
+                              "legislatura cronologicamente à frente desta que está sendo criada!"
                               .format(numero, proxima_legislatura.numero))
             msg_erro = "O Número deve ser menor que {}, pois existe uma " \
-                "legislatura afrente cronologicamente desta que está sendo criada!"
+
+            "legislatura cronologicamente à frente desta que está sendo criada!"
             msg_erro = msg_erro.format(proxima_legislatura.numero)
             raise ValidationError(_(msg_erro))
 
