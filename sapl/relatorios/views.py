@@ -7,7 +7,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.template.loader import render_to_string
 
+from sapl.settings import MEDIA_URL
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
@@ -21,7 +23,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
                                 RegistroVotacao, VotoParlamentar)
-from sapl.settings import STATIC_ROOT
+from sapl.settings import STATIC_ROOT, STATIC_URL
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
 from .templates import (pdf_capa_processo_gerar,
@@ -30,6 +32,9 @@ from .templates import (pdf_capa_processo_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
 
+from weasyprint import HTML, CSS
+
+from sapl.settings import MEDIA_URL
 
 def get_kwargs_params(request, fields):
     kwargs = {}
@@ -902,6 +907,103 @@ def relatorio_sessao_plenaria(request, pk):
 
     response.write(pdf)
     return response
+
+
+def relatorio_sessao_plenaria_pdf(request, pk):  
+    base_url=request.build_absolute_uri()
+    logger = logging.getLogger(__name__)
+    username = request.user.username
+    casa = CasaLegislativa.objects.first()
+    if not casa:
+        raise Http404
+    
+    rodape = get_rodape(casa)
+    rodape = ' '.join(rodape)
+
+    try:
+        logger.debug("user=" + username +
+                     ". Tentando obter SessaoPlenaria com id={}.".format(pk))
+        sessao = SessaoPlenaria.objects.get(id=pk)
+    except ObjectDoesNotExist as e:
+        logger.error("user=" + username +
+                     ". Essa SessaoPlenaria não existe (pk={}). ".format(pk) + str(e))
+        raise Http404('Essa página não existe')
+    
+    (inf_basicas_dic,
+        lst_mesa,
+        lst_presenca_sessao,
+        lst_ausencia_sessao,
+        lst_expedientes,
+        lst_expediente_materia,
+        lst_expediente_materia_vot_nom,
+        lst_oradores_expediente,
+        lst_presenca_ordem_dia,
+        lst_votacao,
+        lst_votacao_vot_nom,
+        lst_oradores,
+        lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
+    
+    html_template = render_to_string('relatorios/relatorio_sessao_plenaria.html',
+    {
+        "inf_basicas_dic":inf_basicas_dic,
+        "lst_mesa":lst_mesa,
+        "lst_presenca_sessao":lst_presenca_sessao,
+        "lst_ausencia_sessao":lst_ausencia_sessao,
+        "lst_expedientes":lst_expedientes,
+        "lst_expediente_materia":lst_expediente_materia,
+        "lst_oradores_expediente":lst_oradores_expediente,
+        "lst_presenca_ordem_dia":lst_presenca_ordem_dia,
+        "lst_votacao":lst_votacao,
+        "lst_oradores":lst_oradores,
+        "lst_ocorrencias":lst_ocorrencias,
+        "rodape":rodape,
+        "data": dt.today().strftime('%d/%m/%Y')
+    })
+
+    html_header = render_to_string('relatorios/header.html',{"info":inf_basicas_dic,
+                                                                "MEDIA_URL": MEDIA_URL,
+                                                                "logotipo": casa.logotipo})
+
+    pdf_file = make_pdf(base_url=base_url, main_template=html_template, header_template=html_header)
+    
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    response.write(pdf_file)
+
+    return response
+
+
+def make_pdf(base_url, main_template, header_template):
+    # Main template
+    html = HTML(base_url=base_url, string=main_template)
+    main_doc = html.render()
+    exists_links = False
+
+    def get_page_body(boxes):
+        for box in boxes:
+            if box.element_tag == 'body':
+                return box
+            return get_page_body(box.all_children())
+
+    # Template of header
+    html = HTML(base_url=base_url, string=header_template)
+    header = html.render(stylesheets=[CSS(string='div {position: fixed; top: 0cm; left: 0cm;}')])
+
+    header_page = header.pages[0]
+    exists_links = exists_links or header_page.links
+    header_body = get_page_body(header_page._page_box.all_children())
+    header_body = header_body.copy_with_children(header_body.all_children())
+
+    for page in main_doc.pages:
+        page_body = get_page_body(page._page_box.all_children())
+        page_body.children += header_body.all_children()
+        if exists_links:
+            page.links.extend(header_page.links)
+
+    pdf_file = main_doc.write_pdf()
+
+    return pdf_file
 
 
 def get_protocolos(prots):

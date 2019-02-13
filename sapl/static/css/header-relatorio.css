@@ -1,0 +1,30 @@
+html body p {
+    border-top: 1px solid black;
+    text-align: center;
+    font-size: 11pt;
+    padding: 5px;
+}
+html body section {
+    box-sizing: border-box;
+}
+html body section dl {
+    display: flex;
+    flex-wrap: wrap;
+    rows: 2;
+    columns: 2;
+}
+html body section dt{
+    width: 50px;
+}
+html body section dd {
+    max-width:550px;
+    text-align: center;
+}
+html body section dd ul li {
+    list-style-type: none;
+    margin-left: 50px;
+}
+h3 {
+    font-size: 12pt;
+    color: #6e6e6e;
+}

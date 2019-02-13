@@ -1,0 +1,39 @@
+{% load i18n staticfiles menus %}
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+{% load static %}
+<!DOCTYPE html>
+<meta charset="utf-8">
+</meta>
+<html lang="pt-br">
+
+<head>
+    <link rel="stylesheet" href="{% static '/css/header-relatorio.css' %}"> 
+</head>
+
+<body>
+    <section id="informations">
+       
+        <dl>
+            <dt class="image-header"> 
+                <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
+              alt="Logo">
+            </dt>
+            <dd class="title">
+                <ul>
+                    <li><h1>{{ info.nom_camara }}</h1></li>
+                    <li><h3>Sistema de Apoio ao Processo Legislativo</h3></li>
+                </ul>
+            </dd>
+        </dl>
+      
+
+    </section>
+    <p>Resumo da {{ info.num_sessao_plen }} Reunião {{nom_sessao}} da {{ info.num_sessao_leg}} Sessão Legislativa da
+            {{info.num_legislatura}} Legislatura</p>
+
+</body>
+
+
+</html>
