@@ -1,4 +1,4 @@
-FROM debian:jessie-slim
+FROM debian:jessie
 
 ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git pkg-config \
                    python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev pgadmin3 \
@@ -18,13 +18,17 @@ ENV LANG pt_BR.UTF-8
 
 RUN apt-get update && mkdir -p /usr/share/man/man1 && \
     mkdir -p /usr/share/man/man7 && apt-get upgrade -y && \
-    apt-get install apt-utils -y
+    apt-get install apt-utils -y && apt-get install -y software-properties-common
 RUN apt-get install -y fontconfig ttf-dejavu && fc-cache -fv
 
 
 RUN apt-get install -y python3 python3-pip nginx tzdata && \
     pip3 install --upgrade pip setuptools && \
     rm -f /etc/nginx/conf.d/*
+
+#RUN add-apt-repository ppa:deadsnakes/ppa -y
+RUN apt-get update 
+RUN apt-get upgrade -y
 
 RUN mkdir -p /var/interlegis/sapl && \
     apt-get install -y $BUILD_PACKAGES
@@ -51,6 +55,13 @@ COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
 # Configura timezone para BRT
 # RUN cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && echo "America/Sao_Paulo" > /etc/timezone
+
+# manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
+
+# compilescss - Precompile all occurrences of your SASS/SCSS files for the whole project into css files
+
+RUN python3 manage.py bower_install --allow-root 
+RUN python3 manage.py compilescss
 
 RUN python3 manage.py collectstatic --noinput --clear
 
