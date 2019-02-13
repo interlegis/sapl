@@ -378,11 +378,14 @@ class RelatorioPresencaSessaoView(FilterView):
         for i, p in enumerate(parlamentares_qs):
             m = p.mandato_set.filter(Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__gte=_range[1]) |
                                      Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__isnull=True) |
+                                     Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]) |
+                                     # mandato suplente
                                      Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]))
+
             m = m.last()
             parlamentares_presencas.append({
                 'parlamentar': p,
-                'titular': m.titular if m else True,
+                'titular': m.titular if m else False,
                 'sessao_porc': 0,
                 'ordemdia_porc': 0
             })
