@@ -382,7 +382,7 @@ class RelatorioPresencaSessaoView(FilterView):
             m = m.last()
             parlamentares_presencas.append({
                 'parlamentar': p,
-                'titular': m.titular,
+                'titular': m.titular if m else True,
                 'sessao_porc': 0,
                 'ordemdia_porc': 0
             })
