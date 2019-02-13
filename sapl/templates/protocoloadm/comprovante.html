@@ -32,7 +32,7 @@
 	<table>
 		<tr><td colspan="2" align="center">
 				<img height="90" width="90"
-				     src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+				     src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
 						 alt="Logotipo"
 						 class="img-responsive visible-lg-inline-block vcenter">
 				<div>
