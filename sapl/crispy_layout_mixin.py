@@ -71,7 +71,7 @@ class SaplFormHelper(FormHelper):
     cria-se essa classe:
     
         class SaplFormHelper(FormHelper):
-            render_unmentioned_fields = True 
+            render_hidden_fields = True 
     
     onde torna o default, antes False, agora = True, o esperado pelos forms do sapl,
     e substituí-se todos os FormHelper por SaplFormHelper dentro do projeto Sapl
