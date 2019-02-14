@@ -151,6 +151,7 @@
     <field name="django_id" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="_version_" type="plong" indexed="true" stored ="true"/>
     <field name="text" type="text_pt" indexed="true" stored="true" multiValued="false" />
+    <field name="indextime" type="pdate" default="NOW" />
 
   </fields>
 

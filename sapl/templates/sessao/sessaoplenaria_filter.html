@@ -3,9 +3,9 @@
 {% load crispy_forms_tags %}
 
 {% block actions %}
-  <div class="actions btn-group pull-right" role="group">
+  <div class="actions btn-group float-right" role="group">
     {% if perms.sessao %}
-      <a href="{% url 'sapl.sessao:sessaoplenaria_create' %}" class="btn btn-default">
+      <a href="{% url 'sapl.sessao:sessaoplenaria_create' %}" class="btn btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}
     {% endif %}
     </a>
@@ -60,25 +60,25 @@
   if(querystring.length != 0){
     $('#id_data_inicio__year').on({
       change: function(){
-        window.location.search = jQuery.query.set("data_inicio__year", $('#id_data_inicio__year').val());
+        window.location.search = $.query.set("data_inicio__year", $('#id_data_inicio__year').val());
       }
     })
 
     $('#id_data_inicio__month').on({
       change: function(){
-        window.location.search = jQuery.query.set("data_inicio__month", $('#id_data_inicio__month').val());
+        window.location.search = $.query.set("data_inicio__month", $('#id_data_inicio__month').val());
       }
     })
 
     $('#id_data_inicio__day').on({
       change: function(){
-        window.location.search = jQuery.query.set("data_inicio__day", $('#id_data_inicio__day').val());
+        window.location.search = $.query.set("data_inicio__day", $('#id_data_inicio__day').val());
       }
     })
 
     $('#id_tipo').on({
       change: function(){
-        window.location.search = jQuery.query.set("tipo", $('#id_tipo').val());
+        window.location.search = $.query.set("tipo", $('#id_tipo').val());
       }
     })
   }

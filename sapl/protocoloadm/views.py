@@ -730,8 +730,8 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             if protocolo.numero < (numero['numero__max'] + 1):
                 self.logger.error("user=" + username + ". Número de protocolo ({}) é menor que {}"
                                   .format(protocolo.numero, numero['numero__max']))
-                msg = _('Número de protocolo deve ser maior que {}').format(
-                    numero['numero__max'])
+                msg = _('Número de protocolo deve ser maior que {}'.format(
+                    numero['numero__max']))
                 messages.add_message(self.request, messages.ERROR, msg)
                 return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
@@ -757,7 +757,6 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             protocolo.hora = None
             protocolo.user_data_hora_manual = ''
             protocolo.ip_data_hora_manual = ''
-
         protocolo.save()
         data = form.cleaned_data
         if data['vincular_materia'] == 'True':

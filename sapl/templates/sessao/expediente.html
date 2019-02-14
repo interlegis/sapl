@@ -9,7 +9,7 @@
 
 {% if perms|get_add_perm:view %}
 	{% if expedientes|length == 0 %}
-		<div class="alert alert-danger alert-dismissible fade in" role="alert">
+		<div class="alert alert-danger alert-dismissible " role="alert">
 			Não há nenhum expediente cadastrado. <br />
 			Cique <a href="{% url 'sapl.sessao:tipoexpediente_create'%}">aqui</a> para cadastrar um novo.
 		</div>
@@ -49,12 +49,12 @@
 {% block extra_js %}
 	{% if perms|get_add_perm:view %}
 		<script language="JavaScript">
-			initTinymce(null);
+			initTextRichEditor(null);
 		</script>
 	<!-- Se nao tiver permissao, o texto rico fica readonly -->
 	{% else %}
 		<script language="JavaScript">
-			initTinymce(null, true);
+			initTextRichEditor(null, true);
 		</script>
 	{% endif %}
 {% endblock %}

@@ -6,7 +6,7 @@ import re
 from unicodedata import normalize as unicodedata_normalize
 import unicodedata
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
 from django.apps import apps
@@ -111,7 +111,7 @@ def montar_row_autor(name):
 
 def montar_helper_autor(self):
     autor_row = montar_row_autor('nome')
-    self.helper = FormHelper()
+    self.helper = SaplFormHelper()
     self.helper.layout = SaplFormLayout(*self.get_layout())
 
     # Adiciona o novo campo 'autor' e mecanismo de busca
@@ -128,7 +128,7 @@ def montar_helper_autor(self):
     # Adiciona novos botões dentro do form
     self.helper.layout[0][4][0].insert(2, form_actions(more=[
         HTML('<a href="{{ view.cancel_url }}"'
-             ' class="btn btn-inverse">Cancelar</a>')]))
+             ' class="btn btn-dark">Cancelar</a>')]))
 
 
 class SaplGenericForeignKey(GenericForeignKey):

@@ -1,20 +1,12 @@
 {% extends "protocoloadm/protocoloadm_detail.html" %}
 {% load i18n %}
 {% load tz %}
-{% load crispy_forms_tags %}
 {% load static %}
-
-{% block actions %}
-
-  {{ block.super }}
-  <div class="actions btn-group pull-right grid-gutter-width-right " role="group">
-    <a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-  </div>
-{% endblock %}
+{% load webpack_static from webpack_loader %}
 
 {% block detail_content %}
         <strong>Protocolo: </strong>{{ protocolo.numero|stringformat:'06d' }}/{{ protocolo.ano }} - 
-        <a href="{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}"><img src="{% static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a></br>
+        <a href="{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}"><img src="{% webpack_static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a></br>
 
 	<strong>Assunto: </strong> {{ protocolo.assunto_ementa|default:"Não informado" }}</br>
 	{% if protocolo.timestamp %}

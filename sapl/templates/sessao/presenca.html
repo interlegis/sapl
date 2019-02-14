@@ -32,7 +32,7 @@
         <label for="id_presenca_{{forloop.counter}}">
           <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}"
           {% if check %} checked {% endif %}>
-          {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}
+          {{ parlamentar.nome_parlamentar }}  / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
         </label>
       </div>
     {% else %}
@@ -40,7 +40,7 @@
       <label for="id_presenca_{{forloop.counter}}" class="inativos" style="display:none;">
         <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_inativos" value="{{ parlamentar.id }}"
           {% if check %} checked {% endif %}>
-        {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}
+        {{ parlamentar.nome_parlamentar }}  / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
       </label>
     </div>
     {% endif %}
@@ -63,7 +63,7 @@
 {% if check %}
 <div class="row">
   <div class="col-md-6">
-    <label for="parlamentar"> - {{ parlamentar.nome_parlamentar }} / {{ parlamentar|filiacao_data_filter:object.data_inicio }}
+    <label for="parlamentar"> - {{ parlamentar.nome_parlamentar }} / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
     </label>
   </div>
 </div>

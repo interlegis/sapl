@@ -10,13 +10,13 @@
 
         <div class="actions btn-group btn-group-sm" role="group">
           {% if view.list_url %}
-            <a href="{{ view.list_url }}" class="btn btn-default">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
+            <a href="{{ view.list_url }}" class="btn btn-outline-primary">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
           {% endif %}
           {% if view.search_url %}
-            <a href="{{ view.search_url }}" class="btn btn-default">{% trans 'Fazer Nova Pesquisa' %}</a>
+            <a href="{{ view.search_url }}" class="btn btn-outline-primary">{% trans 'Fazer Nova Pesquisa' %}</a>
           {% endif %}
           {% if view.create_url %}
-            <a href="{{ view.create_url }}" class="btn btn-default">
+            <a href="{{ view.create_url }}" class="btn btn-outline-primary">
               {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
             </a>
           {% endif %}
@@ -24,9 +24,9 @@
           {% if view.extras_url %}
             <div class="actions btn-group btn-group-sm" role="group">
           {% for href, css_class, text in view.extras_url %}
-            <a href="{{href}}" class="btn btn-default {{css_class}}">
-                  {{text}}
-                </a>
+              <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
+                {{text}}
+              </a>
               {% endfor %}
             </div>
           {% endif %}
@@ -35,15 +35,15 @@
       {% block extra_actions %}
       {% endblock extra_actions %}
 
-      <div class="editons pull-right">
+      <div class="editons float-right">
         {% block editions %}
           {% if view.update_url or view.delete_url %}
             <div class="actions btn-group" role="group">
               {% if view.update_url %}
-                <a href="{{ view.update_url }}" class="btn btn-default">{% trans 'Editar' %}</a>
+                <a href="{{ view.update_url }}" class="btn btn-outline-primary">{% trans 'Editar' %}</a>
               {% endif %}
               {% if view.delete_url %}
-                <a href="{{ view.delete_url }}" class="btn btn-default btn-excluir">{% trans 'Excluir' %}</a>
+                <a href="{{ view.delete_url }}" class="btn btn-outline-primary btn-outline-danger">{% trans 'Excluir' %}</a>
               {% endif %}
             </div>
           {% endif %}
@@ -58,7 +58,7 @@
       {% for fieldset in view.layout_display %}
         <h2 class="legend">{{ fieldset.legend }}</h2>
         {% for row in fieldset.rows %}
-          <div class="row-fluid">
+          <div class="row">
             {% for column in row %}
               {% if column.verbose_name or column.text %}
                 <div class="col-sm-{{ column.span }}">

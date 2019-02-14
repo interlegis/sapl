@@ -21,8 +21,8 @@
         },
         function(data, status) {
           if ($(".ementa-materia").length === 0) {
-            $("#div_id_tipo_materia").closest('.row-fluid').after(
-              $('<div class="row-fluid"/>').append(
+            $("#div_id_tipo_materia").closest('.row').after(
+              $('<div class="row"/>').append(
                 $('<div class="col-xs-12"/>').append(
                   $('<div class="alert alert-info ementa-materia"/>').html(data.ementa))))
           }

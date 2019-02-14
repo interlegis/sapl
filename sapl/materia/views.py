@@ -3,7 +3,7 @@ import logging
 from random import choice
 from string import ascii_letters, digits
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML
 from django.conf import settings
 from django.contrib import messages
@@ -211,7 +211,13 @@ class CriarProtocoloMateriaView(CreateView):
         context['form'].fields['tipo'].initial = protocolo.tipo_materia
         context['form'].fields['numero'].initial = numero
         context['form'].fields['ano'].initial = protocolo.ano
-        context['form'].fields['data_apresentacao'].initial = protocolo.timestamp.date()
+        if protocolo:
+            if protocolo.timestamp:
+                context['form'].fields['data_apresentacao'].initial = protocolo.timestamp.date()
+            elif protocolo.timestamp_data_hora_manual:
+                context['form'].fields['data_apresentacao'].initial = protocolo.timestamp_data_hora_manual.date()
+            elif protocolo.data:
+                context['form'].fields['data_apresentacao'].initial = protocolo.data
         context['form'].fields['numero_protocolo'].initial = protocolo.numero
         context['form'].fields['ementa'].initial = protocolo.assunto_ementa
 
@@ -933,6 +939,7 @@ class ProposicaoCrud(Crud):
             username = request.user.username
 
             if proposicao:
+                msg = ''
                 if proposicao[0][0] and proposicao[0][1]:
                     self.logger.error('user=' + username + '. Proposição (id={}) já foi enviada e recebida.'
                                       'Não pode mais ser editada'.format(kwargs['pk']))
@@ -1343,7 +1350,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
 def montar_helper_documento_acessorio(self):
     autor_row = montar_row_autor('autor')
-    self.helper = FormHelper()
+    self.helper = SaplFormHelper()
     self.helper.layout = SaplFormLayout(*self.get_layout())
 
     # Adiciona o novo campo 'autor' e mecanismo de busca
@@ -1357,7 +1364,7 @@ def montar_helper_documento_acessorio(self):
     # Adiciona novos botões dentro do form
     self.helper.layout[0][3][0].insert(1, form_actions(more=[
         HTML('<a href="{{ view.cancel_url }}"'
-             ' class="btn btn-inverse">Cancelar</a>')]))
+             ' class="btn btn-dark">Cancelar</a>')]))
 
 
 class DocumentoAcessorioCrud(MasterDetailCrud):

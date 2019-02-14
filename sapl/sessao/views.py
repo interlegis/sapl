@@ -614,26 +614,20 @@ class OradorCrud(OradorCrud):
             return initial
 
 
-class BancadaCrud(Crud):
+class BancadaCrud(CrudAux):
     model = Bancada
 
-    class ListView(Crud.ListView):
-        template_name = 'crud/list_tabaux.html'
-
-    class CreateView(Crud.CreateView):
+    class CreateView(CrudAux.CreateView):
         form_class = BancadaForm
 
         def get_success_url(self):
             return reverse('sapl.sessao:bancada_list')
 
 
-class BlocoCrud(Crud):
+class BlocoCrud(CrudAux):
     model = Bloco
 
-    class ListView(Crud.ListView):
-        template_name = 'crud/list_tabaux.html'
-
-    class CreateView(Crud.CreateView):
+    class CreateView(CrudAux.CreateView):
         form_class = BlocoForm
 
         def get_success_url(self):
@@ -1902,7 +1896,8 @@ class VotacaoView(SessaoPermissionMixin):
                 qtde_presentes -= 1
 
             if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
-                msg = _('O total de votos não corresponde com a quantidade de presentes!')
+                msg = _(
+                    'O total de votos não corresponde com a quantidade de presentes!')
                 messages.add_message(request, messages.ERROR, msg)
                 return self.render_to_response(context)
             elif (qtde_presentes == qtde_votos):
@@ -3340,9 +3335,10 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
         if not 'context' in locals():
             context = {'pk': self.kwargs['pk'],
                        'root_pk': self.kwargs['pk'],
-                       'title': SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+                       'title': SessaoPlenaria.objects.get(id=self.kwargs['pk']),
+                       'origem': request.POST['origem']
                        }
-
+                       
         if 'marcadas_1' in request.POST:
 
             context.update({'resultado_votacao': TipoResultadoVotacao.objects.all(),
@@ -3519,6 +3515,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
             context = {'pk': self.kwargs['pk'],
                        'root_pk': self.kwargs['pk'],
                        'title': SessaoPlenaria.objects.get(id=self.kwargs['pk']),
+                       'origem': request.POST['origem'],
                        'subnav_template_name': 'sessao/subnav.yaml'}
 
         if 'marcadas_2' in request.POST:

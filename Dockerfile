@@ -2,7 +2,7 @@ FROM alpine:3.8
 
 ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
                    python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev \
-                   nodejs npm py3-lxml py3-magic postgresql-client poppler-utils antiword \
+                   nodejs py3-lxml py3-magic postgresql-client poppler-utils antiword \
                    curl jq openssh-client vim openssh-client bash
 
 RUN apk update --update-cache && apk upgrade
@@ -17,9 +17,7 @@ RUN apk add --no-cache python3 nginx tzdata && \
     rm -f /etc/nginx/conf.d/*
 
 RUN mkdir -p /var/interlegis/sapl && \
-    apk add --update --no-cache $BUILD_PACKAGES && \
-    npm install -g bower && \
-    npm cache verify
+    apk add --update --no-cache $BUILD_PACKAGES
 
 WORKDIR /var/interlegis/sapl/
 
@@ -37,13 +35,6 @@ COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 # Configura timezone para BRT
 # RUN cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && echo "America/Sao_Paulo" > /etc/timezone
 
-# manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
-
-# compilescss - Precompile all occurrences of your SASS/SCSS files for the whole project into css files
-
-RUN python3 manage.py bower_install --allow-root && \
-    python3 manage.py compilescss
-
 RUN python3 manage.py collectstatic --noinput --clear
 
 # Remove .env(fake) e sapl.db da imagem
@@ -53,7 +44,8 @@ RUN rm -rf /var/interlegis/sapl/sapl/.env && \
 RUN chmod +x /var/interlegis/sapl/start.sh && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
-    mkdir /var/log/sapl/
+    mkdir /var/log/sapl/ && touch /var/log/sapl/sapl.log && \
+    ln -s /var/interlegis/sapl/sapl.log /var/log/sapl/sapl.log
 
 VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 

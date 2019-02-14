@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.contrib.contenttypes.models import ContentType
@@ -207,7 +207,7 @@ class RetiradaPautaForm(ModelForm):
                        ('expediente', 6)])
         row3 = to_row([('observacao', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Retirada de Pauta'),
                      row1, row2, row3))
@@ -317,7 +317,7 @@ class BancadaForm(ModelForm):
         bancada = super(BancadaForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Bancada)
         object_id = bancada.pk
-        tipo = TipoAutor.objects.get(descricao__icontains='Bancada')
+        tipo = TipoAutor.objects.get(content_type=content_type)
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,
@@ -352,7 +352,7 @@ class BlocoForm(ModelForm):
         bloco = super(BlocoForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Bloco)
         object_id = bloco.pk
-        tipo = TipoAutor.objects.get(descricao__icontains='Bloco')
+        tipo = TipoAutor.objects.get(content_type=content_type)
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,
@@ -591,7 +591,7 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
              ('data_inicio__day', 3),
              ('tipo', 3)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(self.titulo,
@@ -664,7 +664,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
         row9 = to_row(
             [('ementa', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria'),
@@ -787,7 +787,7 @@ class ResumoOrdenacaoForm(forms.Form):
         row11 = to_row(
             [('decimo_primeiro', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
@@ -853,7 +853,7 @@ class JustificativaAusenciaForm(ModelForm):
         row8 = to_row(
             [('observacao', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Justificativa de Ausência'),
                      row1, row2, row3,
@@ -981,7 +981,7 @@ class VotacaoEmBlocoFilterSet(MateriaLegislativaFilterSet):
         row9 = to_row(
             [('ementa', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria'),

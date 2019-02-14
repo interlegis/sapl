@@ -1,8 +1,7 @@
+from datetime import timedelta
 import logging
 
-from datetime import timedelta
-
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib.auth import get_user_model
@@ -46,8 +45,8 @@ def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
     # Verifica se data de eleição < inicio < fim
     if inicio >= fim or eleicao >= inicio:
         logger.error('A data início ({}) deve ser menor que a ' +
-                    'data fim ({}) e a data eleição ({}) deve ser ' +
-                    'menor que a data início ({})'.format(inicio, fim, eleicao, inicio))
+                     'data fim ({}) e a data eleição ({}) deve ser ' +
+                     'menor que a data início ({})'.format(inicio, fim, eleicao, inicio))
         msg_error = _('A data início deve ser menor que a ' +
                       'data fim e a data eleição deve ser ' +
                       'menor que a data início')
@@ -66,7 +65,8 @@ def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
     # Verifica se há alguma outra data de eleição cadastrada
     if Legislatura.objects.filter(
             data_eleicao=eleicao).exclude(pk=pk).exists():
-        logger.error("Esta data de eleição ({}) já foi cadastrada.".format(eleicao))
+        logger.error(
+            "Esta data de eleição ({}) já foi cadastrada.".format(eleicao))
         msg_error = _('Esta data de eleição já foi cadastrada')
         return (False, msg_error)
 
@@ -75,6 +75,7 @@ def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
 
 class MandatoForm(ModelForm):
     logger = logging.getLogger(__name__)
+
     class Meta:
         model = Mandato
         fields = ['legislatura', 'coligacao', 'votos_recebidos',
@@ -108,30 +109,30 @@ class MandatoForm(ModelForm):
             if (data_fim_mandato < legislatura.data_inicio or
                     data_fim_mandato > legislatura.data_fim):
                 self.logger.error("Data fim mandato ({}) fora do intervalo"
-                                " de legislatura informada ({} a {})."
-                                .format(data_fim_mandato, legislatura.data_inicio, legislatura.data_fim))
+                                  " de legislatura informada ({} a {})."
+                                  .format(data_fim_mandato, legislatura.data_inicio, legislatura.data_fim))
                 raise ValidationError(_("Data fim mandato fora do intervalo de"
                                         " legislatura informada"))
 
         data_expedicao_diploma = data['data_expedicao_diploma']
         if (data_expedicao_diploma and
                 data_expedicao_diploma > data_inicio_mandato):
-                self.logger.error("A data da expedição do diploma ({}) deve ser anterior "
-                                  "a data de início do mandato ({}).".format(data_expedicao_diploma, data_inicio_mandato))
-                raise ValidationError(_("A data da expedição do diploma deve ser anterior "
-                                        "a data de início do mandato"))
+            self.logger.error("A data da expedição do diploma ({}) deve ser anterior "
+                              "a data de início do mandato ({}).".format(data_expedicao_diploma, data_inicio_mandato))
+            raise ValidationError(_("A data da expedição do diploma deve ser anterior "
+                                    "a data de início do mandato"))
 
         coligacao = data['coligacao']
         if coligacao and not coligacao.legislatura == legislatura:
-                self.logger.error("A coligação selecionada ({}) não está cadastrada "
-                                  "na mesma legislatura ({}) que o presente mandato ({}), "
-                                  "favor verificar a coligação ou fazer o cadastro "
-                                  "de uma nova coligação na legislatura correspondente"
-                                  .format(coligacao, coligacao.legislatura, legislatura))
-                raise ValidationError(_("A coligação selecionada não está cadastrada "
-                                        "na mesma legislatura que o presente mandato, "
-                                        "favor verificar a coligação ou fazer o cadastro "
-                                        "de uma nova coligação na legislatura correspondente"))
+            self.logger.error("A coligação selecionada ({}) não está cadastrada "
+                              "na mesma legislatura ({}) que o presente mandato ({}), "
+                              "favor verificar a coligação ou fazer o cadastro "
+                              "de uma nova coligação na legislatura correspondente"
+                              .format(coligacao, coligacao.legislatura, legislatura))
+            raise ValidationError(_("A coligação selecionada não está cadastrada "
+                                    "na mesma legislatura que o presente mandato, "
+                                    "favor verificar a coligação ou fazer o cadastro "
+                                    "de uma nova coligação na legislatura correspondente"))
 
         existe_mandato = Mandato.objects.filter(
             parlamentar=data['parlamentar'],
@@ -158,7 +159,6 @@ class LegislaturaForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-
         numero = data['numero']
         data_inicio = data['data_inicio']
         data_fim = data['data_fim']
@@ -166,22 +166,23 @@ class LegislaturaForm(ModelForm):
 
         pk = self.instance.pk
 
-
         ultima_legislatura = Legislatura.objects.filter(data_inicio__lt=data_inicio
-                                                        ).order_by('-data_inicio').first()
+                                                        ).order_by('-data_inicio').exclude(id=pk).first()
         proxima_legislatura = Legislatura.objects.filter(data_fim__gt=data_fim
-                                                         ).order_by('data_fim').first()
+                                                         ).order_by('data_fim').exclude(id=pk).first()
 
         if ultima_legislatura and ultima_legislatura.numero >= numero:
             self.logger.error("Número ({}) deve ser maior que o da legislatura anterior ({})."
                               .format(numero, ultima_legislatura.numero))
-            raise ValidationError(_("Número deve ser maior que o da legislatura anterior"))
+            raise ValidationError(_("Número deve ser maior que o da legislatura anterior ({})."
+                                    .format(numero)))
         elif proxima_legislatura and proxima_legislatura.numero <= numero:
             self.logger.error("O Número ({}) deve ser menor que {}, pois existe uma "
-                              "legislatura afrente cronologicamente desta que está sendo criada!"
+                              "legislatura cronologicamente à frente desta que está sendo criada!"
                               .format(numero, proxima_legislatura.numero))
             msg_erro = "O Número deve ser menor que {}, pois existe uma " \
-            "legislatura afrente cronologicamente desta que está sendo criada!"
+
+            "legislatura cronologicamente à frente desta que está sendo criada!"
             msg_erro = msg_erro.format(proxima_legislatura.numero)
             raise ValidationError(_(msg_erro))
 
@@ -241,7 +242,7 @@ class ParlamentarCreateForm(ParlamentarForm):
             data_expedicao_diploma=self.cleaned_data['data_expedicao_diploma'])
         content_type = ContentType.objects.get_for_model(Parlamentar)
         object_id = parlamentar.pk
-        tipo = TipoAutor.objects.get(descricao='Parlamentar')
+        tipo = TipoAutor.objects.get(content_type=content_type)
         Autor.objects.create(
             content_type=content_type,
             object_id=object_id,
@@ -385,6 +386,7 @@ class ComposicaoColigacaoForm(ModelForm):
 
 class FrenteForm(ModelForm):
     logger = logging.getLogger(__name__)
+
     def __init__(self, *args, **kwargs):
         super(FrenteForm, self).__init__(*args, **kwargs)
         self.fields['parlamentares'].queryset = Parlamentar.objects.filter(
@@ -404,15 +406,16 @@ class FrenteForm(ModelForm):
 
         if cd['data_extincao'] and cd['data_criacao'] >= cd['data_extincao']:
             self.logger.error("Data Dissolução ({}) não pode ser anterior a Data Criação ({})."
-                              .format(cd['data_extincao'],cd['data_criacao']))
-            raise ValidationError(_("Data Dissolução não pode ser anterior a Data Criação"))
+                              .format(cd['data_extincao'], cd['data_criacao']))
+            raise ValidationError(
+                _("Data Dissolução não pode ser anterior a Data Criação"))
 
         return cd
 
     @transaction.atomic
     def save(self, commit=True):
         frente = super(FrenteForm, self).save(commit)
-        
+
         if not self.instance.pk:
             frente = super(FrenteForm, self).save(commit)
             content_type = ContentType.objects.get_for_model(Frente)
@@ -443,7 +446,7 @@ class VotanteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         row1 = to_row([('username', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Votante'),
                      row1, form_actions(label='Salvar'))
@@ -466,7 +469,8 @@ class VotanteForm(ModelForm):
         username = cd['username']
         user = get_user_model().objects.filter(username=username)
         if not user.exists():
-            self.logger.error("Não foi possível vincular usuário. Usuário {} não existe.".format(username))
+            self.logger.error(
+                "Não foi possível vincular usuário. Usuário {} não existe.".format(username))
             raise ValidationError(_(
                 "{} [{}] {}".format(
                     'Não foi possível vincular usuário. Usuário',

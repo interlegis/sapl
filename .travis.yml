@@ -10,7 +10,6 @@ install:
   - pip install -r requirements/test-requirements.txt
 
 before_script:
-  - npm install -g bower
   - cp sapl/.env_test sapl/.env
   - psql -c "CREATE USER sapl WITH PASSWORD 'sapl'" -U postgres;
   - psql -c "CREATE DATABASE sapl OWNER sapl;" -U postgres
@@ -18,7 +17,6 @@ before_script:
 
 script:
   - ./manage.py migrate
-  - ./manage.py bower install
   - py.test --create-db
   # - ./scripts/django/test_and_check_qa.sh
 

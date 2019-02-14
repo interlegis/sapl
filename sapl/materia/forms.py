@@ -3,9 +3,9 @@ import logging
 import os
 
 from crispy_forms.bootstrap import Alert, InlineRadios
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
-                                 Layout)
+                                 Layout, Row)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -76,7 +76,7 @@ class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('nome', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Filtrar Autores'),
@@ -96,7 +96,7 @@ class OrgaoForm(ModelForm):
         orgao = super(OrgaoForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Orgao)
         object_id = orgao.pk
-        tipo = TipoAutor.objects.get(descricao='Órgão')
+        tipo = TipoAutor.objects.get(content_type=content_type)
         nome = orgao.nome + ' - ' + orgao.sigla
         Autor.objects.create(
             content_type=content_type,
@@ -112,7 +112,7 @@ class ReceberProposicaoForm(Form):
 
     def __init__(self, *args, **kwargs):
         row1 = to_row([('cod_hash', 12)])
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Incorporar Proposição'), row1,
@@ -145,7 +145,7 @@ class MateriaSimplificadaForm(ModelForm):
         row4 = to_row([('ementa', 12)])
         row5 = to_row([('texto_original', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Formulário Simplificado'),
@@ -346,7 +346,7 @@ class AcompanhamentoMateriaForm(ModelForm):
             Column(form_actions(label='Cadastrar'), css_class='col-md-2')
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Acompanhamento de Matéria por e-mail'), row1
@@ -896,7 +896,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                 ('tipo_listagem', 4)
             ])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa Básica'),
@@ -1016,7 +1016,7 @@ class AutoriaForm(ModelForm):
                        ('autor', 4),
                        ('primeiro_autor', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Autoria'),
                      row1, 'data_relativa', form_actions(label='Salvar')))
@@ -1077,7 +1077,7 @@ class AutoriaMultiCreateForm(Form):
 
         row2 = to_row([('autor', 12), ])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Autorias'), row1, row2, 'data_relativa', 'autores',
@@ -1117,7 +1117,7 @@ class AcessorioEmLoteFilterSet(django_filters.FilterSet):
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data_apresentacao', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Documentos Acessórios em Lote'),
@@ -1142,7 +1142,7 @@ class PrimeiraTramitacaoEmLoteFilterSet(django_filters.FilterSet):
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data_apresentacao', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Primeira Tramitação'),
@@ -1177,7 +1177,7 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
             ('tramitacao__status', 4)])
         row2 = to_row([('data_apresentacao', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitação em Lote'),
@@ -1191,7 +1191,8 @@ class TipoProposicaoForm(ModelForm):
     content_type = forms.ModelChoiceField(
         queryset=ContentType.objects.all(),
         label=TipoProposicao._meta.get_field('content_type').verbose_name,
-        required=True)
+        required=True,
+        help_text=TipoProposicao._meta.get_field('content_type').help_text)
 
     tipo_conteudo_related_radio = ChoiceWithoutValidationField(
         label="Seleção de Tipo",
@@ -1215,15 +1216,32 @@ class TipoProposicaoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        tipo_select = Fieldset(TipoProposicao._meta.verbose_name,
-                               Div(to_column(('descricao', 5)),
-                                   to_column(('content_type', 7)),
-                                   css_class='clearfix'),
-                               to_column(('tipo_conteudo_related_radio', 6)),
+        tipo_select = Fieldset(
+            TipoProposicao._meta.verbose_name,
+            Row(
+                to_column(
+                    (
+                        Row(
+                            to_column(('descricao', 12)),
+                            to_column(('perfis', 12)),
+                        ),
+                        5
+                    )
+                ),
+                to_column(
+                    (
+                        Row(
+                            to_column(('content_type', 12)),
+                            to_column(('tipo_conteudo_related_radio', 12)),
+                            to_column(('tipo_conteudo_related', 12)),
+                        ),
+                        7
+                    )
+                ),
+            )
+        )
 
-                               to_column(('perfis', 6)))
-
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(tipo_select)
 
         super(TipoProposicaoForm, self).__init__(*args, **kwargs)
@@ -1403,13 +1421,17 @@ class ProposicaoForm(forms.ModelForm):
         fields.append(to_column((
             'texto_original', 7 if self.texto_articulado_proposicao else 12)))
 
-        fields.append(to_column((Fieldset(_('Outras informações - Vincular a Matéria Legislativa Existente'),
-                                          to_column(('tipo_materia', 12)),
-                                          to_column(('numero_materia', 6)),
-                                          to_column(('ano_materia', 6))
-                                          ), 12)),
-                      )
-        self.helper = FormHelper()
+        fields.append(
+            to_column(
+                (
+                    Fieldset(
+                        _('Outras informações - Vincular a Matéria Legislativa Existente'),
+                        to_row([('tipo_materia', 12), ]),
+                        to_row([('numero_materia', 6),
+                                ('ano_materia', 6)]),
+                    ), 12)),
+        )
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(*fields)
 
         super(ProposicaoForm, self).__init__(*args, **kwargs)
@@ -1552,12 +1574,12 @@ class DevolverProposicaoForm(forms.ModelForm):
                 to_column(
                     (form_actions(label=_('Devolver'),
                                   name='devolver',
-                                  css_class='btn-danger pull-right'), 12)
+                                  css_class='btn-danger float-right'), 12)
                 )
             )
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(*fields)
 
     def clean(self):
@@ -1681,31 +1703,42 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         fields = [
             Fieldset(
                 _('Dados Básicos'),
-                to_column(('tipo_readonly', 4)),
-                to_column(('data_envio', 3)),
-                to_column(('autor_readonly', 5)),
-                to_column(('descricao', 12)),
-                to_column(('observacao', 12)))]
+                to_row(
+                    [
+                        ('tipo_readonly', 4),
+                        ('data_envio', 3),
+                        ('autor_readonly', 5),
+                        ('descricao', 12),
+                        ('observacao', 12)
+                    ]
+                )
+            )
+        ]
 
         fields.append(
-            Fieldset(_('Vinculado a Matéria Legislativa'),
-                     to_column(('tipo_materia', 3)),
-                     to_column(('numero_materia', 2)),
-                     to_column(('ano_materia', 2)),
-                     to_column(
-                (Alert(_('O responsável pela incorporação pode '
-                         'alterar a anexação. Limpar os campos '
-                         'de Vinculação gera um %s independente '
-                         'sem anexação se for possível para esta '
-                         'Proposição. Não sendo, a rotina de incorporação '
-                         'não permitirá estes campos serem vazios.'
-                         ) % self.instance.tipo.content_type,
-                       css_class="alert-info",
-                       dismiss=False), 5)),
-                to_column(
-                (Alert('',
-                       css_class="ementa_materia hidden alert-info",
-                       dismiss=False), 12))))
+            Fieldset(
+                _('Vinculado a Matéria Legislativa'),
+                to_row(
+                    [
+                        ('tipo_materia', 3),
+                        ('numero_materia', 2),
+                        ('ano_materia', 2),
+                        (Alert(_('O responsável pela incorporação pode '
+                                 'alterar a anexação. Limpar os campos '
+                                 'de Vinculação gera um %s independente '
+                                 'sem anexação se for possível para esta '
+                                 'Proposição. Não sendo, a rotina de incorporação '
+                                 'não permitirá estes campos serem vazios.'
+                                 ) % self.instance.tipo.content_type,
+                               css_class="alert-info",
+                               dismiss=False), 5),
+                        (Alert('',
+                               css_class="ementa_materia hidden alert-info",
+                               dismiss=False), 12),
+                    ]
+                )
+            )
+        )
 
         itens_incorporacao = []
         if self.instance.tipo.content_type.model_class() == \
@@ -1727,9 +1760,9 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         )
 
         fields.append(
-            Fieldset(_('Registro de Incorporação'), *itens_incorporacao))
+            Fieldset(_('Registro de Incorporação'), Row(*itens_incorporacao)))
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(*fields)
 
         self.fields['tipo_readonly'].initial = self.instance.tipo.descricao
@@ -2085,7 +2118,7 @@ class EtiquetaPesquisaForm(forms.Form):
             [('processo_inicial', 6),
              ('processo_final', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Formulário de Etiqueta'),
@@ -2170,7 +2203,7 @@ class FichaPesquisaForm(forms.Form):
              ('data_inicial', 3),
              ('data_final', 3)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Formulário de Ficha'),
@@ -2211,7 +2244,7 @@ class FichaSelecionaForm(forms.Form):
         row1 = to_row(
             [('materia', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Selecione a ficha que deseja imprimir'),
@@ -2281,7 +2314,7 @@ class ExcluirTramitacaoEmLote(forms.Form):
             [('unidade_tramitacao_local', 6),
              ('unidade_tramitacao_destino', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Dados das Tramitações'),
                      row1,

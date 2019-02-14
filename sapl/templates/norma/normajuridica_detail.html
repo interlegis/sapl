@@ -1,11 +1,21 @@
 {% extends "crud/detail.html" %}
-{% load i18n common_tags staticfiles%}
+{% load i18n common_tags %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_loader_css %}
+  {{ block.super }}
+  {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
+    {% render_bundle 'compilacao' 'css' %}
+  {% endif %}
+{% endblock %}
+
+
 
 {% block detail_content %}
       {% for fieldset in view.layout_display %}
         <h2 class="legend">{{ fieldset.legend }}</h2>
         {% for row in fieldset.rows %}
-          <div class="row-fluid">
+          <div class="row">
             {% for column in row %}
               <div class="col-sm-{{ column.span }}">
                 <div id="div_id_{{ column.id }}" class="form-group">
@@ -33,7 +43,7 @@
       {% endfor %}
 
       <hr />
-      <div class="row-fluid">
+      <div class="row">
         <div class="col-sm-12">
           <p class="control-label">Normas Relacionadas</p>
 
@@ -62,7 +72,7 @@
         </div>
       </div>
       <hr />
-      <div class="row-fluid">
+      <div class="row">
         <div class="col-sm-12">
           &nbsp;<p class="control-label">Anexos Norma Jurídica</p>
       {% if object.get_anexos_norma_juridica|length > 0 %}
@@ -79,7 +89,7 @@
 
   {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission %}
     <hr />
-    <div class="row-fluid">
+    <div class="row">
       <div class="col-sm-12">
         <br>
         <p class="control-label">{%trans 'Texto Multivigente' %}</p>
@@ -88,6 +98,15 @@
     </div>
   {% endif %}
 {% endblock detail_content %}
+
+
+{% block webpack_loader_js %}
+    {{ block.super }}
+    {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
+      {% render_bundle 'compilacao' 'js' %}
+    {% endif %}
+{% endblock %}
+
 
 {% block extra_js %}
 {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
@@ -98,6 +117,7 @@
         $('#textomultivigente').html(data)
         $('cp a[data-toggle="dropdown"]').dropdown()
         $('.dne').remove()
+        $('.dnli ul').remove()
       });
     }
   </script>
