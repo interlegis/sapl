@@ -3335,9 +3335,10 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
         if not 'context' in locals():
             context = {'pk': self.kwargs['pk'],
                        'root_pk': self.kwargs['pk'],
-                       'title': SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+                       'title': SessaoPlenaria.objects.get(id=self.kwargs['pk']),
+                       'origem': request.POST['origem']
                        }
-
+                       
         if 'marcadas_1' in request.POST:
 
             context.update({'resultado_votacao': TipoResultadoVotacao.objects.all(),
@@ -3514,6 +3515,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
             context = {'pk': self.kwargs['pk'],
                        'root_pk': self.kwargs['pk'],
                        'title': SessaoPlenaria.objects.get(id=self.kwargs['pk']),
+                       'origem': request.POST['origem'],
                        'subnav_template_name': 'sessao/subnav.yaml'}
 
         if 'marcadas_2' in request.POST:
