@@ -220,30 +220,9 @@ class CrispyLayoutFormMixin:
                 form.helper = SaplFormHelper()
                 layout = self.get_layout()
 
-                """if hasattr(form, '_meta') and \
-                        hasattr(form._meta, 'fields') and \
-                        form._meta.fields is not None:
-                    self.validate_layout(form, layout)"""
-
                 form.helper.layout = SaplFormLayout(*layout)
 
             return form
-
-    """def validate_layout(self, form, layout):
-        fields = set()
-        for fieldset in layout:
-            for el in fieldset:
-                if isinstance(el, str):
-                    continue
-                for field, size in el:
-                    fields.add(field)
-
-        intersection = set(form._meta.fields) - fields
-
-        if intersection:
-            raise Exception(_('Os campos {} não aparecem na definição de layout'
-                              ' da interface do usuário').format(intersection))
-    """
 
     @property
     def list_field_names(self):
