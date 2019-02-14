@@ -3,7 +3,7 @@ import logging
 import os
 
 from crispy_forms.bootstrap import Alert, InlineRadios
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row)
 from django import forms
@@ -76,7 +76,7 @@ class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('nome', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Filtrar Autores'),
@@ -112,7 +112,7 @@ class ReceberProposicaoForm(Form):
 
     def __init__(self, *args, **kwargs):
         row1 = to_row([('cod_hash', 12)])
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Incorporar Proposição'), row1,
@@ -145,7 +145,7 @@ class MateriaSimplificadaForm(ModelForm):
         row4 = to_row([('ementa', 12)])
         row5 = to_row([('texto_original', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Formulário Simplificado'),
@@ -346,7 +346,7 @@ class AcompanhamentoMateriaForm(ModelForm):
             Column(form_actions(label='Cadastrar'), css_class='col-md-2')
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Acompanhamento de Matéria por e-mail'), row1
@@ -896,7 +896,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                 ('tipo_listagem', 4)
             ])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa Básica'),
@@ -1016,7 +1016,7 @@ class AutoriaForm(ModelForm):
                        ('autor', 4),
                        ('primeiro_autor', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Autoria'),
                      row1, 'data_relativa', form_actions(label='Salvar')))
@@ -1077,7 +1077,7 @@ class AutoriaMultiCreateForm(Form):
 
         row2 = to_row([('autor', 12), ])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Autorias'), row1, row2, 'data_relativa', 'autores',
@@ -1117,7 +1117,7 @@ class AcessorioEmLoteFilterSet(django_filters.FilterSet):
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data_apresentacao', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Documentos Acessórios em Lote'),
@@ -1142,7 +1142,7 @@ class PrimeiraTramitacaoEmLoteFilterSet(django_filters.FilterSet):
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data_apresentacao', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Primeira Tramitação'),
@@ -1177,7 +1177,7 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
             ('tramitacao__status', 4)])
         row2 = to_row([('data_apresentacao', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitação em Lote'),
@@ -1241,7 +1241,7 @@ class TipoProposicaoForm(ModelForm):
             )
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(tipo_select)
 
         super(TipoProposicaoForm, self).__init__(*args, **kwargs)
@@ -1431,7 +1431,7 @@ class ProposicaoForm(forms.ModelForm):
                                 ('ano_materia', 6)]),
                     ), 12)),
         )
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(*fields)
 
         super(ProposicaoForm, self).__init__(*args, **kwargs)
@@ -1579,7 +1579,7 @@ class DevolverProposicaoForm(forms.ModelForm):
             )
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(*fields)
 
     def clean(self):
@@ -1762,7 +1762,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         fields.append(
             Fieldset(_('Registro de Incorporação'), Row(*itens_incorporacao)))
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(*fields)
 
         self.fields['tipo_readonly'].initial = self.instance.tipo.descricao
@@ -2118,7 +2118,7 @@ class EtiquetaPesquisaForm(forms.Form):
             [('processo_inicial', 6),
              ('processo_final', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Formulário de Etiqueta'),
@@ -2203,7 +2203,7 @@ class FichaPesquisaForm(forms.Form):
              ('data_inicial', 3),
              ('data_final', 3)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Formulário de Ficha'),
@@ -2244,7 +2244,7 @@ class FichaSelecionaForm(forms.Form):
         row1 = to_row(
             [('materia', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Selecione a ficha que deseja imprimir'),
@@ -2314,7 +2314,7 @@ class ExcluirTramitacaoEmLote(forms.Form):
             [('unidade_tramitacao_local', 6),
              ('unidade_tramitacao_destino', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Dados das Tramitações'),
                      row1,

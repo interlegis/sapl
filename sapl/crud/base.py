@@ -2,7 +2,7 @@ import logging
 
 from braces.views import FormMessagesMixin
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.conf.urls import url
@@ -150,7 +150,7 @@ class ListWithSearchForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ListWithSearchForm, self).__init__(*args, **kwargs)
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.form_class = 'form-inline'
         self.helper.form_method = 'GET'
         self.helper.layout = Layout(
