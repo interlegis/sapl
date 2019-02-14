@@ -859,7 +859,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
         self.filters['tipo'].label = 'Tipo de Matéria'
 
         self.filters['tramitacao__unidade_tramitacao_local'
-                     ].label = _('Unidade Local (Último Local)')
+                     ].label = _('Unidade Local')
         self.filters['tramitacao__status'].label = _('Status')
         row1 = to_row([('tramitacao__data_tramitacao', 12)])
 
