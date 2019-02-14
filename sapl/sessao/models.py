@@ -590,7 +590,7 @@ class TipoRetiradaPauta(models.Model):
     descricao = models.CharField(max_length=150, verbose_name=_('Descrição'))
 
     class Meta:
-        verbose_name = _('Tipo de Retidara de Pauta')
+        verbose_name = _('Tipo de Retirada de Pauta')
         verbose_name_plural = _('Tipos de Retirada de Pauta')
         ordering = ['descricao']
 

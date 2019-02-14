@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name_plural': 'Tipos de Retirada de Pauta',
-                'verbose_name': 'Tipo de Retidara de Pauta',
+                'verbose_name': 'Tipo de Retirada de Pauta',
                 'ordering': ['descricao'],
             },
         ),
