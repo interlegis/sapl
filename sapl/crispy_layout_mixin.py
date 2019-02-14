@@ -53,17 +53,17 @@ def form_actions(more=[Div(css_class='clearfix')],
 
 
 class SaplFormHelper(FormHelper):
-    render_unmentioned_fields = True  # default = False
+    render_hidden_fields = True  # default = False
     """
     até a release 1.6.1 do django-crispy-forms, os fields em Meta.Fields eram 
     renderizados mesmo se não mencionados no helper.
     Com esta mudança (https://github.com/django-crispy-forms/django-crispy-forms/commit/6b93e8a362422db8fe54aa731319c7cbc39990ba)
-    render_unmentioned_fields foi adicionado uma condição em que a cada
+    render_hidden_fields foi adicionado uma condição em que a cada
     instância do Helper, fosse decidido se os fields não mencionados serião ou
     não renderizados... 
     O Sapl até este commit: https://github.com/interlegis/sapl/commit/22b87f36ebc8659a6ecaf8831ab0f425206b0993
     utilizou o django-crispy-forms na versão 1.6.1, ou seja,
-    sem a condição render_unmentioned_fields o que fazia o FormHelper, na 1.6.1 
+    sem a condição render_hidden_fields o que fazia o FormHelper, na 1.6.1 
     set comportar como se, agora, na 1.7.2 o default fosse True.
     Como todos os Forms do Sapl foram construídos assumindo que fields 
     não incluídos explicitamente no Helper, o helper o incluiria implicitamente,
