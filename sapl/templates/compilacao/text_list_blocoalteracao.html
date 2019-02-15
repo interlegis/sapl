@@ -20,15 +20,15 @@
             {% if ch.rotulo %}
               <a name="{{ch.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.ta.pk %}#{{ch.pk}}">{{ ch.rotulo }}</a>
               {{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}
-              {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+              {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{% if ch.texto_atualizador %}{{ ch.texto_atualizador|safe }}{%else%}{{ ch.texto|safe }}{% endif %}
             {% elif not ch.rotulo and not ch.auto_inserido %}
               <a name="{{ch.pk}}" href="{% url 'sapl.compilacao:ta_text' ch.ta.pk %}#{{ch.pk}}">
                 {{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}
-                {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+                {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{% if ch.texto_atualizador %}{{ ch.texto_atualizador|safe }}{%else%}{{ ch.texto|safe }}{% endif %}
               </a>
             {% else %}
               {{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}
-              {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+              {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{% if ch.texto_atualizador %}{{ ch.texto_atualizador|safe }}{%else%}{{ ch.texto|safe }}{% endif %}
             {% endif %}
           </div>
         </div>
