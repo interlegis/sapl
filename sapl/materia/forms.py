@@ -1381,7 +1381,8 @@ class ProposicaoForm(forms.ModelForm):
                   'numero_materia',
                   'ano_materia',
                   'tipo_texto',
-                  'hash_code']
+                  'hash_code',
+                  'numero_materia_futuro']
 
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
@@ -1411,6 +1412,7 @@ class ProposicaoForm(forms.ModelForm):
                        dismiss=False), 12)),
             to_column(('descricao', 12)),
             to_column(('observacao', 12)),
+            to_column(('numero_materia_futuro', 12)),
 
         ]
 
@@ -1489,6 +1491,13 @@ class ProposicaoForm(forms.ModelForm):
         tm, am, nm = (cd.get('tipo_materia', ''),
                       cd.get('ano_materia', ''),
                       cd.get('numero_materia', ''))
+        
+        if cd['numero_materia_futuro'] and \
+                'tipo' in cd and \
+                MateriaLegislativa.objects.filter(tipo=cd['tipo'].tipo_conteudo_related,
+                                                                             ano=timezone.now().year,
+                                                                             numero=cd['numero_materia_futuro']):
+            raise ValidationError(_('Já existe uma matéria com esses dados.'))
 
         if tm and am and nm:
             try:
@@ -1654,13 +1663,16 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             'descricao',
             'observacao',
             'gerar_protocolo',
-            'numero_de_paginas'
+            'numero_de_paginas',
+            'numero_materia_futuro'
         ]
         widgets = {
             'descricao': widgets.Textarea(
                 attrs={'readonly': 'readonly', 'rows': 4}),
             'data_envio':  widgets.DateTimeInput(
                 attrs={'readonly': 'readonly'}),
+            'numero_materia_futuro': widgets.TextInput(
+                attrs={'readonly': 'readonly', 'rows': 1}),
 
         }
 
@@ -1705,9 +1717,10 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 _('Dados Básicos'),
                 to_row(
                     [
-                        ('tipo_readonly', 4),
+                        ('tipo_readonly', 3),
                         ('data_envio', 3),
-                        ('autor_readonly', 5),
+                        ('numero_materia_futuro',3),
+                        ('autor_readonly', 3),
                         ('descricao', 12),
                         ('observacao', 12)
                     ]
@@ -1767,6 +1780,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         self.fields['tipo_readonly'].initial = self.instance.tipo.descricao
         self.fields['autor_readonly'].initial = str(self.instance.autor)
+        if self.instance.numero_materia_futuro:
+            self.fields['numero_materia_futuro'].initial = self.instance.numero_materia_futuro
 
         if self.instance.materia_de_vinculo:
             self.fields[
@@ -1896,8 +1911,14 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             if numeracao is None:
                 numero['numero__max'] = 0
 
-            max_numero = numero['numero__max'] + \
-                1 if numero['numero__max'] else 1
+
+            if cd['numero_materia_futuro'] and not MateriaLegislativa.objects.filter(tipo=tipo,
+                                                                                     ano=ano,
+                                                                                     numero=cd['numero_materia_futuro']):
+                max_numero = cd['numero_materia_futuro']
+            else:
+                max_numero = numero['numero__max'] + 1 if numero['numero__max'] else 1
+
 
             # dados básicos
             materia = MateriaLegislativa()
