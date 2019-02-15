@@ -80,12 +80,13 @@
 <script language="JavaScript">
   function checkAll(event) {
     $('[name=presenca_ativos]').each(function () {
-      $(this).prop('checked', event.target.checked ? 'checked' : null);
+      $(this).prop('checked', event.target.checked ? null : 'checked');
       $(this).trigger('click');
     });
     if (($('[name=ativos]').is(':checked')) == false) {
       $('[name=presenca_inativos]').each(function () {
-        $(this).prop('checked', event.target.checked ? 'checked' : null);
+        console.debug('hei');
+        $(this).prop('checked', event.target.checked ? null : 'checked');
         $(this).trigger('click');
       });
     }
