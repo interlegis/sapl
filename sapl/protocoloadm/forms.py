@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.models import Autor, TipoAutor, AppConfig
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
@@ -404,14 +404,21 @@ class ProtocoloDocumentForm(ModelForm):
         row7 = to_row(
             [('numero', 12)])
 
+        fieldset = Fieldset(_('Protocolo com data e hora informados manualmente'),
+                            row3,
+                            css_id='protocolo_data_hora_manual')
+
+        config = AppConfig.objects.first()
+        if not config.protocolo_manual:
+            row3 = to_row([(HTML("&nbsp;"), 12)])
+            fieldset = row3
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação de Documento'),
                      row1,
                      row2),
-            Fieldset(_('Protocolo com data e hora informados manualmente'),
-                     row3,
-                     css_id='protocolo_data_hora_manual'),
+                     fieldset,
             row4,
             row5,
             HTML("&nbsp;"),
@@ -424,6 +431,10 @@ class ProtocoloDocumentForm(ModelForm):
         )
         super(ProtocoloDocumentForm, self).__init__(
             *args, **kwargs)
+
+        if not config.protocolo_manual:
+            self.fields['data_hora_manual'].widget = forms.HiddenInput()
+
 
 
 class ProtocoloMateriaForm(ModelForm):
@@ -583,14 +594,22 @@ class ProtocoloMateriaForm(ModelForm):
         row6 = to_row(
             [('numero', 12)])
 
+        fieldset = Fieldset(_('Protocolo com data e hora informados manualmente'),
+                            row3,
+                            css_id='protocolo_data_hora_manual')
+
+        config = AppConfig.objects.first()
+        if not config.protocolo_manual:
+            row3 = to_row([(HTML("&nbsp;"), 12)])
+            fieldset = row3
+
+
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
                      row1,
                      row2),
-            Fieldset(_('Protocolo com data e hora informados manualmente'),
-                     row3,
-                     css_id='protocolo_data_hora_manual'),
+            fieldset,
             row4,
             row5,
             HTML("&nbsp;"),
@@ -603,6 +622,9 @@ class ProtocoloMateriaForm(ModelForm):
 
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
+
+        if not config.protocolo_manual:
+            self.fields['data_hora_manual'].widget = forms.HiddenInput()
 
 
 class DocumentoAcessorioAdministrativoForm(ModelForm):

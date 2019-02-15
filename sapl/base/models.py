@@ -160,6 +160,10 @@ class AppConfig(models.Model):
         verbose_name=_('Protocolar proposição somente com recibo?'),
         choices=YES_NO_CHOICES, default=True)
 
+    protocolo_manual = models.BooleanField(
+        verbose_name=_('Informar data e hora de protocolo?'),
+        choices=YES_NO_CHOICES, default=False)
+
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')

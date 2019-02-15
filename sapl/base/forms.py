@@ -1155,6 +1155,7 @@ class ConfiguracoesAppForm(ModelForm):
                   'texto_articulado_materia',
                   'texto_articulado_norma',
                   'proposicao_incorporacao_obrigatoria',
+                  'protocolo_manual',
                   'cronometro_discurso',
                   'cronometro_aparte',
                   'cronometro_ordem',
