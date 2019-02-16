@@ -8,6 +8,7 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_done)
 from django.views.generic.base import RedirectView, TemplateView
 
+from sapl import base
 from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
@@ -97,7 +98,7 @@ urlpatterns = [
     url(r'^sistema/app-config/', include(AppConfigCrud.get_urls())),
 
     # TODO mover estas telas para a app 'relatorios'
-    url(r'^sistema/relatorios/$', 
+    url(r'^sistema/relatorios/$',
         RelatoriosListView.as_view(), name='relatorios_list'),
     url(r'^sistema/relatorios/materia-por-autor$',
         RelatorioMateriasPorAutorView.as_view(), name='materia_por_autor'),
@@ -184,5 +185,9 @@ urlpatterns = [
     url(r'^(sapl/)?sapl_documentos/props_sapl/logo_casa',
         LogotipoView.as_view(), name='logotipo'),
 
+
+    url(r'^channel$', base.views.chanel_index, name='channel_index'),
+    url(r'^channel/(?P<room_name>[^/]+)/$',
+        base.views.chanel_room, name='channel_room'),
 
 ] + recuperar_senha + alterar_senha + admin_user

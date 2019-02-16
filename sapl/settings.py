@@ -207,6 +207,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sapl.wsgi.application'
 ASGI_APPLICATION = "sapl.routing.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
@@ -347,11 +355,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'django': {
-            'handlers': ['applogfile'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
+        #'django': {
+        #    'handlers': ['applogfile'],
+        #    'level': 'ERROR',
+        #    'propagate': True,
+        #},
     }
 }
 
