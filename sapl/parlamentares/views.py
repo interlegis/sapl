@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
+from image_cropping.utils import get_backend
 
 from sapl.base.forms import SessaoLegislativaForm
 from sapl.base.models import Autor
@@ -1027,7 +1028,16 @@ def altera_field_mesa_public_view(request):
             partido_parlamentar_sessao_legislativa(sessao,
                                                    parlamentar))
         if parlamentar.fotografia:
-            lista_fotos.append(parlamentar.fotografia.url)
+            thumbnail_url = get_backend().get_thumbnail_url(
+                parlamentar.fotografia,
+                {
+                    'size': (128, 128),
+                    'box': parlamentar.cropping,
+                    'crop': True,
+                    'detail': True,
+                }
+            )
+            lista_fotos.append(thumbnail_url)
         else:
             lista_fotos.append(None)
 
