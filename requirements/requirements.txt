@@ -15,7 +15,6 @@ django-extensions==2.1.4
 django-image-cropping==1.2
 django-webpack-loader==0.6.0
 drf-yasg==1.13.0
-channels==2.1.7
 easy-thumbnails==2.5
 python-decouple==3.1
 psycopg2-binary==2.7.6.1
@@ -33,6 +32,10 @@ pysolr==3.6.0
 whoosh==2.7.4
 
 pyoai==2.5.0
+
+daphne==2.2.5
+channels_redis==2.3.3
+channels==2.1.7
 
 git+git://github.com/interlegis/trml2pdf.git
 git+git://github.com/interlegis/django-admin-bootstrapped
