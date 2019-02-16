@@ -1,13 +1,17 @@
 from builtins import LookupError
 import logging
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 import django
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
+from django.db.models.signals import post_save
 from django.db.utils import DEFAULT_DB_ALIAS
+from django.dispatch.dispatcher import receiver
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import reversion
@@ -253,15 +257,51 @@ def cria_usuarios_padrao():
     rules.cria_usuarios_padrao()
 
 
+def send_signal_for_websocket_time_refresh(inst, action):
+
+    if hasattr(inst, '_meta') and inst._meta.app_config.name[:4] == 'sapl':
+
+        # um mensagem não deve ser enviada se é post_save mas originou se de
+        # revision_pre_delete_signal
+
+        funcs = []
+
+        if action == 'post_save':
+            import inspect
+            funcs = list(filter(lambda x: x == 'revision_pre_delete_signal',
+                                map(lambda x: x[3], inspect.stack())))
+
+        if not funcs:
+            channel_layer = get_channel_layer()
+
+            async_to_sync(channel_layer.group_send)(
+                "group_time_refresh_channel", {
+                    "type": "time_refresh.message",
+                    'message': {
+                        'action': action,
+                        'id': inst.id,
+                        'app': inst._meta.app_label,
+                        'model': inst._meta.model_name
+                    }
+                }
+            )
+
+
 def revision_pre_delete_signal(sender, **kwargs):
+    send_signal_for_websocket_time_refresh(kwargs['instance'], 'pre_delete')
     with reversion.create_revision():
         kwargs['instance'].save()
         reversion.set_comment("Deletado pelo sinal.")
 
 
+@receiver(post_save, dispatch_uid='sapl_post_save_signal')
+def sapl_post_save_signal(sender, instance, using, **kwargs):
+
+    send_signal_for_websocket_time_refresh(instance, 'post_save')
+
+
 models.signals.post_migrate.connect(
     receiver=update_groups)
-
 
 models.signals.post_migrate.connect(
     receiver=create_proxy_permissions,

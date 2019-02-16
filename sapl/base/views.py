@@ -74,6 +74,10 @@ def chanel_room(request, room_name):
     })
 
 
+def time_refresh_log_test(request):
+    return render(request, 'base/time_refresh_log_test.html', {})
+
+
 def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
     id_materias = []
     filtro_url = qr[campo_url]
