@@ -259,7 +259,8 @@ def cria_usuarios_padrao():
 
 def send_signal_for_websocket_time_refresh(inst, action):
 
-    if hasattr(inst, '_meta') and inst._meta.app_config.name[:4] == 'sapl':
+    if hasattr(inst, '_meta') and not inst._meta.app_config.name is None and \
+            inst._meta.app_config.name[:4] == 'sapl':
 
         # um mensagem não deve ser enviada se é post_save mas originou se de
         # revision_pre_delete_signal
