@@ -78,6 +78,18 @@ def time_refresh_log_test(request):
     return render(request, 'base/time_refresh_log_test.html', {})
 
 
+def app_frontend_view(request, app_frontend):
+
+    if app_frontend not in (
+        'sessao',
+    ):
+        raise Http404
+
+    return render(request, 'app_frontend.html', {
+        'app_frontend': app_frontend
+    })
+
+
 def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
     id_materias = []
     filtro_url = qr[campo_url]
