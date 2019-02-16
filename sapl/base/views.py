@@ -81,7 +81,7 @@ def time_refresh_log_test(request):
 def app_frontend_view(request, app_frontend):
 
     if app_frontend not in (
-        'sessao',
+        'sessao_online',
     ):
         raise Http404
 
