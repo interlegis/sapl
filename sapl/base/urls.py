@@ -91,6 +91,10 @@ channels_url = [
         base.views.chanel_room, name='channel_room'),
     url(r'^sapl/time-refresh/$',
         base.views.time_refresh_log_test, name='time_refresh_log_test_index'),
+
+    url(r'^app/(?P<app_frontend>[^/]+)/$',
+        base.views.app_frontend_view, name='app_frontend_url'),
+
 ]
 
 
