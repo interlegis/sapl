@@ -10,6 +10,11 @@ sapldb:
     - sapldb_data:/var/lib/postgresql/data/
   ports:
     - "5432:5432"
+saplredis:
+  image: redis:5.0.3-stretch
+  restart: always
+  ports: 
+    - "6379:6379"
 sapl:
   image: interlegis/sapl:3.1.146
   restart: always
@@ -29,5 +34,6 @@ sapl:
     - sapl_media:/var/interlegis/sapl/media
   links:
     - sapldb
+    - saplredis
   ports:
     - "80:80"

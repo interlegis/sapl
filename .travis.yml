@@ -5,6 +5,7 @@ python:
 
 services:
   - postgresql
+  - redis-server
 
 install:
   - pip install -r requirements/test-requirements.txt
