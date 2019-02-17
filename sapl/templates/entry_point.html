@@ -3,10 +3,10 @@
 
 {% block webpack_loader_css %}
     {{ block.super }}
-    {% render_bundle app_frontend 'css' %}
+    {% render_bundle entry_point 'css' %}
 {% endblock %}
 
 {% block webpack_loader_js %}    
     {{ block.super }}
-    {% render_bundle app_frontend 'js' %}
+    {% render_bundle entry_point 'js' %}
 {% endblock %}

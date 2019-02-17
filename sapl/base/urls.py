@@ -92,8 +92,8 @@ channels_url = [
     url(r'^sapl/time-refresh/$',
         base.views.time_refresh_log_test, name='time_refresh_log_test_index'),
 
-    url(r'^app/(?P<app_frontend>[^/]+)/$',
-        base.views.app_frontend_view, name='app_frontend_url'),
+    url(r'^app/(?P<app_backend>[^/]+)/(?P<app_frontend>[^/]+)/',
+        base.views.entry_point_view, name='entry_point_url'),
 
 ]
 
