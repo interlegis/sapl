@@ -3,8 +3,7 @@ import logging
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-import django
-from django.apps import apps
+import django.apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
@@ -38,7 +37,7 @@ def create_proxy_permissions(
 
     try:
         logger.info("Tentando obter modelo de permissão do app.")
-        Permission = apps.get_model('auth', 'Permission')
+        Permission = django.apps.apps.get_model('auth', 'Permission')
     except LookupError as e:
         logger.error(str(e))
         return
@@ -259,7 +258,7 @@ def cria_usuarios_padrao():
 
 def send_signal_for_websocket_time_refresh(inst, action):
 
-    if hasattr(inst, '_meta') and not inst._meta.app_config.name is None and \
+    if hasattr(inst, '_meta') and not inst._meta.app_config is None and \
             inst._meta.app_config.name[:4] == 'sapl':
 
         # um mensagem não deve ser enviada se é post_save mas originou se de

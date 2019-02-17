@@ -78,15 +78,17 @@ def time_refresh_log_test(request):
     return render(request, 'base/time_refresh_log_test.html', {})
 
 
-def app_frontend_view(request, app_frontend):
+def entry_point_view(request, app_backend, app_frontend):
 
-    if app_frontend not in (
+    entry_point = '{}_{}'.format(app_backend, app_frontend)
+
+    if entry_point not in (
         'sessao_online',
     ):
         raise Http404
 
-    return render(request, 'app_frontend.html', {
-        'app_frontend': app_frontend
+    return render(request, 'entry_point.html', {
+        'entry_point': entry_point
     })
 
 
