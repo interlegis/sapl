@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
 import pytest
 
+from sapl.base.models import AppConfig
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
                                      DocumentoAdministrativoForm,
@@ -390,7 +391,10 @@ def test_documento_administrativo_protocolo_inexistente():
     assert form.errors['__all__'] == [_('Protocolo 11/2017 inexistente.')]
 
 
+@pytest.mark.django_db(transaction=False)
 def test_protocolo_documento_form_invalido():
+
+    config = mommy.make(AppConfig)
 
     form = ProtocoloDocumentForm(
         data={},
@@ -414,7 +418,10 @@ def test_protocolo_documento_form_invalido():
     assert len(errors) == 6
 
 
+@pytest.mark.django_db(transaction=False)
 def test_protocolo_materia_invalido():
+
+    config = mommy.make(AppConfig)
 
     form = ProtocoloMateriaForm(data={},
                                 initial={
