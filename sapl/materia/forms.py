@@ -1497,7 +1497,9 @@ class ProposicaoForm(forms.ModelForm):
                 MateriaLegislativa.objects.filter(tipo=cd['tipo'].tipo_conteudo_related,
                                                                              ano=timezone.now().year,
                                                                              numero=cd['numero_materia_futuro']):
-            raise ValidationError(_('Já existe uma matéria com esses dados.'))
+            raise ValidationError(_("A matéria {} {}/{} já existe.".format(cd['tipo'].tipo_conteudo_related.descricao,
+                                                                           cd['numero_materia_futuro'],
+                                                                           timezone.now().year)))
 
         if tm and am and nm:
             try:

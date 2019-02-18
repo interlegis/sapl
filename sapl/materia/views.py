@@ -812,8 +812,12 @@ class ProposicaoCrud(Crud):
                             self.logger.debug("user=" + username + ". Tentando obter número do objeto MateriaLegislativa com "
                                               "atributos tipo={} e ano={}."
                                               .format(p.tipo.tipo_conteudo_related, p.ano))
-                            numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
-                                                                       ano=p.ano).last().numero + 1
+
+                            if p.numero_materia_futuro:
+                                numero = p.numero_materia_futuro
+                            else:
+                                numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
+                                                                           ano=p.ano).last().numero + 1
                             messages.success(request, _(
                                 '%s : nº %s de %s <br>Atenção! Este número é apenas um provável '
                                 'número que pode não corresponder com a realidade'
