@@ -413,7 +413,7 @@ class ProtocoloDocumentForm(ModelForm):
             row3 = to_row([(HTML("&nbsp;"), 12)])
             fieldset = row3
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação de Documento'),
                      row1,
@@ -603,8 +603,7 @@ class ProtocoloMateriaForm(ModelForm):
             row3 = to_row([(HTML("&nbsp;"), 12)])
             fieldset = row3
 
-
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
                      row1,
