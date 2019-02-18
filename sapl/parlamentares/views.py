@@ -739,9 +739,9 @@ class MesaDiretoraView(FormView):
         parlamentares_ocupados = [m.parlamentar for m in mesa]
         parlamentares_vagos = list(
             set(
-                [p.parlamentar for p in parlamentares]) - set(
+                [p.parlamentar for p in parlamentares if p.parlamentar.ativo]) - set(
                 parlamentares_ocupados))
-
+        parlamentares_vagos.sort(key=lambda x: x.nome_parlamentar)
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
         if not cargos_vagos:
@@ -809,6 +809,7 @@ def altera_field_mesa(request):
             [p.parlamentar for p in parlamentares]) - set(
             parlamentares_ocupados))
 
+    parlamentares_vagos.sort(key=lambda x: x.nome_parlamentar)
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
     lista_composicao = [(c.id, c.parlamentar.__str__(),
                          c.cargo.__str__()) for c in composicao_mesa]
