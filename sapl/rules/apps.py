@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.dispatch.dispatcher import receiver
 from django.utils.translation import string_concat
@@ -299,7 +299,7 @@ def send_signal_for_websocket_time_refresh(inst, action):
 
 
 def revision_pre_delete_signal(sender, **kwargs):
-    send_signal_for_websocket_time_refresh(kwargs['instance'], 'pre_delete')
+    #send_signal_for_websocket_time_refresh(kwargs['instance'], 'pre_delete')
     with reversion.create_revision():
         kwargs['instance'].save()
         reversion.set_comment("Deletado pelo sinal.")
@@ -308,6 +308,11 @@ def revision_pre_delete_signal(sender, **kwargs):
 @receiver(post_save, dispatch_uid='sapl_post_save_signal')
 def sapl_post_save_signal(sender, instance, using, **kwargs):
     send_signal_for_websocket_time_refresh(instance, 'post_save')
+
+
+@receiver(post_delete, dispatch_uid='sapl_post_delete_signal')
+def sapl_post_delete_signal(sender, instance, using, **kwargs):
+    send_signal_for_websocket_time_refresh(instance, 'post_delete')
 
 
 models.signals.post_migrate.connect(

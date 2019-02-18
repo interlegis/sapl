@@ -298,8 +298,11 @@ Django-Channels
 Para ativar Django-Channels e a comunicação via websockets utilizada pelo entry-point sessao/online de sapl-frontend coloque no arquivo .env a variável:
 
     USE_CHANNEL_LAYERS = True
+<<<<<<< HEAD
     HOST_CHANNEL_LAYERS: localhost
     PORT_CHANNEL_LAYERS: 6379
+=======
+>>>>>>> configura ativação para channels
 
 
 Ao ativar o channels, no ambiente de desenvolvimento é necessário ativar um servidor redis. Utilize/Instale o docker e execute:

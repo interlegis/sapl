@@ -26,7 +26,6 @@ from sapl.materia.models import Proposicao
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 
-
 class BusinessRulesNotImplementedMixin:
     def create(self, request, *args, **kwargs):
         raise Exception(_("POST Create não implementado"))

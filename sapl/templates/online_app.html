@@ -1,0 +1,12 @@
+{% extends "index.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_loader_css %}
+    {{ block.super }}
+    {% render_bundle 'online' 'css' %}
+{% endblock %}
+
+{% block webpack_loader_js %}    
+    {{ block.super }}
+    {% render_bundle 'online' 'js' %}
+{% endblock %}
