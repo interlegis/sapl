@@ -4,6 +4,7 @@ import logging
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 import django.apps
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
@@ -258,6 +259,9 @@ def cria_usuarios_padrao():
 
 def send_signal_for_websocket_time_refresh(inst, action):
 
+    if not settings.USE_CHANNEL_LAYERS:
+        return
+
     if hasattr(inst, '_meta') and not inst._meta.app_config is None and \
             inst._meta.app_config.name[:4] == 'sapl':
 
@@ -272,19 +276,26 @@ def send_signal_for_websocket_time_refresh(inst, action):
                                 map(lambda x: x[3], inspect.stack())))
 
         if not funcs:
-            channel_layer = get_channel_layer()
+            try:
+                channel_layer = get_channel_layer()
 
-            async_to_sync(channel_layer.group_send)(
-                "group_time_refresh_channel", {
-                    "type": "time_refresh.message",
-                    'message': {
-                        'action': action,
-                        'id': inst.id,
-                        'app': inst._meta.app_label,
-                        'model': inst._meta.model_name
+                async_to_sync(channel_layer.group_send)(
+                    "group_time_refresh_channel", {
+                        "type": "time_refresh.message",
+                        'message': {
+                            'action': action,
+                            'id': inst.id,
+                            'app': inst._meta.app_label,
+                            'model': inst._meta.model_name
+                        }
                     }
-                }
-            )
+                )
+            except Exception as e:
+                logger = logging.getLogger(__name__)
+                logger.info(_("Erro na comunicação com o backend do redis. "
+                              "Certifique se possuir um servidor de redis "
+                              "ativo funcionando como configurado em "
+                              "CHANNEL_LAYERS"))
 
 
 def revision_pre_delete_signal(sender, **kwargs):
@@ -296,7 +307,6 @@ def revision_pre_delete_signal(sender, **kwargs):
 
 @receiver(post_save, dispatch_uid='sapl_post_save_signal')
 def sapl_post_save_signal(sender, instance, using, **kwargs):
-
     send_signal_for_websocket_time_refresh(instance, 'post_save')
 
 
