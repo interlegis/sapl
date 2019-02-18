@@ -1,0 +1,108 @@
+{% load common_tags %}
+{% load static %}
+<head>
+    <style>
+        @page{
+            @bottom-right {
+                content: "Página" counter(page);
+                height: 3cm;
+                font-size: 8pt;
+            }
+        
+            @bottom-center {
+                border-top: 1px solid black;
+                font-size: 8pt;
+                height: 1cm;
+                content: "{{rodape|safe}}";
+                font-style:italic;
+            }
+            @bottom-left {
+                content: "{{data}}";
+                height: 3cm;
+                font-size: 8pt;
+            }
+              
+            @top-center {
+                content:  string(title);
+            }
+            header {
+                width: 0;
+                height: 0;
+                visibility: hidden;
+                string-set: title content();
+            }
+        }
+    </style>
+     <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}"> 
+</head>	
+
+<body>
+    <h3 style="text-align:center;">Extrato Reunião</h3>
+    {% include 'sessao/blocos_ata/identificacao_basica.html' %}
+    {% include 'sessao/blocos_ata/mesa_diretora.html' %}
+    {% include 'sessao/blocos_ata/lista_presenca.html' %}
+    {% include 'sessao/blocos_ata/expedientes.html' %}
+    {% include 'sessao/blocos_ata/materias_expediente.html' %}
+    {% include 'sessao/blocos_ata/oradores_expediente.html' %}
+    {% include 'sessao/blocos_ata/lista_presenca_ordem_dia.html' %}
+    {% include 'sessao/blocos_ata/materias_ordem_dia.html' %}
+    {% include 'sessao/blocos_ata/oradores_explicacoes.html' %}
+    
+
+    <div style="page-break-before:always;">
+
+        <legend >{{texto_assinatura}}</legend>
+
+        <table style="margin-top:20px">
+            <colgroup>
+                <col>
+            </colgroup>
+            <tbody>
+                {% if assinatura_mesa %}
+                    <h3 style="margin-bottom:100px">Assinaturas da Mesa:</h3>
+                {% endif %}
+        	    {% for p in assinatura_mesa %}
+                    {% if forloop.counter0|divisibleby:2 %}
+        	            <tr style="margin-top:0px">
+                            <td>
+                                <div style="float: left; position: relative; top: -80px; left: 8px; width: 120px">____________________ </br>
+        	        	            <p style="font-size:8pt"><b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {{ p.parlamentar|filiacao_data_filter:object.data_inicio }}</p>
+        	        	        	    </br></br></br>
+        	          	        </div>
+                    {% else %}
+                                <div style="float: left; position: relative; top: -80px; left: 142px; width: 120px; margin-right:-220px;">____________________ </br>
+        	        	            <p style="font-size:8pt"><b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {{ p.parlamentar|filiacao_data_filter:object.data_inicio }}</p>
+        	        	        	    </br></br></br>
+        	          	        </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+        	    {% endfor %}
+
+                {% if assinatura_mesa %}
+                    <h3 style="margin-bottom:100px; position: relative; top: -80px;">Assinaturas dos Presentes:</h3>
+                {% endif %}
+
+          	    {% for p in assinatura_presentes %}
+                    {% if forloop.counter0|divisibleby:2 %}
+        	            <tr style="margin-top:5cm">
+                            <td>
+                                <div style="float: left; position: relative;top: -170px; left: 8px; width: 120px">_____________________</br>
+        	        	            <p style="font-size:8pt">{{p.nome_completo}} / {{ p|filiacao_data_filter:object.data_inicio }}</p>
+        	        	        	    </br></br></br>
+        	          	        </div>
+                    {% else %}
+                                <div style="float: left; position: relative; top: -170px;left: 142px; width: 120px; margin-right:-220px;">_____________________ </br>
+        	        	            <p style="font-size:8pt">{{p.nome_completo}} / {{ p|filiacao_data_filter:object.data_inicio }}</p>
+        	        	        	    </br></br></br>
+        	          	        </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+        	    {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+</body>
+    

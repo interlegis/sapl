@@ -2,11 +2,13 @@ from datetime import datetime as dt
 import html
 import logging
 import re
+import tempfile
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.template.loader import render_to_string
 
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
@@ -24,11 +26,19 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
+from sapl.sessao.views import (get_identificação_basica, get_mesa_diretora,
+                                get_presenca_sessao,get_expedientes,
+                                get_materias_expediente,get_oradores_expediente,
+                                get_presenca_ordem_do_dia,get_materias_ordem_do_dia,
+                                get_oradores_explicações_pessoais, get_ocorrencias_da_sessão)
+
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
+
+from weasyprint import HTML, CSS
 
 
 def get_kwargs_params(request, fields):
@@ -1199,3 +1209,68 @@ def get_pauta_sessao(sessao, casa):
     return (lst_expediente_materia,
             lst_votacao,
             inf_basicas_dic)
+
+def make_pdf(base_url,main_template,header_template,main_css='',header_css=''):
+    html = HTML(base_url=base_url, string=main_template)
+    main_doc = html.render(stylesheets=[])
+
+    def get_page_body(boxes):
+        for box in boxes:
+            if box.element_tag == 'body':
+                return box
+            return get_page_body(box.all_children())
+
+    # Template of header
+    html = HTML(base_url=base_url,string=header_template)
+    header = html.render(stylesheets=[CSS(string='div {position: fixed; top: 0cm; left: 0cm;}')])
+
+    header_page = header.pages[0]
+    header_body = get_page_body(header_page._page_box.all_children())
+    header_body = header_body.copy_with_children(header_body.all_children())
+
+    for page in main_doc.pages:
+        page_body = get_page_body(page._page_box.all_children())
+        page_body.children += header_body.all_children()
+       
+    pdf_file = main_doc.write_pdf()
+
+    return pdf_file
+
+
+def resumo_ata_pdf(request,pk):
+    base_url = request.build_absolute_uri()
+    casa = CasaLegislativa.objects.first()
+    rodape = ' '.join(get_rodape(casa))
+   
+    sessao_plenaria = SessaoPlenaria.objects.get(pk=pk)
+    
+    context = {}
+    context.update(get_identificação_basica(sessao_plenaria))
+    context.update(get_mesa_diretora(sessao_plenaria))
+    context.update(get_presenca_sessao(sessao_plenaria))
+    context.update(get_expedientes(sessao_plenaria))
+    context.update(get_materias_expediente(sessao_plenaria))
+    context.update(get_oradores_expediente(sessao_plenaria))
+    context.update(get_presenca_ordem_do_dia(sessao_plenaria))
+    context.update(get_materias_ordem_do_dia(sessao_plenaria))
+    context.update(get_oradores_explicações_pessoais(sessao_plenaria))
+    context.update(get_ocorrencias_da_sessão(sessao_plenaria))
+    context.update({'object':sessao_plenaria})
+    context.update({"data": dt.today().strftime('%d/%m/%Y')})
+    context.update({'rodape':rodape})
+    
+    html_template = render_to_string('relatorios/relatorio_ata.html',context)
+    html_header = render_to_string('relatorios/header_ata.html',{"casa":casa})
+
+    pdf_file = make_pdf(base_url=base_url,main_template=html_template,header_template=html_header)
+    
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    with tempfile.NamedTemporaryFile(delete=True) as output:
+        output.write(pdf_file)
+        output.flush()
+        output = open(output.name, 'rb')
+        response.write(output.read())
+
+    return response
