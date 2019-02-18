@@ -43,4 +43,9 @@ ul {
 html body section dt img {
     max-width:80px;
     margin-left: 20px;
+    margin-left: 50px;
+}
+h3 {
+    font-size: 12pt;
+    color: #6e6e6e;
 }
