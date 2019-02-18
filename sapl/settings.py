@@ -272,8 +272,8 @@ FRONTEND_CUSTOM = config('FRONTEND_CUSTOM', default=False, cast=bool)
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
-        'BUNDLE_DIR_NAME': 'sapl/static/',
-        'STATS_FILE':  (PROJECT_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.parent.child('sapl-frontend')).child('webpack-stats.json'),
+        'BUNDLE_DIR_NAME': 'sapl/static/sapl/',
+        'STATS_FILE':  (BASE_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.parent.child('sapl-frontend')).child('webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']

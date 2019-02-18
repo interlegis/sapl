@@ -1,7 +1,7 @@
 import logging
 
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
 from django import forms
 from django.conf import settings
@@ -114,7 +114,7 @@ class UsuarioCreateForm(ModelForm):
 
         row4 = to_row([(form_actions(label='Confirmar'), 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row0,
             row1,
@@ -154,7 +154,7 @@ class UsuarioEditForm(ModelForm):
 
         row3 = to_row([(form_actions(label='Salvar Alterações'), 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row1,
             row2,
@@ -432,7 +432,7 @@ class AutorForm(ModelForm):
         controle_acesso = Fieldset(_('Controle de Acesso do Autor'),
                                    *controle_acesso)
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(autor_select, controle_acesso)
 
         super(AutorForm, self).__init__(*args, **kwargs)
@@ -697,7 +697,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('data_inicio', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Atas das Sessões Plenárias'),
@@ -733,7 +733,7 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('ano', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Normas por mês do ano.'),
@@ -762,7 +762,7 @@ class EstatisticasAcessoNormasForm(Form):
 
         row1 = to_row([('ano', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.form_method = 'GET'
         self.helper.layout = Layout(
             Fieldset(_('Normas por acessos nos meses do ano.'),
@@ -800,7 +800,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         row1 = to_row([('ano', 12)])
         row2 = to_row([('vigencia', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Normas por vigência.'),
@@ -828,7 +828,7 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('data_inicio', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Presença dos parlamentares nas sessões plenárias'),
@@ -859,7 +859,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
         self.filters['tipo'].label = 'Tipo de Matéria'
 
         self.filters['tramitacao__unidade_tramitacao_local'
-                     ].label = _('Unidade Local (Último Local)')
+                     ].label = _('Unidade Local')
         self.filters['tramitacao__status'].label = _('Status')
         row1 = to_row([('tramitacao__data_tramitacao', 12)])
 
@@ -868,7 +868,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
              ('tramitacao__unidade_tramitacao_local', 4),
              ('tramitacao__status', 4)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Histórico de Tramitação'),
@@ -901,7 +901,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
              ('tramitacao__unidade_tramitacao_local', 4),
              ('tramitacao__status', 4)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitações por fim de prazo'),
@@ -932,7 +932,7 @@ class RelatorioReuniaoFilterSet(django_filters.FilterSet):
              ('nome', 4),
              ('tema', 4)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Reunião de Comissão'),
@@ -962,7 +962,7 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
             [('tipo', 4),
              ('nome', 4)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Audiência Pública'),
@@ -1006,7 +1006,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
         row3 = to_row([('tramitacao__unidade_tramitacao_destino', 12)])
         row4 = to_row([('tramitacao__status', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
@@ -1032,7 +1032,7 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
         row1 = to_row(
             [('ano', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar'),
@@ -1074,7 +1074,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar'),
@@ -1197,7 +1197,7 @@ class RecuperarSenhaForm(PasswordResetForm):
     def __init__(self, *args, **kwargs):
         row1 = to_row(
             [('email', 12)])
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Insira o e-mail cadastrado com a sua conta'),
                      row1,
@@ -1234,7 +1234,7 @@ class NovaSenhaForm(SetPasswordForm):
             [('new_password1', 6),
              ('new_password2', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row1,
             form_actions(label='Enviar'))
@@ -1267,7 +1267,7 @@ class AlterarSenhaForm(Form):
             [('new_password1', 6),
              ('new_password2', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row1,
             row2,

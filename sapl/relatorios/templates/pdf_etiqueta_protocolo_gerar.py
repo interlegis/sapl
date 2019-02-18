@@ -23,7 +23,7 @@ def cabecalho(dic_cabecalho, imagem):
     tmp_data += '\t\t\t\t<setFont name="Helvetica" size="12"/>\n'
     tmp_data += '\t\t\t\t<drawString x="5cm" y="26.6cm">Sistema de Apoio ao Processo Legislativo</drawString>\n'
     tmp_data += '\t\t\t\t<setFont name="Helvetica-Bold" size="13"/>\n'
-    tmp_data += '\t\t\t\t<drawString x="2.2cm" y="24.6cm">RelatÃ³rio de Controle do Protocolo</drawString>\n'
+    tmp_data += '\t\t\t\t<drawString x="2.2cm" y="24.6cm">Relatório de Controle do Protocolo</drawString>\n'
 
     return tmp_data
 
@@ -36,7 +36,7 @@ def rodape(lst_rodape):
     tmp_data += '\t\t\t\t<setFont name="Helvetica" size="8"/>\n'
     tmp_data += '\t\t\t\t<drawString x="2cm" y="3.3cm">' + \
         lst_rodape[2] + '</drawString>\n'
-    tmp_data += '\t\t\t\t<drawString x="17.9cm" y="3.3cm">PÃ¡gina <pageNumber/></drawString>\n'
+    tmp_data += '\t\t\t\t<drawString x="17.9cm" y="3.3cm">Página <pageNumber/></drawString>\n'
     tmp_data += '\t\t\t\t<drawCentredString x="10.5cm" y="2.7cm">' + \
         lst_rodape[0] + '</drawCentredString>\n'
     tmp_data += '\t\t\t\t<drawCentredString x="10.5cm" y="2.3cm">' + \
@@ -58,7 +58,7 @@ def paraStyle():
     tmp_data += '\t\t\t<paraStyle name="all" alignment="justify"/>\n'
     tmp_data += '\t\t</initialize>\n'
     tmp_data += '\t\t<paraStyle name="P1" fontName="Helvetica-Bold" fontSize="5.0" leading="6" alignment="CENTER"/>\n'
-    tmp_data += '\t\t<paraStyle name="P2" fontName="Helvetica" fontSize="8.0" leading="9" alignment="CENTER"/>\n'
+    tmp_data += '\t\t<paraStyle name="P2" fontName="Helvetica" fontSize="8.0" leading="7.5" alignment="CENTER"/>\n'
     tmp_data += '\t</stylesheet>\n'
 
     return tmp_data
@@ -122,7 +122,7 @@ def principal(imagem, lst_protocolos, dic_cabecalho, lst_rodape):
     tmp_data += '\t<template pageSize="(62mm, 29mm)" title="Etiquetas de Protocolo" author="Luciano De Fazio" allowSplitting="20">\n'
     tmp_data += '\t\t<pageTemplate id="first">\n'
     tmp_data += '\t\t\t<pageGraphics>\n'
-    tmp_data += '\t\t\t<frame id="first" x1="0.03cm" y1="0.1cm" width="61mm" height="29mm"/>\n'
+    tmp_data += '\t\t\t<frame id="first" x1="0.03cm" y1="0.1cm" width="61mm" height="26mm"/>\n'
     tmp_data += '\t\t\t</pageGraphics>\n'
     tmp_data += '\t\t</pageTemplate>\n'
     tmp_data += '\t</template>\n'

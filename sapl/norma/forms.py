@@ -1,7 +1,7 @@
 
 import logging
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -71,7 +71,7 @@ class NormaFilterSet(django_filters.FilterSet):
         row4 = to_row([('data_vigencia', 12)])
         row5 = to_row([('o', 6), ('indexacao', 6)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Norma'),
@@ -238,7 +238,7 @@ class AutoriaNormaForm(ModelForm):
                        ('autor', 4),
                        ('primeiro_autor', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Autoria'),
                      row1, 'data_relativa', form_actions(label='Salvar')))
@@ -400,7 +400,7 @@ class NormaPesquisaSimplesForm(forms.Form):
         row2 = to_row(
             [('titulo', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Índice de Normas'),

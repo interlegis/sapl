@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
+from image_cropping.utils import get_backend
 
 from sapl.base.forms import SessaoLegislativaForm
 from sapl.base.models import Autor
@@ -738,9 +739,9 @@ class MesaDiretoraView(FormView):
         parlamentares_ocupados = [m.parlamentar for m in mesa]
         parlamentares_vagos = list(
             set(
-                [p.parlamentar for p in parlamentares]) - set(
+                [p.parlamentar for p in parlamentares if p.parlamentar.ativo]) - set(
                 parlamentares_ocupados))
-
+        parlamentares_vagos.sort(key=lambda x: x.nome_parlamentar)
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
         if not cargos_vagos:
@@ -808,6 +809,7 @@ def altera_field_mesa(request):
             [p.parlamentar for p in parlamentares]) - set(
             parlamentares_ocupados))
 
+    parlamentares_vagos.sort(key=lambda x: x.nome_parlamentar)
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
     lista_composicao = [(c.id, c.parlamentar.__str__(),
                          c.cargo.__str__()) for c in composicao_mesa]
@@ -1027,7 +1029,16 @@ def altera_field_mesa_public_view(request):
             partido_parlamentar_sessao_legislativa(sessao,
                                                    parlamentar))
         if parlamentar.fotografia:
-            lista_fotos.append(parlamentar.fotografia.url)
+            thumbnail_url = get_backend().get_thumbnail_url(
+                parlamentar.fotografia,
+                {
+                    'size': (128, 128),
+                    'box': parlamentar.cropping,
+                    'crop': True,
+                    'detail': True,
+                }
+            )
+            lista_fotos.append(thumbnail_url)
         else:
             lista_fotos.append(None)
 

@@ -2,7 +2,7 @@
 import logging
 
 from crispy_forms.bootstrap import InlineRadios, Alert
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
@@ -57,7 +57,7 @@ class AcompanhamentoDocumentoForm(ModelForm):
             Column(form_actions(label='Cadastrar'), css_class='col-md-2')
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Acompanhamento de Documento por e-mail'), row1
@@ -136,7 +136,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         row5 = to_row(
             [('tipo_processo', 6), ('o', 6)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar Protocolo'),
@@ -212,7 +212,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
                 ('tramitacaoadministrativo__unidade_tramitacao_destino', 5),
             ])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar Documento'),
@@ -305,7 +305,7 @@ class AnularProcoloAdmForm(ModelForm):
         row2 = to_row(
             [('justificativa_anulacao', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação do Protocolo'),
                      row1,
@@ -932,7 +932,7 @@ class DocumentoAdministrativoForm(ModelForm):
         row7 = to_row(
             [('observacao', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'),
                      row1, row2, row3, row4, row5),
@@ -1000,7 +1000,7 @@ class DesvincularDocumentoForm(ModelForm):
              ('ano', 4),
              ('tipo', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação do Documento'),
                      row1,
@@ -1065,7 +1065,7 @@ class DesvincularMateriaForm(forms.Form):
              ('ano', 4),
              ('tipo', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
                      row1,
@@ -1133,7 +1133,7 @@ class FichaPesquisaAdmForm(forms.Form):
              ('data_inicial', 3),
              ('data_final', 3)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Formulário de Ficha'),
@@ -1174,7 +1174,7 @@ class FichaSelecionaAdmForm(forms.Form):
         row1 = to_row(
             [('documento', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Selecione a ficha que deseja imprimir'),

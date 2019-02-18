@@ -1,6 +1,6 @@
 from django.conf.urls import include, url
 
-from sapl.lexml.views import LexmlProvedorCrud, LexmlPublicadorCrud
+from sapl.lexml.views import LexmlProvedorCrud, LexmlPublicadorCrud, lexml_request
 
 from .apps import AppConfig
 
@@ -11,4 +11,5 @@ urlpatterns = [
         include(LexmlProvedorCrud.get_urls())),
     url(r'^sistema/lexml/publicador/',
         include(LexmlPublicadorCrud.get_urls())),
+    url(r'^sistema/lexml', lexml_request, name='lexml_endpoint')
 ]

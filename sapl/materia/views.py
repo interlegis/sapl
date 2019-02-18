@@ -3,7 +3,7 @@ import logging
 from random import choice
 from string import ascii_letters, digits
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML
 from django.conf import settings
 from django.contrib import messages
@@ -1350,7 +1350,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
 def montar_helper_documento_acessorio(self):
     autor_row = montar_row_autor('autor')
-    self.helper = FormHelper()
+    self.helper = SaplFormHelper()
     self.helper.layout = SaplFormLayout(*self.get_layout())
 
     # Adiciona o novo campo 'autor' e mecanismo de busca

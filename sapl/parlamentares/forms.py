@@ -1,7 +1,7 @@
 from datetime import timedelta
 import logging
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib.auth import get_user_model
@@ -446,7 +446,7 @@ class VotanteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         row1 = to_row([('username', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Votante'),
                      row1, form_actions(label='Salvar'))

@@ -30,5 +30,7 @@ textract==1.5.0
 pysolr==3.6.0
 whoosh==2.7.4
 
+pyoai==2.5.0
+
 git+git://github.com/interlegis/trml2pdf.git
 git+git://github.com/interlegis/django-admin-bootstrapped
