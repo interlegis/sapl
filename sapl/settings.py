@@ -207,6 +207,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sapl.wsgi.application'
 ASGI_APPLICATION = "sapl.routing.application"
+
+
+USE_CHANNEL_LAYERS = config('USE_CHANNEL_LAYERS', cast=bool, default=False)
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
