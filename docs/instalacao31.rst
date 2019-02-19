@@ -150,6 +150,10 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
       
       FRONTEND_CUSTOM = [True/False]
 
+      USE_CHANNEL_LAYERS = True
+      HOST_CHANNEL_LAYERS: localhost
+      PORT_CHANNEL_LAYERS: 6379
+
       SITE_URL = '[Insira este parâmetro]'
 
       TZ = 'America/Sao_Paulo'
@@ -294,6 +298,8 @@ Django-Channels
 Para ativar Django-Channels e a comunicação via websockets utilizada pelo entry-point sessao/online de sapl-frontend coloque no arquivo .env a variável:
 
     USE_CHANNEL_LAYERS = True
+    HOST_CHANNEL_LAYERS: localhost
+    PORT_CHANNEL_LAYERS: 6379
 
 
 Ao ativar o channels, no ambiente de desenvolvimento é necessário ativar um servidor redis. Utilize/Instale o docker e execute:

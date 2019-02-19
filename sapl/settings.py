@@ -210,12 +210,14 @@ ASGI_APPLICATION = "sapl.routing.application"
 
 
 USE_CHANNEL_LAYERS = config('USE_CHANNEL_LAYERS', cast=bool, default=False)
+HOST_CHANNEL_LAYERS = config('HOST_CHANNEL_LAYERS', cast=str, default='localhost')
+PORT_CHANNEL_LAYERS = config('PORT_CHANNEL_LAYERS', cast=int, default=6379)
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [(HOST_CHANNEL_LAYERS, PORT_CHANNEL_LAYERS)],
         },
     },
 }
