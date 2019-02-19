@@ -361,11 +361,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        #'django': {
-        #    'handlers': ['applogfile'],
-        #    'level': 'ERROR',
-        #    'propagate': True,
-        #},
+        'django': {
+            'handlers': ['applogfile'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
     }
 }
 
