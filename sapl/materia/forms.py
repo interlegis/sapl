@@ -1368,6 +1368,9 @@ class ProposicaoForm(forms.ModelForm):
         widget=widgets.HiddenInput(),
         required=False)
 
+    numero_materia_futuro = forms.CharField(
+        label='Número (Opcional)', required=False)
+
     class Meta:
         model = Proposicao
         fields = ['tipo',
@@ -1412,9 +1415,14 @@ class ProposicaoForm(forms.ModelForm):
                        dismiss=False), 12)),
             to_column(('descricao', 12)),
             to_column(('observacao', 12)),
-            to_column(('numero_materia_futuro', 12)),
 
         ]
+
+        if sapl.base.models.AppConfig.objects.last().escolher_numero_materia_proposicao:
+            fields.append(to_column(('numero_materia_futuro', 12)),)
+        else:
+            if 'numero_materia_futuro' in self._meta.fields:
+                self._meta.fields.remove('numero_materia_futuro')
 
         if self.texto_articulado_proposicao:
             fields.append(
