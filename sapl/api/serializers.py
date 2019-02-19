@@ -1,6 +1,7 @@
+from django.conf import settings
 from rest_framework import serializers
 
-from sapl.base.models import Autor
+from sapl.base.models import Autor, CasaLegislativa
 
 
 class ChoiceSerializer(serializers.Serializer):
@@ -37,4 +38,15 @@ class AutorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Autor
+        fields = '__all__'
+
+
+class CasaLegislativaSerializer(serializers.ModelSerializer):
+    version = serializers.SerializerMethodField()
+
+    def get_version(self, obj):
+        return settings.SAPL_VERSION
+
+    class Meta:
+        model = CasaLegislativa
         fields = '__all__'

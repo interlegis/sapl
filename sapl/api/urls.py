@@ -40,7 +40,7 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-urlpatterns_api = [
+urlpatterns_api_doc = [
     url(r'^docs/swagger(?P<format>\.json|\.yaml)$',
         schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^docs/swagger/$',
@@ -60,12 +60,15 @@ deprecated_urlpatterns_api = [
 
     url(r'^model/(?P<content_type>\d+)/(?P<pk>\d*)$',
         ModelChoiceView.as_view(), name='model_list'),
+
+
 ]
 
 urlpatterns = [
     url(r'^api/', include(deprecated_urlpatterns_api)),
-    url(r'^api/', include(urlpatterns_api)),
+    url(r'^api/', include(urlpatterns_api_doc)),
     url(r'^api/', include(urlpatterns_router)),
+
 
     # implementar caminho para autenticação
     # https://www.django-rest-framework.org/tutorial/4-authentication-and-permissions/
