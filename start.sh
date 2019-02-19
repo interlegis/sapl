@@ -39,8 +39,9 @@ create_env() {
     echo "USE_SOLR = ""${USE_SOLR-False}" >> $FILENAME
     echo "SOLR_COLLECTION = ""${SOLR_COLLECTION-sapl}" >> $FILENAME
     echo "SOLR_URL = ""${SOLR_URL-http://localhost:8983}" >> $FILENAME
-
-    
+    echo "USE_CHANNEL_LAYERS = ""${USE_CHANNEL_LAYERS-True}" >> $FILENAME
+    echo "PORT_CHANNEL_LAYERS = ""${PORT_CHANNEL_LAYERS-6379}" >> $FILENAME
+    echo "HOST_CHANNEL_LAYERS = ""${HOST_CHANNEL_LAYERS-'saplredis'}" >> $FILENAME
     echo "[ENV FILE] done."
 }
 
@@ -109,5 +110,5 @@ echo "| ███████║██║  ██║██║     ████�
 echo "| ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝  |"
 echo "-------------------------------------"
 
-/bin/sh gunicorn_start.sh no-venv &
+/bin/sh gunicorn_start.sh no-venv & /bin/sh daphne_start.sh no-venv &
 /usr/sbin/nginx -g "daemon off;"
