@@ -1306,13 +1306,12 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
         super(PesquisarUsuarioView, self).get(request)
 
         data = self.filterset.data
+        url = ''
         if data:
             url = "&" + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('username=') - 1
                 url = url[ponto_comeco:]
-        else:
-            url = ''
 
         context = self.get_context_data(filter=self.filterset,
                                         object_list=self.object_list,
