@@ -14,14 +14,16 @@ function bump_version {
     sed -e s/$VERSION/$NEXT_VERSION/g setup.py > tmp2
     mv tmp2 setup.py
 
-
     sed -e s/$VERSION/$NEXT_VERSION/g sapl/templates/base.html > tmp3
     mv tmp3 sapl/templates/base.html
+
+    sed -e s/$VERSION/$NEXT_VERSION/g sapl/settings.py > tmp4
+    mv tmp4 sapl/settings.py
 }
 
 function commit_and_push {
    echo "committing..."
-   git add docker-compose.yml setup.py sapl/templates/base.html
+   git add docker-compose.yml setup.py sapl/settings.py sapl/templates/base.html
    git commit -m "Release: $NEXT_VERSION"
    git tag $NEXT_VERSION
 
