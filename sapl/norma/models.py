@@ -145,9 +145,11 @@ class NormaJuridica(models.Model):
 
     def get_normas_relacionadas(self):
         principais = NormaRelacionada.objects.filter(
-            norma_principal=self.id)
+            norma_principal=self.id).order_by('norma_principal__ano',
+                                              'norma_relacionada__ano')
         relacionadas = NormaRelacionada.objects.filter(
-            norma_relacionada=self.id)
+            norma_relacionada=self.id).order_by('norma_principal__ano',
+                                                'norma_relacionada__ano')
         return (principais, relacionadas)
 
     def get_anexos_norma_juridica(self):
@@ -311,6 +313,7 @@ class NormaRelacionada(models.Model):
     class Meta:
         verbose_name = _('Norma Relacionada')
         verbose_name_plural = _('Normas Relacionadas')
+        ordering = ('norma_principal__ano', 'norma_relacionada__ano')
 
     def __str__(self):
         return _('Principal: %(norma_principal)s'
