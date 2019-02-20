@@ -125,7 +125,7 @@ HAYSTACK_CONNECTIONS = {
         'ENGINE': SEARCH_BACKEND,
         SEARCH_URL[0]: SEARCH_URL[1],
         'BATCH_SIZE': 1000,
-        'TIMEOUT': 60,
+        'TIMEOUT': 20,
     },
 }
 
