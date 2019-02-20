@@ -4,15 +4,16 @@ import datetime
 import logging
 import os
 
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
-from django.db.models import Count, Q
+from django.db.models import Count, Q, ProtectedError
 from django.http import Http404, HttpResponseRedirect
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
@@ -56,7 +57,7 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
                     RelatorioNormasVigenciaFilterSet,
-                    EstatisticasAcessoNormasForm)
+                    EstatisticasAcessoNormasForm, UsuarioFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -1266,35 +1267,72 @@ class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
         return context
 
 
-class ListarUsuarioView(PermissionRequiredMixin, ListView):
-    model = get_user_model()
-    template_name = 'auth/user_list.html'
-    context_object_name = 'user_list'
+class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
+    model = User
+    filterset_class = UsuarioFilterSet
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
 
-    def get_queryset(self):
-        qs = super(ListarUsuarioView, self).get_queryset()
-        return qs.order_by('username')
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarUsuarioView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset().order_by('username').distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(ListarUsuarioView, self).get_context_data(**kwargs)
+        context = super(PesquisarUsuarioView,
+                        self).get_context_data(**kwargs)
+
         paginator = context['paginator']
         page_obj = context['page_obj']
+
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
-        context['NO_ENTRIES_MSG'] = 'Nenhum usuário cadastrado.'
+        
+        context['NO_ENTRIES_MSG'] = 'Nenhum usuário encontrado!'
+        
+        context['title'] = _('Usuários')
+
         return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarUsuarioView, self).get(request)
+
+        data = self.filterset.data
+        url = ''
+        if data:
+            url = "&" + str(self.request.environ['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('username=') - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list)
+                                        )
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
+
+        return self.render_to_response(context)
 
 
 class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     model = get_user_model()
     form_class = UsuarioCreateForm
-    success_message = 'Usuário criado com sucesso'
+    success_message = 'Usuário criado com sucesso!'
     permission_required = ('base.add_appconfig',)
 
     def get_success_url(self):
-        return reverse('sapl.base:user_list')
+        return reverse('sapl.base:usuario')
 
     def form_valid(self, form):
 
@@ -1313,33 +1351,49 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
         for g in groups:
             g.user_set.add(new_user)
 
+        messages.success(self.request, self.success_message)
         return HttpResponseRedirect(self.get_success_url())
 
 
 class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
-
     model = get_user_model()
+    template_name = "crud/confirm_delete.html"
     permission_required = ('base.delete_appconfig',)
+    success_url = reverse_lazy('sapl.base:usuario')
+    success_message = "Usuário removido com sucesso!"  
 
-    def get_success_url(self):
-        return reverse('sapl.base:user_list')
+    def delete(self, request, *args, **kwargs):     
+        try:
+            super(DeleteUsuarioView, self).delete(request, *args, **kwargs)
+        except ProtectedError as exception:
+            error_url = reverse_lazy('sapl.base:user_delete', kwargs={'pk': self.kwargs['pk']})
+            error_message = "O usuário não pode ser removido, pois é referenciado por:<br><ul>"
 
-    def get(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
+            for e in exception.protected_objects:
+                error_message += '<li>{} - {}</li>'.format(
+                    e._meta.verbose_name, e
+                )
+            error_message += '</ul>'
+            messages.error(self.request, error_message)
+            return HttpResponseRedirect(error_url)
 
-    def get_queryset(self):
-        qs = super(DeleteUsuarioView, self).get_queryset()
-        return qs.filter(id=self.kwargs['pk'])
+        messages.success(self.request, self.success_message)
+        return HttpResponseRedirect(self.success_url)
+
+    @property
+    def cancel_url(self):
+        return reverse('sapl.base:user_edit',
+                        kwargs={'pk': self.kwargs['pk']})
 
 
 class EditUsuarioView(PermissionRequiredMixin, UpdateView):
     model = get_user_model()
     form_class = UsuarioEditForm
-    success_message = 'Usuário editado com sucesso'
+    success_message = 'Usuário editado com sucesso!'
     permission_required = ('base.change_appconfig',)
 
     def get_success_url(self):
-        return reverse('sapl.base:user_list')
+        return reverse('sapl.base:usuario')
 
     def get_initial(self):
         initial = super(EditUsuarioView, self).get_initial()
@@ -1376,6 +1430,7 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         for g in groups:
             g.user_set.add(user)
 
+        messages.success(self.request, self.success_message)
         return super(EditUsuarioView, self).form_valid(form)
 
 

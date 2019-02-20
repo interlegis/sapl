@@ -112,8 +112,6 @@ class UsuarioCreateForm(ModelForm):
             [('password1', 6),
              ('password2', 6)])
 
-        row4 = to_row([(form_actions(label='Confirmar'), 6)])
-
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row0,
@@ -121,7 +119,31 @@ class UsuarioCreateForm(ModelForm):
             row3,
             row2,
             'roles',
-            row4)
+            form_actions(label='Confirmar'))
+
+
+class UsuarioFilterSet(django_filters.FilterSet):
+    
+    username = django_filters.CharFilter(
+        label=_('Nome de Usuário'), 
+        lookup_expr='icontains')
+
+    class Meta:
+        model = User
+        fields = ['username']
+
+    def __init__(self, *args, **kwargs):
+        super(UsuarioFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('username', 12)])
+        
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Usuário'),
+                     row0,
+                     form_actions(label='Pesquisar'))
+        )
 
 
 class UsuarioEditForm(ModelForm):
@@ -159,7 +181,7 @@ class UsuarioEditForm(ModelForm):
             row1,
             row2,
             'roles',
-            row3)
+            form_actions(label='Salvar Alterações'))
 
     def clean(self):
         super(UsuarioEditForm, self).clean()

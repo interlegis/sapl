@@ -73,7 +73,7 @@
       url: '/sistema'
       check_permission: base.view_tabelas_auxiliares
     - title: {% trans 'Administração de Usuários' %}
-      url: {% url 'sapl.base:user_list' %}
+      url: {% url 'sapl.base:usuario' %}
       check_permission: user.is_superuser
     - title: {% trans 'Inconsistências da Aplicação' %}
       url: {% url 'sapl.base:lista_inconsistencias' %}
