@@ -594,7 +594,7 @@ class ParlamentarCrud(Crud):
                                       .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
                     row[1] = (
                         'O Parlamentar possui duas filiações conflitantes',
-                        None)
+                        None, None)
 
                 # Caso encontre UMA filiação nessas condições
                 else:
