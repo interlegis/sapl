@@ -164,6 +164,10 @@ class AppConfig(models.Model):
         verbose_name=_('Informar data e hora de protocolo?'),
         choices=YES_NO_CHOICES, default=False)
 
+    escolher_numero_materia_proposicao = models.BooleanField(
+        verbose_name=_('Indicar número da matéria a ser gerada na proposição?'),
+        choices=YES_NO_CHOICES, default=False)
+
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')

@@ -1185,7 +1185,8 @@ class ConfiguracoesAppForm(ModelForm):
                   'mostrar_brasao_painel',
                   'receber_recibo_proposicao',
                   'assinatura_ata',
-                  'estatisticas_acesso_normas']
+                  'estatisticas_acesso_normas',
+                  'escolher_numero_materia_proposicao']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
