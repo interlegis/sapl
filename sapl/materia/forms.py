@@ -495,6 +495,20 @@ class TramitacaoForm(ModelForm):
 
         return cleaned_data
 
+    @transaction.atomic
+    def save(self, commit=True):
+        tramitacao = super(TramitacaoForm, self).save(commit)
+        materia = tramitacao.materia
+        for ma in materia.anexadas.all():
+            if not ma.tramitacao_set.all() \
+                    or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                tramitacao_nova = tramitacao
+                tramitacao_nova.pk = None
+                tramitacao_nova.materia = ma
+                tramitacao_nova.save()
+
+        return tramitacao
+
 
 class TramitacaoUpdateForm(TramitacaoForm):
     unidade_tramitacao_local = forms.ModelChoiceField(
