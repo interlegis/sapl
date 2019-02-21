@@ -45,7 +45,7 @@ from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, gerar_hash_arquivo,
                         models_with_gr_for_model, qs_override_django_filter,
-                        choice_anos_com_materias, FilterOverridesMetaMixin)
+                        choice_anos_com_materias, FilterOverridesMetaMixin, FileFieldCheckMixin)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -122,7 +122,7 @@ class ReceberProposicaoForm(Form):
         super(ReceberProposicaoForm, self).__init__(*args, **kwargs)
 
 
-class MateriaSimplificadaForm(ModelForm):
+class MateriaSimplificadaForm(FileFieldCheckMixin, ModelForm):
 
     logger = logging.getLogger(__name__)
 
@@ -175,7 +175,7 @@ class MateriaSimplificadaForm(ModelForm):
         return cleaned_data
 
 
-class MateriaLegislativaForm(ModelForm):
+class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
     logger = logging.getLogger(__name__)
 

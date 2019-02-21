@@ -1,4 +1,5 @@
 import logging
+import os
 
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
 from sapl.crispy_layout_mixin import SaplFormHelper
@@ -36,7 +37,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         RangeWidgetOverride, autor_label, autor_modal,
                         models_with_gr_for_model, qs_override_django_filter,
                         choice_anos_com_normas, choice_anos_com_materias,
-                        FilterOverridesMetaMixin)
+                        FilterOverridesMetaMixin, FileFieldCheckMixin)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -1108,7 +1109,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
         )
 
 
-class CasaLegislativaForm(ModelForm):
+class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
 
@@ -1138,8 +1139,12 @@ class CasaLegislativaForm(ModelForm):
         }
 
     def clean_logotipo(self):
-        logotipo = self.cleaned_data.get('logotipo', False)
+        logotipo = self.cleaned_data.get('logotipo')
         if logotipo:
+            if not os.path.exists(logotipo.path):
+                raise ValidationError("Arquivo referenciado no campo "
+                                      " '%s' inexistente! Marque a "
+                                      "opção Limpar e Salve." % self.fields['logotipo'].label)
             if logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
                 raise ValidationError("Imagem muito grande. ( > 2MB )")
         return logotipo
