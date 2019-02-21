@@ -580,6 +580,7 @@ class NormaPesquisaOrderingFilter(django_filters.OrderingFilter):
 class FileFieldCheckMixin(BaseForm):
     def _check(self):
         cleaned_data = super(FileFieldCheckMixin, self).clean()
+        errors = []
         for name, campo in self.fields.items():
             if isinstance(campo, forms.fields.FileField):
                 error = self.errors.get(name)
@@ -589,14 +590,17 @@ class FileFieldCheckMixin(BaseForm):
                                       "arquivo no campo '{}'".format(
                                           campo.label))
                             for e in error]
-                    raise ValidationError(msgs)
+                    for msg in msgs:
+                        errors.append(msg)
 
                 arquivo = self.cleaned_data.get(name)
                 if arquivo and not isinstance(arquivo, UploadedFile):
                     if not os.path.exists(arquivo.path):
-                        raise ValidationError("Arquivo referenciado no campo "
-                                              " '%s' inexistente! Marque a "
-                                              "opção Limpar e Salve." % campo.label)
+                        errors.append("Arquivo referenciado no campo "
+                                      " '%s' inexistente! Marque a "
+                                      "opção Limpar e Salve." % campo.label)
+        if errors:
+            raise ValidationError(errors)
         return cleaned_data
 
     def clean(self):
