@@ -1139,12 +1139,10 @@ class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
         }
 
     def clean_logotipo(self):
+        super(CasaLegislativaForm, self).clean()
+
         logotipo = self.cleaned_data.get('logotipo')
         if logotipo:
-            if not os.path.exists(logotipo.path):
-                raise ValidationError("Arquivo referenciado no campo "
-                                      " '%s' inexistente! Marque a "
-                                      "opção Limpar e Salve." % self.fields['logotipo'].label)
             if logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
                 raise ValidationError("Imagem muito grande. ( > 2MB )")
         return logotipo
@@ -1209,7 +1207,7 @@ class ConfiguracoesAppForm(ModelForm):
             self.logger.error('Não há casa legislativa relacionada.')
             raise ValidationError("Não há casa legislativa relacionada.")
 
-        if (not bool(casa.logotipo) and mostrar_brasao_painel):
+        if not casa.logotipo and mostrar_brasao_painel:
             self.logger.error('Não há logitipo configurado para esta '
                               'CasaLegislativa ({}).'.format(casa))
             raise ValidationError("Não há logitipo configurado para esta "
