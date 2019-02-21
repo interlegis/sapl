@@ -424,6 +424,11 @@ class TramitacaoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
         self.fields['data_tramitacao'].initial = timezone.now().date()
+        ust = UnidadeTramitacao.objects.select_related().all()
+        unidade_tramitacao_destino = [(ut.pk, ut) for ut in ust if ut.comissao and ut.comissao.ativa]
+        unidade_tramitacao_destino.extend([(ut.pk, ut) for ut in ust if ut.orgao])
+        unidade_tramitacao_destino.extend([(ut.pk, ut) for ut in ust if ut.parlamentar])
+        self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
 
     def clean(self):
         super(TramitacaoForm, self).clean()
