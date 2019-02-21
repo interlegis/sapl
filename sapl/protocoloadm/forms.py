@@ -23,7 +23,8 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         RangeWidgetOverride, autor_label, autor_modal,
                         choice_anos_com_protocolo, choice_force_optional,
                         choice_anos_com_documentoadministrativo,
-                        FilterOverridesMetaMixin, choice_anos_com_materias)
+                        FilterOverridesMetaMixin, choice_anos_com_materias,
+                        FileFieldCheckMixin)
 
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
@@ -626,7 +627,7 @@ class ProtocoloMateriaForm(ModelForm):
             self.fields['data_hora_manual'].widget = forms.HiddenInput()
 
 
-class DocumentoAcessorioAdministrativoForm(ModelForm):
+class DocumentoAcessorioAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = DocumentoAcessorioAdministrativo
@@ -782,7 +783,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         return self.cleaned_data
 
 
-class DocumentoAdministrativoForm(ModelForm):
+class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
     logger = logging.getLogger(__name__)
 

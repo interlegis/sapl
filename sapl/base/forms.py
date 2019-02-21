@@ -199,7 +199,7 @@ class UsuarioEditForm(ModelForm):
         return data
 
 
-class SessaoLegislativaForm(ModelForm):
+class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
     logger = logging.getLogger(__name__)
 
     class Meta:

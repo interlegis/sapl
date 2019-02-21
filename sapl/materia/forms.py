@@ -355,7 +355,7 @@ class AcompanhamentoMateriaForm(ModelForm):
         super(AcompanhamentoMateriaForm, self).__init__(*args, **kwargs)
 
 
-class DocumentoAcessorioForm(ModelForm):
+class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
     data = forms.DateField(required=True)
 
     class Meta:
@@ -1345,7 +1345,7 @@ class TipoProposicaoSelect(Select):
         return option
 
 
-class ProposicaoForm(forms.ModelForm):
+class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
     logger = logging.getLogger(__name__)
 

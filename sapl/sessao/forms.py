@@ -20,7 +20,8 @@ from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
 from sapl.parlamentares.models import Parlamentar, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
-                        autor_modal, timezone, choice_anos_com_sessaoplenaria)
+                        autor_modal, timezone, choice_anos_com_sessaoplenaria,
+                        FileFieldCheckMixin)
 
 from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
@@ -45,7 +46,7 @@ ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
                     ('ocorr_sessao', 'Ocorrências da Sessão')]
 
 
-class SessaoPlenariaForm(ModelForm):
+class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = SessaoPlenaria

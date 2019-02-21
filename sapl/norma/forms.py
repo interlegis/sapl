@@ -271,7 +271,7 @@ class AutoriaNormaForm(ModelForm):
         return cd
 
 
-class AnexoNormaJuridicaForm(ModelForm):
+class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
     class Meta:
         model = AnexoNormaJuridica
         fields = ['norma', 'anexo_arquivo', 'assunto_anexo']
