@@ -578,7 +578,7 @@ class NormaPesquisaOrderingFilter(django_filters.OrderingFilter):
 
 
 class FileFieldCheckMixin(BaseForm):
-    def clean(self):
+    def _check(self):
         cleaned_data = super(FileFieldCheckMixin, self).clean()
         for name, campo in self.fields.items():
             if isinstance(campo, forms.fields.FileField):
@@ -598,6 +598,10 @@ class FileFieldCheckMixin(BaseForm):
                                               " '%s' inexistente! Marque a "
                                               "opção Limpar e Salve." % campo.label)
         return cleaned_data
+
+    def clean(self):
+        """ Alias for _check() """
+        return self._check()
 
 
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):

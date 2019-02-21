@@ -1139,7 +1139,9 @@ class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
         }
 
     def clean_logotipo(self):
-        super(CasaLegislativaForm, self).clean()
+        # chama __clean de FileFieldCheckMixin
+        # por estar em clean de campo
+        super(CasaLegislativaForm, self)._check()
 
         logotipo = self.cleaned_data.get('logotipo')
         if logotipo:
