@@ -168,6 +168,7 @@ apps_url_patterns_prefixs_and_users = {
             '/recuperar-senha',
             '/sapl',
             '/app',
+            '/online',
             '/XSLT',
         ]},
     'comissoes': {
