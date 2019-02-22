@@ -1386,16 +1386,21 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
         model = Partido
         exclude = []
 
-    def __init__(self, pk=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
 
-        row1 = to_row([
-            ('sigla', 2),
-            ('nome', 6),
-            ('data_criacao', 2),
-            ('data_extincao', 2)
-            ]
-        )
+        super(PartidoForm, self).__init__(*args, **kwargs)
+
+        # TODO Utilizar esses campos na issue #2161 de alteração de nomes de partidos
+        # if self.instance:
+        #     if self.instance.nome:
+        #         self.fields['nome'].widget.attrs['readonly'] = True
+        #         self.fields['sigla'].widget.attrs['readonly'] = True
+
+        row1 = to_row(
+            [('sigla', 2),
+             ('nome', 6),
+             ('data_criacao', 2),
+             ('data_extincao', 2),])
         row2 = to_row([('observacao', 12)])
         row3 = to_row([('logo_partido', 12)])
 
@@ -1468,6 +1473,9 @@ class PartidoUpdateForm(PartidoForm):
         self.helper.layout = Layout(
             row1, row2, row3, row4, to_row([(buttons, 12)]),
         )
+
+
+
 
     def clean(self):
         cleaned_data = super(PartidoUpdateForm,self).clean()
