@@ -24,7 +24,7 @@ services:
         - "8983:8983"
 
     sapl:
-      image: interlegis/sapl:3.1.138
+      image: interlegis/sapl:3.1.144
       # build: .
       restart: always
       environment:
