@@ -1365,8 +1365,6 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
         # TODO Utilizar esses campos na issue #2161 de alteração de nomes de partidos
         # if self.instance:
         #     if self.instance.nome:
-        #         self.fields['nome'].widget.attrs['readonly'] = True
-        #         self.fields['sigla'].widget.attrs['readonly'] = True
 
         row1 = to_row(
             [('sigla', 2),
