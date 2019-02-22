@@ -1,3 +1,5 @@
+**ESTAS INSTRUÇÕES ESTÃO DEFASADAS. EM BREVE IREMOS DISPONIBILIZAR UM TUTORIAL MAIS ATUALIZADO DE COMO INTEGRAR O SOLR AO SAPL**
+
 ================================
 Instruções para instalar o Solr
 ================================
