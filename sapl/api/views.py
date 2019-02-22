@@ -9,6 +9,7 @@ from django.utils.decorators import classonlymethod
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
 import django_filters
+from django_filters.filters import CharFilter
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
@@ -74,6 +75,9 @@ class SaplApiViewSetConstrutor(ModelViewSet):
                 # Define uma classe padrão para filtro caso não tenha sido
                 # criada a classe sapl.api.forms.{model}FilterSet
                 class SaplFilterSet(FilterSet):
+
+                    o = CharFilter(method='filter_o')
+
                     class Meta:
                         model = _model
                         fields = '__all__'
@@ -85,6 +89,13 @@ class SaplApiViewSetConstrutor(ModelViewSet):
                                 },
                             },
                         }
+
+                    def filter_o(self, queryset, name, value):
+                        try:
+                            return queryset.order_by(
+                                *map(str.strip, value.split(',')))
+                        except:
+                            return queryset
 
                     @classmethod
                     def filter_for_field(cls, f, name, lookup_expr='exact'):
