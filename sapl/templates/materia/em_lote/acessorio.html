@@ -91,7 +91,9 @@
                   <tr>
                     <td>
                       <input type="checkbox" name="materia_id" value="{{materia.id}}" {% if check %} checked {% endif %}/>
-                      {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}} - {{materia.tipo.descricao}}
+                      <a href="{% url 'sapl.materia:materialegislativa_detail' materia.id %}">
+                          {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}} - {{materia.tipo.descricao}}
+                      </a>
                     </td>
                   </tr>
                 {% endfor %}
