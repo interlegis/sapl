@@ -29,7 +29,7 @@ from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
 from sapl.materia.models import (
     MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import SessaoLegislativa
+from sapl.parlamentares.models import SessaoLegislativa, Partido
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -38,7 +38,6 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         models_with_gr_for_model, qs_override_django_filter,
                         choice_anos_com_normas, choice_anos_com_materias,
                         FilterOverridesMetaMixin, FileFieldCheckMixin)
-
 from .models import AppConfig, CasaLegislativa
 
 
@@ -1351,3 +1350,46 @@ class AlterarSenhaForm(Form):
                 "Nova senha não pode ser igual à senha anterior")
 
         return self.cleaned_data
+
+
+class PartidoForm(FileFieldCheckMixin, ModelForm):
+
+    class Meta:
+        model = Partido
+        exclude = []
+
+    def __init__(self, *args, **kwargs):
+
+        super(PartidoForm, self).__init__(*args, **kwargs)
+
+        # TODO Utilizar esses campos na issue #2161 de alteração de nomes de partidos
+        # if self.instance:
+        #     if self.instance.nome:
+        #         self.fields['nome'].widget.attrs['readonly'] = True
+        #         self.fields['sigla'].widget.attrs['readonly'] = True
+
+        row1 = to_row(
+            [('sigla', 2),
+             ('nome', 6),
+             ('data_criacao', 2),
+             ('data_extincao', 2),])
+        row2 = to_row([('observacao', 12)])
+        row3 = to_row([('logo_partido', 12)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            row1, row2, row3,
+            form_actions(label='Salvar'))
+
+    def clean(self):
+
+        cleaned_data = super(PartidoForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+            
+        if cleaned_data['data_criacao'] and cleaned_data['data_extincao']:
+            if cleaned_data['data_criacao'] > cleaned_data['data_extincao']:
+                raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
+
+        return cleaned_data

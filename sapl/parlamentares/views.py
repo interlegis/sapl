@@ -19,7 +19,7 @@ from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
 from image_cropping.utils import get_backend
 
-from sapl.base.forms import SessaoLegislativaForm
+from sapl.base.forms import SessaoLegislativaForm, PartidoForm
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -38,7 +38,6 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
 
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
-PartidoCrud = CrudAux.build(Partido, 'partidos')
 TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
@@ -56,6 +55,16 @@ class SessaoLegislativaCrud(CrudAux):
 
     class UpdateView(CrudAux.UpdateView):
         form_class = SessaoLegislativaForm
+
+
+class PartidoCrud(CrudAux):
+    model = Partido
+
+    class CreateView(CrudAux.CreateView):
+        form_class = PartidoForm
+
+    class UpdateView(CrudAux.UpdateView):
+        form_class = PartidoForm
 
 
 class VotanteView(MasterDetailCrud):
