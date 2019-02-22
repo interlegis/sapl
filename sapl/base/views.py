@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
@@ -1499,8 +1499,11 @@ class AppConfigCrud(CrudAux):
         def gerar_hash(self, inst):
             inst.save()
             if inst.texto_original:
-                inst.hash_code = gerar_hash_arquivo(
-                    inst.texto_original.path, str(inst.pk))
+                try:
+                    inst.hash_code = gerar_hash_arquivo(
+                        inst.texto_original.path, str(inst.pk))
+                except IOError:
+                    raise ValidationError("Existem proposicoes com arquivos inexistentes.")
             elif inst.texto_articulado.exists():
                 ta = inst.texto_articulado.first()
                 inst.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(inst.pk)

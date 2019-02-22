@@ -10,9 +10,9 @@ from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.utils import timezone
+from sapl.utils import timezone, FileFieldCheckMixin
 
-class AudienciaForm(forms.ModelForm):
+class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
     logger = logging.getLogger(__name__)
     data_atual = timezone.now()
 

@@ -6,6 +6,9 @@ import re
 from unicodedata import normalize as unicodedata_normalize
 import unicodedata
 
+from django.core.files.uploadedfile import UploadedFile
+from django.forms import BaseForm
+
 from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
@@ -572,6 +575,37 @@ class NormaPesquisaOrderingFilter(django_filters.OrderingFilter):
     def filter(self, qs, value):
         _value = self.order_by_mapping[value[0]] if value else value
         return super().filter(qs, _value)
+
+
+class FileFieldCheckMixin(BaseForm):
+    def _check(self):
+        cleaned_data = super(FileFieldCheckMixin, self).clean()
+        errors = []
+        for name, campo in self.fields.items():
+            if isinstance(campo, forms.fields.FileField):
+                error = self.errors.get(name)
+                if error:
+                    msgs = [e.replace('Certifique-se de que o arquivo',
+                                      "Certifique-se de que o nome do "
+                                      "arquivo no campo '{}'".format(
+                                          campo.label))
+                            for e in error]
+                    for msg in msgs:
+                        errors.append(msg)
+
+                arquivo = self.cleaned_data.get(name)
+                if arquivo and not isinstance(arquivo, UploadedFile):
+                    if not os.path.exists(arquivo.path):
+                        errors.append("Arquivo referenciado no campo "
+                                      " '%s' inexistente! Marque a "
+                                      "opção Limpar e Salve." % campo.label)
+        if errors:
+            raise ValidationError(errors)
+        return cleaned_data
+
+    def clean(self):
+        """ Alias for _check() """
+        return self._check()
 
 
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):

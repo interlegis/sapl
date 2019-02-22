@@ -17,8 +17,8 @@ from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import choice_anos_com_materias
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import NormaPesquisaOrderingFilter, RangeWidgetOverride,\
-    choice_anos_com_normas, FilterOverridesMetaMixin
+from sapl.utils import NormaPesquisaOrderingFilter, RangeWidgetOverride, \
+    choice_anos_com_normas, FilterOverridesMetaMixin, FileFieldCheckMixin
 
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, AutoriaNorma)
@@ -88,7 +88,7 @@ class NormaFilterSet(django_filters.FilterSet):
         return queryset.filter(q)
 
 
-class NormaJuridicaForm(ModelForm):
+class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
 
     # Campos de MateriaLegislativa
     tipo_materia = forms.ModelChoiceField(
@@ -200,6 +200,8 @@ class NormaJuridicaForm(ModelForm):
         return cleaned_data
 
     def clean_texto_integral(self):
+        super(NormaJuridicaForm, self).clean()
+
         texto_integral = self.cleaned_data.get('texto_integral', False)
         if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
             max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
@@ -269,7 +271,7 @@ class AutoriaNormaForm(ModelForm):
         return cd
 
 
-class AnexoNormaJuridicaForm(ModelForm):
+class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
     class Meta:
         model = AnexoNormaJuridica
         fields = ['norma', 'anexo_arquivo', 'assunto_anexo']

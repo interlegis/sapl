@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
 from image_cropping.widgets import CropWidget, ImageCropWidget
+from sapl.utils import FileFieldCheckMixin
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -196,7 +197,7 @@ class LegislaturaForm(ModelForm):
         return data
 
 
-class ParlamentarForm(ModelForm):
+class ParlamentarForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = Parlamentar
