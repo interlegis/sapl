@@ -78,18 +78,9 @@ def time_refresh_log_test(request):
     return render(request, 'base/time_refresh_log_test.html', {})
 
 
-def entry_point_view(request, app_backend, app_frontend):
+def online_app_view(request):
 
-    entry_point = '{}_{}'.format(app_backend, app_frontend)
-
-    if entry_point not in (
-        'sessao_online',
-    ):
-        raise Http404
-
-    return render(request, 'entry_point.html', {
-        'entry_point': entry_point
-    })
+    return render(request, 'online_app.html')
 
 
 def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
@@ -1334,9 +1325,9 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
 
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
-        
+
         context['NO_ENTRIES_MSG'] = 'Nenhum usuário encontrado!'
-        
+
         context['title'] = _('Usuários')
 
         return context
@@ -1405,13 +1396,14 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
     template_name = "crud/confirm_delete.html"
     permission_required = ('base.delete_appconfig',)
     success_url = reverse_lazy('sapl.base:usuario')
-    success_message = "Usuário removido com sucesso!"  
+    success_message = "Usuário removido com sucesso!"
 
-    def delete(self, request, *args, **kwargs):     
+    def delete(self, request, *args, **kwargs):
         try:
             super(DeleteUsuarioView, self).delete(request, *args, **kwargs)
         except ProtectedError as exception:
-            error_url = reverse_lazy('sapl.base:user_delete', kwargs={'pk': self.kwargs['pk']})
+            error_url = reverse_lazy('sapl.base:user_delete', kwargs={
+                                     'pk': self.kwargs['pk']})
             error_message = "O usuário não pode ser removido, pois é referenciado por:<br><ul>"
 
             for e in exception.protected_objects:
@@ -1428,7 +1420,7 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
     @property
     def cancel_url(self):
         return reverse('sapl.base:user_edit',
-                        kwargs={'pk': self.kwargs['pk']})
+                       kwargs={'pk': self.kwargs['pk']})
 
 
 class EditUsuarioView(PermissionRequiredMixin, UpdateView):

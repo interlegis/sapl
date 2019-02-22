@@ -43,9 +43,12 @@ app_name = AppConfig.name
 
 admin_user = [
     url(r'^sistema/usuario/$', PesquisarUsuarioView.as_view(), name='usuario'),
-    url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
+    url(r'^sistema/usuario/create$',
+        CreateUsuarioView.as_view(), name='user_create'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/edit$',
+        EditUsuarioView.as_view(), name='user_edit'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/delete$',
+        DeleteUsuarioView.as_view(), name='user_delete')
 ]
 
 alterar_senha = [
@@ -92,8 +95,8 @@ channels_url = [
     url(r'^sapl/time-refresh/$',
         base.views.time_refresh_log_test, name='time_refresh_log_test_index'),
 
-    url(r'^app/(?P<app_backend>[^/]+)/(?P<app_frontend>[^/]+)/',
-        base.views.entry_point_view, name='entry_point_url'),
+    url(r'^online/',
+        base.views.online_app_view, name='online_app_url'),
 
 ]
 
