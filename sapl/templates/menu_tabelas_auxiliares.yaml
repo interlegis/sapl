@@ -17,6 +17,9 @@
 - title: {% trans 'Módulo Parlamentares' %}
   css_class: head_title
   children:
+  - title: {% trans 'Cadastrar Parlamentar' %}
+    url: sapl.parlamentares:parlamentar_create
+    css_class: btn btn-link
   - title: {% trans 'Legislatura' %}
     url: sapl.parlamentares:legislatura_list
     css_class: btn btn-link
