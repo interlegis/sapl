@@ -18,11 +18,27 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from sapl.api.forms import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
+from sapl.api.serializers import ChoiceSerializer
 from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao
 from sapl.parlamentares.models import Parlamentar
-from sapl.utils import models_with_gr_for_model
+from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
+
+
+class BusinessRulesNotImplementedMixin:
+    def create(self, request, *args, **kwargs):
+        raise Exception(_("POST Create não implementado"))
+
+    def put(self, request, *args, **kwargs):
+        raise Exception(_("PUT Update não implementado"))
+
+    def patch(self, request, *args, **kwargs):
+        raise Exception(_("PATCH Partial Update não implementado"))
+
+    def delete(self, request, *args, **kwargs):
+        raise Exception(_("DELETE Delete não implementado"))
 
 
 class SaplApiViewSetConstrutor(ModelViewSet):
@@ -74,47 +90,9 @@ class SaplApiViewSetConstrutor(ModelViewSet):
 
                 # Define uma classe padrão para filtro caso não tenha sido
                 # criada a classe sapl.api.forms.{model}FilterSet
-                class SaplFilterSet(FilterSet):
-
-                    o = CharFilter(method='filter_o')
-
-                    class Meta:
+                class SaplFilterSet(SaplFilterSetMixin):
+                    class Meta(SaplFilterSetMixin.Meta):
                         model = _model
-                        fields = '__all__'
-                        filter_overrides = {
-                            FileField: {
-                                'filter_class': django_filters.CharFilter,
-                                'extra': lambda f: {
-                                    'lookup_expr': 'exact',
-                                },
-                            },
-                        }
-
-                    def filter_o(self, queryset, name, value):
-                        try:
-                            return queryset.order_by(
-                                *map(str.strip, value.split(',')))
-                        except:
-                            return queryset
-
-                    @classmethod
-                    def filter_for_field(cls, f, name, lookup_expr='exact'):
-                        # Redefine método estático para ignorar filtro para
-                        # fields que não possuam lookup_expr informado
-                        f, lookup_type = resolve_field(f, lookup_expr)
-
-                        default = {
-                            'field_name': name,
-                            'label': capfirst(f.verbose_name),
-                            'lookup_expr': lookup_expr
-                        }
-
-                        filter_class, params = cls.filter_for_lookup(
-                            f, lookup_type)
-                        default.update(params)
-                        if filter_class is not None:
-                            return filter_class(**default)
-                        return None
 
                 # Define uma classe padrão ModelViewSet de DRF
                 class ModelSaplViewSet(cls):
@@ -420,7 +398,8 @@ class _DocumentoAcessorioAdministrativoViewSet(
 
 
 class _TramitacaoAdministrativoViewSet(
-        SaplSetViews['protocoloadm']['tramitacaoadministrativo']):
+        SaplSetViews['protocoloadm']['tramitacaoadministrativo'],
+        BusinessRulesNotImplementedMixin):
     # TODO: Implementar regras de manutenção das tramitações de docs adms
 
     permission_classes = (
@@ -433,17 +412,16 @@ class _TramitacaoAdministrativoViewSet(
             qs = qs.exclude(documento__restrito=True)
         return qs
 
-    def create(self, request, *args, **kwargs):
-        raise Exception(_("POST Create não implementado"))
 
-    def put(self, request, *args, **kwargs):
-        raise Exception(_("PUT Update não implementado"))
+class _SessaoPlenariaViewSet(
+        SaplSetViews['sessao']['sessaoplenaria']):
 
-    def patch(self, request, *args, **kwargs):
-        raise Exception(_("PATCH Partial Update não implementado"))
+    @action(detail=False)
+    def years(self, request, *args, **kwargs):
+        years = choice_anos_com_sessaoplenaria()
 
-    def delete(self, request, *args, **kwargs):
-        raise Exception(_("DELETE Delete não implementado"))
+        serializer = ChoiceSerializer(years, many=True)
+        return Response(serializer.data)
 
 
 SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
@@ -455,3 +433,5 @@ SaplSetViews['parlamentares']['parlamentar'] = _ParlamentarViewSet
 SaplSetViews['protocoloadm']['documentoadministrativo'] = _DocumentoAdministrativoViewSet
 SaplSetViews['protocoloadm']['documentoacessorioadministrativo'] = _DocumentoAcessorioAdministrativoViewSet
 SaplSetViews['protocoloadm']['tramitacaoadministrativo'] = _TramitacaoAdministrativoViewSet
+
+SaplSetViews['sessao']['sessaoplenaria'] = _SessaoPlenariaViewSet

@@ -1,7 +1,13 @@
 from django.conf import settings
 from rest_framework import serializers
+from rest_framework.relations import StringRelatedField
 
 from sapl.base.models import Autor, CasaLegislativa
+
+
+class IntRelatedField(StringRelatedField):
+    def to_representation(self, value):
+        return int(value)
 
 
 class ChoiceSerializer(serializers.Serializer):
