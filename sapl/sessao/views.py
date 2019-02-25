@@ -1,6 +1,5 @@
 
 import logging
-from operator import itemgetter
 from re import sub
 
 from django.contrib import messages
@@ -29,8 +28,8 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import filtra_tramitacao_status
-from sapl.materia.models import (Autoria, DocumentoAcessorio,
-                                 TipoMateriaLegislativa, Tramitacao)
+from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
+                                 Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
