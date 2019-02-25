@@ -1387,7 +1387,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
         widget=widgets.HiddenInput(),
         required=False)
 
-    numero_materia_futuro = forms.CharField(
+    numero_materia_futuro = forms.IntegerField(
         label='Número (Opcional)', required=False)
 
     class Meta:
@@ -1700,7 +1700,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 attrs={'readonly': 'readonly', 'rows': 4}),
             'data_envio':  widgets.DateTimeInput(
                 attrs={'readonly': 'readonly'}),
-            'numero_materia_futuro': widgets.TextInput(
+            'numero_materia_futuro': widgets.NumberInput(
                 attrs={'readonly': 'readonly', 'rows': 1}),
 
         }
@@ -1741,6 +1741,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         # esta chamada isola o __init__ de ProposicaoForm
         super(ProposicaoForm, self).__init__(*args, **kwargs)
 
+        self.fields['numero_materia_futuro'].widget.attrs['readonly'] = True
+
         fields = [
             Fieldset(
                 _('Dados Básicos'),
@@ -1748,14 +1750,19 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                     [
                         ('tipo_readonly', 3),
                         ('data_envio', 3),
-                        ('numero_materia_futuro',3),
                         ('autor_readonly', 3),
+                        ('numero_materia_futuro', 3),
                         ('descricao', 12),
                         ('observacao', 12)
                     ]
                 )
             )
         ]
+
+        if not sapl.base.models.AppConfig.objects.last().escolher_numero_materia_proposicao or \
+           not self.instance.numero_materia_futuro:
+            if 'numero_materia_futuro' in self._meta.fields:
+                del fields[0][0][3]
 
         fields.append(
             Fieldset(
@@ -1810,7 +1817,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         self.fields['tipo_readonly'].initial = self.instance.tipo.descricao
         self.fields['autor_readonly'].initial = str(self.instance.autor)
         if self.instance.numero_materia_futuro:
-            self.fields['numero_materia_futuro'].initial = self.instance.numero_materia_futuro
+            self.fields['numero_materia_futuro'].initial = self.instance.numero_materia_futuro   
 
         if self.instance.materia_de_vinculo:
             self.fields[
