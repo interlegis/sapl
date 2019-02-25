@@ -10,6 +10,7 @@ from django.db.models import F, Q
 from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
+from django.shortcuts import render
 from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
@@ -612,6 +613,12 @@ class ParlamentarCrud(Crud):
                     row[1] = (filiacao.partido.sigla, None, None)
 
             return context
+
+
+def lista_parlamentares(request):
+    template_name = "parlamentares/lista_parlamentares.html"
+    parlamentares = Parlamentar.objects.select_related().all()
+    return render(request, template_name, {"parlamentares": parlamentares})
 
 
 class ParlamentarMateriasView(FormView):

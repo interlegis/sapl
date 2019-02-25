@@ -1,6 +1,16 @@
 {% extends "crud/list.html" %}
 {% load i18n %}
 {% load crispy_forms_tags cropping%}
+{% block actions %}
+    <div class="actions btn-group float-right btn-group-lg" role="group">
+      {% if view.create_url %}
+      <a href="{% url 'sapl.parlamentares:lista_parlamentares' %}" class="btn btn-outline-primary">
+        {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+      </a>
+      {% endif %}
+      {% block more_buttons %}{% endblock more_buttons %}
+    </div>
+{% endblock actions %}
 {% block extra_content %}
   <fieldset class="form-group">
     <legend>Selecione o Período</legend>

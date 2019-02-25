@@ -146,10 +146,6 @@ class MandatoForm(ModelForm):
         return self.cleaned_data
 
 
-class MandatoCreateForm(MandatoForm):
-    pass
-
-
 class LegislaturaForm(ModelForm):
 
     logger = logging.getLogger(__name__)
@@ -216,18 +212,6 @@ class ParlamentarForm(FileFieldCheckMixin, ModelForm):
 
 class ParlamentarCreateForm(ParlamentarForm):
 
-    legislatura = forms.ModelChoiceField(
-        label=_('Legislatura'),
-        required=True,
-        queryset=Legislatura.objects.all().order_by('-data_inicio'),
-        empty_label='----------',
-    )
-
-    data_expedicao_diploma = forms.DateField(
-        label=_('Expedição do Diploma'),
-        required=True,
-    )
-
     class Meta(ParlamentarForm.Meta):
         widgets = {
             'fotografia': forms.ClearableFileInput(),
@@ -238,13 +222,6 @@ class ParlamentarCreateForm(ParlamentarForm):
     @transaction.atomic
     def save(self, commit=True):
         parlamentar = super(ParlamentarCreateForm, self).save(commit)
-        # legislatura = self.cleaned_data['legislatura']
-        # Mandato.objects.create(
-        #     parlamentar=parlamentar,
-        #     legislatura=legislatura,
-        #     data_inicio_mandato=legislatura.data_inicio,
-        #     data_fim_mandato=legislatura.data_fim,
-        #     data_expedicao_diploma=self.cleaned_data['data_expedicao_diploma'])
         content_type = ContentType.objects.get_for_model(Parlamentar)
         object_id = parlamentar.pk
         tipo = TipoAutor.objects.get(content_type=content_type)
