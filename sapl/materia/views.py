@@ -51,6 +51,7 @@ from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH
                         show_results_filter_set, mail_service_configured)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
+                    AnexadaEmLoteFilterSet,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
                     FichaPesquisaForm, FichaSelecionaForm, MateriaAssuntoForm,
@@ -1961,6 +1962,58 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         qr = self.request.GET.copy()
         context['tipos_docs'] = TipoDocumento.objects.all()
+        context['object_list'] = context['object_list'].order_by(
+            'ano', 'numero')
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcadas = request.POST.getlist('materia_id')
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        tipo = TipoDocumento.objects.get(descricao=request.POST['tipo'])
+
+        tz = timezone.get_current_timezone()
+
+        for materia_id in marcadas:
+            doc = DocumentoAcessorio()
+            doc.materia_id = materia_id
+            doc.tipo = tipo
+            doc.arquivo = request.FILES['arquivo']
+            doc.nome = request.POST['nome']
+            doc.data = tz.localize(datetime.strptime(
+                request.POST['data'], "%d/%m/%Y"))
+            doc.autor = request.POST['autor']
+            doc.ementa = request.POST['ementa']
+            doc.save()
+        msg = _('Documento(s) criado(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+        return self.get(request, self.kwargs)
+
+class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = AnexadaEmLoteFilterSet
+    template_name = 'materia/em_lote/anexada.html'
+    permission_required = ('materia.add_documentoacessorio',)
+
+    def get_context_data(self, **kwargs):
+        context = super(MateriaAnexadaEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        context['title'] = _('Matérias Anexadas em Lote')
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        # context['tipos_docs'] = TipoDocumento.objects.all()
+        import ipdb; ipdb.set_trace()
         context['object_list'] = context['object_list'].order_by(
             'ano', 'numero')
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''

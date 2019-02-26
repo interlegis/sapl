@@ -1137,6 +1137,29 @@ class AcessorioEmLoteFilterSet(django_filters.FilterSet):
             Fieldset(_('Documentos Acessórios em Lote'),
                      row1, row2, form_actions(label='Pesquisar')))
 
+class AnexadaEmLoteFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = MateriaLegislativa
+        fields = ['tipo', 'data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super(AnexadaEmLoteFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
+        self.form.fields['tipo'].required = True
+        self.form.fields['data_apresentacao'].required = True
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data_apresentacao', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Matéria Anexada em Lote'),
+                     row1, row2, form_actions(label='Pesquisar')))
+
 
 class PrimeiraTramitacaoEmLoteFilterSet(django_filters.FilterSet):
 
