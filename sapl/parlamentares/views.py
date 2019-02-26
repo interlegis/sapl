@@ -10,6 +10,7 @@ from django.db.models import F, Q
 from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
+from django.shortcuts import render
 from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
@@ -686,6 +687,13 @@ class ParlamentarMateriasView(FormView):
                                         'coautoria': coautor_list,
                                         'nome_parlamentar': nome_parlamentar
                                         })
+
+
+def parlamentares_filiados(request, pk):
+    template_name = 'parlamentares/partido_detail.html'
+    partido = Partido.objects.filter(pk=pk)
+    queryset = Parlamentar.objects.select_related().all()
+    return render(request, template_name, {'parlamentares': queryset})
 
 
 class MesaDiretoraView(FormView):
