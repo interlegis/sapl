@@ -87,6 +87,8 @@ class UsuarioCreateForm(ModelForm):
         super(UsuarioCreateForm, self).clean()
 
         if not self.is_valid():
+            for error in self.errors:
+                raise ValidationError('{}: {}'.format(error.title(), self.errors.get(error)[0]))
             return self.cleaned_data
 
         data = self.cleaned_data
