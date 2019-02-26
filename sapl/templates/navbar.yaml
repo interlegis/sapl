@@ -73,8 +73,11 @@
       url: '/sistema'
       check_permission: base.view_tabelas_auxiliares
     - title: {% trans 'Administração de Usuários' %}
-      url: {% url 'sapl.base:user_list' %}
+      url: {% url 'sapl.base:usuario' %}
       check_permission: user.is_superuser
+    - title: {% trans 'Inconsistências da Aplicação' %}
+      url: {% url 'sapl.base:lista_inconsistencias' %}
+      check_permission: user.is_superuser 
 
 {% comment %}
 <li class="nav__sub-item"><a class="nav__sub-link" href="#">Provedor LexML</a></li>

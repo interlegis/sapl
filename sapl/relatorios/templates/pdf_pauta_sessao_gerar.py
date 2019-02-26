@@ -4,6 +4,7 @@
    versão: 1.0
 """
 import time
+import os
 
 from trml2pdf import parseString
 
@@ -12,8 +13,9 @@ def cabecalho(inf_basicas_dic, imagem):
     """
     """
     tmp = ''
-    tmp += '\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + \
-        imagem + '"/>\n'
+    if os.path.isfile(imagem):
+        tmp += '\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + \
+            imagem + '"/>\n'
     tmp += '\t\t\t\t<lines>2cm 25.4cm 19cm 25.4cm</lines>\n'
     tmp += '\t\t\t\t<setFont name="Helvetica-Bold" size="14"/>\n'
     tmp += '\t\t\t\t<drawString x="5cm" y="27.2cm">' + \
@@ -127,6 +129,8 @@ def expediente_materia(lst_expediente_materia):
                expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>' + expediente_materia['num_autores'] + ': </b>' + \
                expediente_materia['nom_autor'] + '</para></td>\n'
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
+        if len(txt_ementa) > 1000:
+            txt_ementa = txt_ementa[:1000] + "..."
         tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + expediente_materia['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3">' + \
             str(expediente_materia['des_situacao']) + '</para></td></tr>\n'
@@ -154,6 +158,8 @@ def votacao(lst_votacao):
                str(votacao['des_turno']) + '</para>\n' + '<para style="P3"><b>'+votacao['num_autores']+': </b>' + \
                str(votacao['nom_autor']) + '</para></td>\n'
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
+        if len(txt_ementa) > 1000:
+            txt_ementa = txt_ementa[:1000] + "..."
         tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + votacao['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3">' + \
             str(votacao['des_situacao']) + '</para></td></tr>\n'

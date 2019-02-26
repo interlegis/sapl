@@ -2,21 +2,12 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block actions %}
-
-  {{ block.super }}
-  <div class="actions btn-group pull-right grid-gutter-width-right " role="group">
-    <a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-  </div>
-{% endblock %}
-
 {% block detail_content %}
 	{% crispy form %}
 {% endblock detail_content %}
 
 {% block extra_js %}
    <script language="Javascript">
-
      function compare(a, b) {
        if (a.text < b.text)
          return -1;
@@ -26,35 +17,44 @@
      }
 
       $(document).ready(function() {
-          function busca_ementa() {
-            var vincular_materia = $("#id_vincular_materia_1").prop("checked");
-            var ano_materia = $("#id_ano_materia").val();
-            var numero_materia = $("#id_numero_materia").val();
-            var tipo_materia = $("#id_tipo_materia").val();
-            var json_data = {
-                ano : ano_materia,
-                numero : numero_materia,
-                tipo : tipo_materia
-            }
-            if (vincular_materia === true && ano_materia !== undefined &&
-                numero_materia !== undefined && numero_materia !== "") {
-                $.getJSON("/protocoloadm/recuperar-materia", json_data, function(data){
-                    if (data) {
-                        if (data['error'] === undefined){
-                            $('#id_assunto_ementa').val(data['ementa']);
-                            if (data['autor'] !== undefined) {
-                                $('#id_autor').val(data['autor']);
-                                $('#id_tipo_autor').val(data['tipo_autor']);
 
-                        }
-                        }
-                    }
-                })
-            }
+        $("input[name=data_hora_manual]").change(function(event) {
+          if (this.value === 'True' && this.checked)
+            $("#protocolo_data_hora_manual").show();
+          else if (this.value === 'False' && this.checked)
+            $("#protocolo_data_hora_manual").hide();
+        });
+        $("input[name=data_hora_manual]").trigger('change')
+        
+        function busca_ementa() {
+          var vincular_materia = $("#id_vincular_materia_1").prop("checked");
+          var ano_materia = $("#id_ano_materia").val();
+          var numero_materia = $("#id_numero_materia").val();
+          var tipo_materia = $("#id_tipo_materia").val();
+          var json_data = {
+            ano : ano_materia,
+            numero : numero_materia,
+            tipo : tipo_materia
+          }
+          if (vincular_materia === true && ano_materia !== undefined &&
+            numero_materia !== undefined && numero_materia !== "") {
+            $.getJSON("/protocoloadm/recuperar-materia", json_data, function(data){
+              if (data) {
+                if (data['error'] === undefined){
+                  $('#id_assunto_ementa').val(data['ementa']);
+                  if (data['autor'] !== undefined) {
+                    $('#id_autor').val(data['autor']);
+                    $('#id_tipo_autor').val(data['tipo_autor']);
+
+                  }
+                }
+              }
+            })
+          }
         };
-          $("#id_ano_materia").blur(busca_ementa);
-          $("#id_numero_materia").blur(busca_ementa);
-          $("#id_tipo_materia").change(busca_ementa);
+        $("#id_ano_materia").blur(busca_ementa);
+        $("#id_numero_materia").blur(busca_ementa);
+        $("#id_tipo_materia").change(busca_ementa);
 
           $("#id_tipo_autor").change(function() {
               var tipo_selecionado = $("#id_tipo_autor").val();

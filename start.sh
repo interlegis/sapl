@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 create_env() {
     echo "[ENV FILE] creating .env file..."
@@ -36,20 +36,48 @@ create_env() {
     echo "EMAIL_SEND_USER = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "DEFAULT_FROM_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
     echo "SERVER_EMAIL = ""${EMAIL_HOST_USER-''}" >> $FILENAME
+    echo "USE_SOLR = ""${USE_SOLR-False}" >> $FILENAME
+    echo "SOLR_COLLECTION = ""${SOLR_COLLECTION-sapl}" >> $FILENAME
+    echo "SOLR_URL = ""${SOLR_URL-http://localhost:8983}" >> $FILENAME
+
     
     echo "[ENV FILE] done."
 }
 
 create_env
 
-#python3 manage.py bower install
+/bin/bash busy-wait.sh $DATABASE_URL
 
-/bin/sh busy-wait.sh $DATABASE_URL
-
-# manage.py migrate --noinput nao funcionava
 yes yes | python3 manage.py migrate
-#python3 manage.py collectstatic --no-input
-# python3 manage.py rebuild_index --noinput &
+
+
+## SOLR
+USE_SOLR="${USE_SOLR:=False}"
+SOLR_URL="${SOLR_URL:=http://localhost:8983}"
+SOLR_COLLECTION="${SOLR_COLLECTION:=sapl}"
+
+NUM_SHARDS=${NUM_SHARDS:=1}
+RF=${RF:=1}
+MAX_SHARDS_PER_NODE=${MAX_SHARDS_PER_NODE:=1}
+
+if [ "${USE_SOLR-False}" == "True" ]; then
+
+    echo "SOLR configurations"
+    echo "==================="
+    echo "URL: $SOLR_URL"
+    echo "COLLECTION: $SOLR_COLLECTION"
+    echo "NUM_SHARDS: $NUM_SHARDS"
+    echo "REPLICATION FACTOR: $RF"
+    echo "MAX SHARDS PER NODE: $MAX_SHARDS_PER_NODE"
+    echo "========================================="
+    
+    /bin/bash check_solr.sh $SOLR_URL
+
+    python3 solr_api.py -u $SOLR_URL -c $SOLR_COLLECTION -s $NUM_SHARDS -rf $RF -ms $MAX_SHARDS_PER_NODE &
+    # python3 manage.py rebuild_index --noinput &
+else
+    echo "Suporte a SOLR não inicializado."
+fi
 
 echo "Criando usuário admin..."
 
@@ -72,6 +100,14 @@ if [ $lack_pwd -eq 0 ]; then
    # return -1
 fi
 
+echo "-------------------------------------"
+echo "| ███████╗ █████╗ ██████╗ ██╗       |"
+echo "| ██╔════╝██╔══██╗██╔══██╗██║       |"
+echo "| ███████╗███████║██████╔╝██║       |"
+echo "| ╚════██║██╔══██║██╔═══╝ ██║       |"
+echo "| ███████║██║  ██║██║     ███████╗  |"
+echo "| ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝  |"
+echo "-------------------------------------"
 
 /bin/sh gunicorn_start.sh no-venv &
 /usr/sbin/nginx -g "daemon off;"

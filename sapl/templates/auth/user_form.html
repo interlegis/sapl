@@ -5,10 +5,15 @@
 
     <form action="" method="post">
         {% csrf_token %}
-        {%  crispy form %}
         {% if object.pk %}
-            <a class="btn btn-warning" href="{% url 'sapl.base:user_delete' object.pk %}">Remover usuário</a>
+        <div class="actions btn-group float-left" role="group">
+			<a href="{% url 'sapl.base:usuario' %}" class="btn btn-outline-primary">{% trans 'Pesquisar usuários' %}</a>
+			<a href="{% url 'sapl.base:user_create' %}" class="btn btn-outline-primary">{% trans 'Criar usuário' %}</a>
+        </div>
+            <a href="{% url 'sapl.base:user_delete' object.pk %}" class="btn btn-outline-danger float-right">{% trans 'Remover usuário' %}</a>
+            <br /> <br />
         {% endif %}
+        {%  crispy form %}
     </form>
-
+	<br /><br /><br />
 {% endblock base_content %}

@@ -1,8 +1,8 @@
 import logging
+
 from braces.views import FormMessagesMixin
-from compressor.utils.decorators import cached_property
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.conf.urls import url
@@ -16,6 +16,7 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
+from django.utils.functional import cached_property
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
@@ -28,6 +29,7 @@ from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
 from sapl.settings import BASE_DIR
 from sapl.utils import normalize
+
 
 ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
     'list', 'create', 'detail', 'update', 'delete'
@@ -148,7 +150,7 @@ class ListWithSearchForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ListWithSearchForm, self).__init__(*args, **kwargs)
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.form_class = 'form-inline'
         self.helper.form_method = 'GET'
         self.helper.layout = Layout(
@@ -158,7 +160,7 @@ class ListWithSearchForm(forms.Form):
                       placeholder=_('Filtrar Lista'),
                       css_class='input-lg'),
                 StrictButton(
-                    _('Filtrar'), css_class='btn-default btn-lg',
+                    _('Filtrar'), css_class='btn-outline-primary btn-lg',
                     type='submit'))
         )
 
@@ -558,7 +560,8 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                             fm = model._meta.get_field(fo)
                         except Exception as e:
                             username = self.request.user.username
-                            self.logger.error("user=" + username + ". " + str(e))
+                            self.logger.error(
+                                "user=" + username + ". " + str(e))
                             pass
 
                         if fm and hasattr(fm, 'related_model')\
@@ -824,7 +827,7 @@ class CrudUpdateView(PermissionRequiredContainerCrudMixin,
     logger = logging.getLogger(__name__)
 
     def form_valid(self, form):
-        
+
         self.object = form.instance
         try:
             self.object.modifier = self.request.user
@@ -882,12 +885,12 @@ class CrudDeleteView(PermissionRequiredContainerCrudMixin,
                 error_msg2 += '{} - {}, '.format(
                     i._meta.verbose_name, i
                 )
-            error_msg2 = error_msg2[:len(error_msg2)-2] + '.'
+            error_msg2 = error_msg2[:len(error_msg2) - 2] + '.'
             error_msg += '</ul>'
-            
+
             username = request.user.username
             self.logger.error("user=" + username + ". Registro não pode ser removido, pois "
-                         "é referenciado por outros registros: " + error_msg2)
+                              "é referenciado por outros registros: " + error_msg2)
             messages.add_message(request,
                                  messages.ERROR,
                                  error_msg)

@@ -8,6 +8,7 @@ __pycache__/
 
 # Nodejs
 node_modules/
+yarn.lock
 
 # Distribution / packaging
 .Python
@@ -53,7 +54,7 @@ coverage.xml
 
 # Django stuff:
 *.log
-
+sapl.log.*
 *.swp
 
 # Sphinx documentation
@@ -88,6 +89,7 @@ target/
 .ipynb_checkpoints/
 *.ipynb
 .vscode/*
+*/.vscode/*
 
 # specific to this project
 whoosh_index

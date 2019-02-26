@@ -1,8 +1,9 @@
-import pytest
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+import pytest
 
+from sapl.base.models import AppConfig
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.norma.forms import (NormaJuridicaForm, NormaPesquisaSimplesForm,
                               NormaRelacionadaForm)
@@ -15,6 +16,7 @@ def test_incluir_norma_submit(admin_client):
     tipo = mommy.make(TipoNormaJuridica,
                       sigla='T',
                       descricao='Teste')
+    config = mommy.make(AppConfig)
 
     # Testa POST
     response = admin_client.post(reverse('sapl.norma:normajuridica_create'),
@@ -79,6 +81,15 @@ def test_norma_juridica_materia_inexistente():
     tipo = mommy.make(TipoNormaJuridica)
     tipo_materia = mommy.make(TipoMateriaLegislativa, descricao='VETO')
 
+    # cria uma matéria qualquer em 2017 pois, no teste, o campo ano_materia
+    # está vazio
+    materia = mommy.make(MateriaLegislativa,
+                         tipo=tipo_materia,
+                         ano=2017,
+                         numero=1,
+                         data_apresentacao='2017-03-05'
+                         )
+
     form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
                                    'numero': '1',
                                    'ano': '2017',
@@ -92,7 +103,8 @@ def test_norma_juridica_materia_inexistente():
 
     assert not form.is_valid()
 
-    assert form.errors['__all__'] == [_("Matéria Legislativa 2/2017 (VETO) é inexistente.")]
+    assert form.errors['__all__'] == [
+        _("Matéria Legislativa 2/2017 (VETO) é inexistente.")]
 
 
 @pytest.mark.django_db(transaction=False)

@@ -3,7 +3,7 @@ import logging
 from random import choice
 from string import ascii_letters, digits
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML
 from django.conf import settings
 from django.contrib import messages
@@ -26,7 +26,7 @@ import weasyprint
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
-from sapl.base.models import Autor, CasaLegislativa
+from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
 from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
@@ -211,7 +211,13 @@ class CriarProtocoloMateriaView(CreateView):
         context['form'].fields['tipo'].initial = protocolo.tipo_materia
         context['form'].fields['numero'].initial = numero
         context['form'].fields['ano'].initial = protocolo.ano
-        context['form'].fields['data_apresentacao'].initial = protocolo.timestamp.date()
+        if protocolo:
+            if protocolo.timestamp:
+                context['form'].fields['data_apresentacao'].initial = protocolo.timestamp.date()
+            elif protocolo.timestamp_data_hora_manual:
+                context['form'].fields['data_apresentacao'].initial = protocolo.timestamp_data_hora_manual.date()
+            elif protocolo.data:
+                context['form'].fields['data_apresentacao'].initial = protocolo.data
         context['form'].fields['numero_protocolo'].initial = protocolo.numero
         context['form'].fields['ementa'].initial = protocolo.assunto_ementa
 
@@ -783,15 +789,22 @@ class ProposicaoCrud(Crud):
                         msg_error = _('Proposição não possui nenhum tipo de '
                                       'Texto associado.')
                     else:
-                        p.data_devolucao = None
-                        p.data_envio = timezone.now()
-                        p.save()
-
                         if p.texto_articulado.exists():
                             ta = p.texto_articulado.first()
                             ta.privacidade = STATUS_TA_IMMUTABLE_RESTRICT
                             ta.editing_locked = True
                             ta.save()
+
+                            receber_recibo = BaseAppConfig.attr(
+                                'receber_recibo_proposicao')
+
+                            if not receber_recibo:
+                                ta = p.texto_articulado.first()
+                                p.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(p.pk)
+
+                        p.data_devolucao = None
+                        p.data_envio = timezone.now()
+                        p.save()
 
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
@@ -799,8 +812,12 @@ class ProposicaoCrud(Crud):
                             self.logger.debug("user=" + username + ". Tentando obter número do objeto MateriaLegislativa com "
                                               "atributos tipo={} e ano={}."
                                               .format(p.tipo.tipo_conteudo_related, p.ano))
-                            numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
-                                                                       ano=p.ano).last().numero + 1
+
+                            if p.numero_materia_futuro:
+                                numero = p.numero_materia_futuro
+                            else:
+                                numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
+                                                                           ano=p.ano).last().numero + 1
                             messages.success(request, _(
                                 '%s : nº %s de %s <br>Atenção! Este número é apenas um provável '
                                 'número que pode não corresponder com a realidade'
@@ -926,6 +943,7 @@ class ProposicaoCrud(Crud):
             username = request.user.username
 
             if proposicao:
+                msg = ''
                 if proposicao[0][0] and proposicao[0][1]:
                     self.logger.error('user=' + username + '. Proposição (id={}) já foi enviada e recebida.'
                                       'Não pode mais ser editada'.format(kwargs['pk']))
@@ -1336,7 +1354,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
 def montar_helper_documento_acessorio(self):
     autor_row = montar_row_autor('autor')
-    self.helper = FormHelper()
+    self.helper = SaplFormHelper()
     self.helper.layout = SaplFormLayout(*self.get_layout())
 
     # Adiciona o novo campo 'autor' e mecanismo de busca
@@ -1350,7 +1368,7 @@ def montar_helper_documento_acessorio(self):
     # Adiciona novos botões dentro do form
     self.helper.layout[0][3][0].insert(1, form_actions(more=[
         HTML('<a href="{{ view.cancel_url }}"'
-             ' class="btn btn-inverse">Cancelar</a>')]))
+             ' class="btn btn-dark">Cancelar</a>')]))
 
 
 class DocumentoAcessorioCrud(MasterDetailCrud):
@@ -1747,41 +1765,51 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         kwargs = {'data': self.request.GET or None}
 
-        status_tramitacao = self.request.GET.get('tramitacao__status')
-        unidade_destino = self.request.GET.get(
-            'tramitacao__unidade_tramitacao_destino')
+        tipo_listagem = self.request.GET.get('tipo_listagem', '1')
+        tipo_listagem = '1' if not tipo_listagem else tipo_listagem
 
         qs = self.get_queryset().distinct()
+        if tipo_listagem == '1':
 
-        if status_tramitacao and unidade_destino:
-            lista = filtra_tramitacao_destino_and_status(status_tramitacao,
-                                                         unidade_destino)
-            qs = qs.filter(id__in=lista).distinct()
+            status_tramitacao = self.request.GET.get('tramitacao__status')
+            unidade_destino = self.request.GET.get(
+                'tramitacao__unidade_tramitacao_destino')
 
-        elif status_tramitacao:
-            lista = filtra_tramitacao_status(status_tramitacao)
-            qs = qs.filter(id__in=lista).distinct()
+            if status_tramitacao and unidade_destino:
+                lista = filtra_tramitacao_destino_and_status(status_tramitacao,
+                                                             unidade_destino)
+                qs = qs.filter(id__in=lista).distinct()
 
-        elif unidade_destino:
-            lista = filtra_tramitacao_destino(unidade_destino)
-            qs = qs.filter(id__in=lista).distinct()
+            elif status_tramitacao:
+                lista = filtra_tramitacao_status(status_tramitacao)
+                qs = qs.filter(id__in=lista).distinct()
+
+            elif unidade_destino:
+                lista = filtra_tramitacao_destino(unidade_destino)
+                qs = qs.filter(id__in=lista).distinct()
+
+            qs = qs.prefetch_related("autoria_set",
+                                     "autoria_set__autor",
+                                     "numeracao_set",
+                                     "anexadas",
+                                     "tipo",
+                                     "texto_articulado",
+                                     "tramitacao_set",
+                                     "tramitacao_set__status",
+                                     "tramitacao_set__unidade_tramitacao_local",
+                                     "tramitacao_set__unidade_tramitacao_destino",
+                                     "normajuridica_set",
+                                     "registrovotacao_set",
+                                     "documentoacessorio_set")
+        else:
+
+            qs = qs.prefetch_related("autoria_set",
+                                     "numeracao_set",
+                                     "autoria_set__autor",
+                                     "tipo",)
 
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', 'tipo__sigla', '-numero')
-
-        qs = qs.prefetch_related("autoria_set",
-                                 "autoria_set__autor",
-                                 "numeracao_set",
-                                 "anexadas",
-                                 "tipo",
-                                 "texto_articulado",
-                                 "tramitacao_set",
-                                 "tramitacao_set__status",
-                                 "tramitacao_set__unidade_tramitacao_local",
-                                 "tramitacao_set__unidade_tramitacao_destino",
-                                 "normajuridica_set",
-                                 "registrovotacao_set",
-                                 "documentoacessorio_set")
 
         kwargs.update({
             'queryset': qs,
@@ -1794,7 +1822,10 @@ class MateriaLegislativaPesquisaView(FilterView):
 
         context['title'] = _('Pesquisar Matéria Legislativa')
 
-        self.filterset.form.fields['o'].label = _('Ordenação')
+        tipo_listagem = self.request.GET.get('tipo_listagem', '1')
+        tipo_listagem = '1' if not tipo_listagem else tipo_listagem
+
+        context['tipo_listagem'] = tipo_listagem
 
         qr = self.request.GET.copy()
         if 'page' in qr:
@@ -1809,6 +1840,9 @@ class MateriaLegislativaPesquisaView(FilterView):
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
+
+        context['USE_SOLR'] = settings.USE_SOLR if hasattr(
+            settings, 'USE_SOLR') else False
 
         return context
 
@@ -2039,24 +2073,41 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         if not request.POST['data_encaminhamento']:
             data_encaminhamento = None
         else:
-            data_encaminhamento = tz.localize(datetime.strptime(
-                request.POST['data_encaminhamento'], "%d/%m/%Y"))
+            try:
+                data_encaminhamento = tz.localize(datetime.strptime(
+                    request.POST['data_encaminhamento'], "%d/%m/%Y"))
+            except ValueError:
+                msg = _('Formato da data de encaminhamento incorreto.')
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs)
 
         if request.POST['data_fim_prazo'] == '':
             data_fim_prazo = None
         else:
-            data_fim_prazo = tz.localize(datetime.strptime(
-                request.POST['data_fim_prazo'], "%d/%m/%Y"))
+            try:
+                data_fim_prazo = tz.localize(datetime.strptime(
+                    request.POST['data_fim_prazo'], "%d/%m/%Y"))
+            except ValueError:
+                msg = _('Formato da data fim do prazo incorreto.')
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs)
 
         # issue https://github.com/interlegis/sapl/issues/1123
         # TODO: usar Form
         urgente = request.POST['urgente'] == 'True'
         flag_error = False
         for materia_id in marcadas:
+            try:
+                data_tramitacao = tz.localize(datetime.strptime(
+                    request.POST['data_tramitacao'], "%d/%m/%Y"))
+            except ValueError:
+                msg = _('Formato da data da tramitação incorreto.')
+                messages.add_message(request, messages.ERROR, msg)
+                return self.get(request, self.kwargs)
+
             t = Tramitacao(
                 materia_id=materia_id,
-                data_tramitacao=tz.localize(datetime.strptime(
-                    request.POST['data_tramitacao'], "%d/%m/%Y")),
+                data_tramitacao=data_tramitacao,
                 data_encaminhamento=data_encaminhamento,
                 data_fim_prazo=data_fim_prazo,
                 unidade_tramitacao_local_id=request.POST[
@@ -2135,7 +2186,7 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
-    html = template.render(RequestContext(request, context))
+    html = template.render(context, request)
 
     pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()
                           ).write_pdf()

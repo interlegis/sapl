@@ -1,11 +1,13 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
-import pytest
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+import pytest
 
+from sapl.base.models import AppConfig
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
                                      DocumentoAdministrativoForm,
@@ -191,7 +193,7 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
-         'data_tramitacao': date.today() + timedelta(
+         'data_tramitacao': timezone.now().date() + timedelta(
              days=1)},
         follow=True)
 
@@ -368,6 +370,11 @@ def test_documento_administrativo_invalido():
 def test_documento_administrativo_protocolo_inexistente():
 
     tipo = mommy.make(TipoDocumentoAdministrativo)
+    protocolo = mommy.make(Protocolo,
+                           ano=2017,
+                           numero=10,
+                           anulado=False,
+                           tipo_documento=tipo)
 
     form = DocumentoAdministrativoForm(data={'ano': '2017',
                                              'tipo': str(tipo.pk),
@@ -384,31 +391,50 @@ def test_documento_administrativo_protocolo_inexistente():
     assert form.errors['__all__'] == [_('Protocolo 11/2017 inexistente.')]
 
 
+@pytest.mark.django_db(transaction=False)
 def test_protocolo_documento_form_invalido():
 
-    form = ProtocoloDocumentForm(data={})
+    config = mommy.make(AppConfig)
+
+    form = ProtocoloDocumentForm(
+        data={},
+        initial={
+            'user_data_hora_manual': '',
+            'ip_data_hora_manual': '',
+            'data': timezone.localdate(timezone.now()),
+            'hora':  timezone.localtime(timezone.now())})
 
     assert not form.is_valid()
 
     errors = form.errors
 
+    assert errors['data_hora_manual'] == [_('Este campo é obrigatório.')]
     assert errors['tipo_protocolo'] == [_('Este campo é obrigatório.')]
     assert errors['interessado'] == [_('Este campo é obrigatório.')]
     assert errors['tipo_documento'] == [_('Este campo é obrigatório.')]
     assert errors['numero_paginas'] == [_('Este campo é obrigatório.')]
     assert errors['assunto'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 5
+    assert len(errors) == 6
 
 
+@pytest.mark.django_db(transaction=False)
 def test_protocolo_materia_invalido():
 
-    form = ProtocoloMateriaForm(data={})
+    config = mommy.make(AppConfig)
+
+    form = ProtocoloMateriaForm(data={},
+                                initial={
+        'user_data_hora_manual': '',
+        'ip_data_hora_manual': '',
+        'data': timezone.localdate(timezone.now()),
+        'hora':  timezone.localtime(timezone.now())})
 
     assert not form.is_valid()
 
     errors = form.errors
 
+    assert errors['data_hora_manual'] == [_('Este campo é obrigatório.')]
     assert errors['assunto_ementa'] == [_('Este campo é obrigatório.')]
     assert errors['tipo_autor'] == [_('Este campo é obrigatório.')]
     assert errors['tipo_materia'] == [_('Este campo é obrigatório.')]
@@ -416,4 +442,4 @@ def test_protocolo_materia_invalido():
     assert errors['autor'] == [_('Este campo é obrigatório.')]
     assert errors['vincular_materia'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 6
+    assert len(errors) == 7

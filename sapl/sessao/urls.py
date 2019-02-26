@@ -28,7 +28,9 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                remove_parlamentar_composicao,
                                reordernar_materias_expediente,
                                reordernar_materias_ordem,
-                               sessao_legislativa_legislatura_ajax)
+                               sessao_legislativa_legislatura_ajax,
+                               VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
+                               VotacaoEmBlocoSimbolicaView,VotacaoEmBlocoNominalView)
 
 from .apps import AppConfig
 
@@ -115,6 +117,16 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/presencaordemdia$',
         PresencaOrdemDiaView.as_view(),
         name='presencaordemdia'),
+    url(r'^sessao/(?P<pk>\d+)/votacao_bloco_ordemdia$',
+        VotacaoEmBlocoOrdemDia.as_view(),
+        name='votacao_bloco_ordemdia'),
+    url(r'^sessao/(?P<pk>\d+)/votacao_bloco/votnom$',
+        VotacaoEmBlocoNominalView.as_view(), name='votacaobloconom'),
+    url(r'^sessao/(?P<pk>\d+)/votacao_bloco/votsimb$',
+        VotacaoEmBlocoSimbolicaView.as_view(), name='votacaoblocosimb'),  
+    url(r'^sessao/(?P<pk>\d+)/votacao_bloco_expediente$',
+        VotacaoEmBlocoExpediente.as_view(),
+        name='votacao_bloco_expediente'),
     url(r'^sessao/(?P<pk>\d+)/resumo$',
         ResumoView.as_view(), name='resumo'),
     url(r'^sessao/(?P<pk>\d+)/resumo_ata$',
@@ -133,6 +145,10 @@ urlpatterns = [
         VotacaoEditView.as_view(), name='votacaosecretaedit'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoView.as_view(), name='votacaosimbolica'),
+    
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimbbloco/$',
+        VotacaoView.as_view(), name='votacaosimbolicabloco'),
+
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb'
         '/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoEditView.as_view(), name='votacaosimbolicaedit'),

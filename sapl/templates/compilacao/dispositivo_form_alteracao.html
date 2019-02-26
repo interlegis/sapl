@@ -3,10 +3,10 @@
 
 {% block extra_js %}{{block.super}}
   <script type="text/javascript">
-    DispostivoSearch({
+    DispositivoSearch({
       'url_form': '{% url 'sapl.compilacao:dispositivo_search_form'%}',
       'text_button': '{% trans 'Definir Dispositivo'%}'
     });    
-     initTinymce();
+     initTextRichEditor();
   </script>
 {% endblock %}

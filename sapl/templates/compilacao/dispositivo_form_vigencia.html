@@ -19,7 +19,7 @@
     $('[name="inicio_vigencia"]').on('change', change_inconstitucionalidade);
     change_inconstitucionalidade();
 
-    DispostivoSearch({
+    DispositivoSearch({
       'url_form': '{% url 'sapl.compilacao:dispositivo_search_form'%}',
       'text_button': '{% trans 'Selecionar Dispositivo'%}'
     });

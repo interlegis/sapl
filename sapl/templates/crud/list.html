@@ -5,15 +5,15 @@
 
 <div class="context-actions clearfix">
 
-  <div class="actions search pull-left">
+  <div class="actions search float-left">
     {% if form %}
       {% crispy form %}
     {% endif %}
   </div>
   {% block actions %}
-    <div class="actions btn-group pull-right btn-group-lg" role="group">
+    <div class="actions btn-group float-right btn-group-lg" role="group">
       {% if view.create_url %}
-      <a href="{{ view.create_url }}" class="btn btn-default">
+      <a href="{{ view.create_url }}" class="btn btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
       </a>
       {% endif %}
@@ -27,7 +27,7 @@
     {% if view.extras_url %}
       <div class="actions btn-group btn-group-sm" role="group">
        {% for href, css_class, text in view.extras_url %}
-         <a href="{{href}}" class="btn btn-default {{css_class}}">
+         <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
                {{text}}
              </a>
        {% endfor %}

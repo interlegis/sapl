@@ -139,7 +139,6 @@ def test_valida_campos_obrigatorios_reuniao_form():
     assert errors['nome'] == [_('Este campo é obrigatório.')]
     assert errors['data'] == [_('Este campo é obrigatório.')]
     assert errors['hora_inicio'] == [_('Este campo é obrigatório.')]
-    assert errors['hora_fim'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 7
+    assert len(errors) == 6
   

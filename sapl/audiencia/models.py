@@ -155,13 +155,12 @@ class AnexoAudienciaPublica(models.Model):
     audiencia = models.ForeignKey(AudienciaPublica,
                                   on_delete=models.PROTECT)
     arquivo = models.FileField(
-        blank=True,
-        null=True,
         upload_to=texto_upload_path,
         verbose_name=_('Arquivo'))
-    data = models.DateField(auto_now=timezone.now,blank=True, null=True)
+    data = models.DateField(
+        auto_now=timezone.now)
     assunto = models.TextField(
-        blank=True, verbose_name=_('Assunto'))
+        verbose_name=_('Assunto'))
 
     class Meta:
         verbose_name = _('Anexo de Documento Acessório')
@@ -174,22 +173,19 @@ class AnexoAudienciaPublica(models.Model):
         if self.arquivo:
             self.arquivo.delete()
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        return models.Model.delete(self, using=using, keep_parents=keep_parents)
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if not self.pk and self.arquivo:
             arquivo = self.arquivo
             self.arquivo = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
+            models.Model.save(
+                self,
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields)
             self.arquivo = arquivo
 
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
+        return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using,
                                  update_fields=update_fields)

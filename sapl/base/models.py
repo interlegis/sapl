@@ -1,25 +1,31 @@
-import reversion
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
-#from model_utils import Choices
+import reversion
+
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
 
-TIPO_DOCUMENTO_ADMINISTRATIVO = (('O', _('Ostensiva')),
-                                 ('R', _('Restritiva')))
+DOC_ADM_OSTENSIVO = 'O'
+DOC_ADM_RESTRITIVO = 'R'
+
+TIPO_DOCUMENTO_ADMINISTRATIVO = ((DOC_ADM_OSTENSIVO, _('Ostensiva')),
+                                 (DOC_ADM_RESTRITIVO, _('Restritiva')))
+
+RELATORIO_ATOS_ACESSADOS = (('S', _('Sim')),
+                            ('N', _('Não')))
 
 SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano')),
                        ('L', _('Sequencial por legislatura')),
                        ('U', _('Sequencial único')))
 
 ESFERA_FEDERACAO_CHOICES = (('M', _('Municipal')),
-    ('E', _('Estadual')),
-    ('F', _('Federal')),
-)
+                            ('E', _('Estadual')),
+                            ('F', _('Federal')),
+                            )
 
 ASSINATURA_ATA_CHOICES = (
     ('M', _('Mesa Diretora da Sessão')),
@@ -84,6 +90,11 @@ class AppConfig(models.Model):
         verbose_name=_('Visibilidade dos Documentos Administrativos'),
         choices=TIPO_DOCUMENTO_ADMINISTRATIVO, default='O')
 
+    estatisticas_acesso_normas = models.CharField(
+        max_length=1,
+        verbose_name=_('Estatísticas de acesso a normas'),
+        choices=RELATORIO_ATOS_ACESSADOS, default='N')
+
     sequencia_numeracao = models.CharField(
         max_length=1,
         verbose_name=_('Sequência de numeração'),
@@ -92,7 +103,7 @@ class AppConfig(models.Model):
     esfera_federacao = models.CharField(
         max_length=1,
         blank=True,
-        default = "",
+        default="",
         verbose_name=_('Esfera Federação'),
         choices=ESFERA_FEDERACAO_CHOICES)
 
@@ -148,6 +159,14 @@ class AppConfig(models.Model):
     receber_recibo_proposicao = models.BooleanField(
         verbose_name=_('Protocolar proposição somente com recibo?'),
         choices=YES_NO_CHOICES, default=True)
+
+    protocolo_manual = models.BooleanField(
+        verbose_name=_('Informar data e hora de protocolo?'),
+        choices=YES_NO_CHOICES, default=False)
+
+    escolher_numero_materia_proposicao = models.BooleanField(
+        verbose_name=_('Indicar número da matéria a ser gerada na proposição?'),
+        choices=YES_NO_CHOICES, default=False)
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')

@@ -1,8 +1,8 @@
-import reversion
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
@@ -56,13 +56,30 @@ class Protocolo(models.Model):
                                            null=False,
                                            choices=RANGE_ANOS,
                                            verbose_name=_('Ano do Protocolo'))
-    # TODO: Remover esses dois campos após migração,
-    # TODO: pois timestamp supre a necessidade
-    data = models.DateField(null=True, blank=True)
-    hora = models.TimeField(null=True, blank=True)
+
+    data = models.DateField(null=True, blank=True,
+                            verbose_name=_('Data do Protocolo'),
+                            help_text=_('Informado manualmente'))
+    hora = models.TimeField(null=True, blank=True,
+                            verbose_name=_('Hora do Protocolo'),
+                            help_text=_('Informado manualmente'))
+    timestamp_data_hora_manual = models.DateTimeField(default=timezone.now)
+    user_data_hora_manual = models.CharField(
+        max_length=20, blank=True,
+        verbose_name=_('IP'),
+        help_text=_('Usuário que está realizando Protocolo e informando '
+                    'data e hora manualmente.'))
+    ip_data_hora_manual = models.CharField(
+        max_length=15, blank=True,
+        verbose_name=_('IP'),
+        help_text=_('Endereço IP da estação de trabalho '
+                    'do usuário que está realizando Protocolo e informando '
+                    'data e hora manualmente.'))
+
     # Não foi utilizado auto_now_add=True em timestamp porque
     # ele usa datetime.now que não é timezone aware.
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateTimeField(
+        default=timezone.now, null=True, blank=True)
     tipo_protocolo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
     tipo_processo = models.PositiveIntegerField()
@@ -78,13 +95,13 @@ class Protocolo(models.Model):
         blank=True,
         null=True,
         on_delete=models.PROTECT,
-        verbose_name=_('Tipo de documento'))
+        verbose_name=_('Tipo de Documento'))
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa,
         blank=True,
         null=True,
         on_delete=models.PROTECT,
-        verbose_name=_('Tipo Matéria'))
+        verbose_name=_('Tipo de Matéria'))
     numero_paginas = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número de Páginas'))
     observacao = models.TextField(
@@ -93,7 +110,7 @@ class Protocolo(models.Model):
     user_anulacao = models.CharField(max_length=20, blank=True)
     ip_anulacao = models.CharField(max_length=15, blank=True)
     justificativa_anulacao = models.CharField(
-        max_length=60, blank=True, verbose_name=_('Motivo'))
+        max_length=260, blank=True, verbose_name=_('Motivo'))
     timestamp_anulacao = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -299,10 +316,12 @@ class TramitacaoAdministrativo(models.Model):
             'documento': self.documento, 'status': self.status
         }
 
+
 @reversion.register()
 class AcompanhamentoDocumento(models.Model):
     usuario = models.CharField(max_length=50)
-    documento = models.ForeignKey(DocumentoAdministrativo, on_delete=models.CASCADE)
+    documento = models.ForeignKey(
+        DocumentoAdministrativo, on_delete=models.CASCADE)
     email = models.EmailField(
         max_length=100, verbose_name=_('E-mail'))
     data_cadastro = models.DateField(auto_now_add=True)

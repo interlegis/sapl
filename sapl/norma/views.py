@@ -1,6 +1,5 @@
-
-import re
 import logging
+import re
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,6 +13,8 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
+
+from sapl import settings
 import sapl
 from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
@@ -24,7 +25,7 @@ from sapl.utils import show_results_filter_set
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm, AutoriaNormaForm)
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
-                     TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma)
+                     TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma, NormaEstatisticas)
 
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
@@ -107,6 +108,8 @@ class NormaPesquisaView(FilterView):
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
+        context['USE_SOLR'] = settings.USE_SOLR if hasattr(
+            settings, 'USE_SOLR') else False
 
         return context
 
@@ -190,7 +193,14 @@ class NormaCrud(Crud):
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
     class DetailView(Crud.DetailView):
-        pass
+        def get(self, request, *args, **kwargs):
+            estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
+            if estatisticas_acesso_normas == 'S':
+                NormaEstatisticas.objects.create(usuario=str(self.request.user),
+                                                 norma_id=kwargs['pk'],
+                                                 ano=timezone.now().year,
+                                                 horario_acesso=timezone.now())
+            return super().get(request, *args, **kwargs)
 
     class DeleteView(Crud.DeleteView):
 
@@ -210,12 +220,14 @@ class NormaCrud(Crud):
             username = self.request.user.username
 
             try:
-                self.logger.debug('user=' + username + '. Tentando obter objeto de modelo da esfera da federação.')
+                self.logger.debug(
+                    'user=' + username + '. Tentando obter objeto de modelo da esfera da federação.')
                 esfera = sapl.base.models.AppConfig.objects.last(
                 ).esfera_federacao
                 self.initial['esfera_federacao'] = esfera
             except:
-                self.logger.error('user=' + username + '. Erro ao obter objeto de modelo da esfera da federação.')
+                self.logger.error(
+                    'user=' + username + '. Erro ao obter objeto de modelo da esfera da federação.')
                 pass
             self.initial['complemento'] = False
             return self.initial
@@ -324,6 +336,7 @@ class AutoriaNormaCrud(MasterDetailCrud):
             })
             return initial
 
+
 class ImpressosView(PermissionRequiredMixin, TemplateView):
     template_name = 'materia/impressos/impressos.html'
     permission_required = ('materia.can_access_impressos', )
@@ -331,7 +344,7 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
-    html = template.render(RequestContext(request, context))
+    html = template.render(context, request)
     pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()
                           ).write_pdf()
 

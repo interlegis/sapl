@@ -5,14 +5,14 @@
 
 <div class="context-actions clearfix">
   {% block actions %}{{block.super}}
-    <div class="actions btn-group btn-group-sm pull-right" role="group">
+    <div class="actions btn-group btn-group-sm float-right" role="group">
       {% if object.texto_articulado.exists %}
 
 
-        <a class="btn btn-default" href="{% url 'sapl.compilacao:ta_text' object.texto_articulado.first.pk%}?back_type=history">{% trans "Texto Eletrônico da Proposição" %}</a>
+        <a class="btn btn-outline-primary" href="{% url 'sapl.compilacao:ta_text' object.texto_articulado.first.pk%}?back_type=history">{% trans "Texto Eletrônico da Proposição" %}</a>
       {% endif %}
       {% if object.texto_original %}
-        <a class="btn btn-default" href="{{ object.texto_original.url }}">{% trans "Texto Original da Proposição" %}</a>
+        <a class="btn btn-outline-primary" href="{{ object.texto_original.url }}">{% trans "Texto Original da Proposição" %}</a>
       {% endif %}
     </div>
   {% endblock actions%}

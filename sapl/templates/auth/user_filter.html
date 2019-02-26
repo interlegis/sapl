@@ -1,0 +1,51 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags staticfiles %}
+
+{% block base_content %}
+	{% if not show_results %}
+		{% crispy filter.form %}
+		<a href="{% url 'sapl.base:user_create' %}" class="btn btn-outline-primary">{% trans 'Criar usuário' %}</a>
+  {% endif %}
+
+	{% if show_results %}
+    <div class="actions btn-group float-right" role="group">
+			<a href="{% url 'sapl.base:usuario' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+			<a href="{% url 'sapl.base:user_create' %}" class="btn btn-outline-primary">{% trans 'Criar usuário' %}</a>
+    </div>
+    <br /><br />
+		{% if numero_res > 0 %}
+			{% if numero_res == 1 %}
+				<p>Foi encontrado {{ numero_res }} resultado</p>
+			{% else %}
+				<p>Foram encontrados {{ numero_res }} resultados</p>
+			{% endif %}
+      <table class="table table-striped table-hover">
+    	  <thead>
+    	    <tr>
+    				<th>Nome de Usuário</th>
+						<th>Nome</th>
+						<th>E-mail do Usuário</th>
+    	    </tr>
+    	  </thead>
+    	  <tbody>
+    			{% for usuario in page_obj %}
+    				<tr>
+    					<td>
+								<a href="{% url 'sapl.base:user_edit' usuario.pk %}">{{ usuario.username }}</a>
+							</td>
+							<td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
+							<td>{{ usuario.email }}</td>
+    				</tr>
+    			{% endfor %}
+    	  </tbody>
+    	</table>
+		{% else %}
+			<font size="4"><p align="center">{{ NO_ENTRIES_MSG }}</p></font>
+    {% endif %}
+	{% endif %}
+	
+	<br/>
+	{% include 'paginacao.html'%}
+	<br /><br /><br />
+{% endblock base_content %}

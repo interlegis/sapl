@@ -1,16 +1,17 @@
 {% extends "protocoloadm/protocoloadm_detail.html" %}
 {% load i18n %}
-{% load crispy_forms_tags %}
 
+{% block extra_js %}
+   <script language="Javascript">
+      $(document).ready(function() {
 
-{% block actions %}
-
-  {{ block.super }}
-  <div class="actions btn-group pull-right grid-gutter-width-right " role="group">
-    <a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
-  </div>
+        $("input[name=data_hora_manual]").change(function(event) {
+          if (this.value === 'True' && this.checked)
+            $("#protocolo_data_hora_manual").show();
+          else if (this.value === 'False' && this.checked)
+            $("#protocolo_data_hora_manual").hide();
+        });
+        $("input[name=data_hora_manual]").trigger('change')
+      });
+   </script>
 {% endblock %}
-
-{% block detail_content %}
-	{% crispy form %}
-{% endblock detail_content %}

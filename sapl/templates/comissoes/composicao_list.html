@@ -5,9 +5,9 @@
   {% if user.is_authenticated and perms.comissoes.add_composicao %}
   <div class="context-actions clearfix">
     {% block actions %}
-      <div class="actions btn-group pull-right btn-group-lg" role="group">
+      <div class="actions btn-group float-right btn-group-lg" role="group">
         {% if view.create_url %}
-        <a href="{{ view.create_url }}" class="btn btn-default">
+        <a href="{{ view.create_url }}" class="btn btn-outline-primary">
           {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
         </a>
         {% endif %}
@@ -31,8 +31,8 @@
 	</fieldset>
 	<br/>
   {% if user.is_authenticated and perms.comissoes.add_participacao %}
-    <div class="actions btn-group pull-right btn-group-lg" role="group">
-        <a href="{% url 'sapl.comissoes:participacao_create' composicao_pk %}" class="btn btn-default">
+    <div class="actions btn-group mb-2" role="group">
+        <a href="{% url 'sapl.comissoes:participacao_create' composicao_pk %}" class="btn btn-outline-primary">
         Adicionar Participação em Comissão
         </a>
     </div>

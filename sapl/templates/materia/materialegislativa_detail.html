@@ -4,7 +4,7 @@
     {{ block.super }}
     {% if object.em_tramitacao and mail_service_configured %}
        <div class="actions btn-group btn-group-sm" role="group">
-       <a href="{% url 'sapl.materia:acompanhar_materia' object.id %}" class="btn btn-default">Acompanhar Matéria</a>
+       <a href="{% url 'sapl.materia:acompanhar_materia' object.id %}" class="btn btn-outline-primary">Acompanhar Matéria</a>
        </div>
     {% endif %}
 {% endblock sub_actions %}

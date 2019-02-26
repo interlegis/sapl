@@ -57,7 +57,7 @@
                 <td>{{ prop.autor }}</td>
                 <td>
                   {% if not AppConfig.receber_recibo_proposicao %}
-                    {%if prop.hash_code %}
+                    {% if prop.hash_code %}
                       <a href="{% url 'sapl.materia:proposicao-confirmar' prop.hash_code|strip_hash prop.pk %}">{{ prop.hash_code }}</a>
                     {% else %}
                       {{ prop.hash_code }}

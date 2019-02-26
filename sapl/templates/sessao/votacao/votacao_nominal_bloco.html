@@ -1,0 +1,163 @@
+{% extends "crud/detail.html" %}
+{% load i18n crispy_forms_tags%}
+
+{% block detail_content %}
+<form method="post">
+	{% csrf_token %}
+
+	<fieldset>
+		<legend>Votação Nominal</legend>
+		{% if ordens or expedientes %}
+			{% if total_presentes == 0 %}
+				<div class="alert alert-info alert-dismissible " role="alert">
+					<div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
+				</div>
+				{% if origem == 'ordem' %}
+					<a href="{% url 'sapl.sessao:votacao_bloco_ordemdia' pk %}" class="btn btn-warning">Voltar</a>
+				{% elif origem == 'expediente' %}
+					<a href="{% url 'sapl.sessao:votacao_bloco_expediente' pk %}" class="btn btn-warning">Voltar</a>
+				{% endif %}
+			{% else %}
+				{% if ordens %}
+					{% for o in ordens %}
+						<input type="hidden" id="ordens" name="ordens" value="{{o.id}}">
+						<div>
+							Matéria: {{o.materia}}
+							<br />
+							Ementa: {{o.materia.ementa|safe}}
+						</div>
+						<br />
+					{% endfor %}
+				{% elif expedientes %}
+					{% for e in expedientes %}
+						<input type="hidden" id="expedientes" name="expedientes" value="{{e.id}}">
+						<div>
+							Matéria: {{e.materia}}
+							<br />
+							Ementa: {{e.materia.ementa|safe}}
+						</div>
+						<br />
+					{% endfor %}
+				{% endif %}
+				<fieldset class="form-group">
+
+					{% if parlamentares %} 
+						<legend>Votos:</legend>
+						<div class="row">
+							{% for parlamentar in parlamentares %}
+								<div class="col-md-4" id="styleparlamentar">{{parlamentar.0.nome_parlamentar}}</div>
+								<div class="col-md-5">
+									{% if parlamentar.1 %} <input type="hidden" name="voto_parlamentar" value="{{parlamentar.1}}:{{parlamentar.0.id}}" /> {% endif %}
+									<select id="voto_parlamentar" name="voto_parlamentar" class="form-control" {% if parlamentar.1 %} disabled {% endif %}>
+										<option value="Não Votou:{{parlamentar.0.id}}">Não Votou</option>
+										<option value="Sim:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Sim' %} selected {% endif %}>Sim</option>
+										<option value="Não:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Não' %} selected {% endif %}>Não</option>
+										<option value="Abstenção:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Abstenção' %} selected {% endif %}>Abstenção</option>
+									</select>
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+					<br>
+					<legend>Situação da Votação:</legend>
+
+					<div id="soma_votos"></div>
+					<input type="hidden" id="votos_sim" name="votos_sim" value="">
+					<input type="hidden" id="votos_nao" name="votos_nao" value="">
+					<input type="hidden" id="abstencoes" name="abstencoes" value="">
+					<input type="hidden" id="nao_votou" name="nao_votou" value="">
+
+				</fieldset>
+
+				<div class="row">
+					<div class="col-md-12">
+						Resultado da Votação*
+						<select id="resultado_votacao" name="resultado_votacao" class="form-control">
+							{% for tipo in resultado_votacao %}
+								<option value="{{tipo.id}}">{{tipo.nome}}</option>
+							{% endfor %}
+						</select>
+					</div>
+				</div>
+
+				<br />
+				<div class="row">
+					<div class="col-md-12">
+						Observações<br/>
+						<textarea id="observacao" name="observacao" style="width:100%;" rows="7"></textarea>
+					</div>
+				</div>
+
+				<input type="hidden" id="origem" name="origem" value="{{origem}}">
+
+				<br /><br />
+				<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="btn btn-danger mb-3" />
+				<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Fechar Votação" class="btn btn-primary mb-3 float-right" />
+			{% endif %}
+		{% else %}
+			<div class="alert alert-info alert-dismissible " role="alert">
+			<div>Nenhuma matéria selecionada.</div>
+			</div>
+			{% if origem == 'ordem' %}
+				<a href="{% url 'sapl.sessao:votacao_bloco_ordemdia' pk %}" class="btn btn-warning">Voltar</a>
+			{% elif origem == 'expediente' %}
+				<a href="{% url 'sapl.sessao:votacao_bloco_expediente' pk %}" class="btn btn-warning">Voltar</a>
+			{% endif %}
+		{% endif %}
+	</fieldset>
+</form>
+{% endblock detail_content %}
+
+{% block extra_js %}
+	<script>
+		function voltar() {
+			window.history.back();
+		}
+
+		function conta_votos() {
+			var votos_sim = 0;
+			var votos_nao = 0;
+			var votos_abstencao = 0;
+			var nao_votou = 0;
+			$('[name=voto_parlamentar]').each(function() {
+				if (($(this).is(':hidden')) == false) {
+					switch ($(this).val().substring(0,4)) {
+						case "Sim:":
+							votos_sim = votos_sim + 1;
+							break;
+						case "Não:":
+							votos_nao = votos_nao + 1;
+							break;
+						case "Abst":
+							votos_abstencao = votos_abstencao + 1;
+							break;
+						case "Não ":
+							nao_votou = nao_votou + 1;
+							break;
+					};
+				};
+			});
+			$("#votos_sim").attr('value', votos_sim);
+			$("#votos_nao").attr('value', votos_nao);
+			$("#abstencoes").attr('value', votos_abstencao);
+			$("#nao_votou").attr('value', nao_votou);
+
+			$("#soma_votos").empty();
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Sim: " + votos_sim + "</div></div>");
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Não: " + votos_nao + "</div></div>");
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Abstenções: " + votos_abstencao + "</div></div>");
+			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Ainda não votaram: " + nao_votou + "</div></div>");
+			var t = setTimeout(function(){
+						conta_votos()
+					}, 500);
+		}
+		conta_votos();
+
+		window.onload = conta_votos();
+
+		$(window).on('beforeunload', function () {
+			$("input[type=submit], input[type=button]").prop("disabled", "disabled");
+		});
+
+	</script>
+{% endblock extra_js%}

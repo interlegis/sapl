@@ -2,6 +2,8 @@
 {% load i18n %}
 {% load common_tags %}
 
+{% load cropping%}
+
 {% block base_content %}
 
   <div class="clearfix">
@@ -12,17 +14,15 @@
   {% block detail_content %}
   <p class="legend"></p>
 
-  <div class="row-fluid">
+  <div class="row">
     {% if parlamentar.fotografia %}
-      <div class="col-sm-3">
-        <div id="div_fotografia" class="form-group">
-          <div class="controls">
-            <img class="img-responsive" src="{{ object.fotografia.url }}">
-          </div>
+      <div class="col-sm-4">
+        <div id="div_fotografia w-100" class="form-group">
+          <img class="img-fluid img-thumbnail" src="{% cropped_thumbnail object "cropping" scale=2%}">
         </div>
       </div>
     {% endif %}
-
+    <div class="col-sm-8">
       <div class="col-sm-8">
         <div id="div_nome" class="form-group">
           <p><b>Nome Completo: </b> &nbsp {{object.nome_completo}}</p>
@@ -70,6 +70,7 @@
           <p><b>Biografia: </b> &nbsp {{object.biografia|safe}}</p>
         </div>
       </div>
+    </div>
   </div>
 
   {% endblock detail_content %}

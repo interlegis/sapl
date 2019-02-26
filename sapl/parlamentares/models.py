@@ -1,10 +1,10 @@
 
-import reversion
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
+import reversion
 
 from sapl.base.models import Autor
 from sapl.decorators import vigencia_atual
@@ -28,10 +28,14 @@ class Legislatura(models.Model):
 
     def atual(self):
         current_year = timezone.now().year
+        if not self.data_fim:
+            self.data_fim = timezone.now().date()
         return self.data_inicio.year <= current_year <= self.data_fim.year
 
     @vigencia_atual
     def __str__(self):
+        if not self.data_fim:
+            self.data_fim = timezone.now().date()
         return _('%(numero)sª (%(start)s - %(end)s)') % {
             'numero': self.numero,
             'start': self.data_inicio.year,

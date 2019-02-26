@@ -1,4 +1,5 @@
 
+from bs4 import BeautifulSoup
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -1104,6 +1105,15 @@ class Dispositivo(BaseModel, TimestampedMixin):
             self.dispositivo_raiz = None
 
         self.contagem_continua = self.tipo_dispositivo.contagem_continua
+
+        try:
+            if self.texto:
+                self.texto = str(BeautifulSoup(self.texto, "html.parser"))
+            if self.texto_atualizador:
+                self.texto_atualizador = str(BeautifulSoup(
+                    self.texto_atualizador,  "html.parser"))
+        except:
+            pass
 
         return super().save(
             force_insert=force_insert, force_update=force_update, using=using,

@@ -1,9 +1,9 @@
 
-import django_filters
 import logging
-from crispy_forms.bootstrap import InlineRadios
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
+
+from crispy_forms.bootstrap import InlineRadios, Alert
+from sapl.crispy_layout_mixin import SaplFormHelper
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
@@ -12,34 +12,37 @@ from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.models import Autor, TipoAutor, AppConfig
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
                                  UnidadeTramitacao)
+from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
-                        RangeWidgetOverride, autor_label, autor_modal)
+                        RangeWidgetOverride, autor_label, autor_modal,
+                        choice_anos_com_protocolo, choice_force_optional,
+                        choice_anos_com_documentoadministrativo,
+                        FilterOverridesMetaMixin, choice_anos_com_materias,
+                        FileFieldCheckMixin)
 
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
                      TramitacaoAdministrativo)
 
-TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno'), ('', '---------')]
-TIPOS_PROTOCOLO_CREATE = [('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno')]
 
-NATUREZA_PROCESSO = [('', '---------'),
-                     ('0', 'Administrativo'),
+TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'),
+                   ('2', 'Interno')]
+TIPOS_PROTOCOLO_CREATE = [
+    ('0', 'Recebido'), ('1', 'Enviado'), ('2', 'Interno')]
+
+NATUREZA_PROCESSO = [('0', 'Administrativo'),
                      ('1', 'Legislativo')]
 
 
-def ANO_CHOICES():
-    return [('', '---------')] + RANGE_ANOS
+EM_TRAMITACAO = [(0, 'Sim'), (1, 'Não')]
 
-
-EM_TRAMITACAO = [('', '---------'),
-                 (0, 'Sim'),
-                 (1, 'Não')]
 
 class AcompanhamentoDocumentoForm(ModelForm):
 
@@ -55,7 +58,7 @@ class AcompanhamentoDocumentoForm(ModelForm):
             Column(form_actions(label='Cadastrar'), css_class='col-md-2')
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Acompanhamento de Documento por e-mail'), row1
@@ -66,20 +69,18 @@ class AcompanhamentoDocumentoForm(ModelForm):
 
 class ProtocoloFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateTimeField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': 'Data (%s)' % (_('Inicial - Final')),
-            'widget': RangeWidgetOverride}
-    }}
+    ano = django_filters.ChoiceFilter(
+        required=False,
+        label='Ano',
+        choices=choice_anos_com_protocolo)
 
-    ano = django_filters.ChoiceFilter(required=False,
-                                      label='Ano',
-                                      choices=ANO_CHOICES)
+    assunto_ementa = django_filters.CharFilter(
+        label=_('Assunto'),
+        lookup_expr='icontains')
 
-    assunto_ementa = django_filters.CharFilter(lookup_expr='icontains')
-
-    interessado = django_filters.CharFilter(lookup_expr='icontains')
+    interessado = django_filters.CharFilter(
+        label=_('Interessado'),
+        lookup_expr='icontains')
 
     autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
@@ -96,9 +97,9 @@ class ProtocoloFilterSet(django_filters.FilterSet):
         widget=forms.Select(
             attrs={'class': 'selector'}))
 
-    o = AnoNumeroOrderingFilter()
+    o = AnoNumeroOrderingFilter(help_text='')
 
-    class Meta:
+    class Meta(FilterOverridesMetaMixin):
         model = Protocolo
         fields = ['numero',
                   'tipo_documento',
@@ -109,8 +110,7 @@ class ProtocoloFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super(ProtocoloFilterSet, self).__init__(*args, **kwargs)
 
-        self.filters['autor'].label = 'Tipo de Matéria'
-        self.filters['assunto_ementa'].label = 'Assunto'
+        self.filters['timestamp'].label = 'Data (Inicial - Final)'
 
         row1 = to_row(
             [('numero', 4),
@@ -135,47 +135,44 @@ class ProtocoloFilterSet(django_filters.FilterSet):
                      'Limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
         row5 = to_row(
-            [('tipo_processo', 12)])
-        row6 = to_row(
-            [('o', 12)])
+            [('tipo_processo', 6), ('o', 6)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar Protocolo'),
                      row1, row2,
                      row3,
+                     row5,
                      HTML(autor_label),
                      HTML(autor_modal),
-                     row4, row5, row6,
+                     row4,
                      form_actions(label='Pesquisar'))
         )
 
 
 class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
-    filter_overrides = {models.DateField: {
-        'filter_class': django_filters.DateFromToRangeFilter,
-        'extra': lambda f: {
-            'label': 'Data (%s)' % (_('Inicial - Final')),
-            'widget': RangeWidgetOverride}
-    }}
-
-    ano = django_filters.ChoiceFilter(required=False,
-                                      label='Ano',
-                                      choices=ANO_CHOICES)
+    ano = django_filters.ChoiceFilter(
+        required=False,
+        label='Ano',
+        choices=choice_anos_com_documentoadministrativo)
 
     tramitacao = django_filters.ChoiceFilter(required=False,
                                              label='Em Tramitação?',
-                                             choices=EM_TRAMITACAO)
+                                             choices=YES_NO_CHOICES)
 
-    assunto = django_filters.CharFilter(lookup_expr='icontains')
+    assunto = django_filters.CharFilter(
+        label=_('Assunto'),
+        lookup_expr='icontains')
 
-    interessado = django_filters.CharFilter(lookup_expr='icontains')
+    interessado = django_filters.CharFilter(
+        label=_('Interessado'),
+        lookup_expr='icontains')
 
-    o = AnoNumeroOrderingFilter()
+    o = AnoNumeroOrderingFilter(help_text='')
 
-    class Meta:
+    class Meta(FilterOverridesMetaMixin):
         model = DocumentoAdministrativo
         fields = ['tipo',
                   'numero',
@@ -190,37 +187,38 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
         local_atual = 'tramitacaoadministrativo__unidade_tramitacao_destino'
         self.filters['tipo'].label = 'Tipo de Documento'
+        self.filters['protocolo__numero'].label = 'Núm. Protocolo'
         self.filters['tramitacaoadministrativo__status'].label = 'Situação'
         self.filters[local_atual].label = 'Localização Atual'
 
         row1 = to_row(
-            [('tipo', 6),
-             ('numero', 6)])
+            [('tipo', 8),
+             ('o', 4), ])
 
         row2 = to_row(
-            [('ano', 4),
+            [('numero', 2),
+             ('ano', 2),
              ('protocolo__numero', 2),
              ('numero_externo', 2),
              ('data', 4)])
 
         row3 = to_row(
-            [('interessado', 4),
-             ('assunto', 4),
-             ('tramitacao', 4)])
+            [('interessado', 6),
+             ('assunto', 6)])
 
         row4 = to_row(
-            [('tramitacaoadministrativo__unidade_tramitacao_destino', 6),
-             ('tramitacaoadministrativo__status', 6)])
+            [
+                ('tramitacao', 2),
+                ('tramitacaoadministrativo__status', 5),
+                ('tramitacaoadministrativo__unidade_tramitacao_destino', 5),
+            ])
 
-        row5 = to_row(
-            [('o', 12)])
-
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar Documento'),
                      row1, row2,
-                     row3, row4, row5,
+                     row3, row4,
                      form_actions(label='Pesquisar'))
         )
 
@@ -255,10 +253,12 @@ class AnularProcoloAdmForm(ModelForm):
         ano = cleaned_data['ano']
 
         try:
-            self.logger.debug("Tentando obter Protocolo com numero={} e ano={}.".format(numero, ano))
+            self.logger.debug(
+                "Tentando obter Protocolo com numero={} e ano={}.".format(numero, ano))
             protocolo = Protocolo.objects.get(numero=numero, ano=ano)
             if protocolo.anulado:
-                self.logger.error("Protocolo %s/%s já encontra-se anulado" % (numero, ano))
+                self.logger.error(
+                    "Protocolo %s/%s já encontra-se anulado" % (numero, ano))
                 raise forms.ValidationError(
                     _("Protocolo %s/%s já encontra-se anulado")
                     % (numero, ano))
@@ -306,7 +306,7 @@ class AnularProcoloAdmForm(ModelForm):
         row2 = to_row(
             [('justificativa_anulacao', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação do Protocolo'),
                      row1,
@@ -343,7 +343,14 @@ class ProtocoloDocumentForm(ModelForm):
     observacao = forms.CharField(required=False,
                                  widget=forms.Textarea, label=_('Observação'))
 
-    numero = forms.IntegerField(required=False, label=_('Número de Protocolo (opcional)'))
+    numero = forms.IntegerField(
+        required=False, label=_('Número de Protocolo (opcional)'))
+
+    data_hora_manual = forms.ChoiceField(
+        label=_('Informar data e hora manualmente?'),
+        widget=forms.RadioSelect(),
+        choices=YES_NO_CHOICES,
+        initial=False)
 
     class Meta:
         model = Protocolo
@@ -353,7 +360,9 @@ class ProtocoloDocumentForm(ModelForm):
                   'assunto',
                   'interessado',
                   'observacao',
-                  'numero'
+                  'numero',
+                  'data',
+                  'hora',
                   ]
 
     def __init__(self, *args, **kwargs):
@@ -361,36 +370,72 @@ class ProtocoloDocumentForm(ModelForm):
         row1 = to_row(
             [(InlineRadios('tipo_protocolo'), 12)])
         row2 = to_row(
-            [('tipo_documento', 6),
-             ('numero_paginas', 6)])
-        row3 = to_row(
-            [('assunto', 12)])
+            [('tipo_documento', 5),
+             ('numero_paginas', 2),
+             (Div(), 1),
+             (InlineRadios('data_hora_manual'), 4),
+             ])
+        row3 = to_row([
+            (Div(), 2),
+            (Alert(
+                """
+                Usuário: <strong>{}</strong> - {}<br> 
+                IP: <strong>{}</strong> - {}<br>
+                
+                """.format(
+                    kwargs['initial']['user_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'user_data_hora_manual').help_text,
+                    kwargs['initial']['ip_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'ip_data_hora_manual').help_text,
+
+                ),
+                dismiss=False,
+                css_class='alert-info'), 6),
+            ('data', 2),
+            ('hora', 2),
+        ])
         row4 = to_row(
-            [('interessado', 12)])
+            [('assunto', 12)])
         row5 = to_row(
-            [('observacao', 12)])
+            [('interessado', 12)])
         row6 = to_row(
+            [('observacao', 12)])
+        row7 = to_row(
             [('numero', 12)])
 
-        self.helper = FormHelper()
+        fieldset = Fieldset(_('Protocolo com data e hora informados manualmente'),
+                            row3,
+                            css_id='protocolo_data_hora_manual')
+
+        config = AppConfig.objects.first()
+        if not config.protocolo_manual:
+            row3 = to_row([(HTML("&nbsp;"), 12)])
+            fieldset = row3
+
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação de Documento'),
                      row1,
-                     row2,
-                     row3,
-                     row4,
-                     row5,
-                     HTML("&nbsp;"),
-                     ),
+                     row2),
+                     fieldset,
+            row4,
+            row5,
+            HTML("&nbsp;"),
             Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece '
                        'a partir do número a ser informado)'),
-                     row6,
+                     row7,
                      HTML("&nbsp;"),
                      form_actions(label=_('Protocolar Documento'))
                      )
         )
         super(ProtocoloDocumentForm, self).__init__(
             *args, **kwargs)
+
+        if not config.protocolo_manual:
+            self.fields['data_hora_manual'].widget = forms.HiddenInput()
+
 
 
 class ProtocoloMateriaForm(ModelForm):
@@ -420,10 +465,11 @@ class ProtocoloMateriaForm(ModelForm):
     ano_materia = forms.CharField(
         label=_('Ano matéria'), required=False)
 
-    vincular_materia = forms.ChoiceField(label=_('Vincular a matéria existente?'),
-                                         widget=forms.RadioSelect(),
-                                         choices=YES_NO_CHOICES,
-                                         initial=False)
+    vincular_materia = forms.ChoiceField(
+        label=_('Vincular a matéria existente?'),
+        widget=forms.RadioSelect(),
+        choices=YES_NO_CHOICES,
+        initial=False)
 
     numero_paginas = forms.CharField(label=_('Núm. Páginas'), required=True)
 
@@ -433,7 +479,14 @@ class ProtocoloMateriaForm(ModelForm):
     assunto_ementa = forms.CharField(required=True,
                                      widget=forms.Textarea, label=_('Ementa'))
 
-    numero = forms.IntegerField(required=False, label=_('Número de Protocolo (opcional)'))
+    numero = forms.IntegerField(
+        required=False, label=_('Número de Protocolo (opcional)'))
+
+    data_hora_manual = forms.ChoiceField(
+        label=_('Informar data e hora manualmente?'),
+        widget=forms.RadioSelect(),
+        choices=YES_NO_CHOICES,
+        initial=False)
 
     class Meta:
         model = Protocolo
@@ -446,19 +499,24 @@ class ProtocoloMateriaForm(ModelForm):
                   'numero_materia',
                   'ano_materia',
                   'vincular_materia',
-                  'numero'
+                  'numero',
+                  'data',
+                  'hora',
                   ]
 
     def clean_autor(self):
         autor_field = self.cleaned_data['autor']
         try:
-            self.logger.debug("Tentando obter Autor com id={}.".format(autor_field.id))
+            self.logger.debug(
+                "Tentando obter Autor com id={}.".format(autor_field.id))
             autor = Autor.objects.get(id=autor_field.id)
         except ObjectDoesNotExist:
-            self.logger.error("Autor com id={} não encontrado. Definido como None.".format(autor_field.id))
+            self.logger.error(
+                "Autor com id={} não encontrado. Definido como None.".format(autor_field.id))
             autor_field = None
         else:
-            self.logger.info("Autor com id={} encontrado com sucesso.".format(autor_field.id))
+            self.logger.info(
+                "Autor com id={} encontrado com sucesso.".format(autor_field.id))
             autor_field = autor
         return autor_field
 
@@ -473,7 +531,8 @@ class ProtocoloMateriaForm(ModelForm):
             if data['vincular_materia'] == 'True':
                 try:
                     if not data['ano_materia'] or not data['numero_materia']:
-                        self.logger.error("Não foram informados o número ou ano da matéria a ser vinculada")
+                        self.logger.error(
+                            "Não foram informados o número ou ano da matéria a ser vinculada")
                         raise ValidationError(
                             'Favor informar o número e ano da matéria a ser vinculada')
                     self.logger.debug("Tentando obter MateriaLegislativa com ano={}, numero={} e data={}."
@@ -483,13 +542,14 @@ class ProtocoloMateriaForm(ModelForm):
                                                                   tipo=data['tipo_materia'])
                     if self.materia.numero_protocolo:
                         self.logger.error("MateriaLegislativa informada já possui o protocolo {}/{} vinculado."
-                                         .format(self.materia.numero_protocolo, self.materia.ano))
+                                          .format(self.materia.numero_protocolo, self.materia.ano))
                         raise ValidationError(_('Matéria Legislativa informada já possui o protocolo {}/{} vinculado.'
                                                 .format(self.materia.numero_protocolo, self.materia.ano)))
                 except ObjectDoesNotExist:
                     self.logger.error("MateriaLegislativa informada (ano={}, numero={} e data={}) não existente."
                                       .format(data['ano_materia'], data['numero_materia'], data['tipo_materia']))
-                    raise ValidationError(_('Matéria Legislativa informada não existente.'))
+                    raise ValidationError(
+                        _('Matéria Legislativa informada não existente.'))
 
         return data
 
@@ -501,37 +561,73 @@ class ProtocoloMateriaForm(ModelForm):
              ('tipo_autor', 3),
              ('autor', 3)])
         row2 = to_row(
-            [(InlineRadios('vincular_materia'), 4),
-             ('numero_materia', 4),
-             ('ano_materia', 4), ])
-        row3 = to_row(
-            [('assunto_ementa', 12)])
+            [(InlineRadios('vincular_materia'), 3),
+             ('numero_materia', 2),
+             ('ano_materia', 2),
+             (Div(), 1),
+             (InlineRadios('data_hora_manual'), 4),
+             ])
+        row3 = to_row([
+            (Div(), 2),
+            (Alert(
+                """
+                Usuário: <strong>{}</strong> - {}<br> 
+                IP: <strong>{}</strong> - {}<br>
+                
+                """.format(
+                    kwargs['initial']['user_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'user_data_hora_manual').help_text,
+                    kwargs['initial']['ip_data_hora_manual'],
+                    Protocolo._meta.get_field(
+                        'ip_data_hora_manual').help_text,
+
+                ),
+                dismiss=False,
+                css_class='alert-info'), 6),
+            ('data', 2),
+            ('hora', 2),
+        ])
         row4 = to_row(
-            [('observacao', 12)])
+            [('assunto_ementa', 12)])
         row5 = to_row(
+            [('observacao', 12)])
+        row6 = to_row(
             [('numero', 12)])
 
-        self.helper = FormHelper()
+        fieldset = Fieldset(_('Protocolo com data e hora informados manualmente'),
+                            row3,
+                            css_id='protocolo_data_hora_manual')
+
+        config = AppConfig.objects.first()
+        if not config.protocolo_manual:
+            row3 = to_row([(HTML("&nbsp;"), 12)])
+            fieldset = row3
+
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
                      row1,
-                     row2,
-                     row3,
-                     row4,
-                     HTML("&nbsp;"),
-                     ),
+                     row2),
+            fieldset,
+            row4,
+            row5,
+            HTML("&nbsp;"),
             Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece'
                        ' a partir do número a ser informado)'),
-                row5,
-                HTML("&nbsp;"),
-                form_actions(label=_('Protocolar Matéria')))
+                     row6,
+                     HTML("&nbsp;"),
+                     form_actions(label=_('Protocolar Matéria')))
         )
 
         super(ProtocoloMateriaForm, self).__init__(
             *args, **kwargs)
 
+        if not config.protocolo_manual:
+            self.fields['data_hora_manual'].widget = forms.HiddenInput()
 
-class DocumentoAcessorioAdministrativoForm(ModelForm):
+
+class DocumentoAcessorioAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = DocumentoAcessorioAdministrativo
@@ -687,27 +783,28 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         return self.cleaned_data
 
 
-class DocumentoAdministrativoForm(ModelForm):
+class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
     logger = logging.getLogger(__name__)
 
     data = forms.DateField(initial=timezone.now)
 
-    ano_protocolo = forms.ChoiceField(required=False,
-                                      label=Protocolo._meta.
-                                      get_field('ano').verbose_name,
-                                      choices=RANGE_ANOS,
-                                      widget=forms.Select(
-                                          attrs={'class': 'selector'}))
+    ano_protocolo = forms.ChoiceField(
+        required=False,
+        label=Protocolo._meta.
+        get_field('ano').verbose_name,
+        choices=choice_force_optional(choice_anos_com_protocolo),
+        widget=forms.Select(
+            attrs={'class': 'selector'}))
 
     numero_protocolo = forms.IntegerField(required=False,
                                           label=Protocolo._meta.
                                           get_field('numero').verbose_name)
 
     restrito = forms.ChoiceField(label=_('Acesso Restrito'),
-                                         widget=forms.RadioSelect(),
-                                         choices=YES_NO_CHOICES,
-                                         initial=False)
+                                 widget=forms.RadioSelect(),
+                                 choices=YES_NO_CHOICES,
+                                 initial=False)
 
     class Meta:
         model = DocumentoAdministrativo
@@ -748,16 +845,16 @@ class DocumentoAdministrativoForm(ModelForm):
         # não permite atualizar para numero/ano/tipo existente
         if self.instance.pk:
             mudanca_doc = numero_documento != self.instance.numero \
-                            or ano_documento != self.instance.ano \
-                            or tipo_documento != self.instance.tipo.pk
+                or ano_documento != self.instance.ano \
+                or tipo_documento != self.instance.tipo.pk
 
         if not self.instance.pk or mudanca_doc:
             doc_exists = DocumentoAdministrativo.objects.filter(numero=numero_documento,
                                                                 tipo=tipo_documento,
-                                                                ano=ano_protocolo).exists()
+                                                                ano=ano_documento).exists()
             if doc_exists:
                 self.logger.error("DocumentoAdministrativo (numero={}, tipo={} e ano={}) já existe."
-                                  .format(numero_documento, tipo_documento, ano_protocolo))
+                                  .format(numero_documento, tipo_documento, ano_documento))
                 raise ValidationError(_('Documento já existente'))
 
         # campos opcionais, mas que se informados devem ser válidos
@@ -775,10 +872,11 @@ class DocumentoAdministrativoForm(ModelForm):
                     numero_protocolo, ano_protocolo))
                 raise ValidationError(msg)
             except MultipleObjectsReturned:
-                self.logger.error("Existe mais de um Protocolo com este ano ({}) e número ({}).".format(ano_protocolo,numero_protocolo))
+                self.logger.error("Existe mais de um Protocolo com este ano ({}) e número ({}).".format(
+                    ano_protocolo, numero_protocolo))
                 msg = _(
-                    'Existe mais de um Protocolo com este ano e número.' % (
-                        numero_protocolo, ano_protocolo))
+                    'Existe mais de um Protocolo com este ano (%s) e número (%s).' % (
+                        ano_protocolo, numero_protocolo))
                 raise ValidationError(msg)
 
             inst = self.instance.protocolo
@@ -786,12 +884,12 @@ class DocumentoAdministrativoForm(ModelForm):
 
             if str(protocolo_antigo) != numero_protocolo:
                 exist_materia = MateriaLegislativa.objects.filter(
-                                                    numero_protocolo=numero_protocolo,
-                                                    ano=ano_protocolo).exists()
+                    numero_protocolo=numero_protocolo,
+                    ano=ano_protocolo).exists()
 
                 exist_doc = DocumentoAdministrativo.objects.filter(
-                                                        protocolo__numero=numero_protocolo,
-                                                        protocolo__ano=ano_protocolo).exists()
+                    protocolo__numero=numero_protocolo,
+                    protocolo__ano=ano_protocolo).exists()
                 if exist_materia or exist_doc:
                     self.logger.error('Protocolo com numero=%s e ano=%s já possui'
                                       ' documento vinculado' % (numero_protocolo, ano_protocolo))
@@ -814,7 +912,7 @@ class DocumentoAdministrativoForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [('tipo', 4), ('numero', 4), ('ano', 4)])
+            [('tipo', 6), ('numero', 3), ('ano', 3)])
 
         row2 = to_row(
             [('data', 4), ('numero_protocolo', 4), ('ano_protocolo', 4)])
@@ -823,7 +921,7 @@ class DocumentoAdministrativoForm(ModelForm):
             [('assunto', 12)])
 
         row4 = to_row(
-            [('interessado', 8), ('tramitacao', 2), (InlineRadios('restrito'), 2)])
+            [('interessado', 7), ('tramitacao', 2), (InlineRadios('restrito'), 3)])
 
         row5 = to_row(
             [('texto_integral', 12)])
@@ -834,7 +932,7 @@ class DocumentoAdministrativoForm(ModelForm):
         row7 = to_row(
             [('observacao', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'),
                      row1, row2, row3, row4, row5),
@@ -848,15 +946,15 @@ class DesvincularDocumentoForm(ModelForm):
 
     logger = logging.getLogger(__name__)
 
-    numero = forms.CharField(required=True,
-                             label=DocumentoAdministrativo._meta.
-                             get_field('numero').verbose_name
-                             )
-    ano = forms.ChoiceField(required=True,
-                            label=DocumentoAdministrativo._meta.
-                            get_field('ano').verbose_name,
-                            choices=RANGE_ANOS,
-                            widget=forms.Select(attrs={'class': 'selector'}))
+    numero = forms.CharField(
+        required=True,
+        label=DocumentoAdministrativo._meta.get_field('numero').verbose_name)
+
+    ano = forms.ChoiceField(
+        required=True,
+        label=DocumentoAdministrativo._meta.get_field('ano').verbose_name,
+        choices=choice_anos_com_documentoadministrativo,
+        widget=forms.Select(attrs={'class': 'selector'}))
 
     def clean(self):
         super(DesvincularDocumentoForm, self).clean()
@@ -873,13 +971,16 @@ class DesvincularDocumentoForm(ModelForm):
         try:
             self.logger.debug("Tentando obter DocumentoAdministrativo com numero={}, ano={} e tipo={}."
                               .format(numero, ano, tipo))
-            documento = DocumentoAdministrativo.objects.get(numero=numero, ano=ano, tipo=tipo)
+            documento = DocumentoAdministrativo.objects.get(
+                numero=numero, ano=ano, tipo=tipo)
             if not documento.protocolo:
-                self.logger.error("DocumentoAdministrativo %s %s/%s não se encontra vinculado a nenhum protocolo." % (tipo, numero, ano))
+                self.logger.error(
+                    "DocumentoAdministrativo %s %s/%s não se encontra vinculado a nenhum protocolo." % (tipo, numero, ano))
                 raise forms.ValidationError(
                     _("%s %s/%s não se encontra vinculado a nenhum protocolo" % (tipo, numero, ano)))
         except ObjectDoesNotExist:
-            self.logger.error("DocumentoAdministrativo %s %s/%s não existe" % (tipo, numero, ano))
+            self.logger.error(
+                "DocumentoAdministrativo %s %s/%s não existe" % (tipo, numero, ano))
             raise forms.ValidationError(
                 _("%s %s/%s não existe" % (tipo, numero, ano)))
 
@@ -899,7 +1000,7 @@ class DesvincularDocumentoForm(ModelForm):
              ('ano', 4),
              ('tipo', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação do Documento'),
                      row1,
@@ -919,7 +1020,7 @@ class DesvincularMateriaForm(forms.Form):
                              label=_('Número da Matéria'))
     ano = forms.ChoiceField(required=True,
                             label=_('Ano da Matéria'),
-                            choices=RANGE_ANOS,
+                            choices=choice_anos_com_materias,
                             widget=forms.Select(attrs={'class': 'selector'}))
     tipo = forms.ModelChoiceField(label=_('Tipo de Matéria'),
                                   required=True,
@@ -941,13 +1042,16 @@ class DesvincularMateriaForm(forms.Form):
         try:
             self.logger.info("Tentando obter MateriaLegislativa com numero={}, ano={} e tipo={}."
                              .format(numero, ano, tipo))
-            materia = MateriaLegislativa.objects.get(numero=numero, ano=ano, tipo=tipo)
+            materia = MateriaLegislativa.objects.get(
+                numero=numero, ano=ano, tipo=tipo)
             if not materia.numero_protocolo:
-                self.logger.error("MateriaLegislativa %s %s/%s não se encontra vinculada a nenhum protocolo" % (tipo, numero, ano))
+                self.logger.error(
+                    "MateriaLegislativa %s %s/%s não se encontra vinculada a nenhum protocolo" % (tipo, numero, ano))
                 raise forms.ValidationError(
                     _("%s %s/%s não se encontra vinculada a nenhum protocolo" % (tipo, numero, ano)))
         except ObjectDoesNotExist:
-            self.logger.error("MateriaLegislativa %s %s/%s não existe" % (tipo, numero, ano))
+            self.logger.error(
+                "MateriaLegislativa %s %s/%s não existe" % (tipo, numero, ano))
             raise forms.ValidationError(
                 _("%s %s/%s não existe" % (tipo, numero, ano)))
 
@@ -961,7 +1065,7 @@ class DesvincularMateriaForm(forms.Form):
              ('ano', 4),
              ('tipo', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Identificação da Matéria'),
                      row1,
@@ -1000,3 +1104,81 @@ def filtra_tramitacao_adm_destino_and_status(status, destino):
         status=status,
         unidade_tramitacao_destino=destino).distinct().values_list(
             'documento_id', flat=True)
+
+
+class FichaPesquisaAdmForm(forms.Form):
+
+    logger = logging.getLogger(__name__)
+
+    tipo_documento = forms.ModelChoiceField(
+        label=TipoDocumentoAdministrativo._meta.verbose_name,
+        queryset=TipoDocumentoAdministrativo.objects.all(),
+        empty_label='Selecione')
+
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    data_final = forms.DateField(
+        label='Data Final',
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(FichaPesquisaAdmForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('tipo_documento', 6),
+             ('data_inicial', 3),
+             ('data_final', 3)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Formulário de Ficha'),
+                row1,
+                form_actions(label='Pesquisar')
+            )
+        )
+
+    def clean(self):
+        super(FichaPesquisaAdmForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
+
+        if cleaned_data['data_final'] < cleaned_data['data_inicial']:
+            self.logger.error("A Data Final ({}) não pode ser menor que a Data Inicial ({})."
+                              .format(cleaned_data['data_final'], cleaned_data['data_inicial']))
+            raise ValidationError(_(
+                'A Data Final não pode ser menor que a Data Inicial'))
+
+        return cleaned_data
+
+
+class FichaSelecionaAdmForm(forms.Form):
+    documento = forms.ModelChoiceField(
+        widget=forms.RadioSelect,
+        queryset=DocumentoAdministrativo.objects.all(),
+        label='')
+
+    def __init__(self, *args, **kwargs):
+        super(FichaSelecionaAdmForm, self).__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('documento', 12)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                ('Selecione a ficha que deseja imprimir'),
+                row1,
+                form_actions(label='Gerar Impresso')
+            )
+        )

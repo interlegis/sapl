@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 {% load static %}
-
+{% load webpack_static from webpack_loader %}
 {% block detail_content %}
 <style xmlns:max-width="http://www.w3.org/1999/xhtml">
 		table {
@@ -14,19 +14,25 @@
 		th, td {
 			padding: 5px;
 		}
+		@media print {
+    		.hide-print {
+        		display :  none;
+    		}
+		}
+    	@page {
+        	size:  auto;   /* auto is the initial value */
+        	margin: 0mm;  /* this affects the margin in the printer settings */
+    	}
 	</style>
 
 	<div align="center">
-		<input type="submit" value="Imprimir" onclick="window.print();" class="btn btn-success"/>
-		<input type="submit" value="Fechar" onclick="window.close();" class="btn btn-success"/>
+		<input type="submit" value="Imprimir" onclick="window.print();" class="btn btn-success hide-print"/>
+		<input type="submit" value="Fechar" onclick="window.close();" class="btn btn-success hide-print"/>
 	</div>
-
-	<br />
-
 	<table>
 		<tr><td colspan="2" align="center">
 				<img height="90" width="90"
-				     src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% static 'img/logo.png' %}{% endif %}"
+				     src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
 						 alt="Logotipo"
 						 class="img-responsive visible-lg-inline-block vcenter">
 				<div>
@@ -59,7 +65,11 @@
 		</tr>
 		<tr>
 			<th>Data / Horário</th>
-			<td>{{ protocolo.timestamp|date:"d/m/Y" }} - {{ protocolo.timestamp|date:"H:i:s" }}</td>
+			{% if protocolo.timestamp %}
+				<td>{{ protocolo.timestamp|date:"d/m/Y" }} - {{ protocolo.timestamp|date:"H:i:s" }}</td>
+			{% else %}
+				<td>{{ protocolo.data|date:"d/m/Y" }} - {{ protocolo.hora|date:"H:i:s" }}</td>
+			{% endif %}
 		</tr>
 		{% if protocolo.tipo_processo == 1 %}
 			<tr>

@@ -15,20 +15,33 @@ from .apps import AppConfig
 from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
 from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     CreateUsuarioView, DeleteUsuarioView, EditUsuarioView,
-                    HelpTopicView, ListarUsuarioView, LogotipoView,
-                    RelatorioAtasView, RelatorioAudienciaView, 
+                    HelpTopicView, PesquisarUsuarioView, LogotipoView,
+                    RelatorioAtasView, RelatorioAudienciaView,
                     RelatorioDataFimPrazoTramitacaoView,
                     RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView,
                     RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView,
-                    RelatorioPresencaSessaoView, 
-                    RelatorioReuniaoView, SaplSearchView)
+                    RelatorioPresencaSessaoView,
+                    RelatorioReuniaoView, SaplSearchView,
+                    RelatorioNormasPublicadasMesView,
+                    RelatorioNormasVigenciaView,
+                    EstatisticasAcessoNormas,
+                    RelatoriosListView,
+                    ListarInconsistenciasView, ListarProtocolosDuplicadosView,
+                    ListarProtocolosComMateriasView,
+                    ListarMatProtocoloInexistenteView,
+                    ListarParlMandatosIntersecaoView,
+                    ListarAutoresDuplicadosView,
+                    ListarBancadaComissaoAutorExternoView,
+                    ListarLegislaturaInfindavelView,
+                    ListarMandatoSemDataInicioView)
+
 
 app_name = AppConfig.name
 
 admin_user = [
-    url(r'^sistema/usuario/$', ListarUsuarioView.as_view(), name='user_list'),
+    url(r'^sistema/usuario/$', PesquisarUsuarioView.as_view(), name='usuario'),
     url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
     url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
     url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
@@ -84,10 +97,16 @@ urlpatterns = [
     url(r'^sistema/app-config/', include(AppConfigCrud.get_urls())),
 
     # TODO mover estas telas para a app 'relatorios'
-    url(r'^sistema/relatorios/$', TemplateView.as_view(
-        template_name='base/relatorios_list.html'), name='relatorios_list'),
+    url(r'^sistema/relatorios/$', 
+        RelatoriosListView.as_view(), name='relatorios_list'),
     url(r'^sistema/relatorios/materia-por-autor$',
         RelatorioMateriasPorAutorView.as_view(), name='materia_por_autor'),
+    url(r'^sistema/relatorios/relatorio-por-mes$',
+        RelatorioNormasPublicadasMesView.as_view(), name='normas_por_mes'),
+    url(r'^sistema/relatorios/relatorio-por-vigencia$',
+        RelatorioNormasVigenciaView.as_view(), name='normas_por_vigencia'),
+    url(r'^sistema/relatorios/estatisticas-acesso$',
+        EstatisticasAcessoNormas.as_view(), name='estatisticas_acesso'),
     url(r'^sistema/relatorios/materia-por-ano-autor-tipo$',
         RelatorioMateriasPorAnoAutorTipoView.as_view(),
         name='materia_por_ano_autor_tipo'),
@@ -117,6 +136,33 @@ urlpatterns = [
         '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$',
         ConfirmarEmailView.as_view(), name='confirmar_email'),
 
+    url(r'^sistema/inconsistencias/$',
+        ListarInconsistenciasView.as_view(),
+        name='lista_inconsistencias'),
+    url(r'^sistema/inconsistencias/protocolos_duplicados$',
+        ListarProtocolosDuplicadosView.as_view(),
+        name='lista_protocolos_duplicados'),
+    url(r'^sistema/inconsistencias/protocolos_com_materias$',
+        ListarProtocolosComMateriasView.as_view(),
+        name='lista_protocolos_com_materias'),
+    url(r'^sistema/inconsistencias/materias_protocolo_inexistente$',
+        ListarMatProtocoloInexistenteView.as_view(),
+        name='lista_materias_protocolo_inexistente'),
+    url(r'^sistema/inconsistencias/mandato_sem_data_inicio',
+        ListarMandatoSemDataInicioView.as_view(),
+        name='lista_mandato_sem_data_inicio'),
+    url(r'^sistema/inconsistencias/parlamentares_mandatos_intersecao$',
+        ListarParlMandatosIntersecaoView.as_view(),
+        name='lista_parlamentares_mandatos_intersecao'),
+    url(r'^sistema/inconsistencias/autores_duplicados$',
+        ListarAutoresDuplicadosView.as_view(),
+        name='lista_autores_duplicados'),
+    url(r'^sistema/inconsistencias/bancada_comissao_autor_externo$',
+        ListarBancadaComissaoAutorExternoView.as_view(),
+        name='lista_bancada_comissao_autor_externo'),
+    url(r'^sistema/inconsistencias/legislatura_infindavel$',
+        ListarLegislaturaInfindavelView.as_view(),
+        name='lista_legislatura_infindavel'),
 
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')

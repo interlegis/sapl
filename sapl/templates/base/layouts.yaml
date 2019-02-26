@@ -19,10 +19,14 @@ AppConfig:
 
   {% trans 'Proposições e Protocolo' %}:
   - sequencia_numeracao proposicao_incorporacao_obrigatoria receber_recibo_proposicao
+  - escolher_numero_materia_proposicao protocolo_manual
 
   {% trans 'Textos Articulados' %}:
   - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
 
+  {% trans 'Estatísticas de acesso' %}:
+  - estatisticas_acesso_normas
+  
   {% trans 'Assinaturas' %}:
   - assinatura_ata
 

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html><head>
+
+<link rel="stylesheet" href="basicsstyles.css" type="text/css" media="screen">
+<link rel="stylesheet" href="printstyles.css" type="text/css" media="print">
+
+<style type="text/css" media="all">
+
+body
+	{
+	font-size: small;
+	font-family: Arial;
+	line-height: 175%;
+	background-color: transparent;
+	margin: 5pt 5pt 0pt 0pt;
+	}
+
+#voltar
+        {
+        position: absolute;
+        top: 50pt;
+        left: 500pt;
+        }
+
+#ementa_texto
+	{
+	font-family: Arial;
+	line-height: 150%;
+	border-style: none;
+	text-align: justify;
+	padding: 0pt 5pt 0pt 0pt;
+	margin-right:100px;
+	font-size: small;
+	height:130px;
+	}
+
+
+#titulo
+    {
+    font-size: medium;
+    margin-right:100px;
+    text-align: center;
+    }
+
+#despacho_inicial
+	{
+     font-family: Arial;
+     line-height: 150%;
+     border-style: none;
+     text-align: justify;
+     font-size: small;
+     height:130px;
+     padding: 0pt 5pt 0pt 0pt;
+     margin-right:100px;
+    }
+
+@media print {
+	          #voltar { display: none; }
+             }
+
+</style>
+
+<body style="margin-left:-50px;margin-right:180px; margin-top: -50px">
+
+<div style="page-break-inside: avoid;">
+<justify>
+    <div id="titulo">
+      <!-- Informa o processo -->
+      	<strong class="text_pdf">PROCESSO Nº: {{ documento.numero }} / {{documento.ano}}</strong><br>
+    </div>
+	<table border=0>
+      <td height="60pt" valign=top>
+	    <!-- Informa o tipo da matéria -->
+	    <strong class="text_pdf">{{documento.tipo}}:</strong> <span class="text_pdf"> {{documento.numero}} / {{documento.ano}} </span><br>
+      </td>
+    </table>
+
+	<table border=0>
+      <td height="60pt" valign=top>
+	    <!-- Informa a Data de Entrada -->
+	    <strong class="text_pdf">Data de entrada:</strong> <span class="text_pdf"> {{documento.data}}</span></br>
+      </td>
+    </table>
+
+    {% if  documento.protocolo%}
+    <table border=0>
+      <td height="60pt" valign=top>
+        <div>
+		<strong class="text_pdf">Protocolo: </strong><span class="text_pdf">{{materia.protocolo}}</span><br>
+       </td>
+    </table>
+    {% endif %}
+
+    <!-- Ementa -->
+    <table border=0>
+	  <td>
+	    <div id="ementa_texto">
+  	     <strong class="text_pdf">Ementa:</strong> <span class="text_pdf">{{documento.assunto}}</span>
+	    </div>
+	  </td>
+    </table>
+
+
+</div>
+</justify>
+
+</body>

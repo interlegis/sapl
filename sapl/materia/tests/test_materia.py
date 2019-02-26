@@ -1,10 +1,10 @@
-import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.db.models import Max
 from model_mommy import mommy
+import pytest
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, TipoComissao
@@ -528,11 +528,13 @@ def test_numeracao_materia_legislativa_por_legislatura(admin_client):
                               )
 
     # Cria uma materia na legislatura1
-    tipo_materia = mommy.make(TipoMateriaLegislativa, id=1, sequencia_numeracao='L')
+    tipo_materia = mommy.make(TipoMateriaLegislativa,
+                              id=1, sequencia_numeracao='L')
     materia = mommy.make(MateriaLegislativa,
                          tipo=tipo_materia,
                          ano=2017,
-                         numero=1
+                         numero=1,
+                         data_apresentacao='2017-03-05'
                          )
 
     url = reverse('sapl.materia:recuperar_materia')
@@ -556,7 +558,8 @@ def test_numeracao_materia_legislativa_por_legislatura(admin_client):
 def test_numeracao_materia_legislativa_por_ano(admin_client):
 
     # Cria uma materia
-    tipo_materia = mommy.make(TipoMateriaLegislativa, id=1, sequencia_numeracao='A')
+    tipo_materia = mommy.make(TipoMateriaLegislativa,
+                              id=1, sequencia_numeracao='A')
     materia = mommy.make(MateriaLegislativa,
                          tipo=tipo_materia,
                          ano=2017,

@@ -17,7 +17,7 @@
                    data_relativa : $("#id_data_relativa").val()
                 }
                 $.getJSON("/api/autor/possiveis", json_data, function(data){
-                  $("#div_id_autor .controls").html('');
+                  $("#div_id_autor > div").html('');
                     if (data) {
                       var results = data;
 
@@ -32,15 +32,17 @@
                           .attr('id', 'id_autor_'+idx)
                           .attr('value', obj.value)
                           .appendTo(
-                            $('<label/>').text(obj.text)
+                            $('<label/>')
                               .appendTo(
                                 $('<div class="checkbox">')
-                                  .appendTo($("#div_id_autor .controls")
+                                  .appendTo(
+                                    $("#div_id_autor > div")
+                                  )
                                 )
-                              )
                             )
+                          .after(obj.text)
+                           
                       });
-                      $('[type=checkbox]').checkbox();
                     }
                 });
             }

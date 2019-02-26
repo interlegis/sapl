@@ -15,20 +15,19 @@ See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 """
 import logging
 import socket
+import sys
 
 from decouple import config
 from dj_database_url import parse as db_url
 from easy_thumbnails.conf import Settings as thumbnail_settings
 from unipath import Path
 
-from .temp_suppress_crispy_form_warnings import \
-    SUPRESS_CRISPY_FORM_WARNINGS_LOGGING
-
 
 host = socket.gethostbyname_ex(socket.gethostname())[0]
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
@@ -41,6 +40,8 @@ ALLOWED_HOSTS = ['*']
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
+
+SAPL_VERSION = '3.1.145'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -77,45 +78,54 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # more
     'django_extensions',
-    'djangobower',
-    'bootstrap3',  # basically for django_admin_bootstrapped
+
     'crispy_forms',
+    'floppyforms',
+
+    'drf_yasg',
+    #'rest_framework_swagger',
+    'rest_framework',
+    'django_filters',
+
     'easy_thumbnails',
     'image_cropping',
-    'floppyforms',
-    'haystack',
-    'sass_processor',
-    'rest_framework',
+
     'reversion',
     'reversion_compare',
+
+    'haystack',
     'whoosh',
     'speedinfo',
+
+    'webpack_loader',
 
 ) + SAPL_APPS
 
 # FTS = Full Text Search
 # Desabilita a indexação textual até encontramos uma solução para a issue
 # https://github.com/interlegis/sapl/issues/2055
-#HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'  # Disable auto index
 SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
 SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
 
-SOLR_URL = config('SOLR_URL', cast=str, default='')
-if SOLR_URL:
+# SOLR
+USE_SOLR = config('USE_SOLR', cast=bool, default=False)
+SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
+SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
+
+if USE_SOLR:
+    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'  # enable auto-index
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
-    SEARCH_URL = ('URL', config('SOLR_URL', cast=str))
-    # ...or for multicore...
-    # 'URL': 'http://127.0.0.1:8983/solr/mysite',
+    SEARCH_URL = ('URL', '{}/solr/{}'.format(SOLR_URL, SOLR_COLLECTION))
 
-
+#  BATCH_SIZE: default is 1000 if omitted, avoid Too Large Entity Body errors
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': SEARCH_BACKEND,
-        SEARCH_URL[0]: SEARCH_URL[1]
+        SEARCH_URL[0]: SEARCH_URL[1],
+        'BATCH_SIZE': 1000,
+        'TIMEOUT': 20,
     },
 }
 
@@ -133,10 +143,11 @@ MIDDLEWARE = [
     'speedinfo.middleware.ProfilerMiddleware',
 ]
 if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar', 'rest_framework_docs',)
+    INSTALLED_APPS += ('debug_toolbar', )
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
     INTERNAL_IPS = ('127.0.0.1')
 
+SITE_URL = config('SITE_URL', cast=str, default='')
 
 CACHES = {
     'default': {
@@ -151,9 +162,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
     ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-        "sapl.api.permissions.DjangoModelPermissions",
+        "sapl.api.permissions.SaplModelPermissions",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
@@ -161,7 +174,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
     "DEFAULT_FILTER_BACKENDS": (
         "rest_framework.filters.SearchFilter",
-        "rest_framework.filters.DjangoFilterBackend",
+        'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
 
@@ -256,45 +269,46 @@ LOCALE_PATHS = (
     'locale',
 )
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
+FRONTEND_CUSTOM = config('FRONTEND_CUSTOM', default=False, cast=bool)
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': not DEBUG,
+        'BUNDLE_DIR_NAME': 'sapl/static/sapl/',
+        'STATS_FILE':  (BASE_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.parent.child('sapl-frontend')).child('webpack-stats.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
+    }
+}
 
 STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
-STATICFILES_DIRS = (BASE_DIR.child("static"),)
+
+STATICFILES_DIRS = (
+    BASE_DIR.child('static'),
+)
+if FRONTEND_CUSTOM:
+    STATICFILES_DIRS = (
+        PROJECT_DIR.parent.child('sapl-frontend').child('dist'),
+    )
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'djangobower.finders.BowerFinder',
-    'sass_processor.finders.CssFinder',
 )
 
 MEDIA_ROOT = PROJECT_DIR.child("media")
 MEDIA_URL = '/media/'
 
+FILE_UPLOAD_PERMISSIONS = 0o644
+
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap3'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 CRISPY_FAIL_SILENTLY = not DEBUG
-
-BOWER_COMPONENTS_ROOT = PROJECT_DIR.child("bower")
-BOWER_INSTALLED_APPS = (
-    'jquery#3.1.1',
-    'bootstrap-sass#3.3.7',
-    'components-font-awesome#4.5.0',
-    'tinymce#4.3.8',
-    'jquery-ui#1.12.1',
-    'jQuery-Mask-Plugin#1.14.0',
-    'jsdiff#2.2.2',
-    'https://github.com/interlegis/drunken-parrot-flat-ui.git',
-    'jquery-query-object#2.2.3',
-)
-
-# Additional search paths for SASS files when using the @import statement
-SASS_PROCESSOR_INCLUDE_DIRS = (BOWER_COMPONENTS_ROOT.child(
-    'bower_components', 'bootstrap-sass', 'assets', 'stylesheets'),
-)
+FLOPPY_FORMS_USE_GIS = False
 
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
@@ -331,18 +345,26 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'django': {
+            'handlers': ['applogfile'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
     }
 }
-
-
-def excepthook(*args):
-    logging.getLogger(BASE_DIR.name).error(
-        'Uncaught exception:', exc_info=args)
-
-# sys.excepthook = excepthook"""
-
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # default
     'sapl.hashers.ZopeSHA1PasswordHasher',
 ]
+
+
+def remove_warnings():
+    import warnings
+    warnings.filterwarnings(
+        'ignore', module='floppyforms',
+        message='Unable to import floppyforms.gis'
+    )
+
+
+remove_warnings()

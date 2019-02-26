@@ -2,7 +2,6 @@
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
 from django.db import models
 from django.db.models.functions import Concat
 from django.template import defaultfilters
@@ -16,6 +15,7 @@ from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TextoArticulado)
 from sapl.parlamentares.models import Parlamentar
+#from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path)
@@ -42,13 +42,21 @@ class TipoProposicao(models.Model):
         error_messages={
             'unique': _('Já existe um Tipo de Proposição com esta descrição.')
         })
-    content_type = models.ForeignKey(ContentType, default=None,
-                                     on_delete=models.PROTECT,
-                                     verbose_name=_('Definição de Tipo'))
+    content_type = models.ForeignKey(
+        ContentType, default=None,
+        on_delete=models.PROTECT,
+        verbose_name=_('Conversão de Meta-Tipos'),
+        help_text=_("""
+        Quando uma proposição é incorporada, ela é convertida de proposição
+        para outro elemento dentro do Sapl. Existem alguns elementos que
+        uma proposição pode se tornar. Defina este meta-tipo e em seguida
+        escolha um Tipo Correspondente!
+        """)
+    )
     object_id = models.PositiveIntegerField(
         blank=True, null=True, default=None)
     tipo_conteudo_related = SaplGenericForeignKey(
-        'content_type', 'object_id', verbose_name=_('Seleção de Tipo'))
+        'content_type', 'object_id', verbose_name=_('Tipo Correspondente'))
 
     perfis = models.ManyToManyField(
         PerfilEstruturalTextoArticulado,
@@ -142,15 +150,17 @@ def anexo_upload_path(instance, filename):
 @reversion.register()
 class MateriaLegislativa(models.Model):
 
-    tipo = models.ForeignKey(TipoMateriaLegislativa,
-                             on_delete=models.PROTECT,
-                             verbose_name=_('Tipo'))
+    tipo = models.ForeignKey(
+        TipoMateriaLegislativa,
+        on_delete=models.PROTECT,
+        verbose_name=TipoMateriaLegislativa._meta.verbose_name)
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
     numero_protocolo = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Núm. Protocolo'))
-    data_apresentacao = models.DateField(verbose_name=_('Data Apresentação'))
+        blank=True, null=True, verbose_name=_('Número do Protocolo'))
+    data_apresentacao = models.DateField(
+        verbose_name=_('Data de Apresentação'))
     tipo_apresentacao = models.CharField(
         max_length=1, blank=True,
         verbose_name=_('Tipo de Apresentação'),
@@ -160,7 +170,7 @@ class MateriaLegislativa(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Regime Tramitação'))
     data_publicacao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Publicação'))
+        blank=True, null=True, verbose_name=_('Data de Publicação'))
     tipo_origem_externa = models.ForeignKey(
         TipoMateriaLegislativa,
         blank=True,
@@ -176,7 +186,7 @@ class MateriaLegislativa(models.Model):
         blank=True, null=True, verbose_name=_('Data'))
     local_origem_externa = models.ForeignKey(
         Origem, blank=True, null=True,
-        on_delete=models.PROTECT, verbose_name=_('Local Origem'))
+        on_delete=models.PROTECT, verbose_name=_('Local de Origem'))
     apelido = models.CharField(
         max_length=50, blank=True, verbose_name=_('Apelido'))
     dias_prazo = models.PositiveIntegerField(
@@ -267,10 +277,12 @@ class MateriaLegislativa(models.Model):
             if protocolo:
                 if protocolo.timestamp:
                     return protocolo.timestamp.date()
+                elif protocolo.timestamp_data_hora_manual:
+                    return protocolo.timestamp_data_hora_manual.date()
                 elif protocolo.data:
-                    return protocolo.data  
+                    return protocolo.data
 
-            return ''           
+            return ''
 
     def delete(self, using=None, keep_parents=False):
         if self.texto_original:
@@ -675,6 +687,9 @@ class Proposicao(models.Model):
     numero_proposicao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número'))
 
+    numero_materia_futuro = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Número Matéria'))
+
     hash_code = models.CharField(verbose_name=_('Código do Documento'),
                                  max_length=200,
                                  blank=True)
@@ -727,8 +742,8 @@ class Proposicao(models.Model):
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
     cancelado = models.BooleanField(verbose_name=_('Cancelada ?'),
-                                  choices=YES_NO_CHOICES,
-                                  default=False)
+                                    choices=YES_NO_CHOICES,
+                                    default=False)
 
     """# Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
     # de uma já existente
@@ -904,6 +919,9 @@ class Tramitacao(models.Model):
         ('A', 'votacao_unica', _('Votação única em Regime de Urgência')),
         ('B', 'primeira_votacao', _('1ª Votação')),
         ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
+        ('D', 'deliberacao', _('Deliberação')),
+        ('E', 'primeira_segunda_votacao_urgencia', _('1ª e 2ª votações em regime de urgência'))
+
     )
 
     status = models.ForeignKey(StatusTramitacao, on_delete=models.PROTECT,

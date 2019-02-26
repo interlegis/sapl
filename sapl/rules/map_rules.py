@@ -50,23 +50,27 @@ from sapl.sessao import models as sessao
 __base__ = [RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE]
 __listdetailchange__ = [RP_LIST, RP_DETAIL, RP_CHANGE]
 
+__perms_publicas__ = {RP_LIST, RP_DETAIL}
+
 
 rules_group_administrativo = {
     'group': SAPL_GROUP_ADMINISTRATIVO,
     'rules': [
-        (materia.MateriaLegislativa, ['can_access_impressos']),
-        (protocoloadm.DocumentoAdministrativo, __base__),
-        (protocoloadm.DocumentoAcessorioAdministrativo, __base__),
-        (protocoloadm.TramitacaoAdministrativo, __base__),
+        (materia.MateriaLegislativa, [
+         'can_access_impressos'], __perms_publicas__),
+        # TODO: tratar em sapl.api a questão de ostencivo e restritivo
+        (protocoloadm.DocumentoAdministrativo, __base__, set()),
+        (protocoloadm.DocumentoAcessorioAdministrativo, __base__, set()),
+        (protocoloadm.TramitacaoAdministrativo, __base__, set()),
     ]
 }
 
 rules_group_audiencia = {
     'group': SAPL_GROUP_GERAL,
     'rules': [
-        (audiencia.AudienciaPublica, __base__),
-        (audiencia.TipoAudienciaPublica, __base__),
-        (audiencia.AnexoAudienciaPublica, __base__),
+        (audiencia.AudienciaPublica, __base__, __perms_publicas__),
+        (audiencia.TipoAudienciaPublica, __base__, __perms_publicas__),
+        (audiencia.AnexoAudienciaPublica, __base__, __perms_publicas__),
     ]
 }
 
@@ -75,49 +79,52 @@ rules_group_protocolo = {
     'group': SAPL_GROUP_PROTOCOLO,
     'rules': [
         (protocoloadm.Protocolo, __base__ + [
-            'action_anular_protocolo']),
+            'action_anular_protocolo'], set()),
         (protocoloadm.DocumentoAdministrativo,
-         [RP_ADD] + __listdetailchange__),
-        (protocoloadm.DocumentoAcessorioAdministrativo, __listdetailchange__),
+         [RP_ADD] + __listdetailchange__, set()),
+        (protocoloadm.DocumentoAcessorioAdministrativo, __listdetailchange__, set()),
 
-        (materia.MateriaLegislativa, __listdetailchange__),
-        (materia.MateriaLegislativa, ['can_access_impressos']),
-        (materia.DocumentoAcessorio, __listdetailchange__),
-        (materia.Anexada, __base__),
-        (materia.Autoria, __base__),
+        (materia.MateriaLegislativa, __listdetailchange__, __perms_publicas__),
+        (materia.MateriaLegislativa, [
+         'can_access_impressos'], __perms_publicas__),
+        (materia.DocumentoAcessorio, __listdetailchange__, __perms_publicas__),
+        (materia.Anexada, __base__, __perms_publicas__),
+        (materia.Autoria, __base__, __perms_publicas__),
 
         (materia.Proposicao, ['detail_proposicao_enviada',
                               'detail_proposicao_devolvida',
-                              'detail_proposicao_incorporada']),
-        (compilacao.TextoArticulado, ['view_restricted_textoarticulado'])
+                              'detail_proposicao_incorporada'], set()),  # TODO: tratar em sapl.api questão de que proposições incorporadas serem públicas
+        (compilacao.TextoArticulado, [
+         'view_restricted_textoarticulado'], __perms_publicas__)
     ]
 }
 
 rules_group_comissoes = {
     'group': SAPL_GROUP_COMISSOES,
     'rules': [
-        (comissoes.Comissao, __base__),
-        (comissoes.Composicao, __base__),
-        (comissoes.Participacao, __base__),
-        (materia.Relatoria, __base__),
-        (comissoes.Reuniao, __base__),
-        (comissoes.DocumentoAcessorio, __base__),
+        (comissoes.Comissao, __base__, __perms_publicas__),
+        (comissoes.Composicao, __base__, __perms_publicas__),
+        (comissoes.Participacao, __base__, __perms_publicas__),
+        (materia.Relatoria, __base__, __perms_publicas__),
+        (comissoes.Reuniao, __base__, __perms_publicas__),
+        (comissoes.DocumentoAcessorio, __base__, __perms_publicas__),
     ]
 }
 
 rules_group_materia = {
     'group': SAPL_GROUP_MATERIA,
     'rules': [
-        (materia.Anexada, __base__),
-        (materia.Autoria, __base__),
-        (materia.DespachoInicial, __base__),
-        (materia.DocumentoAcessorio, __base__),
+        (materia.Anexada, __base__, __perms_publicas__),
+        (materia.Autoria, __base__, __perms_publicas__),
+        (materia.DespachoInicial, __base__, __perms_publicas__),
+        (materia.DocumentoAcessorio, __base__, __perms_publicas__),
 
-        (materia.MateriaLegislativa, __base__ + ['can_access_impressos']),
-        (materia.Numeracao, __base__),
-        (materia.Tramitacao, __base__),
-        (norma.LegislacaoCitada, __base__),
-        (norma.AutoriaNorma, __base__),
+        (materia.MateriaLegislativa, __base__ +
+         ['can_access_impressos'], __perms_publicas__),
+        (materia.Numeracao, __base__, __perms_publicas__),
+        (materia.Tramitacao, __base__, __perms_publicas__),
+        (norma.LegislacaoCitada, __base__, __perms_publicas__),
+        (norma.AutoriaNorma, __base__, __perms_publicas__),
         (compilacao.Dispositivo, __base__ + [
             'change_dispositivo_edicao_dinamica',
 
@@ -128,69 +135,70 @@ rules_group_materia = {
             # uma matéria original.
             # Fazer esse registro de compilação ofereceria
             # um autografo eletrônico pronto para ser convertido em Norma.
-        ])
+        ], __perms_publicas__)
     ]
 }
 
 rules_group_norma = {
     'group': SAPL_GROUP_NORMA,
     'rules': [
-        (norma.NormaJuridica, __base__),
-        (norma.NormaRelacionada, __base__),
-        (norma.AnexoNormaJuridica, __base__),
-        (norma.AutoriaNorma, __base__),
+        (norma.NormaJuridica, __base__, __perms_publicas__),
+        (norma.NormaRelacionada, __base__, __perms_publicas__),
+        (norma.AnexoNormaJuridica, __base__, __perms_publicas__),
+        (norma.AutoriaNorma, __base__, __perms_publicas__),
+        (norma.NormaEstatisticas, __base__, __perms_publicas__),
 
         # Publicacao está com permissão apenas para norma e não para matéria
         # e proposições apenas por análise do contexto, não é uma limitação
         # da ferramenta.
-        (compilacao.Publicacao, __base__),
-        (compilacao.Vide, __base__),
-        (compilacao.Nota, __base__),
+        (compilacao.Publicacao, __base__, __perms_publicas__),
+        (compilacao.Vide, __base__, __perms_publicas__),
+        (compilacao.Nota, __base__, __perms_publicas__),
         (compilacao.Dispositivo, __base__ + [
             'view_dispositivo_notificacoes',
             'change_dispositivo_edicao_dinamica',
             'change_dispositivo_edicao_avancada',
             'change_dispositivo_registros_compilacao',
             'change_dispositivo_de_vigencia_global'
-        ])
+        ], __perms_publicas__)
     ]
 }
 
 rules_group_sessao = {
     'group': SAPL_GROUP_SESSAO,
     'rules': [
-        (sessao.SessaoPlenaria, __base__),
-        (sessao.SessaoPlenariaPresenca, __base__),
-        (sessao.ExpedienteMateria, __base__),
-        (sessao.OcorrenciaSessao, __base__),
-        (sessao.IntegranteMesa, __base__),
-        (sessao.ExpedienteSessao, __base__),
-        (sessao.Orador, __base__),
-        (sessao.OradorExpediente, __base__),
-        (sessao.OrdemDia, __base__),
-        (sessao.PresencaOrdemDia, __base__),
-        (sessao.RegistroVotacao, __base__),
-        (sessao.VotoParlamentar, __base__),
-        (sessao.JustificativaAusencia, __base__),
-        (sessao.RetiradaPauta, __base__)
+        (sessao.SessaoPlenaria, __base__, __perms_publicas__),
+        (sessao.SessaoPlenariaPresenca, __base__, __perms_publicas__),
+        (sessao.ExpedienteMateria, __base__, __perms_publicas__),
+        (sessao.OcorrenciaSessao, __base__, __perms_publicas__),
+        (sessao.IntegranteMesa, __base__, __perms_publicas__),
+        (sessao.ExpedienteSessao, __base__, __perms_publicas__),
+        (sessao.Orador, __base__, __perms_publicas__),
+        (sessao.OradorExpediente, __base__, __perms_publicas__),
+        (sessao.OrdemDia, __base__, __perms_publicas__),
+        (sessao.PresencaOrdemDia, __base__, __perms_publicas__),
+        (sessao.RegistroVotacao, __base__, __perms_publicas__),
+        (sessao.VotoParlamentar, __base__, __perms_publicas__),
+        (sessao.JustificativaAusencia, __base__, __perms_publicas__),
+        (sessao.RetiradaPauta, __base__, __perms_publicas__),
     ]
 }
 
 rules_group_painel = {
     'group': SAPL_GROUP_PAINEL,
     'rules': [
-        (painel.Painel, __base__),
-        (painel.Cronometro, __base__),
+        (painel.Painel, __base__, __perms_publicas__),
+        (painel.Cronometro, __base__, __perms_publicas__),
     ]
 }
 
 rules_group_autor = {
     'group': SAPL_GROUP_AUTOR,
     'rules': [
-        (materia.Proposicao, __base__),
+        (materia.Proposicao, __base__, set()),
         (compilacao.Dispositivo, __base__ + [
             'change_your_dispositivo_edicao_dinamica',
-        ])
+        ], __perms_publicas__)
     ]
 }
 
@@ -202,7 +210,7 @@ rules_group_parlamentar = {
 rules_group_votante = {
     'group': SAPL_GROUP_VOTANTE,
     'rules': [
-        (parlamentares.Votante, ['can_vote'])
+        (parlamentares.Votante, ['can_vote'], set())
     ]
 }
 
@@ -212,88 +220,94 @@ rules_group_geral = {
         (base.AppConfig, __base__ + [
             'menu_sistemas',
             'view_tabelas_auxiliares'
-        ]),
+        ], set()),
 
-        (base.CasaLegislativa, __listdetailchange__ + [RP_ADD]),
-        (base.TipoAutor, __base__),
-        (base.Autor, __base__),
+        (base.CasaLegislativa, __listdetailchange__ +
+         [RP_ADD], __perms_publicas__),
+        (base.TipoAutor, __base__, __perms_publicas__),
+        (base.Autor, __base__, __perms_publicas__),
 
-        (protocoloadm.StatusTramitacaoAdministrativo, __base__),
-        (protocoloadm.TipoDocumentoAdministrativo, __base__),
+        (protocoloadm.StatusTramitacaoAdministrativo, __base__, set()),
+        (protocoloadm.TipoDocumentoAdministrativo, __base__, set()),
 
-        (comissoes.CargoComissao, __base__),
-        (comissoes.TipoComissao, __base__),
-        (comissoes.Periodo, __base__),
+        (comissoes.CargoComissao, __base__, __perms_publicas__),
+        (comissoes.TipoComissao, __base__, __perms_publicas__),
+        (comissoes.Periodo, __base__, __perms_publicas__),
 
-        (materia.AssuntoMateria, __base__),  # não há implementação
-        (materia.MateriaAssunto, __base__),  # não há implementação
-        (materia.MateriaLegislativa, ['can_access_impressos']),
-        (materia.TipoProposicao, __base__),
-        (materia.TipoMateriaLegislativa, __base__),
-        (materia.RegimeTramitacao, __base__),
-        (materia.Origem, __base__),
-        (materia.TipoDocumento, __base__),
-        (materia.Orgao, __base__),
-        (materia.TipoFimRelatoria, __base__),
-        (materia.Parecer, __base__),
-        (materia.StatusTramitacao, __base__),
-        (materia.UnidadeTramitacao, __base__),
+        (materia.AssuntoMateria, __base__,
+         __perms_publicas__),  # não há implementação
+        (materia.MateriaAssunto, __base__,
+         __perms_publicas__),  # não há implementação
+        (materia.MateriaLegislativa, [
+         'can_access_impressos'], __perms_publicas__),
+        (materia.TipoProposicao, __base__, __perms_publicas__),
+        (materia.TipoMateriaLegislativa, __base__, __perms_publicas__),
+        (materia.RegimeTramitacao, __base__, __perms_publicas__),
+        (materia.Origem, __base__, __perms_publicas__),
+        (materia.TipoDocumento, __base__, __perms_publicas__),
+        (materia.Orgao, __base__, __perms_publicas__),
+        (materia.TipoFimRelatoria, __base__, __perms_publicas__),
+        (materia.Parecer, __base__, __perms_publicas__),
+        (materia.StatusTramitacao, __base__, __perms_publicas__),
+        (materia.UnidadeTramitacao, __base__, __perms_publicas__),
+        
 
-        (norma.AssuntoNorma, __base__),
-        (norma.TipoNormaJuridica, __base__),
-        (norma.TipoVinculoNormaJuridica, __base__),
+        (norma.AssuntoNorma, __base__, __perms_publicas__),
+        (norma.TipoNormaJuridica, __base__, __perms_publicas__),
+        (norma.TipoVinculoNormaJuridica, __base__, __perms_publicas__),
+        (norma.NormaEstatisticas, __base__, __perms_publicas__),
 
-        (parlamentares.Legislatura, __base__),
-        (parlamentares.SessaoLegislativa, __base__),
-        (parlamentares.Coligacao, __base__),
-        (parlamentares.ComposicaoColigacao, __base__),
-        (parlamentares.Partido, __base__),
-        (parlamentares.NivelInstrucao, __base__),
-        (parlamentares.SituacaoMilitar, __base__),
-        (parlamentares.Parlamentar, __base__),
-        (parlamentares.TipoDependente, __base__),
-        (parlamentares.Dependente, __base__),
-        (parlamentares.Filiacao, __base__),
-        (parlamentares.TipoAfastamento, __base__),
-        (parlamentares.Mandato, __base__),
-        (parlamentares.CargoMesa, __base__),
-        (parlamentares.ComposicaoMesa, __base__),
-        (parlamentares.Frente, __base__),
-        (parlamentares.Votante, __base__),
+        (parlamentares.Legislatura, __base__, __perms_publicas__),
+        (parlamentares.SessaoLegislativa, __base__, __perms_publicas__),
+        (parlamentares.Coligacao, __base__, __perms_publicas__),
+        (parlamentares.ComposicaoColigacao, __base__, __perms_publicas__),
+        (parlamentares.Partido, __base__, __perms_publicas__),
+        (parlamentares.NivelInstrucao, __base__, __perms_publicas__),
+        (parlamentares.SituacaoMilitar, __base__, __perms_publicas__),
+        (parlamentares.Parlamentar, __base__, __perms_publicas__),
+        (parlamentares.TipoDependente, __base__, __perms_publicas__),
+        (parlamentares.Dependente, __base__, __perms_publicas__),
+        (parlamentares.Filiacao, __base__, __perms_publicas__),
+        (parlamentares.TipoAfastamento, __base__, __perms_publicas__),
+        (parlamentares.Mandato, __base__, __perms_publicas__),
+        (parlamentares.CargoMesa, __base__, __perms_publicas__),
+        (parlamentares.ComposicaoMesa, __base__, __perms_publicas__),
+        (parlamentares.Frente, __base__, __perms_publicas__),
+        (parlamentares.Votante, __base__, __perms_publicas__),
 
-        (sessao.CargoBancada, __base__),
-        (sessao.Bancada, __base__),
-        (sessao.TipoSessaoPlenaria, __base__),
-        (sessao.TipoResultadoVotacao, __base__),
-        (sessao.TipoExpediente, __base__),
-        (sessao.TipoJustificativa, __base__),
-        (sessao.JustificativaAusencia, __base__),
-        (sessao.Bloco, __base__),
-        (sessao.ResumoOrdenacao, __base__),
-        (sessao.TipoRetiradaPauta, __base__),
+        (sessao.CargoBancada, __base__, __perms_publicas__),
+        (sessao.Bancada, __base__, __perms_publicas__),
+        (sessao.TipoSessaoPlenaria, __base__, __perms_publicas__),
+        (sessao.TipoResultadoVotacao, __base__, __perms_publicas__),
+        (sessao.TipoExpediente, __base__, __perms_publicas__),
+        (sessao.TipoJustificativa, __base__, __perms_publicas__),
+        (sessao.JustificativaAusencia, __base__, __perms_publicas__),
+        (sessao.Bloco, __base__, __perms_publicas__),
+        (sessao.ResumoOrdenacao, __base__, __perms_publicas__),
+        (sessao.TipoRetiradaPauta, __base__, __perms_publicas__),
 
-        (lexml.LexmlProvedor, __base__),
-        (lexml.LexmlPublicador, __base__),
+        (lexml.LexmlProvedor, __base__, set()),
+        (lexml.LexmlPublicador, __base__, set()),
 
-        (compilacao.VeiculoPublicacao, __base__),
-        (compilacao.TipoTextoArticulado, __base__),
-        (compilacao.TipoNota, __base__),
-        (compilacao.TipoVide, __base__),
-        (compilacao.TipoPublicacao, __base__),
+        (compilacao.VeiculoPublicacao, __base__, __perms_publicas__),
+        (compilacao.TipoTextoArticulado, __base__, __perms_publicas__),
+        (compilacao.TipoNota, __base__, __perms_publicas__),
+        (compilacao.TipoVide, __base__, __perms_publicas__),
+        (compilacao.TipoPublicacao, __base__, __perms_publicas__),
 
         # este model é um espelho do model integrado e sua edição pode
         # confundir Autores, operadores de matéria e/ou norma.
         # Por isso está adicionado apenas para o operador geral
         (compilacao.TextoArticulado,
-         __base__ + ['lock_unlock_textoarticulado']),
+         __base__ + ['lock_unlock_textoarticulado'], set()),
 
         # estes tres models são complexos e a principio apenas o admin tem perm
-        (compilacao.TipoDispositivo, []),
-        (compilacao.TipoDispositivoRelationship, []),
-        (compilacao.PerfilEstruturalTextoArticulado, []),
+        (compilacao.TipoDispositivo, [], set()),
+        (compilacao.TipoDispositivoRelationship, [], set()),
+        (compilacao.PerfilEstruturalTextoArticulado, [], set()),
 
-        (audiencia.AudienciaPublica, __base__),
-        (audiencia.TipoAudienciaPublica, __base__),
+        (audiencia.AudienciaPublica, __base__, __perms_publicas__),
+        (audiencia.TipoAudienciaPublica, __base__, __perms_publicas__),
 
 
 
@@ -307,8 +321,8 @@ rules_group_geral = {
 rules_group_anonymous = {
     'group': SAPL_GROUP_ANONYMOUS,
     'rules': [
-        (materia.AcompanhamentoMateria, [RP_ADD, RP_DELETE]),
-        (protocoloadm.AcompanhamentoDocumento, [RP_ADD, RP_DELETE]),
+        (materia.AcompanhamentoMateria, [RP_ADD, RP_DELETE], set()),
+        (protocoloadm.AcompanhamentoDocumento, [RP_ADD, RP_DELETE], set()),
     ]
 }
 
@@ -346,3 +360,23 @@ rules_patterns = [
     rules_group_anonymous,   # anotação para validação do teste de rules
     rules_group_login_social  # TODO não implementado
 ]
+
+
+rules_patterns_public = {}
+
+
+def _get_registration_key(model):
+    return '%s:%s' % (model._meta.app_label, model._meta.model_name)
+
+
+for rules_group in rules_patterns:
+    for rules in rules_group['rules']:
+        key = _get_registration_key(rules[0])
+        if key not in rules_patterns_public:
+            rules_patterns_public[key] = set()
+
+        r = set(map(lambda x, m=rules[0]: '{}{}{}'.format(
+            m._meta.app_label,
+            x,
+            m._meta.model_name), rules[2]))
+        rules_patterns_public[key] = rules_patterns_public[key] | r

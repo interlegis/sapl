@@ -29,6 +29,7 @@ from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
@@ -38,7 +39,7 @@ from sapl.utils import (create_barcode, get_base_url, get_client_ip,
 from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
-                    DocumentoAdministrativoForm, ProtocoloDocumentForm,
+                    DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm, ProtocoloDocumentForm,
                     ProtocoloFilterSet, ProtocoloMateriaForm,
                     TramitacaoAdmEditForm, TramitacaoAdmForm,
                     DesvincularDocumentoForm, DesvincularMateriaForm,
@@ -491,6 +492,15 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         return reverse('sapl.protocoloadm:protocolo_mostrar',
                        kwargs={'pk': self.object.id})
 
+    def get_initial(self):
+        initial = super().get_initial()
+
+        initial['user_data_hora_manual'] = self.request.user.username
+        initial['ip_data_hora_manual'] = get_client_ip(self.request)
+        initial['data'] = timezone.localdate(timezone.now())
+        initial['hora'] = timezone.localtime(timezone.now())
+        return initial
+
     def form_valid(self, form):
         protocolo = form.save(commit=False)
         username = self.request.user.username
@@ -537,6 +547,17 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
         protocolo.assunto_ementa = self.request.POST['assunto']
+
+        if form.cleaned_data['data_hora_manual'] == 'True':
+            protocolo.timestamp = None
+            protocolo.user_data_hora_manual = username
+            protocolo.ip_data_hora_manual = get_client_ip(self.request)
+        else:
+            protocolo.data = None
+            protocolo.hora = None
+            protocolo.user_data_hora_manual = ''
+            protocolo.ip_data_hora_manual = ''
+
         protocolo.save()
         self.object = protocolo
         return redirect(self.get_success_url())
@@ -658,6 +679,15 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         return reverse('sapl.protocoloadm:materia_continuar', kwargs={
             'pk': protocolo.pk})
 
+    def get_initial(self):
+        initial = super().get_initial()
+
+        initial['user_data_hora_manual'] = self.request.user.username
+        initial['ip_data_hora_manual'] = get_client_ip(self.request)
+        initial['data'] = timezone.localdate(timezone.now())
+        initial['hora'] = timezone.localtime(timezone.now())
+        return initial
+
     def form_valid(self, form):
         protocolo = form.save(commit=False)
         username = self.request.user.username
@@ -700,8 +730,8 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             if protocolo.numero < (numero['numero__max'] + 1):
                 self.logger.error("user=" + username + ". Número de protocolo ({}) é menor que {}"
                                   .format(protocolo.numero, numero['numero__max']))
-                msg = _('Número de protocolo deve ser maior que {}').format(
-                    numero['numero__max'])
+                msg = _('Número de protocolo deve ser maior que {}'.format(
+                    numero['numero__max']))
                 messages.add_message(self.request, messages.ERROR, msg)
                 return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
@@ -718,6 +748,15 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.observacao = self.request.POST['observacao']
         protocolo.assunto_ementa = self.request.POST['assunto_ementa']
 
+        if form.cleaned_data['data_hora_manual'] == 'True':
+            protocolo.timestamp = None
+            protocolo.user_data_hora_manual = username
+            protocolo.ip_data_hora_manual = get_client_ip(self.request)
+        else:
+            protocolo.data = None
+            protocolo.hora = None
+            protocolo.user_data_hora_manual = ''
+            protocolo.ip_data_hora_manual = ''
         protocolo.save()
         data = form.cleaned_data
         if data['vincular_materia'] == 'True':
@@ -1073,3 +1112,98 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
         materia.numero_protocolo = None
         materia.save()
         return redirect(self.get_success_url())
+
+
+class ImpressosView(PermissionRequiredMixin, TemplateView):
+    template_name = 'materia/impressos/impressos.html'
+    permission_required = ('materia.can_access_impressos', )
+
+
+class FichaPesquisaAdmView(PermissionRequiredMixin, FormView):
+    form_class = FichaPesquisaAdmForm
+    template_name = 'materia/impressos/ficha.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def form_valid(self, form):
+        tipo_documento = form.data['tipo_documento']
+        data_inicial = form.data['data_inicial']
+        data_final = form.data['data_final']
+
+        url = reverse('sapl.materia:impressos_ficha_seleciona_adm')
+        url = url + '?tipo=%s&data_inicial=%s&data_final=%s' % (
+            tipo_documento, data_inicial, data_final)
+
+        return HttpResponseRedirect(url)
+
+
+class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
+    logger = logging.getLogger(__name__)
+    form_class = FichaSelecionaAdmForm
+    template_name = 'materia/impressos/ficha_seleciona.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def get_context_data(self, **kwargs):
+        if ('tipo' not in self.request.GET or
+            'data_inicial' not in self.request.GET or
+                'data_final' not in self.request.GET):
+            return HttpResponseRedirect(reverse(
+                'sapl.materia:impressos_ficha_pesquisa_adm'))
+
+        context = super(FichaSelecionaAdmView, self).get_context_data(
+            **kwargs)
+
+        tipo = self.request.GET['tipo']
+        data_inicial = datetime.strptime(
+            self.request.GET['data_inicial'], "%d/%m/%Y").date()
+        data_final = datetime.strptime(
+            self.request.GET['data_final'], "%d/%m/%Y").date()
+
+        documento_list = DocumentoAdministrativo.objects.filter(
+            tipo=tipo,
+            data__range=(data_inicial, data_final))
+        context['quantidade'] = len(documento_list)
+        documento_list = documento_list[:100]
+
+        context['form'].fields['documento'].choices = [
+            (d.id, str(d)) for d in documento_list]
+
+        username = self.request.user.username
+
+        if context['quantidade'] > 100:
+            self.logger.info('user=' + username + '. Sua pesquisa (tipo={}, data_inicial={}, data_final={}) retornou mais do que '
+                             '100 impressos. Por questões de '
+                             'performance, foram retornados '
+                             'apenas os 100 primeiros. Caso '
+                             'queira outros, tente fazer uma '
+                             'pesquisa mais específica'.format(tipo, data_inicial, data_final))
+            messages.info(self.request, _('Sua pesquisa retornou mais do que '
+                                          '100 impressos. Por questões de '
+                                          'performance, foram retornados '
+                                          'apenas os 100 primeiros. Caso '
+                                          'queira outros, tente fazer uma '
+                                          'pesquisa mais específica'))
+
+        return context
+
+    def form_valid(self, form):
+        context = {}
+        username = self.request.user.username
+
+        try:
+            self.logger.debug(
+                "user=" + username + ". Tentando obter objeto DocumentoAdministrativo com id={}".format(form.data['documento']))
+            documento = DocumentoAdministrativo.objects.get(
+                id=form.data['documento'])
+        except ObjectDoesNotExist:
+            self.logger.error(
+                "user=" + username + ". Este DocumentoAdministrativo não existe (id={}).".format(form.data['documento']))
+            mensagem = _('Este Documento Administrativo não existe.')
+            self.messages.add_message(self.request, messages.INFO, mensagem)
+
+            return self.render_to_response(context)
+        if len(documento.assunto) > 301:
+            documento.assunto = documento.assunto[0:300] + '[...]'
+        context['documento'] = documento
+
+        return gerar_pdf_impressos(self.request, context,
+                                   'materia/impressos/ficha_adm_pdf.html')

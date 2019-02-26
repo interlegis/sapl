@@ -1,0 +1,67 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not show_results %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if show_results %}
+    <div class="actions btn-group float-right" role="group">
+      <a href="{% url 'sapl.base:normas_por_mes' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+    <b>PARÂMETROS DE PESQUISA:<br /></b>
+    &emsp;Ano: {{ ano }} <br />
+    <br/>
+    {% if normas_mes|length == 0 %}
+        <br>
+        <h3>{% trans 'Não foi encontrada nenhuma norma com os parâmetros buscados.'%}</h3>
+    {% endif %}
+    {% for mes, normas in normas_mes.items %}
+      <div style="overflow:auto; ">
+        <table class="table table-bordered table-hover" style="margin-bottom: 0px;">
+          <thead class="thead-default">
+            <tr>
+              <th><h3 style="text-align:center;">Mês: {{ mes }}</h3></th>
+            </tr>
+          </thead>
+        </table>
+        <table class="table table-bordered table-hover" style="width:100%; margin-bottom: 0px;">
+          <thead class="thead-default" >
+            <tr class="active">
+              {% for k, v in quant_normas_mes.items %}
+                {% if k == mes %}
+                  {% if v > 1 %}
+                    <th>Quantidade encontrada no mês: {{ v }} normas.</th>
+                  {% else %}
+                    <th>Quantidade encontrada no mês: 1 norma.</th>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            </tr>
+          </thead>
+        </table>
+        <table class="table table-bordered table-hover" style="width:100%; margin-bottom: 30px;">
+          <thead class="thead-default" >
+            <tr class="active">
+              <th>Norma</th>
+              <th>Ementa</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for n in normas %}
+              <tr>
+                <td><a href="{% url 'sapl.norma:normajuridica_detail' n.pk %}">
+                  {{n.tipo.descricao}} - {{n.tipo.sigla}} {{n.numero}}/{{n.ano}}
+                </a></td>
+                <td>{{n.ementa}}<br>{{n.observacao}}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endblock base_content %}

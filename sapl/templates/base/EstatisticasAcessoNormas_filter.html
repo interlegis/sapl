@@ -1,0 +1,55 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not ano %}
+    {% crispy form %}
+  {% else %}
+    <div class="actions btn-group float-right" role="group">
+      <a href="{% url 'sapl.base:estatisticas_acesso' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+    <b>PARÂMETROS DE PESQUISA:<br /></b>
+    &emsp;Ano: {{ ano }} <br />
+    <br/>
+    {% if normas_mes|length == 0 %}
+        <br>
+        <h3>{% trans 'Nenhuma norma teve acesso neste ano.'%}</h3>
+    {% else %}
+      {% for mes, normas in normas_mes.items %}
+        <div style="overflow:auto; ">
+          <table class="table table-bordered table-hover" style="margin-bottom: 0px;">
+            <thead class="thead-default">
+              <tr>
+                <th><h3 style="text-align:center;">Mês: {{ mes }}</h3></th>
+              </tr>
+            </thead>
+          </table>
+            <table class="table table-bordered table-hover" style="width:100%; margin-bottom: 30px;">
+              <thead class="thead-default" >
+                <tr class="active">
+                  <th>Norma</th>
+                  <th>Ementa</th>
+                  <th>Acessos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for n in normas %}
+                  {% if n.1 > 0 %}
+                    <tr>
+                      <td><a href="{% url 'sapl.norma:normajuridica_detail' n.0.pk %}">
+                        {{n.0.tipo.descricao}} - {{n.0.tipo.sigla}} {{n.0.numero}}/{{n.0.ano}}
+                      </a></td>
+                      <td>{{n.0.ementa}}<br>{{n.0.observacao}}</td>
+                      <td>{{n.1}}</td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+{% endblock base_content %}

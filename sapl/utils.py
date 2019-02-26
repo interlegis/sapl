@@ -6,7 +6,10 @@ import re
 from unicodedata import normalize as unicodedata_normalize
 import unicodedata
 
-from crispy_forms.helper import FormHelper
+from django.core.files.uploadedfile import UploadedFile
+from django.forms import BaseForm
+
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button
 from django import forms
 from django.apps import apps
@@ -16,11 +19,12 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
 from django.core.mail import get_connection
+from django.db import models
 from django.db.models import Q
+from django.forms.widgets import SplitDateTimeWidget
 from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
 import django_filters
-from django_filters.filterset import STRICTNESS
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 import magic
@@ -110,7 +114,7 @@ def montar_row_autor(name):
 
 def montar_helper_autor(self):
     autor_row = montar_row_autor('nome')
-    self.helper = FormHelper()
+    self.helper = SaplFormHelper()
     self.helper.layout = SaplFormLayout(*self.get_layout())
 
     # Adiciona o novo campo 'autor' e mecanismo de busca
@@ -127,7 +131,7 @@ def montar_helper_autor(self):
     # Adiciona novos botões dentro do form
     self.helper.layout[0][4][0].insert(2, form_actions(more=[
         HTML('<a href="{{ view.cancel_url }}"'
-             ' class="btn btn-inverse">Cancelar</a>')]))
+             ' class="btn btn-dark">Cancelar</a>')]))
 
 
 class SaplGenericForeignKey(GenericForeignKey):
@@ -208,20 +212,45 @@ class RangeWidgetOverride(forms.MultiWidget):
 
     def __init__(self, attrs=None):
         widgets = (forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
+                                   attrs={'class': 'dateinput form-control',
                                           'placeholder': 'Inicial'}),
                    forms.DateInput(format='%d/%m/%Y',
-                                   attrs={'class': 'dateinput',
+                                   attrs={'class': 'dateinput form-control',
                                           'placeholder': 'Final'}))
         super(RangeWidgetOverride, self).__init__(widgets, attrs)
 
     def decompress(self, value):
         if value:
             return [value.start, value.stop]
-        return [None, None]
+        return []
 
-    def format_output(self, rendered_widgets):
+    def render(self, name, value, attrs=None, renderer=None):
+        rendered_widgets = []
+        for i, x in enumerate(self.widgets):
+            rendered_widgets.append(
+                x.render(
+                    '%s_%d' % (name, i), value[i] if value else ''
+                )
+            )
+
         html = '<div class="col-sm-6">%s</div><div class="col-sm-6">%s</div>'\
+            % tuple(rendered_widgets)
+        return '<div class="row">%s</div>' % html
+
+
+class CustomSplitDateTimeWidget(SplitDateTimeWidget):
+    def render(self, name, value, attrs=None, renderer=None):
+        rendered_widgets = []
+        for i, x in enumerate(self.widgets):
+            x.attrs['class'] += ' form-control'
+            rendered_widgets.append(
+                x.render(
+                    '%s_%d' % (name, i), self.decompress(
+                        value)[i] if value else ''
+                )
+            )
+
+        html = '<div class="col-6">%s</div><div class="col-6">%s</div>'\
             % tuple(rendered_widgets)
         return '<div class="row">%s</div>' % html
 
@@ -319,8 +348,9 @@ LISTA_DE_UFS = [
     ('EX', 'Exterior'),
 ]
 
-RANGE_ANOS = [(year, year) for year in range(timezone.now().year,
+RANGE_ANOS = [(year, year) for year in range(timezone.now().year + 1,
                                              1889, -1)]
+
 
 RANGE_MESES = [
     (1, 'Janeiro'),
@@ -338,6 +368,88 @@ RANGE_MESES = [
 ]
 
 RANGE_DIAS_MES = [(n, n) for n in range(1, 32)]
+
+
+def ANO_CHOICES():
+    return [('', '---------')] + RANGE_ANOS
+
+
+def choice_anos(model):
+    try:
+        anos_list = model.objects.all().distinct(
+            'ano').order_by('-ano').values_list('ano', 'ano')
+        return list(anos_list)
+    except Exception:
+        return []
+
+
+def choice_anos_com_materias():
+    from sapl.materia.models import MateriaLegislativa
+    return choice_anos(MateriaLegislativa)
+
+
+def choice_anos_com_normas():
+    from sapl.norma.models import NormaJuridica
+    return choice_anos(NormaJuridica)
+
+
+def choice_anos_com_protocolo():
+    from sapl.protocoloadm.models import Protocolo
+    return choice_anos(Protocolo)
+
+
+def choice_anos_com_documentoadministrativo():
+    from sapl.protocoloadm.models import DocumentoAdministrativo
+    return choice_anos(DocumentoAdministrativo)
+
+
+def choice_anos_com_sessaoplenaria():
+    try:
+        from sapl.sessao.models import SessaoPlenaria
+        anos_list = SessaoPlenaria.objects.all().dates('data_inicio', 'year')
+        # a listagem deve ser em ordem descrescente, mas por algum motivo
+        # a adicao de .order_by acima depois do all() nao surte efeito
+        # apos a adicao do .dates(), por isso o reversed() abaixo
+        anos = [(k.year, k.year) for k in reversed(anos_list)]
+        return anos
+    except Exception:
+        return []
+
+
+def choice_force_optional(callable):
+    """ Django-filter faz algo que tenha o mesmo sentido em ChoiceFilter,
+        no entanto, as funções choice_anos_... podem ser usadas em formulários
+        comuns de adição e/ou edição, com a particularidade de terem
+        required=False.
+        Neste caso para ser possível contar com a otimização de apenas mostrar anos
+        que estejam na base de dados e ainda colocar o item opcional '---------',
+        é necessário encapsular então, as funções choice_anos_... com a
+        esta função choice_force_optional... isso ocorre e foi aplicado
+        inicialmente no cadastro de documentos administrativos onde tem-se
+        opcionalmente a possibilidade de colocar o ano do protocolo.
+        Em ChoiceFilter choice_force_optional não deve ser usado pois duplicaria
+        o item opcional '---------' já que ChoiceFilter já o adiciona, como dito
+        anteriormente.
+    """
+    def _func():
+        return [('', '---------')] + callable()
+    return _func
+
+
+FILTER_OVERRIDES_DATEFIELD = {
+    'filter_class': django_filters.DateFromToRangeFilter,
+    'extra': lambda f: {
+        'label': '%s (%s)' % (f.verbose_name, _('Inicial - Final')),
+        'widget': RangeWidgetOverride
+    }
+}
+
+
+class FilterOverridesMetaMixin:
+    filter_overrides = {
+        models.DateField: FILTER_OVERRIDES_DATEFIELD
+    }
+
 
 TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.oasis.opendocument.text',
@@ -463,6 +575,37 @@ class NormaPesquisaOrderingFilter(django_filters.OrderingFilter):
     def filter(self, qs, value):
         _value = self.order_by_mapping[value[0]] if value else value
         return super().filter(qs, _value)
+
+
+class FileFieldCheckMixin(BaseForm):
+    def _check(self):
+        cleaned_data = super(FileFieldCheckMixin, self).clean()
+        errors = []
+        for name, campo in self.fields.items():
+            if isinstance(campo, forms.fields.FileField):
+                error = self.errors.get(name)
+                if error:
+                    msgs = [e.replace('Certifique-se de que o arquivo',
+                                      "Certifique-se de que o nome do "
+                                      "arquivo no campo '{}'".format(
+                                          campo.label))
+                            for e in error]
+                    for msg in msgs:
+                        errors.append(msg)
+
+                arquivo = self.cleaned_data.get(name)
+                if arquivo and not isinstance(arquivo, UploadedFile):
+                    if not os.path.exists(arquivo.path):
+                        errors.append("Arquivo referenciado no campo "
+                                      " '%s' inexistente! Marque a "
+                                      "opção Limpar e Salve." % campo.label)
+        if errors:
+            raise ValidationError(errors)
+        return cleaned_data
+
+    def clean(self):
+        """ Alias for _check() """
+        return self._check()
 
 
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
@@ -601,12 +744,12 @@ def qs_override_django_filter(self):
         valid = self.is_bound and self.form.is_valid()
 
         if self.is_bound and not valid:
-            if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+            """if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
                 raise forms.ValidationError(self.form.errors)
-            elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
-                self._qs = self.queryset.none()
-                return self._qs
-                # else STRICTNESS.IGNORE...  ignoring
+            elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:"""
+            self._qs = self.queryset.none()
+            return self._qs
+            # else STRICTNESS.IGNORE...  ignoring
 
         # start with all the results and filter from there
         qs = self.queryset.all()
@@ -619,12 +762,12 @@ def qs_override_django_filter(self):
                 try:
                     value = self.form.fields[name].clean(raw_value)
                 except forms.ValidationError:
-                    if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
+                    """if self.strict == STRICTNESS.RAISE_VALIDATION_ERROR:
                         raise
-                    elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:
-                        self._qs = self.queryset.none()
-                        return self._qs
-                        # else STRICTNESS.IGNORE...  ignoring
+                    elif bool(self.strict) == STRICTNESS.RETURN_NO_RESULTS:"""
+                    self._qs = self.queryset.none()
+                    return self._qs
+                    # else STRICTNESS.IGNORE...  ignoring
 
             if value is not None:  # valid & clean data
                 qs = qs._next_is_sticky()

@@ -1,5 +1,6 @@
 <fieldset>
     <p align="justify">
+	{% if oradores %}
     	<strong>Oradores do Expediente: </strong>
     	{% for o in oradores %}
 	        <div><b>{{o.numero_ordem}}</b> - {{o.parlamentar}}</div>
@@ -7,6 +8,7 @@
         	<div>{{o.observacao}}</div>
         	</br>
     	{% endfor %}
+	{% endif %}	
     </p>
   </div>
 </fieldset>

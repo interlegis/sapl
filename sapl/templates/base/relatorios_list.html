@@ -48,6 +48,20 @@
           <td><a href="{% url 'sapl.base:audiencia' %}">Audiência Pública</a></td>
           <td> Audiência Pública com o tipo. </td>
         </tr>
+        <tr>
+          <td><a href="{% url 'sapl.base:normas_por_mes' %}">Normas por mês</a></td>
+          <td> Normas publicadas por mês. </td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'sapl.base:normas_por_vigencia' %}">Normas por vigência</a></td>
+          <td> Normas vigentes ou não vigentes. </td>
+        </tr>
+        {% if estatisticas_acesso_normas %}
+          <tr>
+            <td><a href="{% url 'sapl.base:estatisticas_acesso' %}">Estatísticas de acesso de Normas</a></td>
+            <td> Normas por acesso. </td>
+          </tr>
+        {% endif %}
     </tbody>
   </table>
 </fieldset>

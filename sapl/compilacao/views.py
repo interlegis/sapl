@@ -4,6 +4,7 @@ import logging
 import sys
 
 from braces.views import FormMessagesMixin
+from bs4 import BeautifulSoup
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -49,7 +50,8 @@ from sapl.compilacao.models import (STATUS_TA_EDITION, STATUS_TA_PRIVATE,
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT,
                                    get_integrations_view_names)
-from sapl.crud.base import Crud, CrudAux, CrudListView, make_pagination
+from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, CrudListView,\
+    make_pagination
 from sapl.settings import BASE_DIR
 
 
@@ -430,88 +432,32 @@ class CompMixin(PermissionRequiredMixin):
         return rr
 
 
-class TipoTaListView(CompMixin, ListView):
+class TipoTextoArticuladoCrud(CrudAux):
     model = TipoTextoArticulado
-    paginate_by = 10
-    verbose_name = model._meta.verbose_name
-    permission_required = 'compilacao.list_tipotextoarticulado'
+    public = [RP_LIST, RP_DETAIL, ]
 
-    @property
-    def title(self):
-        return self.model._meta.verbose_name_plural
+    class CreateView(CrudAux.CreateView):
+        form_class = TipoTaForm
 
-    @property
-    def create_url(self):
-        return reverse_lazy('sapl.compilacao:tipo_ta_create')
+        def get(self, request, *args, **kwargs):
+            self.object = None
+            form = self.get_form()
+            form.fields['content_type'] = forms.ChoiceField(
+                choices=choice_models_in_extenal_views(),
+                label=_('Modelo Integrado'), required=False)
 
+            return self.render_to_response(self.get_context_data(form=form))
 
-class TipoTaCreateView(CompMixin, FormMessagesMixin, CreateView):
-    model = TipoTextoArticulado
-    form_class = TipoTaForm
-    template_name = "crud/form.html"
-    form_valid_message = _('Registro criado com sucesso!')
-    form_invalid_message = _('O registro não foi criado.')
-    permission_required = 'compilacao.add_tipotextoarticulado'
+    class UpdateView(CrudAux.UpdateView):
+        form_class = TipoTaForm
 
-    def get(self, request, *args, **kwargs):
-        self.object = None
-        form = self.get_form()
-        form.fields['content_type'] = forms.ChoiceField(
-            choices=choice_models_in_extenal_views(),
-            label=_('Modelo Integrado'), required=False)
-
-        return self.render_to_response(self.get_context_data(form=form))
-
-    def get_success_url(self):
-        return reverse_lazy('sapl.compilacao:tipo_ta_detail',
-                            kwargs={'pk': self.object.id})
-
-    @property
-    def cancel_url(self):
-        return reverse_lazy('sapl.compilacao:tipo_ta_list')
-
-
-class TipoTaDetailView(CompMixin, DetailView):
-    model = TipoTextoArticulado
-    permission_required = 'compilacao.detail_tipotextoarticulado'
-
-
-class TipoTaUpdateView(CompMixin, UpdateView):
-    model = TipoTextoArticulado
-    form_class = TipoTaForm
-    template_name = "crud/form.html"
-    permission_required = 'compilacao.change_tipotextoarticulado'
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        form.fields['content_type'] = forms.ChoiceField(
-            choices=choice_models_in_extenal_views(),
-            label=_('Modelo Integrado'), required=False)
-        return self.render_to_response(self.get_context_data(form=form))
-
-    def get_success_url(self):
-        return reverse_lazy('sapl.compilacao:tipo_ta_detail',
-                            kwargs={'pk': self.kwargs['pk']})
-
-    @property
-    def cancel_url(self):
-        return reverse_lazy('sapl.compilacao:tipo_ta_detail',
-                            kwargs={'pk': self.kwargs['pk']})
-
-
-class TipoTaDeleteView(CompMixin, DeleteView):
-    model = TipoTextoArticulado
-    template_name = "crud/confirm_delete.html"
-    permission_required = 'compilacao.delete_tipotextoarticulado'
-
-    @property
-    def detail_url(self):
-        return reverse_lazy('sapl.compilacao:tipo_ta_detail',
-                            kwargs={'pk': self.kwargs['pk']})
-
-    def get_success_url(self):
-        return reverse_lazy('sapl.compilacao:tipo_ta_list')
+        def get(self, request, *args, **kwargs):
+            self.object = self.get_object()
+            form = self.get_form()
+            form.fields['content_type'] = forms.ChoiceField(
+                choices=choice_models_in_extenal_views(),
+                label=_('Modelo Integrado'), required=False)
+            return self.render_to_response(self.get_context_data(form=form))
 
 
 class TaListView(CompMixin, ListView):
@@ -1318,6 +1264,9 @@ class TextEditView(CompMixin, TemplateView):
     def nota_alteracao(self, dispositivo, lista_ta_publicado):
         if dispositivo.ta_publicado_id:
             d = dispositivo.dispositivo_atualizador.dispositivo_pai
+
+            if d.auto_inserido:
+                d = d.dispositivo_pai
 
             ta_publicado = lista_ta_publicado[dispositivo.ta_publicado_id] if\
                 lista_ta_publicado else dispositivo.ta_publicado
@@ -2937,13 +2886,10 @@ class DispositivoDinamicEditView(
                 if texto != texto_atualizador else ''
             visibilidade = request.POST['visibilidade']
 
-            # if d.texto != '':
-            #    d.texto = texto
-            #    d.save()
-            #    return self.get(request, *args, **kwargs)
             d_texto = d.texto
             d.texto = texto.strip()
             d.texto_atualizador = texto_atualizador.strip()
+
             d.visibilidade = not visibilidade or visibilidade == 'True'
             d.save()
 

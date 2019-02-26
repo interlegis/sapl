@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import pytest
 from django.contrib.auth import get_user_model
+import pytest
+
 
 pytestmark = pytest.mark.django_db
 
@@ -12,14 +13,15 @@ def user():
 
 def test_login_aparece_na_barra_para_usuario_nao_logado(client):
     response = client.get('/')
-    assert '<a href="/login/"><img src="/static/img/user.png"></a>' in str(
+    assert '<a class="nav-link" href="/login/"><img src="/static/sapl/img/user.png"></a>' in str(
         response.content)
 
 
 def test_username_do_usuario_logado_aparece_na_barra(client, user):
     assert client.login(username='jfirmino', password='123')
     response = client.get('/')
-    assert '<a href="/login/">Login</a>' not in str(response.content)
+    assert '<a class="nav-link" href="/login/">Login</a>' not in str(
+        response.content)
     assert 'jfirmino' in str(response.content)
     assert '<a href="/logout/">Sair</a>' in str(response.content)
 

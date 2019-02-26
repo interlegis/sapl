@@ -2,6 +2,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 from model_utils import Choices
 import reversion
 
@@ -83,7 +84,7 @@ class NormaJuridica(models.Model):
     tipo = models.ForeignKey(
         TipoNormaJuridica,
         on_delete=models.PROTECT,
-        verbose_name=_('Tipo da Norma Juridica'))
+        verbose_name=_('Tipo da Norma Jurídica'))
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
         on_delete=models.PROTECT, verbose_name=_('Matéria'))
@@ -98,11 +99,11 @@ class NormaJuridica(models.Model):
         choices=ESFERA_FEDERACAO_CHOICES)
     data = models.DateField(blank=False, null=True, verbose_name=_('Data'))
     data_publicacao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Publicação'))
+        blank=True, null=True, verbose_name=_('Data de Publicação'))
     veiculo_publicacao = models.CharField(
         max_length=30,
         blank=True,
-        verbose_name=_('Veículo Publicação'))
+        verbose_name=_('Veículo de Publicação'))
     pagina_inicio_publicacao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Pg. Início'))
     pagina_fim_publicacao = models.PositiveIntegerField(
@@ -119,7 +120,8 @@ class NormaJuridica(models.Model):
     assuntos = models.ManyToManyField(
         AssuntoNorma, blank=True,
         verbose_name=_('Assuntos'))
-    data_vigencia = models.DateField(blank=True, null=True, verbose_name=_('Data Fim Vigência'))
+    data_vigencia = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Fim Vigência'))
     timestamp = models.DateTimeField(null=True)
 
     texto_articulado = GenericRelation(
@@ -143,9 +145,11 @@ class NormaJuridica(models.Model):
 
     def get_normas_relacionadas(self):
         principais = NormaRelacionada.objects.filter(
-            norma_principal=self.id)
+            norma_principal=self.id).order_by('norma_principal__ano',
+                                              'norma_relacionada__ano')
         relacionadas = NormaRelacionada.objects.filter(
-            norma_relacionada=self.id)
+            norma_relacionada=self.id).order_by('norma_principal__ano',
+                                                'norma_relacionada__ano')
         return (principais, relacionadas)
 
     def get_anexos_norma_juridica(self):
@@ -191,6 +195,24 @@ class NormaJuridica(models.Model):
                                  update_fields=update_fields)
 
 
+def get_ano_atual():
+    return timezone.now().year
+
+
+class NormaEstatisticas(models.Model):
+    usuario = models.CharField(max_length=50)
+    horario_acesso = models.DateTimeField(
+        blank=True, null=True)
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                           choices=RANGE_ANOS, default=get_ano_atual)
+    norma = models.ForeignKey(NormaJuridica,
+                              on_delete=models.CASCADE)
+
+    def __str__(self):
+        return _('Usuário: %(usuario)s, Norma: %(norma)s') % {
+            'usuario': self.usuario, 'norma': self.norma}
+
+
 @reversion.register()
 class AutoriaNorma(models.Model):
     autor = models.ForeignKey(Autor,
@@ -212,6 +234,7 @@ class AutoriaNorma(models.Model):
     def __str__(self):
         return _('Autoria: %(autor)s - %(norma)s') % {
             'autor': self.autor, 'norma': self.norma}
+
 
 @reversion.register()
 class LegislacaoCitada(models.Model):
@@ -259,8 +282,8 @@ class TipoVinculoNormaJuridica(models.Model):
     descricao_passiva = models.CharField(
         max_length=50, blank=True, verbose_name=_('Descrição Passiva'))
     revoga_integralmente = models.BooleanField(verbose_name=_('Revoga Integralmente?'),
-                                              choices=YES_NO_CHOICES,
-                                              default=False)
+                                               choices=YES_NO_CHOICES,
+                                               default=False)
 
     class Meta:
         verbose_name = _('Tipo de Vínculo entre Normas Jurídicas')
@@ -290,6 +313,7 @@ class NormaRelacionada(models.Model):
     class Meta:
         verbose_name = _('Norma Relacionada')
         verbose_name_plural = _('Normas Relacionadas')
+        ordering = ('norma_principal__ano', 'norma_relacionada__ano')
 
     def __str__(self):
         return _('Principal: %(norma_principal)s'
@@ -306,8 +330,8 @@ class AnexoNormaJuridica(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Norma Juridica'))
     assunto_anexo = models.TextField(
-        blank = True,
-        default = "",
+        blank=True,
+        default="",
         verbose_name=_('Assunto do Anexo'),
         max_length=250
     )

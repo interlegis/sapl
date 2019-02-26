@@ -7,12 +7,12 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica, AnexoAudienciaPublica
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.utils import timezone
+from sapl.utils import timezone, FileFieldCheckMixin
 
-class AudienciaForm(forms.ModelForm):
+class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
     logger = logging.getLogger(__name__)
     data_atual = timezone.now()
 
@@ -134,7 +134,7 @@ class AnexoAudienciaPublicaForm(forms.ModelForm):
         row2 = to_row(
             [('assunto', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'),
                      row1, row2))

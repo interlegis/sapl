@@ -10,12 +10,12 @@
     {% block buttons %}
 
       {% if filter_url and not filter.form.errors %}
-            <div class="actions btn-group pull-right" role="group">
-              <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-default">{% trans 'Fazer nova pesquisa' %}</a>
+            <div class="actions btn-group float-right" role="group">
+              <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
             </div>
 
-            <div class="actions btn-group pull-right" role="group">
-              <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-default">{% trans 'Matérias do Expediente' %}</a>
+            <div class="actions btn-group float-right" role="group">
+              <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-outline-primary">{% trans 'Matérias do Expediente' %}</a>
             </div>
 
       {% endif %}
@@ -68,12 +68,12 @@
                             <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não informado"}}</br>
                             <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
                             <p></p>
-                            <td class="col-md-3">
-                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="1"> <label for="tipo">Simbólica</label>
+                            <td width="20%%">
+                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}_1" value="1"> <label for="tipo_votacao_{{m.id}}_1">Simbólica</label>
                                 </br>
-                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="2"> <label for="tipo">Nominal</label>
+                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}_2" value="2"> <label for="tipo_votacao_{{m.id}}_2">Nominal</label>
                                 </br>
-                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}" value="3"> <label for="tipo">Secreta</label>
+                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}_3" value="3"> <label for="tipo_votacao_{{m.id}}_3">Secreta</label>
                             </td>
                         </td>
                     </tr>         

@@ -1,8 +1,7 @@
 from builtins import LookupError
-
-import django
 import logging
 
+import django
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
@@ -120,12 +119,12 @@ def create_proxy_permissions(
     for perm in perms:
         if len(perm.name) > permission_name_max_length:
             logger.error("The permission name %s of %s.%s "
-                        "is longer than %s characters" % (
-                            perm.name,
-                            perm.content_type.app_label,
-                            perm.content_type.model,
-                            permission_name_max_length,
-                        ))
+                         "is longer than %s characters" % (
+                             perm.name,
+                             perm.content_type.app_label,
+                             perm.content_type.model,
+                             permission_name_max_length,
+                         ))
             raise exceptions.ValidationError(
                 'The permission name %s of %s.%s '
                 'is longer than %s characters' % (
@@ -177,7 +176,7 @@ def get_rules():
             try:
                 logger.info("Tentando associar grupos.")
                 print(' ', group_name)
-                for model, perms in rules_list:
+                for model, perms, perms_publicas in rules_list:
                     self.associar(group, model, perms)
             except Exception as e:
                 logger.error(str(e))

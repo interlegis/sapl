@@ -1,0 +1,57 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not show_results %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if show_results %}
+    <div class="actions btn-group float-right" role="group">
+      <a href="{% url 'sapl.base:normas_por_vigencia' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+    <b>PARÂMETROS DE PESQUISA:<br /></b>
+    &emsp;Ano: {{ ano }} <br />
+    &emsp;Vigência: {{ vigencia }} <br />
+    {% if object_list %}
+      <br/>
+      {% if  object_list|length > 1 %}
+        <h3>Foram encontradas {{object_list|length}} normas.</h3>
+      {% else %}
+        <h3>Foi encontrada 1 norma.</h3>
+      {% endif %}
+      <br/>
+      <table class="table table-bordered table-hover" style="width:100%">
+        <thead class="thead-default" >
+          <tr class="active">
+            <th>Norma</th>
+            <th>Ementa</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for norma in object_list %}
+            <tr>
+              <td><a href="{% url 'sapl.norma:normajuridica_detail' norma.pk %}">
+                {{norma.tipo.descricao}} - {{norma.tipo.sigla}} {{norma.numero}}/{{norma.ano}}
+              </a></td>
+              <td>{{norma.ementa}}<br>{{norma.observacao}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <table class="table table-bordered table-hover" style="margin-top:30px;">
+        <thead class="thead-default" >
+          <tr class="active">
+            <th> Não foi encontrada nenhuma norma com os parâmetros buscados.</th>
+          </tr>
+        </thead>
+      </table>
+    {% endif %}
+    <br>
+    <h3>Estatísticas das normas do ano:</h3><br>
+    <h3>{{quant_vigente}} vigente(s) / {{quant_nao_vigente}} não vigente(s)</h3>
+  {% endif %}
+{% endblock base_content %}

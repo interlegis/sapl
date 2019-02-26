@@ -6,8 +6,8 @@
    Empresa: Interlegis
    versão: 1.0
 """
-import os
 import time
+import os
 
 from trml2pdf import parseString
 
@@ -16,8 +16,9 @@ def cabecalho(dic_cabecalho, dat_ordem, imagem):
     """Gera o codigo rml do cabecalho"""
 
     tmp = ''
-    tmp += '\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + \
-        imagem + '"/>\n'
+    if os.path.isfile(imagem):
+        tmp += '\t\t\t\t<image x="2.1cm" y="25.7cm" width="59" height="62" file="' + \
+            imagem + '"/>\n'
     tmp += '\t\t\t\t<lines>2cm 25cm 19cm 25cm</lines>\n'
     tmp += '\t\t\t\t<setFont name="Helvetica" size="12"/>\n'
     #tmp+='\t\t\t\t<drawString x="4cm" y="27.2cm">' + str(dic_cabecalho['nom_casa']) + '</drawString>\n'

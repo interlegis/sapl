@@ -1,9 +1,7 @@
-import logging
-
-from compressor.utils import get_class
 from django import template
-from django.conf import settings
 from django.template.defaultfilters import stringfilter
+from django.utils.safestring import mark_safe
+from webpack_loader import utils
 
 from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposicao
@@ -13,6 +11,15 @@ from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO
 
 
 register = template.Library()
+
+
+def get_class(class_string):
+    if not hasattr(class_string, '__bases__'):
+        class_string = str(class_string)
+        dot = class_string.rindex('.')
+        mod_name, class_name = class_string[:dot], class_string[dot + 1:]
+        if class_name:
+            return getattr(__import__(mod_name, {}, {}, [str('')]), class_name)
 
 
 @register.simple_tag
@@ -228,7 +235,7 @@ def file_extension(value):
 def cronometro_to_seconds(value):
     if not AppConfig.attr('cronometro_' + value):
         return 0
-        
+
     return AppConfig.attr('cronometro_' + value).seconds
 
 
@@ -269,3 +276,13 @@ def filiacao_data_filter(parlamentar, data_inicio):
 @register.filter
 def filiacao_intervalo_filter(parlamentar, date_range):
     return filiacao_data(parlamentar, date_range[0], date_range[1])
+
+
+@register.simple_tag
+def render_chunk_vendors(extension=None):
+    try:
+        tags = utils.get_as_tags(
+            'chunk-vendors', extension=extension, config='DEFAULT', attrs='')
+        return mark_safe('\n'.join(tags))
+    except:
+        return ''
