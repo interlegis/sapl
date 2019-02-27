@@ -1,18 +1,17 @@
-##parameters=rodape_dic, sessao='', imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores
+# #parameters=rodape_dic, sessao='', imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores
 """Script para geração do PDF das sessoes plenarias
    Autor: Gustavo Lepri
    Atualizado por Luciano De Fázio - 22/03/2012
    versão: 1.0
 """
-import time
 import os
+import time
 
 from django.template.defaultfilters import safe
 from django.utils.html import strip_tags
+from trml2pdf import parseString
 
 from sapl.sessao.models import ResumoOrdenacao
-
-from trml2pdf import parseString
 
 
 def cabecalho(inf_basicas_dic, imagem):
@@ -124,7 +123,7 @@ def inf_basicas(inf_basicas_dic):
         dat_inicio_sessao + ' <b>- </b> ' + hr_inicio_sessao + '</para>\n'
 
     tmp += '\t\t<para style="P2" spaceAfter="5"><b>Encerramento: </b> ' + \
-        dat_fim_sessao +  ' <b>- </b> ' + hr_fim_sessao + '</para>\n'
+        dat_fim_sessao + ' <b>- </b> ' + hr_fim_sessao + '</para>\n'
 
     return tmp
 
@@ -145,7 +144,7 @@ def mesa(lst_mesa):
     return tmp
 
 
-def presenca(lst_presenca_sessao,lst_ausencia_sessao):
+def presenca(lst_presenca_sessao, lst_ausencia_sessao):
     """
 
     """
@@ -202,14 +201,18 @@ def expediente_materia(lst_expediente_materia):
     tmp += '\t\t<para style="P2">\n'
     tmp += '\t\t\t<font color="white"> <br/></font>\n'
     tmp += '\t\t</para>\n'
-    tmp += '<blockTable style="repeater" repeatRows="1">\n'
+    tmp += '<blockTable style="repeater" repeatRows="1" colWidths="3.5cm,11.5cm,3.5cm">>\n'
     tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
     for expediente_materia in lst_expediente_materia:
         tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + expediente_materia[
-        'des_turno'] + '</para>\n' + '<para style="P3"><b>'+ expediente_materia['num_autores'] + ': </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
+        'des_turno'] + '</para>\n' + '<para style="P3"><b>' + expediente_materia['num_autores'] + ': </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
+        
         txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
-        if len(txt_ementa) > 1000:
-            txt_ementa = txt_ementa[:1000] + "..."
+        
+        # txt_ementa = dont_break_out(expediente_materia['txt_ementa'])
+                
+        # if len(txt_ementa) > 800:
+        #    txt_ementa = txt_ementa[:800] + "..."
         tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + expediente_materia['ordem_observacao'] + '</para></td>\n'
         tmp += '<td><para style="P3"><b>' + \
             str(expediente_materia['nom_resultado']) + \
@@ -271,7 +274,7 @@ def votacao(lst_votacao):
     tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
     for votacao in lst_votacao:
         tmp += '<tr><td><para style="P3"><b>' + str(votacao['num_ordem']) + '</b> - ' + votacao['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno:</b> ' + votacao[
-            'des_turno'] + '</para>\n' + '<para style="P3"><b>'+ votacao['num_autores'] +': </b>' + str(votacao['nom_autor']) + '</para></td>\n'
+            'des_turno'] + '</para>\n' + '<para style="P3"><b>' + votacao['num_autores'] + ': </b>' + str(votacao['nom_autor']) + '</para></td>\n'
         txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
         if len(txt_ementa) > 1000:
             txt_ementa = txt_ementa[:1000] + "..."
@@ -349,7 +352,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
         'cont_mult': '',
         'exp': expedientes(lst_expedientes),
         'id_basica': inf_basicas(inf_basicas_dic),
-        'lista_p': presenca(lst_presenca_sessao,lst_ausencia_sessao),
+        'lista_p': presenca(lst_presenca_sessao, lst_ausencia_sessao),
         'lista_p_o_d': presenca_ordem_dia(lst_presenca_ordem_dia),
         'mat_exp': expediente_materia(lst_expediente_materia),
         'mat_o_d': votacao(lst_votacao),
@@ -375,7 +378,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
     else:
         tmp += inf_basicas(inf_basicas_dic)
         tmp += mesa(lst_mesa)
-        tmp += presenca(lst_presenca_sessao,lst_ausencia_sessao)
+        tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
         tmp += expedientes(lst_expedientes)
         tmp += expediente_materia(lst_expediente_materia)
         tmp += oradores_expediente(lst_oradores_expediente)
