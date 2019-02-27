@@ -20,6 +20,7 @@ from sapl.utils import FileFieldCheckMixin
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
+import django_filters
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
                      Mandato, Parlamentar, Votante)
@@ -208,6 +209,29 @@ class ParlamentarForm(FileFieldCheckMixin, ModelForm):
             'cropping': CropWidget(),
             'biografia': forms.Textarea(
                 attrs={'id': 'texto-rico'})}
+
+
+class ParlamentarFilterSet(django_filters.FilterSet):
+    nome_parlamentar = django_filters.CharFilter(
+        label=_('Nome do Parlamentar'),
+        lookup_expr='icontains')
+
+    class Meta:
+        model = Parlamentar
+        fields = ['nome_parlamentar']
+
+    def __init__(self, *args, **kwargs):
+        super(ParlamentarFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('nome_parlamentar', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Parlamentar'),
+                     row0,
+                     form_actions(label='Pesquisar'))
+        )
 
 
 class ParlamentarCreateForm(ParlamentarForm):

@@ -17,7 +17,9 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       frente_atualiza_lista_parlamentares,
                                       insere_parlamentar_composicao,
                                       parlamentares_frente_selected,
-                                      remove_parlamentar_composicao, parlamentares_filiados)
+                                      remove_parlamentar_composicao,
+                                      parlamentares_filiados,
+                                      PesquisarParlamentarView)
 
 from .apps import AppConfig
 
@@ -32,6 +34,9 @@ urlpatterns = [
         RelatoriaParlamentarCrud.get_urls() + FrenteList.get_urls() +
         VotanteView.get_urls()
     )),
+
+    url(r'^parlamentar/pesquisar-parlamentar/',
+        PesquisarParlamentarView.as_view(), name='pesquisar_parlamentar'),
 
     url(r'^parlamentar/(?P<pk>\d+)/materias$',
         ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
