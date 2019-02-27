@@ -1,6 +1,12 @@
 {% extends "crud/list.html" %}
 {% load i18n %}
 {% load crispy_forms_tags cropping%}
+{% block actions %}
+    {{ block.super }}
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.parlamentares:pesquisar_parlamentar' %}" class="btn btn-outline-primary">Pesquisar Parlamentares</a>
+    </div>
+{% endblock actions %}
 {% block extra_content %}
   <fieldset class="form-group">
     <legend>Selecione o Período</legend>
