@@ -64,8 +64,6 @@ ParlamentarUpdate:
   - biografia
 
 ParlamentarCreate:
-  {% trans 'Dados do Mandato' %}:
-    - legislatura  data_expedicao_diploma
   {% trans 'Cadastro do Parlamentar' %}:
   - nome_parlamentar:8  ativo
   - nome_completo

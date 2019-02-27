@@ -674,6 +674,12 @@ class ParlamentarCrud(Crud):
             return context
 
 
+def lista_parlamentares(request):
+    template_name = "parlamentares/lista_parlamentares.html"
+    parlamentares = Parlamentar.objects.select_related().all()
+    return render(request, template_name, {"parlamentares": parlamentares})
+
+
 class ParlamentarMateriasView(FormView):
     template_name = "parlamentares/materias.html"
     success_url = reverse_lazy('sapl.parlamentares:parlamentar_materia')
