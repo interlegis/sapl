@@ -166,6 +166,7 @@ def get_field_display(obj, fieldname):
             value)
     elif 'TextField' in str_type_from_field:
         display = value.replace('\n', '<br/>')
+        display = '<div class="dont-break-out">{}</div>'.format(display)
     else:
         display = str(value)
     return verbose_name, display

@@ -91,16 +91,25 @@ body
     </table>
     {% endif %}
 
-    <!-- Ementa -->
+    <!-- Assunto -->
     <table border=0>
 	  <td>
-	    <div id="ementa_texto">
-  	     <strong class="text_pdf">Ementa:</strong> <span class="text_pdf">{{documento.assunto}}</span>
+	    <div id="assunto_texto">
+  	     <strong class="text_pdf">Assunto:</strong> <span class="text_pdf">{{documento.assunto}}</span>
 	    </div>
 	  </td>
     </table>
 
-
+    <!-- Interessado -->
+    {% if  documento.interessado%}
+    <table border=0>
+	  <td>
+	    <div id="interessado_texto">
+  	     <strong class="text_pdf">Interessado:</strong> <span class="text_pdf">{{documento.interessado}}</span>
+	    </div>
+	  </td>
+    </table>
+    {% endif %}
 </div>
 </justify>
 

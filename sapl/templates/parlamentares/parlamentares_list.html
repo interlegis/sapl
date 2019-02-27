@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load crispy_forms_tags cropping%}
 {% block actions %}
+    {{ block.super }}
     <div class="actions btn-group float-right btn-group-lg" role="group">
       {% if view.create_url %}
       <a href="{% url 'sapl.parlamentares:lista_parlamentares' %}" class="btn btn-outline-primary">
@@ -9,6 +10,9 @@
       </a>
       {% endif %}
       {% block more_buttons %}{% endblock more_buttons %}
+    </div>
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.parlamentares:pesquisar_parlamentar' %}" class="btn btn-outline-primary">Pesquisar Parlamentares</a>
     </div>
 {% endblock actions %}
 {% block extra_content %}

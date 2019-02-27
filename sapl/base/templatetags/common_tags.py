@@ -1,3 +1,6 @@
+from _functools import reduce
+import re
+
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
@@ -8,7 +11,6 @@ from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposic
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
 from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO
-
 
 register = template.Library()
 
@@ -286,3 +288,12 @@ def render_chunk_vendors(extension=None):
         return mark_safe('\n'.join(tags))
     except:
         return ''
+    
+   
+@register.filter(is_safe=True)
+@stringfilter 
+def dont_break_out(value):
+    _safe = '<div class="dont-break-out">{}</div>'.format(value)
+    _safe = mark_safe(_safe)
+    return _safe    
+
