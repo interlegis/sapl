@@ -227,6 +227,30 @@ def expediente_materia(lst_expediente_materia):
     return tmp
 
 
+def expediente_materia_vot_nom(lst_expediente_materia_vot_nom):
+    """
+    """
+    tmp = ''
+    tmp += '\t\t<para style="P1">Votações Nominais - Matérias do Expediente</para>\n\n'
+    tmp += '\t\t<para style="P2">\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
+    tmp += '\t\t</para>\n'
+    tmp += '<blockTable style="repeater" repeatRows="1">\n'
+    tmp += '<tr><td >Matéria</td><td>Votos</td></tr>\n'
+    for expediente_materia_vot_nom in lst_expediente_materia_vot_nom:
+        tmp += '<tr><td><para style="P3">' + str(expediente_materia_vot_nom['titulo']) + '</para></td>'
+        if expediente_materia_vot_nom['votos']:
+            tmp += '<td>'
+            for v in expediente_materia_vot_nom['votos']:
+                tmp += '<para style="P3"><b>' + str(v.parlamentar) + '</b> - ' + v.voto + '</para>'
+            tmp += '</td>'
+        else: 
+            tmp += '<td><para style="P3"><b>Matéria não votada</b></para></td>'
+        tmp += '</tr>\n'
+    tmp += '\t\t</blockTable>\n'
+    return tmp
+
+
 def oradores_expediente(lst_oradores_expediente):
     """
 
@@ -292,6 +316,30 @@ def votacao(lst_votacao):
     return tmp
 
 
+def votacao_vot_nom(lst_votacao_vot_nom):
+    """
+    """
+    tmp = ''
+    tmp += '\t\t<para style="P1">Votações Nominais - Matérias da Ordem do Dia</para>\n\n'
+    tmp += '\t\t<para style="P2">\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
+    tmp += '\t\t</para>\n'
+    tmp += '<blockTable style="repeater" repeatRows="1">\n'
+    tmp += '<tr><td >Matéria</td><td>Votos</td></tr>\n'
+    for votacao_vot_nom in lst_votacao_vot_nom:
+        tmp += '<tr><td><para style="P3">' + str(votacao_vot_nom['titulo']) + '</para></td>'
+        if votacao_vot_nom['votos']:
+            tmp += '<td>'
+            for v in votacao_vot_nom['votos']:
+                tmp += '<para style="P3"><b>' + str(v.parlamentar) + '</b> - ' + v.voto + '</para>'
+            tmp += '</td>'
+        else: 
+            tmp += '<td><para style="P3"><b>Matéria não votada</b></para></td>'
+        tmp += '</tr>\n'
+    tmp += '\t\t</blockTable>\n'
+    return tmp
+
+
 def oradores(lst_oradores):
     """
 
@@ -326,7 +374,7 @@ def ocorrencias(lst_ocorrencias):
     return tmp
 
 
-def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores, lst_ocorrencias):
+def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_expediente_materia_vot_nom, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_votacao_vot_nom, lst_oradores, lst_ocorrencias):
     """
     """
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"
@@ -355,7 +403,9 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
         'lista_p': presenca(lst_presenca_sessao, lst_ausencia_sessao),
         'lista_p_o_d': presenca_ordem_dia(lst_presenca_ordem_dia),
         'mat_exp': expediente_materia(lst_expediente_materia),
+        'v_n_mat_exp': expediente_materia_vot_nom(lst_expediente_materia_vot_nom),
         'mat_o_d': votacao(lst_votacao),
+        'v_n_mat_o_d': votacao_vot_nom(lst_votacao_vot_nom),
         'mesa_d': mesa(lst_mesa),
         'oradores_exped': oradores_expediente(lst_oradores_expediente),
         'oradores_expli': oradores(lst_oradores),
@@ -374,6 +424,8 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
         tmp += dict_ord_template[ordenacao.nono]
         tmp += dict_ord_template[ordenacao.decimo]
         tmp += dict_ord_template[ordenacao.decimo_primeiro]
+        tmp += dict_ord_template[ordenacao.decimo_segundo]
+        tmp += dict_ord_template[ordenacao.decimo_terceiro]
 
     else:
         tmp += inf_basicas(inf_basicas_dic)
@@ -381,9 +433,11 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
         tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
         tmp += expedientes(lst_expedientes)
         tmp += expediente_materia(lst_expediente_materia)
+        tmp += expediente_materia_vot_nom(lst_expediente_materia_vot_nom)
         tmp += oradores_expediente(lst_oradores_expediente)
         tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
         tmp += votacao(lst_votacao)
+        tmp += votacao_vot_nom(lst_votacao_vot_nom)
         tmp += oradores(lst_oradores)
         tmp += ocorrencias(lst_ocorrencias)
 

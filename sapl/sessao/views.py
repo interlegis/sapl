@@ -1418,7 +1418,30 @@ class ResumoView(DetailView):
             materias_expediente.append(mat)
 
         context.update({'materia_expediente': materias_expediente})
+        
+        # Votos de Votação Nominal de Matérias Expediente
+        materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(
+            sessao_plenaria_id=self.object.id,
+            tipo_votacao=2).order_by('-materia')
+        
+        votacoes = []
+        for mevn in materias_expediente_votacao_nominal:    
+            
+            votos_materia = []
+            titulo_materia = mevn.materia
+            registro = RegistroVotacao.objects.filter(expediente=mevn)
+            if registro:   
+                for vp in VotoParlamentar.objects.filter(votacao=registro).order_by('parlamentar'):
+                    votos_materia.append(vp)
 
+            dados_votacao = {
+                'titulo': titulo_materia,
+                'votos': votos_materia
+            } 
+            votacoes.append(dados_votacao)
+        
+        context.update({'votos_nominais_materia_expediente': votacoes})
+        
         # =====================================================================
         # Oradores Expediente
         oradores = []
@@ -1518,6 +1541,29 @@ class ResumoView(DetailView):
 
         context.update({'materias_ordem': materias_ordem})
 
+        # Votos de Votação Nominal de Matérias Ordem do Dia
+        materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(
+            sessao_plenaria_id=self.object.id,
+            tipo_votacao=2).order_by('-materia')
+
+        votacoes_od = []
+        for modvn in materias_ordem_dia_votacao_nominal:
+
+            votos_materia_od = []
+            t_materia = modvn.materia
+            registro_od = RegistroVotacao.objects.filter(ordem=modvn)
+            if registro_od:
+                for vp_od in VotoParlamentar.objects.filter(votacao=registro_od).order_by('parlamentar'):
+                    votos_materia_od.append(vp_od)
+
+            dados_votacao_od = {
+                'titulo': t_materia,
+                'votos': votos_materia_od
+            }
+            votacoes_od.append(dados_votacao_od)
+        
+        context.update({'votos_nominais_materia_ordem_dia': votacoes_od})
+
         # =====================================================================
         # Oradores nas Explicações Pessoais
         oradores_explicacoes = []
@@ -1556,7 +1602,9 @@ class ResumoView(DetailView):
             'lista_p': 'lista_presenca.html',
             'lista_p_o_d': 'lista_presenca_ordem_dia.html',
             'mat_exp': 'materias_expediente.html',
+            'v_n_mat_exp': 'votos_nominais_materias_expediente.html',
             'mat_o_d': 'materias_ordem_dia.html',
+            'v_n_mat_o_d': 'votos_nominais_materias_ordem_dia.html',
             'mesa_d': 'mesa_diretora.html',
             'oradores_exped': 'oradores_expediente.html',
             'oradores_expli': 'oradores_explicacoes.html',
@@ -1575,7 +1623,10 @@ class ResumoView(DetailView):
                  'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
                  'nono_ordenacao': dict_ord_template[ordenacao.nono],
                  'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
-                 'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro]})
+                 'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+                 'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+                 'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro]})
+
         else:
             context.update(
                 {'primeiro_ordenacao': dict_ord_template['id_basica'],
@@ -1584,11 +1635,14 @@ class ResumoView(DetailView):
                  'quarto_ordenacao': dict_ord_template['lista_p'],
                  'quinto_ordenacao': dict_ord_template['exp'],
                  'sexto_ordenacao': dict_ord_template['mat_exp'],
-                 'setimo_ordenacao': dict_ord_template['oradores_exped'],
-                 'oitavo_ordenacao': dict_ord_template['lista_p_o_d'],
-                 'nono_ordenacao': dict_ord_template['mat_o_d'],
-                 'decimo_ordenacao': dict_ord_template['oradores_expli'],
-                 'decimo_primeiro_ordenacao': dict_ord_template['ocorr_sessao']})
+                 'setimo_ordenacao': dict_ord_template['v_n_mat_exp'],
+                 'oitavo_ordenacao': dict_ord_template['oradores_exped'],
+                 'nono_ordenacao': dict_ord_template['lista_p_o_d'],
+                 'decimo_ordenacao': dict_ord_template['mat_o_d'],
+                 'decimo_primeiro_ordenacao': dict_ord_template['v_n_mat_o_d'],
+                 'decimo_segundo_ordenacao': dict_ord_template['oradores_expli'],
+                 'decimo_terceiro_ordenacao': dict_ord_template['ocorr_sessao']
+                 })
 
         return self.render_to_response(context)
 
