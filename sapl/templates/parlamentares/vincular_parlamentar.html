@@ -1,0 +1,8 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block detail_content %}
+ {% crispy form %}
+{% endblock detail_content %}
