@@ -690,10 +690,11 @@ class ParlamentarMateriasView(FormView):
 
 
 def parlamentares_filiados(request, pk):
-    template_name = 'parlamentares/partido_detail.html'
-    partido = Partido.objects.filter(pk=pk)
-    queryset = Parlamentar.objects.select_related().all()
-    return render(request, template_name, {'parlamentares': queryset})
+    template_name = 'parlamentares/partido_filiados.html'
+    parlamentares = Parlamentar.objects.select_related().all()
+    partido = Partido.objects.select_related().get(pk=pk)
+    parlamentares_filiado = [parlamentar for parlamentar in parlamentares if parlamentar.filiacao_atual == partido.sigla]
+    return render(request, template_name, {'partido': partido, 'parlamentares': parlamentares_filiado})
 
 
 class MesaDiretoraView(FormView):
