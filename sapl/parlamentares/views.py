@@ -10,6 +10,8 @@ from django.db.models import F, Q
 from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
+from django.shortcuts import render
+from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
@@ -744,6 +746,14 @@ class ParlamentarMateriasView(FormView):
                                         'coautoria': coautor_list,
                                         'nome_parlamentar': nome_parlamentar
                                         })
+
+
+def parlamentares_filiados(request, pk):
+    template_name = 'parlamentares/partido_filiados.html'
+    parlamentares = Parlamentar.objects.select_related().all()
+    partido = Partido.objects.select_related().get(pk=pk)
+    parlamentares_filiado = [parlamentar for parlamentar in parlamentares if parlamentar.filiacao_atual == partido.sigla]
+    return render(request, template_name, {'partido': partido, 'parlamentares': parlamentares_filiado})
 
 
 class MesaDiretoraView(FormView):
