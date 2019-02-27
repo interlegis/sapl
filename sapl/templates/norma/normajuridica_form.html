@@ -20,7 +20,7 @@
              numero_materia: numero_materia,
              ano_materia: ano_materia},
         function(data, status) {
-          $("#id_ementa").val(data.ementa.replace("&#8211;", "–"));
+          $("#id_ementa").val(data.ementa);
           $("#id_indexacao").val(data.indexacao);
         }
       );
