@@ -43,7 +43,7 @@ def pil_image(source, exif_orientation=False, **options):
     return source_generators.pil_image(source, exif_orientation, **options)
 
 
-def split_longtext(value, max_part=50):
+def dont_break_out(value, max_part=50):
     _safe = value.split()
     
     def chunkstring(string):
