@@ -1,6 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags common_tags%}
 
   {% block actions %}
 
@@ -48,7 +48,7 @@
               <td>
                 <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a>
                 </br>
-                <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}
+                <strong>Ementa:</strong>&nbsp;{{ m.ementa|dont_break_out }}
                 </br>
                 {% if m.data_apresentacao %}
                    <strong>Apresentação: </strong>{{ m.data_apresentacao }}
