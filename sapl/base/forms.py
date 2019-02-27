@@ -84,11 +84,9 @@ class UsuarioCreateForm(ModelForm):
                   'password1', 'password2', 'user_active', 'roles']
 
     def clean(self):
-        super(UsuarioCreateForm, self).clean()
+        super().clean()
 
         if not self.is_valid():
-            for error in self.errors:
-                raise ValidationError('{}: {}'.format(error.title(), self.errors.get(error)[0]))
             return self.cleaned_data
 
         data = self.cleaned_data
@@ -101,7 +99,7 @@ class UsuarioCreateForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        super(UsuarioCreateForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         row0 = to_row([('username', 12)])
 

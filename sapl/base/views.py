@@ -1329,17 +1329,19 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     model = get_user_model()
     form_class = UsuarioCreateForm
     success_message = 'Usuário criado com sucesso!'
+    fail_message = 'Usuário não criado!'
     permission_required = ('base.add_appconfig',)
 
     def get_success_url(self):
         return reverse('sapl.base:usuario')
 
     def form_valid(self, form):
-
         data = form.cleaned_data
 
         new_user = get_user_model().objects.create(
-            username=data['username'], email=data['email'])
+            username=data['username'],
+            email=data['email']
+        )
         new_user.first_name = data['firstname']
         new_user.last_name = data['lastname']
         new_user.set_password(data['password1'])
@@ -1353,6 +1355,10 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
 
         messages.success(self.request, self.success_message)
         return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        messages.error(self.request, self.fail_message)
+        return super().form_invalid(form)
 
 
 class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
