@@ -54,7 +54,7 @@ class OAIServer:
             granularity='YYYY-MM-DDThh:mm:ssZ',
             compression=['identity'],
             toolkit_description=False)
-        if not self.config['descricao']:
+        if self.config['descricao']:
             result.add_description(self.config['descricao'])
         return result
 
@@ -263,7 +263,7 @@ def get_config(url, batch_size):
               'base_asset_path': None,
               'metadata_prefixes': ['oai_lexml']}
     config.update({'titulo': casa_legislativa().nome,  # Inicializa variável global casa
-                   'email': casa.email,
+                   'email': [casa.email], # lista de e-mails
                    'base_url': url[:url.find('/', 8)],
                    'descricao': casa.informacao_geral,
                    'batch_size': batch_size})
