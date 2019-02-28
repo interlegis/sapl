@@ -1260,7 +1260,9 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
                             'oitavo': ordenacao.oitavo,
                             'nono': ordenacao.nono,
                             'decimo': ordenacao.decimo,
-                            'decimo_primeiro': ordenacao.decimo_primeiro})
+                            'decimo_primeiro': ordenacao.decimo_primeiro,
+                            'decimo_segundo': ordenacao.decimo_segundo,
+                            'decimo_terceiro': ordenacao.decimo_terceiro})
         return initial
 
     def form_valid(self, form):
@@ -1277,6 +1279,8 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
         ordenacao.nono = form.cleaned_data['nono']
         ordenacao.decimo = form.cleaned_data['decimo']
         ordenacao.decimo_primeiro = form.cleaned_data['decimo_primeiro']
+        ordenacao.decimo_segundo = form.cleaned_data['decimo_segundo']
+        ordenacao.decimo_terceiro = form.cleaned_data['decimo_terceiro']
 
         ordenacao.save()
 

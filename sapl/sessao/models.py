@@ -577,6 +577,8 @@ class ResumoOrdenacao(models.Model):
     nono = models.CharField(max_length=30)
     decimo = models.CharField(max_length=30)
     decimo_primeiro = models.CharField(max_length=30,default="Ocorrências da Sessão")
+    decimo_segundo = models.CharField(max_length=30, default="Votos Nominais Mat Expediente")
+    decimo_terceiro = models.CharField(max_length=30, default="Votos Nominais Mat Ordem Dia")
 
     class Meta:
         verbose_name = _('Ordenação do Resumo de uma Sessão')
