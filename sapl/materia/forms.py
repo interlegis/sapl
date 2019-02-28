@@ -1700,9 +1700,6 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 attrs={'readonly': 'readonly', 'rows': 4}),
             'data_envio':  widgets.DateTimeInput(
                 attrs={'readonly': 'readonly'}),
-            'numero_materia_futuro': widgets.NumberInput(
-                attrs={'readonly': 'readonly', 'rows': 1}),
-
         }
 
     def __init__(self, *args, **kwargs):
@@ -1739,9 +1736,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 self._meta.fields.remove('regime_tramitacao')
 
         # esta chamada isola o __init__ de ProposicaoForm
-        super(ProposicaoForm, self).__init__(*args, **kwargs)
-
-        self.fields['numero_materia_futuro'].widget.attrs['readonly'] = True
+        super(ProposicaoForm, self).__init__(*args, **kwargs) 
 
         fields = [
             Fieldset(
