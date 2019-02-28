@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.shortcuts import render
 
 from sapl.crud.base import CrudAux
 from sapl.lexml.OAIServer import OAIServerFactory, get_config
@@ -15,3 +16,6 @@ def lexml_request(request):
     r = oai_server.handleRequest(request.GET)
     response = r.decode('UTF-8')
     return HttpResponse(response, content_type='text/xml')
+
+def request_search(request, keyword):
+    return render(request,"lexml/resultado-pesquisa.html",{"keyword":keyword})

@@ -44,8 +44,8 @@
                   <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="{% webpack_static 'img/search.png' %}"><span class="caret"></span></a>
                     <ul class="dropdown-menu">
                       <li class="dropdown-item">
-                        <form class="navbar-form search-form" method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
-                          <input type="text" class="form-control" placeholder="Pesquisar no LexML" />
+                        <form id="formulario-lexml" class="navbar-form search-form" method="get" action="">
+                          <input id="input-lexml" type="text" class="form-control" placeholder="Pesquisar no LexML" />
                         </form>
                       </li>
                     </ul>
@@ -254,5 +254,17 @@
       </script>
 
     {% endblock foot_js %}
+    <script>
+      $(document).ready(function(){
+        var form = document.getElementById("formulario-lexml");
+        $("#input-lexml").change(function(){ 
+          let value = $("#input-lexml").val();
+          let url = "{% url 'sapl.lexml:lexml_search' 'xxx'%}"
+          url = url.replace('xxx', value)
+          form.action = url;
+        });
+      });
+    </script>
+
   </body>
 </html>
