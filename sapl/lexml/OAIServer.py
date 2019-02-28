@@ -267,16 +267,18 @@ def get_xml_provedor():
             descricao = descricao.encode('utf-8')
     return descricao
 
+
 def get_config(url, batch_size):
     config = {'content_type': None,
               'delay': 0,
               'base_asset_path': None,
-              'metadata_prefixes': ['oai_lexml']}
-    config.update({'titulo': casa_legislativa().nome,  # Inicializa variável global casa
-                   'email': [casa.email],  # lista de e-mails
-                   'base_url': url[:url.find('/', 8)],
-                   'descricao': get_xml_provedor(),
-                   'batch_size': batch_size})
+              'metadata_prefixes': ['oai_lexml'],
+              'titulo': casa_legislativa().nome,  # Inicializa variável global casa
+              'email': [casa.email],  # lista de e-mails, antigo `def get_email()`
+              'base_url': url[:url.find('/', 8)],
+              'descricao': get_xml_provedor(),
+              'batch_size': batch_size
+              }
     return config
 
 
