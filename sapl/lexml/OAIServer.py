@@ -9,7 +9,7 @@ from lxml import etree
 from lxml.builder import ElementMaker
 
 from sapl.base.models import AppConfig, CasaLegislativa
-from sapl.lexml.models import LexmlPublicador
+from sapl.lexml.models import LexmlPublicador, LexmlProvedor
 from sapl.norma.models import NormaJuridica
 
 
@@ -257,15 +257,25 @@ def casa_legislativa():
     return casa if casa else CasaLegislativa()  # retorna objeto dummy
 
 
+def get_xml_provedor():
+    """ antigo get_descricao_casa() """
+    descricao = ''
+    provedor = LexmlProvedor.objects.first()
+    if provedor:
+        descricao = provedor.xml
+        if descricao:
+            descricao = descricao.encode('utf-8')
+    return descricao
+
 def get_config(url, batch_size):
     config = {'content_type': None,
               'delay': 0,
               'base_asset_path': None,
               'metadata_prefixes': ['oai_lexml']}
     config.update({'titulo': casa_legislativa().nome,  # Inicializa variável global casa
-                   'email': [casa.email], # lista de e-mails
+                   'email': [casa.email],  # lista de e-mails
                    'base_url': url[:url.find('/', 8)],
-                   'descricao': casa.informacao_geral,
+                   'descricao': get_xml_provedor(),
                    'batch_size': batch_size})
     return config
 
