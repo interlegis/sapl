@@ -10,6 +10,11 @@ sapldb:
     - sapldb_data:/var/lib/postgresql/data/
   ports:
     - "5432:5432"
+saplredis:
+  image: redis:5.0.3-stretch
+  restart: always
+  ports: 
+    - "6379:6379"
 sapl:
   image: interlegis/sapl:3.1.146
   restart: always
@@ -23,11 +28,15 @@ sapl:
     EMAIL_HOST_USER: usuariosmtp
     EMAIL_SEND_USER: usuariosmtp
     EMAIL_HOST_PASSWORD: senhasmtp
+    USE_CHANNEL_LAYERS: 'True'
+    PORT_CHANNEL_LAYERS: 6379
+    HOST_CHANNEL_LAYERS: saplredis
     TZ: America/Sao_Paulo
   volumes:
     - sapl_data:/var/interlegis/sapl/data
     - sapl_media:/var/interlegis/sapl/media
   links:
     - sapldb
+    - saplredis
   ports:
     - "80:80"

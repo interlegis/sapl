@@ -27,7 +27,7 @@
   </head>
 
   <body>
-    <div class="page fadein">
+    <div id="app-frontend-body" class="page fadein">
 
       {% if not request|has_iframe %}
       {% block navigation %}
@@ -152,10 +152,8 @@
               </div>
             {% endblock base_header %}
 
-            {# Content per se #}
-            {% block vue_content %}<div id="app"></div>{% endblock %}
+            {% block vue_content %}<div id="app-frontend-base-content"></div>{% endblock %}
 
-            {# Content per se #}
             {% block base_content %}{% endblock %}
 
           </div>

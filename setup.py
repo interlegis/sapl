@@ -41,6 +41,8 @@ install_requires = [
     'pysolr==3.6.0',
     'whoosh==2.7.4',
 
+    'channels==2.1.7',
+
     # 'git+git://github.com/interlegis/trml2pdf.git',
     # 'git+git://github.com/interlegis/django-admin-bootstrapped',
 ]

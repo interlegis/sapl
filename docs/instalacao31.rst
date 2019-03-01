@@ -145,9 +145,18 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
       SERVER_EMAIL = [Insira este parâmetro]
 
       SOLR_URL = '[Insira este parâmetro]'
+      USE_SOLR = '[Insira este parâmetro]'
+      SOLR_COLLECTION = '[Insira este parâmetro]'
       
       FRONTEND_CUSTOM = [True/False]
 
+      USE_CHANNEL_LAYERS = True
+      HOST_CHANNEL_LAYERS: localhost
+      PORT_CHANNEL_LAYERS: 6379
+
+      SITE_URL = '[Insira este parâmetro]'
+
+      TZ = 'America/Sao_Paulo'
 
     * Uma configuração mínima para atender os procedimentos acima seria::
 
@@ -282,3 +291,36 @@ Feito isso, e você ativando a variável de ambiente FRONTEND_CUSTOM=True (vide 
 **Deste ponto em diante, é exigido o conhecimento que você pode adquirir em https://cli.vuejs.org/guide/ e em https://vuejs.org/v2/guide/ para colaborar com sapl-frontend**
 
 **OBS: após a separação do sapl para o sapl-frontend, o conteúdo da pasta static é compilado e minificado. É gerado pelo build do sapl-frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta static.**
+
+Django-Channels
+===============
+
+Para ativar Django-Channels e a comunicação via websockets utilizada pelo entry-point sessao/online de sapl-frontend coloque no arquivo .env a variável:
+
+    USE_CHANNEL_LAYERS = True
+    HOST_CHANNEL_LAYERS: localhost
+    PORT_CHANNEL_LAYERS: 6379
+
+
+Ao ativar o channels, no ambiente de desenvolvimento é necessário ativar um servidor redis. Utilize/Instale o docker e execute:
+
+  sudo docker run -p 6379:6379 -d redis:5.0.3-stretch
+
+No caso de ambiente de produção, o container do docker sapl para produção já está configurado com redis.
+
+Testes do channels
+------------------
+
+Existe uma interface mínima de comunicação para testes dentro do sapl. Pode ser acessada utilizando:
+
+  http://localhost:8001/sapl/time-refresh/
+
+Se clicar em `pull`, o websocket de teste deve responder:
+
+  {"message": "OK"}
+
+De outro modo, ficando com esta interface aberta, abra outra janela e altere/inclua/apague algo em seu sapl. Será enviado um json que segue este padrão:
+
+  {"message": {"action": "post_save", "id": 16923, "app": "materia", "model": "autoria"}}
+
+O papel de /sapl/time-refresh/ é apenas isto, informar que houve ação no registro `id`, da `app` e `model`. Além de `action` que pode ser `post_save` ou `pre-delete`.

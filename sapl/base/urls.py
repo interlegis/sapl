@@ -8,6 +8,7 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_done)
 from django.views.generic.base import RedirectView, TemplateView
 
+from sapl import base
 from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
@@ -42,9 +43,12 @@ app_name = AppConfig.name
 
 admin_user = [
     url(r'^sistema/usuario/$', PesquisarUsuarioView.as_view(), name='usuario'),
-    url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
+    url(r'^sistema/usuario/create$',
+        CreateUsuarioView.as_view(), name='user_create'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/edit$',
+        EditUsuarioView.as_view(), name='user_edit'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/delete$',
+        DeleteUsuarioView.as_view(), name='user_delete')
 ]
 
 alterar_senha = [
@@ -83,6 +87,19 @@ recuperar_senha = [
         name='recuperar_senha_completo'),
 ]
 
+channels_url = [
+
+    url(r'^sapl/channel$', base.views.chanel_index, name='channel_index'),
+    url(r'^sapl/channel/(?P<room_name>[^/]+)/$',
+        base.views.chanel_room, name='channel_room'),
+    url(r'^sapl/time-refresh/$',
+        base.views.time_refresh_log_test, name='time_refresh_log_test_index'),
+
+    url(r'^online',
+        base.views.online_app_view, name='online_app_url'),
+
+]
+
 
 urlpatterns = [
     url(r'^sistema/autor/tipo/', include(TipoAutorCrud.get_urls())),
@@ -97,7 +114,7 @@ urlpatterns = [
     url(r'^sistema/app-config/', include(AppConfigCrud.get_urls())),
 
     # TODO mover estas telas para a app 'relatorios'
-    url(r'^sistema/relatorios/$', 
+    url(r'^sistema/relatorios/$',
         RelatoriosListView.as_view(), name='relatorios_list'),
     url(r'^sistema/relatorios/materia-por-autor$',
         RelatorioMateriasPorAutorView.as_view(), name='materia_por_autor'),
@@ -185,4 +202,4 @@ urlpatterns = [
         LogotipoView.as_view(), name='logotipo'),
 
 
-] + recuperar_senha + alterar_senha + admin_user
+] + recuperar_senha + alterar_senha + admin_user + channels_url

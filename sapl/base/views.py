@@ -1,6 +1,7 @@
 import collections
-import itertools
 import datetime
+import itertools
+import json
 import logging
 import os
 
@@ -15,11 +16,13 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
 from django.db.models import Count, Q, ProtectedError
 from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import render
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.safestring import mark_safe
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, FormView, ListView,
@@ -59,6 +62,25 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioNormasVigenciaFilterSet,
                     EstatisticasAcessoNormasForm, UsuarioFilterSet)
 from .models import AppConfig, CasaLegislativa
+
+
+def chanel_index(request):
+    return render(request, 'base/channel_index.html', {})
+
+
+def chanel_room(request, room_name):
+    return render(request, 'base/channel_room.html', {
+        'room_name_json': mark_safe(json.dumps(room_name))
+    })
+
+
+def time_refresh_log_test(request):
+    return render(request, 'base/time_refresh_log_test.html', {})
+
+
+def online_app_view(request):
+
+    return render(request, 'online_app.html')
 
 
 def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
@@ -289,7 +311,7 @@ class AutorCrud(CrudAux):
 
 
 class RelatoriosListView(TemplateView):
-    template_name='base/relatorios_list.html'
+    template_name = 'base/relatorios_list.html'
 
     def get_context_data(self, **kwargs):
         context = super(TemplateView, self).get_context_data(**kwargs)
@@ -799,15 +821,15 @@ class RelatorioNormasPublicadasMesView(FilterView):
         context['ano'] = self.request.GET['ano']
 
         normas_mes = collections.OrderedDict()
-        meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
-                7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
+        meses = {1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
+                 7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'}
         for norma in context['object_list']:
             if not meses[norma.data.month] in normas_mes:
                 normas_mes[meses[norma.data.month]] = []
             normas_mes[meses[norma.data.month]].append(norma)
-        
+
         context['normas_mes'] = normas_mes
-        
+
         quant_normas_mes = {}
         for key in normas_mes.keys():
             quant_normas_mes[key] = len(normas_mes[key])
@@ -833,18 +855,19 @@ class RelatorioNormasVigenciaView(FilterView):
             vigencia = kwargs['data']['vigencia']
             if ano:
                 qs = qs.filter(ano=ano)
-            
+
             if vigencia == 'True':
                 qs_dt_not_null = qs.filter(data_vigencia__isnull=True)
-                qs = (qs_dt_not_null | qs.filter(data_vigencia__gte=datetime.datetime.now().date())).distinct()
+                qs = (qs_dt_not_null | qs.filter(
+                    data_vigencia__gte=datetime.datetime.now().date())).distinct()
             else:
-                qs = qs.filter(data_vigencia__lt=datetime.datetime.now().date())
+                qs = qs.filter(
+                    data_vigencia__lt=datetime.datetime.now().date())
 
         kwargs.update({
             'queryset': qs
         })
         return kwargs
-
 
     def get_context_data(self, **kwargs):
         context = super(RelatorioNormasVigenciaView,
@@ -855,17 +878,20 @@ class RelatorioNormasVigenciaView(FilterView):
         if not self.filterset.form.is_valid():
             return context
 
-        normas_totais = NormaJuridica.objects.filter(ano=self.request.GET['ano'])
-        
+        normas_totais = NormaJuridica.objects.filter(
+            ano=self.request.GET['ano'])
+
         context['quant_total'] = len(normas_totais)
         if self.request.GET['vigencia'] == 'True':
             context['vigencia'] = 'Vigente'
             context['quant_vigente'] = len(context['object_list'])
-            context['quant_nao_vigente'] = context['quant_total'] - context['quant_vigente']
+            context['quant_nao_vigente'] = context['quant_total'] - \
+                context['quant_vigente']
         else:
             context['vigencia'] = 'Não vigente'
             context['quant_nao_vigente'] = len(context['object_list'])
-            context['quant_vigente'] = context['quant_total'] - context['quant_nao_vigente']
+            context['quant_vigente'] = context['quant_total'] - \
+                context['quant_nao_vigente']
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -891,7 +917,7 @@ class EstatisticasAcessoNormas(TemplateView):
             return self.render_to_response(context)
 
         context['ano'] = self.request.GET['ano']
-        
+
         query = '''
                 select norma_id, ano, extract(month from horario_acesso) as mes, count(*)
                 from norma_normaestatisticas
@@ -904,20 +930,21 @@ class EstatisticasAcessoNormas(TemplateView):
         rows = cursor.fetchall()
 
         normas_mes = collections.OrderedDict()
-        meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
-                7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
-        
+        meses = {1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
+                 7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'}
+
         for row in rows:
             if not meses[int(row[2])] in normas_mes:
                 normas_mes[meses[int(row[2])]] = []
             norma_est = [NormaJuridica.objects.get(id=row[0]), row[3]]
             normas_mes[meses[int(row[2])]].append(norma_est)
-        
+
         # Ordena por acesso e limita em 5
         for n in normas_mes:
-            sorted_by_value = sorted(normas_mes[n], key=lambda kv: kv[1], reverse=True)
+            sorted_by_value = sorted(
+                normas_mes[n], key=lambda kv: kv[1], reverse=True)
             normas_mes[n] = sorted_by_value[0:5]
-        
+
         context['normas_mes'] = normas_mes
 
         return self.render_to_response(context)
@@ -952,8 +979,8 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         tabela.append(
             ('mandato_sem_data_inicio',
              'Mandatos sem data inicial',
-            len(mandato_sem_data_inicio())
-            )
+             len(mandato_sem_data_inicio())
+             )
         )
         tabela.append(
             ('parlamentares_mandatos_intersecao',
@@ -977,7 +1004,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
             ('legislatura_infindavel',
              'Legislaturas sem data fim',
              len(legislatura_infindavel())
-            )
+             )
         )
 
         return tabela
@@ -1000,14 +1027,14 @@ class ListarLegislaturaInfindavelView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(
             ListarLegislaturaInfindavelView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhuma encontrada.'
+        ] = 'Nenhuma encontrada.'
         return context
 
 
@@ -1050,14 +1077,14 @@ class ListarBancadaComissaoAutorExternoView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(
             ListarBancadaComissaoAutorExternoView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1084,7 +1111,7 @@ class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1097,10 +1124,12 @@ def parlamentares_mandatos_intersecao():
 
         for c in combinacoes:
             data_inicio_mandato1 = c[0].data_inicio_mandato
-            data_fim_mandato1 = c[0].data_fim_mandato if c[0].data_fim_mandato else timezone.now().date()
+            data_fim_mandato1 = c[0].data_fim_mandato if c[0].data_fim_mandato else timezone.now(
+            ).date()
 
             data_inicio_mandato2 = c[1].data_inicio_mandato
-            data_fim_mandato2 = c[1].data_fim_mandato if c[1].data_fim_mandato else timezone.now().date()
+            data_fim_mandato2 = c[1].data_fim_mandato if c[1].data_fim_mandato else timezone.now(
+            ).date()
 
             if data_inicio_mandato1 and data_inicio_mandato2:
                 exists = intervalos_tem_intersecao(
@@ -1131,7 +1160,7 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1152,14 +1181,14 @@ class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(
             ListarMandatoSemDataInicioView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrada.'
+        ] = 'Nenhum encontrada.'
         return context
 
 
@@ -1187,27 +1216,27 @@ class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(
             ListarMatProtocoloInexistenteView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhuma encontrada.'
+        ] = 'Nenhuma encontrada.'
         return context
 
 
 def protocolos_com_materias():
     protocolos = {}
-    
+
     for m in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero_protocolo'):
         if Protocolo.objects.filter(numero=m.numero_protocolo, ano=m.ano).exists():
             key = "{}/{}".format(m.numero_protocolo, m.ano)
             val = protocolos.get(key, list())
             val.append(m)
             protocolos[key] = val
-    
+
     return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
 
 
@@ -1230,7 +1259,7 @@ class ListarProtocolosComMateriasView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1243,6 +1272,7 @@ def protocolos_duplicados():
         protocolos[key] = val
 
     return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
+
 
 class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
     model = get_user_model()
@@ -1263,7 +1293,7 @@ class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1295,9 +1325,9 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
 
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
-        
+
         context['NO_ENTRIES_MSG'] = 'Nenhum usuário encontrado!'
-        
+
         context['title'] = _('Usuários')
 
         return context
@@ -1308,7 +1338,7 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
         data = self.filterset.data
         url = ''
         if data:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
+            url = "&" + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('username=') - 1
                 url = url[ponto_comeco:]
@@ -1366,13 +1396,14 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
     template_name = "crud/confirm_delete.html"
     permission_required = ('base.delete_appconfig',)
     success_url = reverse_lazy('sapl.base:usuario')
-    success_message = "Usuário removido com sucesso!"  
+    success_message = "Usuário removido com sucesso!"
 
-    def delete(self, request, *args, **kwargs):     
+    def delete(self, request, *args, **kwargs):
         try:
             super(DeleteUsuarioView, self).delete(request, *args, **kwargs)
         except ProtectedError as exception:
-            error_url = reverse_lazy('sapl.base:user_delete', kwargs={'pk': self.kwargs['pk']})
+            error_url = reverse_lazy('sapl.base:user_delete', kwargs={
+                                     'pk': self.kwargs['pk']})
             error_message = "O usuário não pode ser removido, pois é referenciado por:<br><ul>"
 
             for e in exception.protected_objects:
@@ -1389,7 +1420,7 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
     @property
     def cancel_url(self):
         return reverse('sapl.base:user_edit',
-                        kwargs={'pk': self.kwargs['pk']})
+                       kwargs={'pk': self.kwargs['pk']})
 
 
 class EditUsuarioView(PermissionRequiredMixin, UpdateView):
