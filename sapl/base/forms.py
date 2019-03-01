@@ -943,7 +943,9 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
-
+        self.filters['tramitacao__unidade_tramitacao_local'].label = 'Unidade de tramitação local'
+        self.filters['tramitacao__status'].label = 'Status de tramitação'
+        
         row1 = to_row([('tramitacao__data_fim_prazo', 12)])
         row2 = to_row(
             [('tipo', 4),
