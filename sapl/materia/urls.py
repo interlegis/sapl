@@ -94,7 +94,7 @@ urlpatterns_materia = [
 
     url(r'^materia/acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
         name='acessorio_em_lote'),
-    url(r'^materia/anexada-em-lote', MateriaAnexadaEmLoteView.as_view(),
+    url(r'^materia/(?P<pk>\d+)/anexada-em-lote', MateriaAnexadaEmLoteView.as_view(),
         name='anexada_em_lote'),
     url(r'^materia/primeira-tramitacao-em-lote',
         PrimeiraTramitacaoEmLoteView.as_view(),
