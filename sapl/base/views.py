@@ -956,6 +956,12 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
             )
         )
         tabela.append(
+            ('parlamentares_duplicados',
+             'Parlamentares duplicados',
+             len(parlamentares_duplicados())
+            )
+        )
+        tabela.append(
             ('parlamentares_mandatos_intersecao',
              'Parlamentares com mandatos com interseção',
              len(parlamentares_mandatos_intersecao())
@@ -1062,7 +1068,9 @@ class ListarBancadaComissaoAutorExternoView(PermissionRequiredMixin, ListView):
 
 
 def autores_duplicados():
-    return [autor.values() for autor in Autor.objects.values('nome', 'tipo__descricao').annotate(count=Count('nome')).filter(count__gt=1)]
+    return [autor.values() for autor in Autor.objects.values(
+        'nome', 'tipo__descricao').order_by(
+            "nome").annotate(count=Count('nome')).filter(count__gt=1)]
 
 
 class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
@@ -1078,6 +1086,35 @@ class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(
             ListarAutoresDuplicadosView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
+
+
+def parlamentares_duplicados():
+    return [parlamentar.values() for parlamentar in Parlamentar.objects.values(
+        'nome_parlamentar').order_by('nome_parlamentar').annotate(count=Count(
+            'nome_parlamentar')).filter(count__gt=1)]
+
+
+class ListarParlamentaresDuplicadosView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/parlamentares_duplicados.html'
+    context_object_name = 'parlamentares_duplicados'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return parlamentares_duplicados()
+    
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarParlamentaresDuplicadosView, self).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
