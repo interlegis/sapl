@@ -37,7 +37,7 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
+from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao
 from sapl.protocoloadm.models import Protocolo
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, Bancada)
@@ -950,6 +950,12 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              )
         )
         tabela.append(
+            ('filiacoes_sem_data_filiacao',
+             'Filiações sem data filiação',
+             len(filiacoes_sem_data_filiacao())
+            )
+        )
+        tabela.append(
             ('mandato_sem_data_inicio',
              'Mandatos sem data inicial',
             len(mandato_sem_data_inicio())
@@ -1200,6 +1206,34 @@ class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
         return context
 
 
+def filiacoes_sem_data_filiacao():
+    return Filiacao.objects.filter(data__isnull=True).order_by('parlamentar')
+
+
+class ListarFiliacoesSemDataFiliacaoView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/filiacoes_sem_data_filiacao.html'
+    context_object_name = 'filiacoes_sem_data_filiacao'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return filiacoes_sem_data_filiacao()
+    
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarFiliacoesSemDataFiliacaoView, self
+            ).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+        ] = 'Nenhuma encontrada.'
+        return context
+
+
 def materias_protocolo_inexistente():
     materias = []
     for materia in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero'):
@@ -1280,6 +1314,7 @@ def protocolos_duplicados():
         protocolos[key] = val
 
     return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
+
 
 class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
     model = get_user_model()

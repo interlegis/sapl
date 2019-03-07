@@ -32,11 +32,12 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarProtocolosComMateriasView,
                     ListarMatProtocoloInexistenteView,
                     ListarParlamentaresDuplicadosView,
+                    ListarFiliacoesSemDataFiliacaoView,
+                    ListarMandatoSemDataInicioView,
                     ListarParlMandatosIntersecaoView,
                     ListarAutoresDuplicadosView,
                     ListarBancadaComissaoAutorExternoView,
-                    ListarLegislaturaInfindavelView,
-                    ListarMandatoSemDataInicioView)
+                    ListarLegislaturaInfindavelView)
 
 
 app_name = AppConfig.name
@@ -149,6 +150,9 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/materias_protocolo_inexistente$',
         ListarMatProtocoloInexistenteView.as_view(),
         name='lista_materias_protocolo_inexistente'),
+    url(r'^sistema/inconsistencias/filiacoes_sem_data_filiacao$',
+        ListarFiliacoesSemDataFiliacaoView.as_view(),
+        name='lista_filiacoes_sem_data_filiacao'),
     url(r'^sistema/inconsistencias/mandato_sem_data_inicio',
         ListarMandatoSemDataInicioView.as_view(),
         name='lista_mandato_sem_data_inicio'),
