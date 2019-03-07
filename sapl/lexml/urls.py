@@ -12,6 +12,6 @@ urlpatterns = [
     url(r'^sistema/lexml/publicador/',
         include(LexmlPublicadorCrud.get_urls())),
     url(r'^sistema/lexml/request_search/(?P<keyword>[\w\-]+)/', request_search, name='lexml_search'),
-    url(r'^sistema/lexml', lexml_request, name='lexml_endpoint'),
+    url(r'^sistema/lexml/oai', lexml_request, name='lexml_endpoint'),
 
 ]

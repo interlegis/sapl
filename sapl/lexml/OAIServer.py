@@ -275,7 +275,7 @@ def get_config(url, batch_size):
               'metadata_prefixes': ['oai_lexml'],
               'titulo': casa_legislativa().nome,  # Inicializa variável global casa
               'email': [casa.email],  # lista de e-mails, antigo `def get_email()`
-              'base_url': url[:url.find('/', 8)],
+              'base_url': url[:url.find('/', 8)] + reverse('sapl.lexml:lexml_endpoint'),
               'descricao': get_xml_provedor(),
               'batch_size': batch_size
               }
