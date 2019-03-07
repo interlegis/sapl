@@ -2,7 +2,7 @@
 {% load common_tags %}
 {% block base_content %}
     <fieldset>
-        <h1>Lista de Parlamentares com Mandatos com Interseção</h1>
+        <h1>Lista de Parlamentares com Mandatos em Interseção</h1>
         <br/>
         {% if not parlamentares_mandatos_intersecao %}
             <p>{{ NO_ENTRIES_MSG }}</p>
@@ -19,7 +19,7 @@
                   {% for parlamentar, mandato_a, mandato_b in parlamentares_mandatos_intersecao %}
                     <tr>
                       <td>
-                         <a href="{% url 'sapl_index' %}parlamentar/{{ parlamentar.pk }}">{{ parlamentar }}</a>
+                         <a href="{% url 'sapl_index' %}parlamentar/{{ parlamentar.pk }}/mandato">{{ parlamentar }}</a>
                       </td>
                         <td>{{ mandato_a.legislatura}}</br>{{mandato_a.data_inicio_mandato|date:"d/m/Y"}} - {{mandato_a.data_fim_mandato|date:"d/m/Y"}}</td>
                       <td>{{ mandato_b.legislatura }}</br>{{mandato_b.data_inicio_mandato|date:"d/m/Y"}} - {{mandato_b.data_fim_mandato|date:"d/m/Y"}}</td>
