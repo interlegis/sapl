@@ -18,7 +18,6 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       insere_parlamentar_composicao,
                                       parlamentares_frente_selected,
                                       remove_parlamentar_composicao,
-                                      lista_parlamentares,
                                       parlamentares_filiados,
                                       PesquisarParlamentarView)
 
@@ -36,11 +35,9 @@ urlpatterns = [
         VotanteView.get_urls()
     )),
 
-    url(r'^parlamentar/lista$', lista_parlamentares, name='lista_parlamentares'),
-  
     url(r'^parlamentar/pesquisar-parlamentar/',
         PesquisarParlamentarView.as_view(), name='pesquisar_parlamentar'),
-  
+
     url(r'^parlamentar/(?P<pk>\d+)/materias$',
         ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
 
