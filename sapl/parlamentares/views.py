@@ -748,12 +748,17 @@ class ParlamentarMateriasView(FormView):
                                         })
 
 
+def get_data_filicao(parlamentar):
+    return parlamentar.filiacao_set.order_by('-data').first().data.strftime('%d/%m/%Y')
+
+
 def parlamentares_filiados(request, pk):
     template_name = 'parlamentares/partido_filiados.html'
-    parlamentares = Parlamentar.objects.select_related().all()
-    partido = Partido.objects.select_related().get(pk=pk)
-    parlamentares_filiado = [parlamentar for parlamentar in parlamentares if parlamentar.filiacao_atual == partido.sigla]
-    return render(request, template_name, {'partido': partido, 'parlamentares': parlamentares_filiado})
+    parlamentares = Parlamentar.objects.all()
+    partido = Partido.objects.get(pk=pk)
+    parlamentares_filiados = [(parlamentar, get_data_filicao(parlamentar)) for parlamentar in parlamentares if
+                              parlamentar.filiacao_atual == partido.sigla]
+    return render(request, template_name, {'partido': partido, 'parlamentares': parlamentares_filiados})
 
 
 class MesaDiretoraView(FormView):

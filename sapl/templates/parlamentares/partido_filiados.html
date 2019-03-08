@@ -18,10 +18,16 @@
                     <th>
                         Parlamentar
                     </th>
+                    <th>
+                        Ativo na Casa?
+                    </th>
+                    <th>
+                        Data da Filiação
+                    </th>
                 </tr>
             </thead>
             <tbody>
-                {% for parlamentar in parlamentares %}
+                {% for parlamentar, data in parlamentares %}
                     <tr>
                         <td>
                             {% if parlamentar.fotografia %}
@@ -32,6 +38,16 @@
                         </td>
                         <td>
                             <a href="{% url 'sapl.parlamentares:parlamentar_detail' parlamentar.pk %}"> {{ parlamentar }} </a>
+                        </td>
+                        <td>
+                            {% if parlamentar.ativo %}
+                                Sim
+                            {% else %}
+                                Não
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ data }}
                         </td>
                     </tr>
                 {% endfor %}
