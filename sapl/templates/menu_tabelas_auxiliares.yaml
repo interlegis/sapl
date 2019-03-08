@@ -17,6 +17,9 @@
 - title: {% trans 'Módulo Parlamentares' %}
   css_class: head_title
   children:
+  - title: {% trans 'Pesquisar Parlamentar' %}
+    url: sapl.parlamentares:pesquisar_parlamentar
+    css_class: btn btn-link
   - title: {% trans 'Legislatura' %}
     url: sapl.parlamentares:legislatura_list
     css_class: btn btn-link
