@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.template.loader import render_to_string
 
+from sapl.settings import MEDIA_URL
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
@@ -1222,7 +1223,7 @@ def make_pdf(base_url,main_template,header_template,main_css='',header_css=''):
 
     # Template of header
     html = HTML(base_url=base_url,string=header_template)
-    header = html.render(stylesheets=[CSS(string='div {position: fixed; top: 0cm; left: 0cm;}')])
+    header = html.render(stylesheets=[CSS(string='@page {size:A4; margin:1cm;}')])
 
     header_page = header.pages[0]
     header_body = get_page_body(header_page._page_box.all_children())
@@ -1256,21 +1257,19 @@ def resumo_ata_pdf(request,pk):
     context.update(get_oradores_explicações_pessoais(sessao_plenaria))
     context.update(get_ocorrencias_da_sessão(sessao_plenaria))
     context.update({'object':sessao_plenaria})
-    context.update({"data": dt.today().strftime('%d/%m/%Y')})
+    context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape':rodape})
-    
+
+    header_context = {"casa":casa, 'logotipo':casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+
     html_template = render_to_string('relatorios/relatorio_ata.html',context)
-    html_header = render_to_string('relatorios/header_ata.html',{"casa":casa})
+    html_header = render_to_string('relatorios/header_ata.html', header_context)
 
     pdf_file = make_pdf(base_url=base_url,main_template=html_template,header_template=html_header)
     
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
     response['Content-Transfer-Encoding'] = 'binary'
-    with tempfile.NamedTemporaryFile(delete=True) as output:
-        output.write(pdf_file)
-        output.flush()
-        output = open(output.name, 'rb')
-        response.write(output.read())
+    response.write(pdf_file)
 
     return response

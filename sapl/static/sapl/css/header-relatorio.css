@@ -3,6 +3,7 @@ html body p {
     text-align: center;
     font-size: 11pt;
     padding: 5px;
+    margin-top: -15px;
 }
 html body section {
     box-sizing: border-box;
@@ -22,9 +23,24 @@ html body section dd {
 }
 html body section dd ul li {
     list-style-type: none;
-    margin-left: 50px;
+    margin-left: 90px;
+    margin-bottom: -15px;
+
+}
+h2 {
+    font-size: 14pt;
 }
 h3 {
-    font-size: 12pt;
+    font-size: 10pt;
     color: #6e6e6e;
+}
+ul {
+    padding: 0;
+    list-style: none;
+    margin-top:10px;
+}
+
+html body section dt img {
+    max-width:80px;
+    margin-left: 20px;
 }

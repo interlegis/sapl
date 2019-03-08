@@ -1,3 +1,6 @@
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
 {% load static %}
 <!DOCTYPE html>
 <meta charset="utf-8">
@@ -10,23 +13,19 @@
 
 <body>
     <section id="informations">
-       
         <dl>
             <dt class="image-header"> 
-                <img src="{% static '/sapl/img/logo.png' %}"
-                alt="Logo" >
+                <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}">
             </dt>
             <dd class="title">
                 <ul>
-                    <li><h1>{{casa}}</h1></li>
+                    <li style="margin-top:10px"><h2>{{casa}}</h2></li>
                     <li><h3>Sistema de Apoio ao Processo Legislativo</h3></li>
-                    <li><h4></h4></li>
                 </ul>
             </dd>
         </dl>
     </section>
     <p></p>
-
 </body>
 
 </html>
