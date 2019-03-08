@@ -44,8 +44,19 @@ html body section dt img {
     max-width:80px;
     margin-left: 20px;
     margin-left: 50px;
+
 }
 h3 {
-    font-size: 12pt;
+    font-size: 10pt;
     color: #6e6e6e;
+}
+ul {
+    padding: 0;
+    list-style: none;
+    margin-top:10px;
+}
+
+html body section dt img {
+    max-width:80px;
+    margin-left: 20px;
 }

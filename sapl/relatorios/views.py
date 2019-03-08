@@ -1224,6 +1224,7 @@ def make_pdf(base_url,main_template,header_template,main_css='',header_css=''):
     # Template of header
     html = HTML(base_url=base_url,string=header_template)
     header = html.render(stylesheets=[CSS(string='@page {size:A4; margin:1cm;}')])
+
     header_page = header.pages[0]
     header_body = get_page_body(header_page._page_box.all_children())
     header_body = header_body.copy_with_children(header_body.all_children())
@@ -1262,7 +1263,6 @@ def resumo_ata_pdf(request,pk):
 
     html_template = render_to_string('relatorios/relatorio_ata.html',context)
     html_header = render_to_string('relatorios/header_ata.html', header_context)
-
 
     pdf_file = make_pdf(base_url=base_url,main_template=html_template,header_template=html_header)
     
