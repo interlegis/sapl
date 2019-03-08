@@ -61,7 +61,7 @@ NUM_SHARDS=${NUM_SHARDS:=1}
 RF=${RF:=1}
 MAX_SHARDS_PER_NODE=${MAX_SHARDS_PER_NODE:=1}
 
-if [ "${USE_SOLR-False}" == "True" ]; then
+if [ "${USE_SOLR-False}" == "True" ] || [ "${USE_SOLR-False}" == "true" ]; then
 
     echo "SOLR configurations"
     echo "==================="
