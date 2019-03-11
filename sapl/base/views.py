@@ -15,8 +15,8 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
 from django.db.models import Count, Q, ProtectedError
-from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils import timezone
@@ -1261,6 +1261,26 @@ class ListarParlamentaresDuplicadosView(PermissionRequiredMixin, ListView):
 
 def mandato_sem_data_inicio():
     return Mandato.objects.filter(data_inicio_mandato__isnull=True).order_by('parlamentar')
+
+
+def get_data_ultima_atualizacao(request):
+
+    datas = [MateriaLegislativa.objects.all().
+                 order_by('-data_ultima_atualizacao').
+                 values_list('data_ultima_atualizacao', flat=True).
+                 first(),
+             NormaJuridica.objects.all().
+                 order_by('-data_ultima_atualizacao').
+                 values_list('data_ultima_atualizacao', flat=True).
+                 first()]
+
+    max_data = ''
+
+    if datas[0] and datas[1]:
+        max_data = max(datas)
+    else:
+        max_data = next([i for i in datas if i is not None], '')
+    return JsonResponse({'data_ultima_atualizacao': max_data})
 
 
 class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):

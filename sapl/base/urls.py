@@ -9,7 +9,7 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
 from django.views.generic.base import RedirectView, TemplateView
 
 from sapl import base
-from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
+from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_data_ultima_atualizacao
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
 from .apps import AppConfig
@@ -192,6 +192,8 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/legislatura_infindavel$',
         ListarLegislaturaInfindavelView.as_view(),
         name='lista_legislatura_infindavel'),
+
+    url(r'^sistema/data_ultima_atualizacao', get_data_ultima_atualizacao),
 
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')
