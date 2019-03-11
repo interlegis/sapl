@@ -51,6 +51,7 @@ from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH
                         show_results_filter_set, mail_service_configured)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
+                    AnexadaEmLoteFilterSet,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
                     FichaPesquisaForm, FichaSelecionaForm, MateriaAssuntoForm,
@@ -1993,6 +1994,64 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             doc.ementa = request.POST['ementa']
             doc.save()
         msg = _('Documento(s) criado(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+        return self.get(request, self.kwargs)
+
+class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = AnexadaEmLoteFilterSet
+    template_name = 'materia/em_lote/anexada.html'
+    permission_required = ('materia.add_documentoacessorio',)
+
+    def get_context_data(self, **kwargs):
+        context = super(MateriaAnexadaEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        context['root_pk'] = self.kwargs['pk']
+
+        context['subnav_template_name'] = 'materia/subnav.yaml'
+
+
+        context['title'] = _('Matérias Anexadas em Lote')
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['object_list'] = context['object_list'].order_by(
+            'ano', 'numero')
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcadas = request.POST.getlist('materia_id')
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        data_anexacao = datetime.strptime(
+            request.POST['data_anexacao'], "%d/%m/%Y").date()
+
+        if request.POST['data_desanexacao'] == '':
+            data_desanexacao = None
+        else:
+            data_desanexacao = datetime.strptime(
+            request.POST['data_desanexacao'], "%d/%m/%Y").date()
+
+        for materia_id in marcadas:
+
+            anexada = Anexada()
+            anexada.materia_principal = MateriaLegislativa.objects.get(pk = kwargs['pk'])
+            anexada.materia_anexada = MateriaLegislativa.objects.get(pk = materia_id)
+            anexada.data_anexacao = data_anexacao
+            anexada.data_desanexacao = data_desanexacao
+            anexada.save()
+
+        msg = _('Materia(s) anexada(s).')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
 
