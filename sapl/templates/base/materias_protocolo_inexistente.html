@@ -3,6 +3,7 @@
 {% block base_content %}
     <fieldset>
         <h1>Lista de Matérias Legislativas com Protocolo Inexistente</h1>
+        <br/>
         {% if not materias_protocolo_inexistente %}
             <p>{{ NO_ENTRIES_MSG }}</p>
         {% else %}
@@ -29,4 +30,5 @@
         {% endif %}
     </fieldset>
  {% include 'paginacao.html'%}
+ <br/>
 {% endblock base_content %}

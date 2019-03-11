@@ -3,6 +3,7 @@
 {% block base_content %}
     <fieldset>
         <h1>Lista de Bancadas e Comissões com Autor Externo</h1>
+        <br/>
         {% if not bancada_comissao_autor_externo %}
             <p>{{ NO_ENTRIES_MSG }}</p>
         {% else %}
@@ -31,4 +32,5 @@
         {% endif %}
     </fieldset>
  {% include 'paginacao.html'%}
+ <br/>
 {% endblock base_content %}

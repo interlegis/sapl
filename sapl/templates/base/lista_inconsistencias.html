@@ -3,6 +3,7 @@
 {% block base_content %}
     <fieldset>
         <h1>Lista de Inconsistências</h1>
+        <br/>
             <table class="table table-striped table-hover">
                 <tbody>
                   {% for complemento_link, nome, valor in tabela_inconsistencias %}
@@ -17,4 +18,5 @@
             </table>
     </fieldset>
     {% include 'paginacao.html'%}
+  <br/>
 {% endblock base_content %}
