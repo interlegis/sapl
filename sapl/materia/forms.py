@@ -26,7 +26,7 @@ import django_filters
 
 import sapl
 from sapl.base.models import AppConfig, Autor, TipoAutor
-from sapl.comissoes.models import Comissao
+from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -375,7 +375,7 @@ class RelatoriaForm(ModelForm):
         widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
 
     def __init__(self, *args, **kwargs):
-        super(RelatoriaForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         super(RelatoriaForm, self).clean()

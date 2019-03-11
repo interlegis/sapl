@@ -1115,8 +1115,7 @@ class RelatoriaCrud(MasterDetailCrud):
             try:
                 self.logger.debug("user=" + username + ". Tentando obter objeto Comissao de pk={}.".format(
                     context['form'].initial['comissao']))
-                comissao = Comissao.objects.get(
-                    pk=context['form'].initial['comissao'])
+                comissao = Comissao.objects.get(pk=context['form'].initial['comissao'])
             except:
                 self.logger.error("user=" + username + ". Objeto Comissão de pk={} não encontrado.".format(
                     context['form'].initial['comissao']))
@@ -1125,17 +1124,20 @@ class RelatoriaCrud(MasterDetailCrud):
             else:
                 self.logger.info("user=" + username + ". Objeto Comissao de pk={} obtido com sucesso.".format(
                     context['form'].initial['comissao']))
-                composicao = comissao.composicao_set.order_by(
-                    '-periodo__data_inicio').first()
-                participacao = Participacao.objects.filter(
-                    composicao=composicao)
 
-                parlamentares = []
-                parlamentares.append(['', '---------'])
-                for p in participacao:
-                    if p.titular:
-                        parlamentares.append(
-                            [p.parlamentar.id, p.parlamentar.nome_parlamentar])
+                materia = MateriaLegislativa.objects.get(pk=self.kwargs.get('pk'))
+                ano_materia = materia.ano
+
+                comissao = Comissao.objects.get(pk=context['form'].initial['comissao'])
+                composicoes = comissao.composicao_set.all()
+                composicao = comissao.composicao_set.filter(periodo__data_inicio__year=ano_materia)
+
+                participacoes = Participacao.objects.select_related().filter(composicao=composicao)
+
+                parlamentares = [('', '---------')] + [
+                    (participacao.parlamentar.id, participacao.parlamentar.nome_parlamentar) for participacao in
+                    participacoes if participacao.titular]
+
                 context['form'].fields['parlamentar'].choices = parlamentares
 
             return context
@@ -1179,13 +1181,19 @@ class RelatoriaCrud(MasterDetailCrud):
             else:
                 self.logger.info("user=" + username + ". Objeto Comissao de pk={} obtido com sucesso.".format(
                     context['form'].initial['comissao']))
-                composicao = comissao.composicao_set.order_by(
-                    '-periodo__data_inicio').first()
-                participacao = Participacao.objects.filter(
-                    composicao=composicao)
 
-                parlamentares = [[p.parlamentar.id, p.parlamentar.nome_parlamentar] for
-                                 p in participacao if p.titular]
+                relatoria = Relatoria.objects.select_related('materia').get(pk=self.kwargs.get('pk'))
+                ano_materia = relatoria.materia.ano
+
+                comissao = Comissao.objects.get(pk=context['form'].initial['comissao'])
+                composicoes = comissao.composicao_set.all()
+                composicao = comissao.composicao_set.filter(periodo__data_inicio__year=ano_materia)
+
+                participacoes = Participacao.objects.select_related().filter(composicao=composicao)
+
+                parlamentares = [('', '---------')] + [
+                    (participacao.parlamentar.id, participacao.parlamentar.nome_parlamentar) for participacao in
+                    participacoes if participacao.titular]
 
                 context['form'].fields['parlamentar'].choices = parlamentares
 
