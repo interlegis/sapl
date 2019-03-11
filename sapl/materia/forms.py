@@ -2396,3 +2396,72 @@ class ExcluirTramitacaoEmLote(forms.Form):
                      form_actions(label='Excluir')
                      )
         )
+
+
+class MateriaPesquisaSimplesForm(forms.Form):
+    tipo_materia = forms.ModelChoiceField(
+        label=TipoMateriaLegislativa._meta.verbose_name,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        required=False,
+        empty_label='Selecione')
+
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    data_final = forms.DateField(
+        label='Data Final',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    titulo = forms.CharField(
+        label='Título do Relatório',
+        required=False,
+        max_length=150)
+
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('tipo_materia', 6),
+             ('data_inicial', 3),
+             ('data_final', 3)])
+
+        row2 = to_row(
+            [('titulo', 12)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Índice de Materias',
+                row1, row2,
+                form_actions(label='Pesquisar')
+            )
+        )
+
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+        data_inicial = cleaned_data['data_inicial']
+        data_final = cleaned_data['data_final']
+
+        if data_inicial or data_final:
+            if not (data_inicial and data_final):
+                self.logger.error("Caso pesquise por data, os campos de Data Inicial e "
+                                  "Data Final devem ser preenchidos obrigatoriamente")
+                raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e '
+                                        'Data Final devem ser preenchidos obrigatoriamente'))
+            elif data_inicial > data_final:
+                self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(data_final, data_inicial))
+                raise ValidationError(_('A Data Final não pode ser menor que a Data Inicial'))
+
+        return cleaned_data

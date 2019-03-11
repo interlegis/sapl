@@ -41,7 +41,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 ConfirmarProposicaoForm,
                                 DevolverProposicaoForm, LegislacaoCitadaForm,
                                 OrgaoForm, ProposicaoForm, TipoProposicaoForm,
-                                TramitacaoForm, TramitacaoUpdateForm)
+                                TramitacaoForm, TramitacaoUpdateForm, MateriaPesquisaSimplesForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
@@ -2291,13 +2291,10 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
     html = template.render(context, request)
-
-    pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()
-                          ).write_pdf()
+    pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()).write_pdf()
 
     response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = (
-        'inline; filename="relatorio_impressos.pdf"')
+    response['Content-Disposition'] = 'inline; filename="relatorio_impressos.pdf"'
     response['Content-Transfer-Encoding'] = 'binary'
 
     return response
@@ -2305,7 +2302,7 @@ def gerar_pdf_impressos(request, context, template_name):
 
 class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
     form_class = EtiquetaPesquisaForm
-    template_name = 'materia/impressos/etiqueta.html'
+    template_name = 'materia/impressos/impressos_form.html'
     permission_required = ('materia.can_access_impressos', )
 
     def form_valid(self, form):
@@ -2346,7 +2343,7 @@ class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
 
 class FichaPesquisaView(PermissionRequiredMixin, FormView):
     form_class = FichaPesquisaForm
-    template_name = 'materia/impressos/ficha.html'
+    template_name = 'materia/impressos/impressos_form.html'
     permission_required = ('materia.can_access_impressos', )
 
     def form_valid(self, form):
@@ -2364,7 +2361,7 @@ class FichaPesquisaView(PermissionRequiredMixin, FormView):
 class FichaSelecionaView(PermissionRequiredMixin, FormView):
     logger = logging.getLogger(__name__)
     form_class = FichaSelecionaForm
-    template_name = 'materia/impressos/ficha_seleciona.html'
+    template_name = 'materia/impressos/impressos_form.html'
     permission_required = ('materia.can_access_impressos', )
 
     def get_context_data(self, **kwargs):
@@ -2461,3 +2458,31 @@ class ExcluirTramitacaoEmLoteView(PermissionRequiredMixin, FormView):
                 tramitacao.delete()
 
         return redirect(self.get_success_url())
+
+
+class MateriaPesquisaSimplesView(PermissionRequiredMixin, FormView):
+    form_class = MateriaPesquisaSimplesForm
+    template_name = 'materia/impressos/impressos_form.html'
+    permission_required = ('materia.can_access_impressos', )
+
+    def form_valid(self, form):
+        template_materia = 'materia/impressos/materias_pdf.html'
+
+        kwargs = {}
+        if form.cleaned_data.get('tipo_materia'):
+            kwargs.update({'tipo': form.cleaned_data['tipo_materia']})
+
+        if form.cleaned_data.get('data_inicial'):
+            kwargs.update({'data__gte': form.cleaned_data['data_inicial'],
+                           'data__lte': form.cleaned_data['data_final']})
+
+        materias = MateriaLegislativa.objects.filter(**kwargs).order_by('-numero', 'ano')
+
+        quantidade_materias = materias.count()
+        materias = materias[:2000] if quantidade_materias > 2000 else materias
+
+        context = {'quantidade': quantidade_materias,
+                   'titulo': form.cleaned_data['titulo'],
+                   'materias': materias}
+
+        return gerar_pdf_impressos(self.request, context, template_materia)

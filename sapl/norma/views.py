@@ -345,12 +345,10 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
     html = template.render(context, request)
-    pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()
-                          ).write_pdf()
+    pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()).write_pdf()
 
     response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = (
-        'inline; filename="relatorio_impressos.pdf"')
+    response['Content-Disposition'] = 'inline; filename="relatorio_impressos.pdf"'
     response['Content-Transfer-Encoding'] = 'binary'
 
     return response
@@ -358,29 +356,28 @@ def gerar_pdf_impressos(request, context, template_name):
 
 class NormaPesquisaSimplesView(PermissionRequiredMixin, FormView):
     form_class = NormaPesquisaSimplesForm
-    template_name = 'materia/impressos/norma.html'
+    template_name = 'materia/impressos/impressos_form.html'
     permission_required = ('materia.can_access_impressos', )
 
     def form_valid(self, form):
-        normas = NormaJuridica.objects.all().order_by(
-            'numero')
         template_norma = 'materia/impressos/normas_pdf.html'
 
         titulo = form.cleaned_data['titulo']
 
-        if form.cleaned_data['tipo_norma']:
-            normas = normas.filter(tipo=form.cleaned_data['tipo_norma'])
+        kwargs = {}
+        if form.cleaned_data.get('tipo_norma'):
+            kwargs.update({'tipo': form.cleaned_data['tipo_norma']})
 
-        if form.cleaned_data['data_inicial']:
-            normas = normas.filter(
-                data__gte=form.cleaned_data['data_inicial'],
-                data__lte=form.cleaned_data['data_final'])
+        if form.cleaned_data.get('data_inicial'):
+            kwargs.update({'data__gte': form.cleaned_data['data_inicial'],
+                           'data__lte': form.cleaned_data['data_final']})
 
-        qtd_resultados = len(normas)
-        if qtd_resultados > 2000:
-            normas = normas[:2000]
+        normas = NormaJuridica.objects.filter(**kwargs).order_by('-numero', 'ano')
 
-        context = {'quantidade': qtd_resultados,
+        quantidade_normas = normas.count()
+        normas = normas[:2000] if quantidade_normas > 2000 else normas
+
+        context = {'quantidade': quantidade_normas,
                    'titulo': titulo,
                    'normas': normas}
 

@@ -1,45 +1,29 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
-
-
-{% block actions %}
-{% endblock %}
-
-
 {% block detail_content %}
-
-<h1 class="page-header">Impressos</h1>
-
-</br>
-<h2 class="legend">Etiqueta</h2>
-    <ul>
-        <li><a href="{% url 'sapl.materia:impressos_etiqueta' %}">Pesquisar</a></li>
-    </ul>
-
-</br>
-<h2 class="legend">Capa Processo</h2>
-    <ul>
-        <li><a href="{% url 'sapl.materia:impressos_ficha_pesquisa' %}">Pesquisar</a></li>
-    </ul>
-</br>
-<h2 class="legend">Índice de Normas Jurídicas</h2>
-    <ul>
-        <li><a href="{% url 'sapl.materia:impressos_norma_pesquisa' %}">Pesquisar</a></li>
-    </ul>
-</br>
-<h2 class="legend">Capa Documento Administrativo</h2>
-    <ul>
-        <li><a href="{% url 'sapl.materia:impressos_ficha_pesquisa_adm' %}">Pesquisar</a></li>
-    </ul>
-
-{#<h2 class="legend">Guia de Remessa</h2>#}
-{#    <ul>#}
-{#        <li><a href="{% url 'sapl.materia:impressos_guiaremessa' %}">Pesquisar</a></li>#}
-{#    </ul>#}
-{##}
-{#<h2 class="legend">Espelho</h2>#}
-{#    <ul>#}
-{#        <li><a href="{% url 'sapl.materia:impressos_espelho' %}">Pesquisar</a></li>#}
-{#    </ul>#}
-
+    <div class="container-table">
+        <h1 class="page-header">Impressos</h1>
+        <table class="table table-striped table-hover table-link-ordering">
+            <tr>
+                <th>Capa Documento Administrativo</th>
+                <td><a href="{% url 'sapl.materia:impressos_ficha_pesquisa_adm' %}">Pesquisar</a></td>
+            </tr>
+            <tr>
+                <th>Capa Processo</th>
+                <td><a href="{% url 'sapl.materia:impressos_ficha_pesquisa' %}">Pesquisar</a></td>
+            </tr>
+            <tr>
+                <th>Etiqueta</th>
+                <td><a href="{% url 'sapl.materia:impressos_etiqueta' %}">Pesquisar</a></td>
+            </tr>
+            <tr>
+                <th>Índice de Matérias Legislativas</th>
+                <td><a href="{% url 'sapl.materia:impressos_materia_pesquisa' %}">Pesquisar</a></td>
+            </tr>
+            <tr>
+                <th>Índice de Normas Jurídicas</th>
+                <td><a href="{% url 'sapl.materia:impressos_norma_pesquisa' %}">Pesquisar</a></td>
+            </tr>
+        </table>
+    </div>
 {% endblock %}
