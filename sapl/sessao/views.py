@@ -3736,7 +3736,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                 voto_parlamentar = VotoParlamentar.objects.filter(
                     ordem=ordens_id[0])
             else:
-                presencas = PresencaOrdemDia.objects.filter(
+                presencas = SessaoPlenariaPresenca.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk'])
                 expedientes_id = self.request.POST.getlist('marcadas_2')
                 voto_parlamentar = VotoParlamentar.objects.filter(
@@ -3751,7 +3751,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                 voto_parlamentar = VotoParlamentar.objects.filter(
                     ordem=ordens_id[0])
             else:
-                presencas = PresencaOrdemDia.objects.filter(
+                presencas = SessaoPlenariaPresenca.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk'])
                 expedientes_id = self.request.POST.getlist('expedientes')
                 voto_parlamentar = VotoParlamentar.objects.filter(
