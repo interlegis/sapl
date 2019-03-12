@@ -13,6 +13,11 @@
     <meta charset="utf-8">
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#343a40">
+
+
+
+
     {% block head_content %}
       <link rel="icon" href="{% webpack_static 'img/favicon.ico' %}"  type="image/png">
       {% block webpack_loader_css %}
@@ -84,13 +89,7 @@
             <a class="navbar-brand" href="/">
               <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
               alt="Logo" class="img-responsive" >
-              <span class="vcenter">
-                {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
-                {% if nome %}
-                  {{ nome }}
-                {% else %}
-                  {% trans 'Câmara/Assembléia não configurada'%}
-                {% endif %}
+              <span class="vcenter">{% if nome %}{{ nome }}{% else %}{% trans 'Câmara/Assembléia não configurada'%}{% endif %}
                 <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
               </span>
             </a>
