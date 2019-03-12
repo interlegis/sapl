@@ -3342,17 +3342,16 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
     logger = logging.getLogger(__name__)
 
     def get_queryset(self):
-        kwargs = self.kwargs
-        return ExpedienteMateria.objects.filter(sessao_plenaria_id=kwargs['pk'],
+        return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
                                                 resultado='')
 
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoExpediente,
                         self).get_context_data(**kwargs)
         context['turno_choices'] = Tramitacao.TURNO_CHOICES
-        context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         context['pk'] = self.kwargs['pk']
         context['root_pk'] = self.kwargs['pk']
+        context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         return context
 
 
@@ -3393,7 +3392,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
             context = {'pk': self.kwargs['pk'],
                        'root_pk': self.kwargs['pk'],
                        'title': SessaoPlenaria.objects.get(id=self.kwargs['pk']),
-                       'origem': request.POST['origem']
+                       'origem': request.POST['origem'],
+                       'subnav_template_name': 'sessao/subnav.yaml'
                        }
                        
         if 'marcadas_1' in request.POST:
