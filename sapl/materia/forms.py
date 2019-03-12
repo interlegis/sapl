@@ -340,16 +340,14 @@ class AcompanhamentoMateriaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row([('email', 10)])
-
-        row1.append(
-            Column(form_actions(label='Cadastrar'), css_class='col-md-2')
-        )
+        row1 = to_row([('email', 12)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                _('Acompanhamento de Matéria por e-mail'), row1
+                _('Acompanhamento de Matéria por e-mail'), 
+                row1,
+                form_actions(label='Cadastrar')
             )
         )
         super(AcompanhamentoMateriaForm, self).__init__(*args, **kwargs)
