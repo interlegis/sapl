@@ -40,39 +40,41 @@
       </div>
 
       {% for o in expedientes %}
-        <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% else %}Nominal{% endif %}"  {% if o.tipo_votacao == 2 %} style="display:none;" {% endif %}>
-          <td>
-            <input type="checkbox" name="marcadas_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
-            <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
-            {% if o.materia.numeracao_set.last %}
-              <strong>Processo:</strong> &nbsp; {{o.materia.numeracao_set.last}}</br>
-            {% endif %}
-            <strong>Autor:</strong>
-            {% for a in o.materia.autoria_set.all %}
-              {% if not forloop.first %}
-                , &nbsp;&nbsp; {{a.autor|default_if_none:""}}
-              {% else %}
-                &nbsp;{{a.autor|default_if_none:""}}
+        {% if o.tipo_votacao == 1 or o.tipo_votacao == 2 %}
+          <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% else %}Nominal{% endif %}"  {% if o.tipo_votacao == 2 %} style="display:none;" {% endif %}>
+            <td>
+              <input type="checkbox" name="marcadas_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
+              <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
+              {% if o.materia.numeracao_set.last %}
+                <strong>Processo:</strong> &nbsp; {{o.materia.numeracao_set.last}}</br>
               {% endif %}
-            {% endfor %}
-            </br>
-            {% if o.materia.numero_protocolo %}
-              <strong>Protocolo:</strong> &nbsp; {{o.materia.numero_protocolo}}</br>
-            {% endif %}
-            {% if  o.materia.tramitacao_set.last %}
-              {% if o.materia.tramitacao_set.last.turno %}
-                <strong>Turno:</strong>&nbsp;
-                {% for t in turno_choices %}
-                  {% if t.0 == o.materia.tramitacao_set.last.turno %}
-                    {{ t.1 }}
-                  {% endif %}
-                {% endfor %}</br>
+              <strong>Autor:</strong>
+              {% for a in o.materia.autoria_set.all %}
+                {% if not forloop.first %}
+                  , &nbsp;&nbsp; {{a.autor|default_if_none:""}}
+                {% else %}
+                  &nbsp;{{a.autor|default_if_none:""}}
+                {% endif %}
+              {% endfor %}
+              </br>
+              {% if o.materia.numero_protocolo %}
+                <strong>Protocolo:</strong> &nbsp; {{o.materia.numero_protocolo}}</br>
               {% endif %}
-            {% endif %}
-            <strong>Ementa:</strong>&nbsp;{{ o.ementa|safe }}</br>
-            <p></p>
-          </td>
-        </tr>         
+              {% if  o.materia.tramitacao_set.last %}
+                {% if o.materia.tramitacao_set.last.turno %}
+                  <strong>Turno:</strong>&nbsp;
+                  {% for t in turno_choices %}
+                    {% if t.0 == o.materia.tramitacao_set.last.turno %}
+                      {{ t.1 }}
+                    {% endif %}
+                  {% endfor %}</br>
+                {% endif %}
+              {% endif %}
+              <strong>Ementa:</strong>&nbsp;{{ o.ementa|safe }}</br>
+              <p></p>
+            </td>
+          </tr>         
+        {% endif %}
       {% endfor %}
     </table>
 
