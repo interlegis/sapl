@@ -2042,11 +2042,12 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
             data_desanexacao = datetime.strptime(
             request.POST['data_desanexacao'], "%d/%m/%Y").date()
 
-        for materia_id in marcadas:
+        principal = MateriaLegislativa.objects.get(pk = kwargs['pk'])
+        for materia in MateriaLegislativa.objects.filter(id__in = marcadas):
 
             anexada = Anexada()
-            anexada.materia_principal = MateriaLegislativa.objects.get(pk = kwargs['pk'])
-            anexada.materia_anexada = MateriaLegislativa.objects.get(pk = materia_id)
+            anexada.materia_principal = principal
+            anexada.materia_anexada = materia
             anexada.data_anexacao = data_anexacao
             anexada.data_desanexacao = data_desanexacao
             anexada.save()
