@@ -27,4 +27,4 @@ def lexml_request(request):
 
 
 def request_search(request, keyword):
-    return render(request, "lexml/resultado-pesquisa.html", {"keyword":keyword})
+    return render(request, "lexml/resultado-pesquisa.html", {"keyword": keyword})
