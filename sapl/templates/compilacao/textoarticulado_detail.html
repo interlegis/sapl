@@ -21,8 +21,7 @@
         {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
               <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn {% if object.editing_locked %}btn-outline-danger{%else%}btn-outline-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
         {% endif %}
-        <a href="{% url 'sapl.relatorios:texto_articulado' object.pk %}" type="button" class="btn btn-outline-primary">Imprimir Texto</a>
-
+        <a href="{% url 'sapl.relatorios:texto_articulado' object.pk %}" class="btn btn-outline-primary">Imprimir Texto</a>
 	     </div>
     </div>
   {% endblock actions %}
