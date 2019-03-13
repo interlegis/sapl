@@ -1298,6 +1298,7 @@ def get_turno(turno):
 class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
+    logger = logging.getLogger(__name__)
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -1616,21 +1617,39 @@ class ResumoView(DetailView):
         }
 
         if ordenacao:
-            context.update(
-                {'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
-                 'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
-                 'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
-                 'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
-                 'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
-                 'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
-                 'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
-                 'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
-                 'nono_ordenacao': dict_ord_template[ordenacao.nono],
-                 'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
-                 'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
-                 'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
-                 'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro]})
-
+            try:
+                context.update(
+                    {'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+                    'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+                    'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+                    'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+                    'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+                    'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+                    'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+                    'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+                    'nono_ordenacao': dict_ord_template[ordenacao.nono],
+                    'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+                    'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+                    'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+                    'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro]})
+            except KeyError as e:
+                self.logger.error('user=' + request.user.username + '. ' + "KeyError: " + str(e) + ". Erro "
+                                  "ao tentar utilizar configuração de ordenação. Utilizando ordenação padrão.")
+                context.update(
+                {'primeiro_ordenacao': dict_ord_template['id_basica'],
+                 'segundo_ordenacao': dict_ord_template['cont_mult'],
+                 'terceiro_ordenacao': dict_ord_template['mesa_d'],
+                 'quarto_ordenacao': dict_ord_template['lista_p'],
+                 'quinto_ordenacao': dict_ord_template['exp'],
+                 'sexto_ordenacao': dict_ord_template['mat_exp'],
+                 'setimo_ordenacao': dict_ord_template['v_n_mat_exp'],
+                 'oitavo_ordenacao': dict_ord_template['oradores_exped'],
+                 'nono_ordenacao': dict_ord_template['lista_p_o_d'],
+                 'decimo_ordenacao': dict_ord_template['mat_o_d'],
+                 'decimo_primeiro_ordenacao': dict_ord_template['v_n_mat_o_d'],
+                 'decimo_segundo_ordenacao': dict_ord_template['oradores_expli'],
+                 'decimo_terceiro_ordenacao': dict_ord_template['ocorr_sessao']
+                 })
         else:
             context.update(
                 {'primeiro_ordenacao': dict_ord_template['id_basica'],
