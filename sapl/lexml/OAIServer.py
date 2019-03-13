@@ -26,8 +26,9 @@ class OAILEXML:
 
     def __call__(self, element, metadata):
         data = metadata.record
-        value = etree.XML(data['metadata'])
-        element.append(value)
+        if data['metadata']:
+            value = etree.XML(data['metadata'])
+            element.append(value)
 
 
 class OAIServer:
@@ -64,22 +65,22 @@ class OAIServer:
         metadata.record = record
         return header, metadata
 
-    def list_query(self, from_date=None, until_date=None, offset=0, batch_size=10, identifier=None):
+    def list_query(self, from_=None, until=None, offset=0, batch_size=10, identifier=None):
         if identifier:
             identifier = int(identifier.split('/')[-1])  # Get internal id
         else:
             identifier = ''
-        until_date = datetime.now() if not until_date or until_date > datetime.now() else until_date
-        return self.oai_query(offset=offset, batch_size=batch_size, from_date=from_date, until_date=until_date,
+        until = datetime.now() if not until or until > datetime.now() else until
+        return self.oai_query(offset=offset, batch_size=batch_size, from_=from_, until=until,
                               identifier=identifier)
 
     def check_metadata_prefix(self, metadata_prefix):
         if not metadata_prefix in self.config['metadata_prefixes']:
             raise oaipmh.error.CannotDisseminateFormatError
 
-    def listRecords(self, metadataPrefix, from_date=None, until_date=None, cursor=0, batch_size=10):
+    def listRecords(self, metadataPrefix, from_=None, until=None, cursor=0, batch_size=10):
         self.check_metadata_prefix(metadataPrefix)
-        for record in self.list_query(from_date, until_date, cursor, batch_size):
+        for record in self.list_query(from_, until, cursor, batch_size):
             header, metadata = self.create_header_and_metadata(record)
             yield header, metadata, None  # None?
 
@@ -98,10 +99,10 @@ class OAIServer:
         appconfig = AppConfig.objects.first()
         return appconfig.esfera_federacao
 
-    def recupera_norma(self, offset, batch_size, from_date, until_date, identifier, esfera):
-        kwargs = {'data__lte': until_date}
-        if from_date:
-            kwargs['data__gte'] = from_date
+    def recupera_norma(self, offset, batch_size, from_, until, identifier, esfera):
+        kwargs = {'data__lte': until}
+        if from_:
+            kwargs['data__gte'] = from_
         if identifier:
             kwargs['numero'] = identifier
         if esfera:
@@ -144,9 +145,9 @@ class OAIServer:
             else:
                 urn += '{};'.format(norma.data.isoformat())
             if norma.tipo.equivalente_lexml == 'lei.organica' or norma.tipo.equivalente_lexml == 'constituicao':
-                urn += norma.ano
+                urn += str(norma.ano)
             else:
-                urn += norma.numero
+                urn += str(norma.numero)
             if norma.data_vigencia and norma.data_publicacao:
                 urn += '@{};publicacao;{}'.format(norma.data_vigencia.isoformat(), norma.data_publicacao.isoformat())
             elif norma.data_publicacao:
@@ -213,12 +214,12 @@ class OAIServer:
         else:
             return None
 
-    def oai_query(self, offset=0, batch_size=10, from_date=None, until_date=None, identifier=None):
+    def oai_query(self, offset=0, batch_size=10, from_=None, until=None, identifier=None):
         esfera = self.get_esfera_federacao()
         offset = 0 if offset < 0 else offset
         batch_size = 10 if batch_size < 0 else batch_size
-        until_date = datetime.now() if not until_date or until_date > datetime.now() else until_date
-        normas = self.recupera_norma(offset, batch_size, from_date, until_date, identifier, esfera)
+        until = datetime.now() if not until or until > datetime.now() else until
+        normas = self.recupera_norma(offset, batch_size, from_, until, identifier, esfera)
         for norma in normas:
             resultado = {}
             identificador = self.monta_id(norma)
