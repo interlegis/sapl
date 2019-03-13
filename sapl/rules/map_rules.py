@@ -267,6 +267,7 @@ rules_group_geral = {
         (parlamentares.Coligacao, __base__, __perms_publicas__),
         (parlamentares.ComposicaoColigacao, __base__, __perms_publicas__),
         (parlamentares.Partido, __base__, __perms_publicas__),
+        (parlamentares.HistoricoPartido, __base__, __perms_publicas__),
         (parlamentares.NivelInstrucao, __base__, __perms_publicas__),
         (parlamentares.SituacaoMilitar, __base__, __perms_publicas__),
         (parlamentares.Parlamentar, __base__, __perms_publicas__),

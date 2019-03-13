@@ -35,7 +35,7 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
+from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, filiacao_data
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
@@ -1626,6 +1626,7 @@ def get_oradores_explicações_pessoais(sessao_plenaria):
             if not partido_sigla:
                 sigla = ''
             else:
+                sigla = filiacao_data(parlamentar, sessao_plenaria.data_inicio)
                 sigla = partido_sigla.partido.sigla
             oradores = {
                 'numero_ordem': orador.numero_ordem,

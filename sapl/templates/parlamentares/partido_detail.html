@@ -7,3 +7,31 @@
         <a href="{% url 'sapl.parlamentares:parlamentares_filiados' object.pk %}" class="btn btn-outline-primary">Listar Parlamentares Filiados</a>
     </div>
 {% endblock actions %}
+
+{% block table_content %}
+    {{ block.super }}
+
+    <p class="control-label">Historico de Alteração:</p>
+
+    <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Periodo Inicial</th>
+            <th scope="col">Periodo Final</th>
+            <th scope="col">Sigla - Nome Anterior</th>
+            <th scope="col">Deletar</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for h in historico %}
+          <tr>
+              <td>{{ h.inicio_historico }}</td>
+              <td>{{ h.fim_historico }}</td>
+              <td>{{ h }}</td>
+              <td><a href="{% url 'sapl.parlamentares:deleta_historico_partido' h.pk%}">X</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+{% endblock table_content %}

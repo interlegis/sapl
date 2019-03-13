@@ -5,7 +5,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import F, Q
 from django.db.models.aggregates import Count
@@ -23,7 +23,7 @@ from django_filters.views import FilterView
 from image_cropping.utils import get_backend
 
 
-from sapl.base.forms import SessaoLegislativaForm, PartidoForm
+from sapl.base.forms import SessaoLegislativaForm, PartidoForm, PartidoUpdateForm
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -42,7 +42,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco)
+                     Bloco, HistoricoPartido)
 
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
@@ -72,8 +72,41 @@ class PartidoCrud(CrudAux):
         form_class = PartidoForm
 
     class UpdateView(CrudAux.UpdateView):
-        form_class = PartidoForm
+        template_name = "parlamentares/partido_update.html"
+        layout_key = None
+        form_class = PartidoUpdateForm
 
+        def form_valid(self, form):
+            is_historico = form.cleaned_data['historico'] 
+            
+            if is_historico == "nao":
+                super().form_valid(form)
+            elif is_historico == "sim":
+                sigla = form.cleaned_data['sigla']
+                nome = form.cleaned_data['nome']
+                inicio_historico = form.cleaned_data['data_criacao']
+                fim_historico = form.cleaned_data['data_extincao']
+                logo_partido = form.cleaned_data['logo_partido']
+                partido = partido = Partido.objects.get(pk=self.kwargs.get('pk'))
+                historico_partido = HistoricoPartido(sigla=sigla,
+                                                    nome=nome,
+                                                    inicio_historico=inicio_historico,
+                                                    fim_historico=fim_historico,
+                                                    logo_partido=logo_partido,
+                                                    partido=partido,
+                                                    )
+                historico_partido.save()
+                
+
+            return HttpResponseRedirect(
+                reverse('sapl.parlamentares:partido_detail', kwargs={'pk': self.kwargs.get('pk')}))
+
+
+    class DetailView(CrudAux.DetailView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(kwargs=kwargs)
+            context.update({'historico': HistoricoPartido.objects.filter(partido=self.object).order_by('-inicio_historico')})
+            return context
 
 class VotanteView(MasterDetailCrud):
     model = Votante
@@ -673,7 +706,16 @@ class ParlamentarCrud(Crud):
                 else:
                     self.logger.debug("user=" + username +
                                       ". Filiação encontrada com sucesso.")
-                    row[1] = (filiacao.partido.sigla, None, None)
+
+                    partido_aux = filiacao.partido
+                    historico = HistoricoPartido.objects.filter(partido=partido_aux).order_by('-fim_historico')  
+                    if historico:
+                        for p in historico:
+                            if p.inicio_historico < legislatura.data_fim and p.fim_historico >= legislatura.data_fim:
+                                partido_aux = p
+                                break
+
+                    row[1] = (partido_aux.sigla, None, None)
 
             return context
 
@@ -1042,6 +1084,8 @@ def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
             data_desfiliacao__gte=sessao.data_fim) | Q(
             data__lte=sessao.data_fim,
             data_desfiliacao__isnull=True))
+        
+
 
     # Caso não exista filiação com essas condições
     except ObjectDoesNotExist:
@@ -1063,7 +1107,7 @@ def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
         logger.info("Filiação do parlamentar com (data<={} e data_desfiliacao>={}) "
                     "ou (data<={} e data_desfiliacao=Null encontrada com sucesso."
                     .format(sessao.data_fim, sessao.data_fim, sessao.data_fim))
-        return filiacao.partido.sigla
+        return filiacao.get_nome_partido_no_ano(sessao.data_fim.year).sigla
 
 
 def altera_field_mesa_public_view(request):
@@ -1183,3 +1227,15 @@ class BlocoCrud(CrudAux):
 
         def get_success_url(self):
             return reverse('sapl.parlamentares:bloco_list')
+        
+        
+def deleta_historico_partido(request, pk):
+    historico = HistoricoPartido.objects.get(pk=pk)
+    pk_partido = historico.partido.pk
+    historico.delete()
+    
+    return HttpResponseRedirect(
+                reverse(
+                    'sapl.parlamentares:partido_detail',
+                    kwargs={'pk': pk_partido}))
+

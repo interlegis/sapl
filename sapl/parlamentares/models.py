@@ -99,25 +99,39 @@ def get_logo_media_path(instance, subpath, filename):
 
 
 def logo_upload_path(instance, filename):
-    return get_logo_media_path(instance, 'logo', filename)
-
+    return get_logo_media_path(instance, 'logo', filename)  
 
 @reversion.register()
 class Partido(models.Model):
-    sigla = models.CharField(max_length=9, verbose_name=_('Sigla'))
-    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+    sigla = models.CharField(
+        max_length=9,
+        verbose_name=_('Sigla')
+    )
+    nome = models.CharField(
+        max_length=50,
+        verbose_name=_('Nome')
+    )
     data_criacao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Criação'))
+        blank=True,
+        null=True,
+        verbose_name=_('Data Criação')
+    )
     data_extincao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Extinção'))
+        blank=True,
+        null=True,
+        verbose_name=_('Data Extinção')
+    )
     logo_partido = models.ImageField(
         blank=True,
         null=True,
         upload_to=logo_upload_path,
         verbose_name=_('Logo Partido'),
-        validators=[restringe_tipos_de_arquivo_img])
+        validators=[restringe_tipos_de_arquivo_img]
+    )
     observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
+        blank=True,
+        verbose_name=_('Observação')
+    )
 
     class Meta:
         verbose_name = _('Partido')
@@ -130,10 +144,45 @@ class Partido(models.Model):
 
 
 @reversion.register()
+class HistoricoPartido(models.Model):
+    sigla = models.CharField(
+        max_length=9,
+        verbose_name=_('Sigla')
+    )
+    nome = models.CharField(
+        max_length=50,
+        verbose_name=_('Nome')
+    )
+    inicio_historico = models.DateField(
+        default=timezone.now,
+        verbose_name=_('Data Alteração')
+    )
+
+    fim_historico = models.DateField(
+        default=timezone.now,
+        verbose_name=_('Data Alteração')
+    )
+
+    logo_partido = models.ImageField(
+        blank=True,
+        null=True,
+        upload_to=logo_upload_path,
+        verbose_name=_('Logo Partido'),
+        validators=[restringe_tipos_de_arquivo_img]
+    )
+
+    partido = models.ForeignKey(Partido, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return _('%(sigla)s - %(nome)s') % {
+            'sigla': self.sigla, 'nome': self.nome
+        }
+
+@reversion.register()
 class ComposicaoColigacao(models.Model):
     # TODO M2M
     partido = models.ForeignKey(Partido,
-                                on_delete=models.PROTECT,
+                                on_delete=models.CASCADE,
                                 verbose_name=_('Partidos da Coligação'))
     coligacao = models.ForeignKey(Coligacao, on_delete=models.PROTECT)
 
@@ -394,6 +443,13 @@ class Filiacao(models.Model):
         # A ordenação descrescente por data é importante para listagem de
         # parlamentares e tela de Filiações do Parlamentar
         ordering = ('parlamentar', '-data', '-data_desfiliacao')
+
+    def get_nome_partido_no_ano(self, ano):
+        historico = HistoricoPartido.objects.filter(partido=self.partido)
+        for h in historico:
+            if ano > h.inicio_historico.year and ano < h.fim_historico.year:
+                return h
+        return self.partido    
 
     def __str__(self):
         return _('%(parlamentar)s - %(partido)s') % {
