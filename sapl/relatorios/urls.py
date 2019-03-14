@@ -5,7 +5,8 @@ from .views import (relatorio_capa_processo,
                     relatorio_documento_administrativo, relatorio_espelho,
                     relatorio_etiqueta_protocolo, relatorio_materia,
                     relatorio_ordem_dia, relatorio_pauta_sessao,
-                    relatorio_protocolo, relatorio_sessao_plenaria)
+                    relatorio_protocolo, relatorio_sessao_plenaria,
+                    texto_articulado_pdf)
 
 app_name = AppConfig.name
 
@@ -28,4 +29,6 @@ urlpatterns = [
         relatorio_etiqueta_protocolo, name='relatorio_etiqueta_protocolo'),
     url(r'^relatorios/pauta-sessao/(?P<pk>\d+)/$',
         relatorio_pauta_sessao, name='relatorio_pauta_sessao'),
+    url(r'^relatorios/texto_articulado/(?P<pk>\d+)/$',
+        texto_articulado_pdf, name='texto_articulado'),
 ]

@@ -7,7 +7,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.template.loader import render_to_string
 
+from sapl.settings import MEDIA_URL
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
@@ -29,6 +31,10 @@ from .templates import (pdf_capa_processo_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
+
+from sapl.compilacao.models import TextoArticulado
+
+from weasyprint import HTML, CSS
 
 
 def get_kwargs_params(request, fields):
@@ -1199,3 +1205,55 @@ def get_pauta_sessao(sessao, casa):
     return (lst_expediente_materia,
             lst_votacao,
             inf_basicas_dic)
+
+def make_pdf(base_url,main_template,header_template,main_css='',header_css=''):
+    html = HTML(base_url=base_url, string=main_template)
+    main_doc = html.render(stylesheets=[])
+
+    def get_page_body(boxes):
+        for box in boxes:
+            if box.element_tag == 'body':
+                return box
+            return get_page_body(box.all_children())
+
+    # Template of header
+    html = HTML(base_url=base_url,string=header_template)
+    header = html.render(stylesheets=[CSS(string='@page {size:A4; margin:1cm;}')])
+
+    header_page = header.pages[0]
+    header_body = get_page_body(header_page._page_box.all_children())
+    header_body = header_body.copy_with_children(header_body.all_children())
+
+    for page in main_doc.pages:
+        page_body = get_page_body(page._page_box.all_children())
+        page_body.children += header_body.all_children()
+
+    pdf_file = main_doc.write_pdf()
+
+    return pdf_file
+
+
+def texto_articulado_pdf(request,pk):
+    texto_articulado = TextoArticulado.objects.get(pk=pk)
+    base_url = request.build_absolute_uri()
+    casa = CasaLegislativa.objects.first()
+    rodape = ' '.join(get_rodape(casa))
+
+    context = {
+        'object': texto_articulado,
+        'rodape': rodape,
+        'data': dt.today().strftime('%d/%m/%Y')
+    }
+    html_template = render_to_string('relatorios/relatorio_texto.html',context)
+    
+    header_context = {"casa":casa, 'logotipo':casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+    html_header = render_to_string('relatorios/header.html', header_context)
+
+    pdf_file = make_pdf(base_url=base_url,main_template=html_template,header_template=html_header)
+
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    response.write(pdf_file)
+
+    return response 
