@@ -243,7 +243,7 @@ class AcompanhamentoDocumentoView(CreateView):
                                            "documento",
                                            documento,
                                            destinatario)
-                self.logger.info('user={} .Foi enviado um e-mail de confirmação. Confira sua caixa '
+                self.logger.info('user={}. Foi enviado um e-mail de confirmação. Confira sua caixa '
                                  'de mensagens e clique no link que nós enviamos para '
                                  'confirmar o acompanhamento deste documento.'.format(usuario.username))
                 msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
@@ -251,19 +251,50 @@ class AcompanhamentoDocumentoView(CreateView):
                          confirmar o acompanhamento deste documento.')
                 messages.add_message(request, messages.SUCCESS, msg)
 
+            # Se o elemento existir e o email não foi confirmado:
+            # gerar novo hash e reenviar mensagem de email
+            elif not acompanhar[0].confirmado:
+                acompanhar = acompanhar[0]
+                acompanhar.hash = hash_txt
+                acompanhar.save()
+
+                base_url = get_base_url(request)
+
+                destinatario = AcompanhamentoDocumento.objects.get(
+                    documento=documento,
+                    email=email,
+                    confirmado=False
+                )
+
+                casa = CasaLegislativa.objects.first()
+
+                do_envia_email_confirmacao(base_url,
+                                           casa,
+                                           "documento",
+                                           documento,
+                                           destinatario)
+
+                self.logger.info('user={}. Foi enviado um e-mail de confirmação. Confira sua caixa \
+                                  de mensagens e clique no link que nós enviamos para \
+                                  confirmar o acompanhamento deste documento.'.format(usuario.username))
+
+                msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
+                        de mensagens e clique no link que nós enviamos para \
+                        confirmar o acompanhamento deste documento.')
+                messages.add_message(request, messages.SUCCESS, msg)
+            
             # Caso esse Acompanhamento já exista
             # avisa ao usuário que esse documento já está sendo acompanhado
             else:
                 self.logger.info('user=' + request.user.username +
                                  '. Este e-mail já está acompanhando esse documento (pk={}).'.format(pk))
                 msg = _('Este e-mail já está acompanhando esse documento.')
-                messages.add_message(request, messages.INFO, msg)
+                messages.add_message(request, messages.ERROR, msg)
 
                 return self.render_to_response(
                     {'form': form,
                      'documento': documento,
-                     'error': _('Esse documento já está\
-                     sendo acompanhada por este e-mail.')})
+                    })
             return HttpResponseRedirect(self.get_success_url())
         else:
             return self.render_to_response(
