@@ -2,9 +2,6 @@ import json
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
-from channels.layers import get_channel_layer
-from django.db.models.signals import post_save, post_delete, pre_delete
-from django.dispatch.dispatcher import receiver
 
 
 class TimeRefreshConsumer(AsyncWebsocketConsumer):

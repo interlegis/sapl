@@ -1,12 +1,10 @@
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from sapl.materia.models import Tramitacao
-from sapl.protocoloadm.models import TramitacaoAdministrativo
-from sapl.base.signals import tramitacao_signal
-from sapl.utils import get_base_url
-
 from sapl.base.email_utils import do_envia_email_tramitacao
+from sapl.base.signals import tramitacao_signal
+from sapl.protocoloadm.models import TramitacaoAdministrativo
+from sapl.utils import get_base_url
 
 
 @receiver(tramitacao_signal)

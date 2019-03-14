@@ -257,13 +257,13 @@ def cria_usuarios_padrao():
     rules.cria_usuarios_padrao()
 
 
-def send_signal_for_websocket_time_refresh(inst, action):
+def send_signal_for_websocket_time_refresh(project, action, inst):
 
     if not settings.USE_CHANNEL_LAYERS:
         return
 
     if hasattr(inst, '_meta') and not inst._meta.app_config is None and \
-            inst._meta.app_config.name[:4] == 'sapl':
+            inst._meta.app_config.name[:4] == project:
 
         # um mensagem não deve ser enviada se é post_save mas originou se de
         # revision_pre_delete_signal
@@ -307,12 +307,12 @@ def revision_pre_delete_signal(sender, **kwargs):
 
 @receiver(post_save, dispatch_uid='sapl_post_save_signal')
 def sapl_post_save_signal(sender, instance, using, **kwargs):
-    send_signal_for_websocket_time_refresh(instance, 'post_save')
+    send_signal_for_websocket_time_refresh('sapl', 'post_save', instance)
 
 
 @receiver(post_delete, dispatch_uid='sapl_post_delete_signal')
 def sapl_post_delete_signal(sender, instance, using, **kwargs):
-    send_signal_for_websocket_time_refresh(instance, 'post_delete')
+    send_signal_for_websocket_time_refresh('sapl', 'post_delete', instance)
 
 
 models.signals.post_migrate.connect(
