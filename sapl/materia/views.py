@@ -1930,19 +1930,50 @@ class AcompanhamentoMateriaView(CreateView):
                          confirmar o acompanhamento desta matéria.')
                 messages.add_message(request, messages.SUCCESS, msg)
 
+            # Se o elemento existir e o email não foi confirmado:
+            # gerar novo hash e reenviar mensagem de email
+            elif not acompanhar[0].confirmado:
+                acompanhar = acompanhar[0]
+                acompanhar.hash = hash_txt
+                acompanhar.save()
+
+                base_url = get_base_url(request)
+
+                destinatario = AcompanhamentoMateria.objects.get(
+                    materia=materia,
+                    email=email,
+                    confirmado=False
+                )
+
+                casa = CasaLegislativa.objects.first()
+
+                do_envia_email_confirmacao(base_url,
+                                           casa,
+                                           "materia",
+                                           materia,
+                                           destinatario)
+                
+                self.logger.debug('user=' + usuario.username + '. Foi enviado um e-mail de confirmação. Confira sua caixa \
+                                  de mensagens e clique no link que nós enviamos para \
+                                  confirmar o acompanhamento desta matéria.')
+                
+                msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
+                        de mensagens e clique no link que nós enviamos para \
+                        confirmar o acompanhamento desta matéria.')
+                messages.add_message(request, messages.SUCCESS, msg)
+
             # Caso esse Acompanhamento já exista
             # avisa ao usuário que essa matéria já está sendo acompanhada
             else:
                 self.logger.debug("user=" + usuario.username +
                                   ". Este e-mail já está acompanhando essa matéria.")
                 msg = _('Este e-mail já está acompanhando essa matéria.')
-                messages.add_message(request, messages.INFO, msg)
+                messages.add_message(request, messages.ERROR, msg)
 
                 return self.render_to_response(
                     {'form': form,
-                     'materia': materia,
-                     'error': _('Essa matéria já está\
-                     sendo acompanhada por este e-mail.')})
+                     'materia': materia
+                    })
             return HttpResponseRedirect(self.get_success_url())
         else:
             return self.render_to_response(
