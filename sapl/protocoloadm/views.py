@@ -17,7 +17,7 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView, CreateView
+from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
@@ -27,7 +27,8 @@ from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao
-from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
+from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
+                            RP_LIST, RP_DETAIL)
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
@@ -44,10 +45,11 @@ from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
                     TramitacaoAdmEditForm, TramitacaoAdmForm,
                     DesvincularDocumentoForm, DesvincularMateriaForm,
                     filtra_tramitacao_adm_destino_and_status,
-                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status)
+                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status,
+                    AnexadoForm, AnexadoEmLoteFilterSet)
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+                     TipoDocumentoAdministrativo, TramitacaoAdministrativo, Anexado)
 
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
@@ -939,6 +941,98 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             self.request.GET.copy())
 
         return self.render_to_response(context)
+
+
+class AnexadoCrud(MasterDetailCrud):
+    model = Anexado
+    parent_field = 'documento_principal'
+    help_topic = 'documento_anexado'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['documento_anexado', 'data_anexacao']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AnexadoForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AnexadoForm
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo'] = self.object.documento_anexado.tipo.id
+            initial['numero'] = self.object.documento_anexado.numero
+            initial['ano'] = self.object.documento_anexado.ano
+            return initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'AnexadoDetail'
+
+
+class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = AnexadoEmLoteFilterSet
+    template_name = 'protocoloadm/em_lote/anexado.html'
+    permission_required = ('protocoloadm.list_documentoadministrativo', ) ##d
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            DocumentoAnexadoEmLoteView,self
+            ).get_context_data(**kwargs)
+
+        context['root_pk'] = self.kwargs['pk']
+
+        context['subnav_template_name'] = 'protocoloadm/subnav.yaml'
+
+        context['title'] = _('Documentos Anexados em Lote')
+
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['object_List'] = context['object_list'].order_by(
+            'numero', '-ano'
+        )
+
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcados = request.POST.getlist('documento_id')
+
+        if len(marcados) == 0:
+            msg =_('Nenhum documento foi selecionado')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+        
+        data_anexacao = datetime.strptime(
+            request.POST['data_anexacao'], "%d/%m/%Y"
+        ).date()
+
+        if request.POST['data_desanexacao'] == '':
+            data_desanexacao = None
+        else:
+            data_desanexacao = datetime.strptime(
+                request.POST['data_desanexacao'], "%d/%m/%Y"
+            ).date()
+
+        principal = DocumentoAdministrativo.objects.get(pk = kwargs['pk'])
+        for documento in DocumentoAdministrativo.objects.filter(id__in = marcados):
+            anexado = Anexado()
+            anexado.documento_principal = principal
+            anexado.documento_anexado = documento
+            anexado.data_anexacao = data_anexacao
+            anexado.data_desanexacao = data_desanexacao
+            anexado.save()
+
+        msg = _('Documento(s) anexado(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+        return self.get(request, self.kwargs)
 
 
 class TramitacaoAdmCrud(MasterDetailCrud):

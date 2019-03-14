@@ -1,0 +1,13 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load common_tags %}
+
+{% block more_buttons %}
+    
+    {% if perms|get_add_perm:view %}
+        <a href="{% url 'sapl.protocoloadm:anexado_em_lote' root_pk %}" class="btn btn-outline-primary">
+            {% trans "Adicionar Anexado em Lote" %}
+        </a>
+    {% endif %}
+
+{% endblock more_buttons %}
