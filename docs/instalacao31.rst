@@ -291,7 +291,7 @@ Feito isso, e você ativando a variável de ambiente FRONTEND_CUSTOM=True (vide 
 
 **Deste ponto em diante, é exigido o conhecimento que você pode adquirir em https://cli.vuejs.org/guide/ e em https://vuejs.org/v2/guide/ para colaborar com sapl-frontend**
 
-**OBS: após a separação do sapl para o sapl-frontend, o conteúdo da pasta static é compilado e minificado. É gerado pelo build do sapl-frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta static.**
+**OBS: após a separação do sapl para o sapl-frontend, o conteúdo da pasta sapl/static/sapl é compilado e minificado. É gerado pelo build do sapl-frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta sapl/static/sapl.**
 
 Django-Channels
 ===============
@@ -299,11 +299,8 @@ Django-Channels
 Para ativar Django-Channels e a comunicação via websockets utilizada pelo entry-point sessao/online de sapl-frontend coloque no arquivo .env a variável:
 
     USE_CHANNEL_LAYERS = True
-<<<<<<< HEAD
     HOST_CHANNEL_LAYERS: localhost
     PORT_CHANNEL_LAYERS: 6379
-=======
->>>>>>> configura ativação para channels
 
 
 Ao ativar o channels, no ambiente de desenvolvimento é necessário ativar um servidor redis. Utilize/Instale o docker e execute:
@@ -328,3 +325,4 @@ De outro modo, ficando com esta interface aberta, abra outra janela e altere/inc
   {"message": {"action": "post_save", "id": 16923, "app": "materia", "model": "autoria"}}
 
 O papel de /sapl/time-refresh/ é apenas isto, informar que houve ação no registro `id`, da `app` e `model`. Além de `action` que pode ser `post_save` ou `pre-delete`.
+
