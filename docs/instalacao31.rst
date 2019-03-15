@@ -282,4 +282,4 @@ Feito isso, e você ativando a variável de ambiente FRONTEND_CUSTOM=True (vide 
 
 **Deste ponto em diante, é exigido o conhecimento que você pode adquirir em https://cli.vuejs.org/guide/ e em https://vuejs.org/v2/guide/ para colaborar com sapl-frontend**
 
-**OBS: após a separação do sapl para o sapl-frontend, o conteúdo da pasta static é compilado e minificado. É gerado pelo build do sapl-frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta static.**
+**OBS: após a separação do sapl para o sapl-frontend, o conteúdo da pasta sapl/static/sapl é compilado e minificado. É gerado pelo build do sapl-frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta sapl/static/sapl.**
