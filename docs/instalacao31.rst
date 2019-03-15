@@ -291,10 +291,20 @@ Feito isso, e você ativando a variável de ambiente FRONTEND_CUSTOM=True (vide 
 
 **Deste ponto em diante, é exigido o conhecimento que você pode adquirir em https://cli.vuejs.org/guide/ e em https://vuejs.org/v2/guide/ para colaborar com sapl-frontend**
 
-**OBS: após a separação do sapl para o sapl-frontend, o conteúdo da pasta sapl/static/sapl é compilado e minificado. É gerado pelo build do sapl-frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta sapl/static/sapl.**
+Sobre a pasta static
+--------------------
+Após a separação do sapl em sapl e sapl-frontend, o conteúdo da pasta sapl/static/sapl/frontend é compilado e minificado. É gerado pelo build do sapl-frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta sapl/static/sapl/frontend.
+
+Para aplicar css e javascript sem sapl-frontend:
+
+1) Não altere diretamente o conteúdo da pasta sapl/static/sapl/frontend. Isso deve ser feito no projeto sapl-frontend. Você perderá qualquer manipulação dentro desta pasta.
+
+2) Caso venha a criar algum código css/js diretamente no django, crie seus arquivos na pasta sapl/static/sapl.
+
+3) Não crie nenhum novo conteúdo na pasta sapl/static. Projetos Django podem ser usados como app de outro projeto. É o que ocorre com o Sapl, que é usado como uma app em outros projetos. Qualquer conteúdo colocado dentro sapl/static e não em sapl/static/sapl, pode estar causando erro no uso do Sapl como app em outro projeto.
+
 
 Django-Channels
-===============
 
 Para ativar Django-Channels e a comunicação via websockets utilizada pelo entry-point sessao/online de sapl-frontend coloque no arquivo .env a variável:
 
@@ -310,7 +320,7 @@ Ao ativar o channels, no ambiente de desenvolvimento é necessário ativar um se
 No caso de ambiente de produção, o container do docker sapl para produção já está configurado com redis.
 
 Testes do channels
-------------------
+==================
 
 Existe uma interface mínima de comunicação para testes dentro do sapl. Pode ser acessada utilizando:
 
@@ -325,4 +335,3 @@ De outro modo, ficando com esta interface aberta, abra outra janela e altere/inc
   {"message": {"action": "post_save", "id": 16923, "app": "materia", "model": "autoria"}}
 
 O papel de /sapl/time-refresh/ é apenas isto, informar que houve ação no registro `id`, da `app` e `model`. Além de `action` que pode ser `post_save` ou `pre-delete`.
-
