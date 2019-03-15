@@ -204,7 +204,7 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
                                                         widget=forms.HiddenInput())
             self.fields['autor'] = forms.CharField(required=False,
                                                    widget=forms.HiddenInput())
-            if kwargs['instance'].numero_protocolo:
+            if kwargs['instance'].numero_protocolo and Protocolo.objects.filter(numero=kwargs['instance'].numero_protocolo, ano=kwargs['instance'].ano).exists():
                 self.fields['numero_protocolo'].widget.attrs['readonly'] = True
 
     def clean(self):
