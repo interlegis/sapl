@@ -975,7 +975,7 @@ class AnexadoCrud(MasterDetailCrud):
 class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AnexadoEmLoteFilterSet
     template_name = 'protocoloadm/em_lote/anexado.html'
-    permission_required = ('protocoloadm.list_documentoadministrativo', ) ##d
+    permission_required = ('protocoloadm.add_anexado', )
 
     def get_context_data(self, **kwargs):
         context = super(
@@ -988,16 +988,41 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
         context['title'] = _('Documentos Anexados em Lote')
 
-        if not self.filterset.form.is_valid():
+        # Verifica se os campos foram preenchidos
+        if not self.request.GET.get('tipo', " "):
+            msg =_('Por favor, selecione um tipo de documento.')
+            messages.add_message(self.request, messages.ERROR, msg)
+                
+            if not self.request.GET.get('data_0', " ") or not self.request.GET.get('data_1', " "):
+                msg =_('Por favor, preencha as datas.')
+                messages.add_message(self.request, messages.ERROR, msg)
+
+            return context
+
+        if not self.request.GET.get('data_0', " ") or not self.request.GET.get('data_1', " "):
+            msg =_('Por favor, preencha as datas.')
+            messages.add_message(self.request, messages.ERROR, msg)
             return context
 
         qr = self.request.GET.copy()
-        context['object_List'] = context['object_list'].order_by(
+        context['temp_object_list'] = context['object_list'].order_by(
             'numero', '-ano'
         )
 
-        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        context['object_list'] = []
+        for obj in context['temp_object_list']:
+            if not obj.pk == int(context['root_pk']):
+                documento_principal = DocumentoAdministrativo.objects.get(id=context['root_pk'])
+                documento_anexado = obj
+                is_anexado = Anexado.objects.filter(documento_principal=documento_principal,
+                                                    documento_anexado=documento_anexado).exists()
+                if not is_anexado:
+                    context['object_list'].append(obj)
+        
+        context['numero_res'] = len(context['object_list'])
 
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        
         context['show_results'] = show_results_filter_set(qr)
 
         return context

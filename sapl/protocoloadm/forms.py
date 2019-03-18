@@ -861,10 +861,8 @@ class AnexadoEmLoteFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super(AnexadoEmLoteFilterSet, self).__init__(*args, **kwargs)
 
-        self.filters['tipo'].label = 'Tipo de Documento'
-        self.filters['data'].label = 'Data (Inicial - Final)'
-        self.form.fields['tipo'].required = True
-        self.form.fields['data'].required = True
+        self.filters['tipo'].label = 'Tipo de Documento*'
+        self.filters['data'].label = 'Data (Inicial - Final)*'
 
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data', 12)])
