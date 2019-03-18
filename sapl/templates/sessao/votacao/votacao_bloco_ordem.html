@@ -110,35 +110,16 @@
   <script language="JavaScript">
 		function checkAll(elem) {
       let checkboxes = document.getElementsByName('marcadas_1');
-      if (elem.checked) {
-         for (let i = 0; i < checkboxes.length; i++) {
-             if (checkboxes[i].type == 'checkbox') {
-                 checkboxes[i].checked = true;
-             }
-         }
-     } else {
-         for (let i = 0; i < checkboxes.length; i++) {
-             if (checkboxes[i].type == 'checkbox') {
-                 checkboxes[i].checked = false;
-             }
-         }
-     }
-
+      for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type == 'checkbox') 
+            checkboxes[i].checked = elem.checked; 
+      }
+     
       checkboxes = document.getElementsByName('marcadas_2');
-      if (elem.checked) {
-         for (let i = 0; i < checkboxes.length; i++) {
-             if (checkboxes[i].type == 'checkbox') {
-                 checkboxes[i].checked = true;
-             }
-         }
-     } else {
-         for (let i = 0; i < checkboxes.length; i++) {
-             if (checkboxes[i].type == 'checkbox') {
-                 checkboxes[i].checked = false;
-             }
-         }
-     }
-
+      for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type == 'checkbox') 
+            checkboxes[i].checked = elem.checked;
+      }
 		}
     
     function alteraTipoVotacao() {
