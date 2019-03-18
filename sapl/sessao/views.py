@@ -3079,8 +3079,9 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
     def get_context_data(self, **kwargs):
         context = super(MateriaLegislativaPesquisaView,
                         self).get_context_data(**kwargs)
-
+        
         context['title'] = _('Pesquisar Matéria Legislativa')
+        context['root_pk'] = self.kwargs['pk']
 
         self.filterset.form.fields['o'].label = _('Ordenação')
 
