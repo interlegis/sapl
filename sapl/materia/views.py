@@ -2021,6 +2021,11 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         tz = timezone.get_current_timezone()
 
+        if len(request.POST['autor']) > 50:
+            msg = _('Autor tem que ter menos do que 50 caracteres.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
         for materia_id in marcadas:
             doc = DocumentoAcessorio()
             doc.materia_id = materia_id
