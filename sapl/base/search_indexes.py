@@ -8,8 +8,9 @@ from django.template import loader
 from haystack import connections
 from haystack.constants import Indexable
 from haystack.fields import CharField
-from haystack.indexes import SearchIndex
 from haystack.utils import get_model_ct_tuple
+
+from celery_haystack.indexes import CelerySearchIndex
 
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PUBLIC, Dispositivo)
@@ -117,7 +118,7 @@ class TextExtractField(CharField):
                          'extracted': self.extract_data(obj)})
 
 
-class DocumentoAcessorioIndex(SearchIndex, Indexable):
+class DocumentoAcessorioIndex(CelerySearchIndex, Indexable):
     model = DocumentoAcessorio
     text = TextExtractField(
         document=True, use_template=True,
