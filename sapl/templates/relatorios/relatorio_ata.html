@@ -77,20 +77,20 @@
                     {% endif %}
         	    {% endfor %}
 
-                {% if assinatura_mesa %}
-                    <h3 style="margin-bottom:100px; position: relative; top: -80px;">Assinaturas dos Presentes:</h3>
+                {% if assinatura_presentes %}
+                    <h3 style="margin-bottom:40px; position: relative; top: -80px;">Assinaturas dos Presentes:</h3>
                 {% endif %}
 
           	    {% for p in assinatura_presentes %}
                     {% if forloop.counter0|divisibleby:2 %}
-        	            <tr style="margin-top:5cm">
+        	            <tr style="margin-top:0px">
                             <td>
-                                <div style="float: left; position: relative;top: -170px; left: 8px; width: 120px">_____________________</br>
+                                <div style="float: left; position: relative;top: -80px; left: 8px; width: 120px;">_____________________</br>
         	        	            <p style="font-size:8pt">{{p.nome_completo}} / {{ p|filiacao_data_filter:object.data_inicio }}</p>
         	        	        	    </br></br></br>
         	          	        </div>
                     {% else %}
-                                <div style="float: left; position: relative; top: -170px;left: 142px; width: 120px; margin-right:-220px;">_____________________ </br>
+                                <div style="float: left; position: relative; top: -80px;left: 142px; width: 120px; margin-right:-220px;">_____________________ </br>
         	        	            <p style="font-size:8pt">{{p.nome_completo}} / {{ p|filiacao_data_filter:object.data_inicio }}</p>
         	        	        	    </br></br></br>
         	          	        </div>
