@@ -60,7 +60,7 @@ rules_group_administrativo = {
          'can_access_impressos'], __perms_publicas__),
         # TODO: tratar em sapl.api a questão de ostencivo e restritivo
         (protocoloadm.DocumentoAdministrativo, __base__, set()),
-        (protocoloadm.Anexado, __base__, __perms_publicas__),
+        (protocoloadm.Anexado, __base__, set()),
         (protocoloadm.DocumentoAcessorioAdministrativo, __base__, set()),
         (protocoloadm.TramitacaoAdministrativo, __base__, set()),
     ]
