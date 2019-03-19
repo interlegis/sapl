@@ -351,10 +351,11 @@ class Anexado(models.Model):
         verbose_name_plural = _('Anexados')
 
     def __str__(self):
-        return _('Principal: %(documento_principal)s'
-                 ' - Anexada: %(documento_anexado)s') % {
-                     'documento_principal': self.documento_principal,
-                     'documento_anexado': self.documento_anexado
+        return _('Anexado: %(documento_anexado_tipo)s %(documento_anexado_numero)s'
+                 '/%(documento_anexado_ano)s\n') % {
+                     'documento_anexado_tipo': self.documento_anexado.tipo,
+                     'documento_anexado_numero': self.documento_anexado.numero,
+                     'documento_anexado_ano': self.documento_anexado.ano
                  }
 
 
