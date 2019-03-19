@@ -13,6 +13,11 @@
     <meta charset="utf-8">
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#343a40">
+
+
+
+
     {% block head_content %}
       <link rel="icon" href="{% webpack_static 'img/favicon.ico' %}"  type="image/png">
       {% block webpack_loader_css %}
@@ -44,8 +49,8 @@
                   <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="{% webpack_static 'img/search.png' %}"><span class="caret"></span></a>
                     <ul class="dropdown-menu">
                       <li class="dropdown-item">
-                        <form class="navbar-form search-form" method="get" action="http://sapl3.interlegis.leg.br/generico/lexml_pesquisar">
-                          <input type="text" class="form-control" placeholder="Pesquisar no LexML" />
+                        <form id="formulario-lexml" class="navbar-form search-form" method="get" action="">
+                          <input id="input-lexml" type="text" class="form-control" placeholder="Pesquisar no LexML" />
                         </form>
                       </li>
                     </ul>
@@ -84,13 +89,7 @@
             <a class="navbar-brand" href="/">
               <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
               alt="Logo" class="img-responsive" >
-              <span class="vcenter">
-                {# XXX Make better use of translation tags in html blocks ie. actually use the proper blocktrans tag efficiently #}
-                {% if nome %}
-                  {{ nome }}
-                {% else %}
-                  {% trans 'Câmara/Assembléia não configurada'%}
-                {% endif %}
+              <span class="vcenter">{% if nome %}{{ nome }}{% else %}{% trans 'Câmara/Assembléia não configurada'%}{% endif %}
                 <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
               </span>
             </a>
@@ -180,7 +179,7 @@
                 <small>
                   Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto.
                 </small>
-		<span>Release: 3.1.145</span>
+		<span>Release: 3.1.147</span>
               </p>
             </div>
             <div class="col-md-4">
@@ -254,5 +253,17 @@
       </script>
 
     {% endblock foot_js %}
+    <script>
+      $(document).ready(function(){
+        var form = document.getElementById("formulario-lexml");
+        $("#input-lexml").change(function(){ 
+          let value = $("#input-lexml").val();
+          let url = "{% url 'sapl.lexml:lexml_search' 'xxx'%}"
+          url = url.replace('xxx', value)
+          form.action = url;
+        });
+      });
+    </script>
+
   </body>
 </html>

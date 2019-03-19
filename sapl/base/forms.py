@@ -64,19 +64,46 @@ def get_roles():
 
 class UsuarioCreateForm(ModelForm):
     logger = logging.getLogger(__name__)
-    username = forms.CharField(required=True, label="Nome de usuário",
-                               max_length=30)
-    firstname = forms.CharField(required=True, label="Nome", max_length=30)
-    lastname = forms.CharField(required=True, label="Sobrenome", max_length=30)
-    password1 = forms.CharField(required=True, widget=forms.PasswordInput,
-                                label='Senha', max_length=128)
-    password2 = forms.CharField(required=True, widget=forms.PasswordInput,
-                                label='Confirmar senha', max_length=128)
-    user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES,
-                                    label="Usuário ativo?", initial='True')
-
+    username = forms.CharField(
+        required=True,
+        label="Nome de usuário",
+        max_length=30
+    )
+    firstname = forms.CharField(
+        required=True,
+        label="Nome",
+        max_length=30
+    )
+    lastname = forms.CharField(
+        required=True,
+        label="Sobrenome",
+        max_length=30
+    )
+    password1 = forms.CharField(
+        required=True,
+        widget=forms.PasswordInput,
+        label='Senha',
+        min_length=6,
+        max_length=128
+    )
+    password2 = forms.CharField(
+        required=True,
+        widget=forms.PasswordInput,
+        label='Confirmar senha',
+        min_length=6,
+        max_length=128
+    )
+    user_active = forms.ChoiceField(
+        required=True,
+        choices=YES_NO_CHOICES,
+        label="Usuário ativo?",
+        initial='True'
+    )
     roles = forms.MultipleChoiceField(
-        required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
+        required=True,
+        widget=forms.CheckboxSelectMultiple(),
+        choices=get_roles
+    )
 
     class Meta:
         model = get_user_model()
@@ -84,7 +111,7 @@ class UsuarioCreateForm(ModelForm):
                   'password1', 'password2', 'user_active', 'roles']
 
     def clean(self):
-        super(UsuarioCreateForm, self).clean()
+        super().clean()
 
         if not self.is_valid():
             return self.cleaned_data
@@ -99,7 +126,7 @@ class UsuarioCreateForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        super(UsuarioCreateForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         row0 = to_row([('username', 12)])
 
@@ -916,7 +943,9 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
-
+        self.filters['tramitacao__unidade_tramitacao_local'].label = 'Unidade de tramitação local'
+        self.filters['tramitacao__status'].label = 'Status de tramitação'
+        
         row1 = to_row([('tramitacao__data_fim_prazo', 12)])
         row2 = to_row(
             [('tipo', 4),

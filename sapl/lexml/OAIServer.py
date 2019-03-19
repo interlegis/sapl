@@ -9,7 +9,7 @@ from lxml import etree
 from lxml.builder import ElementMaker
 
 from sapl.base.models import AppConfig, CasaLegislativa
-from sapl.lexml.models import LexmlPublicador
+from sapl.lexml.models import LexmlPublicador, LexmlProvedor
 from sapl.norma.models import NormaJuridica
 
 
@@ -26,8 +26,9 @@ class OAILEXML:
 
     def __call__(self, element, metadata):
         data = metadata.record
-        value = etree.XML(data['metadata'])
-        element.append(value)
+        if data['metadata']:
+            value = etree.XML(data['metadata'])
+            element.append(value)
 
 
 class OAIServer:
@@ -54,7 +55,7 @@ class OAIServer:
             granularity='YYYY-MM-DDThh:mm:ssZ',
             compression=['identity'],
             toolkit_description=False)
-        if not self.config['descricao']:
+        if self.config['descricao']:
             result.add_description(self.config['descricao'])
         return result
 
@@ -64,22 +65,22 @@ class OAIServer:
         metadata.record = record
         return header, metadata
 
-    def list_query(self, from_date=None, until_date=None, offset=0, batch_size=10, identifier=None):
+    def list_query(self, from_=None, until=None, offset=0, batch_size=10, identifier=None):
         if identifier:
             identifier = int(identifier.split('/')[-1])  # Get internal id
         else:
             identifier = ''
-        until_date = datetime.now() if not until_date or until_date > datetime.now() else until_date
-        return self.oai_query(offset=offset, batch_size=batch_size, from_date=from_date, until_date=until_date,
+        until = datetime.now() if not until or until > datetime.now() else until
+        return self.oai_query(offset=offset, batch_size=batch_size, from_=from_, until=until,
                               identifier=identifier)
 
     def check_metadata_prefix(self, metadata_prefix):
         if not metadata_prefix in self.config['metadata_prefixes']:
             raise oaipmh.error.CannotDisseminateFormatError
 
-    def listRecords(self, metadataPrefix, from_date=None, until_date=None, cursor=0, batch_size=10):
+    def listRecords(self, metadataPrefix, from_=None, until=None, cursor=0, batch_size=10):
         self.check_metadata_prefix(metadataPrefix)
-        for record in self.list_query(from_date, until_date, cursor, batch_size):
+        for record in self.list_query(from_, until, cursor, batch_size):
             header, metadata = self.create_header_and_metadata(record)
             yield header, metadata, None  # None?
 
@@ -98,10 +99,10 @@ class OAIServer:
         appconfig = AppConfig.objects.first()
         return appconfig.esfera_federacao
 
-    def recupera_norma(self, offset, batch_size, from_date, until_date, identifier, esfera):
-        kwargs = {'data__lte': until_date}
-        if from_date:
-            kwargs['data__gte'] = from_date
+    def recupera_norma(self, offset, batch_size, from_, until, identifier, esfera):
+        kwargs = {'data__lte': until}
+        if from_:
+            kwargs['data__gte'] = from_
         if identifier:
             kwargs['numero'] = identifier
         if esfera:
@@ -144,9 +145,9 @@ class OAIServer:
             else:
                 urn += '{};'.format(norma.data.isoformat())
             if norma.tipo.equivalente_lexml == 'lei.organica' or norma.tipo.equivalente_lexml == 'constituicao':
-                urn += norma.ano
+                urn += str(norma.ano)
             else:
-                urn += norma.numero
+                urn += str(norma.numero)
             if norma.data_vigencia and norma.data_publicacao:
                 urn += '@{};publicacao;{}'.format(norma.data_vigencia.isoformat(), norma.data_publicacao.isoformat())
             elif norma.data_publicacao:
@@ -213,12 +214,12 @@ class OAIServer:
         else:
             return None
 
-    def oai_query(self, offset=0, batch_size=10, from_date=None, until_date=None, identifier=None):
+    def oai_query(self, offset=0, batch_size=10, from_=None, until=None, identifier=None):
         esfera = self.get_esfera_federacao()
         offset = 0 if offset < 0 else offset
         batch_size = 10 if batch_size < 0 else batch_size
-        until_date = datetime.now() if not until_date or until_date > datetime.now() else until_date
-        normas = self.recupera_norma(offset, batch_size, from_date, until_date, identifier, esfera)
+        until = datetime.now() if not until or until > datetime.now() else until
+        normas = self.recupera_norma(offset, batch_size, from_, until, identifier, esfera)
         for norma in normas:
             resultado = {}
             identificador = self.monta_id(norma)
@@ -257,16 +258,28 @@ def casa_legislativa():
     return casa if casa else CasaLegislativa()  # retorna objeto dummy
 
 
+def get_xml_provedor():
+    """ antigo get_descricao_casa() """
+    descricao = ''
+    provedor = LexmlProvedor.objects.first()
+    if provedor:
+        descricao = provedor.xml
+        if descricao:
+            descricao = descricao.encode('utf-8')
+    return descricao
+
+
 def get_config(url, batch_size):
     config = {'content_type': None,
               'delay': 0,
               'base_asset_path': None,
-              'metadata_prefixes': ['oai_lexml']}
-    config.update({'titulo': casa_legislativa().nome,  # Inicializa variável global casa
-                   'email': casa.email,
-                   'base_url': url[:url.find('/', 8)],
-                   'descricao': casa.informacao_geral,
-                   'batch_size': batch_size})
+              'metadata_prefixes': ['oai_lexml'],
+              'titulo': casa_legislativa().nome,  # Inicializa variável global casa
+              'email': [casa.email],  # lista de e-mails, antigo `def get_email()`
+              'base_url': url[:url.find('/', 8)] + reverse('sapl.lexml:lexml_endpoint')[:-4],  # remove '/oai' suffix
+              'descricao': get_xml_provedor(),
+              'batch_size': batch_size
+              }
     return config
 
 

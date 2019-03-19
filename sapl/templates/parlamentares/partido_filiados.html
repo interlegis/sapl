@@ -1,0 +1,58 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+{% block base_content %}
+    <h1>{{ partido.sigla }} - {{ partido.nome }}</h1>
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.parlamentares:partido_detail' partido.pk %}" class="btn btn-outline-primary">Informações do Partido</a>
+    </div>
+    <h2 class="legend">Parlamentares Filiados</h2>
+    <div class="result-count">Total de Parlamentares: <strong>{{ parlamentares|length }}</strong></div>
+    <div class="container-table lista-parlamentares">
+        <table class="table table-striped table-hover table-link-ordering">
+            <thead>
+                <tr>
+                    <th>
+                        Foto
+                    </th>
+                    <th>
+                        Parlamentar
+                    </th>
+                    <th>
+                        Ativo na Casa?
+                    </th>
+                    <th>
+                        Data da Filiação
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for parlamentar, data in parlamentares %}
+                    <tr>
+                        <td>
+                            {% if parlamentar.fotografia %}
+                                <div id="w-100">
+                                    <img class="img-fluid img-thumbnail" src="{% cropped_thumbnail parlamentar "cropping"%}">
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'sapl.parlamentares:parlamentar_detail' parlamentar.pk %}"> {{ parlamentar }} </a>
+                        </td>
+                        <td>
+                            {% if parlamentar.ativo %}
+                                Sim
+                            {% else %}
+                                Não
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ data }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock base_content %}
+

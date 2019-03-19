@@ -13,7 +13,7 @@ def user():
 
 def test_login_aparece_na_barra_para_usuario_nao_logado(client):
     response = client.get('/')
-    assert '<a class="nav-link" href="/login/"><img src="/static/sapl/img/user.png"></a>' in str(
+    assert '<a class="nav-link" href="/login/"><img src="/static/sapl/frontend/img/user.png"></a>' in str(
         response.content)
 
 

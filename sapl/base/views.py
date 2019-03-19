@@ -14,7 +14,7 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
 from django.db.models import Count, Q, ProtectedError
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils import timezone
@@ -37,7 +37,7 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato
+from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao
 from sapl.protocoloadm.models import Protocolo
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, Bancada)
@@ -950,16 +950,34 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              )
         )
         tabela.append(
+            ('filiacoes_sem_data_filiacao',
+             'Filiações sem data filiação',
+             len(filiacoes_sem_data_filiacao())
+            )
+        )
+        tabela.append(
             ('mandato_sem_data_inicio',
              'Mandatos sem data inicial',
             len(mandato_sem_data_inicio())
             )
         )
         tabela.append(
+            ('parlamentares_duplicados',
+             'Parlamentares duplicados',
+             len(parlamentares_duplicados())
+            )
+        )
+        tabela.append(
             ('parlamentares_mandatos_intersecao',
-             'Parlamentares com mandatos com interseção',
+             'Parlamentares com mandatos em interseção',
              len(parlamentares_mandatos_intersecao())
              )
+        )
+        tabela.append(
+            ('parlamentares_filiacoes_intersecao',
+             'Parlamentares com filiações em interseção',
+             len(parlamentares_filiacoes_intersecao())    
+            )
         )
         tabela.append(
             ('autores_duplicados',
@@ -1057,12 +1075,14 @@ class ListarBancadaComissaoAutorExternoView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+            ] = 'Nenhuma encontrada.'
         return context
 
 
 def autores_duplicados():
-    return [autor.values() for autor in Autor.objects.values('nome', 'tipo__descricao').annotate(count=Count('nome')).filter(count__gt=1)]
+    return [autor.values() for autor in Autor.objects.values(
+        'nome', 'tipo__descricao').order_by(
+            "nome").annotate(count=Count('nome')).filter(count__gt=1)]
 
 
 class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
@@ -1088,10 +1108,56 @@ class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
         return context
 
 
+def parlamentares_filiacoes_intersecao():
+    intersecoes = []
+
+    for parlamentar in Parlamentar.objects.all().order_by('nome_parlamentar'):
+        filiacoes = parlamentar.filiacao_set.all()
+        combinacoes = itertools.combinations(filiacoes, 2)
+
+        for c in combinacoes:
+            data_filiacao1 = c[0].data
+            data_desfiliacao1 = c[0].data_desfiliacao if c[0].data_desfiliacao else timezone.now().date()
+
+            data_filiacao2 = c[1].data
+            data_desfiliacao2 = c[1].data_desfiliacao if c[1].data_desfiliacao else timezone.now().date()
+
+            if data_filiacao1 and data_filiacao2:
+                exists = intervalos_tem_intersecao(
+                    data_filiacao1, data_desfiliacao1,
+                    data_filiacao2, data_desfiliacao2)
+                if exists:
+                    intersecoes.append((parlamentar, c[0], c[1]))
+    return intersecoes
+
+
+class ListarParlFiliacoesIntersecaoView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/parlamentares_filiacoes_intersecao.html'
+    context_object_name = 'parlamentares_filiacoes_intersecao'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return parlamentares_filiacoes_intersecao()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarParlFiliacoesIntersecaoView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context        
+
+
 def parlamentares_mandatos_intersecao():
     intersecoes = []
 
-    for parlamentar in Parlamentar.objects.all().order_by('nome_completo'):
+    for parlamentar in Parlamentar.objects.all().order_by('nome_parlamentar'):
         mandatos = parlamentar.mandato_set.all()
         combinacoes = itertools.combinations(mandatos, 2)
 
@@ -1135,8 +1201,57 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
         return context
 
 
+def parlamentares_duplicados():
+    return [parlamentar.values() for parlamentar in Parlamentar.objects.values(
+        'nome_parlamentar').order_by('nome_parlamentar').annotate(count=Count(
+            'nome_parlamentar')).filter(count__gt=1)]
+
+
+class ListarParlamentaresDuplicadosView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/parlamentares_duplicados.html'
+    context_object_name = 'parlamentares_duplicados'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return parlamentares_duplicados()
+    
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarParlamentaresDuplicadosView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
+ 
+
 def mandato_sem_data_inicio():
     return Mandato.objects.filter(data_inicio_mandato__isnull=True).order_by('parlamentar')
+
+
+def get_data_ultima_atualizacao(request):
+
+    datas = [MateriaLegislativa.objects.all().
+                 order_by('-data_ultima_atualizacao').
+                 values_list('data_ultima_atualizacao', flat=True).
+                 first(),
+             NormaJuridica.objects.all().
+                 order_by('-data_ultima_atualizacao').
+                 values_list('data_ultima_atualizacao', flat=True).
+                 first()]
+
+    max_data = ''
+
+    if datas[0] and datas[1]:
+        max_data = max(datas)
+    else:
+        max_data = next([i for i in datas if i is not None], '')
+    return JsonResponse({'data_ultima_atualizacao': max_data})
 
 
 class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
@@ -1159,7 +1274,35 @@ class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrada.'
+            ] = 'Nenhum encontrado.'
+        return context
+
+
+def filiacoes_sem_data_filiacao():
+    return Filiacao.objects.filter(data__isnull=True).order_by('parlamentar')
+
+
+class ListarFiliacoesSemDataFiliacaoView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/filiacoes_sem_data_filiacao.html'
+    context_object_name = 'filiacoes_sem_data_filiacao'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return filiacoes_sem_data_filiacao()
+    
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarFiliacoesSemDataFiliacaoView, self
+            ).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+        ] = 'Nenhuma encontrada.'
         return context
 
 
@@ -1243,6 +1386,7 @@ def protocolos_duplicados():
         protocolos[key] = val
 
     return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
+
 
 class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
     model = get_user_model()
@@ -1329,17 +1473,19 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     model = get_user_model()
     form_class = UsuarioCreateForm
     success_message = 'Usuário criado com sucesso!'
+    fail_message = 'Usuário não criado!'
     permission_required = ('base.add_appconfig',)
 
     def get_success_url(self):
         return reverse('sapl.base:usuario')
 
     def form_valid(self, form):
-
         data = form.cleaned_data
 
         new_user = get_user_model().objects.create(
-            username=data['username'], email=data['email'])
+            username=data['username'],
+            email=data['email']
+        )
         new_user.first_name = data['firstname']
         new_user.last_name = data['lastname']
         new_user.set_password(data['password1'])
@@ -1353,6 +1499,10 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
 
         messages.success(self.request, self.success_message)
         return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        messages.error(self.request, self.fail_message)
+        return super().form_invalid(form)
 
 
 class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):

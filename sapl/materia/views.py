@@ -51,6 +51,7 @@ from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH
                         show_results_filter_set, mail_service_configured)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
+                    AnexadaEmLoteFilterSet,
                     AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
                     DocumentoAcessorioForm, EtiquetaPesquisaForm,
                     FichaPesquisaForm, FichaSelecionaForm, MateriaAssuntoForm,
@@ -1114,8 +1115,7 @@ class RelatoriaCrud(MasterDetailCrud):
             try:
                 self.logger.debug("user=" + username + ". Tentando obter objeto Comissao de pk={}.".format(
                     context['form'].initial['comissao']))
-                comissao = Comissao.objects.get(
-                    pk=context['form'].initial['comissao'])
+                comissao = Comissao.objects.get(pk=context['form'].initial['comissao'])
             except:
                 self.logger.error("user=" + username + ". Objeto Comissão de pk={} não encontrado.".format(
                     context['form'].initial['comissao']))
@@ -1124,17 +1124,20 @@ class RelatoriaCrud(MasterDetailCrud):
             else:
                 self.logger.info("user=" + username + ". Objeto Comissao de pk={} obtido com sucesso.".format(
                     context['form'].initial['comissao']))
-                composicao = comissao.composicao_set.order_by(
-                    '-periodo__data_inicio').first()
-                participacao = Participacao.objects.filter(
-                    composicao=composicao)
 
-                parlamentares = []
-                parlamentares.append(['', '---------'])
-                for p in participacao:
-                    if p.titular:
-                        parlamentares.append(
-                            [p.parlamentar.id, p.parlamentar.nome_parlamentar])
+                materia = MateriaLegislativa.objects.get(pk=self.kwargs.get('pk'))
+                ano_materia = materia.ano
+
+                comissao = Comissao.objects.get(pk=context['form'].initial['comissao'])
+                composicoes = comissao.composicao_set.all()
+                composicao = comissao.composicao_set.filter(periodo__data_inicio__year=ano_materia)
+
+                participacoes = Participacao.objects.select_related().filter(composicao=composicao)
+
+                parlamentares = [('', '---------')] + [
+                    (participacao.parlamentar.id, participacao.parlamentar.nome_parlamentar) for participacao in
+                    participacoes if participacao.titular]
+
                 context['form'].fields['parlamentar'].choices = parlamentares
 
             return context
@@ -1178,13 +1181,19 @@ class RelatoriaCrud(MasterDetailCrud):
             else:
                 self.logger.info("user=" + username + ". Objeto Comissao de pk={} obtido com sucesso.".format(
                     context['form'].initial['comissao']))
-                composicao = comissao.composicao_set.order_by(
-                    '-periodo__data_inicio').first()
-                participacao = Participacao.objects.filter(
-                    composicao=composicao)
 
-                parlamentares = [[p.parlamentar.id, p.parlamentar.nome_parlamentar] for
-                                 p in participacao if p.titular]
+                relatoria = Relatoria.objects.select_related('materia').get(pk=self.kwargs.get('pk'))
+                ano_materia = relatoria.materia.ano
+
+                comissao = Comissao.objects.get(pk=context['form'].initial['comissao'])
+                composicoes = comissao.composicao_set.all()
+                composicao = comissao.composicao_set.filter(periodo__data_inicio__year=ano_materia)
+
+                participacoes = Participacao.objects.select_related().filter(composicao=composicao)
+
+                parlamentares = [('', '---------')] + [
+                    (participacao.parlamentar.id, participacao.parlamentar.nome_parlamentar) for participacao in
+                    participacoes if participacao.titular]
 
                 context['form'].fields['parlamentar'].choices = parlamentares
 
@@ -1921,19 +1930,50 @@ class AcompanhamentoMateriaView(CreateView):
                          confirmar o acompanhamento desta matéria.')
                 messages.add_message(request, messages.SUCCESS, msg)
 
+            # Se o elemento existir e o email não foi confirmado:
+            # gerar novo hash e reenviar mensagem de email
+            elif not acompanhar[0].confirmado:
+                acompanhar = acompanhar[0]
+                acompanhar.hash = hash_txt
+                acompanhar.save()
+
+                base_url = get_base_url(request)
+
+                destinatario = AcompanhamentoMateria.objects.get(
+                    materia=materia,
+                    email=email,
+                    confirmado=False
+                )
+
+                casa = CasaLegislativa.objects.first()
+
+                do_envia_email_confirmacao(base_url,
+                                           casa,
+                                           "materia",
+                                           materia,
+                                           destinatario)
+                
+                self.logger.debug('user=' + usuario.username + '. Foi enviado um e-mail de confirmação. Confira sua caixa \
+                                  de mensagens e clique no link que nós enviamos para \
+                                  confirmar o acompanhamento desta matéria.')
+                
+                msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
+                        de mensagens e clique no link que nós enviamos para \
+                        confirmar o acompanhamento desta matéria.')
+                messages.add_message(request, messages.SUCCESS, msg)
+
             # Caso esse Acompanhamento já exista
             # avisa ao usuário que essa matéria já está sendo acompanhada
             else:
                 self.logger.debug("user=" + usuario.username +
                                   ". Este e-mail já está acompanhando essa matéria.")
                 msg = _('Este e-mail já está acompanhando essa matéria.')
-                messages.add_message(request, messages.INFO, msg)
+                messages.add_message(request, messages.ERROR, msg)
 
                 return self.render_to_response(
                     {'form': form,
-                     'materia': materia,
-                     'error': _('Essa matéria já está\
-                     sendo acompanhada por este e-mail.')})
+                     'materia': materia
+                    })
             return HttpResponseRedirect(self.get_success_url())
         else:
             return self.render_to_response(
@@ -1993,6 +2033,65 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             doc.ementa = request.POST['ementa']
             doc.save()
         msg = _('Documento(s) criado(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+        return self.get(request, self.kwargs)
+
+class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = AnexadaEmLoteFilterSet
+    template_name = 'materia/em_lote/anexada.html'
+    permission_required = ('materia.add_documentoacessorio',)
+
+    def get_context_data(self, **kwargs):
+        context = super(MateriaAnexadaEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        context['root_pk'] = self.kwargs['pk']
+
+        context['subnav_template_name'] = 'materia/subnav.yaml'
+
+
+        context['title'] = _('Matérias Anexadas em Lote')
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        qr = self.request.GET.copy()
+        context['object_list'] = context['object_list'].order_by(
+            'ano', 'numero')
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcadas = request.POST.getlist('materia_id')
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        data_anexacao = datetime.strptime(
+            request.POST['data_anexacao'], "%d/%m/%Y").date()
+
+        if request.POST['data_desanexacao'] == '':
+            data_desanexacao = None
+        else:
+            data_desanexacao = datetime.strptime(
+            request.POST['data_desanexacao'], "%d/%m/%Y").date()
+
+        principal = MateriaLegislativa.objects.get(pk = kwargs['pk'])
+        for materia in MateriaLegislativa.objects.filter(id__in = marcadas):
+
+            anexada = Anexada()
+            anexada.materia_principal = principal
+            anexada.materia_anexada = materia
+            anexada.data_anexacao = data_anexacao
+            anexada.data_desanexacao = data_desanexacao
+            anexada.save()
+
+        msg = _('Materia(s) anexada(s).')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
 

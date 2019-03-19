@@ -3,6 +3,7 @@
 {% block base_content %}
     <fieldset>
         <h1>Lista de Mandatos sem Data Inicial</h1>
+        <br/>
         {% if not mandato_sem_data_inicio %}
             <p>{{ NO_ENTRIES_MSG }}</p>
         {% else %}
@@ -27,4 +28,5 @@
         {% endif %}
     </fieldset>
  {% include 'paginacao.html'%}
+ <br/>
 {% endblock base_content %}

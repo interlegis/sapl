@@ -26,7 +26,7 @@ import django_filters
 
 import sapl
 from sapl.base.models import AppConfig, Autor, TipoAutor
-from sapl.comissoes.models import Comissao
+from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -204,7 +204,7 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
                                                         widget=forms.HiddenInput())
             self.fields['autor'] = forms.CharField(required=False,
                                                    widget=forms.HiddenInput())
-            if kwargs['instance'].numero_protocolo:
+            if kwargs['instance'].numero_protocolo and Protocolo.objects.filter(numero=kwargs['instance'].numero_protocolo, ano=kwargs['instance'].ano).exists():
                 self.fields['numero_protocolo'].widget.attrs['readonly'] = True
 
     def clean(self):
@@ -340,16 +340,14 @@ class AcompanhamentoMateriaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row([('email', 10)])
-
-        row1.append(
-            Column(form_actions(label='Cadastrar'), css_class='col-md-2')
-        )
+        row1 = to_row([('email', 12)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                _('Acompanhamento de Matéria por e-mail'), row1
+                _('Acompanhamento de Matéria por e-mail'), 
+                row1,
+                form_actions(label='Cadastrar')
             )
         )
         super(AcompanhamentoMateriaForm, self).__init__(*args, **kwargs)
@@ -375,7 +373,7 @@ class RelatoriaForm(ModelForm):
         widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
 
     def __init__(self, *args, **kwargs):
-        super(RelatoriaForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         super(RelatoriaForm, self).clean()
@@ -425,7 +423,7 @@ class TramitacaoForm(ModelForm):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
         self.fields['data_tramitacao'].initial = timezone.now().date()
         ust = UnidadeTramitacao.objects.select_related().all()
-        unidade_tramitacao_destino = [(ut.pk, ut) for ut in ust if ut.comissao and ut.comissao.ativa]
+        unidade_tramitacao_destino = [('', '---------')]+[(ut.pk, ut) for ut in ust if ut.comissao and ut.comissao.ativa]
         unidade_tramitacao_destino.extend([(ut.pk, ut) for ut in ust if ut.orgao])
         unidade_tramitacao_destino.extend([(ut.pk, ut) for ut in ust if ut.parlamentar])
         self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
@@ -1142,6 +1140,29 @@ class AcessorioEmLoteFilterSet(django_filters.FilterSet):
             Fieldset(_('Documentos Acessórios em Lote'),
                      row1, row2, form_actions(label='Pesquisar')))
 
+class AnexadaEmLoteFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = MateriaLegislativa
+        fields = ['tipo', 'data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super(AnexadaEmLoteFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
+        self.form.fields['tipo'].required = True
+        self.form.fields['data_apresentacao'].required = True
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data_apresentacao', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Matéria Anexada em Lote'),
+                     row1, row2, form_actions(label='Pesquisar')))
+
 
 class PrimeiraTramitacaoEmLoteFilterSet(django_filters.FilterSet):
 
@@ -1700,9 +1721,6 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 attrs={'readonly': 'readonly', 'rows': 4}),
             'data_envio':  widgets.DateTimeInput(
                 attrs={'readonly': 'readonly'}),
-            'numero_materia_futuro': widgets.NumberInput(
-                attrs={'readonly': 'readonly', 'rows': 1}),
-
         }
 
     def __init__(self, *args, **kwargs):
@@ -1739,9 +1757,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 self._meta.fields.remove('regime_tramitacao')
 
         # esta chamada isola o __init__ de ProposicaoForm
-        super(ProposicaoForm, self).__init__(*args, **kwargs)
-
-        self.fields['numero_materia_futuro'].widget.attrs['readonly'] = True
+        super(ProposicaoForm, self).__init__(*args, **kwargs) 
 
         fields = [
             Fieldset(

@@ -10,6 +10,7 @@ from django.db.models import F, Q
 from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
+from django.shortcuts import render
 from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
@@ -17,20 +18,22 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
+from django_filters.views import FilterView
 from image_cropping.utils import get_backend
+
 
 from sapl.base.forms import SessaoLegislativaForm, PartidoForm
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             CrudBaseForListAndDetailExternalAppView,
-                            MasterDetailCrud)
+                            MasterDetailCrud, make_pagination)
 from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
-from sapl.utils import parlamentares_ativos
+from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm)
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, ParlamentarFilterSet)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -162,6 +165,63 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
                     kwargs={'ta_id': ta.pk})) + '?back_type=history',
                     'btn-success',
                     _('Texto Eletrônico'))
+
+
+class PesquisarParlamentarView(FilterView):
+    model = Parlamentar
+    filterset_class = ParlamentarFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarParlamentarView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset().order_by('nome_parlamentar').distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarParlamentarView,
+                        self).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+
+        context['NO_ENTRIES_MSG'] = 'Nenhum parlamentar encontrado!'
+
+        context['title'] = _('Parlamentares')
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarParlamentarView, self).get(request)
+
+        data = self.filterset.data
+        url = ''
+        if data:
+            url = "&" + str(self.request.environ['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('nome_parlamentar=') - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list)
+                                        )
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
+
+        return self.render_to_response(context)
 
 
 class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
@@ -686,6 +746,19 @@ class ParlamentarMateriasView(FormView):
                                         'coautoria': coautor_list,
                                         'nome_parlamentar': nome_parlamentar
                                         })
+
+
+def get_data_filicao(parlamentar):
+    return parlamentar.filiacao_set.order_by('-data').first().data.strftime('%d/%m/%Y')
+
+
+def parlamentares_filiados(request, pk):
+    template_name = 'parlamentares/partido_filiados.html'
+    parlamentares = Parlamentar.objects.all()
+    partido = Partido.objects.get(pk=pk)
+    parlamentares_filiados = [(parlamentar, get_data_filicao(parlamentar)) for parlamentar in parlamentares if
+                              parlamentar.filiacao_atual == partido.sigla]
+    return render(request, template_name, {'partido': partido, 'parlamentares': parlamentares_filiados})
 
 
 class MesaDiretoraView(FormView):

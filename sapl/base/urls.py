@@ -8,7 +8,7 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_done)
 from django.views.generic.base import RedirectView, TemplateView
 
-from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud
+from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_data_ultima_atualizacao
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
 from .apps import AppConfig
@@ -31,11 +31,14 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarInconsistenciasView, ListarProtocolosDuplicadosView,
                     ListarProtocolosComMateriasView,
                     ListarMatProtocoloInexistenteView,
+                    ListarParlamentaresDuplicadosView,
+                    ListarFiliacoesSemDataFiliacaoView,
+                    ListarMandatoSemDataInicioView,
                     ListarParlMandatosIntersecaoView,
+                    ListarParlFiliacoesIntersecaoView,
                     ListarAutoresDuplicadosView,
                     ListarBancadaComissaoAutorExternoView,
-                    ListarLegislaturaInfindavelView,
-                    ListarMandatoSemDataInicioView)
+                    ListarLegislaturaInfindavelView)
 
 
 app_name = AppConfig.name
@@ -148,12 +151,21 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/materias_protocolo_inexistente$',
         ListarMatProtocoloInexistenteView.as_view(),
         name='lista_materias_protocolo_inexistente'),
+    url(r'^sistema/inconsistencias/filiacoes_sem_data_filiacao$',
+        ListarFiliacoesSemDataFiliacaoView.as_view(),
+        name='lista_filiacoes_sem_data_filiacao'),
     url(r'^sistema/inconsistencias/mandato_sem_data_inicio',
         ListarMandatoSemDataInicioView.as_view(),
         name='lista_mandato_sem_data_inicio'),
+    url(r'^sistema/inconsistencias/parlamentares_duplicados$',
+        ListarParlamentaresDuplicadosView.as_view(),
+        name='lista_parlamentares_duplicados'),
     url(r'^sistema/inconsistencias/parlamentares_mandatos_intersecao$',
         ListarParlMandatosIntersecaoView.as_view(),
         name='lista_parlamentares_mandatos_intersecao'),
+    url(r'^sistema/inconsistencias/parlamentares_filiacoes_intersecao$',
+        ListarParlFiliacoesIntersecaoView.as_view(),
+        name='lista_parlamentares_filiacoes_intersecao'),
     url(r'^sistema/inconsistencias/autores_duplicados$',
         ListarAutoresDuplicadosView.as_view(),
         name='lista_autores_duplicados'),
@@ -163,6 +175,8 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/legislatura_infindavel$',
         ListarLegislaturaInfindavelView.as_view(),
         name='lista_legislatura_infindavel'),
+
+    url(r'^sistema/data_ultima_atualizacao', get_data_ultima_atualizacao),
 
     # todos os sublinks de sistema devem vir acima deste
     url(r'^sistema/$', permission_required('base.view_tabelas_auxiliares')

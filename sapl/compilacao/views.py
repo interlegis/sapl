@@ -2933,6 +2933,7 @@ class DispositivoDinamicEditView(
 
 class DispositivoSearchFragmentFormView(ListView):
     template_name = 'compilacao/dispositivo_form_search_fragment.html'
+    logger = logging.getLogger(__name__)
 
     def get(self, request, *args, **kwargs):
 
@@ -2955,14 +2956,20 @@ class DispositivoSearchFragmentFormView(ListView):
             messages.info(
                 request, _('Não foram encontrados resultados '
                            'com seus critérios de busca!'))
+            username = self.request.user.username
+            self.logger.error("user=" + username + ". Não foram encontrados "
+                              "resultados com esses critérios de busca. "
+                              "id_tipo_ta=".format(request.GET['tipo_ta']))
 
         try:
             r = response.render()
             return response
         except Exception as e:
-            messages.error(request, "Erro - %s" % e)
+            messages.error(request, "Erro - %s" % str(e))
             context = {}
             self.template_name = 'compilacao/messages.html'
+            username = self.request.user.username
+            self.logger.error("user=" + username + ". " + str(e))
             return self.render_to_response(context)
 
     def get_queryset(self):
@@ -3134,7 +3141,8 @@ class DispositivoSearchFragmentFormView(ListView):
             return r
 
         except Exception as e:
-            print(e)
+            username = self.request.user.username
+            self.logger.error("user=" + username + ". " + str(e))
 
 
 class DispositivoSearchModalView(FormView):

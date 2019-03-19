@@ -19,7 +19,8 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 IntegranteMesa, JustificativaAusencia,
                                 Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, OcorrenciaSessao)
+                                SessaoPlenariaPresenca, OcorrenciaSessao,
+                                RegistroVotacao, VotoParlamentar)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
@@ -633,6 +634,28 @@ def get_sessao_plenaria(sessao, casa):
             dic_expediente_materia["votacao_observacao"] = ' '
         lst_expediente_materia.append(dic_expediente_materia)
 
+    # Lista dos votos nominais das matérias do Expediente
+    lst_expediente_materia_vot_nom = []
+
+    materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(
+        sessao_plenaria=sessao,
+        tipo_votacao=2).order_by('-materia')
+    
+    for mevn in materias_expediente_votacao_nominal:
+        votos_materia = []
+        titulo_materia = mevn.materia
+        registro = RegistroVotacao.objects.filter(expediente=mevn)
+        
+        if registro:
+            for vp in VotoParlamentar.objects.filter(votacao=registro).order_by('parlamentar'):
+                votos_materia.append(vp)
+        
+        dic_expediente_materia_vot_nom = {
+            'titulo': titulo_materia,
+            'votos': votos_materia
+        } 
+        lst_expediente_materia_vot_nom.append(dic_expediente_materia_vot_nom)
+
     # Lista dos oradores do Expediente
     lst_oradores_expediente = []
     for orador_expediente in OradorExpediente.objects.filter(
@@ -722,6 +745,28 @@ def get_sessao_plenaria(sessao, casa):
             dic_votacao["nom_resultado"] = "Matéria não votada"
         lst_votacao.append(dic_votacao)
 
+    # Lista dos votos nominais das matérias da Ordem do Dia
+    lst_votacao_vot_nom = []
+
+    materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(
+        sessao_plenaria=sessao,
+        tipo_votacao=2).order_by('-materia')
+    
+    for modvn in materias_ordem_dia_votacao_nominal:
+        votos_materia_od = []
+        t_materia = modvn.materia
+        registro_od = RegistroVotacao.objects.filter(ordem=modvn)
+        
+        if registro_od:
+            for vp_od in VotoParlamentar.objects.filter(votacao=registro_od).order_by('parlamentar'):
+                votos_materia_od.append(vp_od)
+        
+        dic_votacao_vot_nom = {
+            'titulo': t_materia,
+            'votos': votos_materia_od
+        } 
+        lst_votacao_vot_nom.append(dic_votacao_vot_nom)
+
     # Lista dos oradores nas Explicações Pessoais
     lst_oradores = []
     for orador in Orador.objects.filter(
@@ -767,9 +812,11 @@ def get_sessao_plenaria(sessao, casa):
             lst_ausencia_sessao,
             lst_expedientes,
             lst_expediente_materia,
+            lst_expediente_materia_vot_nom,
             lst_oradores_expediente,
             lst_presenca_ordem_dia,
             lst_votacao,
+            lst_votacao_vot_nom,
             lst_oradores,
             lst_ocorrencias)
 
@@ -822,9 +869,11 @@ def relatorio_sessao_plenaria(request, pk):
      lst_ausencia_sessao,
      lst_expedientes,
      lst_expediente_materia,
+     lst_expediente_materia_vot_nom,
      lst_oradores_expediente,
      lst_presenca_ordem_dia,
      lst_votacao,
+     lst_votacao_vot_nom, 
      lst_oradores,
      lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
 
@@ -843,9 +892,11 @@ def relatorio_sessao_plenaria(request, pk):
         lst_ausencia_sessao,
         lst_expedientes,
         lst_expediente_materia,
+        lst_expediente_materia_vot_nom,
         lst_oradores_expediente,
         lst_presenca_ordem_dia,
         lst_votacao,
+        lst_votacao_vot_nom,
         lst_oradores,
         lst_ocorrencias)
 
