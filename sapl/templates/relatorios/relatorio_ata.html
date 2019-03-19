@@ -48,17 +48,16 @@
     {% include 'sessao/blocos_ata/materias_ordem_dia.html' %}
     {% include 'sessao/blocos_ata/oradores_explicacoes.html' %}
     
-    <div style="padding:5px;margin-top:80px;border-top: 1px solid black;">
+    {% if assinatura_mesa or assinatura_presentes %}
+
+    <div style="page-break-before: always;padding:5px;margin-top:80px;border-top: 1px solid black;">
         <legend >{{texto_assinatura}}</legend>
 
-        <table style="margin-top:20px">
+        <table style="margin-top:80px">
             <colgroup>
                 <col>
             </colgroup>
             <tbody>
-                {% if assinatura_mesa %}
-                    <h3 style="margin-bottom:100px">Assinaturas da Mesa:</h3>
-                {% endif %}
         	    {% for p in assinatura_mesa %}
                     {% if forloop.counter0|divisibleby:2 %}
         	            <tr style="margin-top:0px">
@@ -76,10 +75,6 @@
                         </tr>
                     {% endif %}
         	    {% endfor %}
-
-                {% if assinatura_presentes %}
-                    <h3 style="margin-bottom:40px; position: relative; top: -80px;">Assinaturas dos Presentes:</h3>
-                {% endif %}
 
           	    {% for p in assinatura_presentes %}
                     {% if forloop.counter0|divisibleby:2 %}
@@ -100,7 +95,7 @@
         	    {% endfor %}
             </tbody>
         </table>
-
+        {% endif%}
     </div>
 </body>
     
