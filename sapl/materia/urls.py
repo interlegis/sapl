@@ -25,7 +25,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
                                 proposicao_texto, recuperar_materia,
-                                ExcluirTramitacaoEmLoteView, RetornarProposicao)
+                                ExcluirTramitacaoEmLoteView, RetornarProposicao,
+                                MateriaPesquisaSimplesView)
 from sapl.norma.views import NormaPesquisaSimplesView
 from sapl.protocoloadm.views import (FichaPesquisaAdmView, FichaSelecionaAdmView)
 
@@ -49,6 +50,9 @@ urlpatterns_impressos = [
     url(r'^materia/impressos/norma-pesquisa/$',
         NormaPesquisaSimplesView.as_view(),
         name='impressos_norma_pesquisa'),
+    url(r'^materia/impressos/materia-pesquisa/$',
+        MateriaPesquisaSimplesView.as_view(),
+        name='impressos_materia_pesquisa'),
     url(r'^materia/impressos/ficha-pesquisa-adm/$',
         FichaPesquisaAdmView.as_view(),
         name= 'impressos_ficha_pesquisa_adm'),

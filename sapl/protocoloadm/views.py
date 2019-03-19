@@ -1152,7 +1152,7 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 
 class FichaPesquisaAdmView(PermissionRequiredMixin, FormView):
     form_class = FichaPesquisaAdmForm
-    template_name = 'materia/impressos/ficha.html'
+    template_name = 'materia/impressos/impressos_form.html'
     permission_required = ('materia.can_access_impressos', )
 
     def form_valid(self, form):
@@ -1170,7 +1170,7 @@ class FichaPesquisaAdmView(PermissionRequiredMixin, FormView):
 class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
     logger = logging.getLogger(__name__)
     form_class = FichaSelecionaAdmForm
-    template_name = 'materia/impressos/ficha_seleciona.html'
+    template_name = 'materia/impressos/impressos_form.html'
     permission_required = ('materia.can_access_impressos', )
 
     def get_context_data(self, **kwargs):
