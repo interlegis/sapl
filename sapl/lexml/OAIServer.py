@@ -26,7 +26,7 @@ class OAILEXML:
 
     def __call__(self, element, metadata):
         data = metadata.record
-        if data['metadata']:
+        if data.get('metadata'):
             value = etree.XML(data['metadata'])
             element.append(value)
 
@@ -55,7 +55,7 @@ class OAIServer:
             granularity='YYYY-MM-DDThh:mm:ssZ',
             compression=['identity'],
             toolkit_description=False)
-        if self.config['descricao']:
+        if self.config.get('descricao'):
             result.add_description(self.config['descricao'])
         return result
 
