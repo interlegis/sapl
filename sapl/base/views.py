@@ -1243,14 +1243,14 @@ def get_data_ultima_atualizacao(request):
              NormaJuridica.objects.all().
                  order_by('-data_ultima_atualizacao').
                  values_list('data_ultima_atualizacao', flat=True).
-                 first()]
+                 first()] # Retorna [None, None] se inexistem registros
 
     max_data = ''
 
     if datas[0] and datas[1]:
         max_data = max(datas)
     else:
-        max_data = next([i for i in datas if i is not None], '')
+        max_data = next(iter([i for i in datas if i is not None]), '')
     return JsonResponse({'data_ultima_atualizacao': max_data})
 
 
