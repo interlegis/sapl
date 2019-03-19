@@ -11,6 +11,7 @@ from sapl.materia.models import AcompanhamentoMateria
 from sapl.protocoloadm.models import AcompanhamentoDocumento
 from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import mail_service_configured
+from django.utils.translation import ugettext_lazy as _
 
 
 def load_email_templates(templates, context={}):
