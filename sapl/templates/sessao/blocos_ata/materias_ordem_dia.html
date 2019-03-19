@@ -1,24 +1,34 @@
 <fieldset>
-  
-	<p align="justify">
-	{% if materias_ordem %}
-		<strong>Matérias da Ordem do Dia: </strong> 
-		{% for m in materias_ordem %}
-			<b>{{m.numero}} - {{m.titulo}} </b>
-			{% if m.turno %}
-			Turno:{{m.turno}}
+	</br>
+	<strong>Matérias da Ordem do Dia: </strong>
+	</br></br>
+	{% for m in materias_ordem %}
+	<fieldset style="border-top: 1px solid black;">
+		<b>{{m.numero}} - {{m.titulo}} </b></br>
+		<b>Turno:</b>{{m.turno}}</br>
+    	<b>Autor: </b>{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
+		{% if m.numero_protocolo %}
+		<b>Número de Protocolo:</b> {{ m.numero_protocolo }}
+		{% endif %}
+		{% if m.numero_processo %}
+		<b>Processo:</b> {{ m.numero_processo }}
+		{% endif %}
+		<p><b>Descrição:</b> {{m.ementa|safe}}</p>
+		<b>Resultado:</b> 	{{m.resultado}} {{m.resultado_observacao}} 
+		<dl>
+		  <p><b>Tipo:</b> {{m.tipo_votacao}}</p>
+		  <dt>Sim:{{m.voto_sim}}</dt>
+		  <dt>Não:{{m.voto_nao}}</dd>
+		  <dt>Abstenções:{{m.voto_abstencoes}}</dt>
+		</dl>
+			{% if m.voto_nominal%}
+				<b>Votos Nominais</b>
+				<ul>
+					{% for voto in m.voto_nominal %}
+						<li>{{voto.0}} - {{voto.1}}</li>
+  					{% endfor %}
+				</ul>
 			{% endif %}
-				Autor{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
-			{% if m.numero_protocolo %}
-				Número de Protocolo: {{ m.numero_protocolo }}
-			{% endif %}
-			{% if m.numero_processo %}
-				Processo: {{ m.numero_processo }}
-			{% endif %}
-			{{m.ementa|safe}}
-			{{m.resultado}} {{m.resultado_observacao}}  
-		{% endfor %}
-	{% endif %}
-    </p>
-
+	</fieldset>
+	{% endfor %}
 </fieldset>
