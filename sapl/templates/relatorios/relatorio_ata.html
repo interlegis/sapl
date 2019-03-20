@@ -50,7 +50,7 @@
     
     {% if assinatura_mesa or assinatura_presentes %}
 
-    <div style="page-break-before: always;padding:5px;margin-top:80px;border-top: 1px solid black;">
+    <div style="page-break-before: always;padding:5px;margin-top:0px;border-top: 1px solid black;">
         <legend >{{texto_assinatura}}</legend>
 
         <table style="margin-top:80px">
@@ -60,14 +60,14 @@
             <tbody>
         	    {% for p in assinatura_mesa %}
                     {% if forloop.counter0|divisibleby:2 %}
-        	            <tr style="margin-top:0px">
+        	            <tr style="margin-top:20px">
                             <td>
-                                <div style="float: left; position: relative; top: -80px; left: 8px; width: 120px">____________________ </br>
+                                <div style="float: left; position: relative; top: -50px; left: 8px; width: 120px">____________________ </br>
         	        	            <p style="font-size:8pt"><b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {{ p.parlamentar|filiacao_data_filter:object.data_inicio }}</p>
         	        	        	    </br></br></br>
         	          	        </div>
                     {% else %}
-                                <div style="float: left; position: relative; top: -80px; left: 142px; width: 120px; margin-right:-220px;">____________________ </br>
+                                <div style="float: left; position: relative; top: -50px; left: 142px; width: 120px; margin-right:-220px;">____________________ </br>
         	        	            <p style="font-size:8pt"><b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {{ p.parlamentar|filiacao_data_filter:object.data_inicio }}</p>
         	        	        	    </br></br></br>
         	          	        </div>
@@ -78,15 +78,15 @@
 
           	    {% for p in assinatura_presentes %}
                     {% if forloop.counter0|divisibleby:2 %}
-        	            <tr style="margin-top:0px">
+        	            <tr style="margin-top:20px">
                             <td>
-                                <div style="float: left; position: relative;top: -80px; left: 8px; width: 120px;">_____________________</br>
-        	        	            <p style="font-size:8pt">{{p.nome_completo}} / {{ p|filiacao_data_filter:object.data_inicio }}</p>
-        	        	        	    </br></br></br>
+                                <div style="float: left; position: relative;top: -50px; left: 8px; width: 120px;">_____________________</br>
+        	        	            <p style="font-size:8pt"><b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {{ p.parlamentar|filiacao_data_filter:object.data_inicio }}</p>
+                                        </br></br></br>
         	          	        </div>
                     {% else %}
-                                <div style="float: left; position: relative; top: -80px;left: 142px; width: 120px; margin-right:-220px;">_____________________ </br>
-        	        	            <p style="font-size:8pt">{{p.nome_completo}} / {{ p|filiacao_data_filter:object.data_inicio }}</p>
+                                <div style="float: left; position: relative; top: -50px;left: 142px; width: 120px; margin-right:-220px;">_____________________ </br>
+        	        	            <p style="font-size:8pt">{{p.parlamentar.nome_completo}} / {{ p.parlamentar|filiacao_data_filter:object.data_inicio }}</p>
         	        	        	    </br></br></br>
         	          	        </div>
                             </td>
