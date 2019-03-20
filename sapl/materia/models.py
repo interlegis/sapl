@@ -111,7 +111,7 @@ class TipoMateriaLegislativa(models.Model):
     class Meta:
         verbose_name = _('Tipo de Matéria Legislativa')
         verbose_name_plural = _('Tipos de Matérias Legislativas')
-        ordering = ['descricao']
+        ordering = ['sequencia_regimental', 'descricao']
 
     def __str__(self):
         return self.descricao
