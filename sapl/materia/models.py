@@ -101,6 +101,13 @@ class TipoMateriaLegislativa(models.Model):
         verbose_name=_('Sequência de numeração'),
         choices=SEQUENCIA_NUMERACAO)
 
+    sequencia_regimental = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_('Sequência Regimental'),
+        help_text=_('A sequência regimental diz respeito ao que define '
+                    'o regimento da Casa Legislativa sobre qual a ordem '
+                    'de entrada das proposições nas Sessões Plenárias.'))
+
     class Meta:
         verbose_name = _('Tipo de Matéria Legislativa')
         verbose_name_plural = _('Tipos de Matérias Legislativas')
@@ -920,7 +927,8 @@ class Tramitacao(models.Model):
         ('B', 'primeira_votacao', _('1ª Votação')),
         ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
         ('D', 'deliberacao', _('Deliberação')),
-        ('E', 'primeira_segunda_votacao_urgencia', _('1ª e 2ª votações em regime de urgência'))
+        ('E', 'primeira_segunda_votacao_urgencia', _(
+            '1ª e 2ª votações em regime de urgência'))
 
     )
 
