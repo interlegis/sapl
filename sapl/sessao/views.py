@@ -1464,7 +1464,7 @@ def get_presenca_ordem_do_dia(sessao_plenaria):
         context.update(
             {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
         context.update({'assinatura_presentes': presidente_dia})
-
+    
     return context
 
 def get_materias_ordem_do_dia(sessao_plenaria):
@@ -1577,7 +1577,7 @@ class ResumoView(DetailView):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
-               # Votos de Votação Nominal de Matérias Expediente
+        # Votos de Votação Nominal de Matérias Expediente
         materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(
             sessao_plenaria_id=self.object.id,
             tipo_votacao=2).order_by('-materia')
@@ -1626,14 +1626,13 @@ class ResumoView(DetailView):
         context.update(get_presenca_ordem_do_dia(self.object))
         # =====================================================================
         # Matérias Ordem do Dia
-         # Votos de Votação Nominal de Matérias Ordem do Dia
+        # Votos de Votação Nominal de Matérias Ordem do Dia
         materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(
             sessao_plenaria_id=self.object.id,
             tipo_votacao=2).order_by('-materia')
 
         votacoes_od = []
         for modvn in materias_ordem_dia_votacao_nominal:
-
             votos_materia_od = []
             t_materia = modvn.materia
             registro_od = RegistroVotacao.objects.filter(ordem=modvn)
@@ -1692,7 +1691,7 @@ class ResumoView(DetailView):
                     'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
                     'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro]})
             except KeyError as e:
-                self.logger.error('user=' + request.user.username + '. ' + "KeyError: " + str(e) + ". Erro "
+                self.logger.error('user=' + self.request.user.username + '. ' + "KeyError: " + str(e) + ". Erro "
                                   "ao tentar utilizar configuração de ordenação. Utilizando ordenação padrão.")
                 context.update(
                 {'primeiro_ordenacao': dict_ord_template['id_basica'],
