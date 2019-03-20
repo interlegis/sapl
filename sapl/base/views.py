@@ -1234,7 +1234,9 @@ def mandato_sem_data_inicio():
     return Mandato.objects.filter(data_inicio_mandato__isnull=True).order_by('parlamentar')
 
 
-def get_data_ultima_atualizacao(request):
+def get_estatistica(request):
+
+    json_dict = {}
 
     datas = [MateriaLegislativa.objects.all().
                  order_by('-data_ultima_atualizacao').
@@ -1251,7 +1253,14 @@ def get_data_ultima_atualizacao(request):
         max_data = max(datas)
     else:
         max_data = next(iter([i for i in datas if i is not None]), '')
-    return JsonResponse({'data_ultima_atualizacao': max_data})
+
+    json_dict["data_ultima_atualizacao"] = max_data
+    json_dict["num_materias_legislativas"] = MateriaLegislativa.objects.all().count()
+    json_dict["num_normas_juridicas "] = NormaJuridica.objects.all().count()
+    json_dict["num_parlamentares"] = Parlamentar.objects.all().count()
+    json_dict["num_sessoes_plenarias"] = SessaoPlenaria.objects.all().count()
+
+    return JsonResponse(json_dict)
 
 
 class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
