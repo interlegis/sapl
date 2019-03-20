@@ -3,7 +3,6 @@ import logging
 from random import choice
 from string import ascii_letters, digits
 
-from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML
 from django.conf import settings
 from django.contrib import messages
@@ -32,6 +31,7 @@ from sapl.comissoes.models import Comissao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
 from sapl.compilacao.views import IntegracaoTaView
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
@@ -214,7 +214,8 @@ class CriarProtocoloMateriaView(CreateView):
         context['form'].fields['ano'].initial = protocolo.ano
         if protocolo:
             if protocolo.timestamp:
-                context['form'].fields['data_apresentacao'].initial = protocolo.timestamp.date()
+                context['form'].fields['data_apresentacao'].initial = protocolo.timestamp.date(
+                )
             elif protocolo.timestamp_data_hora_manual:
                 context['form'].fields['data_apresentacao'].initial = protocolo.timestamp_data_hora_manual.date()
             elif protocolo.data:
@@ -1115,7 +1116,8 @@ class RelatoriaCrud(MasterDetailCrud):
             try:
                 self.logger.debug("user=" + username + ". Tentando obter objeto Comissao de pk={}.".format(
                     context['form'].initial['comissao']))
-                comissao = Comissao.objects.get(pk=context['form'].initial['comissao'])
+                comissao = Comissao.objects.get(
+                    pk=context['form'].initial['comissao'])
             except:
                 self.logger.error("user=" + username + ". Objeto Comissão de pk={} não encontrado.".format(
                     context['form'].initial['comissao']))
@@ -1125,12 +1127,15 @@ class RelatoriaCrud(MasterDetailCrud):
                 self.logger.info("user=" + username + ". Objeto Comissao de pk={} obtido com sucesso.".format(
                     context['form'].initial['comissao']))
 
-                materia = MateriaLegislativa.objects.get(pk=self.kwargs.get('pk'))
+                materia = MateriaLegislativa.objects.get(
+                    pk=self.kwargs.get('pk'))
                 ano_materia = materia.ano
 
-                comissao = Comissao.objects.get(pk=context['form'].initial['comissao'])
+                comissao = Comissao.objects.get(
+                    pk=context['form'].initial['comissao'])
                 composicoes = comissao.composicao_set.all()
-                composicao = comissao.composicao_set.filter(periodo__data_inicio__year=ano_materia)
+                composicao = comissao.composicao_set.filter(
+                    periodo__data_inicio__year=ano_materia)
 
                 participacoes = Participacao.objects.select_related().filter(composicao=composicao)
 
@@ -1182,12 +1187,15 @@ class RelatoriaCrud(MasterDetailCrud):
                 self.logger.info("user=" + username + ". Objeto Comissao de pk={} obtido com sucesso.".format(
                     context['form'].initial['comissao']))
 
-                relatoria = Relatoria.objects.select_related('materia').get(pk=self.kwargs.get('pk'))
+                relatoria = Relatoria.objects.select_related(
+                    'materia').get(pk=self.kwargs.get('pk'))
                 ano_materia = relatoria.materia.ano
 
-                comissao = Comissao.objects.get(pk=context['form'].initial['comissao'])
+                comissao = Comissao.objects.get(
+                    pk=context['form'].initial['comissao'])
                 composicoes = comissao.composicao_set.all()
-                composicao = comissao.composicao_set.filter(periodo__data_inicio__year=ano_materia)
+                composicao = comissao.composicao_set.filter(
+                    periodo__data_inicio__year=ano_materia)
 
                 participacoes = Participacao.objects.select_related().filter(composicao=composicao)
 
@@ -1952,11 +1960,11 @@ class AcompanhamentoMateriaView(CreateView):
                                            "materia",
                                            materia,
                                            destinatario)
-                
+
                 self.logger.debug('user=' + usuario.username + '. Foi enviado um e-mail de confirmação. Confira sua caixa \
                                   de mensagens e clique no link que nós enviamos para \
                                   confirmar o acompanhamento desta matéria.')
-                
+
                 msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
                         de mensagens e clique no link que nós enviamos para \
                         confirmar o acompanhamento desta matéria.')
@@ -1973,7 +1981,7 @@ class AcompanhamentoMateriaView(CreateView):
                 return self.render_to_response(
                     {'form': form,
                      'materia': materia
-                    })
+                     })
             return HttpResponseRedirect(self.get_success_url())
         else:
             return self.render_to_response(
@@ -2041,6 +2049,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
 
+
 class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AnexadaEmLoteFilterSet
     template_name = 'materia/em_lote/anexada.html'
@@ -2053,7 +2062,6 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         context['root_pk'] = self.kwargs['pk']
 
         context['subnav_template_name'] = 'materia/subnav.yaml'
-
 
         context['title'] = _('Matérias Anexadas em Lote')
         # Verifica se os campos foram preenchidos
@@ -2084,10 +2092,10 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
             data_desanexacao = None
         else:
             data_desanexacao = datetime.strptime(
-            request.POST['data_desanexacao'], "%d/%m/%Y").date()
+                request.POST['data_desanexacao'], "%d/%m/%Y").date()
 
-        principal = MateriaLegislativa.objects.get(pk = kwargs['pk'])
-        for materia in MateriaLegislativa.objects.filter(id__in = marcadas):
+        principal = MateriaLegislativa.objects.get(pk=kwargs['pk'])
+        for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
 
             anexada = Anexada()
             anexada.materia_principal = principal
@@ -2291,7 +2299,8 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
     html = template.render(context, request)
-    pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()).write_pdf()
+    pdf = weasyprint.HTML(
+        string=html, base_url=request.build_absolute_uri()).write_pdf()
 
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'inline; filename="relatorio_impressos.pdf"'
@@ -2476,7 +2485,8 @@ class MateriaPesquisaSimplesView(PermissionRequiredMixin, FormView):
             kwargs.update({'data__gte': form.cleaned_data['data_inicial'],
                            'data__lte': form.cleaned_data['data_final']})
 
-        materias = MateriaLegislativa.objects.filter(**kwargs).order_by('-numero', 'ano')
+        materias = MateriaLegislativa.objects.filter(
+            **kwargs).order_by('-numero', 'ano')
 
         quantidade_materias = materias.count()
         materias = materias[:2000] if quantidade_materias > 2000 else materias
