@@ -9,7 +9,7 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
 from django.views.generic.base import RedirectView, TemplateView
 
 from sapl import base
-from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica, get_data_ultima_atualizacao
+from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica
 
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
