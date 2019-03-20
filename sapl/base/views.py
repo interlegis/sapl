@@ -611,12 +611,13 @@ class RelatorioMateriasTramitacaoView(FilterView):
             qs = filtra_url_materias_em_tramitacao(
                 qr, qs, 'tramitacao__status', 'status')
 
-        context['object_list'] = qs
+        li = [li1 for li1 in qs if li1.tramitacao_set.last().status.indicador != 'F']
+        context['object_list'] = li
 
         qtdes = {}
         for tipo in TipoMateriaLegislativa.objects.all():
-            qs = context['object_list']
-            qtde = len(qs.filter(tipo_id=tipo.id))
+            li = context['object_list']
+            qtde = len(list(filter(lambda m: m.tipo_id==tipo.id, li)))
             if qtde > 0:
                 qtdes[tipo] = qtde
         context['qtdes'] = qtdes
