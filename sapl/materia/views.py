@@ -2497,3 +2497,9 @@ class MateriaPesquisaSimplesView(PermissionRequiredMixin, FormView):
 
 class TipoMateriaCrud(CrudAux):
     model = TipoMateriaLegislativa
+
+    class DetailView(CrudAux.DetailView):
+        layout_key = 'TipoMateriaLegislativaDetail'
+
+    class ListView(CrudAux.ListView):
+        layout_key = 'TipoMateriaLegislativaDetail'

@@ -3,9 +3,13 @@ Origem:
   {% trans 'Origem' %}:
   - nome:8  sigla
 
+TipoMateriaLegislativaDetail:
+  {% trans 'Tipo Matéria Legislativa' %}:
+  - sigla:2 descricao sequencia_numeracao:2 sequencia_regimental:2
+
 TipoMateriaLegislativa:
   {% trans 'Tipo Matéria Legislativa' %}:
-  - sigla:4  descricao sequencia_numeracao
+  - sigla:2 descricao sequencia_numeracao:3
 
 RegimeTramitacao:
   {% trans 'Tipo de Documento' %}:
