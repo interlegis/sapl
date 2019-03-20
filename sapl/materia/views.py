@@ -75,9 +75,6 @@ AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
 
 OrigemCrud = CrudAux.build(Origem, '')
 
-TipoMateriaCrud = CrudAux.build(
-    TipoMateriaLegislativa, 'tipo_materia_legislativa')
-
 RegimeTramitacaoCrud = CrudAux.build(
     RegimeTramitacao, 'regime_tramitacao')
 
@@ -2496,3 +2493,7 @@ class MateriaPesquisaSimplesView(PermissionRequiredMixin, FormView):
                    'materias': materias}
 
         return gerar_pdf_impressos(self.request, context, template_materia)
+
+
+class TipoMateriaCrud(CrudAux):
+    model = TipoMateriaLegislativa
