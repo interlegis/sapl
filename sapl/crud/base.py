@@ -2,7 +2,6 @@ import logging
 
 from braces.views import FormMessagesMixin
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
-from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.conf.urls import url
@@ -25,6 +24,7 @@ from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
 from sapl.settings import BASE_DIR
@@ -449,18 +449,23 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     if not n:
                         s += '<br>'
                         continue
-                    m = obj
-                    n = n.split('__')
-                    for f in n[:-1]:
-                        m = getattr(m, f)
-                        if not m:
-                            break
-                    if m:
-                        ss = get_field_display(m, n[-1])[1]
-                        ss = (
-                            ('<br>' if '<ul>' in ss else ' - ') + ss)\
-                            if ss and j != 0 and s else ss
-                        s += ss
+
+                    hook = 'hook_{}'.format(n)
+                    if hasattr(self, hook):
+                        s += str(getattr(self, hook)(obj))
+                    else:
+                        m = obj
+                        n = n.split('__')
+                        for f in n[:-1]:
+                            m = getattr(m, f)
+                            if not m:
+                                break
+                        if m:
+                            ss = get_field_display(m, n[-1])[1]
+                            ss = (
+                                ('<br>' if '<ul>' in ss else ' - ') + ss)\
+                                if ss and j != 0 and s else ss
+                            s += ss
                 r.append((s, url))
         return r
 
