@@ -2503,3 +2503,27 @@ class TipoMateriaCrud(CrudAux):
 
     class ListView(CrudAux.ListView):
         layout_key = 'TipoMateriaLegislativaDetail'
+
+        def hook_sequencia_regimental(self, obj):
+            return obj.sequencia_regimental
+
+    class CreateView(CrudAux.CreateView):
+
+        def form_valid(self, form):
+            fv = super().form_valid(form)
+
+            if not TipoMateriaLegislativa.objects.exclude(
+                    sequencia_regimental=0).exists():
+                tipos = TipoMateriaLegislativa.objects.all()
+                sr = 1
+                for t in tipos:
+                    t.sequencia_regimental = sr
+                    t.save()
+                    sr += 1
+            else:
+                sr__max = TipoMateriaLegislativa.objects.all().aggregate(
+                    Max('sequencia_regimental'))
+                self.object.sequencia_regimental = sr__max['sequencia_regimental__max'] + 1
+                self.object.save()
+
+            return fv
