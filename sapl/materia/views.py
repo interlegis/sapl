@@ -2502,7 +2502,9 @@ class TipoMateriaCrud(CrudAux):
         layout_key = 'TipoMateriaLegislativaDetail'
 
     class ListView(CrudAux.ListView):
+        paginate_by = None
         layout_key = 'TipoMateriaLegislativaDetail'
+        template_name = "materia/tipomaterialegislativa_list.html"
 
         def hook_sequencia_regimental(self, obj):
             return obj.sequencia_regimental
