@@ -7,20 +7,33 @@
     <script type="text/javascript">
         
         $('tbody').sortable({
+          revert: false,
+          distance: 15,
           start: function(event, ui) {
               ui.item.startPos = ui.item.index();
           },
           stop: function(event, ui) {
-              var pos_ini = ui.item.startPos;
-              var pos_fim = ui.item.index();
+              var pos_ini = ui.item.startPos + 1;
+              var pos_fim = ui.item.index() + 1;
+              var pk = ui.item.find('a[pk]').attr('pk');
+
+              var url = "{% url 'sapl.api:tipomaterialegislativa-change-position' 0 %}";
+              url = url.replace('0', pk) ;
+
               $.ajax({
-                  data: {pos_ini: pos_ini,
-                        pos_fim: pos_fim,
-                        pk_sessao: pk_sessao,
-                        pk_list,
-                        materia: 'expediente'},
-                  type: 'PATCH',
-                  url: "{% url 'sapl.sessao:mudar_ordem_materia_sessao' %}",
+                  url: url,
+                  type: 'POST',
+                  contentType: "application/json",
+                  data: JSON.stringify({
+                    "pos_ini": pos_ini,
+                    "pos_fim": pos_fim,
+                  }),
+                  headers: {
+                      'X-CSRFToken': getCookie('csrftoken')
+                  },
+                  error: function(e) {
+                    console.log(e);
+                  }
               });
 
               setTimeout(function(){ window.location.reload(true) }, 500);

@@ -2501,13 +2501,26 @@ class TipoMateriaCrud(CrudAux):
     class DetailView(CrudAux.DetailView):
         layout_key = 'TipoMateriaLegislativaDetail'
 
+    class DeleteView(CrudAux.DeleteView):
+        def delete(self, request, *args, **kwargs):
+            d = CrudAux.DeleteView.delete(self, request, *args, **kwargs)
+            TipoMateriaLegislativa.objects.reordene()
+            return d
+
     class ListView(CrudAux.ListView):
         paginate_by = None
         layout_key = 'TipoMateriaLegislativaDetail'
         template_name = "materia/tipomaterialegislativa_list.html"
 
-        def hook_sequencia_regimental(self, obj):
-            return obj.sequencia_regimental
+        def hook_sigla(self, obj, default, url):
+            return '<a href="{}" pk="{}">{}</a>'.format(
+                url, obj.id, obj.sigla), ''
+
+        def get(self, request, *args, **kwargs):
+            if TipoMateriaLegislativa.objects.filter(
+                    sequencia_regimental=0).exists():
+                TipoMateriaLegislativa.objects.reordene()
+            return CrudAux.ListView.get(self, request, *args, **kwargs)
 
     class CreateView(CrudAux.CreateView):
 
@@ -2516,12 +2529,7 @@ class TipoMateriaCrud(CrudAux):
 
             if not TipoMateriaLegislativa.objects.exclude(
                     sequencia_regimental=0).exists():
-                tipos = TipoMateriaLegislativa.objects.all()
-                sr = 1
-                for t in tipos:
-                    t.sequencia_regimental = sr
-                    t.save()
-                    sr += 1
+                TipoMateriaLegislativa.objects.reordene()
             else:
                 sr__max = TipoMateriaLegislativa.objects.all().aggregate(
                     Max('sequencia_regimental'))
