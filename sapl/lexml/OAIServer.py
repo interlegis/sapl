@@ -89,7 +89,7 @@ class OAIServer:
 
     def create_header(self, record):
         oai_id = self.get_oai_id(record['record']['id'])
-        timestamp = record['record']['when_modified']
+        timestamp = record['record']['when_modified'] if record['record']['when_modified'] else datetime.now()
         timestamp = timestamp.replace(tzinfo=None)
         sets = []
         deleted = record['record']['deleted']
