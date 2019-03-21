@@ -2,6 +2,12 @@
 {% load i18n %}
 {% load common_tags %}
 
+{% block container_table_list %}
+<div style="cursor: all-scroll">
+   {{ block.super }}
+</div>
+{% endblock %}
+
 {% block extra_js %}
 
     <script type="text/javascript">
@@ -39,10 +45,10 @@
               setTimeout(function(){ window.location.reload(true) }, 500);
           }
       });
-     /*$(window).on('beforeunload', function () {
+     $(window).on('beforeunload', function () {
             $('tbody').sortable('disable');
             $("input[type=submit], input[type=button]").prop("disabled", "disabled");
-     });*/
+     });
 
     </script>
 

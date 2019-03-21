@@ -84,11 +84,9 @@ class TipoMateriaManager(models.Manager):
         tipos = self.get_queryset()
         if exclude_pk:
             tipos = tipos.exclude(pk=exclude_pk)
-        sr = 1
-        for t in tipos:
+        for sr, t in enumerate(tipos, 1):
             t.sequencia_regimental = sr
             t.save()
-            sr += 1
 
     def reposicione(self, pk, idx):
         tipos = self.reordene(exclude_pk=pk)
