@@ -27,9 +27,7 @@ WeasyPrint==44
 Pillow==5.1.0
 gunicorn==19.9.0
 
-textract==1.5.0
 pysolr==3.6.0
-whoosh==2.7.4
 
 pyoai==2.5.0
 

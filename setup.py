@@ -36,10 +36,7 @@ install_requires = [
     'unipath==1.1',
     'WeasyPrint==44',
     'gunicorn==19.9.0',
-
-    'textract==1.5.0',
     'pysolr==3.6.0',
-    'whoosh==2.7.4',
 
     'channels==2.1.7',
 
