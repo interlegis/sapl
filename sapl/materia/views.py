@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse
-from django.db.models import Max
+from django.db.models import Max, Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -1126,12 +1126,17 @@ class RelatoriaCrud(MasterDetailCrud):
 
                 materia = MateriaLegislativa.objects.get(
                     pk=self.kwargs.get('pk'))
-                ano_materia = materia.ano
+                data_materia = materia.data_apresentacao
 
                 comissao = Comissao.objects.get(
                     pk=context['form'].initial['comissao'])
                 composicao = comissao.composicao_set.filter(
-                    periodo__data_inicio__year=ano_materia)
+                        Q(periodo__data_fim__isnull=False,
+                          periodo__data_inicio__lte=data_materia,
+                          periodo__data_fim__gte=data_materia) |
+                        Q(periodo__data_fim__isnull=True,
+                          periodo__data_inicio__lte=data_materia)
+                    )
 
                 participacoes = Participacao.objects.select_related().filter(composicao=composicao)
 
