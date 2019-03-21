@@ -1017,7 +1017,24 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
                 is_anexado = Anexado.objects.filter(documento_principal=documento_principal,
                                                     documento_anexado=documento_anexado).exists()
                 if not is_anexado:
-                    context['object_list'].append(obj)
+                    ciclico = False
+                    anexados_anexado = Anexado.objects.filter(documento_principal=documento_anexado)
+
+                    while(anexados_anexado and not ciclico):
+                        anexados = []
+                        
+                        for anexo in anexados_anexado:
+
+                            if documento_principal == anexo.documento_anexado:
+                                ciclico = True
+                            else:
+                                for a in Anexado.objects.filter(documento_principal=anexo.documento_anexado):
+                                    anexados.append(a)
+
+                        anexados_anexado = anexados
+
+                    if not ciclico:
+                        context['object_list'].append(obj)
         
         context['numero_res'] = len(context['object_list'])
 
