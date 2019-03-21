@@ -29,6 +29,8 @@ gunicorn==19.9.0
 celery>=4.0
 celery-haystack==0.10
 redis>=2.10.5
+django-celery-results==1.0.4
+
 
 pysolr==3.6.0
 
