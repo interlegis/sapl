@@ -95,7 +95,6 @@ INSTALLED_APPS = (
     'reversion_compare',
 
     'haystack',
-    'whoosh',
     'speedinfo',
 
     'webpack_loader',
@@ -106,8 +105,8 @@ INSTALLED_APPS = (
 # Desabilita a indexação textual até encontramos uma solução para a issue
 # https://github.com/interlegis/sapl/issues/2055
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'  # Disable auto index
-SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
-SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
+SEARCH_BACKEND = ''
+SEARCH_URL = ['','']
 
 # SOLR
 USE_SOLR = config('USE_SOLR', cast=bool, default=False)
