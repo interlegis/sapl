@@ -22,7 +22,7 @@ from sapl.api.forms import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
 from sapl.api.serializers import ChoiceSerializer
 from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
-from sapl.materia.models import Proposicao
+from sapl.materia.models import Proposicao, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 
@@ -348,6 +348,23 @@ class _ProposicaoViewSet(SaplSetViews['materia']['proposicao']):
         return qs
 
 
+class _TipoMateriaLegislativaViewSet(SaplSetViews['materia']['tipomaterialegislativa']):
+
+    @action(detail=True, methods=['POST'])
+    def change_position(self, request, *args, **kwargs):
+        result = {
+            'status': 200,
+            'message': 'OK'
+        }
+        d = request.data
+        if 'pos_ini' in d and 'pos_fim' in d:
+            if d['pos_ini'] != d['pos_fim']:
+                pk = kwargs['pk']
+                TipoMateriaLegislativa.objects.reposicione(pk, d['pos_fim'])
+
+        return Response(result)
+
+
 class _DocumentoAdministrativoViewSet(SaplSetViews['protocoloadm']['documentoadministrativo']):
 
     class DocumentoAdministrativoPermission(SaplModelPermissions):
@@ -426,6 +443,7 @@ class _SessaoPlenariaViewSet(
 SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
 
 SaplSetViews['materia']['proposicao'] = _ProposicaoViewSet
+SaplSetViews['materia']['tipomaterialegislativa'] = _TipoMateriaLegislativaViewSet
 
 SaplSetViews['parlamentares']['parlamentar'] = _ParlamentarViewSet
 
