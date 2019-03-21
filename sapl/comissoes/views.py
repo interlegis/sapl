@@ -186,6 +186,7 @@ class MateriasTramitacaoListView(ListView):
         context = super(
             MateriasTramitacaoListView, self).get_context_data(**kwargs)
         context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
+        context['qtde'] = self.object_list.count()
         return context
 
 
