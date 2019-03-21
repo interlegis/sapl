@@ -16,7 +16,7 @@ saplredis:
   ports: 
     - "6379:6379"
 sapl:
-  image: interlegis/sapl:3.1.146
+  image: interlegis/sapl:master
   restart: always
   environment:
     ADMIN_PASSWORD: interlegis

@@ -41,7 +41,7 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
-SAPL_VERSION = '3.1.146'
+SAPL_VERSION = 'master'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

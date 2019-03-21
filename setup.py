@@ -48,7 +48,7 @@ install_requires = [
 ]
 setup(
     name='interlegis-sapl',
-    version='3.1.146',
+    version='master',
     packages=find_packages(),
     include_package_data=True,
     license='GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007',
