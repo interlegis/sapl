@@ -837,6 +837,26 @@ class AnexadoForm(ModelForm):
             self.logger.error("Documento já se encontra anexado.")
             raise ValidationError(_('Documento já se encontra anexado'))
 
+        ciclico = False
+        anexados_anexado = Anexado.objects.filter(documento_principal=documento_anexado)
+
+        while(anexados_anexado and not ciclico):
+            anexados = []
+
+            for anexo in anexados_anexado:
+
+                if documento_principal == anexo.documento_anexado:
+                    ciclico = True
+                else:
+                    for a in Anexado.objects.filter(documento_principal=anexo.documento_anexado):
+                        anexados.append(a)
+                
+            anexados_anexado = anexados
+        
+        if ciclico:
+            self.logger.error("O documento não pode ser anexado por um de seus anexados.")
+            raise ValidationError(_('O documento não pode ser anexado por um de seus anexados'))
+
         cleaned_data['documento_anexado'] = documento_anexado
 
         return cleaned_data
