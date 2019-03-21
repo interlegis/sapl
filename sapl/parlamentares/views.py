@@ -207,7 +207,7 @@ class PesquisarParlamentarView(FilterView):
         data = self.filterset.data
         url = ''
         if data:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
+            url = "&" + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('nome_parlamentar=') - 1
                 url = url[ponto_comeco:]
