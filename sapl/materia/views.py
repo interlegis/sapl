@@ -1130,7 +1130,6 @@ class RelatoriaCrud(MasterDetailCrud):
 
                 comissao = Comissao.objects.get(
                     pk=context['form'].initial['comissao'])
-                composicoes = comissao.composicao_set.all()
                 composicao = comissao.composicao_set.filter(
                     periodo__data_inicio__year=ano_materia)
 
