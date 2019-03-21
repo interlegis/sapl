@@ -78,8 +78,37 @@ class TipoProposicao(models.Model):
         return self.descricao
 
 
+class TipoMateriaManager(models.Manager):
+
+    def reordene(self, exclude_pk=None):
+        tipos = self.get_queryset()
+        if exclude_pk:
+            tipos = tipos.exclude(pk=exclude_pk)
+        for sr, t in enumerate(tipos, 1):
+            t.sequencia_regimental = sr
+            t.save()
+
+    def reposicione(self, pk, idx):
+        tipos = self.reordene(exclude_pk=pk)
+
+        self.get_queryset(
+        ).filter(
+            sequencia_regimental__gte=idx
+        ).update(
+            sequencia_regimental=models.F('sequencia_regimental') + 1
+        )
+
+        self.get_queryset(
+        ).filter(
+            pk=pk
+        ).update(
+            sequencia_regimental=idx
+        )
+
+
 @reversion.register()
 class TipoMateriaLegislativa(models.Model):
+    objects = TipoMateriaManager()
     sigla = models.CharField(max_length=5, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição '))
     # XXX o que é isso ?
@@ -101,10 +130,17 @@ class TipoMateriaLegislativa(models.Model):
         verbose_name=_('Sequência de numeração'),
         choices=SEQUENCIA_NUMERACAO)
 
+    sequencia_regimental = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_('Sequência Regimental'),
+        help_text=_('A sequência regimental diz respeito ao que define '
+                    'o regimento da Casa Legislativa sobre qual a ordem '
+                    'de entrada das proposições nas Sessões Plenárias.'))
+
     class Meta:
         verbose_name = _('Tipo de Matéria Legislativa')
         verbose_name_plural = _('Tipos de Matérias Legislativas')
-        ordering = ['descricao']
+        ordering = ['sequencia_regimental', 'descricao']
 
     def __str__(self):
         return self.descricao
@@ -920,7 +956,8 @@ class Tramitacao(models.Model):
         ('B', 'primeira_votacao', _('1ª Votação')),
         ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
         ('D', 'deliberacao', _('Deliberação')),
-        ('E', 'primeira_segunda_votacao_urgencia', _('1ª e 2ª votações em regime de urgência'))
+        ('E', 'primeira_segunda_votacao_urgencia', _(
+            '1ª e 2ª votações em regime de urgência'))
 
     )
 

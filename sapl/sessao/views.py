@@ -63,18 +63,29 @@ TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
 
 def reordernar_materias_expediente(request, pk):
     expedientes = ExpedienteMateria.objects.filter(
-        sessao_plenaria_id=pk)
+        sessao_plenaria_id=pk
+    ).order_by(
+        'materia__tipo__sequencia_regimental',
+        'materia__ano',
+        'materia__numero'
+    )
 
     for exp_num, e in enumerate(expedientes, 1):
         e.numero_ordem = exp_num
         e.save()
+
     return HttpResponseRedirect(
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
 
 
 def reordernar_materias_ordem(request, pk):
     ordens = OrdemDia.objects.filter(
-        sessao_plenaria_id=pk)
+        sessao_plenaria_id=pk
+    ).order_by(
+        'materia__tipo__sequencia_regimental',
+        'materia__ano',
+        'materia__numero'
+    )
     for ordem_num, o in enumerate(ordens, 1):
         o.numero_ordem = ordem_num
         o.save()
@@ -1294,6 +1305,7 @@ def get_turno(turno):
     else:
         return ''
 
+
 def get_identificação_basica(sessao_plenaria):
     # =====================================================================
     # Identificação Básica
@@ -1309,17 +1321,21 @@ def get_identificação_basica(sessao_plenaria):
             'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim}
     ]})
 
+
 def get_conteudo_multimidia(sessao_plenaria):
     context = {}
     if sessao_plenaria.url_audio:
-        context['multimidia_audio'] = _('Audio: ') + str(sessao_plenaria.url_audio)
+        context['multimidia_audio'] = _(
+            'Audio: ') + str(sessao_plenaria.url_audio)
     else:
-        context['multimidia_audio'] = _('Audio: Indisponível')   
+        context['multimidia_audio'] = _('Audio: Indisponível')
     if sessao_plenaria.url_video:
-        context['multimidia_video'] = _('Video: ') + str(sessao_plenaria.url_video)
+        context['multimidia_video'] = _(
+            'Video: ') + str(sessao_plenaria.url_video)
     else:
         context['multimidia_video'] = _('Video: Indisponível')
     return context
+
 
 def get_mesa_diretora(sessao_plenaria):
     mesa = IntegranteMesa.objects.filter(sessao_plenaria=sessao_plenaria)
@@ -1333,6 +1349,7 @@ def get_mesa_diretora(sessao_plenaria):
         integrantes.append(integrante)
     return ({'mesa': ordenar_integrantes_por_cargo(integrantes)})
 
+
 def get_presenca_sessao(sessao_plenaria):
     presencas = SessaoPlenariaPresenca.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
@@ -1345,11 +1362,12 @@ def get_presenca_sessao(sessao_plenaria):
     ).order_by('parlamentar__nome_parlamentar')
 
     return ({'presenca_sessao': parlamentares_sessao,
-                    'justificativa_ausencia': ausentes_sessao})
+             'justificativa_ausencia': ausentes_sessao})
+
 
 def get_expedientes(sessao_plenaria):
     expediente = ExpedienteSessao.objects.filter(
-    sessao_plenaria_id=sessao_plenaria.id).order_by('tipo__nome')
+        sessao_plenaria_id=sessao_plenaria.id).order_by('tipo__nome')
     expedientes = []
     for e in expediente:
         tipo = TipoExpediente.objects.get(id=e.tipo_id)
@@ -1358,9 +1376,10 @@ def get_expedientes(sessao_plenaria):
         expedientes.append(ex)
     return ({'expedientes': expedientes})
 
+
 def get_materias_expediente(sessao_plenaria):
     materias = ExpedienteMateria.objects.filter(
-    sessao_plenaria_id=sessao_plenaria.id)
+        sessao_plenaria_id=sessao_plenaria.id)
 
     materias_expediente = []
     for m in materias:
@@ -1405,6 +1424,7 @@ def get_materias_expediente(sessao_plenaria):
     context = {'materia_expediente': materias_expediente}
     return context
 
+
 def get_oradores_expediente(sessao_plenaria):
     oradores = []
     for orador in OradorExpediente.objects.filter(
@@ -1423,6 +1443,7 @@ def get_oradores_expediente(sessao_plenaria):
     context = {'oradores': oradores}
     return context
 
+
 def get_presenca_ordem_do_dia(sessao_plenaria):
     mesa_aux = get_mesa_diretora(sessao_plenaria)
     presencas = PresencaOrdemDia.objects.filter(
@@ -1430,7 +1451,7 @@ def get_presenca_ordem_do_dia(sessao_plenaria):
     ).order_by('parlamentar__nome_parlamentar')
 
     parlamentares_mesa_dia = [m for m in mesa_aux['mesa']]
-    
+
     presidente_dia = ''
     for m in mesa_aux['mesa']:
         if m['cargo'].descricao == 'Presidente':
@@ -1448,14 +1469,15 @@ def get_presenca_ordem_do_dia(sessao_plenaria):
         except IndexError:
             pass
 
-    context ={}
+    context = {}
     context.update({'presenca_ordem': parlamentares_ordem})
 
     config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
     if config_assinatura_ata == 'T' and parlamentares_ordem:
         context.update(
             {'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
-        context.update({'assinatura_mesa':parlamentares_mesa_dia,'assinatura_presentes': parlamentares_ordem})
+        context.update({'assinatura_mesa': parlamentares_mesa_dia,
+                        'assinatura_presentes': parlamentares_ordem})
     elif config_assinatura_ata == 'M' and parlamentares_mesa_dia:
         context.update(
             {'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
@@ -1464,8 +1486,9 @@ def get_presenca_ordem_do_dia(sessao_plenaria):
         context.update(
             {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
         context.update({'assinatura_presentes': presidente_dia})
-    
+
     return context
+
 
 def get_materias_ordem_do_dia(sessao_plenaria):
     ordem = OrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria.id)
@@ -1494,12 +1517,12 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         else:
             resultado = _('Matéria não votada')
             resultado_observacao = _(' ')
-        
+
         voto_sim = ""
         voto_nao = ""
         voto_abstencoes = ""
         voto_nominal = []
-        
+
         if o.tipo_votacao == 2:
             votos = VotoParlamentar.objects.filter(ordem=o.id)
             for voto in votos:
@@ -1529,15 +1552,16 @@ def get_materias_ordem_do_dia(sessao_plenaria):
                'numero_protocolo': o.materia.numero_protocolo,
                'numero_processo': o.materia.numeracao_set.last(),
                'tipo_votacao': o.TIPO_VOTACAO_CHOICES[o.tipo_votacao],
-               'voto_sim':voto_sim,
-               'voto_nao':voto_nao,
-               'voto_abstencoes':voto_abstencoes,
+               'voto_sim': voto_sim,
+               'voto_nao': voto_nao,
+               'voto_abstencoes': voto_abstencoes,
                'voto_nominal': voto_nominal,
                }
         materias_ordem.append(mat)
 
     context = {'materias_ordem': materias_ordem}
     return context
+
 
 def get_oradores_explicações_pessoais(sessao_plenaria):
     oradores_explicacoes = []
@@ -1560,20 +1584,20 @@ def get_oradores_explicações_pessoais(sessao_plenaria):
     context = {'oradores_explicacoes': oradores_explicacoes}
     return context
 
+
 def get_ocorrencias_da_sessão(sessao_plenaria):
     ocorrencias_sessao = OcorrenciaSessao.objects.filter(
-            sessao_plenaria_id=sessao_plenaria.id)
+        sessao_plenaria_id=sessao_plenaria.id)
     context = {'ocorrencias_da_sessao': ocorrencias_sessao}
     return context
-    
 
-    
+
 class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
     logger = logging.getLogger(__name__)
 
-    def get_context(self,*args, **kwargs):
+    def get_context(self, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
@@ -1581,23 +1605,23 @@ class ResumoView(DetailView):
         materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(
             sessao_plenaria_id=self.object.id,
             tipo_votacao=2).order_by('-materia')
-        
+
         votacoes = []
-        for mevn in materias_expediente_votacao_nominal:    
-            
+        for mevn in materias_expediente_votacao_nominal:
+
             votos_materia = []
             titulo_materia = mevn.materia
             registro = RegistroVotacao.objects.filter(expediente=mevn)
-            if registro:   
+            if registro:
                 for vp in VotoParlamentar.objects.filter(votacao=registro).order_by('parlamentar'):
                     votos_materia.append(vp)
 
             dados_votacao = {
                 'titulo': titulo_materia,
                 'votos': votos_materia
-            } 
+            }
             votacoes.append(dados_votacao)
-        
+
         context.update({'votos_nominais_materia_expediente': votacoes})
 
         # =====================================================================
@@ -1645,7 +1669,7 @@ class ResumoView(DetailView):
                 'votos': votos_materia_od
             }
             votacoes_od.append(dados_votacao_od)
-        
+
         context.update({'votos_nominais_materia_ordem_dia': votacoes_od})
 
         context.update(get_materias_ordem_do_dia(self.object))
@@ -1678,36 +1702,36 @@ class ResumoView(DetailView):
             try:
                 context.update(
                     {'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
-                    'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
-                    'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
-                    'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
-                    'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
-                    'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
-                    'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
-                    'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
-                    'nono_ordenacao': dict_ord_template[ordenacao.nono],
-                    'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
-                    'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
-                    'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
-                    'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro]})
+                     'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+                     'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+                     'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+                     'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+                     'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+                     'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+                     'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+                     'nono_ordenacao': dict_ord_template[ordenacao.nono],
+                     'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+                     'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+                     'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+                     'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro]})
             except KeyError as e:
                 self.logger.error('user=' + self.request.user.username + '. ' + "KeyError: " + str(e) + ". Erro "
                                   "ao tentar utilizar configuração de ordenação. Utilizando ordenação padrão.")
                 context.update(
-                {'primeiro_ordenacao': dict_ord_template['id_basica'],
-                 'segundo_ordenacao': dict_ord_template['cont_mult'],
-                 'terceiro_ordenacao': dict_ord_template['mesa_d'],
-                 'quarto_ordenacao': dict_ord_template['lista_p'],
-                 'quinto_ordenacao': dict_ord_template['exp'],
-                 'sexto_ordenacao': dict_ord_template['mat_exp'],
-                 'setimo_ordenacao': dict_ord_template['v_n_mat_exp'],
-                 'oitavo_ordenacao': dict_ord_template['oradores_exped'],
-                 'nono_ordenacao': dict_ord_template['lista_p_o_d'],
-                 'decimo_ordenacao': dict_ord_template['mat_o_d'],
-                 'decimo_primeiro_ordenacao': dict_ord_template['v_n_mat_o_d'],
-                 'decimo_segundo_ordenacao': dict_ord_template['oradores_expli'],
-                 'decimo_terceiro_ordenacao': dict_ord_template['ocorr_sessao']
-                 })
+                    {'primeiro_ordenacao': dict_ord_template['id_basica'],
+                     'segundo_ordenacao': dict_ord_template['cont_mult'],
+                     'terceiro_ordenacao': dict_ord_template['mesa_d'],
+                     'quarto_ordenacao': dict_ord_template['lista_p'],
+                     'quinto_ordenacao': dict_ord_template['exp'],
+                     'sexto_ordenacao': dict_ord_template['mat_exp'],
+                     'setimo_ordenacao': dict_ord_template['v_n_mat_exp'],
+                     'oitavo_ordenacao': dict_ord_template['oradores_exped'],
+                     'nono_ordenacao': dict_ord_template['lista_p_o_d'],
+                     'decimo_ordenacao': dict_ord_template['mat_o_d'],
+                     'decimo_primeiro_ordenacao': dict_ord_template['v_n_mat_o_d'],
+                     'decimo_segundo_ordenacao': dict_ord_template['oradores_expli'],
+                     'decimo_terceiro_ordenacao': dict_ord_template['ocorr_sessao']
+                     })
         else:
             context.update(
                 {'primeiro_ordenacao': dict_ord_template['id_basica'],
@@ -1725,12 +1749,11 @@ class ResumoView(DetailView):
                  'decimo_terceiro_ordenacao': dict_ord_template['ocorr_sessao']
                  })
 
-        return context      
+        return context
 
     def get(self, request, *args, **kwargs):
         context = self.get_context()
         return self.render_to_response(context)
-
 
 
 class ResumoAtaView(ResumoView):
@@ -3142,7 +3165,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
     def get_context_data(self, **kwargs):
         context = super(MateriaLegislativaPesquisaView,
                         self).get_context_data(**kwargs)
-        
+
         context['title'] = _('Pesquisar Matéria Legislativa')
         context['root_pk'] = self.kwargs['pk']
 
@@ -3478,7 +3501,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                        'origem': request.POST['origem'],
                        'subnav_template_name': 'sessao/subnav.yaml'
                        }
-                       
+
         if 'marcadas_1' in request.POST:
 
             context.update({'resultado_votacao': TipoResultadoVotacao.objects.all(),
