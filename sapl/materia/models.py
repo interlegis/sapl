@@ -666,10 +666,15 @@ class Relatoria(models.Model):
         verbose_name_plural = _('Relatorias')
 
     def __str__(self):
-        return _('%(materia)s - %(tipo)s - %(data)s') % {
+        if self.tipo_fim_relatoria:
+            return _('%(materia)s - %(tipo)s - %(data)s') % {
+                'materia': self.materia,
+                'tipo': self.tipo_fim_relatoria,
+                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}  
+        else:
+            return _('%(materia)s - %(data)s') % {
             'materia': self.materia,
-            'tipo': self.tipo_fim_relatoria,
-            'data': self.data_designacao_relator}
+            'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
 
 
 @reversion.register()
