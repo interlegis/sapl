@@ -617,7 +617,7 @@ class RelatorioMateriasTramitacaoView(FilterView):
         qtdes = {}
         for tipo in TipoMateriaLegislativa.objects.all():
             li = context['object_list']
-            qtde = len(list(filter(lambda m: m.tipo_id==tipo.id, li)))
+            qtde = sum(1 for i in li if i.tipo_id==tipo.id)
             if qtde > 0:
                 qtdes[tipo] = qtde
         context['qtdes'] = qtdes
