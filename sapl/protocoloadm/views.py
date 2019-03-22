@@ -1074,7 +1074,9 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
         msg = _('Documento(s) anexado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
-        return self.get(request, self.kwargs)
+
+        success_url = reverse('sapl_index') + 'docadm/' + kwargs['pk'] + '/anexado'
+        return HttpResponseRedirect(success_url)
 
 
 class TramitacaoAdmCrud(MasterDetailCrud):

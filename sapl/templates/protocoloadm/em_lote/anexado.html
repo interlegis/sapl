@@ -63,6 +63,7 @@
                 </fieldset>
                 <input type="submit" value="Salvar" class="btn btn-primary"S>
             </form>
+            <br/>
         {% else %}
             <tr>
                 <td>
@@ -75,7 +76,7 @@
 {% block extra_js %}
     <script language="JavaScript">
         function checkAll(elem) {
-            let checkboxes = document.getElementsByName('materia_id');
+            let checkboxes = document.getElementsByName('documento_id');
             for (let i = 0; i < checkboxes.length; i++) {
                 if (checkboxes[i].type == 'checkbox') 
                     checkboxes[i].checked = elem.checked;
