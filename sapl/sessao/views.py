@@ -1481,7 +1481,8 @@ def get_presenca_ordem_do_dia(sessao_plenaria):
     elif config_assinatura_ata == 'M' and parlamentares_mesa_dia:
         context.update(
             {'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
-        context.update({'assinatura_presentes': parlamentares_mesa_dia})
+        context.update({'assinatura_mesa': parlamentares_mesa_dia,
+                        'assinatura_presentes': []})
     elif config_assinatura_ata == 'P' and presidente_dia:
         context.update(
             {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
@@ -1498,8 +1499,14 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         ementa_observacao = o.observacao
         titulo = o.materia
         numero = o.numero_ordem
-        tramitacao = o.materia.tramitacao_set.last()
-        turno = None
+        
+        tramitacao = ''
+        tramitacoes = Tramitacao.objects.filter(materia=o.materia)
+        for aux_tramitacao in tramitacoes:
+            if (aux_tramitacao.turno != ''):
+                tramitacao = aux_tramitacao
+
+        turno = 'Não informado'
         if tramitacao:
             turno = get_turno(tramitacao.turno)
 

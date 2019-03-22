@@ -1,10 +1,8 @@
 <fieldset>
 	</br>
 	<strong>Matérias da Ordem do Dia: </strong>
-	</br></br>
-	{% for m in materias_ordem %}
-	<p>
-		<b>Materia do Expediente: {{m.numero}} - {{m.titulo}}</b>
+	{% for m in materias_ordem %}	
+		<b>{{m.numero}} - {{m.titulo}}</b>
 		Descrição: {{m.ementa|safe}}
 		Autor: {{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
 		{% if m.numero_protocolo %}
@@ -25,6 +23,5 @@
 				/ {{voto.0}} - {{voto.1}}
 			{% endfor %};
 		{% endif %}
-	</p>
 	{% endfor %}
 </fieldset>

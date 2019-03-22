@@ -11,7 +11,7 @@
 		  {% endfor %}
 		  {% for p in assinatura_presentes %}
 		  	<div class="col-md-6">___________________________________________ </br>
-				{{p.parlamentar.nome_completo}} / {{ p.parlamentar|filiacao_data_filter:object.data_inicio }} 
+				{{p.nome_completo}} / {{ p|filiacao_data_filter:object.data_inicio }} 
 				</br></br></br>
 		  	</div>
 		  {% endfor %}
