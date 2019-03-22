@@ -611,7 +611,7 @@ class RelatorioMateriasTramitacaoView(FilterView):
             qs = filtra_url_materias_em_tramitacao(
                 qr, qs, 'tramitacao__status', 'status')
 
-        li = [li1 for li1 in qs if li1.tramitacao_set.last().status.indicador != 'F']
+        li = [li1 for li1 in qs if li1.tramitacao_set.last() and li1.tramitacao_set.last().status.indicador != 'F']
         context['object_list'] = li
 
         qtdes = {}
