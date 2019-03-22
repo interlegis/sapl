@@ -1151,8 +1151,6 @@ class AnexadaEmLoteFilterSet(django_filters.FilterSet):
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
-        self.form.fields['tipo'].required = True
-        self.form.fields['data_apresentacao'].required = True
 
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data_apresentacao', 12)])
@@ -1160,7 +1158,7 @@ class AnexadaEmLoteFilterSet(django_filters.FilterSet):
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Matéria Anexada em Lote'),
+            Fieldset(_('Pesquisa de Matérias'),
                      row1, row2, form_actions(label='Pesquisar')))
 
 
