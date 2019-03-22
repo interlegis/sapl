@@ -2072,6 +2072,11 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         qr = self.request.GET.copy()
         context['object_list'] = context['object_list'].order_by(
             'ano', 'numero')
+        not_list = [self.kwargs['pk']]
+        principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+        for m in principal.materia_principal_set.all():
+            not_list.append(m.materia_anexada.id)
+        context['object_list'] = context['object_list'].exclude(pk__in=not_list)
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
