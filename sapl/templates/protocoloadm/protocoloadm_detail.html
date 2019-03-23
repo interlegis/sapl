@@ -3,13 +3,13 @@
 
 {% load crispy_forms_tags %}  
 {% block actions %}
-<div class="btn-toolbar justify-content-between align-items-start" role="toolbar">
+<div class="btn-toolbar w-100 justify-content-between align-items-start" role="toolbar">
     {% block action_newsearch %}
-      <div class="actions btn-group mb-3" role="group">
+      <div class="actions btn-group btn-group-sm mb-3" role="group">
         <a href="{% url 'sapl.protocoloadm:protocolo' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
       </div>
     {% endblock action_newsearch %}
-    <div class="actions btn-group" role="group">
+    <div class="actions btn-group btn-group-sm" role="group">
       <a href="{% url 'sapl.protocoloadm:protocolar_mat' %}" class="btn btn-outline-primary">{% trans 'Protocolar Matéria' %}</a>
       <a href="{% url 'sapl.protocoloadm:protocolar_doc' %}" class="btn btn-outline-primary">{% trans 'Protocolar Documento' %}</a>
       <a href="{% url 'sapl.protocoloadm:anular_protocolo' %}" class="btn btn-outline-danger">{% trans 'Anular Protocolo' %}</a>
