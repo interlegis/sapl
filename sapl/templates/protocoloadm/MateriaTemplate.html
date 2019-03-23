@@ -3,17 +3,17 @@
 
 {% block base_content %}
 <div class="alert alert-success alert-dismissible " role="alert">
-	<p align="center"><b><font color="green">Matéria protocolada com sucesso!</font></b></p>
+	Matéria protocolada com sucesso!
 </div>
 
 <div align="center">
 
-	<div class="row" style="width:50%;">
+	<div class="row mb-3" style="width:50%;">
 		<div class="col-md-6">
-			<a onclick="window.open('{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}','Comprovante','width=400, height=200')"class="btn btn-secondary">Imprimir Etiqueta</a>
+			<span onclick="window.open('{% url 'sapl.relatorios:relatorio_etiqueta_protocolo' protocolo.numero protocolo.ano %}','Comprovante','width=400, height=200')"class="btn btn-secondary">Imprimir Etiqueta</span>
 		</div>
 		<div class="col-md-6">
-			<a target="popup" class="btn btn-secondary" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.pk %}','Comprovante','width=800, height=700')">Imprimir Comprovante</a>
+			<span target="popup" class="btn btn-secondary" onclick="window.open('{% url 'sapl.protocoloadm:comprovante_protocolo' protocolo.pk %}','Comprovante','width=800, height=700')">Imprimir Comprovante</span>
 		</div>
 	</div>
 
