@@ -20,7 +20,7 @@ install_requires = [
     'django-extra-views==0.12.0',
     'django-model-utils==3.1.2',
     'django-reversion==3.0.2',
-    'django-reversion-compare==0.8.6'
+    'django-reversion-compare==0.8.6',
     'django-speedinfo==1.4.0',
     'django-extensions==2.1.4',
     'django-image-cropping==1.2.0',
