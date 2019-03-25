@@ -20,7 +20,7 @@ install_requires = [
     'django-extra-views==0.12.0',
     'django-model-utils==3.1.2',
     'django-reversion==3.0.2',
-    'django-reversion-compare==0.8.6'
+    'django-reversion-compare==0.8.6',
     'django-speedinfo==1.4.0',
     'django-extensions==2.1.4',
     'django-image-cropping==1.2.0',
@@ -43,7 +43,7 @@ install_requires = [
 ]
 setup(
     name='interlegis-sapl',
-    version='3.1.148',
+    version='3.1.149',
     packages=find_packages(),
     include_package_data=True,
     license='GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007',

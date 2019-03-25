@@ -581,6 +581,8 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                                 rmo = rmo[0]
                                 if not isinstance(rmo, str):
                                     rmo = rmo[0]
+                                if rmo.startswith('-'):
+                                    rmo = rmo[1:]
                                 fo = '%s__%s' % (fo, rmo)
 
                         fo = desc + fo
