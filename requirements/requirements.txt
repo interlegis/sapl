@@ -30,6 +30,7 @@ celery>=4.0,<4.1
 celery-haystack==0.10
 redis>=2.10.5,<2.11
 django-celery-results==1.0.4
+Whoosh==2.7.4
 
 
 pysolr==3.6.0
