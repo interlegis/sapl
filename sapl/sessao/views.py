@@ -1858,6 +1858,12 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
 
     logger = logging.getLogger(__name__)
 
+    def get_context_data(self, **kwargs):
+        context = FormMixin.get_context_data(self, **kwargs)
+        context['title'] = 'Ocorrências da Sessão <small>(%s)</small>' % (
+            self.object)
+        return context
+
     def delete(self):
         OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
 
