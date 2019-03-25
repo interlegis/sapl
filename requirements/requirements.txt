@@ -26,9 +26,9 @@ unipath==1.1
 WeasyPrint==44
 Pillow==5.1.0
 gunicorn==19.9.0
-celery>=4.0
+celery>=4.0,<4.1
 celery-haystack==0.10
-redis>=2.10.5
+redis>=2.10.5,<2.11
 django-celery-results==1.0.4
 
 

@@ -19,8 +19,11 @@ def handle_tramitacao_signal(sender, **kwargs):
         tipo = "materia"
         doc_mat = tramitacao.materia
 
-    task_envia_email_tramitacao.delay(get_base_url(request), tipo, doc_mat.id,
-                                      tramitacao.status.id, tramitacao.unidade_tramitacao_destino.id)
+    kwargs = {'base_url': get_base_url(request), 'tipo': tipo, 'doc_mat_id': doc_mat.id,
+              'tramitacao_status_id': tramitacao.status.id,
+              'tramitacao_unidade_tramitacao_destino_id': tramitacao.unidade_tramitacao_destino.id}
+
+    task_envia_email_tramitacao.delay(kwargs)
 
 
 @receiver(post_delete)
