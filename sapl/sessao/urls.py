@@ -12,7 +12,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                PresencaOrdemDiaView, PresencaView,
                                ResumoOrdenacaoView, ResumoView, ResumoAtaView, RetiradaPautaCrud, SessaoCrud,
                                TipoJustificativaCrud, TipoExpedienteCrud, TipoResultadoVotacaoCrud,
-                               TipoExpedienteCrud, TipoResultadoVotacaoCrud,TipoRetiradaPautaCrud,
+                               TipoExpedienteCrud, TipoResultadoVotacaoCrud, TipoRetiradaPautaCrud,
                                TipoSessaoCrud, VotacaoEditView,
                                VotacaoExpedienteEditView,
                                VotacaoExpedienteView, VotacaoNominalEditView,
@@ -30,7 +30,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                reordernar_materias_ordem,
                                sessao_legislativa_legislatura_ajax,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
-                               VotacaoEmBlocoSimbolicaView,VotacaoEmBlocoNominalView)
+                               VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView)
 
 from .apps import AppConfig
 
@@ -59,9 +59,13 @@ urlpatterns = [
         name='remove_parlamentar_composicao'),
 
     url(r'^sessao/recuperar-materia/', recuperar_materia),
-    url(r'^sessao/recuperar-numero-sessao/', recuperar_numero_sessao),
+    url(r'^sessao/recuperar-numero-sessao/',
+        recuperar_numero_sessao,
+        name='recuperar_numero_sessao_view'
+        ),
     url(r'^sessao/sessao-legislativa-legislatura-ajax/',
-        sessao_legislativa_legislatura_ajax),
+        sessao_legislativa_legislatura_ajax,
+        name='sessao_legislativa_legislatura_ajax_view'),
 
     url(r'^sessao/(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao$',
         abrir_votacao,
@@ -78,7 +82,7 @@ urlpatterns = [
     url(r'^sistema/sessao-plenaria/tipo-expediente/',
         include(TipoExpedienteCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-justificativa/',
-         include(TipoJustificativaCrud.get_urls())),
+        include(TipoJustificativaCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-retirada-pauta/',
         include(TipoRetiradaPautaCrud.get_urls())),
     url(r'^sistema/bancada/',
@@ -123,7 +127,7 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/votacao_bloco/votnom$',
         VotacaoEmBlocoNominalView.as_view(), name='votacaobloconom'),
     url(r'^sessao/(?P<pk>\d+)/votacao_bloco/votsimb$',
-        VotacaoEmBlocoSimbolicaView.as_view(), name='votacaoblocosimb'),  
+        VotacaoEmBlocoSimbolicaView.as_view(), name='votacaoblocosimb'),
     url(r'^sessao/(?P<pk>\d+)/votacao_bloco_expediente$',
         VotacaoEmBlocoExpediente.as_view(),
         name='votacao_bloco_expediente'),
@@ -145,7 +149,7 @@ urlpatterns = [
         VotacaoEditView.as_view(), name='votacaosecretaedit'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoView.as_view(), name='votacaosimbolica'),
-    
+
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimbbloco/$',
         VotacaoView.as_view(), name='votacaosimbolicabloco'),
 
