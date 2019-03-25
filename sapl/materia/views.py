@@ -2065,13 +2065,30 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         context['subnav_template_name'] = 'materia/subnav.yaml'
 
         context['title'] = _('Matérias Anexadas em Lote')
+
         # Verifica se os campos foram preenchidos
-        if not self.filterset.form.is_valid():
+        if not self.request.GET.get('tipo', " "):
+            msg =_('Por favor, selecione um tipo de matéria.')
+            messages.add_message(self.request, messages.ERROR, msg)
+
+            if not self.request.GET.get('data_apresentacao_0', " ") or not self.request.GET.get('data_apresentacao_1', " "):
+                msg =_('Por favor, preencha as datas.')
+                messages.add_message(self.request, messages.ERROR, msg)
+
+            return context
+
+        if not self.request.GET.get('data_apresentacao_0', " ") or not self.request.GET.get('data_apresentacao_1', " "):
+            msg =_('Por favor, preencha as datas.')
+            messages.add_message(self.request, messages.ERROR, msg)
             return context
 
         qr = self.request.GET.copy()
         context['object_list'] = context['object_list'].order_by(
             'ano', 'numero')
+        principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+        not_list = [self.kwargs['pk']] + \
+                    [m for m in principal.materia_principal_set.all().values_list('materia_anexada_id', flat=True)]
+        context['object_list'] = context['object_list'].exclude(pk__in=not_list)
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
