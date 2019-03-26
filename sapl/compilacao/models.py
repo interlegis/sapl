@@ -149,6 +149,13 @@ class TipoTextoArticulado(models.Model):
                     em edição.
                     """))
 
+    rodape_global = models.TextField(
+        verbose_name=_('Rodapé Global'),
+        help_text=_('A cada Tipo de Texto Articulado pode ser adicionado '
+                    'uma nota global de rodapé!'),
+        default=''
+    )
+
     class Meta:
         verbose_name = _('Tipo de Texto Articulado')
         verbose_name_plural = _('Tipos de Texto Articulados')
