@@ -26,7 +26,7 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
 from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoResultadoVotacao,
-                     OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta)
+                     OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta, OradorOrdemDia)
 
 
 MES_CHOICES = RANGE_MESES
@@ -45,7 +45,8 @@ ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
                     ('oradores_expli', 'Oradores das Explicações Pessoais'),
                     ('ocorr_sessao', 'Ocorrências da Sessão'),
                     ('v_n_mat_exp', 'Votações Nominais - Matérias do Expediente'),
-                    ('v_n_mat_o_d', 'Votações Nominais - Matérias da Ordem do Dia')]
+                    ('v_n_mat_o_d', 'Votações Nominais - Matérias da Ordem do Dia'),
+                    ('oradores_o_d', 'Oradores da Ordem do Dia')]
 
 
 class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
@@ -736,6 +737,48 @@ class OradorExpedienteForm(ModelForm):
         exclude = ['sessao_plenaria']
 
 
+class OradorOrdemDiaForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(OradorOrdemDiaForm, self).__init__(*args, **kwargs)
+        
+        id_sessao = int(self.initial['id_sessao'])
+
+        ids = [p.parlamentar.id for p in PresencaOrdemDia.objects.filter(
+            sessao_plenaria_id=id_sessao
+        )]
+
+        self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
+            id__in=ids
+        ).order_by('nome_parlamentar')
+
+
+    def clean(self):
+        super(OradorOrdemDiaForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        sessao_id = self.initial['id_sessao']
+        numero = self.initial.get('numero')
+        ordem = OradorOrdemDia.objects.filter(
+            sessao_plenaria_id=sessao_id,
+            numero_ordem=cleaned_data['numero_ordem']
+        ).exists()
+
+        if ordem and (cleaned_data['numero_ordem'] != numero): 
+            raise ValidationError(_(
+                "Já existe orador nesta posição de ordem de pronunciamento"
+            ))
+        
+        return self.cleaned_data
+
+    class Meta:
+        model = OradorOrdemDia
+        exclude = ['sessao_plenaria']
+
+
 class PautaSessaoFilterSet(SessaoPlenariaFilterSet):
     titulo = _('Pesquisa de Pauta de Sessão')
 
@@ -767,6 +810,8 @@ class ResumoOrdenacaoForm(forms.Form):
                                         choices=ORDENACAO_RESUMO)
     decimo_terceiro = forms.ChoiceField(label='13°',
                                         choices=ORDENACAO_RESUMO)
+    decimo_quarto = forms.ChoiceField(label='14°',
+                                      choices=ORDENACAO_RESUMO)
 
     def __init__(self, *args, **kwargs):
         super(ResumoOrdenacaoForm, self).__init__(*args, **kwargs)
@@ -797,13 +842,16 @@ class ResumoOrdenacaoForm(forms.Form):
             [('decimo_segundo', 12)])
         row13 = to_row(
             [('decimo_terceiro', 12)])
+        row14 = to_row(
+            [('decimo_quarto', 12)]
+        )
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10, 
-                     row11, row12, row13,
+                     row11, row12, row13, row14,
                      form_actions(label='Atualizar'))
         )
 
