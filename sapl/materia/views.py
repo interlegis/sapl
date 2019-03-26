@@ -1296,6 +1296,12 @@ class TramitacaoCrud(MasterDetailCrud):
                                     'do e-mail. ' + str(e))
                 messages.add_message(self.request, messages.WARNING, msg)
                 return HttpResponseRedirect(self.get_success_url())
+
+            materia = MateriaLegislativa.objects.get(id=self.object.materia.id)
+            if self.object.status.indicador == 'R':
+                materia.em_tramitacao = True
+                materia.save()
+
             return super().form_valid(form)
 
     class UpdateView(MasterDetailCrud.UpdateView):
