@@ -1445,9 +1445,9 @@ def get_presenca_ordem_do_dia(sessao_plenaria):
 def get_assinaturas(sessao_plenaria):
     mesa_dia = get_mesa_diretora(sessao_plenaria)['mesa']
 
-    presidente_dia = next(iter(
+    presidente_dia = [next(iter(
         [m['parlamentar'] for m in mesa_dia if m['cargo'].descricao == 'Presidente']),
-        '')
+        '')]
 
     parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
                                     sessao_plenaria_id=sessao_plenaria.id
@@ -1469,11 +1469,11 @@ def get_assinaturas(sessao_plenaria):
     elif config_assinatura_ata == 'M' and mesa_dia:
         context.update(
             {'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
-        context.update({'assinatura_presentes': mesa_dia})
+        context.update({'assinatura_mesa': mesa_dia})
     elif config_assinatura_ata == 'P' and presidente_dia:
         context.update(
             {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
-        context.update({'assinatura_presentes': presidente_dia})
+        context.update({'assinatura_mesa': presidente_dia})
 
     return context
 
