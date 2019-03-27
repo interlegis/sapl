@@ -1316,7 +1316,8 @@ def get_identificação_basica(sessao_plenaria):
             'abertura': abertura, 'hora_inicio': sessao_plenaria.hora_inicio},
         _('Encerramento: %(encerramento)s %(hora_fim)s') % {
             'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim}
-    ]})
+    ],
+    'sessaoplenaria': sessao_plenaria})
 
 
 def get_conteudo_multimidia(sessao_plenaria):
