@@ -4,9 +4,9 @@
 	</br></br>
 	{% for m in materias_ordem %}
 	<p>
-		<b>Materia do Expediente: {{m.numero}} - {{m.titulo}}</b>
+		<b>{{m.numero}} - {{m.titulo}}</b>
 		Descrição: {{m.ementa|safe}}
-		Autor: {{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
+		Autor {{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
 		{% if m.numero_protocolo %}
 			Número de Protocolo: {{ m.numero_protocolo }}
 		{% endif %}
