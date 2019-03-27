@@ -15,6 +15,7 @@ from contextlib import contextmanager
 from functools import partial
 from os.path import exists
 
+import chardet
 import git
 import magic
 import yaml
@@ -339,18 +340,10 @@ def find_sapl(app):
             return sapl
 
 
-def detectar_encoding(fonte):
-    desc = magic.from_buffer(fonte)
-    for termo, enc in [('ISO-8859', 'latin1'), ('UTF-8', 'utf-8')]:
-        if termo in desc:
-            return enc
-    return None
-
-
 def autodecode(fonte):
-    if isinstance(fonte, str):
-        enc = detectar_encoding(fonte)
-        return fonte.decode(enc) if enc else fonte
+    if isinstance(fonte, str) and fonte.strip():
+        enc = chardet.detect(fonte)['encoding']
+        return fonte.decode(enc)
     else:
         return fonte
 

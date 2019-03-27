@@ -6,3 +6,4 @@ GitPython
 pyaml
 python-magic
 ipython
+chardet
