@@ -1,19 +1,19 @@
 <fieldset>
-	</br>
+  <p align="justify">
 	<strong>Matérias da Ordem do Dia: </strong>
-	</br></br>
 	{% for m in materias_ordem %}
-	<p>
 		<b>{{m.numero}} - {{m.titulo}}</b>
 		Descrição: {{m.ementa|safe}}
-		Autor {{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
+		Autor{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }}
 		{% if m.numero_protocolo %}
 			Número de Protocolo: {{ m.numero_protocolo }}
 		{% endif %}
 		{% if m.numero_processo %}
 		Processo:{{ m.numero_processo }}
 		{% endif %}
+		{%if m.turno %}
 		Turno: {{m.turno}}
+		{%endif %}
 		Tipo: {{m.tipo_votacao}}
 		Sim:{{m.voto_sim}}
 		Não:{{m.voto_nao}}
@@ -25,6 +25,6 @@
 				/ {{voto.0}} - {{voto.1}}
 			{% endfor %};
 		{% endif %}
-	</p>
 	{% endfor %}
+  </p>
 </fieldset>

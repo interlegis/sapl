@@ -1,8 +1,8 @@
 <fieldset>
-    <p align="justify">
-	{% if object.ocorrenciasessao.conteudo %}
-    	<strong>Ocorrências da Sessão: </strong>
-	        {{object.ocorrenciasessao.conteudo|striptags|safe}}
+	<p align="justify">
+		{% if object.ocorrenciasessao.conteudo %}
+		<strong>Ocorrências da Sessão: </strong>
+		{{object.ocorrenciasessao.conteudo|striptags|safe}}
 	{% endif %}
 	</p>
 </fieldset>
