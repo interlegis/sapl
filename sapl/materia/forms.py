@@ -780,7 +780,7 @@ class AnexadaForm(ModelForm):
                 if materia_principal == anexa.materia_anexada:
                     ciclico = True
                 else: 
-                    for a in Anexada.objects.filter(materia_principal=anexa.documento_anexado):
+                    for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
                         anexadas.append(a)
 
             anexadas_anexada = anexadas
