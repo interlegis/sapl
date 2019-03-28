@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM geekidea/alpine-a:3.8
 
 ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
                    python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev \
