@@ -768,6 +768,26 @@ class AnexadaForm(ModelForm):
         if is_anexada:
             self.logger.error("Matéria já se encontra anexada.")
             raise ValidationError(_('Matéria já se encontra anexada'))
+        
+        ciclico = False
+        anexadas_anexada = Anexada.objects.filter(materia_principal=materia_anexada)
+
+        while(anexadas_anexada and not ciclico):
+            anexadas = []
+
+            for anexa in anexadas_anexada:
+
+                if materia_principal == anexa.materia_anexada:
+                    ciclico = True
+                else: 
+                    for a in Anexada.objects.filter(materia_principal=anexa.documento_anexado):
+                        anexadas.append(a)
+
+            anexadas_anexada = anexadas
+        
+        if ciclico:
+            self.logger.error("A matéria não pode ser anexada por uma de suas anexadas.")
+            raise ValidationError(_("A matéria não pode ser anexada por uma de suas anexadas."))
 
         cleaned_data['materia_anexada'] = materia_anexada
 
