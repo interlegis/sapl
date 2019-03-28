@@ -1,5 +1,5 @@
-FROM debian:jessie-slim
-#FROM python:3.7-slim
+#FROM debian:jessie-slim
+FROM python:3.7-slim
 
 ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git pkg-config \
                    python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev pgadmin3 \
@@ -12,14 +12,31 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y --no-install-recommends apt-utils
 
-# GENERATING LOCALES
-# RUN apt-get update && apt-get install -y locales
-# RUN locale-gen en_US en_US.UTF-8 && locale-gen pt_BR pt_BR.UTF-8 && dpkg-reconfigure locales
-#  && update-locale LANG=pt_BR.UTF-8
-# ENV LANG pt_BR.UTF-8
-# RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
-#  && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
-# ENV LANG en_US.utf8
+############################################################################################
+# GENERATE LOCALES 
+#RUN apt-get install -y locales && dpkg-reconfigure --frontend=noninteractive locales \ 
+#    && locale-gen en_US.UTF-8 && locale-gen pt_BR.UTF-8
+#ENV LANGUAGE en_US:en
+#ENV LC_ALL en_US.UTF-8
+#ENV LANG en_US.UTF-8
+#ENV LC_MONETARY pt_BR.UTF-8
+#ENV LC_TIME pt_BR.UTF-8
+#ENV LC_MESSAGES en_US.UTF-8
+
+RUN apt-get install -y locales
+# && dpkg-reconfigure --frontend=noninteractive locales
+
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen en_US.UTF-8 && \
+    dpkg-reconfigure locales && \
+    /usr/sbin/update-locale LANG=en_US.UTF-8
+
+#RUN locale-gen en_US.UTF-8  
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US:en  
+ENV LC_ALL en_US.UTF-8 
+############################################################################################
+
 
 RUN mkdir -p /usr/share/man/man1 && \
     mkdir -p /usr/share/man/man7 && apt-get upgrade -y && \
