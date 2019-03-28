@@ -2,3 +2,10 @@ media
 collected_static
 .git
 whoosh
+*.backup
+*.log
+*.tar.gz
+*.out
+*.swp
+*~
+.env

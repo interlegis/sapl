@@ -1,44 +1,43 @@
-FROM debian:jessie
+FROM debian:jessie-slim
+#FROM python:3.7-slim
 
 ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git pkg-config \
                    python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev pgadmin3 \
                    python3-lxml python3-magic postgresql-contrib postgresql-client \
                    python3-psycopg2 poppler-utils antiword curl jq vim openssh-client bash \
-                   software-properties-common python3-setuptools python3-venv
+                   software-properties-common python3-setuptools python3-venv nginx tzdata nodejs 
 
-RUN apt-get update && apt-get install -y locales
-RUN locale-gen en_US en_US.UTF-8 && locale-gen pt_BR pt_BR.UTF-8 && dpkg-reconfigure locales
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y --no-install-recommends apt-utils
+
+# GENERATING LOCALES
+# RUN apt-get update && apt-get install -y locales
+# RUN locale-gen en_US en_US.UTF-8 && locale-gen pt_BR pt_BR.UTF-8 && dpkg-reconfigure locales
 #  && update-locale LANG=pt_BR.UTF-8
-ENV LANG pt_BR.UTF-8
-
-
+# ENV LANG pt_BR.UTF-8
 # RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
 #  && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 # ENV LANG en_US.utf8
 
-RUN apt-get update && mkdir -p /usr/share/man/man1 && \
+RUN mkdir -p /usr/share/man/man1 && \
     mkdir -p /usr/share/man/man7 && apt-get upgrade -y && \
     apt-get install apt-utils -y && apt-get install -y software-properties-common
 RUN apt-get install -y fontconfig ttf-dejavu && fc-cache -fv
 
 
-RUN apt-get install -y python3 python3-pip nginx tzdata && \
+RUN apt-get install -y python python3-pip && \
     pip3 install --upgrade pip setuptools && \
     rm -f /etc/nginx/conf.d/*
 
 #RUN add-apt-repository ppa:deadsnakes/ppa -y
-RUN apt-get update 
-RUN apt-get upgrade -y
+
 
 RUN mkdir -p /var/interlegis/sapl && \
     apt-get install -y $BUILD_PACKAGES
 
-RUN curl -sL https://deb.nodesource.com/setup_7.x | bash - && \
-    apt-get update && \
-    apt-get install -y nodejs
-
-RUN npm install -g bower && \
-    npm cache clean
+#RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - && apt-get install -y nodejs
 
 WORKDIR /var/interlegis/sapl/
 
@@ -53,16 +52,6 @@ RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgr
 
 COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
-# Configura timezone para BRT
-# RUN cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && echo "America/Sao_Paulo" > /etc/timezone
-
-# manage.py bower install bug: https://github.com/nvbn/django-bower/issues/51
-
-# compilescss - Precompile all occurrences of your SASS/SCSS files for the whole project into css files
-
-RUN python3 manage.py bower_install --allow-root 
-RUN python3 manage.py compilescss
-
 RUN python3 manage.py collectstatic --noinput --clear
 
 # Remove .env(fake) e sapl.db da imagem
@@ -73,6 +62,13 @@ RUN chmod +x /var/interlegis/sapl/start.sh && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
     mkdir /var/log/sapl/
+
+# Debian não possui usuário 'nginx' necessário para o Debian
+RUN useradd --no-create-home nginx
+
+ENV DEBIAN_FRONTEND teletype
+
+EXPOSE 80/tcp 443/tcp
 
 VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 
