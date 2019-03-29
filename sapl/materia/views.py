@@ -1,5 +1,10 @@
-from datetime import datetime
 import logging
+import os
+import shutil
+import tempfile
+import weasyprint
+
+from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
@@ -45,6 +50,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
+from sapl.settings import MEDIA_ROOT
 from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH_PROPOSICAO,
                         gerar_hash_arquivo, get_base_url,
                         get_mime_type_from_file_extension, montar_row_autor,
@@ -2035,17 +2041,35 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
+        tmp_name = os.path.join(tempfile.gettempdir(), request.FILES['arquivo'].name)
+        with open(tmp_name, 'wb') as destination:
+            for chunk in request.FILES['arquivo'].chunks():
+                destination.write(chunk)
+
+        doc_data = tz.localize(datetime.strptime(
+                                        request.POST['data'], "%d/%m/%Y"))
         for materia_id in marcadas:
             doc = DocumentoAcessorio()
             doc.materia_id = materia_id
             doc.tipo = tipo
-            doc.arquivo = request.FILES['arquivo']
             doc.nome = request.POST['nome']
-            doc.data = tz.localize(datetime.strptime(
-                request.POST['data'], "%d/%m/%Y"))
+            doc.data = doc_data
             doc.autor = request.POST['autor']
             doc.ementa = request.POST['ementa']
             doc.save()
+            diretorio =  os.path.join(MEDIA_ROOT,
+                                      'sapl/public/documentoacessorio', 
+                                      str(doc_data.year),
+                                      str(doc.id))
+            if not os.path.exists(diretorio):
+                os.makedirs(diretorio)
+            file_path = os.path.join(diretorio, 
+                                     request.FILES['arquivo'].name)
+            shutil.copy2(tmp_name, file_path)
+            doc.arquivo.name = file_path.split(MEDIA_ROOT)[1] # Retira MEDIA_ROOT do nome
+            doc.save()
+        os.remove(tmp_name)
+
         msg = _('Documento(s) criado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
