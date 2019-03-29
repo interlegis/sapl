@@ -6,7 +6,7 @@
 """
 import os
 import time
-
+import logging
 from django.template.defaultfilters import safe
 from django.utils.html import strip_tags
 from trml2pdf import parseString
@@ -378,6 +378,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
     """
     """
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"
+    logger = logging.getLogger(__name__)
 
     tmp = ''
     tmp += '<?xml version="1.0" encoding="utf-8" standalone="no" ?>\n'
@@ -411,21 +412,37 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
         'oradores_expli': oradores(lst_oradores),
         'ocorr_sessao': ocorrencias(lst_ocorrencias)
     }
-
+    
     if ordenacao:
-        tmp += dict_ord_template[ordenacao.primeiro]
-        tmp += dict_ord_template[ordenacao.segundo]
-        tmp += dict_ord_template[ordenacao.terceiro]
-        tmp += dict_ord_template[ordenacao.quarto]
-        tmp += dict_ord_template[ordenacao.quinto]
-        tmp += dict_ord_template[ordenacao.sexto]
-        tmp += dict_ord_template[ordenacao.setimo]
-        tmp += dict_ord_template[ordenacao.oitavo]
-        tmp += dict_ord_template[ordenacao.nono]
-        tmp += dict_ord_template[ordenacao.decimo]
-        tmp += dict_ord_template[ordenacao.decimo_primeiro]
-        tmp += dict_ord_template[ordenacao.decimo_segundo]
-        tmp += dict_ord_template[ordenacao.decimo_terceiro]
+        try:
+            tmp += dict_ord_template[ordenacao.primeiro]
+            tmp += dict_ord_template[ordenacao.segundo]
+            tmp += dict_ord_template[ordenacao.terceiro]
+            tmp += dict_ord_template[ordenacao.quarto]
+            tmp += dict_ord_template[ordenacao.quinto]
+            tmp += dict_ord_template[ordenacao.sexto]
+            tmp += dict_ord_template[ordenacao.setimo]
+            tmp += dict_ord_template[ordenacao.oitavo]
+            tmp += dict_ord_template[ordenacao.nono]
+            tmp += dict_ord_template[ordenacao.decimo]
+            tmp += dict_ord_template[ordenacao.decimo_primeiro]
+            tmp += dict_ord_template[ordenacao.decimo_segundo]
+            tmp += dict_ord_template[ordenacao.decimo_terceiro]
+        except KeyError as e:
+            logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
+                              "configuração de ordenação. Utilizando ordenação padrão.")
+            tmp += inf_basicas(inf_basicas_dic)
+            tmp += mesa(lst_mesa)
+            tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
+            tmp += expedientes(lst_expedientes)
+            tmp += expediente_materia(lst_expediente_materia)
+            tmp += expediente_materia_vot_nom(lst_expediente_materia_vot_nom)
+            tmp += oradores_expediente(lst_oradores_expediente)
+            tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
+            tmp += votacao(lst_votacao)
+            tmp += votacao_vot_nom(lst_votacao_vot_nom)
+            tmp += oradores(lst_oradores)
+            tmp += ocorrencias(lst_ocorrencias)
 
     else:
         tmp += inf_basicas(inf_basicas_dic)

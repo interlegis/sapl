@@ -611,12 +611,13 @@ class RelatorioMateriasTramitacaoView(FilterView):
             qs = filtra_url_materias_em_tramitacao(
                 qr, qs, 'tramitacao__status', 'status')
 
-        context['object_list'] = qs
+        li = [li1 for li1 in qs if li1.tramitacao_set.last() and li1.tramitacao_set.last().status.indicador != 'F']
+        context['object_list'] = li
 
         qtdes = {}
         for tipo in TipoMateriaLegislativa.objects.all():
-            qs = context['object_list']
-            qtde = len(qs.filter(tipo_id=tipo.id))
+            li = context['object_list']
+            qtde = sum(1 for i in li if i.tipo_id==tipo.id)
             if qtde > 0:
                 qtdes[tipo] = qtde
         context['qtdes'] = qtdes
@@ -1234,7 +1235,9 @@ def mandato_sem_data_inicio():
     return Mandato.objects.filter(data_inicio_mandato__isnull=True).order_by('parlamentar')
 
 
-def get_data_ultima_atualizacao(request):
+def get_estatistica(request):
+
+    json_dict = {}
 
     datas = [MateriaLegislativa.objects.all().
                  order_by('-data_ultima_atualizacao').
@@ -1243,15 +1246,22 @@ def get_data_ultima_atualizacao(request):
              NormaJuridica.objects.all().
                  order_by('-data_ultima_atualizacao').
                  values_list('data_ultima_atualizacao', flat=True).
-                 first()]
+                 first()] # Retorna [None, None] se inexistem registros
 
     max_data = ''
 
     if datas[0] and datas[1]:
         max_data = max(datas)
     else:
-        max_data = next([i for i in datas if i is not None], '')
-    return JsonResponse({'data_ultima_atualizacao': max_data})
+        max_data = next(iter([i for i in datas if i is not None]), '')
+
+    json_dict["data_ultima_atualizacao"] = max_data
+    json_dict["num_materias_legislativas"] = MateriaLegislativa.objects.all().count()
+    json_dict["num_normas_juridicas "] = NormaJuridica.objects.all().count()
+    json_dict["num_parlamentares"] = Parlamentar.objects.all().count()
+    json_dict["num_sessoes_plenarias"] = SessaoPlenaria.objects.all().count()
+
+    return JsonResponse(json_dict)
 
 
 class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
@@ -1452,7 +1462,7 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
         data = self.filterset.data
         url = ''
         if data:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
+            url = "&" + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('username=') - 1
                 url = url[ponto_comeco:]

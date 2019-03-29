@@ -3,7 +3,6 @@ from datetime import timedelta
 from crispy_forms.bootstrap import (Alert, FieldWithButtons, FormActions,
                                     InlineCheckboxes, InlineRadios,
                                     StrictButton)
-from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row, Submit)
 from django import forms
@@ -23,9 +22,11 @@ from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                     TipoTextoArticulado, TipoVide,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row,\
     form_actions
 from sapl.utils import YES_NO_CHOICES
+
 
 error_messages = {
     'required': _('Este campo é obrigatório'),
@@ -59,6 +60,13 @@ class TipoTaForm(ModelForm):
         widget=forms.RadioSelect(),
         required=True)
 
+    rodape_global = forms.CharField(
+        label=TipoTextoArticulado._meta.get_field(
+            'rodape_global').verbose_name,
+        widget=forms.Textarea(attrs={'id': 'texto-rico'}),
+        required=False
+    )
+
     class Meta:
         model = TipoTextoArticulado
         fields = ['sigla',
@@ -66,10 +74,12 @@ class TipoTaForm(ModelForm):
                   'content_type',
                   'participacao_social',
                   'publicacao_func',
-                  'perfis'
+                  'perfis',
+                  'rodape_global'
                   ]
 
-        widgets = {'perfis': widgets.CheckboxSelectMultiple()}
+        widgets = {'perfis': widgets.CheckboxSelectMultiple(),
+                   'rodape_global':  forms.Textarea}
 
     def __init__(self, *args, **kwargs):
 
@@ -84,12 +94,18 @@ class TipoTaForm(ModelForm):
             ('perfis', 12),
         ])
 
+        row3 = to_row([
+            ('rodape_global', 12),
+        ])
+
         self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'),
                      row1, css_class="col-md-12"),
             Fieldset(_('Funcionalidades'),
-                     row2, css_class="col-md-12"))
+                     row2, css_class="col-md-12"),
+            Fieldset(_('Nota de Rodapé Global'),
+                     row3, css_class="col-md-12"))
         super(TipoTaForm, self).__init__(*args, **kwargs)
 
 

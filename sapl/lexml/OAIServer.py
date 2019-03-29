@@ -26,7 +26,7 @@ class OAILEXML:
 
     def __call__(self, element, metadata):
         data = metadata.record
-        if data['metadata']:
+        if data.get('metadata'):
             value = etree.XML(data['metadata'])
             element.append(value)
 
@@ -55,7 +55,7 @@ class OAIServer:
             granularity='YYYY-MM-DDThh:mm:ssZ',
             compression=['identity'],
             toolkit_description=False)
-        if self.config['descricao']:
+        if self.config.get('descricao'):
             result.add_description(self.config['descricao'])
         return result
 
@@ -89,7 +89,7 @@ class OAIServer:
 
     def create_header(self, record):
         oai_id = self.get_oai_id(record['record']['id'])
-        timestamp = record['record']['when_modified']
+        timestamp = record['record']['when_modified'] if record['record']['when_modified'] else datetime.now()
         timestamp = timestamp.replace(tzinfo=None)
         sets = []
         deleted = record['record']['deleted']

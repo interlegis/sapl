@@ -1,5 +1,4 @@
 import os.path
-import textract
 import logging
 
 from django.db.models import F, Q, Value
@@ -11,7 +10,6 @@ from haystack.constants import Indexable
 from haystack.fields import CharField
 from haystack.indexes import SearchIndex
 from haystack.utils import get_model_ct_tuple
-from textract.exceptions import ExtensionNotSupported
 
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PUBLIC, Dispositivo)
@@ -49,19 +47,6 @@ class TextExtractField(CharField):
             data = ''
         return data
 
-    def whoosh_extraction(self, arquivo):
-
-        if arquivo.path.endswith('html') or arquivo.path.endswith('xml'):
-            with open(arquivo.path, 'r', encoding="utf8", errors='ignore') as f:
-                content = ' '.join(f.read())
-                return RemoveTag(content)
-
-        else:
-            return textract.process(
-                arquivo.path,
-                language='pt-br').decode('utf-8').replace('\n', ' ').replace(
-                '\t', ' ')
-
     def print_error(self, arquivo, error):
         msg = 'Erro inesperado processando arquivo %s erro: %s' % (
             arquivo.path, error)
@@ -80,20 +65,6 @@ class TextExtractField(CharField):
             except Exception as err:
                 print(str(err))
                 self.print_error(arquivo, err)
-
-        # Em ambiente de DEV utiliza-se o Whoosh
-        # Como ele não possui extração, faz-se uso do textract
-        else:
-            try:
-                self.logger.debug("Tentando whoosh_extraction no arquivo {}".format(arquivo.path))
-                return self.whoosh_extraction(arquivo)
-                self.print_error(arquivo)
-            except ExtensionNotSupported as err:
-                print(str(err))
-                self.logger.error(str(err))
-            except Exception as err:
-                print(str(err))
-                self.print_error(arquivo, str(err))
         return ''
 
     def ta_extractor(self, value):

@@ -45,7 +45,7 @@
             <div class="controls">
 					<div class="checkbox">
 						<label for="id_check_all">
-							<input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todos
+							<input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
 						</label>
 					</div>
 			</div>
@@ -73,11 +73,12 @@
 {% endblock detail_content %}
 {% block extra_js %}
 	<script language="JavaScript">
-		function checkAll(event) {
-			$('[name=materia_id]').each(function() {
-				$(this).prop('checked', event.target.checked ? 'checked': null);
-				$(this).trigger('click');
-			});
-		}
+		function checkAll(elem) {
+      let checkboxes = document.getElementsByName('materia_id');
+      for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type == 'checkbox') 
+            checkboxes[i].checked = elem.checked;
+      }
+    }
 	</script>
 {% endblock %}

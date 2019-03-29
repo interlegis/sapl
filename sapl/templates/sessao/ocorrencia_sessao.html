@@ -4,9 +4,6 @@
 {% load common_tags %}
 
 {% block actions %}{% endblock %}
-
-{% block title %}<font size="6" face="SourceSansProSemiBold" color="#364347" >Ocorrências da Sessão </font> <b><small><font face="SourceSansProSemiBold" size="5" color="#93a4aa"> ({{ object }}) </font> </small></b>{% endblock %}
-
 {% block detail_content %}
   {% if perms|get_add_perm:view %}
     <form method="post" accept-charset="ISO-8859-1">

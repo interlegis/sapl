@@ -12,7 +12,7 @@
 {% block detail_content %}
 	<fieldset>
 		<legend>{{comissao}}</legend>
-		<b>Há {{page_obj|length}} matéria(s) em tramitação nesta unidade.</b> <br><br>
+		<b>Há {{qtde}} matéria(s) em tramitação nesta unidade.</b> <br><br>
 		{% for materia in page_obj %}
 			<b><a href="{% url 'sapl.materia:materialegislativa_detail' materia.id %}">
 				{{materia.tipo.sigla}} {{materia.numero}} {{materia.ano}} - {{materia.tipo}}

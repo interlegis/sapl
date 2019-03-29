@@ -20,7 +20,7 @@ install_requires = [
     'django-extra-views==0.12.0',
     'django-model-utils==3.1.2',
     'django-reversion==3.0.2',
-    'django-reversion-compare==0.8.6'
+    'django-reversion-compare==0.8.6',
     'django-speedinfo==1.4.0',
     'django-extensions==2.1.4',
     'django-image-cropping==1.2.0',
@@ -36,17 +36,14 @@ install_requires = [
     'unipath==1.1',
     'WeasyPrint==44',
     'gunicorn==19.9.0',
-
-    'textract==1.5.0',
     'pysolr==3.6.0',
-    'whoosh==2.7.4',
 
     # 'git+git://github.com/interlegis/trml2pdf.git',
     # 'git+git://github.com/interlegis/django-admin-bootstrapped',
 ]
 setup(
     name='interlegis-sapl',
-    version='3.1.147',
+    version='3.1.150',
     packages=find_packages(),
     include_package_data=True,
     license='GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007',

@@ -392,7 +392,7 @@ class NormaPesquisaSimplesForm(forms.Form):
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
-        super(NormaPesquisaSimplesForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         row1 = to_row(
             [('tipo_norma', 6),
@@ -405,36 +405,30 @@ class NormaPesquisaSimplesForm(forms.Form):
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                ('Índice de Normas'),
+                'Índice de Normas',
                 row1, row2,
                 form_actions(label='Pesquisar')
             )
         )
 
     def clean(self):
-        super(NormaPesquisaSimplesForm, self).clean()
+        super().clean()
 
         if not self.is_valid():
             return self.cleaned_data
 
         cleaned_data = self.cleaned_data
-
         data_inicial = cleaned_data['data_inicial']
         data_final = cleaned_data['data_final']
 
-        if (data_inicial and data_final and
-                data_inicial > data_final):
-            self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(
-                data_final, data_inicial))
-            raise ValidationError(_(
-                'A Data Final não pode ser menor que a Data Inicial'))
-        else:
-            condicao1 = data_inicial and not data_final
-            condicao2 = not data_inicial and data_final
-            if condicao1 or condicao2:
+        if data_inicial or data_final:
+            if not(data_inicial and data_final):
                 self.logger.error("Caso pesquise por data, os campos de Data Inicial e "
                                   "Data Final devem ser preenchidos obrigatoriamente")
-                raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e ' +
+                raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e '
                                         'Data Final devem ser preenchidos obrigatoriamente'))
+            elif data_inicial > data_final:
+                self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(data_final, data_inicial))
+                raise ValidationError(_('A Data Final não pode ser menor que a Data Inicial'))
 
         return cleaned_data
