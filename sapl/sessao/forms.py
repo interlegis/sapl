@@ -702,12 +702,13 @@ class OradorForm(ModelForm):
 
         sessao_id = self.initial['id_sessao']
         numero = self.initial.get('numero')
+        numero_ordem = cleaned_data['numero_ordem']
         ordem = Orador.objects.filter(
             sessao_plenaria_id=sessao_id,
-            numero_ordem=cleaned_data['numero_ordem']
+            numero_ordem=numero_ordem
         ).exists()
 
-        if ordem and (cleaned_data['numero_ordem'] != numero): 
+        if ordem and (numero_ordem != numero): 
             raise ValidationError(_(
                 "Já existe orador nesta posição de ordem de pronunciamento"
             ))
