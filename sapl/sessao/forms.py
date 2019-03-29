@@ -708,7 +708,7 @@ class OradorForm(ModelForm):
             numero_ordem=numero_ordem
         ).exists()
 
-        if ordem and (numero_ordem != numero): 
+        if ordem and numero_ordem != numero: 
             raise ValidationError(_(
                 "Já existe orador nesta posição de ordem de pronunciamento"
             ))
