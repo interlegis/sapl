@@ -255,6 +255,21 @@ class ParlamentarCreateForm(ParlamentarForm):
                 attrs={'id': 'texto-rico'})
         }
 
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+        parlamentar = Parlamentar.objects.filter(nome_parlamentar=cleaned_data['nome_parlamentar'])
+
+        if parlamentar:
+            self.logger.error('Parlamentar já cadastrado.')
+            raise ValidationError('Parlamentar já cadastrado.')
+
+        return cleaned_data
+
     @transaction.atomic
     def save(self, commit=True):
         parlamentar = super(ParlamentarCreateForm, self).save(commit)
