@@ -7,7 +7,10 @@
 
 {% if perms|get_add_perm:view %}
     <a href="{% url 'sapl.sessao:reordenar_ordem' root_pk %}" class="btn btn-outline-primary">
-      {% blocktrans with verbose_name=view.verbose_name %} Ajustar Ordenação {% endblocktrans %}
+      {% blocktrans with verbose_name=view.verbose_name %} Reordenar pela precedência {% endblocktrans %}
+    </a>
+    <a href="{% url 'sapl.sessao:renumerar_ordem' root_pk %}" class="btn btn-outline-primary">
+      {% blocktrans with verbose_name=view.verbose_name %} Renumerar Ordem {% endblocktrans %}
     </a>
     <a href="{% url 'sapl.sessao:adicionar_varias_materias_ordem_dia' root_pk %}" class="btn btn-outline-primary">
       {% blocktrans with verbose_name=view.verbose_name %} Adicionar Várias Matérias {% endblocktrans %}
