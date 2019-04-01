@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 import weasyprint
+import itertools
 
 from datetime import datetime
 from random import choice
@@ -2249,8 +2250,18 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         # issue https://github.com/interlegis/sapl/issues/1123
         # TODO: usar Form
         urgente = request.POST['urgente'] == 'True'
-        flag_error = False
-        for materia_id in marcadas:
+        flag_error = False  
+
+        materias_principais = [m for m in MateriaLegislativa.objects.filter(id__in=marcadas)]
+        materias_anexadas = [m.anexadas.all() for m in MateriaLegislativa.objects.filter(id__in=marcadas) if m.anexadas.all()]
+        materias_anexadas = list(itertools.chain.from_iterable(materias_anexadas)) 
+        tramitacao_local = int(request.POST['unidade_tramitacao_local'])
+        materias_anexadas = list(filter(lambda ma : not ma.tramitacao_set.all() or \
+                                        ma.tramitacao_set.last().unidade_tramitacao_destino.id == tramitacao_local,
+                                        materias_anexadas))
+        materias = set(materias_principais + materias_anexadas)
+
+        for materia in materias:
             try:
                 data_tramitacao = tz.localize(datetime.strptime(
                     request.POST['data_tramitacao'], "%d/%m/%Y"))
@@ -2260,7 +2271,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 return self.get(request, self.kwargs)
 
             t = Tramitacao(
-                materia_id=materia_id,
+                materia=materia,
                 data_tramitacao=data_tramitacao,
                 data_encaminhamento=data_encaminhamento,
                 data_fim_prazo=data_fim_prazo,
@@ -2294,7 +2305,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 
-        for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+        for materia in materias:
             if status.indicador == 'F':
                 materia.em_tramitacao = False
             elif self.primeira_tramitacao:
