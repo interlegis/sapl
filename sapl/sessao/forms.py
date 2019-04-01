@@ -692,7 +692,29 @@ class OradorForm(ModelForm):
 
         self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
             id__in=ids).order_by('nome_parlamentar')
+    
+    def clean(self):
+        super(OradorForm, self).clean()
+        cleaned_data = self.cleaned_data
 
+        if not self.is_valid():
+            return self.cleaned_data
+
+        sessao_id = self.initial['id_sessao']
+        numero = self.initial.get('numero')
+        numero_ordem = cleaned_data['numero_ordem']
+        ordem = Orador.objects.filter(
+            sessao_plenaria_id=sessao_id,
+            numero_ordem=numero_ordem
+        ).exists()
+
+        if ordem and numero_ordem != numero: 
+            raise ValidationError(_(
+                "Já existe orador nesta posição de ordem de pronunciamento"
+            ))
+        
+        return self.cleaned_data
+    
     class Meta:
         model = Orador
         exclude = ['sessao_plenaria']

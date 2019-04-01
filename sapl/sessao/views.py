@@ -620,6 +620,7 @@ class OradorCrud(OradorCrud):
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero':self.object.numero_ordem})
 
             return initial
 
