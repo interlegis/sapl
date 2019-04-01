@@ -2,7 +2,7 @@ import logging
 
 from django.core.urlresolvers import reverse
 from django.db.models import F
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, JsonResponse
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import ListView
 from django.views.generic.base import RedirectView
@@ -108,7 +108,7 @@ class ComposicaoCrud(MasterDetailCrud):
         paginate_by = None
 
         def take_composicao_pk(self):
-            
+
             username = self.request.user.username
             try:
                 self.logger.debug('user=' + username + '. Tentando obter pk da composição.')
@@ -278,3 +278,15 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             return HttpResponseRedirect(
                 reverse('sapl.comissoes:reuniao_detail',
                         kwargs={'pk': obj.reuniao.pk}))
+
+
+def get_participacoes_comissao(request):
+    parlamentares = []
+
+    composicao_id = request.GET.get('composicao_id')
+    if composicao_id:
+        parlamentares = [{'nome': p.parlamentar.nome_parlamentar, 'id': p.parlamentar.id} for p in
+                         Participacao.objects.filter(composicao_id=composicao_id).order_by(
+                             'parlamentar__nome_parlamentar')]
+
+    return JsonResponse(parlamentares, safe=False)
