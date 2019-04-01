@@ -727,7 +727,7 @@ class AnexadaForm(ModelForm):
         empty_label='Selecione',
     )
 
-    numero = forms.CharField(label='Número', required=True)
+    numero = forms.IntegerField(label='Número', required=True)
 
     ano = forms.CharField(label='Ano', required=True)
 
@@ -751,8 +751,8 @@ class AnexadaForm(ModelForm):
                 ano=cleaned_data['ano'],
                 tipo=cleaned_data['tipo'])
         except ObjectDoesNotExist:
-            msg = _('A MateriaLegislativa a ser anexada (numero={}, ano={}, tipo={}) não existe no cadastro'
-                    ' de matérias legislativas.'.format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            msg = _('A {} {}/{} não existe no cadastro de matérias legislativas.'
+                    .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
             self.logger.error("A matéria a ser anexada não existe no cadastro"
                               " de matérias legislativas.")
             raise ValidationError(msg)
