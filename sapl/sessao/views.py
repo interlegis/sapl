@@ -1382,7 +1382,7 @@ def get_materias_expediente(sessao_plenaria):
         tramitacao = ''
         tramitacoes = Tramitacao.objects.filter(materia=m.materia).order_by('-pk')
         for aux_tramitacao in tramitacoes:
-            if (aux_tramitacao.turno):
+            if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break
 
@@ -1496,7 +1496,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         tramitacao = ''
         tramitacoes = Tramitacao.objects.filter(materia=o.materia).order_by('-pk')
         for aux_tramitacao in tramitacoes:
-            if (aux_tramitacao.turno):
+            if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break
 
