@@ -578,6 +578,8 @@ def get_sessao_plenaria(sessao, casa):
         # unescape HTML codes
         # https://github.com/interlegis/sapl/issues/1046
         conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = re.sub('class=".*?"', '', conteudo)
+        conteudo = re.sub('<p\s+>', '<p>', conteudo)
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
