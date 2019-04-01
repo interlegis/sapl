@@ -1378,9 +1378,15 @@ def get_materias_expediente(sessao_plenaria):
         ementa = m.materia.ementa
         titulo = m.materia
         numero = m.numero_ordem
-        tramitacao = m.materia.tramitacao_set.last()
-        turno = None
 
+        tramitacao = ''
+        tramitacoes = Tramitacao.objects.filter(materia=m.materia).order_by('-pk')
+        for aux_tramitacao in tramitacoes:
+            if aux_tramitacao.turno:
+                tramitacao = aux_tramitacao
+                break
+
+        turno = None
         if tramitacao:
             turno = get_turno(tramitacao.turno)
 
@@ -1486,7 +1492,14 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         ementa_observacao = o.observacao
         titulo = o.materia
         numero = o.numero_ordem
-        tramitacao = o.materia.tramitacao_set.last()
+
+        tramitacao = ''
+        tramitacoes = Tramitacao.objects.filter(materia=o.materia).order_by('-pk')
+        for aux_tramitacao in tramitacoes:
+            if aux_tramitacao.turno:
+                tramitacao = aux_tramitacao
+                break
+
         turno = None
         if tramitacao:
             turno = get_turno(tramitacao.turno)
