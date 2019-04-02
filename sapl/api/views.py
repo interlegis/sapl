@@ -22,8 +22,12 @@ from sapl.api.forms import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
 from sapl.api.serializers import ChoiceSerializer
 from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
-from sapl.materia.models import Proposicao, TipoMateriaLegislativa
+from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
+    MateriaLegislativa, Tramitacao
 from sapl.parlamentares.models import Parlamentar
+from sapl.protocoloadm.models import DocumentoAdministrativo,\
+    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo
+from sapl.sessao.models import SessaoPlenaria
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 
 
@@ -38,9 +42,17 @@ class BusinessRulesNotImplementedMixin:
         raise Exception(_("DELETE Delete não implementado"))
 
 
-class SaplApiViewSetConstrutor(ModelViewSet):
-
+class SaplApiViewSet(ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
+
+
+class SaplApiViewSetConstrutor():
+
+    _built_sets = {}
+
+    @classonlymethod
+    def get_class_for_model(cls, model):
+        return cls._built_sets[model._meta.app_config][model]
 
     @classonlymethod
     def build_class(cls):
@@ -92,7 +104,7 @@ class SaplApiViewSetConstrutor(ModelViewSet):
                         model = _model
 
                 # Define uma classe padrão ModelViewSet de DRF
-                class ModelSaplViewSet(cls):
+                class ModelSaplViewSet(SaplApiViewSet):
                     queryset = _model.objects.all()
 
                     # Utiliza o filtro customizado pela classe
@@ -116,12 +128,12 @@ class SaplApiViewSetConstrutor(ModelViewSet):
         apps_sapl = [apps.apps.get_app_config(
             n[5:]) for n in settings.SAPL_APPS]
         for app in apps_sapl:
-            built_sets[app.label] = {}
+            cls._built_sets[app] = {}
             for model in app.get_models():
-                built_sets[app.label][model._meta.model_name] = build(model)
+                cls._built_sets[app][model] = build(model)
 
-        return built_sets
 
+SaplApiViewSetConstrutor.build_class()
 
 """
 1. Constroi uma rest_framework.viewsets.ModelViewSet para 
@@ -184,15 +196,39 @@ class SaplApiViewSetConstrutor(ModelViewSet):
     }
 """
 
-SaplSetViews = SaplApiViewSetConstrutor.build_class()
-
 # Toda Classe construida acima, pode ser redefinida e aplicado quaisquer
 # das possibilidades para uma classe normal criada a partir de
 # rest_framework.viewsets.ModelViewSet conforme exemplo para a classe autor
 
+# decorator para recuperar e transformar o default
+
+
+class customize(object):
+    def __init__(self, model):
+        self.model = model
+
+    def __call__(self, cls):
+
+        class _SaplApiViewSet(
+            cls,
+                SaplApiViewSetConstrutor._built_sets[
+                    self.model._meta.app_config][self.model]
+        ):
+            pass
+
+        if hasattr(_SaplApiViewSet, 'build'):
+            _SaplApiViewSet = _SaplApiViewSet.build()
+
+        SaplApiViewSetConstrutor._built_sets[
+            self.model._meta.app_config][self.model] = _SaplApiViewSet
+        return _SaplApiViewSet
+
 
 # Customização para AutorViewSet com implementação de actions específicas
-class _AutorViewSet(SaplSetViews['base']['autor']):
+
+
+@customize(Autor)
+class _AutorViewSet:
     """
     Neste exemplo de customização do que foi criado em 
     SaplApiViewSetConstrutor além do ofertado por 
@@ -237,7 +273,7 @@ class _AutorViewSet(SaplSetViews['base']['autor']):
         return Response(serializer.data)
 
     @classonlymethod
-    def build_class_with_actions(cls):
+    def build(cls):
 
         models_with_gr_for_autor = models_with_gr_for_model(Autor)
 
@@ -260,7 +296,8 @@ class _AutorViewSet(SaplSetViews['base']['autor']):
         return cls
 
 
-class _ParlamentarViewSet(SaplSetViews['parlamentares']['parlamentar']):
+@customize(Parlamentar)
+class _ParlamentarViewSet:
     @action(detail=True)
     def proposicoes(self, request, *args, **kwargs):
         """
@@ -285,15 +322,16 @@ class _ParlamentarViewSet(SaplSetViews['parlamentares']['parlamentar']):
 
         page = self.paginate_queryset(qs)
         if page is not None:
-            serializer = SaplSetViews[
-                'materia']['proposicao'].serializer_class(page, many=True)
+            serializer = SaplApiViewSetConstrutor.get_class_for_model(
+                Proposicao).serializer_class(page, many=True)
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
 
 
-class _ProposicaoViewSet(SaplSetViews['materia']['proposicao']):
+@customize(Proposicao)
+class _ProposicaoViewSet():
     """
     list:
         Retorna lista de Proposições
@@ -346,7 +384,8 @@ class _ProposicaoViewSet(SaplSetViews['materia']['proposicao']):
         return qs
 
 
-class _MateriaLegislativaViewSet(SaplSetViews['materia']['materialegislativa']):
+@customize(MateriaLegislativa)
+class _MateriaLegislativaViewSet:
 
     @action(detail=True, methods=['GET'])
     def ultima_tramitacao(self, request, *args, **kwargs):
@@ -357,13 +396,14 @@ class _MateriaLegislativaViewSet(SaplSetViews['materia']['materialegislativa']):
 
         ultima_tramitacao = materia.tramitacao_set.last()
 
-        serializer_class = SaplSetViews[
-            'materia']['tramitacao'].serializer_class(ultima_tramitacao)
+        serializer_class = SaplApiViewSetConstrutor.get_class_for_model(
+            Tramitacao).serializer_class(ultima_tramitacao)
 
         return Response(serializer_class.data)
 
 
-class _TipoMateriaLegislativaViewSet(SaplSetViews['materia']['tipomaterialegislativa']):
+@customize(TipoMateriaLegislativa)
+class _TipoMateriaLegislativaViewSet:
 
     @action(detail=True, methods=['POST'])
     def change_position(self, request, *args, **kwargs):
@@ -380,7 +420,8 @@ class _TipoMateriaLegislativaViewSet(SaplSetViews['materia']['tipomaterialegisla
         return Response(result)
 
 
-class _DocumentoAdministrativoViewSet(SaplSetViews['protocoloadm']['documentoadministrativo']):
+@customize(DocumentoAdministrativo)
+class _DocumentoAdministrativoViewSet:
 
     class DocumentoAdministrativoPermission(SaplModelPermissions):
         def has_permission(self, request, view):
@@ -414,8 +455,8 @@ class _DocumentoAdministrativoViewSet(SaplSetViews['protocoloadm']['documentoadm
         return qs
 
 
-class _DocumentoAcessorioAdministrativoViewSet(
-        SaplSetViews['protocoloadm']['documentoacessorioadministrativo']):
+@customize(DocumentoAcessorioAdministrativo)
+class _DocumentoAcessorioAdministrativoViewSet:
 
     permission_classes = (
         _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
@@ -428,9 +469,8 @@ class _DocumentoAcessorioAdministrativoViewSet(
         return qs
 
 
-class _TramitacaoAdministrativoViewSet(
-        SaplSetViews['protocoloadm']['tramitacaoadministrativo'],
-        BusinessRulesNotImplementedMixin):
+@customize(TramitacaoAdministrativo)
+class _TramitacaoAdministrativoViewSet(BusinessRulesNotImplementedMixin):
     # TODO: Implementar regras de manutenção das tramitações de docs adms
 
     permission_classes = (
@@ -444,8 +484,8 @@ class _TramitacaoAdministrativoViewSet(
         return qs
 
 
-class _SessaoPlenariaViewSet(
-        SaplSetViews['sessao']['sessaoplenaria']):
+@customize(SessaoPlenaria)
+class _SessaoPlenariaViewSet:
 
     @action(detail=False)
     def years(self, request, *args, **kwargs):
@@ -453,19 +493,3 @@ class _SessaoPlenariaViewSet(
 
         serializer = ChoiceSerializer(years, many=True)
         return Response(serializer.data)
-
-
-SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
-
-
-SaplSetViews['materia']['materialegislativa'] = _MateriaLegislativaViewSet
-SaplSetViews['materia']['proposicao'] = _ProposicaoViewSet
-SaplSetViews['materia']['tipomaterialegislativa'] = _TipoMateriaLegislativaViewSet
-
-SaplSetViews['parlamentares']['parlamentar'] = _ParlamentarViewSet
-
-SaplSetViews['protocoloadm']['documentoadministrativo'] = _DocumentoAdministrativoViewSet
-SaplSetViews['protocoloadm']['documentoacessorioadministrativo'] = _DocumentoAcessorioAdministrativoViewSet
-SaplSetViews['protocoloadm']['tramitacaoadministrativo'] = _TramitacaoAdministrativoViewSet
-
-SaplSetViews['sessao']['sessaoplenaria'] = _SessaoPlenariaViewSet
