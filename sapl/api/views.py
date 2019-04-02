@@ -30,11 +30,8 @@ class BusinessRulesNotImplementedMixin:
     def create(self, request, *args, **kwargs):
         raise Exception(_("POST Create não implementado"))
 
-    def put(self, request, *args, **kwargs):
-        raise Exception(_("PUT Update não implementado"))
-
-    def patch(self, request, *args, **kwargs):
-        raise Exception(_("PATCH Partial Update não implementado"))
+    def update(self, request, *args, **kwargs):
+        raise Exception(_("PUT and PATCH não implementado"))
 
     def delete(self, request, *args, **kwargs):
         raise Exception(_("DELETE Delete não implementado"))
