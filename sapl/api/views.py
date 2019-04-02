@@ -348,6 +348,23 @@ class _ProposicaoViewSet(SaplSetViews['materia']['proposicao']):
         return qs
 
 
+class _MateriaLegislativaViewSet(SaplSetViews['materia']['materialegislativa']):
+
+    @action(detail=True, methods=['GET'])
+    def ultima_tramitacao(self, request, *args, **kwargs):
+
+        materia = self.get_object()
+        if not materia.tramitacao_set.exists():
+            return Response({})
+
+        ultima_tramitacao = materia.tramitacao_set.last()
+
+        serializer_class = SaplSetViews[
+            'materia']['tramitacao'].serializer_class(ultima_tramitacao)
+
+        return Response(serializer_class.data)
+
+
 class _TipoMateriaLegislativaViewSet(SaplSetViews['materia']['tipomaterialegislativa']):
 
     @action(detail=True, methods=['POST'])
@@ -442,6 +459,8 @@ class _SessaoPlenariaViewSet(
 
 SaplSetViews['base']['autor'] = _AutorViewSet.build_class_with_actions()
 
+
+SaplSetViews['materia']['materialegislativa'] = _MateriaLegislativaViewSet
 SaplSetViews['materia']['proposicao'] = _ProposicaoViewSet
 SaplSetViews['materia']['tipomaterialegislativa'] = _TipoMateriaLegislativaViewSet
 
