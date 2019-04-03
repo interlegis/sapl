@@ -15,25 +15,26 @@ def get_multiple():
     for model in models:
         model_name = re.findall(r'\w+', str(model))[-1]
         main_models[model_name] = {
-            'model': model,
             'kwargs': {},
             'pks': []
         }
 
-        objs = main_models[model_name]['model'].objects.all()
+        objs = model.objects.all()
         for obj in objs:
             if model_name == 'Autor':
                 main_models[model_name]['kwargs']['nome'] = obj.nome
             elif model_name == 'Parlamentar':
                 main_models[model_name]['kwargs']['nome_parlamentar'] = obj.nome_parlamentar
 
-            pesquisa_obj = main_models[model_name]['model'].objects.filter(**main_models[model_name]['kwargs'])
+            pesquisa_obj = model.objects.filter(**main_models[model_name]['kwargs'])
             if pesquisa_obj.count() > 1:
                 multiplos_objs = [o.pk for o in pesquisa_obj]
                 multiplos_objs.sort()
 
                 if multiplos_objs not in main_models[model_name]['pks']:
                     main_models[model_name]['pks'].append(multiplos_objs)
+
+        main_models[model_name].pop('kwargs')
 
     return main_models
 
