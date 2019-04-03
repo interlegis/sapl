@@ -1,5 +1,11 @@
-from datetime import datetime
 import logging
+import os
+import shutil
+import tempfile
+import weasyprint
+import itertools
+
+from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
 
@@ -45,6 +51,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
+from sapl.settings import MEDIA_ROOT
 from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH_PROPOSICAO,
                         gerar_hash_arquivo, get_base_url,
                         get_mime_type_from_file_extension, montar_row_autor,
@@ -2035,17 +2042,35 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
+        tmp_name = os.path.join(tempfile.gettempdir(), request.FILES['arquivo'].name)
+        with open(tmp_name, 'wb') as destination:
+            for chunk in request.FILES['arquivo'].chunks():
+                destination.write(chunk)
+
+        doc_data = tz.localize(datetime.strptime(
+                                        request.POST['data'], "%d/%m/%Y"))
         for materia_id in marcadas:
             doc = DocumentoAcessorio()
             doc.materia_id = materia_id
             doc.tipo = tipo
-            doc.arquivo = request.FILES['arquivo']
             doc.nome = request.POST['nome']
-            doc.data = tz.localize(datetime.strptime(
-                request.POST['data'], "%d/%m/%Y"))
+            doc.data = doc_data
             doc.autor = request.POST['autor']
             doc.ementa = request.POST['ementa']
             doc.save()
+            diretorio =  os.path.join(MEDIA_ROOT,
+                                      'sapl/public/documentoacessorio', 
+                                      str(doc_data.year),
+                                      str(doc.id))
+            if not os.path.exists(diretorio):
+                os.makedirs(diretorio)
+            file_path = os.path.join(diretorio, 
+                                     request.FILES['arquivo'].name)
+            shutil.copy2(tmp_name, file_path)
+            doc.arquivo.name = file_path.split(MEDIA_ROOT)[1] # Retira MEDIA_ROOT do nome
+            doc.save()
+        os.remove(tmp_name)
+
         msg = _('Documento(s) criado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
         return self.get(request, self.kwargs)
@@ -2225,8 +2250,18 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         # issue https://github.com/interlegis/sapl/issues/1123
         # TODO: usar Form
         urgente = request.POST['urgente'] == 'True'
-        flag_error = False
-        for materia_id in marcadas:
+        flag_error = False  
+
+        materias_principais = [m for m in MateriaLegislativa.objects.filter(id__in=marcadas)]
+        materias_anexadas = [m.anexadas.all() for m in MateriaLegislativa.objects.filter(id__in=marcadas) if m.anexadas.all()]
+        materias_anexadas = list(itertools.chain.from_iterable(materias_anexadas)) 
+        tramitacao_local = int(request.POST['unidade_tramitacao_local'])
+        materias_anexadas = list(filter(lambda ma : not ma.tramitacao_set.all() or \
+                                        ma.tramitacao_set.last().unidade_tramitacao_destino.id == tramitacao_local,
+                                        materias_anexadas))
+        materias = set(materias_principais + materias_anexadas)
+
+        for materia in materias:
             try:
                 data_tramitacao = tz.localize(datetime.strptime(
                     request.POST['data_tramitacao'], "%d/%m/%Y"))
@@ -2236,7 +2271,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 return self.get(request, self.kwargs)
 
             t = Tramitacao(
-                materia_id=materia_id,
+                materia=materia,
                 data_tramitacao=data_tramitacao,
                 data_encaminhamento=data_encaminhamento,
                 data_fim_prazo=data_fim_prazo,
@@ -2270,7 +2305,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
         status = StatusTramitacao.objects.get(id=request.POST['status'])
 
-        for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+        for materia in materias:
             if status.indicador == 'F':
                 materia.em_tramitacao = False
             elif self.primeira_tramitacao:

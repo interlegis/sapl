@@ -93,6 +93,25 @@ def reordernar_materias_ordem(request, pk):
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
+def renumerar_materias_ordem(request, pk):
+    ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
+
+    for ordem_num, o in enumerate(ordens, 1):
+        o.numero_ordem = ordem_num
+        o.save()
+
+    return HttpResponseRedirect(
+        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
+
+def renumerar_materias_expediente(request, pk):
+    expedientes = ExpedienteMateria.objects.filter(sessao_plenaria_id=pk)
+
+    for exp_num, e in enumerate(expedientes, 1):
+        e.numero_ordem = exp_num
+        e.save()
+
+    return HttpResponseRedirect(
+        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
 
 def verifica_presenca(request, model, spk):
     logger = logging.getLogger(__name__)
@@ -645,6 +664,7 @@ class OradorCrud(OradorCrud):
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero':self.object.numero_ordem})
 
             return initial
 
@@ -1058,9 +1078,6 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
         return self.get(self, request, args, kwargs)
 
 
-def ordenar_integrantes_por_cargo(integrantes):
-    return sorted(integrantes, key=lambda k: k['cargo'].id)
-
 
 class MesaView(FormMixin, DetailView):
     template_name = 'sessao/mesa.html'
@@ -1346,7 +1363,8 @@ def get_identificação_basica(sessao_plenaria):
             'abertura': abertura, 'hora_inicio': sessao_plenaria.hora_inicio},
         _('Encerramento: %(encerramento)s %(hora_fim)s') % {
             'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim}
-    ]})
+    ],
+    'sessaoplenaria': sessao_plenaria})
 
 
 def get_conteudo_multimidia(sessao_plenaria):
@@ -1365,24 +1383,17 @@ def get_conteudo_multimidia(sessao_plenaria):
 
 
 def get_mesa_diretora(sessao_plenaria):
-    mesa = IntegranteMesa.objects.filter(sessao_plenaria=sessao_plenaria)
-    integrantes = []
-    for m in mesa:
-        parlamentar = Parlamentar.objects.get(
-            id=m.parlamentar_id)
-        cargo = CargoMesa.objects.get(
-            id=m.cargo_id)
-        integrante = {'parlamentar': parlamentar, 'cargo': cargo}
-        integrantes.append(integrante)
-    return ({'mesa': ordenar_integrantes_por_cargo(integrantes)})
+    mesa = IntegranteMesa.objects.filter(sessao_plenaria=sessao_plenaria).order_by('cargo_id')
+    integrantes = [{'parlamentar': m.parlamentar,
+                    'cargo': m.cargo} for m in mesa]
+    return {'mesa': integrantes}
 
 
 def get_presenca_sessao(sessao_plenaria):
-    presencas = SessaoPlenariaPresenca.objects.filter(
-        sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar')
 
-    parlamentares_sessao = [p.parlamentar for p in presencas]
+    parlamentares_sessao = [p.parlamentar for p in SessaoPlenariaPresenca.objects.filter(
+                                sessao_plenaria_id=sessao_plenaria.id
+                            ).order_by('parlamentar__nome_parlamentar')]
 
     ausentes_sessao = JustificativaAusencia.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
@@ -1414,9 +1425,15 @@ def get_materias_expediente(sessao_plenaria):
         ementa = m.materia.ementa
         titulo = m.materia
         numero = m.numero_ordem
-        tramitacao = m.materia.tramitacao_set.last()
-        turno = None
 
+        tramitacao = ''
+        tramitacoes = Tramitacao.objects.filter(materia=m.materia).order_by('-pk')
+        for aux_tramitacao in tramitacoes:
+            if aux_tramitacao.turno:
+                tramitacao = aux_tramitacao
+                break
+
+        turno = None
         if tramitacao:
             turno = get_turno(tramitacao.turno)
 
@@ -1467,52 +1484,49 @@ def get_oradores_expediente(sessao_plenaria):
                'observacao': observacao
                }
         oradores.append(ora)
-    context = {'oradores': oradores}
-    return context
+    return {'oradores': oradores}
 
 
 def get_presenca_ordem_do_dia(sessao_plenaria):
-    mesa_aux = get_mesa_diretora(sessao_plenaria)
-    presencas = PresencaOrdemDia.objects.filter(
-        sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar')
+    parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
+                                            sessao_plenaria_id=sessao_plenaria.id
+                                        ).order_by('parlamentar__nome_parlamentar')]
 
-    parlamentares_mesa_dia = [m for m in mesa_aux['mesa']]
+    return {'presenca_ordem': parlamentares_ordem}
 
-    presidente_dia = ''
-    for m in mesa_aux['mesa']:
-        if m['cargo'].descricao == 'Presidente':
-            presidente_dia = [m['parlamentar']]
-            break
 
-    parlamentares_ordem = [p.parlamentar for p in presencas]
+def get_assinaturas(sessao_plenaria):
+    mesa_dia = get_mesa_diretora(sessao_plenaria)['mesa']
 
-    cont = 0
-    for index, parlamentar in enumerate(parlamentares_ordem):
-        try:
-            if parlamentar == parlamentares_mesa_dia[cont]["parlamentar"]:
-                del(parlamentares_ordem[index])
-                cont += 1
-        except IndexError:
-            pass
+    presidente_dia = [next(iter(
+        [m['parlamentar'] for m in mesa_dia if m['cargo'].descricao == 'Presidente']),
+        '')]
+
+    parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
+                                    sessao_plenaria_id=sessao_plenaria.id
+                                    ).order_by('parlamentar__nome_parlamentar')]
+
+    parlamentares_mesa = [m['parlamentar'] for m in mesa_dia]
+
+    # filtra parlamentares retirando os que sao da mesa
+    parlamentares_ordem = [p for p in parlamentares_ordem if p not in parlamentares_mesa]
 
     context = {}
-    context.update({'presenca_ordem': parlamentares_ordem})
 
     config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
     if config_assinatura_ata == 'T' and parlamentares_ordem:
         context.update(
             {'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
-        context.update({'assinatura_mesa': parlamentares_mesa_dia,
+        context.update({'assinatura_mesa': mesa_dia,
                         'assinatura_presentes': parlamentares_ordem})
-    elif config_assinatura_ata == 'M' and parlamentares_mesa_dia:
+    elif config_assinatura_ata == 'M' and mesa_dia:
         context.update(
             {'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
-        context.update({'assinatura_presentes': parlamentares_mesa_dia})
+        context.update({'assinatura_mesa': mesa_dia})
     elif config_assinatura_ata == 'P' and presidente_dia:
         context.update(
             {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
-        context.update({'assinatura_presentes': presidente_dia})
+        context.update({'assinatura_mesa': presidente_dia})
 
     return context
 
@@ -1525,7 +1539,14 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         ementa_observacao = o.observacao
         titulo = o.materia
         numero = o.numero_ordem
-        tramitacao = o.materia.tramitacao_set.last()
+
+        tramitacao = ''
+        tramitacoes = Tramitacao.objects.filter(materia=o.materia).order_by('-pk')
+        for aux_tramitacao in tramitacoes:
+            if aux_tramitacao.turno:
+                tramitacao = aux_tramitacao
+                break
+
         turno = None
         if tramitacao:
             turno = get_turno(tramitacao.turno)
@@ -1701,6 +1722,9 @@ class ResumoView(DetailView):
         # =====================================================================
         # Presença Ordem do Dia
         context.update(get_presenca_ordem_do_dia(self.object))
+        # =====================================================================
+        # Assinaturas
+        context.update(get_assinaturas(self.object))
         # =====================================================================
         # Matérias Ordem do Dia
         # Votos de Votação Nominal de Matérias Ordem do Dia

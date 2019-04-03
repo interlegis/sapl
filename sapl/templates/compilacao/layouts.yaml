@@ -45,3 +45,4 @@ TipoTextoArticulado:
   {% trans 'Funcionalidaes' %}:
   - participacao_social publicacao_func
   - perfis
+  - rodape_global
