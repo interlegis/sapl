@@ -4,7 +4,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                AdicionarVariasMateriasOrdemDia, BancadaCrud,
                                BlocoCrud, CargoBancadaCrud,
                                ExpedienteMateriaCrud, ExpedienteView, JustificativaAusenciaCrud,
-                               OcorrenciaSessaoView, MateriaOrdemDiaCrud, MesaView, OradorCrud,
+                               OcorrenciaSessaoView, MateriaOrdemDiaCrud, OradorOrdemDiaCrud,
+                               MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
                                PautaSessaoDetailView, PautaSessaoView,
                                PesquisarPautaSessaoView,
@@ -44,7 +45,9 @@ urlpatterns = [
                              OradorExpedienteCrud.get_urls() +
                              ExpedienteMateriaCrud.get_urls() +
                              JustificativaAusenciaCrud.get_urls() +
-                             MateriaOrdemDiaCrud.get_urls() + RetiradaPautaCrud.get_urls())),
+                             MateriaOrdemDiaCrud.get_urls() +
+                             OradorOrdemDiaCrud.get_urls() +
+                             RetiradaPautaCrud.get_urls())),
 
     url(r'^sessao/(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
 
