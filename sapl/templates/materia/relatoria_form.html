@@ -16,5 +16,24 @@
 {% block extra_js %}
   <script language="Javascript">
     $("#id_comissao").attr("disabled", true);
+
+    $(document).ready(function() {
+      $("#id_composicao").change(function() {
+        var composicao_id = $("#id_composicao").val();
+        var json_data = { composicao_id: composicao_id };
+        var parlamentar_field = $("#id_parlamentar");
+
+        $.getJSON("/sistema/comissao/recupera-participacoes", json_data, function(data) {
+          parlamentar_field.children().remove();
+          parlamentar_field.append($("<option></option>").attr("value", '').text('---------'));
+
+          if (data) {
+            $.each(data, function(idx, parlamentar) {
+              parlamentar_field.append($("<option></option>").attr("value", parlamentar.id).text(parlamentar.nome));
+            });
+          }
+        });
+      });
+    });
   </script>
 {% endblock extra_js %}

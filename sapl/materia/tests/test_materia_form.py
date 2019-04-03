@@ -2,6 +2,7 @@ import pytest
 from django.utils.translation import ugettext as _
 from model_mommy import mommy
 
+from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia import forms
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 
@@ -172,15 +173,23 @@ def test_valida_campos_obrigatorios_devolver_proposicao_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_valida_campos_obrigatorios_relatoria_form():
-    form = forms.RelatoriaForm(data={})
+    tipo_comissao = mommy.make(TipoComissao)
+    comissao = mommy.make(Comissao,
+                          tipo=tipo_comissao,
+                          nome='Comissao Teste',
+                          sigla='T',
+                          data_criacao='2016-03-21')
+    form = forms.RelatoriaForm(initial={'comissao':comissao}, data={})
 
     assert not form.is_valid()
 
     errors = form.errors
+
     assert errors['parlamentar'] == [_('Este campo é obrigatório.')]
     assert errors['data_designacao_relator'] == [_('Este campo é obrigatório.')]
+    assert errors['composicao'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 2
+    assert len(errors) == 3
 
 
 @pytest.mark.django_db(transaction=False)
