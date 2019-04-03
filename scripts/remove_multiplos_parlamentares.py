@@ -13,23 +13,21 @@ def get_multiple():
     main_models = {}
 
     for model in models:
-        model_str = re.findall(r'\w+', str(model))[-1]
-        main_models[model_str] = {
+        model_name = re.findall(r'\w+', str(model))[-1]
+        main_models[model_name] = {
             'model': model,
             'kwargs': {},
             'pks': []
         }
 
-    for model_name, model_dict in main_models.items():
-        objs = model_dict['model'].objects.all()
-
+        objs = main_models[model_name]['model'].objects.all()
         for obj in objs:
             if model_name == 'Autor':
-                model_dict['kwargs']['nome'] = obj.nome
+                main_models[model_name]['kwargs']['nome'] = obj.nome
             elif model_name == 'Parlamentar':
-                model_dict['kwargs']['nome_parlamentar'] = obj.nome_parlamentar
+                main_models[model_name]['kwargs']['nome_parlamentar'] = obj.nome_parlamentar
 
-            pesquisa_obj = model_dict['model'].objects.filter(**model_dict['kwargs'])
+            pesquisa_obj = main_models[model_name]['model'].objects.filter(**main_models[model_name]['kwargs'])
             if pesquisa_obj.count() > 1:
                 multiplos_objs = [o.pk for o in pesquisa_obj]
                 multiplos_objs.sort()
