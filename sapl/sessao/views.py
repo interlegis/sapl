@@ -42,14 +42,14 @@ from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm, RetiradaPautaForm)
+                    VotacaoNominalForm, RetiradaPautaForm, OradorOrdemDiaForm)
 from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
-                     RetiradaPauta, TipoJustificativa, JustificativaAusencia)
+                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
@@ -616,6 +616,31 @@ class OradorExpedienteCrud(OradorCrud):
         def get_initial(self):
             return {'id_sessao': self.object.sessao_plenaria.id,
                     'numero': self.object.numero_ordem}
+
+
+class OradorOrdemDiaCrud(OradorCrud):
+    model = OradorOrdemDia
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = OradorOrdemDiaForm
+
+        def get_initial(self):
+            return {'id_sessao': self.kwargs['pk']}
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:oradorordemdia_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = OradorOrdemDiaForm
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+
+            initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero': self.object.numero_ordem})
+
+            return initial
 
 
 class OradorCrud(OradorCrud):
@@ -1290,7 +1315,8 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
                             'decimo': ordenacao.decimo,
                             'decimo_primeiro': ordenacao.decimo_primeiro,
                             'decimo_segundo': ordenacao.decimo_segundo,
-                            'decimo_terceiro': ordenacao.decimo_terceiro})
+                            'decimo_terceiro': ordenacao.decimo_terceiro,
+                            'decimo_quarto': ordenacao.decimo_quarto})
         return initial
 
     def form_valid(self, form):
@@ -1309,6 +1335,7 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
         ordenacao.decimo_primeiro = form.cleaned_data['decimo_primeiro']
         ordenacao.decimo_segundo = form.cleaned_data['decimo_segundo']
         ordenacao.decimo_terceiro = form.cleaned_data['decimo_terceiro']
+        ordenacao.decimo_quarto = form.cleaned_data['decimo_quarto']
 
         ordenacao.save()
 
@@ -1584,6 +1611,32 @@ def get_materias_ordem_do_dia(sessao_plenaria):
     return context
 
 
+def get_oradores_ordemdia(sessao_plenaria):
+    oradores = []
+
+    oradores_ordem_dia = OradorOrdemDia.objects.filter(
+        sessao_plenaria_id=sessao_plenaria.id
+    ).order_by('numero_ordem')
+
+    for orador in oradores_ordem_dia:
+        numero_ordem = orador.numero_ordem
+        url_discurso = orador.url_discurso
+        observacao = orador.observacao
+        parlamentar = Parlamentar.objects.get(
+            id=orador.parlamentar_id
+        )        
+        o = {
+            'numero_ordem': numero_ordem,
+            'url_discurso': url_discurso,
+            'parlamentar': parlamentar,
+            'observacao': observacao
+        }
+        oradores.append(o)
+
+    context = {'oradores_ordemdia': oradores}
+    return context 
+
+ 
 def get_oradores_explicações_pessoais(sessao_plenaria):
     oradores_explicacoes = []
     for orador in Orador.objects.filter(
@@ -1698,6 +1751,9 @@ class ResumoView(DetailView):
 
         context.update(get_materias_ordem_do_dia(self.object))
         # =====================================================================
+        # Oradores Ordem do Dia
+        context.update(get_oradores_ordemdia(self.object))
+        # =====================================================================       
         # Oradores nas Explicações Pessoais
         context.update(get_oradores_explicações_pessoais(self.object))
         # =====================================================================
@@ -1718,6 +1774,7 @@ class ResumoView(DetailView):
             'v_n_mat_o_d': 'votos_nominais_materias_ordem_dia.html',
             'mesa_d': 'mesa_diretora.html',
             'oradores_exped': 'oradores_expediente.html',
+            'oradores_o_d': 'oradores_ordemdia.html',
             'oradores_expli': 'oradores_explicacoes.html',
             'ocorr_sessao': 'ocorrencias_da_sessao.html'
         }
@@ -1737,7 +1794,8 @@ class ResumoView(DetailView):
                      'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
                      'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
                      'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
-                     'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro]})
+                     'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
+                     'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]})
             except KeyError as e:
                 self.logger.error('user=' + self.request.user.username + '. ' + "KeyError: " + str(e) + ". Erro "
                                   "ao tentar utilizar configuração de ordenação. Utilizando ordenação padrão.")
@@ -1753,8 +1811,9 @@ class ResumoView(DetailView):
                      'nono_ordenacao': dict_ord_template['lista_p_o_d'],
                      'decimo_ordenacao': dict_ord_template['mat_o_d'],
                      'decimo_primeiro_ordenacao': dict_ord_template['v_n_mat_o_d'],
-                     'decimo_segundo_ordenacao': dict_ord_template['oradores_expli'],
-                     'decimo_terceiro_ordenacao': dict_ord_template['ocorr_sessao']
+                     'decimo_segundo_ordenacao': dict_ord_template['oradores_o_d'],
+                     'decimo_terceiro_ordenacao': dict_ord_template['oradores_expli'],
+                     'decimo_quarto_ordenacao': dict_ord_template['ocorr_sessao']
                      })
         else:
             context.update(
@@ -1769,8 +1828,9 @@ class ResumoView(DetailView):
                  'nono_ordenacao': dict_ord_template['lista_p_o_d'],
                  'decimo_ordenacao': dict_ord_template['mat_o_d'],
                  'decimo_primeiro_ordenacao': dict_ord_template['v_n_mat_o_d'],
-                 'decimo_segundo_ordenacao': dict_ord_template['oradores_expli'],
-                 'decimo_terceiro_ordenacao': dict_ord_template['ocorr_sessao']
+                 'decimo_segundo_ordenacao': dict_ord_template['oradores_o_d'],
+                 'decimo_terceiro_ordenacao': dict_ord_template['oradores_expli'],
+                 'decimo_quarto_ordenacao': dict_ord_template['ocorr_sessao']
                  })
 
         return context

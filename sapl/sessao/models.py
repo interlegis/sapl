@@ -379,6 +379,14 @@ class OradorExpediente(AbstractOrador):  # OradoresExpediente
 
 
 @reversion.register()
+class OradorOrdemDia(AbstractOrador): # OradoresOrdemDia
+
+    class Meta:
+        verbose_name = _('Orador da Ordem do Dia')
+        verbose_name_plural = _('Oradores da Ordem do Dia')
+
+
+@reversion.register()
 class OrdemDia(AbstractOrdemDia):
 
     class Meta:
@@ -579,6 +587,7 @@ class ResumoOrdenacao(models.Model):
     decimo_primeiro = models.CharField(max_length=30,default="Ocorrências da Sessão")
     decimo_segundo = models.CharField(max_length=30, default="Votos Nominais Mat Expediente")
     decimo_terceiro = models.CharField(max_length=30, default="Votos Nominais Mat Ordem Dia")
+    decimo_quarto = models.CharField(max_length=30, default="Oradores da Ordem do Dia")
 
     class Meta:
         verbose_name = _('Ordenação do Resumo de uma Sessão')

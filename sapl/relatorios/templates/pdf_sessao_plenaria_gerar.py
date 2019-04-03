@@ -340,6 +340,24 @@ def votacao_vot_nom(lst_votacao_vot_nom):
     return tmp
 
 
+def oradores_ordemdia(lst_oradores_ordemdia):
+    """
+
+    """
+    tmp = ''
+    tmp += '\t\t<para style="P1">Oradores da Ordem do Dia</para>\n'
+    tmp += '\t\t<para style="P2">\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
+    tmp += '\t\t</para>\n'
+    for orador_ordemdia in lst_oradores_ordemdia:
+        tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
+        str(orador_ordemdia['num_ordem']) + '</b> - ' + \
+        orador_ordemdia['nome_parlamentar'] + '/' + \
+        str(orador_ordemdia['sigla']) + ' - ' + \
+        str(orador_ordemdia['observacao']) + '</para>\n'
+    return tmp
+
+
 def oradores(lst_oradores):
     """
 
@@ -374,7 +392,7 @@ def ocorrencias(lst_ocorrencias):
     return tmp
 
 
-def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_expediente_materia_vot_nom, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_votacao_vot_nom, lst_oradores, lst_ocorrencias):
+def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_expediente_materia_vot_nom, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_votacao_vot_nom, lst_oradores_ordemdia, lst_oradores, lst_ocorrencias):
     """
     """
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"
@@ -409,6 +427,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
         'v_n_mat_o_d': votacao_vot_nom(lst_votacao_vot_nom),
         'mesa_d': mesa(lst_mesa),
         'oradores_exped': oradores_expediente(lst_oradores_expediente),
+        'oradores_o_d': oradores_ordemdia(lst_oradores_ordemdia),
         'oradores_expli': oradores(lst_oradores),
         'ocorr_sessao': ocorrencias(lst_ocorrencias)
     }
@@ -428,6 +447,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
             tmp += dict_ord_template[ordenacao.decimo_primeiro]
             tmp += dict_ord_template[ordenacao.decimo_segundo]
             tmp += dict_ord_template[ordenacao.decimo_terceiro]
+            tmp += dict_ord_template[ordenacao.decimo_quarto]
         except KeyError as e:
             logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
                               "configuração de ordenação. Utilizando ordenação padrão.")
@@ -441,6 +461,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
             tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
             tmp += votacao(lst_votacao)
             tmp += votacao_vot_nom(lst_votacao_vot_nom)
+            tmp += oradores_ordemdia(lst_oradores_ordemdia)
             tmp += oradores(lst_oradores)
             tmp += ocorrencias(lst_ocorrencias)
 
@@ -455,6 +476,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
         tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
         tmp += votacao(lst_votacao)
         tmp += votacao_vot_nom(lst_votacao_vot_nom)
+        tmp += oradores_ordemdia(lst_oradores_ordemdia)
         tmp += oradores(lst_oradores)
         tmp += ocorrencias(lst_ocorrencias)
 
