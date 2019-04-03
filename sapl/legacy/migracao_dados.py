@@ -52,7 +52,6 @@ from sapl.utils import normalize
 
 from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
 
-
 # BASE ######################################################################
 #  apps to be migrated, in app dependency order (very important)
 appconfs = [apps.get_app_config(n) for n in [
@@ -840,9 +839,13 @@ def populate_renamed_fields(new, old):
             else:
                 value = getattr(old, old_field_name)
 
-                if (field_type in ['CharField', 'TextField']
-                        and value in [None, 'None']):
-                    value = ''
+                if field_type in ['CharField', 'TextField']:
+                    if value in [None, 'None']:
+                        value = ''
+                    else:
+                        # retira caracters nulos que o postgres não aceita
+                        # quando usamos bulk_create
+                        value = value.strip('\0')
 
                 # ajusta tempos segundo timezone
                 #  os campos TIMESTAMP do mysql são gravados em UTC
