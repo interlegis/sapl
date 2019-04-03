@@ -38,7 +38,8 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarParlFiliacoesIntersecaoView,
                     ListarAutoresDuplicadosView,
                     ListarBancadaComissaoAutorExternoView,
-                    ListarLegislaturaInfindavelView)
+                    ListarLegislaturaInfindavelView,
+                    pesquisa_textual)
 
 
 app_name = AppConfig.name
@@ -175,6 +176,9 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/legislatura_infindavel$',
         ListarLegislaturaInfindavelView.as_view(),
         name='lista_legislatura_infindavel'),
+    url(r'^sistema/pesquisa-textual',
+        pesquisa_textual,
+        name='pesquisa_textual'),
 
     url(r'^sistema/estatisticas', get_estatistica),
 

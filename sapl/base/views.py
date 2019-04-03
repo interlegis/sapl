@@ -27,6 +27,7 @@ from django.views.generic import (CreateView, DeleteView, FormView, ListView,
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
+from haystack.query import SearchQuerySet
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
@@ -44,7 +45,6 @@ from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
                         intervalos_tem_intersecao,)
-
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet,
@@ -1748,3 +1748,16 @@ class LogotipoView(RedirectView):
         casa = get_casalegislativa()
         logo = casa and casa.logotipo and casa.logotipo.name
         return os.path.join(settings.MEDIA_URL, logo) if logo else STATIC_LOGO
+
+def pesquisa_textual(request):
+    a = 1
+
+    request.GET['q']
+    results = SearchQuerySet().filter(content=request.GET['q'])
+    json_dict = {}
+    resultado = ''
+    for e in results:
+        resultado = resultado + str(e.object) + '/  '
+    json_dict["resultado"] = resultado
+
+    return JsonResponse(json_dict)
