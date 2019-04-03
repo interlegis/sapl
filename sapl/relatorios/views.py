@@ -28,10 +28,10 @@ from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
 from sapl.sessao.views import (get_identificação_basica, get_mesa_diretora,
-                                get_presenca_sessao,get_expedientes,
-                                get_materias_expediente,get_oradores_expediente,
-                                get_presenca_ordem_do_dia,get_materias_ordem_do_dia,
-                                get_oradores_explicações_pessoais, get_ocorrencias_da_sessão)
+                               get_presenca_sessao, get_expedientes,
+                               get_materias_expediente, get_oradores_expediente,
+                               get_presenca_ordem_do_dia, get_materias_ordem_do_dia,
+                               get_oradores_explicações_pessoais, get_ocorrencias_da_sessão, get_assinaturas)
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
@@ -578,6 +578,8 @@ def get_sessao_plenaria(sessao, casa):
         # unescape HTML codes
         # https://github.com/interlegis/sapl/issues/1046
         conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = re.sub('class=".*?"', '', conteudo)
+        conteudo = re.sub('<p\s+>', '<p>', conteudo)
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
@@ -1256,12 +1258,13 @@ def resumo_ata_pdf(request,pk):
     context.update(get_materias_ordem_do_dia(sessao_plenaria))
     context.update(get_oradores_explicações_pessoais(sessao_plenaria))
     context.update(get_ocorrencias_da_sessão(sessao_plenaria))
-    context.update({'object':sessao_plenaria})
+    context.update(get_assinaturas(sessao_plenaria))
+    context.update({'object': sessao_plenaria})
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
-    context.update({'rodape':rodape})
-    header_context = {"casa":casa, 'logotipo':casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+    context.update({'rodape': rodape})
+    header_context = {"casa": casa, 'logotipo':casa.logotipo, 'MEDIA_URL': MEDIA_URL}
 
-    html_template = render_to_string('relatorios/relatorio_ata.html',context)
+    html_template = render_to_string('relatorios/relatorio_ata.html', context)
     html_header = render_to_string('relatorios/header_ata.html', header_context)
 
     pdf_file = make_pdf(base_url=base_url,main_template=html_template,header_template=html_header)
