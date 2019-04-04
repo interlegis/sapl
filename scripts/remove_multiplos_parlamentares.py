@@ -1,5 +1,7 @@
 import re
 
+from django.core.exceptions import ObjectDoesNotExist
+
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
 from sapl.materia.models import Relatoria, UnidadeTramitacao, Autoria
@@ -78,17 +80,30 @@ def transfer_purge_congressman(congressman_lists):
     for congressman_list in congressman_lists:
         parlamentar_principal = Parlamentar.objects.get(pk=congressman_list[0])
         for pk in congressman_list[1:]:
+            parlamentar_clonado = Parlamentar.objects.get(pk=pk)
+            if parlamentar_clonado.biografia:
+                parlamentar_principal += f'\n\n------------------------\n\n{parlamentar_clonado.biografia}'
+
             for model in models:
                 for obj in model.objects.filter(parlamentar_id=pk):
                     # TODO: Validar objeto para não repeti-lo no parlamentar principal
                     obj.parlamentar_id = congressman_list[0]
                     obj.save()
-            parlamentar_clonado = Parlamentar.objects.get(pk=pk)
-            for autoria in Autoria.objects.filter(autor=parlamentar_clonado.id):
-                autoria.autor = parlamentar_principal.id
-                autoria.save()
-            # import ipdb; ipdb.set_trace()
-            # autor.save()
+
+            # TODO: Transferir para função de autor
+            try:
+                autor_principal = Autor.objects.get(parlamentar_set=parlamentar_principal)
+                autor_clonado = Autor.objects.get(parlamentar_set=parlamentar_clonado)
+                for autoria in Autoria.objects.filter(autor=autor_clonado):
+                    autoria.autor = autor_principal
+                    autoria.save()
+            except ObjectDoesNotExist:
+                try:
+                    autor_clonado = Autor.objects.get(parlamentar_set=parlamentar_clonado)
+                    autor_clonado.parlamentar_set = parlamentar_principal
+                except ObjectDoesNotExist:
+                    pass
+
             parlamentar_clonado.delete()
 
 
