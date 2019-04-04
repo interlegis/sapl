@@ -81,8 +81,11 @@ def transfer_purge_congressman(congressman_lists):
         parlamentar_principal = Parlamentar.objects.get(pk=congressman_list[0])
         for pk in congressman_list[1:]:
             parlamentar_clonado = Parlamentar.objects.get(pk=pk)
-            if parlamentar_clonado.biografia:
-                parlamentar_principal += f'\n\n------------------------\n\n{parlamentar_clonado.biografia}'
+            if parlamentar_principal.biografia and parlamentar_clonado.biografia:
+                parlamentar_principal.biografia += \
+                    f'{parlamentar_principal.biografia}\n\n------------------------\n\n{parlamentar_clonado.biografia}'
+            elif parlamentar_clonado.biografia:
+                parlamentar_principal.biografia = parlamentar_clonado.biografia
 
             for model in models:
                 for obj in model.objects.filter(parlamentar_id=pk):
@@ -90,6 +93,7 @@ def transfer_purge_congressman(congressman_lists):
                     obj.parlamentar_id = congressman_list[0]
                     obj.save()
 
+            # TODO: Arrumar try/except
             # TODO: Transferir para função de autor
             try:
                 autor_principal = Autor.objects.get(parlamentar_set=parlamentar_principal)
@@ -100,7 +104,7 @@ def transfer_purge_congressman(congressman_lists):
             except ObjectDoesNotExist:
                 try:
                     autor_clonado = Autor.objects.get(parlamentar_set=parlamentar_clonado)
-                    autor_clonado.parlamentar_set = parlamentar_principal
+                    parlamentar_principal.autor = autor_clonado
                 except ObjectDoesNotExist:
                     pass
 
