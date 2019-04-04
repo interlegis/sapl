@@ -26,7 +26,7 @@ import django_filters
 
 import sapl
 from sapl.base.models import AppConfig, Autor, TipoAutor
-from sapl.comissoes.models import Comissao, Participacao
+from sapl.comissoes.models import Comissao, Participacao, Composicao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
@@ -37,7 +37,7 @@ from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
-from sapl.parlamentares.models import Legislatura, Partido
+from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
@@ -345,7 +345,7 @@ class AcompanhamentoMateriaForm(ModelForm):
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                _('Acompanhamento de Matéria por e-mail'), 
+                _('Acompanhamento de Matéria por e-mail'),
                 row1,
                 form_actions(label='Cadastrar')
             )
@@ -362,34 +362,63 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
 
 
 class RelatoriaForm(ModelForm):
-
     logger = logging.getLogger(__name__)
+
+    composicao = forms.ModelChoiceField(
+        required=True,
+        empty_label='---------',
+        queryset=Composicao.objects.all(),
+        label=_('Composição')
+    )
 
     class Meta:
         model = Relatoria
-        fields = ['data_designacao_relator', 'comissao', 'parlamentar',
-                  'data_destituicao_relator', 'tipo_fim_relatoria']
+        fields = [
+            'comissao',
+            'data_designacao_relator',
+            'data_destituicao_relator',
+            'tipo_fim_relatoria',
+            'composicao',
+            'parlamentar'
+        ]
 
         widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
 
     def __init__(self, *args, **kwargs):
+        row1 = to_row([('comissao', 12)])
+        row2 = to_row([('data_designacao_relator', 4),
+                       ('data_destituicao_relator', 4),
+                       ('tipo_fim_relatoria', 4)])
+        row3 = to_row([('composicao', 4),
+                       ('parlamentar', 8)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Relatoria'), row1, row2, row3))
+
         super().__init__(*args, **kwargs)
+        comissao_pk = kwargs['initial']['comissao']
+        composicoes = Composicao.objects.filter(comissao_id=comissao_pk)
+        self.fields['composicao'].choices = [('', '---------')] + \
+                                            [(c.pk, c) for c in composicoes]
+
+        self.fields['parlamentar'].choices = [('', '---------')]
 
     def clean(self):
-        super(RelatoriaForm, self).clean()
-
-        if not self.is_valid():
-            return self.cleaned_data
+        super().clean()
 
         cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
 
         try:
             self.logger.debug("Tentando obter objeto Comissao.")
             comissao = Comissao.objects.get(id=self.initial['comissao'])
         except ObjectDoesNotExist as e:
-            self.logger.error("Objeto Comissao não encontrado com id={} "
-                              ".A localização atual deve ser uma comissão. "
-                              .format(self.initial['comissao']) + str(e))
+            self.logger.error(
+                "Objeto Comissao não encontrado com id={}. A localização atual deve ser uma comissão. ".format(
+                    self.initial['comissao']) + str(e))
             msg = _('A localização atual deve ser uma comissão.')
             raise ValidationError(msg)
         else:
@@ -727,7 +756,7 @@ class AnexadaForm(ModelForm):
         empty_label='Selecione',
     )
 
-    numero = forms.CharField(label='Número', required=True)
+    numero = forms.IntegerField(label='Número', required=True)
 
     ano = forms.CharField(label='Ano', required=True)
 
@@ -751,8 +780,8 @@ class AnexadaForm(ModelForm):
                 ano=cleaned_data['ano'],
                 tipo=cleaned_data['tipo'])
         except ObjectDoesNotExist:
-            msg = _('A MateriaLegislativa a ser anexada (numero={}, ano={}, tipo={}) não existe no cadastro'
-                    ' de matérias legislativas.'.format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            msg = _('A {} {}/{} não existe no cadastro de matérias legislativas.'
+                    .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
             self.logger.error("A matéria a ser anexada não existe no cadastro"
                               " de matérias legislativas.")
             raise ValidationError(msg)
@@ -1537,7 +1566,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
         tm, am, nm = (cd.get('tipo_materia', ''),
                       cd.get('ano_materia', ''),
                       cd.get('numero_materia', ''))
-        
+
         if cd['numero_materia_futuro'] and \
                 'tipo' in cd and \
                 MateriaLegislativa.objects.filter(tipo=cd['tipo'].tipo_conteudo_related,
@@ -1755,7 +1784,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 self._meta.fields.remove('regime_tramitacao')
 
         # esta chamada isola o __init__ de ProposicaoForm
-        super(ProposicaoForm, self).__init__(*args, **kwargs) 
+        super(ProposicaoForm, self).__init__(*args, **kwargs)
 
         fields = [
             Fieldset(
@@ -1831,7 +1860,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         self.fields['tipo_readonly'].initial = self.instance.tipo.descricao
         self.fields['autor_readonly'].initial = str(self.instance.autor)
         if self.instance.numero_materia_futuro:
-            self.fields['numero_materia_futuro'].initial = self.instance.numero_materia_futuro   
+            self.fields['numero_materia_futuro'].initial = self.instance.numero_materia_futuro
 
         if self.instance.materia_de_vinculo:
             self.fields[

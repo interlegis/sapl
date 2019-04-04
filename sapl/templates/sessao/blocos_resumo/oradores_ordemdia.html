@@ -1,0 +1,15 @@
+<fieldset>
+    <legend>Oradores da Ordem do Dia</legend>
+    <div class="row">
+        <div class="col-md-4">Parlamentar</div>
+        <div class="col-md-4">Discurso</div>
+        <div class="col-md-4">Observação</div>
+    </div>
+    <div class="row">
+        {% for orador in oradores_ordemdia %}
+            <div class="col-md-4"><b>{{ orador.numero_ordem }}</b> - {{ orador.parlamentar }}</div>
+            <div class="col-md-4">{{ orador.url_discurso }}</div>
+            <div class="col-md-4">{{ orador.observacao }}</div>
+        {% endfor %}
+    </div>
+</fieldset>

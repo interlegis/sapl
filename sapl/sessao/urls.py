@@ -4,7 +4,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                AdicionarVariasMateriasOrdemDia, BancadaCrud,
                                BlocoCrud, CargoBancadaCrud,
                                ExpedienteMateriaCrud, ExpedienteView, JustificativaAusenciaCrud,
-                               OcorrenciaSessaoView, MateriaOrdemDiaCrud, MesaView, OradorCrud,
+                               OcorrenciaSessaoView, MateriaOrdemDiaCrud, OradorOrdemDiaCrud,
+                               MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
                                PautaSessaoDetailView, PautaSessaoView,
                                PesquisarPautaSessaoView,
@@ -28,6 +29,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                remove_parlamentar_composicao,
                                reordernar_materias_expediente,
                                reordernar_materias_ordem,
+                               renumerar_materias_ordem,
+                               renumerar_materias_expediente,
                                sessao_legislativa_legislatura_ajax,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
                                VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView)
@@ -42,7 +45,9 @@ urlpatterns = [
                              OradorExpedienteCrud.get_urls() +
                              ExpedienteMateriaCrud.get_urls() +
                              JustificativaAusenciaCrud.get_urls() +
-                             MateriaOrdemDiaCrud.get_urls() + RetiradaPautaCrud.get_urls())),
+                             MateriaOrdemDiaCrud.get_urls() +
+                             OradorOrdemDiaCrud.get_urls() +
+                             RetiradaPautaCrud.get_urls())),
 
     url(r'^sessao/(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
 
@@ -75,6 +80,10 @@ urlpatterns = [
         name="reordenar_expediente"),
     url(r'^sessao/(?P<pk>\d+)/reordenar-ordem$', reordernar_materias_ordem,
         name="reordenar_ordem"),
+    url(r'^sessao/(?P<pk>\d+)/renumerar-ordem$', renumerar_materias_ordem,
+        name="renumerar_ordem"),
+    url(r'^sessao/(?P<pk>\d+)/renumerar-materias-expediente$', renumerar_materias_expediente,
+        name="renumerar_materias_expediente"),
     url(r'^sistema/sessao-plenaria/tipo/',
         include(TipoSessaoCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-resultado-votacao/',

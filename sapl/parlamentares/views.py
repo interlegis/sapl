@@ -3,6 +3,7 @@ import json
 import logging
 
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -33,7 +34,7 @@ from sapl.parlamentares.apps import AppConfig
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, ParlamentarFilterSet)
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, ParlamentarFilterSet, VincularParlamentarForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -1132,3 +1133,30 @@ def altera_field_mesa_public_view(request):
          'lista_fotos': lista_fotos,
          'sessao_selecionada': sessao_selecionada,
          'msg': ('', 1)})
+
+
+class VincularParlamentarView(PermissionRequiredMixin, FormView):
+    logger = logging.getLogger(__name__)
+    form_class = VincularParlamentarForm
+    template_name = 'parlamentares/vincular_parlamentar.html'
+    permission_required = ('parlamentares.add_parlamentar', )
+
+    def get_success_url(self):
+        return reverse('sapl.parlamentares:parlamentar_list')
+
+    def form_valid(self, form):
+        kwargs = {
+            'parlamentar': form.cleaned_data['parlamentar'],
+            'legislatura': form.cleaned_data['legislatura'],
+            'data_inicio_mandato': form.cleaned_data['legislatura'].data_inicio,
+            'data_fim_mandato': form.cleaned_data['legislatura'].data_fim
+        }
+
+        data_expedicao_diploma = form.cleaned_data.get('data_expedicao_diploma')
+        if data_expedicao_diploma:
+            kwargs.update({'data_expedicao_diploma': data_expedicao_diploma})
+
+        mandato = Mandato.objects.create(**kwargs)
+        mandato.save()
+
+        return HttpResponseRedirect(self.get_success_url())
