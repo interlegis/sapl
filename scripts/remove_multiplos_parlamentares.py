@@ -2,19 +2,19 @@ import re
 
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
-from sapl.materia.models import Relatoria, UnidadeTramitacao
+from sapl.materia.models import Relatoria, UnidadeTramitacao, Autoria
 from sapl.parlamentares.models import Parlamentar, ComposicaoMesa, Dependente, Filiacao, Mandato
 from sapl.sessao.models import IntegranteMesa, JustificativaAusencia, Orador, OradorExpediente, PresencaOrdemDia, \
     RetiradaPauta, SessaoPlenariaPresenca, VotoParlamentar
 
 
-def get_multiple():
+def get_multiples():
     models = [Autor, Parlamentar]
-    main_models = {}
+    multiples = {}
 
     for model in models:
         model_name = re.findall(r'\w+', str(model))[-1]
-        main_models[model_name] = {
+        multiples[model_name] = {
             'kwargs': {},
             'pks': []
         }
@@ -22,21 +22,24 @@ def get_multiple():
         objs = model.objects.all()
         for obj in objs:
             if model_name == 'Autor':
-                main_models[model_name]['kwargs']['nome'] = obj.nome
+                multiples[model_name]['kwargs']['nome'] = obj.nome
             elif model_name == 'Parlamentar':
-                main_models[model_name]['kwargs']['nome_parlamentar'] = obj.nome_parlamentar
+                multiples[model_name]['kwargs']['nome_parlamentar'] = obj.nome_parlamentar
 
-            pesquisa_obj = model.objects.filter(**main_models[model_name]['kwargs'])
+            pesquisa_obj = model.objects.filter(**multiples[model_name]['kwargs'])
             if pesquisa_obj.count() > 1:
                 multiplos_objs = [o.pk for o in pesquisa_obj]
                 multiplos_objs.sort()
 
-                if multiplos_objs not in main_models[model_name]['pks']:
-                    main_models[model_name]['pks'].append(multiplos_objs)
+                if multiplos_objs not in multiples[model_name]['pks']:
+                    multiples[model_name]['pks'].append(multiplos_objs)
 
-        main_models[model_name].pop('kwargs')
+        if not multiples[model_name]['pks']:
+            multiples.pop(model_name)
+        else:
+            multiples[model_name].pop('kwargs')
 
-    return main_models
+    return multiples
 
 
 def transfer_purge_author(author_lists):
@@ -67,55 +70,36 @@ def transfer_purge_author(author_lists):
             autor_clonado.delete()
 
 
-# def transfer_congressman(congressman_lists):
-#     models = [ComposicaoMesa, Dependente, Filiacao, IntegranteMesa, JustificativaAusencia, Mandato, Orador,
-#               OradorExpediente, Participacao, PresencaOrdemDia, Relatoria, RetiradaPauta, SessaoPlenariaPresenca,
-#               UnidadeTramitacao, VotoParlamentar]
-#     models_dict = {}
-#
-#     for model in models:
-#         model_str = re.findall('\w+', str(model))[-1]
-#         models_dict[model_str] = {
-#             'model': model,
-#             'objs': []
-#         }
-#
-#     for congressman_list in congressman_lists:
-#
-#         for pk in congressman_list:
-#         for pk in pks[1:]:
-#
-#             for model in models:
-#                 for obj in model.objects.filter(parlamentar_id=pk):
-#                     obj.parlamentar_id = pks[0]
-#                     obj.save()
+def transfer_purge_congressman(congressman_lists):
+    models = [ComposicaoMesa, Dependente, Filiacao, IntegranteMesa, JustificativaAusencia, Mandato, Orador,
+              OradorExpediente, Participacao, PresencaOrdemDia, Relatoria, RetiradaPauta, SessaoPlenariaPresenca,
+              UnidadeTramitacao, VotoParlamentar]
 
-
-# def purge(pks_dict):
-#     for model in top_models:
-#         model_name = re.findall(r'\w+', str(model))[-1]
-#
-#         lista = pks_dict.get(model_name)
-#         if lista:
-#             for pks in lista:
-#                 for pk in pks[1:]:
-#                     for obj in model.objects.filter(pk=pk):
-#                         obj.delete()
+    for congressman_list in congressman_lists:
+        parlamentar_principal = Parlamentar.objects.get(pk=congressman_list[0])
+        for pk in congressman_list[1:]:
+            for model in models:
+                for obj in model.objects.filter(parlamentar_id=pk):
+                    # TODO: Validar objeto para não repeti-lo no parlamentar principal
+                    obj.parlamentar_id = congressman_list[0]
+                    obj.save()
+            parlamentar_clonado = Parlamentar.objects.get(pk=pk)
+            for autoria in Autoria.objects.filter(autor=parlamentar_clonado.id):
+                autoria.autor = parlamentar_principal.id
+                autoria.save()
+            # import ipdb; ipdb.set_trace()
+            # autor.save()
+            parlamentar_clonado.delete()
 
 
 def main():
-    main_models = get_multiple()
+    multiples = get_multiples()
 
-    author_lists = main_models['Autor']['pks']
-    if author_lists:
-        transfer_purge_author(author_lists)
+    if multiples.get('Autor'):
+        transfer_purge_author(multiples['Autor']['pks'])
 
-    import ipdb; ipdb.set_trace()
-    # congressman_lists = main_models['Parlamentar']['pks']
-    # if congressman_lists:
-    #     transfer_congressman(congressman_lists)
-
-    # purge(main_models)
+    if multiples.get('Parlamentar'):
+        transfer_purge_congressman(multiples['Parlamentar']['pks'])
 
 
 if __name__ == '__main__':
