@@ -402,7 +402,16 @@ class RelatoriaForm(ModelForm):
         self.fields['composicao'].choices = [('', '---------')] + \
                                             [(c.pk, c) for c in composicoes]
 
-        self.fields['parlamentar'].choices = [('', '---------')]
+        # UPDATE
+        if self.initial['composicao'] and self.initial['parlamentar']:
+            parlamentares = [(p.parlamentar.id, p.parlamentar) for p in
+                             Participacao.objects.filter(composicao__comissao_id=comissao_pk,
+                                                         composicao_id=self.initial['composicao'])]
+
+            self.fields['parlamentar'].choices = [('', '---------')] + parlamentares
+        # INSERT
+        else:
+            self.fields['parlamentar'].choices = [('', '---------')]
 
     def clean(self):
         super().clean()
