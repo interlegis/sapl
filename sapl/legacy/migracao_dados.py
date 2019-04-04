@@ -839,13 +839,13 @@ def populate_renamed_fields(new, old):
             else:
                 value = getattr(old, old_field_name)
 
-                if field_type in ['CharField', 'TextField']:
-                    if value in [None, 'None']:
+                if field_type in ('CharField', 'TextField'):
+                    if value in (None, 'None'):
                         value = ''
-                    else:
+                    elif isinstance(value, str):
                         # retira caracters nulos que o postgres não aceita
                         # quando usamos bulk_create
-                        value = value.strip('\0')
+                        value = value.replace('\0', '')
 
                 # ajusta tempos segundo timezone
                 #  os campos TIMESTAMP do mysql são gravados em UTC
