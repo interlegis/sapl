@@ -44,7 +44,7 @@ from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, Bancada)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
-                        intervalos_tem_intersecao,)
+                        intervalos_tem_intersecao, remover_acentos)
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet,
@@ -1750,14 +1750,19 @@ class LogotipoView(RedirectView):
         return os.path.join(settings.MEDIA_URL, logo) if logo else STATIC_LOGO
 
 def pesquisa_textual(request):
-    a = 1
 
-    request.GET['q']
     results = SearchQuerySet().filter(content=request.GET['q'])
     json_dict = {}
-    resultado = ''
+    json_dict['total'] = results.count()
+    json_dict['parametros'] = request.GET['q']
+    json_dict['resultados'] = []
+
     for e in results:
-        resultado = resultado + str(e.object) + '/  '
-    json_dict["resultado"] = resultado
+        sec_dict = {}
+        sec_dict['objeto'] = str(e.object) #remover_acentos() para usar sem parser de json
+        sec_dict['pk'] = e.object.pk
+        sec_dict['model'] = str(type(e.object))
+        json_dict['resultados'].append(sec_dict)
+
 
     return JsonResponse(json_dict)
