@@ -28,11 +28,11 @@ from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
 from sapl.sessao.views import (get_identificação_basica, get_mesa_diretora,
-                               get_presenca_sessao,get_expedientes,
-                               get_materias_expediente,get_oradores_expediente,
+                               get_presenca_sessao, get_expedientes,
+                               get_materias_expediente, get_oradores_expediente,
                                get_presenca_ordem_do_dia, get_materias_ordem_do_dia,
                                get_oradores_ordemdia,
-                               get_oradores_explicações_pessoais, get_ocorrencias_da_sessão)
+                               get_oradores_explicações_pessoais, get_ocorrencias_da_sessão, get_assinaturas)
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
