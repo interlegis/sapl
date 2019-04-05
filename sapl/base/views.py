@@ -1751,17 +1751,32 @@ class LogotipoView(RedirectView):
 
 def pesquisa_textual(request):
 
+    if 'q' not in request.GET:
+        return JsonResponse({'total': 0,
+                             'resultados': []})
+
     results = SearchQuerySet().filter(content=request.GET['q'])
-    json_dict = {}
-    json_dict['total'] = results.count()
-    json_dict['parametros'] = request.GET['q']
-    json_dict['resultados'] = []
+    json_dict = {
+        'total': results.count(),
+        'parametros': request.GET['q'],
+        'resultados': [],
+    }
 
     for e in results:
+
         sec_dict = {}
-        sec_dict['objeto'] = str(e.object) #remover_acentos() para usar sem parser de json
-        sec_dict['pk'] = e.object.pk
+        try:
+            sec_dict['pk'] = e.object.pk
+        except:
+            # Index and db are out of sync. Object has been deleted from database
+            continue
+        sec_dict['objeto'] = str(e.object.__dict__)  # remover_acentos() para usar sem parser de json
+        sec_dict['text'] = str(e.object.ementa)
+        sec_dict['ano'] = str(e.object.ano)
+        sec_dict['numero'] = str(e.object.numero)
+
         sec_dict['model'] = str(type(e.object))
+
         json_dict['resultados'].append(sec_dict)
 
 
