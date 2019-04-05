@@ -403,7 +403,7 @@ class RelatoriaForm(ModelForm):
                                             [(c.pk, c) for c in composicoes]
 
         # UPDATE
-        if self.initial['composicao'] and self.initial['parlamentar']:
+        if self.initial.get('composicao') and self.initial.get('parlamentar'):
             parlamentares = [(p.parlamentar.id, p.parlamentar) for p in
                              Participacao.objects.filter(composicao__comissao_id=comissao_pk,
                                                          composicao_id=self.initial['composicao'])]
