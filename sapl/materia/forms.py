@@ -433,6 +433,10 @@ class RelatoriaForm(ModelForm):
         else:
             cleaned_data['comissao'] = comissao
 
+        if cleaned_data['data_designacao_relator'] < cleaned_data['composicao'].periodo.data_inicio \
+                or cleaned_data['data_designacao_relator'] > cleaned_data['composicao'].periodo.data_fim:
+            raise ValidationError(_('Data de designação deve estar dentro do período da composição.'))
+
         return cleaned_data
 
 
