@@ -26,7 +26,7 @@ from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
-    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo
+    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 
@@ -489,9 +489,8 @@ class _TramitacaoAdministrativoViewSet(BusinessRulesNotImplementedMixin):
         return qs
 
 
-class _AnexadoViewSet(
-        SaplSetViews['protocoloadm']['anexado'],
-        BusinessRulesNotImplementedMixin):
+@customize(Anexado)
+class _AnexadoViewSet(BusinessRulesNotImplementedMixin):
 
     permission_classes = (
         _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
@@ -504,8 +503,8 @@ class _AnexadoViewSet(
         return qs
 
 
-class _SessaoPlenariaViewSet(
-        SaplSetViews['sessao']['sessaoplenaria']):
+@customize(SessaoPlenaria)
+class _SessaoPlenariaViewSet:
 
     @action(detail=False)
     def years(self, request, *args, **kwargs):
