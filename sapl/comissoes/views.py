@@ -197,7 +197,8 @@ class ReuniaoCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['data', 'nome', 'tema']
+        list_field_names = ['data', 'nome', 'tema', 'upload_ata']
+        ordering = '-data'
 
     class ListView(MasterDetailCrud.ListView):
         logger = logging.getLogger(__name__)
