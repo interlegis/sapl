@@ -9,19 +9,20 @@ sapldb:
   volumes:
     - sapldb_data:/var/lib/postgresql/data/
   ports:
-    - "5432:5432"
+    - "5433:5432"
 saplredis:
   image: redis:5.0.3-stretch
   restart: always
   ports: 
     - "6379:6379"
 sapl:
-  image: interlegis/sapl:master
+  #image: interlegis/sapl:master
+  build: .
   restart: always
   environment:
     ADMIN_PASSWORD: interlegis
     ADMIN_EMAIL: email@dominio.net
-    DEBUG: 'False'
+    DEBUG: 'True'
     EMAIL_PORT: 587
     EMAIL_USE_TLS: 'False'
     EMAIL_HOST: smtp.dominio.net
@@ -40,3 +41,10 @@ sapl:
     - saplredis
   ports:
     - "80:80"
+saplcelery:
+  build: .
+  dockerfile: ./celery/celery_docker/Dockerfile
+  environment:
+    CELERY_BROKER_URL: redis://saplredis:6379
+  links:
+    - saplredis
