@@ -93,6 +93,25 @@ def reordernar_materias_ordem(request, pk):
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
+def renumerar_materias_ordem(request, pk):
+    ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
+
+    for ordem_num, o in enumerate(ordens, 1):
+        o.numero_ordem = ordem_num
+        o.save()
+
+    return HttpResponseRedirect(
+        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
+
+def renumerar_materias_expediente(request, pk):
+    expedientes = ExpedienteMateria.objects.filter(sessao_plenaria_id=pk)
+
+    for exp_num, e in enumerate(expedientes, 1):
+        e.numero_ordem = exp_num
+        e.save()
+
+    return HttpResponseRedirect(
+        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
 
 def verifica_presenca(request, model, spk):
     logger = logging.getLogger(__name__)
@@ -620,6 +639,7 @@ class OradorCrud(OradorCrud):
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero':self.object.numero_ordem})
 
             return initial
 
@@ -1378,9 +1398,15 @@ def get_materias_expediente(sessao_plenaria):
         ementa = m.materia.ementa
         titulo = m.materia
         numero = m.numero_ordem
-        tramitacao = m.materia.tramitacao_set.last()
-        turno = None
 
+        tramitacao = ''
+        tramitacoes = Tramitacao.objects.filter(materia=m.materia).order_by('-pk')
+        for aux_tramitacao in tramitacoes:
+            if aux_tramitacao.turno:
+                tramitacao = aux_tramitacao
+                break
+
+        turno = None
         if tramitacao:
             turno = get_turno(tramitacao.turno)
 
@@ -1486,7 +1512,14 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         ementa_observacao = o.observacao
         titulo = o.materia
         numero = o.numero_ordem
-        tramitacao = o.materia.tramitacao_set.last()
+
+        tramitacao = ''
+        tramitacoes = Tramitacao.objects.filter(materia=o.materia).order_by('-pk')
+        for aux_tramitacao in tramitacoes:
+            if aux_tramitacao.turno:
+                tramitacao = aux_tramitacao
+                break
+
         turno = None
         if tramitacao:
             turno = get_turno(tramitacao.turno)
