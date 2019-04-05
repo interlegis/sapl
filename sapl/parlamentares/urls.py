@@ -19,7 +19,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       parlamentares_frente_selected,
                                       remove_parlamentar_composicao,
                                       parlamentares_filiados,
-                                      PesquisarParlamentarView)
+                                      PesquisarParlamentarView, VincularParlamentarView)
 
 from .apps import AppConfig
 
@@ -40,6 +40,9 @@ urlpatterns = [
 
     url(r'^parlamentar/(?P<pk>\d+)/materias$',
         ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
+
+    url(r'^parlamentar/vincular-parlamentar/$',
+        VincularParlamentarView.as_view(), name='vincular_parlamentar'),
 
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +

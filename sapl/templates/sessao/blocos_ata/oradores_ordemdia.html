@@ -1,0 +1,13 @@
+<fieldset>
+	<p aling="justify">
+		{% if oradores_ordemdia %}
+			<strong>Oradores da Ordem do Dia: </strong>
+			{% for orador in oradores_ordemdia %}
+				<div><b>{{ orador.numero_ordem }}</b> - {{ orador.parlamentar.nome_completo }}</div>
+				<div>{{ orador.url_discurso }}</div>
+				<div>{{ orador.observacao }}</div>
+				</br>
+			{% endfor %}
+		{% endif %}
+	</p>
+</fieldset>

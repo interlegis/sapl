@@ -23,7 +23,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
-                                RegistroVotacao, VotoParlamentar)
+                                RegistroVotacao, VotoParlamentar, OradorOrdemDia)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
@@ -31,6 +31,7 @@ from sapl.sessao.views import (get_identificação_basica, get_mesa_diretora,
                                get_presenca_sessao, get_expedientes,
                                get_materias_expediente, get_oradores_expediente,
                                get_presenca_ordem_do_dia, get_materias_ordem_do_dia,
+                               get_oradores_ordemdia,
                                get_oradores_explicações_pessoais, get_ocorrencias_da_sessão, get_assinaturas)
 
 from .templates import (pdf_capa_processo_gerar,
@@ -780,6 +781,35 @@ def get_sessao_plenaria(sessao, casa):
         } 
         lst_votacao_vot_nom.append(dic_votacao_vot_nom)
 
+    # Lista dos oradores da Ordem do Dia
+    lst_oradores_ordemdia = []
+
+    oradores_ordem_dia = OradorOrdemDia.objects.filter(
+        sessao_plenaria=sessao
+    ).order_by('numero_ordem')
+
+    for orador_ordemdia in oradores_ordem_dia:
+        parlamentar_orador = Parlamentar.objects.get(
+            id=orador_ordemdia.parlamentar.id
+        )
+        
+        sigla_partido = Filiacao.objects.filter(
+            parlamentar=parlamentar_orador
+        ).first()
+
+        if not sigla_partido:
+            sigla_p = ""
+        else:
+            sigla_p = sigla_partido.partido.sigla
+        
+        dic_oradores_ordemdia = {
+            'num_ordem': orador_ordemdia.numero_ordem,
+            'nome_parlamentar': parlamentar_orador.nome_parlamentar,
+            'observacao': orador_ordemdia.observacao,
+            'sigla': sigla_p
+        }
+        lst_oradores_ordemdia.append(dic_oradores_ordemdia)
+
     # Lista dos oradores nas Explicações Pessoais
     lst_oradores = []
     for orador in Orador.objects.filter(
@@ -830,6 +860,7 @@ def get_sessao_plenaria(sessao, casa):
             lst_presenca_ordem_dia,
             lst_votacao,
             lst_votacao_vot_nom,
+            lst_oradores_ordemdia,
             lst_oradores,
             lst_ocorrencias)
 
@@ -886,7 +917,8 @@ def relatorio_sessao_plenaria(request, pk):
      lst_oradores_expediente,
      lst_presenca_ordem_dia,
      lst_votacao,
-     lst_votacao_vot_nom, 
+     lst_votacao_vot_nom,
+     lst_oradores_ordemdia, 
      lst_oradores,
      lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
 
@@ -910,6 +942,7 @@ def relatorio_sessao_plenaria(request, pk):
         lst_presenca_ordem_dia,
         lst_votacao,
         lst_votacao_vot_nom,
+        lst_oradores_ordemdia,
         lst_oradores,
         lst_ocorrencias)
 
@@ -1256,6 +1289,7 @@ def resumo_ata_pdf(request,pk):
     context.update(get_oradores_expediente(sessao_plenaria))
     context.update(get_presenca_ordem_do_dia(sessao_plenaria))
     context.update(get_materias_ordem_do_dia(sessao_plenaria))
+    context.update(get_oradores_ordemdia(sessao_plenaria))
     context.update(get_oradores_explicações_pessoais(sessao_plenaria))
     context.update(get_ocorrencias_da_sessão(sessao_plenaria))
     context.update(get_assinaturas(sessao_plenaria))

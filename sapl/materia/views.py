@@ -1987,7 +1987,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             file_path = os.path.join(diretorio, 
                                      request.FILES['arquivo'].name)
             shutil.copy2(tmp_name, file_path)
-            doc.arquivo.name = file_path.split(MEDIA_ROOT)[1] # Retira MEDIA_ROOT do nome
+            doc.arquivo.name = file_path.split(MEDIA_ROOT + "/")[1]  # Retira MEDIA_ROOT do nome
             doc.save()
         os.remove(tmp_name)
 

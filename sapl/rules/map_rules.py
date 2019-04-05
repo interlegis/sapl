@@ -175,6 +175,7 @@ rules_group_sessao = {
         (sessao.ExpedienteSessao, __base__, __perms_publicas__),
         (sessao.Orador, __base__, __perms_publicas__),
         (sessao.OradorExpediente, __base__, __perms_publicas__),
+        (sessao.OradorOrdemDia, __base__, __perms_publicas__),
         (sessao.OrdemDia, __base__, __perms_publicas__),
         (sessao.PresencaOrdemDia, __base__, __perms_publicas__),
         (sessao.RegistroVotacao, __base__, __perms_publicas__),

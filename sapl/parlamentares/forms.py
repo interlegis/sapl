@@ -525,3 +525,65 @@ class VotanteForm(ModelForm):
         votante.user = u
         votante.save()
         return votante
+
+
+class VincularParlamentarForm(forms.Form):
+    logger = logging.getLogger(__name__)
+
+    parlamentar = forms.ModelChoiceField(
+        label=Parlamentar._meta.verbose_name,
+        queryset=Parlamentar.objects.filter(ativo=True),
+        required=True,
+        empty_label='Selecione'
+    )
+
+    legislatura = forms.ModelChoiceField(
+        label=Legislatura._meta.verbose_name,
+        queryset=Legislatura.objects.all(),
+        required=True,
+        empty_label='Selecione'
+    )
+
+    data_expedicao_diploma = forms.DateField(
+        label='Data de Expedição do Diploma',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row([
+            ('parlamentar', 6),
+            ('legislatura', 3),
+            ('data_expedicao_diploma', 3)
+        ])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Vincular Parlamentar',
+                row1,
+                form_actions(label='Vincular')
+            )
+        )
+
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+        parlamentar = cleaned_data['parlamentar']
+        legislatura = cleaned_data['legislatura']
+        data_expedicao_diploma = cleaned_data['data_expedicao_diploma']
+
+        if parlamentar.mandato_set.filter(legislatura=legislatura):
+            self.logger.error('Parlamentar já está vinculado a legislatura informada.')
+            raise ValidationError(_('Parlamentar já está vinculado a legislatura informada.'))
+        elif data_expedicao_diploma and legislatura.data_inicio <= data_expedicao_diploma:
+            self.logger.error('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.')
+            raise ValidationError(_('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.'))
+
+        return cleaned_data
