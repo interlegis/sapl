@@ -188,6 +188,10 @@ def get_pk_legado(tabela):
         # adaptação para deleção correta no mysql ao final de migrar_model
         # acompanha o agrupamento de despacho_inicial feito em iter_sql_records
         return 'cod_materia', 'cod_comissao'
+    elif tabela == 'mesa_sessao_plenaria':
+        # retiramos 'cod_sessao_leg' redundante que da problema
+        # ao verificar se o registro já está migrado
+        return 'cod_cargo', 'cod_parlamentar', 'cod_sessao_plen'
     res = exec_legado(
         'show index from {} WHERE Key_name = "PRIMARY"'.format(tabela))
     return [r[4] for r in res]
@@ -235,17 +239,21 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
                             ('sql', sql)))
 
 
-@lru_cache()
-def _get_all_ids_from_model(model):
-    # esta função para uso apenas em get_fk_related
+def get_all_ids_from_model(model):
     return set(model.objects.values_list('id', flat=True))
+
+
+@lru_cache()
+def _cached_get_all_ids_from_model(model):
+    # esta função para uso apenas em get_fk_related
+    return get_all_ids_from_model(model)
 
 
 def get_fk_related(field, old):
     valor = getattr(old, campos_novos_para_antigos[field])
     if valor is None and field.null:
         return None
-    if valor in _get_all_ids_from_model(field.related_model):
+    if valor in _cached_get_all_ids_from_model(field.related_model):
         return valor
     elif valor == 0 and field.null:
         # consideramos zeros como nulos, se não está entre os ids anteriores
@@ -797,6 +805,9 @@ def fill_vinculo_norma_juridica():
 
 
 def fill_dados_basicos():
+    if AppConf.objects.exists():
+        # se estamos refazendo a migração não recriamos o appconf
+        return
     # Ajusta sequencia numérica de protocolo e cria base.AppConfig
     if (TipoNumeracaoProtocolo._meta.db_table in TABELAS_LEGADO
             and TipoNumeracaoProtocolo.objects.exists()):
@@ -872,7 +883,18 @@ def get_arquivo_ajustes_pre_migracao():
         'ajustes_pre_migracao', '{}.sql'.format(SIGLA_CASA))
 
 
-def migrar_dados(apagar_do_legado=False):
+def do_flush():
+    # excluindo database antigo.
+    info('Excluindo entradas antigas do banco destino.')
+    FlushCommand().handle(database='default', interactive=False, verbosity=0)
+
+    # apaga tipos de autor padrão (criados no flush acima)
+    TipoAutor.objects.all().delete()
+
+    fill_vinculo_norma_juridica()
+
+
+def migrar_dados(flush=False, apagar_do_legado=False):
     try:
         ocorrencias.clear()
         ocorrencias.default_factory = list
@@ -896,16 +918,10 @@ def migrar_dados(apagar_do_legado=False):
 
         uniformiza_banco()
 
-        # excluindo database antigo.
-        info('Excluindo entradas antigas do banco destino.')
-        flush = FlushCommand()
-        flush.handle(database='default', interactive=False, verbosity=0)
-
-        # apaga tipos de autor padrão (criados no flush acima)
-        TipoAutor.objects.all().delete()
-
-        fill_vinculo_norma_juridica()
+        if flush:
+            do_flush()
         fill_dados_basicos()
+
         info('Começando migração: ...')
         migrar_todos_os_models(apagar_do_legado)
     except Exception as e:
@@ -970,7 +986,9 @@ def migrar_model(model, apagar_do_legado):
         get_estrutura_legado(model)
 
     if len(campos_pk_legado) == 1:
-        # a pk no legado tem um único campo
+
+        # A PK NO LEGADO TEM UM ÚNICO CAMPO
+
         nome_pk = model_legado._meta.pk.name
         if 'ind_excluido' in {f.name for f in model_legado._meta.fields}:
             # se o model legado tem o campo ind_excluido
@@ -983,12 +1001,29 @@ def migrar_model(model, apagar_do_legado):
         def get_id_do_legado(old):
             return getattr(old, nome_pk)
 
+        ids_ja_migrados = get_all_ids_from_model(model)
+
+        def ja_esta_migrado(old):
+            id = get_id_do_legado(old)
+            return id in ids_ja_migrados
+
         ultima_pk_legado = model_legado.objects.all().aggregate(
             Max('pk'))['pk__max'] or 0
     else:
-        # a pk no legado tem mais de um campo
+
+        # A PK NO LEGADO TEM MAIS DE UM CAMPO
+
         old_records = iter_sql_records(tabela_legado)
         get_id_do_legado = None
+
+        renames = field_renames[model]
+        campos_velhos_p_novos = {v: k for k, v in renames.items()}
+
+        def ja_esta_migrado(old):
+            chave = {campos_velhos_p_novos[c]: getattr(old, c)
+                     for c in campos_pk_legado}
+            return model.objects.filter(**chave).exists()
+
         ultima_pk_legado = model_legado.objects.count()
 
     ajuste_antes_salvar = AJUSTE_ANTES_SALVAR.get(model)
@@ -999,6 +1034,9 @@ def migrar_model(model, apagar_do_legado):
         novos = []
         sql_delete_legado = ''
         for old in old_records:
+            if ja_esta_migrado(old):
+                # pulamos esse objeto, pois já foi migrado anteriormente
+                continue
             new = model()
             if get_id_do_legado:
                 new.id = get_id_do_legado(old)

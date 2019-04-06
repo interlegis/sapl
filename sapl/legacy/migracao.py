@@ -18,7 +18,7 @@ def adornar_msg(msg):
     return '\n{1}\n{0}\n{1}'.format(msg, '#' * len(msg))
 
 
-def migrar(apagar_do_legado=False):
+def migrar(flush=False, apagar_do_legado=False):
     if TAG_MARCO in REPO.tags:
         info('A migração já está feita.')
         return
