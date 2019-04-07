@@ -26,9 +26,10 @@ def migrar(flush=False, apagar_do_legado=False):
         'Antes de migrar '
         'é necessário fazer a exportação de documentos do zope')
     management.call_command('migrate')
-    migrar_dados(apagar_do_legado)
-    migrar_usuarios(REPO.working_dir)
-    migrar_documentos(REPO)
+    primeira_migracao = migrar_dados(flush, apagar_do_legado)
+    print('#' * 100, primeira_migracao)  # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    migrar_usuarios(REPO.working_dir, primeira_migracao)
+    migrar_documentos(REPO, primeira_migracao)
     gravar_marco()
     # compactar_media()
 

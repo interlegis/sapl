@@ -45,7 +45,7 @@ def decode_nome(nome):
         return nome
 
 
-def migrar_usuarios(dir_repo):
+def migrar_usuarios(dir_repo, primeira_migracao):
     """
     Lê o arquivo <dir_repo>/usuarios.yaml e importa os usuários nele listados,
     com senhas e perfis.
@@ -68,6 +68,10 @@ def migrar_usuarios(dir_repo):
     * Operador Lexml
       Também podemos assumir que essa é uma tarefa de um administrador
     """
+
+    if not primeira_migracao:
+        print('Pulando migração de usuários')
+        return
 
     ARQUIVO_USUARIOS = Path(dir_repo).child('usuarios.yaml')
     with open(ARQUIVO_USUARIOS, 'r') as f:

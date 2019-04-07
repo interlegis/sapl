@@ -141,6 +141,10 @@ def migrar_docs_por_ids(repo, model):
                 # associa documento ao objeto
                 obj = objetos.get(id)
                 if obj:
+                    if getattr(obj, campo):
+                        # se o campo está preenchido pulamos
+                        # pois talvez tenha sido preenchido em produção
+                        continue
                     destino = upload_to(obj, os.path.basename(origem))
                     mover_documento(repo, origem, destino)
                     setattr(obj, campo, destino)
@@ -155,7 +159,7 @@ def migrar_docs_por_ids(repo, model):
                     print(msg.format(model.__name__, id, origem))
 
 
-def migrar_documentos(repo):
+def migrar_documentos(repo, primeira_migracao):
     # aqui supomos que as pastas XSLT e sapl_documentos estão em
     # <repo.working_dir> com o conteúdo exportado do zope
     # Os arquivos das pastas serão (git) MOVIDOS para a nova estrutura!
@@ -166,7 +170,8 @@ def migrar_documentos(repo):
     mover_documento(repo, 'XSLT', 'sapl/public/XSLT',
                     ignora_origem_ausente=True)
 
-    migrar_propriedades_da_casa(repo)
+    if primeira_migracao:
+        migrar_propriedades_da_casa(repo)
 
     # garante que o conteúdo das fotos dos parlamentares esteja presente
     # (necessário para o cropping de imagem)
@@ -187,7 +192,7 @@ def migrar_documentos(repo):
                 for file in files]
     if sobrando:
         print('\n#### Encerrado ####\n\n'
-              '{} documentos sobraram sem ser migrados!!!'.format(
+              '{} documentos sobraram sem ser migrados!!!\n'.format(
                   len(sobrando)))
 
 

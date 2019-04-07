@@ -804,10 +804,10 @@ def fill_vinculo_norma_juridica():
     TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
 
 
-def fill_dados_basicos():
+def criar_configuracao_inicial():
     if AppConf.objects.exists():
         # se estamos refazendo a migração não recriamos o appconf
-        return
+        return False
     # Ajusta sequencia numérica de protocolo e cria base.AppConfig
     if (TipoNumeracaoProtocolo._meta.db_table in TABELAS_LEGADO
             and TipoNumeracaoProtocolo.objects.exists()):
@@ -824,6 +824,7 @@ def fill_dados_basicos():
         sequencia_numeracao = 'A'
     appconf = AppConf(sequencia_numeracao=sequencia_numeracao)
     appconf.save()
+    return True
 
 
 def reinicia_sequence(model, id):
@@ -920,7 +921,7 @@ def migrar_dados(flush=False, apagar_do_legado=False):
 
         if flush:
             do_flush()
-        fill_dados_basicos()
+        primeira_migracao = criar_configuracao_inicial()
 
         info('Começando migração: ...')
         migrar_todos_os_models(apagar_do_legado)
@@ -940,6 +941,7 @@ def migrar_dados(flush=False, apagar_do_legado=False):
 
     # recria tipos de autor padrão que não foram criados pela migração
     cria_models_tipo_autor()
+    return primeira_migracao
 
 
 def move_para_depois_de(lista, movido, referencias):
@@ -1464,6 +1466,9 @@ def gravar_marco():
     """
     # prepara ou localiza repositorio
     dir_dados = Path(REPO.working_dir, 'dados')
+    # limpa todo o conteúdo antes
+    dir_dados.rmtree()
+    dir_dados.mkdir()
 
     # exporta dados como arquivos yaml
     user_model = get_user_model()
