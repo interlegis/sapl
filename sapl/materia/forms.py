@@ -402,7 +402,16 @@ class RelatoriaForm(ModelForm):
         self.fields['composicao'].choices = [('', '---------')] + \
                                             [(c.pk, c) for c in composicoes]
 
-        self.fields['parlamentar'].choices = [('', '---------')]
+        # UPDATE
+        if self.initial.get('composicao') and self.initial.get('parlamentar'):
+            parlamentares = [(p.parlamentar.id, p.parlamentar) for p in
+                             Participacao.objects.filter(composicao__comissao_id=comissao_pk,
+                                                         composicao_id=self.initial['composicao'])]
+
+            self.fields['parlamentar'].choices = [('', '---------')] + parlamentares
+        # INSERT
+        else:
+            self.fields['parlamentar'].choices = [('', '---------')]
 
     def clean(self):
         super().clean()
@@ -423,6 +432,10 @@ class RelatoriaForm(ModelForm):
             raise ValidationError(msg)
         else:
             cleaned_data['comissao'] = comissao
+
+        if cleaned_data['data_designacao_relator'] < cleaned_data['composicao'].periodo.data_inicio \
+                or cleaned_data['data_designacao_relator'] > cleaned_data['composicao'].periodo.data_fim:
+            raise ValidationError(_('Data de designação deve estar dentro do período da composição.'))
 
         return cleaned_data
 
