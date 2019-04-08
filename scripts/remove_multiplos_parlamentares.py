@@ -82,10 +82,9 @@ def transfer_purge_congressman(congressman_lists):
         for pk in congressman_list[1:]:
             parlamentar_clonado = Parlamentar.objects.get(pk=pk)
             if parlamentar_principal.biografia and parlamentar_clonado.biografia:
+                # TODO: copia de biografia não está acontecendo
                 parlamentar_principal.biografia = \
-                    f'{parlamentar_principal.biografia}' \
-                    f'\n\n------------------------\n\n' \
-                    f'{parlamentar_clonado.biografia}'
+                    f'{parlamentar_principal.biografia}\n\n------------------------\n\n{parlamentar_clonado.biografia}'
                 parlamentar_principal.save()
             elif parlamentar_clonado.biografia:
                 parlamentar_principal.biografia = parlamentar_clonado.biografia
@@ -95,7 +94,6 @@ def transfer_purge_congressman(congressman_lists):
                     obj.parlamentar_id = congressman_list[0]
                     obj.save()
 
-            # TODO: Transferir para função de autor
             try:
                 autor_principal = Autor.objects.get(parlamentar_set=parlamentar_principal)
             except ObjectDoesNotExist:
@@ -112,14 +110,14 @@ def transfer_purge_congressman(congressman_lists):
                 except ObjectDoesNotExist:
                     pass
                 else:
-                    for autoria in Autoria.objects.filter(autor=autor_clonado):
-                        autoria.autor = autor_principal
-                        autoria.save()
+                    transfer_purge_author([[autor_principal.id, autor_clonado.id]])
 
             parlamentar_clonado.delete()
 
 
 def main():
+    # TODO: verificar porque há matérias que não estão sendo copiadas
+
     multiples = get_multiples()
 
     if multiples.get('Autor'):
