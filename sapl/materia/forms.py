@@ -3,7 +3,6 @@ import logging
 import os
 
 from crispy_forms.bootstrap import Alert, InlineRadios
-from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row)
 from django import forms
@@ -31,6 +30,7 @@ from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  MateriaLegislativa, Orgao, RegimeTramitacao,
                                  TipoDocumento, TipoProposicao, StatusTramitacao,
@@ -408,7 +408,8 @@ class RelatoriaForm(ModelForm):
                              Participacao.objects.filter(composicao__comissao_id=comissao_pk,
                                                          composicao_id=self.initial['composicao'])]
 
-            self.fields['parlamentar'].choices = [('', '---------')] + parlamentares
+            self.fields['parlamentar'].choices = [
+                ('', '---------')] + parlamentares
         # INSERT
         else:
             self.fields['parlamentar'].choices = [('', '---------')]
@@ -435,7 +436,8 @@ class RelatoriaForm(ModelForm):
 
         if cleaned_data['data_designacao_relator'] < cleaned_data['composicao'].periodo.data_inicio \
                 or cleaned_data['data_designacao_relator'] > cleaned_data['composicao'].periodo.data_fim:
-            raise ValidationError(_('Data de designação deve estar dentro do período da composição.'))
+            raise ValidationError(
+                _('Data de designação deve estar dentro do período da composição.'))
 
         return cleaned_data
 
@@ -465,9 +467,12 @@ class TramitacaoForm(ModelForm):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
         self.fields['data_tramitacao'].initial = timezone.now().date()
         ust = UnidadeTramitacao.objects.select_related().all()
-        unidade_tramitacao_destino = [('', '---------')]+[(ut.pk, ut) for ut in ust if ut.comissao and ut.comissao.ativa]
-        unidade_tramitacao_destino.extend([(ut.pk, ut) for ut in ust if ut.orgao])
-        unidade_tramitacao_destino.extend([(ut.pk, ut) for ut in ust if ut.parlamentar])
+        unidade_tramitacao_destino = [('', '---------')] + [(ut.pk, ut)
+                                                            for ut in ust if ut.comissao and ut.comissao.ativa]
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.orgao])
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.parlamentar])
         self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
 
     def clean(self):
@@ -1182,6 +1187,7 @@ class AcessorioEmLoteFilterSet(django_filters.FilterSet):
             Fieldset(_('Documentos Acessórios em Lote'),
                      row1, row2, form_actions(label='Pesquisar')))
 
+
 class AnexadaEmLoteFilterSet(django_filters.FilterSet):
 
     class Meta(FilterOverridesMetaMixin):
@@ -1583,8 +1589,8 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
         if cd['numero_materia_futuro'] and \
                 'tipo' in cd and \
                 MateriaLegislativa.objects.filter(tipo=cd['tipo'].tipo_conteudo_related,
-                                                                             ano=timezone.now().year,
-                                                                             numero=cd['numero_materia_futuro']):
+                                                  ano=timezone.now().year,
+                                                  numero=cd['numero_materia_futuro']):
             raise ValidationError(_("A matéria {} {}/{} já existe.".format(cd['tipo'].tipo_conteudo_related.descricao,
                                                                            cd['numero_materia_futuro'],
                                                                            timezone.now().year)))
@@ -2003,14 +2009,13 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             if numeracao is None:
                 numero['numero__max'] = 0
 
-
             if cd['numero_materia_futuro'] and not MateriaLegislativa.objects.filter(tipo=tipo,
                                                                                      ano=ano,
                                                                                      numero=cd['numero_materia_futuro']):
                 max_numero = cd['numero_materia_futuro']
             else:
-                max_numero = numero['numero__max'] + 1 if numero['numero__max'] else 1
-
+                max_numero = numero['numero__max'] + \
+                    1 if numero['numero__max'] else 1
 
             # dados básicos
             materia = MateriaLegislativa()
@@ -2501,7 +2506,9 @@ class MateriaPesquisaSimplesForm(forms.Form):
                 raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e '
                                         'Data Final devem ser preenchidos obrigatoriamente'))
             elif data_inicial > data_final:
-                self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(data_final, data_inicial))
-                raise ValidationError(_('A Data Final não pode ser menor que a Data Inicial'))
+                self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(
+                    data_final, data_inicial))
+                raise ValidationError(
+                    _('A Data Final não pode ser menor que a Data Inicial'))
 
         return cleaned_data
