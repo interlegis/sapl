@@ -298,11 +298,10 @@ class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
     def save(self, commit=False):
         anexo = self.instance
         anexo.ano = self.cleaned_data['norma'].ano
-        anexo = super(AnexoNormaJuridicaForm, self).save(commit=True)
         anexo.norma = self.cleaned_data['norma']
         anexo.assunto_anexo = self.cleaned_data['assunto_anexo']
         anexo.anexo_arquivo = self.cleaned_data['anexo_arquivo']
-        anexo.save()
+        anexo = super(AnexoNormaJuridicaForm, self).save(commit=True)
         return anexo
 
 
