@@ -11,7 +11,6 @@ from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
 
 @pytest.mark.django_db(transaction=False)
 def test_cadastro_parlamentar(admin_client):
-    legislatura = mommy.make(Legislatura)
 
     url = reverse('sapl.parlamentares:parlamentar_create')
     response = admin_client.get(url)
@@ -20,9 +19,7 @@ def test_cadastro_parlamentar(admin_client):
     response = admin_client.post(url, {'nome_completo': 'Teresa Barbosa',
                                        'nome_parlamentar': 'Terezinha',
                                        'sexo': 'F',
-                                       'ativo': 'True',
-                                       'legislatura': legislatura.id,
-                                       'data_expedicao_diploma': '2001-01-01'},
+                                       'ativo': 'True'},
                                  follow=True)
 
     [parlamentar] = Parlamentar.objects.all()
@@ -32,9 +29,6 @@ def test_cadastro_parlamentar(admin_client):
     # o primeiro mandato é criado
     [mandato] = Mandato.objects.all()
     assert mandato.parlamentar == parlamentar
-    assert str(mandato.data_expedicao_diploma) == '2001-01-01'
-    assert mandato.legislatura == legislatura
-    assert mandato.data_fim_mandato == legislatura.data_fim
 
 
 @pytest.mark.django_db(transaction=False)
@@ -42,9 +36,7 @@ def test_incluir_parlamentar_errors(admin_client):
     url = reverse('sapl.parlamentares:parlamentar_create')
     response = admin_client.post(url)
     erros_esperados = {campo: ['Este campo é obrigatório.']
-                       for campo in ['legislatura',
-                                     'data_expedicao_diploma',
-                                     'nome_parlamentar',
+                       for campo in ['nome_parlamentar',
                                      'nome_completo',
                                      'sexo',
                                      ]}
