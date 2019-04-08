@@ -351,3 +351,20 @@ class AnexoNormaJuridica(models.Model):
     def __str__(self):
         return _('Anexo: %(anexo)s da norma %(norma)s') % {
             'anexo': self.anexo_arquivo, 'norma': self.norma}
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.anexo_arquivo:
+            anexo_arquivo = self.anexo_arquivo
+            self.anexo_arquivo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.anexo_arquivo = anexo_arquivo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
