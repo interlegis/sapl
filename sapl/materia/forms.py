@@ -809,9 +809,11 @@ class AnexadaForm(ModelForm):
             self.logger.error("Matéria não pode ser anexada a si mesma.")
             raise ValidationError(_('Matéria não pode ser anexada a si mesma'))
 
-        is_anexada = Anexada.objects.filter(materia_principal=materia_principal,
-                                            materia_anexada=materia_anexada
-                                            ).exists()
+        is_anexada = Anexada.objects.filter(
+            materia_principal=materia_principal,
+            materia_anexada=materia_anexada
+        ).exclude(pk=self.instance.pk).exists()
+
         if is_anexada:
             self.logger.error("Matéria já se encontra anexada.")
             raise ValidationError(_('Matéria já se encontra anexada'))
