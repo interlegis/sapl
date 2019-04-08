@@ -26,9 +26,6 @@ def test_cadastro_parlamentar(admin_client):
     assert parlamentar.nome_parlamentar == 'Terezinha'
     assert parlamentar.sexo == 'F'
     assert parlamentar.ativo is True
-    # o primeiro mandato é criado
-    [mandato] = Mandato.objects.all()
-    assert mandato.parlamentar == parlamentar
 
 
 @pytest.mark.django_db(transaction=False)
