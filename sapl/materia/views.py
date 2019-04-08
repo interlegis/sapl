@@ -14,7 +14,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.http import HttpResponse, JsonResponse
@@ -1945,6 +1945,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AcessorioEmLoteFilterSet
     template_name = 'materia/em_lote/acessorio.html'
     permission_required = ('materia.add_documentoacessorio',)
+    logger = logging.getLogger(__name__)
 
     def get_context_data(self, **kwargs):
         context = super(DocumentoAcessorioEmLoteView,
@@ -1966,6 +1967,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         return context
 
     def post(self, request, *args, **kwargs):
+        username = request.user.username
         marcadas = request.POST.getlist('materia_id')
 
         if len(marcadas) == 0:
@@ -1981,14 +1983,21 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             msg = _('Autor tem que ter menos do que 50 caracteres.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
-
-        tmp_name = os.path.join(tempfile.gettempdir(), request.FILES['arquivo'].name)
+            
+        tmp_name = os.path.join(MEDIA_ROOT, request.FILES['arquivo'].name)
         with open(tmp_name, 'wb') as destination:
             for chunk in request.FILES['arquivo'].chunks():
                 destination.write(chunk)
+        try:
+            doc_data = tz.localize(datetime.strptime(
+                                    request.POST['data'], "%d/%m/%Y"))
+        except Exception as e:
+                msg = _('Formato da data incorreto. O formato deve ser da forma dd/mm/aaaa.')
+                messages.add_message(request, messages.ERROR, msg)
+                self.logger.error("User=" + username + ". " + str(msg) + " Data inserida: " + request.POST['data'])
+                os.remove(tmp_name)
+                return self.get(request, self.kwargs)
 
-        doc_data = tz.localize(datetime.strptime(
-                                        request.POST['data'], "%d/%m/%Y"))
         for materia_id in marcadas:
             doc = DocumentoAcessorio()
             doc.materia_id = materia_id
@@ -1997,6 +2006,18 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             doc.data = doc_data
             doc.autor = request.POST['autor']
             doc.ementa = request.POST['ementa']
+            doc.arquivo.name = tmp_name
+            try:
+                doc.clean_fields()
+            except ValidationError as e:
+                for m in [ '%s: %s' % (DocumentoAcessorio()._meta.get_field(k).verbose_name, '</br>'.join(v)) 
+                          for k,v in e.message_dict.items() ]:
+                    # Insere as mensagens de erro no formato:
+                    # 'verbose_name do nome do campo': 'mensagem de erro'
+                    messages.add_message(request, messages.ERROR, m)
+                    self.logger.error("User=" + username + ". " + m + ". Nome do arquivo: " + request.FILES['arquivo'].name);
+                os.remove(tmp_name)
+                return self.get(request, self.kwargs)
             doc.save()
             diretorio =  os.path.join(MEDIA_ROOT,
                                       'sapl/public/documentoacessorio', 
