@@ -1994,7 +1994,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         except Exception as e:
                 msg = _('Formato da data incorreto. O formato deve ser da forma dd/mm/aaaa.')
                 messages.add_message(request, messages.ERROR, msg)
-                self.logger.error("User=" + username + ". " + str(msg) + " Data inserida: " + request.POST['data'])
+                self.logger.error("User={}. {}. Data inserida: {}".format(username, str(msg), request.POST['data']))
                 os.remove(tmp_name)
                 return self.get(request, self.kwargs)
 
@@ -2015,7 +2015,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
                     # Insere as mensagens de erro no formato:
                     # 'verbose_name do nome do campo': 'mensagem de erro'
                     messages.add_message(request, messages.ERROR, m)
-                    self.logger.error("User=" + username + ". " + m + ". Nome do arquivo: " + request.FILES['arquivo'].name);
+                    self.logger.error("User={}. {}. Nome do arquivo: {}.".format(username, str(msg), request.FILES['arquivo'].name))
                 os.remove(tmp_name)
                 return self.get(request, self.kwargs)
             doc.save()
