@@ -33,7 +33,7 @@ import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
 from sapl.base.signals import tramitacao_signal
-from sapl.comissoes.models import Comissao, Participacao
+from sapl.comissoes.models import Comissao, Participacao, Composicao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
 from sapl.compilacao.views import IntegracaoTaView
@@ -1134,6 +1134,26 @@ class RelatoriaCrud(MasterDetailCrud):
         form_class = RelatoriaForm
         layout_key = None
         logger = logging.getLogger(__name__)
+
+        def get_initial(self):
+            relatoria = Relatoria.objects.get(id=self.kwargs['pk'])
+            parlamentar = relatoria.parlamentar
+            comissao = relatoria.comissao
+            composicoes = [p.composicao for p in
+                            Participacao.objects.filter(
+                                parlamentar=parlamentar,
+                                composicao__comissao=comissao)]
+            data_designacao = relatoria.data_designacao_relator
+            composicao = ''
+            for c in composicoes:
+                data_inicial = c.periodo.data_inicio
+                data_fim = c.periodo.data_fim if c.periodo.data_fim else timezone.now().date()
+                if data_inicial <= data_designacao <= data_fim:
+                    composicao = c.id
+                    break
+            return {'comissao': relatoria.comissao.id,
+                    'parlamentar': relatoria.parlamentar.id,
+                    'composicao': composicao}
 
 
 class TramitacaoCrud(MasterDetailCrud):
