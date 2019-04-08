@@ -3,8 +3,9 @@
 	{% if oradores_explicacoes %}
      <strong>Oradores das Explicações Pessoais: </strong>
 		{% for o in oradores_explicacoes %}
-			<b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_completo}} / {{ o.parlamentar.filiacao_atual }} ;  
-			{{o.url_discurso}}
+	        <b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_completo}} / {{ o.parlamentar.filiacao_atual }}
+				{% if o.observacao %} - {{o.observacao}} {% endif %}
+			{% if not forloop.last %} ; {% endif %}
 		{% endfor %}
 	{% endif %}
     </p>

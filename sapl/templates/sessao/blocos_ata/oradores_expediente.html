@@ -3,10 +3,9 @@
 	{% if oradores %}
     	<strong>Oradores do Expediente: </strong>
     	{% for o in oradores %}
-	        <div><b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_completo}}</div>
-        	<div>{{o.url_discurso}}</div>
-        	<div>{{o.observacao}}</div>
-        	</br>
+	        <b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_completo}} / {{ o.parlamentar.filiacao_atual }}
+				{% if o.observacao %} - {{o.observacao}} {% endif %}
+			{% if not forloop.last %} ; {% endif %}
     	{% endfor %}
 	{% endif %}	
     </p>

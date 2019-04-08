@@ -4,7 +4,8 @@
       <strong>Mesa Diretora: </strong>
       {% for m in mesa %}
         {{m.cargo}}:
-          {{m.parlamentar.nome_completo}} / {{ m.parlamentar.filiacao_atual }} ; 
+          {{m.parlamentar.nome_completo}} / {{ m.parlamentar.filiacao_atual }}
+		{% if not forloop.last %} ; {% endif %}
       {% endfor %}
 	{% endif %}
 	</p>
