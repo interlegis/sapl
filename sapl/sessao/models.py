@@ -290,8 +290,11 @@ class TipoExpediente(models.Model):
 
 @reversion.register()
 class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
-    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.CASCADE)
+    sessao_plenaria = models.ForeignKey(
+        SessaoPlenaria,
+        on_delete=models.CASCADE,
+        related_name='expedientesessao_set'
+    )
     tipo = models.ForeignKey(TipoExpediente, on_delete=models.PROTECT)
     conteudo = models.TextField(
         blank=True, verbose_name=_('Conteúdo do expediente'))
@@ -379,7 +382,7 @@ class OradorExpediente(AbstractOrador):  # OradoresExpediente
 
 
 @reversion.register()
-class OradorOrdemDia(AbstractOrador): # OradoresOrdemDia
+class OradorOrdemDia(AbstractOrador):  # OradoresOrdemDia
 
     class Meta:
         verbose_name = _('Orador da Ordem do Dia')
@@ -584,10 +587,14 @@ class ResumoOrdenacao(models.Model):
     oitavo = models.CharField(max_length=30)
     nono = models.CharField(max_length=30)
     decimo = models.CharField(max_length=30)
-    decimo_primeiro = models.CharField(max_length=30,default="Ocorrências da Sessão")
-    decimo_segundo = models.CharField(max_length=30, default="Votos Nominais Mat Expediente")
-    decimo_terceiro = models.CharField(max_length=30, default="Votos Nominais Mat Ordem Dia")
-    decimo_quarto = models.CharField(max_length=30, default="Oradores da Ordem do Dia")
+    decimo_primeiro = models.CharField(
+        max_length=30, default="Ocorrências da Sessão")
+    decimo_segundo = models.CharField(
+        max_length=30, default="Votos Nominais Mat Expediente")
+    decimo_terceiro = models.CharField(
+        max_length=30, default="Votos Nominais Mat Ordem Dia")
+    decimo_quarto = models.CharField(
+        max_length=30, default="Oradores da Ordem do Dia")
 
     class Meta:
         verbose_name = _('Ordenação do Resumo de uma Sessão')
@@ -595,6 +602,7 @@ class ResumoOrdenacao(models.Model):
 
     def __str__(self):
         return 'Ordenação do Resumo de uma Sessão'
+
 
 @reversion.register()
 class TipoRetiradaPauta(models.Model):
@@ -686,6 +694,7 @@ class JustificativaAusencia(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
 
 class RetiradaPauta(models.Model):
     materia = models.ForeignKey(MateriaLegislativa,
