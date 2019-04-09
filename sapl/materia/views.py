@@ -2085,7 +2085,7 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
                 materia_principal = materia_anexada
             )
 
-            while(anexadas_anexada and not ciclico):
+            while anexadas_anexada and not ciclico:
                 anexadas = []
                 
                 for anexa in anexadas_anexada:
