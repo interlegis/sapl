@@ -580,7 +580,9 @@ def get_sessao_plenaria(sessao, casa):
         # https://github.com/interlegis/sapl/issues/1046
         conteudo = re.sub('style=".*?"', '', conteudo)
         conteudo = re.sub('class=".*?"', '', conteudo)
+        conteudo = re.sub('align=".*?"', '', conteudo)    # OSTicket Ticket #796450
         conteudo = re.sub('<p\s+>', '<p>', conteudo)
+        conteudo = re.sub('<br\s+/>', '<br/>', conteudo)  # OSTicket Ticket #796450
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
