@@ -818,8 +818,8 @@ class AnexadoForm(ModelForm):
                 tipo=cleaned_data['tipo']
             )
         except ObjectDoesNotExist:
-            msg = _('O Documento Administrativo a ser anexado (numero={}, ano={}, tipo={}) não existe no cadastro'
-                    ' de documentos administrativos.'.format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            msg = _('O {} {}/{} não existe no cadastro de documentos administrativos.'
+                    .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
             self.logger.error("O documento a ser anexado não existe no cadastro"
                               " de documentos administrativos")
             raise ValidationError(msg)
