@@ -118,6 +118,8 @@ rules_group_materia = {
         (materia.Autoria, __base__, __perms_publicas__),
         (materia.DespachoInicial, __base__, __perms_publicas__),
         (materia.DocumentoAcessorio, __base__, __perms_publicas__),
+        (materia.MateriaAssunto, __base__, __perms_publicas__),
+        (materia.AssuntoMateria, __base__, __perms_publicas__),
 
         (materia.MateriaLegislativa, __base__ +
          ['can_access_impressos'], __perms_publicas__),
