@@ -1749,6 +1749,28 @@ class LogotipoView(RedirectView):
         logo = casa and casa.logotipo and casa.logotipo.name
         return os.path.join(settings.MEDIA_URL, logo) if logo else STATIC_LOGO
 
+def filtro_campos(dicionario):
+
+    chaves_desejadas = ['ementa',
+                        'ano',
+                        'numero',
+                        'em_tramitacao',
+                        'data_apresentacao',
+                        'apelido',
+                        'indexacao',
+                        'data_publicacao',
+                        'data',
+                        'data_vigencia']
+    del_list = []
+    for key in dicionario.keys():
+        if key not in chaves_desejadas:
+            del_list = del_list + [key]
+
+    for key in del_list:
+        del dicionario[key]
+
+    return dicionario
+
 def pesquisa_textual(request):
 
     if 'q' not in request.GET:
@@ -1770,10 +1792,9 @@ def pesquisa_textual(request):
         except:
             # Index and db are out of sync. Object has been deleted from database
             continue
-        sec_dict['objeto'] = str(e.object.__dict__)  # remover_acentos() para usar sem parser de json
+        dici = filtro_campos(e.object.__dict__)
+        sec_dict['objeto'] = str(dici) 
         sec_dict['text'] = str(e.object.ementa)
-        sec_dict['ano'] = str(e.object.ano)
-        sec_dict['numero'] = str(e.object.numero)
 
         sec_dict['model'] = str(type(e.object))
 
