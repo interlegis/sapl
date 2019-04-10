@@ -1232,8 +1232,8 @@ class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
             self.messages.add_message(self.request, messages.INFO, mensagem)
 
             return self.render_to_response(context)
-        if len(documento.assunto) > 301:
-            documento.assunto = documento.assunto[0:300] + '[...]'
+        if len(documento.assunto) > 201:
+            documento.assunto = documento.assunto[0:200] + '[...]'
         context['documento'] = documento
 
         return gerar_pdf_impressos(self.request, context,
