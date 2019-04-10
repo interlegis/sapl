@@ -11,16 +11,14 @@
                 <thead>
                   <tr>
                     <th>Autor</th>
-                    <th>Tipo de Autor</th>
                     <th>Quantidade</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {% for autor, tipo, quantidade in autores_duplicados %}
+                  {% for autor in autores_duplicados %}
                     <tr>
-                        <td>{{ autor }}</td>
-                        <td>{{ tipo }}</td>
-                        <td>{{ quantidade }}</td>
+                        <td>{{ autor.nome }}</td>
+                        <td>{{ autor.count }}</td>
                      </tr>
                   {% endfor %}
                 </tbody>
