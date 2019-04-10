@@ -1,9 +1,11 @@
+{% load common_tags %}
+
 <fieldset>
     <p align="justify">
 	{% if oradores_explicacoes %}
      <strong>Oradores das Explicações Pessoais: </strong>
 		{% for o in oradores_explicacoes %}
-	        <b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_completo}} / {{ o.parlamentar.filiacao_atual }}
+	        <b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_completo}} / {{ o.parlamentar|filiacao_data_filter:object.data_inicio }}
 				{% if o.observacao %} - {{o.observacao}} {% endif %}
 			{% if not forloop.last %} ; {% endif %}
 		{% endfor %}

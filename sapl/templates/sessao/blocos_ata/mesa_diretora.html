@@ -1,10 +1,12 @@
+{% load common_tags %}
+
 <fieldset>
     <p align="justify">
 	{% if mesa %}
       <strong>Mesa Diretora: </strong>
       {% for m in mesa %}
         {{m.cargo}}:
-          {{m.parlamentar.nome_completo}} / {{ m.parlamentar.filiacao_atual }}
+          {{m.parlamentar.nome_completo}} / {{ m.parlamentar|filiacao_data_filter:object.data_inicio }}
 		{% if not forloop.last %} ; {% endif %}
       {% endfor %}
 	{% endif %}
