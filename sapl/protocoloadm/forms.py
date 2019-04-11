@@ -807,6 +807,12 @@ class AnexadoForm(ModelForm):
 
         cleaned_data = self.cleaned_data
 
+        data_anexacao = cleaned_data['data_anexacao']
+        data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
+
+        if data_anexacao > data_desanexacao:
+            self.logger.error("A data de anexação não pode ser posterior a data de desanexação.")
+            raise ValidationError(_("A data de anexação não pode ser posterior a data de desanexação."))
         try:
             self.logger.info(
                 "Tentando obter objeto DocumentoAdministrativo (numero={}, ano={}, tipo={})."
@@ -831,7 +837,7 @@ class AnexadoForm(ModelForm):
 
         is_anexado = Anexado.objects.filter(documento_principal=documento_principal,
                                             documento_anexado=documento_anexado
-                                            ).exists()
+                                            ).exclude(pk=self.instance.pk).exists()
         
         if is_anexado:
             self.logger.error("Documento já se encontra anexado.")
