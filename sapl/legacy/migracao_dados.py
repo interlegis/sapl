@@ -31,7 +31,7 @@ from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
-from sapl.legacy.models import TipoNumeracaoProtocolo
+from sapl.legacy.models import Numeracao, TipoNumeracaoProtocolo
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO, PYTZ_TIMEZONE,
                                             SIGLA_CASA)
@@ -1022,8 +1022,16 @@ def migrar_model(model, apagar_do_legado):
         campos_velhos_p_novos = {v: k for k, v in renames.items()}
 
         def ja_esta_migrado(old):
+            if model_legado == Numeracao:
+                # nao usamos cod_numeracao no 3.1 => apelamos p todos os campos
+                campos_chave = [
+                    'cod_materia', 'tip_materia', 'num_materia',
+                    'ano_materia', 'dat_materia']
+                __import__('pdb').set_trace()
+            else:
+                campos_chave = campos_pk_legado
             chave = {campos_velhos_p_novos[c]: getattr(old, c)
-                     for c in campos_pk_legado}
+                     for c in campos_chave}
             return model.objects.filter(**chave).exists()
 
         ultima_pk_legado = model_legado.objects.count()
