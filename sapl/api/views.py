@@ -401,6 +401,11 @@ class _MateriaLegislativaViewSet:
 
         return Response(serializer_class.data)
 
+    @action(detail=True, methods=['GET'])
+    def anexadas(self, request, *args, **kwargs):
+        self.queryset = self.get_object().anexadas.all()
+        return self.list(request, *args, **kwargs)
+
 
 @customize(TipoMateriaLegislativa)
 class _TipoMateriaLegislativaViewSet:

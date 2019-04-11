@@ -14,7 +14,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.http import HttpResponse, JsonResponse
@@ -33,7 +33,7 @@ import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
 from sapl.base.signals import tramitacao_signal
-from sapl.comissoes.models import Comissao, Participacao
+from sapl.comissoes.models import Comissao, Participacao, Composicao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE)
 from sapl.compilacao.views import IntegracaoTaView
@@ -1135,6 +1135,26 @@ class RelatoriaCrud(MasterDetailCrud):
         layout_key = None
         logger = logging.getLogger(__name__)
 
+        def get_initial(self):
+            relatoria = Relatoria.objects.get(id=self.kwargs['pk'])
+            parlamentar = relatoria.parlamentar
+            comissao = relatoria.comissao
+            composicoes = [p.composicao for p in
+                            Participacao.objects.filter(
+                                parlamentar=parlamentar,
+                                composicao__comissao=comissao)]
+            data_designacao = relatoria.data_designacao_relator
+            composicao = ''
+            for c in composicoes:
+                data_inicial = c.periodo.data_inicio
+                data_fim = c.periodo.data_fim if c.periodo.data_fim else timezone.now().date()
+                if data_inicial <= data_designacao <= data_fim:
+                    composicao = c.id
+                    break
+            return {'comissao': relatoria.comissao.id,
+                    'parlamentar': relatoria.parlamentar.id,
+                    'composicao': composicao}
+
 
 class TramitacaoCrud(MasterDetailCrud):
     model = Tramitacao
@@ -1925,6 +1945,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AcessorioEmLoteFilterSet
     template_name = 'materia/em_lote/acessorio.html'
     permission_required = ('materia.add_documentoacessorio',)
+    logger = logging.getLogger(__name__)
 
     def get_context_data(self, **kwargs):
         context = super(DocumentoAcessorioEmLoteView,
@@ -1946,6 +1967,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         return context
 
     def post(self, request, *args, **kwargs):
+        username = request.user.username
         marcadas = request.POST.getlist('materia_id')
 
         if len(marcadas) == 0:
@@ -1961,14 +1983,21 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             msg = _('Autor tem que ter menos do que 50 caracteres.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
-
-        tmp_name = os.path.join(tempfile.gettempdir(), request.FILES['arquivo'].name)
+            
+        tmp_name = os.path.join(MEDIA_ROOT, request.FILES['arquivo'].name)
         with open(tmp_name, 'wb') as destination:
             for chunk in request.FILES['arquivo'].chunks():
                 destination.write(chunk)
+        try:
+            doc_data = tz.localize(datetime.strptime(
+                                    request.POST['data'], "%d/%m/%Y"))
+        except Exception as e:
+                msg = _('Formato da data incorreto. O formato deve ser da forma dd/mm/aaaa.')
+                messages.add_message(request, messages.ERROR, msg)
+                self.logger.error("User={}. {}. Data inserida: {}".format(username, str(msg), request.POST['data']))
+                os.remove(tmp_name)
+                return self.get(request, self.kwargs)
 
-        doc_data = tz.localize(datetime.strptime(
-                                        request.POST['data'], "%d/%m/%Y"))
         for materia_id in marcadas:
             doc = DocumentoAcessorio()
             doc.materia_id = materia_id
@@ -1977,6 +2006,18 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             doc.data = doc_data
             doc.autor = request.POST['autor']
             doc.ementa = request.POST['ementa']
+            doc.arquivo.name = tmp_name
+            try:
+                doc.clean_fields()
+            except ValidationError as e:
+                for m in [ '%s: %s' % (DocumentoAcessorio()._meta.get_field(k).verbose_name, '</br>'.join(v)) 
+                          for k,v in e.message_dict.items() ]:
+                    # Insere as mensagens de erro no formato:
+                    # 'verbose_name do nome do campo': 'mensagem de erro'
+                    messages.add_message(request, messages.ERROR, m)
+                    self.logger.error("User={}. {}. Nome do arquivo: {}.".format(username, str(msg), request.FILES['arquivo'].name))
+                os.remove(tmp_name)
+                return self.get(request, self.kwargs)
             doc.save()
             diretorio =  os.path.join(MEDIA_ROOT,
                                       'sapl/public/documentoacessorio', 
@@ -1987,7 +2028,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             file_path = os.path.join(diretorio, 
                                      request.FILES['arquivo'].name)
             shutil.copy2(tmp_name, file_path)
-            doc.arquivo.name = file_path.split(MEDIA_ROOT)[1] # Retira MEDIA_ROOT do nome
+            doc.arquivo.name = file_path.split(MEDIA_ROOT + "/")[1]  # Retira MEDIA_ROOT do nome
             doc.save()
         os.remove(tmp_name)
 
