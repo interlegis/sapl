@@ -101,6 +101,9 @@ if [ $lack_pwd -eq 0 ]; then
    # return -1
 fi
 
+rm -rf /var/interlegis/sapl/celery_log/*
+celery multi start 2 -A sapl -l info -Q:1 email_queue -c:1 1 -Q:2 celery -c:2 1 --pidfile=./celery_log/%n.pid --logfile=./celery_log/%n%I.log
+
 echo "-------------------------------------"
 echo "| ███████╗ █████╗ ██████╗ ██╗       |"
 echo "| ██╔════╝██╔══██╗██╔══██╗██║       |"
