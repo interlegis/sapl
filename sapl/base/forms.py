@@ -1414,6 +1414,7 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
         )
 
     def clean(self):
+        super(PartidoForm,self).clean()
         cleaned_data = self.cleaned_data
 
         if not self.is_valid():
@@ -1471,20 +1472,14 @@ class PartidoUpdateForm(PartidoForm):
         )
 
     def clean(self):
+        super(PartidoUpdateForm,self).clean()
         cleaned_data = self.cleaned_data
 
         is_historico = cleaned_data['historico'] == 'sim' 
 
-        if not self.is_valid():
-            return cleaned_data
-
-        if cleaned_data['data_criacao'] and cleaned_data['data_extincao'] and cleaned_data['data_criacao'] > \
-                cleaned_data['data_extincao']:
-                raise ValidationError("Certifique-se de que a data de inicio seja anterior à data fim.")
-
         if is_historico: 
-            if cleaned_data['data_criacao'] == None or cleaned_data['data_extincao'] == None:
-                raise ValidationError("Certifique-se de que a data de inicio e fim de historico estão preenchidas")
+            if not cleaned_data['data_criacao'] or not cleaned_data['data_extincao']:
+                   raise ValidationError("Certifique-se de que a data de inicio e fim de historico estão preenchidas")
     
             if self.instance.pk:
                 partido = Partido.objects.get(pk=self.instance.pk)
@@ -1497,6 +1492,28 @@ class PartidoUpdateForm(PartidoForm):
                         raise ValidationError("Periodo selecionado ja possui um histórico.")                
 
         return cleaned_data
+
+    def save(self,commit=False):
+       partido = self.instance
+       is_historico = self.cleaned_data['historico'] 
+           
+       if is_historico == "nao":
+           partido.save(commit)
+       elif is_historico == "sim":
+           sigla = self.cleaned_data['sigla']
+           nome = self.cleaned_data['nome']
+           inicio_historico = self.cleaned_data['data_criacao']
+           fim_historico = self.cleaned_data['data_extincao']
+           logo_partido = self.cleaned_data['logo_partido']
+           historico_partido = HistoricoPartido(sigla=sigla,
+                                               nome=nome,
+                                               inicio_historico=inicio_historico,
+                                               fim_historico=fim_historico,
+                                               logo_partido=logo_partido,
+                                               partido=partido,
+                                               )
+           historico_partido.save()
+       return partido
 
 class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
 
@@ -1535,5 +1552,3 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
                      row1, row2, row3,
                      form_actions(label='Pesquisar'))
         )
-        
-

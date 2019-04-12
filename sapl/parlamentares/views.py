@@ -5,7 +5,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist, ValidationError
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import F, Q
 from django.db.models.aggregates import Count
@@ -75,32 +75,6 @@ class PartidoCrud(CrudAux):
         template_name = "parlamentares/partido_update.html"
         layout_key = None
         form_class = PartidoUpdateForm
-
-        def form_valid(self, form):
-            is_historico = form.cleaned_data['historico'] 
-            
-            if is_historico == "nao":
-                super().form_valid(form)
-            elif is_historico == "sim":
-                sigla = form.cleaned_data['sigla']
-                nome = form.cleaned_data['nome']
-                inicio_historico = form.cleaned_data['data_criacao']
-                fim_historico = form.cleaned_data['data_extincao']
-                logo_partido = form.cleaned_data['logo_partido']
-                partido = partido = Partido.objects.get(pk=self.kwargs.get('pk'))
-                historico_partido = HistoricoPartido(sigla=sigla,
-                                                    nome=nome,
-                                                    inicio_historico=inicio_historico,
-                                                    fim_historico=fim_historico,
-                                                    logo_partido=logo_partido,
-                                                    partido=partido,
-                                                    )
-                historico_partido.save()
-                
-
-            return HttpResponseRedirect(
-                reverse('sapl.parlamentares:partido_detail', kwargs={'pk': self.kwargs.get('pk')}))
-
 
     class DetailView(CrudAux.DetailView):
         def get_context_data(self, **kwargs):
