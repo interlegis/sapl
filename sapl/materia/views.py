@@ -2084,19 +2084,31 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
 
-        if len(marcadas) == 0:
-            msg = _('Nenhuma máteria foi selecionada.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
-
         data_anexacao = datetime.strptime(
             request.POST['data_anexacao'], "%d/%m/%Y").date()
 
         if request.POST['data_desanexacao'] == '':
             data_desanexacao = None
+            v_data_desanexacao = data_anexacao
         else:
             data_desanexacao = datetime.strptime(
                 request.POST['data_desanexacao'], "%d/%m/%Y").date()
+            v_data_desanexacao = data_desanexacao
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+        
+            if data_anexacao > v_data_desanexacao:
+                msg = _('Data de anexação posterior à data de desanexação.')
+                messages.add_message(request, messages.ERROR, msg)
+
+            return self.get(request, self.kwargs)
+
+        if data_anexacao > v_data_desanexacao:
+            msg = _('Data de anexação posterior à data de desanexação.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
 
         principal = MateriaLegislativa.objects.get(pk=kwargs['pk'])
         for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
