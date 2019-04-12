@@ -26,7 +26,7 @@ from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
-    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo
+    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 
@@ -477,6 +477,20 @@ class _DocumentoAcessorioAdministrativoViewSet:
 @customize(TramitacaoAdministrativo)
 class _TramitacaoAdministrativoViewSet(BusinessRulesNotImplementedMixin):
     # TODO: Implementar regras de manutenção das tramitações de docs adms
+
+    permission_classes = (
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        if self.request.user.is_anonymous():
+            qs = qs.exclude(documento__restrito=True)
+        return qs
+
+
+@customize(Anexado)
+class _AnexadoViewSet(BusinessRulesNotImplementedMixin):
 
     permission_classes = (
         _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )

@@ -21,7 +21,8 @@ from sapl.protocoloadm.views import (AcompanhamentoDocumentoView,
                                      atualizar_numero_documento,
                                      doc_texto_integral,
                                      DesvincularDocumentoView,
-                                     DesvincularMateriaView)
+                                     DesvincularMateriaView,
+                                     AnexadoCrud, DocumentoAnexadoEmLoteView)
 
 from .apps import AppConfig
 
@@ -30,6 +31,7 @@ app_name = AppConfig.name
 urlpatterns_documento_administrativo = [
     url(r'^docadm/',
         include(DocumentoAdministrativoCrud.get_urls() +
+                AnexadoCrud.get_urls() + 
                 TramitacaoAdmCrud.get_urls() +
                 DocumentoAcessorioAdministrativoCrud.get_urls())),
 
@@ -38,6 +40,9 @@ urlpatterns_documento_administrativo = [
 
     url(r'^docadm/texto_integral/(?P<pk>\d+)$', doc_texto_integral,
         name='doc_texto_integral'),
+    
+    url(r'^docadm/(?P<pk>\d+)/anexado_em_lote', DocumentoAnexadoEmLoteView.as_view(),
+        name='anexado_em_lote'),
 ]
 
 urlpatterns_protocolo = [
