@@ -1761,7 +1761,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         required=False, widget=widgets.TextInput(
             attrs={'readonly': 'readonly'}))
 
-    regime_tramitacao = forms.ModelChoiceField(
+    regime_tramitacao = forms.ModelChoiceField(label="Regime de tramitação",
         required=False, queryset=RegimeTramitacao.objects.all())
 
     gerar_protocolo = forms.ChoiceField(
@@ -1826,6 +1826,10 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         # esta chamada isola o __init__ de ProposicaoForm
         super(ProposicaoForm, self).__init__(*args, **kwargs)
+
+        if self.instance.tipo.content_type.model_class() ==\
+                TipoMateriaLegislativa:
+            self.fields['regime_tramitacao'].required = True
 
         fields = [
             Fieldset(
