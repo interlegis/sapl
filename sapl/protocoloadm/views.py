@@ -1046,11 +1046,6 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
     def post(self, request, *args, **kwargs):
         marcados = request.POST.getlist('documento_id')
-
-        if len(marcados) == 0:
-            msg =_('Nenhum documento foi selecionado')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
         
         data_anexacao = datetime.strptime(
             request.POST['data_anexacao'], "%d/%m/%Y"
@@ -1058,10 +1053,27 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
         if request.POST['data_desanexacao'] == '':
             data_desanexacao = None
+            v_data_desanexacao = data_anexacao
         else:
             data_desanexacao = datetime.strptime(
                 request.POST['data_desanexacao'], "%d/%m/%Y"
             ).date()
+            v_data_desanexacao = data_desanexacao
+
+        if len(marcados) == 0:
+            msg =_('Nenhum documento foi selecionado')
+            messages.add_message(request, messages.ERROR, msg)
+            
+            if data_anexacao > v_data_desanexacao:
+                msg=_('Data de anexação posterior à data de desanexação.')
+                messages.add_message(request, messages.ERROR, msg)
+            
+            return self.get(request, self.kwargs)
+
+        if data_anexacao > v_data_desanexacao:
+            msg =_('Data de anexação posterior à data de desanexação.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, messages.ERROR, msg)
 
         principal = DocumentoAdministrativo.objects.get(pk = kwargs['pk'])
         for documento in DocumentoAdministrativo.objects.filter(id__in = marcados):
