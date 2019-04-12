@@ -10,6 +10,8 @@ DocumentoAdministrativo:
   - assunto
   - interessado  tramitacao
   - texto_integral
+  - documento_anexado_set__documento_principal|m2m_urlize_for_detail
+  - documento_principal_set__documento_anexado|m2m_urlize_for_detail
   {% trans 'Outras Informações' %}:
   - numero_externo
   - dias_prazo  data_fim_prazo
@@ -32,6 +34,17 @@ TramitacaoAdministrativo:
   - status:4  unidade_tramitacao_destino
   - data_encaminhamento  data_fim_prazo
   - texto
+
+Anexado:
+  {% trans 'Documento Anexado' %}:
+  - tipo numero ano
+  - data_anexacao  data_desanexacao
+
+AnexadoDetail:
+  {% trans 'Documento Anexado' %}:
+  - documento_principal|fk_urlize_for_detail
+  - documento_anexado|fk_urlize_for_detail
+  - data_anexacao  data_desanexacao
 
 Protocolo:
   {% trans 'Indentificação Documento' %}:
