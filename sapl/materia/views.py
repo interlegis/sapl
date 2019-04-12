@@ -2136,7 +2136,7 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
             anexada.data_desanexacao = data_desanexacao
             anexada.save()
 
-        msg = _('Materia(s) anexada(s).')
+        msg = _('Matéria(s) anexada(s).')
         messages.add_message(request, messages.SUCCESS, msg)
 
         sucess_url = reverse('sapl_index') + 'materia/' + kwargs['pk'] + '/anexada'

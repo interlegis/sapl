@@ -29,7 +29,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
                      Protocolo, TipoDocumentoAdministrativo,
-                     TramitacaoAdministrativo)
+                     TramitacaoAdministrativo, Anexado)
 
 
 TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'),
@@ -779,6 +779,126 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
             self.instance.unidade_tramitacao_local
 
         return self.cleaned_data
+
+
+class AnexadoForm(ModelForm):
+
+    logger = logging.getLogger(__name__)
+
+    tipo = forms.ModelChoiceField(
+        label='Tipo',
+        required=True,
+        queryset=TipoDocumentoAdministrativo.objects.all(),
+        empty_label='Selecione'
+    )
+
+    numero = forms.CharField(label='Número', required=True)
+
+    ano = forms.CharField(label='Ano', required=True)
+
+    def __init__(self, *args, **kwargs):
+        return  super(AnexadoForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        super(AnexadoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+
+        data_anexacao = cleaned_data['data_anexacao']
+        data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
+
+        if data_anexacao > data_desanexacao:
+            self.logger.error("A data de anexação não pode ser posterior a data de desanexação.")
+            raise ValidationError(_("A data de anexação não pode ser posterior a data de desanexação."))
+        try:
+            self.logger.info(
+                "Tentando obter objeto DocumentoAdministrativo (numero={}, ano={}, tipo={})."
+                .format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo'])
+            )
+            documento_anexado = DocumentoAdministrativo.objects.get(
+                numero=cleaned_data['numero'],
+                ano=cleaned_data['ano'],
+                tipo=cleaned_data['tipo']
+            )
+        except ObjectDoesNotExist:
+            msg = _('O {} {}/{} não existe no cadastro de documentos administrativos.'
+                    .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
+            self.logger.error("O documento a ser anexado não existe no cadastro"
+                              " de documentos administrativos")
+            raise ValidationError(msg)
+
+        documento_principal = self.instance.documento_principal
+        if documento_principal == documento_anexado:
+            self.logger.error("O documento não pode ser anexado a si mesmo.")
+            raise ValidationError(_("O documento não pode ser anexado a si mesmo"))
+
+        is_anexado = Anexado.objects.filter(documento_principal=documento_principal,
+                                            documento_anexado=documento_anexado
+                                            ).exclude(pk=self.instance.pk).exists()
+        
+        if is_anexado:
+            self.logger.error("Documento já se encontra anexado.")
+            raise ValidationError(_('Documento já se encontra anexado'))
+
+        ciclico = False
+        anexados_anexado = Anexado.objects.filter(documento_principal=documento_anexado)
+
+        while(anexados_anexado and not ciclico):
+            anexados = []
+
+            for anexo in anexados_anexado:
+
+                if documento_principal == anexo.documento_anexado:
+                    ciclico = True
+                else:
+                    for a in Anexado.objects.filter(documento_principal=anexo.documento_anexado):
+                        anexados.append(a)
+                
+            anexados_anexado = anexados
+        
+        if ciclico:
+            self.logger.error("O documento não pode ser anexado por um de seus anexados.")
+            raise ValidationError(_('O documento não pode ser anexado por um de seus anexados'))
+
+        cleaned_data['documento_anexado'] = documento_anexado
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        anexado = super(AnexadoForm, self).save(commit)
+        anexado.documento_anexado = self.cleaned_data['documento_anexado']
+        anexado.save()
+        return anexado
+
+    class Meta:
+        model = Anexado
+        fields = ['tipo', 'numero', 'ano', 'data_anexacao', 'data_desanexacao']
+
+
+class AnexadoEmLoteFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = DocumentoAdministrativo
+        fields = ['tipo', 'data']
+
+    def __init__(self, *args, **kwargs):
+        super(AnexadoEmLoteFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Documento*'
+        self.filters['data'].label = 'Data (Inicial - Final)*'
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Documentos'), 
+                        row1, row2, form_actions(label='Pesquisar'))
+        )
 
 
 class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
