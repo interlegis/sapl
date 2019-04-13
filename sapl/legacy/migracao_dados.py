@@ -1027,7 +1027,6 @@ def migrar_model(model, apagar_do_legado):
                 campos_chave = [
                     'cod_materia', 'tip_materia', 'num_materia',
                     'ano_materia', 'dat_materia']
-                __import__('pdb').set_trace()
             else:
                 campos_chave = campos_pk_legado
             chave = {campos_velhos_p_novos[c]: getattr(old, c)
