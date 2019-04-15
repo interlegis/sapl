@@ -166,6 +166,9 @@ class OAIServer:
             return ''
 
     def monta_xml(self, urn, norma):
+        BASE_URL_SAPL = self.config['base_url']
+        BASE_URL_SAPL = BASE_URL_SAPL[:BASE_URL_SAPL.find('/', 8)]
+
         publicador = LexmlPublicador.objects.first()
         if norma and publicador:
             LEXML = ElementMaker(namespace=self.ns['lexml'], nsmap=self.ns)
@@ -178,20 +181,21 @@ class OAIServer:
                           'odt': 'application/vnd.oasis.opendocument.text',
                           'pdf': 'application/pdf',
                           'rtf': 'application/rtf'}
+
             if texto_integral:
-                url_conteudo = self.config['base_url'] + texto_integral.url
+                url_conteudo = BASE_URL_SAPL + texto_integral.url
                 extensao = texto_integral.url.split('.')[-1]
                 formato = mime_types.get(extensao, 'application/octet-stream')
             else:
                 formato = 'text/html'
-                url_conteudo = self.config['base_url'] + reverse('sapl.norma:normajuridica_detail',
+                url_conteudo = BASE_URL_SAPL + reverse('sapl.norma:normajuridica_detail',
                                                                  kwargs={'pk': norma.numero})
             element_maker = ElementMaker()
             id_publicador = str(publicador.id_publicador)
             item_conteudo = element_maker.Item(url_conteudo, formato=formato, idPublicador=id_publicador,
                                                tipo='conteudo')
             oai_lexml.append(item_conteudo)
-            url = self.config['base_url'] + reverse('sapl.norma:normajuridica_detail', kwargs={'pk': norma.numero})
+            url = BASE_URL_SAPL + reverse('sapl.norma:normajuridica_detail', kwargs={'pk': norma.numero})
             item_metadado = element_maker.Item(url, formato='text/html', idPublicador=id_publicador, tipo='metadado')
             oai_lexml.append(item_metadado)
             documento_individual = element_maker.DocumentoIndividual(urn)
