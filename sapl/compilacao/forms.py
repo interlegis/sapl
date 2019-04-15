@@ -220,7 +220,7 @@ class NotaForm(ModelForm):
 
     publicacao = forms.DateField(
         label=Nota._meta.get_field('publicacao').verbose_name,
-        input_formats=['%d/%m/%Y'],
+        input_formats=['%d/%m/%Y', '%d%m%Y'],
         required=True,
         widget=forms.DateInput(
             format='%d/%m/%Y'),
@@ -228,7 +228,7 @@ class NotaForm(ModelForm):
     )
     efetividade = forms.DateField(
         label=Nota._meta.get_field('efetividade').verbose_name,
-        input_formats=['%d/%m/%Y'],
+        input_formats=['%d/%m/%Y', '%d%m%Y'],
         required=True,
         widget=forms.DateInput(
             format='%d/%m/%Y'),
