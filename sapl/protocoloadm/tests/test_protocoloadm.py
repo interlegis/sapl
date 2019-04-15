@@ -9,7 +9,7 @@ import pytest
 
 from sapl.base.models import AppConfig
 from sapl.materia.models import UnidadeTramitacao
-from sapl.protocoloadm.forms import (AnularProcoloAdmForm,
+from sapl.protocoloadm.forms import (AnularProtocoloAdmForm,
                                      DocumentoAdministrativoForm,
                                      MateriaLegislativa, ProtocoloDocumentForm,
                                      ProtocoloMateriaForm)
@@ -51,7 +51,7 @@ def test_anular_protocolo_submit(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_form_anular_protocolo_inexistente():
-    form = AnularProcoloAdmForm({'numero': '1',
+    form = AnularProtocoloAdmForm({'numero': '1',
                                  'ano': '2016',
                                  'justificativa_anulacao': 'TESTE'})
 
@@ -64,7 +64,7 @@ def test_form_anular_protocolo_inexistente():
 @pytest.mark.django_db(transaction=False)
 def test_form_anular_protocolo_valido():
     mommy.make(Protocolo, numero='1', ano='2016', anulado=False)
-    form = AnularProcoloAdmForm({'numero': '1',
+    form = AnularProtocoloAdmForm({'numero': '1',
                                  'ano': '2016',
                                  'justificativa_anulacao': 'TESTE'})
     if not form.is_valid():
@@ -74,7 +74,7 @@ def test_form_anular_protocolo_valido():
 @pytest.mark.django_db(transaction=False)
 def test_form_anular_protocolo_anulado():
     mommy.make(Protocolo, numero='1', ano='2016', anulado=True)
-    form = AnularProcoloAdmForm({'numero': '1',
+    form = AnularProtocoloAdmForm({'numero': '1',
                                  'ano': '2016',
                                  'justificativa_anulacao': 'TESTE'})
     assert form.errors['__all__'] == \
@@ -88,7 +88,7 @@ def test_form_anular_protocolo_campos_obrigatorios():
     # TODO: generalizar para diminuir o tamanho deste método
 
     # numero ausente
-    form = AnularProcoloAdmForm({'numero': '',
+    form = AnularProtocoloAdmForm({'numero': '',
                                  'ano': '2016',
                                  'justificativa_anulacao': 'TESTE'})
     if form.is_valid():
@@ -98,7 +98,7 @@ def test_form_anular_protocolo_campos_obrigatorios():
     assert form.errors['numero'] == [_('Este campo é obrigatório.')]
 
     # ano ausente
-    form = AnularProcoloAdmForm({'numero': '1',
+    form = AnularProtocoloAdmForm({'numero': '1',
                                  'ano': '',
                                  'justificativa_anulacao': 'TESTE'})
     if form.is_valid():
@@ -108,7 +108,7 @@ def test_form_anular_protocolo_campos_obrigatorios():
     assert form.errors['ano'] == [_('Este campo é obrigatório.')]
 
     # justificativa_anulacao ausente
-    form = AnularProcoloAdmForm({'numero': '1',
+    form = AnularProtocoloAdmForm({'numero': '1',
                                  'ano': '2016',
                                  'justificativa_anulacao': ''})
     if form.is_valid():
@@ -261,7 +261,7 @@ def test_create_tramitacao(admin_client):
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_dados_invalidos():
 
-    form = AnularProcoloAdmForm(data={})
+    form = AnularProtocoloAdmForm(data={})
 
     assert not form.is_valid()
 
@@ -276,10 +276,10 @@ def test_anular_protocolo_dados_invalidos():
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_form_anula_protocolo_inexistente():
-    form = AnularProcoloAdmForm(data={'numero': '1',
+    form = AnularProtocoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
                                       'justificativa_anulacao': 'teste'
-                                      })
+                                        })
 
     assert not form.is_valid()
 
@@ -291,10 +291,10 @@ def test_anular_protocolo_form_anula_protocolo_inexistente():
 def test_anular_protocolo_form_anula_protocolo_anulado():
     mommy.make(Protocolo, numero=1, ano=2017, anulado=True)
 
-    form = AnularProcoloAdmForm(data={'numero': '1',
+    form = AnularProtocoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
                                       'justificativa_anulacao': 'teste'
-                                      })
+                                        })
 
     assert not form.is_valid()
 
@@ -316,10 +316,10 @@ def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
                ano=2017,
                numero_protocolo=1)
 
-    form = AnularProcoloAdmForm(data={'numero': '1',
+    form = AnularProtocoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
                                       'justificativa_anulacao': 'teste'
-                                      })
+                                        })
 
     assert not form.is_valid()
 
@@ -338,10 +338,10 @@ def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
     mommy.make(DocumentoAdministrativo,
                protocolo=protocolo_documento)
 
-    form = AnularProcoloAdmForm(data={'numero': '2',
+    form = AnularProtocoloAdmForm(data={'numero': '2',
                                       'ano': '2017',
                                       'justificativa_anulacao': 'teste'
-                                      })
+                                        })
 
     assert not form.is_valid()
 
