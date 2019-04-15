@@ -37,7 +37,7 @@ from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension,
                         show_results_filter_set, mail_service_configured)
 
-from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
+from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm, ProtocoloDocumentForm,
@@ -484,7 +484,7 @@ class ProtocoloListView(PermissionRequiredMixin, ListView):
 
 class AnularProtocoloAdmView(PermissionRequiredMixin, CreateView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
-    form_class = AnularProcoloAdmForm
+    form_class = AnularProtocoloAdmForm
     form_valid_message = _('Protocolo anulado com sucesso!')
     permission_required = ('protocoloadm.action_anular_protocolo', )
 
