@@ -221,7 +221,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         )
 
 
-class AnularProcoloAdmForm(ModelForm):
+class AnularProtocoloAdmForm(ModelForm):
 
     logger = logging.getLogger(__name__)
 
@@ -240,7 +240,7 @@ class AnularProcoloAdmForm(ModelForm):
         widget=forms.Textarea)
 
     def clean(self):
-        super(AnularProcoloAdmForm, self).clean()
+        super(AnularProtocoloAdmForm, self).clean()
 
         cleaned_data = self.cleaned_data
 
@@ -313,7 +313,7 @@ class AnularProcoloAdmForm(ModelForm):
                      form_actions(label='Anular')
                      )
         )
-        super(AnularProcoloAdmForm, self).__init__(
+        super(AnularProtocoloAdmForm, self).__init__(
             *args, **kwargs)
 
 
