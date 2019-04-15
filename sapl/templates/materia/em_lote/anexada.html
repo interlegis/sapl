@@ -8,11 +8,11 @@
   {% endif %}
 
   {% if show_results %}
-    {% if object_list.count > 0 %}
-      {% if object_list.count == 1 %}
+    {% if numero_res > 0 %}
+      {% if numero_res == 1 %}
         <h3 style="text-align: right;">{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
       {% else %}
-        <h3 style="text-align: right;">{% blocktrans with object_list.count as total_materias %}Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
+        <h3 style="text-align: right;">Foram encontradas {{ numero_res }} matérias.</h3>
       {% endif %}
       <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}

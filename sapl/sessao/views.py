@@ -35,7 +35,7 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-from sapl.utils import show_results_filter_set, remover_acentos
+from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
@@ -2163,6 +2163,8 @@ class VotacaoView(SessaoPermissionMixin):
                     votacao.ordem_id = ordem_id
                     votacao.tipo_resultado_votacao_id = int(
                         request.POST['resultado_votacao'])
+                    votacao.user = request.user
+                    votacao.ip = get_client_ip(request)
                     votacao.save()
                 except Exception as e:
                     username = request.user.username
@@ -2383,6 +2385,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             votacao.numero_votos_nao = votos_nao
             votacao.numero_abstencoes = abstencoes
             votacao.observacao = request.POST.get('observacao', None)
+            votacao.user = request.user
+            votacao.ip = get_client_ip(request)
 
             votacao.materia_id = materia_votacao.materia.id
             if self.ordem:
@@ -2410,6 +2414,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 voto_parlamentar.voto = voto
                 voto_parlamentar.parlamentar_id = parlamentar_id
                 voto_parlamentar.votacao_id = votacao.id
+                voto_parlamentar.user = request.user
+                voto_parlamentar.ip = get_client_ip(request)
                 voto_parlamentar.save()
 
                 resultado = form.cleaned_data['resultado_votacao']
@@ -2847,10 +2853,10 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             if (int(request.POST['voto_presidente']) == 0):
                 qtde_presentes -= 1
 
-            if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
+            if qtde_votos != qtde_presentes:
                 form._errors["total_votos"] = ErrorList([u""])
                 return self.render_to_response(context)
-            elif (qtde_presentes == qtde_votos):
+            else:
                 try:
                     votacao = RegistroVotacao()
                     votacao.numero_votos_sim = int(request.POST['votos_sim'])
@@ -2861,6 +2867,8 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
                     votacao.expediente_id = expediente_id
                     votacao.tipo_resultado_votacao_id = int(
                         request.POST['resultado_votacao'])
+                    votacao.user = request.user
+                    votacao.ip = get_client_ip(request)
                     votacao.save()
                 except Exception as e:
                     username = request.user.username
@@ -3640,6 +3648,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                             resultado = TipoResultadoVotacao.objects.get(
                                 id=request.POST['resultado_votacao'])
                             votacao.tipo_resultado_votacao = resultado
+                            votacao.user = request.user
+                            votacao.ip = get_client_ip(request)
                             votacao.save()
                         except Exception as e:
                             username = request.user.username
@@ -3671,6 +3681,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                             resultado = TipoResultadoVotacao.objects.get(
                                 id=request.POST['resultado_votacao'])
                             votacao.tipo_resultado_votacao = resultado
+                            votacao.user = request.user
+                            votacao.ip = get_client_ip(request)
                             votacao.save()
                         except Exception as e:
                             username = request.user.username
@@ -3862,6 +3874,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                             voto_parlamentar.voto = voto
                             voto_parlamentar.parlamentar_id = parlamentar_id
                             voto_parlamentar.votacao_id = votacao.id
+                            voto_parlamentar.user = request.user
+                            voto_parlamentar.ip = get_client_ip(request)
                             voto_parlamentar.save()
 
                             ordem.resultado = form.cleaned_data['resultado_votacao'].nome
@@ -3889,6 +3903,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         votacao.materia = expediente.materia
                         votacao.expediente = expediente
                         votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.user = request.user
+                        votacao.ip = get_client_ip(request)
                         votacao.save()
 
                         # Salva os votos de cada parlamentar
@@ -3904,6 +3920,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                             voto_parlamentar.voto = voto
                             voto_parlamentar.parlamentar_id = parlamentar_id
                             voto_parlamentar.votacao_id = votacao.id
+                            voto_parlamentar.user = request.user
+                            voto_parlamentar.ip = get_client_ip(request)
                             voto_parlamentar.save()
 
                             expediente.resultado = form.cleaned_data['resultado_votacao'].nome

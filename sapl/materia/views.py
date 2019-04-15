@@ -2070,11 +2070,39 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
 
         qr = self.request.GET.copy()
         context['object_list'] = context['object_list'].order_by(
-            'ano', 'numero')
+            'numero', '-ano')
         principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
         not_list = [self.kwargs['pk']] + \
                     [m for m in principal.materia_principal_set.all().values_list('materia_anexada_id', flat=True)]
         context['object_list'] = context['object_list'].exclude(pk__in=not_list)
+
+        context['temp_object_list'] = context['object_list']
+        context['object_list'] = []
+        for obj in context['temp_object_list']:
+            materia_anexada = obj
+            ciclico = False
+            anexadas_anexada = Anexada.objects.filter(
+                materia_principal = materia_anexada
+            )
+
+            while anexadas_anexada and not ciclico:
+                anexadas = []
+                
+                for anexa in anexadas_anexada:
+
+                    if principal == anexa.materia_anexada:
+                        ciclico = True
+                    else:
+                        for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
+                            anexadas.append(a)
+                        
+                anexadas_anexada = anexadas
+
+            if not ciclico:
+                context['object_list'].append(obj)
+
+        context['numero_res'] = len(context['object_list'])
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
@@ -2084,19 +2112,31 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
 
-        if len(marcadas) == 0:
-            msg = _('Nenhuma máteria foi selecionada.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
-
         data_anexacao = datetime.strptime(
             request.POST['data_anexacao'], "%d/%m/%Y").date()
 
         if request.POST['data_desanexacao'] == '':
             data_desanexacao = None
+            v_data_desanexacao = data_anexacao
         else:
             data_desanexacao = datetime.strptime(
                 request.POST['data_desanexacao'], "%d/%m/%Y").date()
+            v_data_desanexacao = data_desanexacao
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+        
+            if data_anexacao > v_data_desanexacao:
+                msg = _('Data de anexação posterior à data de desanexação.')
+                messages.add_message(request, messages.ERROR, msg)
+
+            return self.get(request, self.kwargs)
+
+        if data_anexacao > v_data_desanexacao:
+            msg = _('Data de anexação posterior à data de desanexação.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
 
         principal = MateriaLegislativa.objects.get(pk=kwargs['pk'])
         for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
@@ -2108,9 +2148,11 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
             anexada.data_desanexacao = data_desanexacao
             anexada.save()
 
-        msg = _('Materia(s) anexada(s).')
+        msg = _('Matéria(s) anexada(s).')
         messages.add_message(request, messages.SUCCESS, msg)
-        return self.get(request, self.kwargs)
+
+        sucess_url = reverse('sapl_index') + 'materia/' + kwargs['pk'] + '/anexada'
+        return HttpResponseRedirect(sucess_url)
 
 
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):

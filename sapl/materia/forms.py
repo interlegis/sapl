@@ -790,6 +790,13 @@ class AnexadaForm(ModelForm):
 
         cleaned_data = self.cleaned_data
 
+        data_anexacao = cleaned_data['data_anexacao']
+        data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
+
+        if data_anexacao > data_desanexacao:
+            self.logger.error("Data de anexação posterior à data de desanexação.")
+            raise ValidationError(_("Data de anexação posterior à data de desanexação."))
+
         try:
             self.logger.info("Tentando obter objeto MateriaLegislativa (numero={}, ano={}, tipo={})."
                              .format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
@@ -817,6 +824,26 @@ class AnexadaForm(ModelForm):
         if is_anexada:
             self.logger.error("Matéria já se encontra anexada.")
             raise ValidationError(_('Matéria já se encontra anexada'))
+        
+        ciclico = False
+        anexadas_anexada = Anexada.objects.filter(materia_principal=materia_anexada)
+
+        while anexadas_anexada and not ciclico:
+            anexadas = []
+
+            for anexa in anexadas_anexada:
+
+                if materia_principal == anexa.materia_anexada:
+                    ciclico = True
+                else: 
+                    for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
+                        anexadas.append(a)
+
+            anexadas_anexada = anexadas
+        
+        if ciclico:
+            self.logger.error("A matéria não pode ser anexada por uma de suas anexadas.")
+            raise ValidationError(_("A matéria não pode ser anexada por uma de suas anexadas."))
 
         cleaned_data['materia_anexada'] = materia_anexada
 
@@ -1741,7 +1768,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         required=False, widget=widgets.TextInput(
             attrs={'readonly': 'readonly'}))
 
-    regime_tramitacao = forms.ModelChoiceField(
+    regime_tramitacao = forms.ModelChoiceField(label="Regime de tramitação",
         required=False, queryset=RegimeTramitacao.objects.all())
 
     gerar_protocolo = forms.ChoiceField(
@@ -1806,6 +1833,10 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         # esta chamada isola o __init__ de ProposicaoForm
         super(ProposicaoForm, self).__init__(*args, **kwargs)
+
+        if self.instance.tipo.content_type.model_class() ==\
+                TipoMateriaLegislativa:
+            self.fields['regime_tramitacao'].required = True
 
         fields = [
             Fieldset(

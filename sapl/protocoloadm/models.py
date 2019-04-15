@@ -170,6 +170,18 @@ class DocumentoAdministrativo(models.Model):
                                    verbose_name=_('Acesso Restrito'),
                                    blank=True)
 
+    anexados = models.ManyToManyField(
+        'self',
+        blank=True,
+        through='Anexado',
+        symmetrical=False,
+        related_name='anexo_de',
+        through_fields=(
+            'documento_principal',
+            'documento_anexado'
+        )
+    )
+
     class Meta:
         verbose_name = _('Documento Administrativo')
         verbose_name_plural = _('Documentos Administrativos')
@@ -315,6 +327,36 @@ class TramitacaoAdministrativo(models.Model):
         return _('%(documento)s - %(status)s') % {
             'documento': self.documento, 'status': self.status
         }
+
+
+@reversion.register()
+class Anexado(models.Model):
+    documento_principal = models.ForeignKey(
+        DocumentoAdministrativo, related_name='documento_principal_set',
+        on_delete = models.CASCADE,
+        verbose_name=_('Documento Principal')
+    )
+    documento_anexado = models.ForeignKey(
+        DocumentoAdministrativo, related_name='documento_anexado_set',
+        on_delete = models.CASCADE,
+        verbose_name=_('Documento Anexado')
+    )
+    data_anexacao = models.DateField(verbose_name=_('Data Anexação'))
+    data_desanexacao = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Desanexação')
+    )
+
+    class Meta:
+        verbose_name = _('Anexado')
+        verbose_name_plural = _('Anexados')
+
+    def __str__(self):
+        return _('Anexado: %(documento_anexado_tipo)s %(documento_anexado_numero)s'
+                 '/%(documento_anexado_ano)s\n') % {
+                     'documento_anexado_tipo': self.documento_anexado.tipo,
+                     'documento_anexado_numero': self.documento_anexado.numero,
+                     'documento_anexado_ano': self.documento_anexado.ano
+                 }
 
 
 @reversion.register()
