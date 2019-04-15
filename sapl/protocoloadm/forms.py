@@ -221,7 +221,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         )
 
 
-class AnularProcoloAdmForm(ModelForm):
+class AnularProtocoloAdmForm(ModelForm):
 
     logger = logging.getLogger(__name__)
 
@@ -240,7 +240,7 @@ class AnularProcoloAdmForm(ModelForm):
         widget=forms.Textarea)
 
     def clean(self):
-        super(AnularProcoloAdmForm, self).clean()
+        super(AnularProtocoloAdmForm, self).clean()
 
         cleaned_data = self.cleaned_data
 
@@ -313,7 +313,7 @@ class AnularProcoloAdmForm(ModelForm):
                      form_actions(label='Anular')
                      )
         )
-        super(AnularProcoloAdmForm, self).__init__(
+        super(AnularProtocoloAdmForm, self).__init__(
             *args, **kwargs)
 
 
@@ -811,8 +811,8 @@ class AnexadoForm(ModelForm):
         data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
 
         if data_anexacao > data_desanexacao:
-            self.logger.error("A data de anexação não pode ser posterior a data de desanexação.")
-            raise ValidationError(_("A data de anexação não pode ser posterior a data de desanexação."))
+            self.logger.error("Data de anexação posterior à data de desanexação.")
+            raise ValidationError(_("Data de anexação posterior à data de desanexação."))
         try:
             self.logger.info(
                 "Tentando obter objeto DocumentoAdministrativo (numero={}, ano={}, tipo={})."
