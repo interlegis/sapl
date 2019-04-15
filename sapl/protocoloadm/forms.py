@@ -811,8 +811,8 @@ class AnexadoForm(ModelForm):
         data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
 
         if data_anexacao > data_desanexacao:
-            self.logger.error("A data de anexação não pode ser posterior a data de desanexação.")
-            raise ValidationError(_("A data de anexação não pode ser posterior a data de desanexação."))
+            self.logger.error("Data de anexação posterior à data de desanexação.")
+            raise ValidationError(_("Data de anexação posterior à data de desanexação."))
         try:
             self.logger.info(
                 "Tentando obter objeto DocumentoAdministrativo (numero={}, ano={}, tipo={})."
