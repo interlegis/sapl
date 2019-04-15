@@ -3504,9 +3504,13 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoExpediente,
                         self).get_context_data(**kwargs)
-        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['pk'] = self.kwargs['pk']
         context['root_pk'] = self.kwargs['pk']
+        if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
+            context['sessao_iniciada'] = False
+            return context
+        context['sessao_iniciada'] = True
+        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         return context
 
@@ -3526,9 +3530,13 @@ class VotacaoEmBlocoOrdemDia(PermissionRequiredForAppCrudMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoOrdemDia,
                         self).get_context_data(**kwargs)
-        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['pk'] = self.kwargs['pk']
         context['root_pk'] = self.kwargs['pk']
+        if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
+            context['sessao_iniciada'] = False
+            return context
+        context['sessao_iniciada'] = True
+        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         return context
 
