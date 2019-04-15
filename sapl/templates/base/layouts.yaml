@@ -18,8 +18,8 @@ AppConfig:
   - esfera_federacao
 
   {% trans 'Proposições e Protocolo' %}:
-  - sequencia_numeracao proposicao_incorporacao_obrigatoria receber_recibo_proposicao
-  - escolher_numero_materia_proposicao protocolo_manual
+  - sequencia_numeracao protocolo_manual receber_recibo_proposicao
+  - proposicao_incorporacao_obrigatoria escolher_numero_materia_proposicao
 
   {% trans 'Textos Articulados' %}:
   - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
