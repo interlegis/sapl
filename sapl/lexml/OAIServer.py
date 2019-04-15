@@ -170,7 +170,7 @@ class OAIServer:
         if norma and publicador:
             LEXML = ElementMaker(namespace=self.ns['lexml'], nsmap=self.ns)
             oai_lexml = LEXML.LexML()
-            oai_lexml.attrib['{{}}schemaLocation'.format(self.XSI_NS)] = '{} {}'.format(
+            oai_lexml.attrib['{{{pre}}}schemaLocation'.format(pre=self.XSI_NS)] = '{} {}'.format(
                 'http://www.lexml.gov.br/oai_lexml', 'http://projeto.lexml.gov.br/esquemas/oai_lexml.xsd')
             texto_integral = norma.texto_integral
             mime_types = {'doc': 'application/msword',
