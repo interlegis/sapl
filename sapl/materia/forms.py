@@ -790,6 +790,13 @@ class AnexadaForm(ModelForm):
 
         cleaned_data = self.cleaned_data
 
+        data_anexacao = cleaned_data['data_anexacao']
+        data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
+
+        if data_anexacao > data_desanexacao:
+            self.logger.error("Data de anexação posterior à data de desanexação.")
+            raise ValidationError(_("Data de anexação posterior à data de desanexação."))
+
         try:
             self.logger.info("Tentando obter objeto MateriaLegislativa (numero={}, ano={}, tipo={})."
                              .format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
@@ -1659,12 +1666,17 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
             return super().save(commit)
 
         inst.ano = timezone.now().year
-        numero__max = Proposicao.objects.filter(
-            autor=inst.autor,
-            ano=timezone.now().year).aggregate(Max('numero_proposicao'))
+        sequencia_numeracao = AppConfig.attr('sequencia_numeracao')
+        if sequencia_numeracao == 'A':
+            numero__max = Proposicao.objects.filter(
+                autor=inst.autor,
+                ano=timezone.now().year).aggregate(Max('numero_proposicao'))
+        elif sequencia_numeracao == 'B':
+            numero__max = Proposicao.objects.filter(
+                ano=timezone.now().year).aggregate(Max('numero_proposicao'))
         numero__max = numero__max['numero_proposicao__max']
         inst.numero_proposicao = (
-            numero__max + 1) if numero__max else 1
+                numero__max + 1) if numero__max else 1
 
         self.gerar_hash(inst, receber_recibo)
 
