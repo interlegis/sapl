@@ -571,30 +571,86 @@ class Bloco(models.Model):
         return self.nome
 
 
+ORDENACAO_RESUMO = [
+    ('id_basica', 'Identificação Básica'),
+    ('cont_mult', 'Conteúdo Multimídia'),
+    ('mesa_d', 'Mesa Diretora'),
+    ('lista_p', 'Lista de Presença'),
+    ('exp', 'Expedientes'),
+    ('mat_exp', 'Matérias do Expediente'),
+    ('v_n_mat_exp', 'Votações Nominais - Matérias do Expediente'),
+    ('oradores_exped', 'Oradores do Expediente'),
+    ('lista_p_o_d', 'Lista de Presença Ordem do Dia'),
+    ('mat_o_d', 'Matérias da Ordem do Dia'),
+    ('v_n_mat_o_d', 'Votações Nominais - Matérias da Ordem do Dia'),
+    ('oradores_o_d', 'Oradores da Ordem do Dia'),
+    ('oradores_expli', 'Oradores das Explicações Pessoais'),
+    ('ocorr_sessao', 'Ocorrências da Sessão')
+]
+
+
 @reversion.register()
 class ResumoOrdenacao(models.Model):
     '''
         Tabela para registrar em qual ordem serão renderizados os componentes
         da tela de resumo de uma sessão
     '''
-    primeiro = models.CharField(max_length=30)
-    segundo = models.CharField(max_length=30)
-    terceiro = models.CharField(max_length=30)
-    quarto = models.CharField(max_length=30)
-    quinto = models.CharField(max_length=30)
-    sexto = models.CharField(max_length=30)
-    setimo = models.CharField(max_length=30)
-    oitavo = models.CharField(max_length=30)
-    nono = models.CharField(max_length=30)
-    decimo = models.CharField(max_length=30)
+    primeiro = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[0][0]
+    )
+    segundo = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[1][0]
+    )
+    terceiro = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[2][0]
+    )
+    quarto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[3][0]
+    )
+    quinto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[4][0]
+    )
+    sexto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[5][0]
+    )
+    setimo = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[6][0]
+    )
+    oitavo = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[7][0]
+    )
+    nono = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[8][0]
+    )
+    decimo = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[9][0]
+    )
     decimo_primeiro = models.CharField(
-        max_length=30, default="Ocorrências da Sessão")
+        max_length=50,
+        default=ORDENACAO_RESUMO[10][0]
+    )
     decimo_segundo = models.CharField(
-        max_length=30, default="Votos Nominais Mat Expediente")
+        max_length=50,
+        default=ORDENACAO_RESUMO[11][0]
+    )
     decimo_terceiro = models.CharField(
-        max_length=30, default="Votos Nominais Mat Ordem Dia")
+        max_length=50,
+        default=ORDENACAO_RESUMO[12][0]
+    )
     decimo_quarto = models.CharField(
-        max_length=30, default="Oradores da Ordem do Dia")
+        max_length=50,
+        default=ORDENACAO_RESUMO[13][0]
+    )
 
     class Meta:
         verbose_name = _('Ordenação do Resumo de uma Sessão')
