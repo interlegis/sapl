@@ -11,6 +11,7 @@ from lxml.builder import ElementMaker
 from sapl.base.models import AppConfig, CasaLegislativa
 from sapl.lexml.models import LexmlPublicador, LexmlProvedor
 from sapl.norma.models import NormaJuridica
+from sapl.utils import LISTA_DE_UFS
 
 
 class OAILEXML:
@@ -127,17 +128,18 @@ class OAIServer:
             urn = 'urn:lex:br;'
             esferas = {'M': 'municipal', 'E': 'estadual'}
             municipio = casa.municipio.lower()
-            uf = casa.uf.lower()
+            uf_map = dict(LISTA_DE_UFS)
+            uf_desc = uf_map.get(casa.uf.upper(), '').lower()
             for x in [' ', '.de.', '.da.', '.das.', '.do.', '.dos.']:
                 municipio = municipio.replace(x, '.')
-                uf = uf.replace(x, '.')
+                uf_desc = uf_desc.replace(x, '.')
             if esfera == 'M':
-                urn += '{};{}:'.format(uf, municipio)
+                urn += '{};{}:'.format(uf_desc, municipio)
                 if norma.tipo.equivalente_lexml == 'regimento.interno' or norma.tipo.equivalente_lexml == 'resolucao':
                     urn += 'camara.'
                 urn += esferas[esfera] + ':'
             elif esfera == 'E':
-                urn += '{}:{}:'.format(uf, esferas[esfera])
+                urn += '{}:{}:'.format(uf_desc, esferas[esfera])
             else:
                 urn += ':'
             if norma.tipo.equivalente_lexml:
