@@ -1480,6 +1480,11 @@ class PartidoUpdateForm(PartidoForm):
         if is_historico: 
             if not cleaned_data['data_criacao'] or not cleaned_data['data_extincao']:
                    raise ValidationError("Certifique-se de que a data de inicio e fim de historico estão preenchidas")
+            if self.instance.data_criacao and  self.instance.data_criacao > cleaned_data['data_criacao']:
+                 raise ValidationError("Data de inicio de historico deve ser posterior a data de criação do partido.")
+            if self.instance.data_extincao and  self.instance.data_extincao < cleaned_data['data_extincao']:
+                 raise ValidationError("Data de fim de historico deve ser anterior a data de extinção do partido.")
+                 
     
             if self.instance.pk:
                 partido = Partido.objects.get(pk=self.instance.pk)

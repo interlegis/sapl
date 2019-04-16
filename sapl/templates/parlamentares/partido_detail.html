@@ -28,7 +28,7 @@
               <td>{{ h.inicio_historico }}</td>
               <td>{{ h.fim_historico }}</td>
               <td>{{ h }}</td>
-              <td><a data-toggle="modal" data-target="#confirmDelete{{h.pk}}">X</a></td>
+              <td><a class="btn btn-outline-primary btn-outline-danger" data-toggle="modal" data-target="#confirmDelete{{h.pk}}">Deletar</a></td>
           </tr>
 
           <!-- Modal -->
@@ -46,7 +46,7 @@
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                  <a href="{% url 'sapl.parlamentares:deleta_historico_partido' h.pk%}" class="btn btn-primary">Sim, tenho certeza.</a>
+                  <a href="{% url 'sapl.parlamentares:deleta_historico_partido' h.pk%}" class="btn btn-outline-primary btn-outline-danger">Sim, tenho certeza.</a>
                 </div>
               </div>
             </div>
