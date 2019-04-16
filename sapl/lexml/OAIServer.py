@@ -191,13 +191,13 @@ class OAIServer:
             else:
                 formato = 'text/html'
                 url_conteudo = BASE_URL_SAPL + reverse('sapl.norma:normajuridica_detail',
-                                                                 kwargs={'pk': norma.numero})
+                                                                 kwargs={'pk': norma.pk})
             element_maker = ElementMaker()
             id_publicador = str(publicador.id_publicador)
             item_conteudo = element_maker.Item(url_conteudo, formato=formato, idPublicador=id_publicador,
                                                tipo='conteudo')
             oai_lexml.append(item_conteudo)
-            url = BASE_URL_SAPL + reverse('sapl.norma:normajuridica_detail', kwargs={'pk': norma.numero})
+            url = BASE_URL_SAPL + reverse('sapl.norma:normajuridica_detail', kwargs={'pk': norma.pk})
             item_metadado = element_maker.Item(url, formato='text/html', idPublicador=id_publicador, tipo='metadado')
             oai_lexml.append(item_metadado)
             documento_individual = element_maker.DocumentoIndividual(urn)
