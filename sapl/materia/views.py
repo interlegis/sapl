@@ -53,7 +53,7 @@ from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
 from sapl.settings import MEDIA_ROOT
 from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH_PROPOSICAO,
-                        gerar_hash_arquivo, get_base_url,
+                        gerar_hash_arquivo, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, montar_row_autor,
                         show_results_filter_set, mail_service_configured)
 
@@ -1189,6 +1189,8 @@ class TramitacaoCrud(MasterDetailCrud):
             else:
                 initial['unidade_tramitacao_local'] = ''
             initial['data_tramitacao'] = timezone.now().date()
+            initial['ip'] = get_client_ip(self.request)
+            initial['user'] = self.request.user
             return initial
 
         def get_context_data(self, **kwargs):
@@ -1220,6 +1222,8 @@ class TramitacaoCrud(MasterDetailCrud):
 
             self.object = form.save()
             username = self.request.user.username
+            form.instance.user = self.request.user
+            form.instance.ip = get_client_ip(self.request)
 
             if form.instance.status.indicador == 'F':
                 form.instance.materia.em_tramitacao = False
@@ -1234,7 +1238,6 @@ class TramitacaoCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception as e:
-                # TODO log error
                 msg = _('Tramitação criada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
@@ -1250,6 +1253,12 @@ class TramitacaoCrud(MasterDetailCrud):
         logger = logging.getLogger(__name__)
 
         layout_key = 'TramitacaoUpdate'
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['ip'] = get_client_ip(self.request)
+            initial['user'] = self.request.user
+            return initial
 
         def form_valid(self, form):
             self.object = form.save()
@@ -2273,6 +2282,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 messages.add_message(request, messages.ERROR, msg)
                 return self.get(request, self.kwargs)
 
+            user = request.user
+            ip = get_client_ip(request)
             t = Tramitacao(
                 materia=materia,
                 data_tramitacao=data_tramitacao,
@@ -2285,7 +2296,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 urgente=urgente,
                 status_id=request.POST['status'],
                 turno=request.POST['turno'],
-                texto=request.POST['texto']
+                texto=request.POST['texto'],
+                user=user,
+                ip=ip
             )
             t.save()
             try:
