@@ -1,3 +1,4 @@
+import unicodedata
 from datetime import datetime
 
 import oaipmh
@@ -123,13 +124,23 @@ class OAIServer:
         else:
             return None
 
+    @staticmethod
+    def remove_acentos(linha):
+        res = unicodedata.normalize('NFKD', linha).encode('ASCII', 'ignore')
+        res = res.decode("UTF-8")
+        remove_list = ["\'", "\"", "-"]
+        for i in remove_list:
+            res = res.replace(i, "")
+        return res
+
     def monta_urn(self, norma, esfera):
         if norma:
             urn = 'urn:lex:br;'
             esferas = {'M': 'municipal', 'E': 'estadual'}
-            municipio = casa.municipio.lower()
+            municipio = self.remove_acentos(casa.municipio.lower())
             uf_map = dict(LISTA_DE_UFS)
             uf_desc = uf_map.get(casa.uf.upper(), '').lower()
+            uf_desc = self.remove_acentos(uf_desc)
             for x in [' ', '.de.', '.da.', '.das.', '.do.', '.dos.']:
                 municipio = municipio.replace(x, '.')
                 uf_desc = uf_desc.replace(x, '.')
