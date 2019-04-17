@@ -18,11 +18,7 @@ TIPO_DOCUMENTO_ADMINISTRATIVO = ((DOC_ADM_OSTENSIVO, _('Ostensiva')),
 RELATORIO_ATOS_ACESSADOS = (('S', _('Sim')),
                             ('N', _('Não')))
 
-SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano para cada autor')),
-                       ('L', _('Sequencial por legislatura')),
-                       ('U', _('Sequencial único')))
-
-SEQUENCIA_NUMERACAO_PROTOCOLO = (('A', _('Sequencial por ano para cada autor')),
+SEQUENCIA_NUMERACAO_PROTOCOLO = (('A', _('Sequencial por ano')),
                        ('L', _('Sequencial por legislatura')),
                        ('U', _('Sequencial único')))
 
