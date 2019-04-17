@@ -194,7 +194,7 @@ def test_valida_campos_obrigatorios_relatoria_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_valida_campos_obrigatorios_tramitacao_form():
-    form = forms.TramitacaoForm(data={})
+    form = forms.TramitacaoForm(data={}, initial={'user':None, 'ip':''})
 
     assert not form.is_valid()
 
@@ -212,7 +212,7 @@ def test_valida_campos_obrigatorios_tramitacao_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_valida_campos_obrigatorios_tramitacao_update_form():
-    form = forms.TramitacaoUpdateForm(data={})
+    form = forms.TramitacaoUpdateForm(data={}, initial={'user':None, 'ip':''})
 
     assert not form.is_valid()
 
