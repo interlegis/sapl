@@ -128,6 +128,23 @@ def inf_basicas(inf_basicas_dic):
     return tmp
 
 
+def conteudo_multimidia(lst_conteudo_multimidia):
+    dict = {
+        'url_audio': 'Audio',
+        'url_video': 'Vídeo'
+    }
+
+    tmp = ''
+    tmp += '\t\t<para style="P1">Conteúdo Multimídia</para>\n'
+    tmp += '\t\t<para style="P2">\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
+    tmp += '\t\t</para>\n'
+    for k, v in lst_conteudo_multimidia.items():
+        tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + dict[k] + ':</b> ' + v + ' </para>\n'
+
+    return tmp
+
+
 def mesa(lst_mesa):
     """
 
@@ -392,7 +409,10 @@ def ocorrencias(lst_ocorrencias):
     return tmp
 
 
-def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_expediente_materia_vot_nom, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_votacao_vot_nom, lst_oradores_ordemdia, lst_oradores, lst_ocorrencias):
+def principal(rodape_dic, imagem, inf_basicas_dic, lst_conteudo_multimidia, lst_mesa, lst_presenca_sessao,
+              lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_expediente_materia_vot_nom,
+              lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_votacao_vot_nom, lst_oradores_ordemdia,
+              lst_oradores, lst_ocorrencias):
     """
     """
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"
@@ -414,9 +434,9 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
     tmp += paraStyle()
     tmp += '\t<story>\n'
 
-    ordenacao = ResumoOrdenacao.objects.first()
+    ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
     dict_ord_template = {
-        'cont_mult': '',
+        'cont_mult': conteudo_multimidia(lst_conteudo_multimidia),
         'exp': expedientes(lst_expedientes),
         'id_basica': inf_basicas(inf_basicas_dic),
         'lista_p': presenca(lst_presenca_sessao, lst_ausencia_sessao),
@@ -431,55 +451,21 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
         'oradores_expli': oradores(lst_oradores),
         'ocorr_sessao': ocorrencias(lst_ocorrencias)
     }
-    
-    if ordenacao:
-        try:
-            tmp += dict_ord_template[ordenacao.primeiro]
-            tmp += dict_ord_template[ordenacao.segundo]
-            tmp += dict_ord_template[ordenacao.terceiro]
-            tmp += dict_ord_template[ordenacao.quarto]
-            tmp += dict_ord_template[ordenacao.quinto]
-            tmp += dict_ord_template[ordenacao.sexto]
-            tmp += dict_ord_template[ordenacao.setimo]
-            tmp += dict_ord_template[ordenacao.oitavo]
-            tmp += dict_ord_template[ordenacao.nono]
-            tmp += dict_ord_template[ordenacao.decimo]
-            tmp += dict_ord_template[ordenacao.decimo_primeiro]
-            tmp += dict_ord_template[ordenacao.decimo_segundo]
-            tmp += dict_ord_template[ordenacao.decimo_terceiro]
-            tmp += dict_ord_template[ordenacao.decimo_quarto]
-        except KeyError as e:
-            logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
-                              "configuração de ordenação. Utilizando ordenação padrão.")
-            tmp += inf_basicas(inf_basicas_dic)
-            tmp += mesa(lst_mesa)
-            tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
-            tmp += expedientes(lst_expedientes)
-            tmp += expediente_materia(lst_expediente_materia)
-            tmp += expediente_materia_vot_nom(lst_expediente_materia_vot_nom)
-            tmp += oradores_expediente(lst_oradores_expediente)
-            tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
-            tmp += votacao(lst_votacao)
-            tmp += votacao_vot_nom(lst_votacao_vot_nom)
-            tmp += oradores_ordemdia(lst_oradores_ordemdia)
-            tmp += oradores(lst_oradores)
-            tmp += ocorrencias(lst_ocorrencias)
 
-    else:
-        tmp += inf_basicas(inf_basicas_dic)
-        tmp += mesa(lst_mesa)
-        tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
-        tmp += expedientes(lst_expedientes)
-        tmp += expediente_materia(lst_expediente_materia)
-        tmp += expediente_materia_vot_nom(lst_expediente_materia_vot_nom)
-        tmp += oradores_expediente(lst_oradores_expediente)
-        tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
-        tmp += votacao(lst_votacao)
-        tmp += votacao_vot_nom(lst_votacao_vot_nom)
-        tmp += oradores_ordemdia(lst_oradores_ordemdia)
-        tmp += oradores(lst_oradores)
-        tmp += ocorrencias(lst_ocorrencias)
-
+    tmp += dict_ord_template[ordenacao.primeiro]
+    tmp += dict_ord_template[ordenacao.segundo]
+    tmp += dict_ord_template[ordenacao.terceiro]
+    tmp += dict_ord_template[ordenacao.quarto]
+    tmp += dict_ord_template[ordenacao.quinto]
+    tmp += dict_ord_template[ordenacao.sexto]
+    tmp += dict_ord_template[ordenacao.setimo]
+    tmp += dict_ord_template[ordenacao.oitavo]
+    tmp += dict_ord_template[ordenacao.nono]
+    tmp += dict_ord_template[ordenacao.decimo]
+    tmp += dict_ord_template[ordenacao.decimo_primeiro]
+    tmp += dict_ord_template[ordenacao.decimo_segundo]
+    tmp += dict_ord_template[ordenacao.decimo_terceiro]
+    tmp += dict_ord_template[ordenacao.decimo_quarto]
     tmp += '\t</story>\n'
     tmp += '</document>\n'
 

@@ -520,6 +520,12 @@ def get_sessao_plenaria(sessao, casa):
     inf_basicas_dic["hr_fim_sessao"] = sessao.hora_fim
     inf_basicas_dic["nom_camara"] = casa.nome
 
+    lst_conteudo_multimidia = {}
+    if sessao.url_audio:
+        lst_conteudo_multimidia["url_audio"] = sessao.url_audio
+    if sessao.url_video:
+        lst_conteudo_multimidia["url_video"] = sessao.url_video
+
     # Lista da composicao da mesa diretora
     lst_mesa = []
     for composicao in IntegranteMesa.objects.filter(sessao_plenaria=sessao):
@@ -852,6 +858,7 @@ def get_sessao_plenaria(sessao, casa):
         lst_ocorrencias.append(o)
 
     return (inf_basicas_dic,
+            lst_conteudo_multimidia,
             lst_mesa,
             lst_presenca_sessao,
             lst_ausencia_sessao,
@@ -910,6 +917,7 @@ def relatorio_sessao_plenaria(request, pk):
         raise Http404('Essa página não existe')
 
     (inf_basicas_dic,
+     lst_conteudo_multimidia,
      lst_mesa,
      lst_presenca_sessao,
      lst_ausencia_sessao,
@@ -934,6 +942,7 @@ def relatorio_sessao_plenaria(request, pk):
         rodape,
         imagem,
         inf_basicas_dic,
+        lst_conteudo_multimidia,
         lst_mesa,
         lst_presenca_sessao,
         lst_ausencia_sessao,
