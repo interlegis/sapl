@@ -39,6 +39,7 @@ RUN rm -rf /var/interlegis/sapl/sapl/.env && \
     rm -rf /var/interlegis/sapl/sapl.db
 
 RUN chmod +x /var/interlegis/sapl/start.sh && \
+    chmod +x /var/interlegis/sapl/check_solr.sh && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
     mkdir /var/log/sapl/ && touch /var/interlegis/sapl/sapl.log && \
