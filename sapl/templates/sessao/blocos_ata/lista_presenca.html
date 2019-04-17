@@ -5,7 +5,7 @@
     {% if presenca_sessao %}
       <strong>Lista de Presença na Sessão: </strong>
       {% for p in presenca_sessao %}
-        	{{p.nome_completo}} / {{ p|filiacao_data_filter:object.data_inicio }}
+        	{{p.nome_completo}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
 			{% if not forloop.last %} ; {% endif %}
       {% endfor %}
 	{% endif %}  
