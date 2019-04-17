@@ -18,10 +18,12 @@ TIPO_DOCUMENTO_ADMINISTRATIVO = ((DOC_ADM_OSTENSIVO, _('Ostensiva')),
 RELATORIO_ATOS_ACESSADOS = (('S', _('Sim')),
                             ('N', _('Não')))
 
-SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano para cada autor')),
-                       ('B', _('Sequencial por ano indepententemente do autor')),
+SEQUENCIA_NUMERACAO_PROTOCOLO = (('A', _('Sequencial por ano')),
                        ('L', _('Sequencial por legislatura')),
                        ('U', _('Sequencial único')))
+
+SEQUENCIA_NUMERACAO_PROPOSICAO = (('A', _('Sequencial por ano para cada autor')),
+                       ('B', _('Sequencial por ano indepententemente do autor')))
 
 ESFERA_FEDERACAO_CHOICES = (('M', _('Municipal')),
                             ('E', _('Estadual')),
@@ -96,10 +98,15 @@ class AppConfig(models.Model):
         verbose_name=_('Estatísticas de acesso a normas'),
         choices=RELATORIO_ATOS_ACESSADOS, default='N')
 
-    sequencia_numeracao = models.CharField(
+    sequencia_numeracao_proposicao = models.CharField(
         max_length=1,
-        verbose_name=_('Sequência de numeração'),
-        choices=SEQUENCIA_NUMERACAO, default='A')
+        verbose_name=_('Sequência de numeração de proposições'),
+        choices=SEQUENCIA_NUMERACAO_PROPOSICAO, default='A')
+
+    sequencia_numeracao_protocolo = models.CharField(
+        max_length=1,
+        verbose_name=_('Sequência de numeração de protocolos'),
+        choices=SEQUENCIA_NUMERACAO_PROTOCOLO, default='A')
 
     esfera_federacao = models.CharField(
         max_length=1,
