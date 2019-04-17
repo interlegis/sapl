@@ -10,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 
-from sapl.base.models import SEQUENCIA_NUMERACAO, Autor
+from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TextoArticulado)
@@ -128,7 +128,7 @@ class TipoMateriaLegislativa(models.Model):
         max_length=1,
         blank=True,
         verbose_name=_('Sequência de numeração'),
-        choices=SEQUENCIA_NUMERACAO)
+        choices=SEQUENCIA_NUMERACAO_PROTOCOLO)
 
     sequencia_regimental = models.PositiveIntegerField(
         default=0,

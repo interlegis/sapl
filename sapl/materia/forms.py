@@ -1508,10 +1508,10 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
             'hash_code': forms.HiddenInput(), }
 
     def __init__(self, *args, **kwargs):
-        self.texto_articulado_proposicao = sapl.base.models.AppConfig.attr(
+        self.texto_articulado_proposicao = AppConfig.attr(
             'texto_articulado_proposicao')
 
-        self.receber_recibo = sapl.base.models.AppConfig.attr(
+        self.receber_recibo = AppConfig.attr(
             'receber_recibo_proposicao')
 
         if not self.texto_articulado_proposicao:
@@ -1533,7 +1533,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
         ]
 
-        if sapl.base.models.AppConfig.objects.last().escolher_numero_materia_proposicao:
+        if AppConfig.objects.last().escolher_numero_materia_proposicao:
             fields.append(to_column(('numero_materia_futuro', 12)),)
         else:
             if 'numero_materia_futuro' in self._meta.fields:
@@ -1666,7 +1666,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
             return super().save(commit)
 
         inst.ano = timezone.now().year
-        sequencia_numeracao = AppConfig.attr('sequencia_numeracao')
+        sequencia_numeracao = AppConfig.attr('sequencia_numeracao_proposicao')
         if sequencia_numeracao == 'A':
             numero__max = Proposicao.objects.filter(
                 autor=inst.autor,
@@ -1806,8 +1806,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
     def __init__(self, *args, **kwargs):
 
         self.proposicao_incorporacao_obrigatoria = \
-            sapl.base.models.AppConfig.attr(
-                'proposicao_incorporacao_obrigatoria')
+            AppConfig.attr('proposicao_incorporacao_obrigatoria')
 
         if self.proposicao_incorporacao_obrigatoria != 'C':
             if 'gerar_protocolo' in self._meta.fields:
@@ -1859,7 +1858,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             )
         ]
 
-        if not sapl.base.models.AppConfig.objects.last().escolher_numero_materia_proposicao or \
+        if not AppConfig.objects.last().escolher_numero_materia_proposicao or \
            not self.instance.numero_materia_futuro:
             if 'numero_materia_futuro' in self._meta.fields:
                 del fields[0][0][3]
@@ -1939,7 +1938,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+        numeracao = AppConfig.attr('sequencia_numeracao_proposicao')
 
         if not numeracao:
             self.logger.error("A sequência de numeração (por ano ou geral)"
@@ -2016,8 +2015,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             try:
                 self.logger.debug(
                     "Tentando obter modelo de sequência de numeração.")
-                numeracao = sapl.base.models.AppConfig.objects.last(
-                ).sequencia_numeracao
+                numeracao = AppConfig.objects.last(
+                ).sequencia_numeracao_protocolo
             except AttributeError as e:
                 self.logger.error("Erro ao obter modelo. " + str(e))
                 pass
@@ -2043,7 +2042,6 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             elif numeracao == 'U':
                 numero = MateriaLegislativa.objects.filter(
                     tipo=tipo).aggregate(Max('numero'))
-
             if numeracao is None:
                 numero['numero__max'] = 0
 
@@ -2169,7 +2167,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         GenericForeignKey
         """
 
-        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+        numeracao = AppConfig.attr('sequencia_numeracao_protocolo')
         if numeracao == 'A':
             nm = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))
