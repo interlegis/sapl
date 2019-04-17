@@ -94,7 +94,10 @@ INSTALLED_APPS = (
     'reversion',
     'reversion_compare',
 
+    'django_celery_results',
     'haystack',
+    'celery_haystack',
+    'whoosh',
     'speedinfo',
 
     'webpack_loader',
@@ -116,7 +119,7 @@ SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
 SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
 
 if USE_SOLR:
-    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'  # enable auto-index
+    HAYSTACK_SIGNAL_PROCESSOR = 'celery_haystack.signals.CelerySignalProcessor'  # enable auto-index
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
     SEARCH_URL = ('URL', '{}/solr/{}'.format(SOLR_URL, SOLR_COLLECTION))
 
@@ -129,6 +132,11 @@ HAYSTACK_CONNECTIONS = {
         'TIMEOUT': 20,
     },
 }
+
+CELERY_BROKER_URL = 'redis://localhost:6379'
+
+CELERY_RESULT_BACKEND = 'django-db'
+
 
 MIDDLEWARE = [
     'reversion.middleware.RevisionMiddleware',

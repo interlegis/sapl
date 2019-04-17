@@ -11,8 +11,8 @@ from sapl.materia.models import AcompanhamentoMateria
 from sapl.protocoloadm.models import AcompanhamentoDocumento
 from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import mail_service_configured
-from django.utils.translation import ugettext_lazy as _
 
+from django.utils.translation import ugettext_lazy as _
 
 def load_email_templates(templates, context={}):
 
@@ -115,8 +115,9 @@ def do_envia_email_confirmacao(base_url, casa, tipo, doc_mat, destinatario):
     # Envia email de confirmacao para atualizações de tramitação
     #
 
+    logger = logging.getLogger(__name__)
+
     if not mail_service_configured():
-        logger = logging.getLogger(__name__)
         logger.warning(_('Servidor de email não configurado.'))
         return
 
@@ -263,5 +264,6 @@ def do_envia_email_tramitacao(base_url, tipo, doc_mat, status, unidade_destino):
             connection.close()
             raise Exception(
                 'Erro ao enviar e-mail de acompanhamento de matéria.')
+
 
     connection.close()

@@ -1,10 +1,11 @@
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from sapl.base.email_utils import do_envia_email_tramitacao
 from sapl.base.signals import tramitacao_signal
 from sapl.protocoloadm.models import TramitacaoAdministrativo
 from sapl.utils import get_base_url
+
+from .tasks import task_envia_email_tramitacao
 
 
 @receiver(tramitacao_signal)
@@ -18,12 +19,11 @@ def handle_tramitacao_signal(sender, **kwargs):
         tipo = "materia"
         doc_mat = tramitacao.materia
 
-    do_envia_email_tramitacao(
-        get_base_url(request),
-        tipo,
-        doc_mat,
-        tramitacao.status,
-        tramitacao.unidade_tramitacao_destino)
+    kwargs = {'base_url': get_base_url(request), 'tipo': tipo, 'doc_mat_id': doc_mat.id,
+              'tramitacao_status_id': tramitacao.status.id,
+              'tramitacao_unidade_tramitacao_destino_id': tramitacao.unidade_tramitacao_destino.id}
+
+    task_envia_email_tramitacao.delay(kwargs)
 
 
 @receiver(post_delete)
