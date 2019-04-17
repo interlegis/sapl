@@ -128,6 +128,24 @@ def inf_basicas(inf_basicas_dic):
     return tmp
 
 
+def multimidia(cont_mult_dic):
+    """
+    """
+    tmp = ""
+    
+    mul_audio = cont_mult_dic['multimidia_audio']
+    mul_video = cont_mult_dic['multimidia_video']
+
+    tmp += '\t\t<para style="P1">Conteúdo Multimídia</para>\n'
+    tmp += '\t\t<para style="P2">\n'
+    tmp += '\t\t\t<font color="white"> <br/></font>\n'
+    tmp += '\t\t</para>\n'
+    tmp += '\t\t<para style="P2" spaceAfter="5"><b>Audio: </b> ' + mul_audio + '</para>\n'
+    tmp += '\t\t<para style="P2" spaceAfter="5"><b>Video: </b> ' + mul_video + '</para>\n'
+
+    return tmp
+
+
 def mesa(lst_mesa):
     """
 
@@ -392,7 +410,7 @@ def ocorrencias(lst_ocorrencias):
     return tmp
 
 
-def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_expediente_materia_vot_nom, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_votacao_vot_nom, lst_oradores_ordemdia, lst_oradores, lst_ocorrencias):
+def principal(rodape_dic, imagem, inf_basicas_dic, cont_mult_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_expediente_materia_vot_nom, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_votacao_vot_nom, lst_oradores_ordemdia, lst_oradores, lst_ocorrencias):
     """
     """
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"
@@ -416,7 +434,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
 
     ordenacao = ResumoOrdenacao.objects.first()
     dict_ord_template = {
-        'cont_mult': '',
+        'cont_mult': multimidia(cont_mult_dic),
         'exp': expedientes(lst_expedientes),
         'id_basica': inf_basicas(inf_basicas_dic),
         'lista_p': presenca(lst_presenca_sessao, lst_ausencia_sessao),
@@ -452,6 +470,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
             logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
                               "configuração de ordenação. Utilizando ordenação padrão.")
             tmp += inf_basicas(inf_basicas_dic)
+            tmp += multimidia(cont_mult_dic)
             tmp += mesa(lst_mesa)
             tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
             tmp += expedientes(lst_expedientes)
@@ -467,6 +486,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao
 
     else:
         tmp += inf_basicas(inf_basicas_dic)
+        tmp += multimidia(cont_mult_dic)
         tmp += mesa(lst_mesa)
         tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
         tmp += expedientes(lst_expedientes)
