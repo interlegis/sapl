@@ -456,6 +456,19 @@ class RegistroVotacao(models.Model):
         verbose_name=_('Abstenções'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observações'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          blank=True,
+                          default='')
+    data_hora = models.DateTimeField(
+        verbose_name=_('Data/Hora'),
+        auto_now_add=True,
+        blank=True,
+        null=True)
 
     class Meta:
         verbose_name = _('Votação')
