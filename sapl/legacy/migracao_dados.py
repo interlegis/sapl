@@ -833,10 +833,15 @@ def get_sequence_name_and_last_value(model):
     return sequence_name, last_value
 
 
-def reinicia_sequence(model, id):
-    sequence_name = '%s_id_seq' % model._meta.db_table
-    exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
-        sequence_name, id))
+def reinicia_sequence(model, ultima_pk_legado):
+    ultimo_id = max(
+        ultima_pk_legado,
+        model.objects.latest('id').id if model.objects.exists() else 0)
+    sequence_name, last_value = get_sequence_name_and_last_value(model)
+    if ultimo_id > last_value:
+        exec_sql(f'''
+            ALTER SEQUENCE {sequence_name}
+            RESTART WITH {ultimo_id + 1} MINVALUE -1;''')
 
 
 REPO = git.Repo.init(DIR_REPO)
@@ -1091,7 +1096,7 @@ def migrar_model(model, apagar_do_legado):
         # pois numa nova versão da migração podemos inserir registros
         # não migrados antes sem conflito com pks criadas até lá
         if get_id_do_legado:
-            reinicia_sequence(model, ultima_pk_legado + 1)
+            reinicia_sequence(model, ultima_pk_legado)
 
         # apaga registros migrados do legado
         if apagar_do_legado and sql_delete_legado:
