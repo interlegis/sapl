@@ -537,12 +537,12 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
     def form_valid(self, form):
         protocolo = form.save(commit=False)
         username = self.request.user.username
-        try:
-            self.logger.debug("user=" + username +
-                              ". Tentando obter sequência de numeração.")
-            numeracao = sapl.base.models.AppConfig.objects.last(
-            ).sequencia_numeracao
-        except AttributeError as e:
+
+        self.logger.debug("user=" + username +
+                          ". Tentando obter sequência de numeração.")
+        numeracao = sapl.base.models.AppConfig.objects.last(
+        ).sequencia_numeracao_protocolo
+        if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
                               "numeração na tabelas auxiliares! " + str(e))
             msg = _('É preciso definir a sequencia de ' +
@@ -724,12 +724,11 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     def form_valid(self, form):
         protocolo = form.save(commit=False)
         username = self.request.user.username
-        try:
-            self.logger.debug("user=" + username +
-                              ". Tentando obter sequência de numeração.")
-            numeracao = sapl.base.models.AppConfig.objects.last(
-            ).sequencia_numeracao
-        except AttributeError:
+        self.logger.debug("user=" + username +
+                          ". Tentando obter sequência de numeração.")
+        numeracao = sapl.base.models.AppConfig.objects.last(
+        ).sequencia_numeracao_protocolo
+        if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
                               "numeração na tabelas auxiliares!")
             msg = _('É preciso definir a sequencia de ' +
