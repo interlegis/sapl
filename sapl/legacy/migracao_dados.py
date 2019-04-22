@@ -827,6 +827,12 @@ def criar_configuracao_inicial():
     return True
 
 
+def get_sequence_name_and_last_value(model):
+    sequence_name = '%s_id_seq' % model._meta.db_table
+    [(last_value,)] = exec_sql(f'select last_value from {sequence_name}')
+    return sequence_name, last_value
+
+
 def reinicia_sequence(model, id):
     sequence_name = '%s_id_seq' % model._meta.db_table
     exec_sql('ALTER SEQUENCE %s RESTART WITH %s MINVALUE -1;' % (
@@ -984,8 +990,7 @@ def migrar_todos_os_models(apagar_do_legado):
 def migrar_model(model, apagar_do_legado):
     print('Migrando %s...' % model.__name__)
 
-    model_legado, tabela_legado, campos_pk_legado = \
-        get_estrutura_legado(model)
+    model_legado, tabela_legado, campos_pk_legado = get_estrutura_legado(model)
 
     if len(campos_pk_legado) == 1:
 
@@ -1468,11 +1473,11 @@ yaml.add_constructor(u'!time', time_constructor)
 TAG_MARCO = 'marco'
 
 
-def gravar_marco():
+def gravar_marco(nome_dir='marco'):
     """Grava um dump de todos os dados como arquivos yaml no repo de marco
     """
     # prepara ou localiza repositorio
-    dir_dados = Path(REPO.working_dir, 'dados')
+    dir_dados = Path(REPO.working_dir, nome_dir)
     # limpa todo o conteúdo antes
     dir_dados.rmtree()
     dir_dados.mkdir()
@@ -1481,6 +1486,7 @@ def gravar_marco():
     user_model = get_user_model()
     models = get_models_a_migrar() + [
         Composicao, user_model, Group, ContentType]
+    sequences = []
     for model in models:
         info('Gravando marco de [{}]'.format(model.__name__))
         dir_model = dir_dados.child(model._meta.app_label, model.__name__)
@@ -1489,6 +1495,10 @@ def gravar_marco():
             nome_arq = Path(dir_model, '{}.yaml'.format(data['id']))
             with open(nome_arq, 'w') as arq:
                 pyaml.dump(data, arq)
+        sequences.append(get_sequence_name_and_last_value(model))
+    # grava valores das seqeunces
+    sequences = dict(sorted(sequences))
+    Path(dir_dados, 'sequences.yaml').write_file(pyaml.dump(sequences))
 
     # backup do banco
     print('Gerando backup do banco... ', end='', flush=True)
@@ -1506,5 +1516,5 @@ def gravar_marco():
     REPO.git.add([arq_backup.name])
     if 'master' not in REPO.heads or REPO.index.diff('HEAD'):
         # se de fato existe mudança
-        REPO.index.commit('Grava marco')
+        REPO.index.commit(f'Grava marco (em {nome_dir})')
     REPO.git.execute('git tag -f'.split() + [TAG_MARCO])
