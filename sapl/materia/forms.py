@@ -549,15 +549,48 @@ class TramitacaoForm(ModelForm):
     def save(self, commit=True):
         tramitacao = super(TramitacaoForm, self).save(commit)
         materia = tramitacao.materia
-        for ma in materia.anexadas.all():
-            if not ma.tramitacao_set.all() \
-                    or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+        
+        if tramitacao.status.indicador == "F":
+            materia.em_tramitacao = False
+        else:
+            materia.em_tramitacao = True
+        materia.save()
+
+        anexadas = lista_anexadas(materia)
+        for anexada in anexadas:
+            if not anexada.tramitacao_set.all() \
+                    or anexada.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
                 tramitacao_nova = tramitacao
                 tramitacao_nova.pk = None
-                tramitacao_nova.materia = ma
+                tramitacao_nova.materia = anexada
                 tramitacao_nova.save()
 
+                if tramitacao.status.indicador == "F":
+                    anexada.em_tramitacao = False
+                else:
+                    anexada.em_tramitacao = True
+                anexada.save()        
+
         return tramitacao
+
+
+def lista_anexadas(materia_principal):
+    materias_anexadas = []
+    anexadas_principal = Anexada.objects.filter(materia_principal=materia_principal)
+
+    while anexadas_principal:
+        anexadas = []
+
+        for anexada in anexadas_principal:
+            materias_anexadas.append(anexada.materia_anexada)
+
+            anexadas_anexada = Anexada.objects.filter(materia_principal=anexada.materia_anexada)
+            for a in anexadas_anexada:
+                anexadas.append(a)
+
+        anexadas_principal = anexadas
+    
+    return materias_anexadas
 
 
 class TramitacaoUpdateForm(TramitacaoForm):

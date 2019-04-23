@@ -1221,12 +1221,6 @@ class TramitacaoCrud(MasterDetailCrud):
             self.object = form.save()
             username = self.request.user.username
 
-            if form.instance.status.indicador == 'F':
-                form.instance.materia.em_tramitacao = False
-            else:
-                form.instance.materia.em_tramitacao = True
-            form.instance.materia.save()
-
             try:
                 self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={})."
                                   .format(Tramitacao, self.object, self.request))
@@ -1254,12 +1248,6 @@ class TramitacaoCrud(MasterDetailCrud):
         def form_valid(self, form):
             self.object = form.save()
             username = self.request.user.username
-
-            if form.instance.status.indicador == 'F':
-                form.instance.materia.em_tramitacao = False
-            else:
-                form.instance.materia.em_tramitacao = True
-            form.instance.materia.save()
 
             try:
                 self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
