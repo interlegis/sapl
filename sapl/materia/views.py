@@ -47,7 +47,8 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 ConfirmarProposicaoForm,
                                 DevolverProposicaoForm, LegislacaoCitadaForm,
                                 OrgaoForm, ProposicaoForm, TipoProposicaoForm,
-                                TramitacaoForm, TramitacaoUpdateForm, MateriaPesquisaSimplesForm)
+                                TramitacaoForm, TramitacaoUpdateForm, MateriaPesquisaSimplesForm,
+                                lista_anexadas)
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
@@ -1573,6 +1574,25 @@ class MateriaLegislativaCrud(Crud):
     class UpdateView(Crud.UpdateView):
 
         form_class = MateriaLegislativaForm
+
+        def form_valid(self, form):
+            self.object = form.save()
+            username = self.request.user.username
+
+            if Anexada.objects.filter(materia_principal=self.kwargs['pk']).exists():
+                materia = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+                anexadas = lista_anexadas(materia)
+
+            if form.instance.em_tramitacao:
+                for anexada in anexadas:
+                    anexada.em_tramitacao = True
+                    anexada.save()
+            else:
+                for anexada in anexadas:
+                    anexada.em_tramitacao = False
+                    anexada.save()
+
+            return super().form_valid(form)
 
         @property
         def cancel_url(self):
