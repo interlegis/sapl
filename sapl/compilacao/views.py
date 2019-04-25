@@ -2230,9 +2230,15 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                             dispositivo_pai=dp.dispositivo_pai).count()
 
                         if qtd_existente >= pp[0].quantidade_permitida:
-                            data = {'pk': base.pk,
-                                    'pai': [base.dispositivo_pai.pk, ]}
-                            self.set_message(data, 'warning',
+                            data = {'pk': None
+                                    if base.dispositivo_pai else
+                                    base.pk,
+                                    'pai': [
+                                        base.dispositivo_pai.pk if
+                                        base.dispositivo_pai else
+                                        base.pk,
+                                    ]}
+                            self.set_message(data, 'danger',
                                              _('Limite de inserções de '
                                                'dispositivos deste tipo '
                                                'foi excedido.'), time=6000)
@@ -2518,7 +2524,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                                   local_add=local_add,
                                   create_auto_inserts=True)
 
-        if data:
+        if data and data['pk']:
 
             ndp = Dispositivo.objects.get(pk=data['pk'])
 
@@ -2544,6 +2550,9 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             bloco_alteracao.ordenar_bloco_alteracao()
 
             data.update({'pk': ndp.pk,
+                         'pai': [bloco_alteracao.pk, ]})
+        else:
+            data.update({'pk': bloco_alteracao.pk,
                          'pai': [bloco_alteracao.pk, ]})
 
         return data
