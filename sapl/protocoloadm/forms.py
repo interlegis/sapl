@@ -658,12 +658,7 @@ class TramitacaoAdmForm(ModelForm):
                   'ip']
         widgets = {'user': forms.HiddenInput(),
                    'ip': forms.HiddenInput()}
-                  
-    def __init__(self, *args, **kwargs):
-        super(TramitacaoAdmForm, self).__init__(*args, **kwargs)
-
-        self.fields['user'].initial = kwargs['initial']['user']
-        self.fields['ip'].initial = kwargs['initial']['ip']
+            
 
     def clean(self):
         cleaned_data = super(TramitacaoAdmForm, self).clean()
@@ -756,7 +751,10 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto',
-                  ]
+                  'user',
+                  'ip']
+        widgets = {'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()}
 
     def clean(self):
         super(TramitacaoAdmEditForm, self).clean()

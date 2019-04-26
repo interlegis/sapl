@@ -1116,6 +1116,8 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             else:
                 initial['unidade_tramitacao_local'] = ''
             initial['data_tramitacao'] = timezone.now().date()
+            initial['ip'] = get_client_ip(self.request)
+            initial['user'] = self.request.user
             return initial
 
         def get_context_data(self, **kwargs):
@@ -1183,7 +1185,14 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
     class DetailView(DocumentoAdministrativoMixin,
                      MasterDetailCrud.DetailView):
-        pass
+
+        template_name = 'protocoloadm/tramitacaoadministrativo_detail.html'
+        
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['user'] = self.request.user
+            return context
+
 
     class DeleteView(MasterDetailCrud.DeleteView):
 

@@ -470,8 +470,6 @@ class TramitacaoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
         self.fields['data_tramitacao'].initial = timezone.now().date()
-        self.fields['user'].initial = kwargs['initial']['user']
-        self.fields['ip'].initial = kwargs['initial']['ip']
         ust = UnidadeTramitacao.objects.select_related().all()
         unidade_tramitacao_destino = [('', '---------')] + [(ut.pk, ut)
                                                             for ut in ust if ut.comissao and ut.comissao.ativa]
@@ -562,8 +560,6 @@ class TramitacaoForm(ModelForm):
                 tramitacao_nova.pk = None
                 tramitacao_nova.materia = ma
                 tramitacao_nova.save()
-        tramitacao.ip = self.fields['ip'].initial
-        tramitacao.user = self.fields['user'].initial
 
         return tramitacao
 

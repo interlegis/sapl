@@ -1222,8 +1222,6 @@ class TramitacaoCrud(MasterDetailCrud):
 
             self.object = form.save()
             username = self.request.user.username
-            form.instance.user = self.request.user
-            form.instance.ip = get_client_ip(self.request)
 
             if form.instance.status.indicador == 'F':
                 form.instance.materia.em_tramitacao = False
@@ -1253,12 +1251,6 @@ class TramitacaoCrud(MasterDetailCrud):
         logger = logging.getLogger(__name__)
 
         layout_key = 'TramitacaoUpdate'
-
-        def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
-            initial['ip'] = get_client_ip(self.request)
-            initial['user'] = self.request.user
-            return initial
 
         def form_valid(self, form):
             self.object = form.save()
