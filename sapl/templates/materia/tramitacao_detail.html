@@ -1,7 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 
-{% block actions %} {% endblock %}
 {% block detail_content %}
     {{ block.super }}
     {% if user.is_superuser %}

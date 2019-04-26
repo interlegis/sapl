@@ -1156,6 +1156,12 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         form_class = TramitacaoAdmEditForm
         logger = logging.getLogger(__name__)
 
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['ip'] = get_client_ip(self.request)
+            initial['user'] = self.request.user
+            return initial
+
         def form_valid(self, form):
             self.object = form.save()
             username = self.request.user.username
@@ -1164,7 +1170,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception as e:
-                # TODO log error
                 self.logger.error('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento de documento '
                                   'não enviado. A não configuração do servidor de e-mail '
                                   'impede o envio de aviso de tramitação. ' + str(e))
