@@ -25,6 +25,7 @@ from django.core.management.commands.flush import Command as FlushCommand
 from django.db import connections, transaction
 from django.db.models import Max, Q
 from pyaml import UnsafePrettyYAMLDumper
+from reversion.models import Version
 from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
@@ -908,6 +909,9 @@ def do_flush():
 
 def migrar_dados(flush=False, apagar_do_legado=False):
     try:
+        # limpa tudo antes de migrar
+        _cached_get_all_ids_from_model.cache_clear()
+        get_pk_legado.cache_clear()
         ocorrencias.clear()
         ocorrencias.default_factory = list
 
@@ -1015,9 +1019,13 @@ def migrar_model(model, apagar_do_legado):
 
         ids_ja_migrados = get_all_ids_from_model(model)
 
+        apagados_pelo_usuario = [
+            int(v.object_id)
+            for v in Version.objects.get_deleted(model)]
+
         def ja_esta_migrado(old):
             id = get_id_do_legado(old)
-            return id in ids_ja_migrados
+            return id in ids_ja_migrados or id in apagados_pelo_usuario
 
         ultima_pk_legado = model_legado.objects.all().aggregate(
             Max('pk'))['pk__max'] or 0
@@ -1029,20 +1037,33 @@ def migrar_model(model, apagar_do_legado):
         get_id_do_legado = None
 
         renames = field_renames[model]
-        campos_velhos_p_novos = {v: k for k, v in renames.items()}
+        campos_velhos_p_novos = {v: k
+                                 for k, v in renames.items()}
+
+        if model_legado == Numeracao:
+            # nao usamos cod_numeracao no 3.1 => apelamos p todos os campos
+            campos_chave = ['cod_materia', 'tip_materia', 'num_materia',
+                            'ano_materia', 'dat_materia']
+        else:
+            campos_chave = campos_pk_legado
+
+        def sem_sufixo_id(k):
+            return k[:-3] if k.endswith('_id') else k
+
+        apagados_pelo_usuario = Version.objects.get_deleted(model)
+        apagados_pelo_usuario = [
+            {sem_sufixo_id(k): v for k, v in version.field_dict.items()}
+            for version in apagados_pelo_usuario]
+        campos_chave_novos = {campos_velhos_p_novos[c] for c in campos_chave}
+        apagados_pelo_usuario = [
+            {k: v for k, v in apagado.items() if k in campos_chave_novos}
+            for apagado in apagados_pelo_usuario]
 
         def ja_esta_migrado(old):
-            if model_legado == Numeracao:
-                # nao usamos cod_numeracao no 3.1 => apelamos p todos os campos
-                campos_chave = [
-                    'cod_materia', 'tip_materia', 'num_materia',
-                    'ano_materia', 'dat_materia']
-            else:
-                campos_chave = campos_pk_legado
             chave = {campos_velhos_p_novos[c]: getattr(old, c)
                      for c in campos_chave}
-            return model.objects.filter(**chave).exists()
-
+            return (chave in apagados_pelo_usuario
+                    or model.objects.filter(**chave).exists())
         ultima_pk_legado = model_legado.objects.count()
 
     ajuste_antes_salvar = AJUSTE_ANTES_SALVAR.get(model)
@@ -1478,11 +1499,13 @@ yaml.add_constructor(u'!time', time_constructor)
 TAG_MARCO = 'marco'
 
 
-def gravar_marco(nome_dir='marco'):
+def gravar_marco(nome_dir='dados', pula_se_ja_existe=False):
     """Grava um dump de todos os dados como arquivos yaml no repo de marco
     """
     # prepara ou localiza repositorio
     dir_dados = Path(REPO.working_dir, nome_dir)
+    if pula_se_ja_existe and dir_dados.exists():
+        return
     # limpa todo o conteúdo antes
     dir_dados.rmtree()
     dir_dados.mkdir()
