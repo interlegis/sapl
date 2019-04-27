@@ -1348,20 +1348,31 @@ def adjust_normajuridica_depois_salvar():
         for model in [AssuntoNorma, NormaJuridica]]
 
     def filtra_assuntos_migrados(cod_assunto):
+        """cod_assunto é uma string com cods separados por vírgulas
+        p. ex.: 1,2,3,99
+        """
         if not cod_assunto:
             return []
         cods = {int(a) for a in cod_assunto.split(',') if a}
         return sorted(cods.intersection(assuntos_migrados))
 
-    norma_para_assuntos = [
-        (norma, filtra_assuntos_migrados(cod_assunto))
-        for norma, cod_assunto in OldNormaJuridica.objects.filter(
-            pk__in=normas_migradas).values_list('pk', 'cod_assunto')]
+    old_normajurica_cod_assuntos = OldNormaJuridica.objects.filter(
+        pk__in=normas_migradas).values_list('pk', 'cod_assunto')
+    ja_migrados = set(ligacao.objects.values_list(
+        'normajuridica_id', 'assuntonorma_id'))
+
+    normas_assuntos = [
+        (norma, assunto)
+        for norma, cod_assunto in old_normajurica_cod_assuntos
+        for assunto in filtra_assuntos_migrados(cod_assunto)
+        if (norma, assunto) not in ja_migrados
+    ]
+
+    assert not Version.objects.get_deleted(AssuntoNorma)
 
     ligacao.objects.bulk_create(
         ligacao(normajuridica_id=norma, assuntonorma_id=assunto)
-        for norma, assuntos in norma_para_assuntos
-        for assunto in assuntos)
+        for norma, assunto in normas_assuntos)
 
 
 def adjust_autor(new, old):
