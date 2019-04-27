@@ -80,3 +80,29 @@ def scrap_sde(url, usuario, senha=None):
             pk, res.status_code, url_proposicao, num / total))
         if res.status_code == 200:
             salva_conteudo_do_sde(proposicao, res.content)
+
+
+def tenta_correcao():
+    from sapl.legacy.migracao_dados import ocorrencias
+
+    gravar_marco('producao', pula_se_ja_existe=True)
+    migrar_dados()
+    assert 'fk' not in ocorrencias, "AINDA EXISTEM FKS ORFAS"
+    gravar_marco()
+    from IPython import get_ipython
+    import git
+    sigla = NOME_BANCO_LEGADO[-3:]
+
+    print(f'cd ~/migracao_sapl/repos/sapl_cm_{sigla}')
+    get_ipython().run_line_magic(
+        'cd', f'~/migracao_sapl/repos/sapl_cm_{sigla}')
+    get_ipython().system("diff -rq producao dados | grep -v 'Only in dados' | grep -v 'Files producao/sequences.yaml and dados/sequences.yaml differ'")  # noqa
+    get_ipython().system('vimdiff producao/sequences.yaml dados/sequences.yaml')  # noqa
+
+    ajustes = Path(
+        f'/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql').read_file()  # noqa
+    assert ajustes.count('RESSUSCITADOS') == 1
+    consulta_sapl = git.Repo(f'/home/mazza/work/consulta_sapls')
+    consulta_sapl.git.add(
+        f'/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql')
+    consulta_sapl.index.commit(f'Ajusta {sigla} (p migração corretiva)')
