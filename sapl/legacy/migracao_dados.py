@@ -33,49 +33,22 @@ from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import Numeracao, TipoNumeracaoProtocolo
-from sapl.legacy_migration_settings import (
-    DIR_DADOS_MIGRACAO,
-    DIR_REPO,
-    NOME_BANCO_LEGADO,
-    PYTZ_TIMEZONE,
-    SIGLA_CASA,
-)
-from sapl.materia.models import (
-    AcompanhamentoMateria,
-    DocumentoAcessorio,
-    MateriaLegislativa,
-    Proposicao,
-    StatusTramitacao,
-    TipoDocumento,
-    TipoMateriaLegislativa,
-    TipoProposicao,
-    Tramitacao,
-)
-from sapl.norma.models import (
-    AssuntoNorma,
-    NormaJuridica,
-    NormaRelacionada,
-    TipoVinculoNormaJuridica,
-)
-from sapl.parlamentares.models import (
-    Legislatura,
-    Mandato,
-    Parlamentar,
-    Partido,
-    TipoAfastamento,
-)
-from sapl.protocoloadm.models import (
-    DocumentoAdministrativo,
-    Protocolo,
-    StatusTramitacaoAdministrativo,
-)
-from sapl.sessao.models import (
-    ExpedienteMateria,
-    ExpedienteSessao,
-    OrdemDia,
-    RegistroVotacao,
-    TipoResultadoVotacao,
-)
+from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
+                                            NOME_BANCO_LEGADO, PYTZ_TIMEZONE,
+                                            SIGLA_CASA)
+from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
+                                 MateriaLegislativa, Proposicao,
+                                 StatusTramitacao, TipoDocumento,
+                                 TipoMateriaLegislativa, TipoProposicao,
+                                 Tramitacao)
+from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
+                               TipoVinculoNormaJuridica)
+from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
+                                       Partido, TipoAfastamento)
+from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
+                                      StatusTramitacaoAdministrativo)
+from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
+                                RegistroVotacao, TipoResultadoVotacao)
 from sapl.utils import normalize
 
 from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
@@ -1722,7 +1695,9 @@ yaml.add_constructor("!time", time_constructor)
 TAG_MARCO = "marco"
 
 
-def gravar_marco(nome_dir="dados", pula_se_ja_existe=False):
+def gravar_marco(
+    nome_dir="dados", pula_se_ja_existe=False, versiona=True, gera_backup=True
+):
     """Grava um dump de todos os dados como arquivos yaml no repo de marco
     """
     # prepara ou localiza repositorio
@@ -1743,11 +1718,11 @@ def gravar_marco(nome_dir="dados", pula_se_ja_existe=False):
     ]
     sequences = []
     for model in models:
-        info("Gravando marco de [{}]".format(model.__name__))
+        info(f"Gravando marco de [{model.__name__}]")
         dir_model = dir_dados.child(model._meta.app_label, model.__name__)
         dir_model.mkdir(parents=True)
         for data in model.objects.all().values():
-            nome_arq = Path(dir_model, "{}.yaml".format(data["id"]))
+            nome_arq = Path(dir_model, f"{data['id']}.yaml")
             with open(nome_arq, "w") as arq:
                 pyaml.dump(data, arq)
         sequences.append(get_sequence_name_and_last_value(model))
@@ -1756,21 +1731,23 @@ def gravar_marco(nome_dir="dados", pula_se_ja_existe=False):
     Path(dir_dados, "sequences.yaml").write_file(pyaml.dump(sequences))
 
     # backup do banco
-    print("Gerando backup do banco... ", end="", flush=True)
-    arq_backup = DIR_REPO.child("{}.backup".format(NOME_BANCO_LEGADO))
-    arq_backup.remove()
-    backup_cmd = """
-        pg_dump --host localhost --port 5432 --username postgres --no-password
-        --format custom --blobs --verbose --file {} {}""".format(
-        arq_backup, NOME_BANCO_LEGADO
-    )
-    subprocess.check_output(backup_cmd.split(), stderr=subprocess.DEVNULL)
-    print("SUCESSO")
+    if gera_backup:
+        print("Gerando backup do banco... ", end="", flush=True)
+        arq_backup = DIR_REPO.child("{}.backup".format(NOME_BANCO_LEGADO))
+        arq_backup.remove()
+        backup_cmd = f"""
+            pg_dump --host localhost --port 5432 --username postgres
+            --no-password --format custom --blobs --verbose --file
+            {arq_backup} {NOME_BANCO_LEGADO}"""
+        subprocess.check_output(backup_cmd.split(), stderr=subprocess.DEVNULL)
+        print("SUCESSO")
 
-    # salva mudanças
-    REPO.git.add([dir_dados.name])
-    REPO.git.add([arq_backup.name])
-    if "master" not in REPO.heads or REPO.index.diff("HEAD"):
-        # se de fato existe mudança
-        REPO.index.commit(f"Grava marco (em {nome_dir})")
-    REPO.git.execute("git tag -f".split() + [TAG_MARCO])
+    # versiona mudanças
+    if versiona:
+        REPO.git.add([dir_dados.name])
+        if gera_backup:
+            REPO.git.add([arq_backup.name])
+        if "master" not in REPO.heads or REPO.index.diff("HEAD"):
+            # se de fato existe mudança
+            REPO.index.commit(f"Grava marco (em {nome_dir})")
+        REPO.git.execute("git tag -f".split() + [TAG_MARCO])

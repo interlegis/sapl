@@ -94,10 +94,10 @@ def scrap_sde(url, usuario, senha=None):
 def tenta_correcao():
     from sapl.legacy.migracao_dados import ocorrencias
 
-    gravar_marco("producao")
+    gravar_marco("producao", versiona=False, gera_backup=False)
     migrar_dados()
     assert "fk" not in ocorrencias, "AINDA EXISTEM FKS ORFAS"
-    gravar_marco()
+    gravar_marco(versiona=False, gera_backup=False)
     import git
 
     sigla = NOME_BANCO_LEGADO[-3:]
