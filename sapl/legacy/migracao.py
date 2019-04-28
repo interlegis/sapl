@@ -15,17 +15,18 @@ from sapl.materia.models import Proposicao
 
 
 def adornar_msg(msg):
-    return '\n{1}\n{0}\n{1}'.format(msg, '#' * len(msg))
+    return "\n{1}\n{0}\n{1}".format(msg, "#" * len(msg))
 
 
 def migrar(flush=False, apagar_do_legado=False):
     if TAG_MARCO in REPO.tags:
-        info('A migração já está feita.')
+        info("A migração já está feita.")
         return
     assert TAG_ZOPE in REPO.tags, adornar_msg(
-        'Antes de migrar '
-        'é necessário fazer a exportação de documentos do zope')
-    management.call_command('migrate')
+        "Antes de migrar "
+        "é necessário fazer a exportação de documentos do zope"
+    )
+    management.call_command("migrate")
     primeira_migracao = migrar_dados(flush, apagar_do_legado)
     migrar_usuarios(REPO.working_dir, primeira_migracao)
     migrar_documentos(REPO, primeira_migracao)
@@ -36,25 +37,26 @@ def migrar(flush=False, apagar_do_legado=False):
 def compactar_media():
 
     # tar de media/sapl
-    print('Criando tar de media... ', end='', flush=True)
-    arq_tar = DIR_REPO.child('{}.media.tar'.format(NOME_BANCO_LEGADO))
+    print("Criando tar de media... ", end="", flush=True)
+    arq_tar = DIR_REPO.child("{}.media.tar".format(NOME_BANCO_LEGADO))
     arq_tar.remove()
-    subprocess.check_output(['tar', 'cfh', arq_tar, '-C', DIR_REPO, 'sapl'])
-    print('SUCESSO')
+    subprocess.check_output(["tar", "cfh", arq_tar, "-C", DIR_REPO, "sapl"])
+    print("SUCESSO")
 
 
-PROPOSICAO_UPLOAD_TO = Proposicao._meta.get_field('texto_original').upload_to
+PROPOSICAO_UPLOAD_TO = Proposicao._meta.get_field("texto_original").upload_to
 
 
 def salva_conteudo_do_sde(proposicao, conteudo):
     caminho_relativo = PROPOSICAO_UPLOAD_TO(
-        proposicao, 'proposicao_sde_{}.xml'.format(proposicao.pk))
+        proposicao, "proposicao_sde_{}.xml".format(proposicao.pk)
+    )
     caminho_absoluto = Path(REPO.working_dir, caminho_relativo)
     caminho_absoluto.parent.mkdir(parents=True)
     # ajusta caminhos para folhas de estilo
     conteudo = conteudo.replace(b'"XSLT/HTML', b'"/XSLT/HTML')
     conteudo = conteudo.replace(b"'XSLT/HTML", b"'/XSLT/HTML")
-    with open(caminho_absoluto, 'wb') as arq:
+    with open(caminho_absoluto, "wb") as arq:
         arq.write(conteudo)
     proposicao.texto_original = caminho_relativo
     proposicao.save()
@@ -66,18 +68,25 @@ def scrap_sde(url, usuario, senha=None):
 
     # login
     session = requests.session()
-    res = session.post('{}?retry=1'.format(url),
-                       {'__ac_name': usuario, '__ac_password': senha})
+    res = session.post(
+        "{}?retry=1".format(url),
+        {"__ac_name": usuario, "__ac_password": senha},
+    )
     assert res.status_code == 200
 
-    url_proposicao_tmpl = '{}/sapl_documentos/proposicao/{}/renderXML?xsl=__default__'  # noqa
+    url_proposicao_tmpl = (
+        "{}/sapl_documentos/proposicao/{}/renderXML?xsl=__default__"
+    )
     total = Proposicao.objects.count()
     for num, proposicao in enumerate(Proposicao.objects.all()):
         pk = proposicao.pk
         url_proposicao = url_proposicao_tmpl.format(url, pk)
         res = session.get(url_proposicao)
-        print("pk: {} status: {} {} (progresso: {:.2%})".format(
-            pk, res.status_code, url_proposicao, num / total))
+        print(
+            "pk: {} status: {} {} (progresso: {:.2%})".format(
+                pk, res.status_code, url_proposicao, num / total
+            )
+        )
         if res.status_code == 200:
             salva_conteudo_do_sde(proposicao, res.content)
 
@@ -85,24 +94,32 @@ def scrap_sde(url, usuario, senha=None):
 def tenta_correcao():
     from sapl.legacy.migracao_dados import ocorrencias
 
-    gravar_marco('producao', pula_se_ja_existe=True)
+    gravar_marco("producao", pula_se_ja_existe=True)
     migrar_dados()
-    assert 'fk' not in ocorrencias, "AINDA EXISTEM FKS ORFAS"
+    assert "fk" not in ocorrencias, "AINDA EXISTEM FKS ORFAS"
     gravar_marco()
     from IPython import get_ipython
     import git
+
     sigla = NOME_BANCO_LEGADO[-3:]
 
-    print(f'cd ~/migracao_sapl/repos/sapl_cm_{sigla}')
+    print(f"cd ~/migracao_sapl/repos/sapl_cm_{sigla}")
     get_ipython().run_line_magic(
-        'cd', f'~/migracao_sapl/repos/sapl_cm_{sigla}')
-    get_ipython().system("diff -rq producao dados | grep -v 'Only in dados' | grep -v 'Files producao/sequences.yaml and dados/sequences.yaml differ'")  # noqa
-    get_ipython().system('vimdiff producao/sequences.yaml dados/sequences.yaml')  # noqa
+        "cd", f"~/migracao_sapl/repos/sapl_cm_{sigla}"
+    )
+    get_ipython().system(
+        "diff -rq producao dados | grep -v 'Only in dados' | grep -v 'Files producao/sequences.yaml and dados/sequences.yaml differ'"  # noqa
+    )
+    get_ipython().system(
+        "vimdiff producao/sequences.yaml dados/sequences.yaml"
+    )
 
     ajustes = Path(
-        f'/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql').read_file()  # noqa
-    assert ajustes.count('RESSUSCITADOS') == 1
-    consulta_sapl = git.Repo(f'/home/mazza/work/consulta_sapls')
+        f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql"
+    ).read_file()
+    assert ajustes.count("RESSUSCITADOS") == 1
+    consulta_sapl = git.Repo(f"/home/mazza/work/consulta_sapls")
     consulta_sapl.git.add(
-        f'/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql')
-    consulta_sapl.index.commit(f'Ajusta {sigla} (p migração corretiva)')
+        f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql"
+    )
+    consulta_sapl.index.commit(f"Ajusta {sigla} (p migração corretiva)")
