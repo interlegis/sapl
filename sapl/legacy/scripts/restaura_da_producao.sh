@@ -8,5 +8,4 @@ sudo -u postgres psql -c "CREATE DATABASE $1 WITH OWNER = sapl ENCODING = 'UTF8'
 sudo -u postgres pg_restore -d $1 -U postgres "$HOME/migracao_sapl/dumps_producao/$1.prod"
 echo "... restaurado"
 
-DATABASE_NAME=$1 ./manage.py shell_plus --settings=sapl.legacy_migration_settings
-
+# DATABASE_NAME=$1 ./manage.py shell_plus --settings=sapl.legacy_migration_settings
