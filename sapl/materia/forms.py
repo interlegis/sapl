@@ -461,7 +461,11 @@ class TramitacaoForm(ModelForm):
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
                   'data_fim_prazo',
-                  'texto']
+                  'texto',
+                  'user',
+                  'ip']
+        widgets = {'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()}
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
@@ -580,11 +584,15 @@ class TramitacaoUpdateForm(TramitacaoForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto',
+                  'user',
+                  'ip'
                   ]
 
         widgets = {
             'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
             'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput()
         }
 
     def clean(self):
@@ -593,32 +601,44 @@ class TramitacaoUpdateForm(TramitacaoForm):
         if not self.is_valid():
             return self.cleaned_data
 
+        cd = self.cleaned_data
+        obj = self.instance
+
         ultima_tramitacao = Tramitacao.objects.filter(
-            materia_id=self.instance.materia_id).order_by(
+            materia_id=obj.materia_id).order_by(
             '-data_tramitacao',
             '-id').first()
 
         # Se a Tramitação que está sendo editada não for a mais recente,
         # ela não pode ter seu destino alterado.
-        if ultima_tramitacao != self.instance:
-            if self.cleaned_data['unidade_tramitacao_destino'] != \
-                    self.instance.unidade_tramitacao_destino:
+        if ultima_tramitacao != obj:
+            if cd['unidade_tramitacao_destino'] != \
+                    obj.unidade_tramitacao_destino:
                 self.logger.error("Você não pode mudar a Unidade de Destino desta "
                                   "tramitação para {}, pois irá conflitar com a Unidade "
                                   "Local da tramitação seguinte ({})."
-                                  .format(self.cleaned_data['unidade_tramitacao_destino'],
-                                          self.instance.unidade_tramitacao_destino))
+                                  .format(cd['unidade_tramitacao_destino'],
+                                          obj.unidade_tramitacao_destino))
                 raise ValidationError(
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
+        
+        # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
+        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
+           cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
+           cd['status'] != obj.status or cd['texto'] != obj.texto or \
+           cd['data_encaminhamento'] != obj.data_encaminhamento or \
+           cd['data_fim_prazo'] != obj.data_fim_prazo or \
+           cd['urgente'] != obj.urgente or \
+           cd['turno'] != obj.turno):
+            cd['user'] = obj.user
+            cd['ip'] = obj.ip
 
-        self.cleaned_data['data_tramitacao'] = \
-            self.instance.data_tramitacao
-        self.cleaned_data['unidade_tramitacao_local'] = \
-            self.instance.unidade_tramitacao_local
+        cd['data_tramitacao'] = obj.data_tramitacao
+        cd['unidade_tramitacao_local'] = obj.unidade_tramitacao_local
 
-        return self.cleaned_data
+        return cd
 
 
 class LegislacaoCitadaForm(ModelForm):

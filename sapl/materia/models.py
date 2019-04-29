@@ -18,7 +18,7 @@ from sapl.parlamentares.models import Parlamentar
 #from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
-                        texto_upload_path)
+                        texto_upload_path, get_settings_auth_user_model)
 
 
 EM_TRAMITACAO = [(1, 'Sim'),
@@ -1003,6 +1003,15 @@ class Tramitacao(models.Model):
     texto = models.TextField(verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             verbose_name=_('Usuário'),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          blank=True,
+                          default='')
 
     class Meta:
         verbose_name = _('Tramitação')

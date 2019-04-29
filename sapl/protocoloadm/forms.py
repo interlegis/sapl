@@ -654,7 +654,11 @@ class TramitacaoAdmForm(ModelForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto',
-                  ]
+                  'user',
+                  'ip']
+        widgets = {'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()}
+            
 
     def clean(self):
         cleaned_data = super(TramitacaoAdmForm, self).clean()
@@ -747,7 +751,10 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto',
-                  ]
+                  'user',
+                  'ip']
+        widgets = {'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()}
 
     def clean(self):
         super(TramitacaoAdmEditForm, self).clean()
@@ -755,30 +762,40 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         if not self.is_valid():
             return self.cleaned_data
 
+        cd = self.cleaned_data
+        obj = self.instance
+
         ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
-            documento_id=self.instance.documento_id).order_by(
+            documento_id=obj.documento_id).order_by(
             '-data_tramitacao',
             '-id').first()
 
         # Se a Tramitação que está sendo editada não for a mais recente,
         # ela não pode ter seu destino alterado.
-        if ultima_tramitacao != self.instance:
-            if self.cleaned_data['unidade_tramitacao_destino'] != \
-                    self.instance.unidade_tramitacao_destino:
+        if ultima_tramitacao != obj:
+            if cd['unidade_tramitacao_destino'] != \
+                    obj.unidade_tramitacao_destino:
                 self.logger.error('Você não pode mudar a Unidade de Destino desta '
                                   'tramitação (id={}), pois irá conflitar com a Unidade '
-                                  'Local da tramitação seguinte'.format(self.instance.documento_id))
+                                  'Local da tramitação seguinte'.format(obj.documento_id))
                 raise ValidationError(
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
 
-        self.cleaned_data['data_tramitacao'] = \
-            self.instance.data_tramitacao
-        self.cleaned_data['unidade_tramitacao_local'] = \
-            self.instance.unidade_tramitacao_local
+        # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
+        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
+           cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
+           cd['status'] != obj.status or cd['texto'] != obj.texto or \
+           cd['data_encaminhamento'] != obj.data_encaminhamento or \
+           cd['data_fim_prazo'] != obj.data_fim_prazo):
+            cd['user'] = obj.user
+            cd['ip'] = obj.ip
 
-        return self.cleaned_data
+        cd['data_tramitacao'] = obj.data_tramitacao
+        cd['unidade_tramitacao_local'] = obj.unidade_tramitacao_local
+
+        return cd
 
 
 class AnexadoForm(ModelForm):

@@ -162,7 +162,7 @@ def test_create_tramitacao(admin_client):
 
     msg = force_text(_('A origem da nova tramitação deve ser igual ao '
                        'destino  da última adicionada!'))
-
+                       
     # Verifica se a origem da nova tramitacao é igual ao destino da última
     assert msg in response.context_data[
         'form'].errors['__all__']

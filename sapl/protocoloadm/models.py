@@ -6,7 +6,8 @@ import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
-from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
+                        get_settings_auth_user_model)
 
 
 @reversion.register()
@@ -318,6 +319,15 @@ class TramitacaoAdministrativo(models.Model):
         blank=True, verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim do Prazo'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             verbose_name=_('Usuário'),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          blank=True,
+                          default='')
 
     class Meta:
         verbose_name = _('Tramitação de Documento Administrativo')
