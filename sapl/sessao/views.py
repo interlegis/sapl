@@ -3820,6 +3820,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         votacao.materia = ordem.materia
                         votacao.ordem = ordem
                         votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.user = request.user
+                        votacao.ip = get_client_ip(request)
                         votacao.save()
 
                         for votos in request.POST.getlist('voto_parlamentar'):
