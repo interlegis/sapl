@@ -7,7 +7,7 @@ from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
@@ -744,6 +744,21 @@ class TramitacaoAdmForm(ModelForm):
                 raise ValidationError(msg)
 
         return self.cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=True):
+        tramitacao = super(TramitacaoAdmForm, self).save(commit)
+        documento = tramitacao.documento
+        for da in documento.anexados.all():
+            if not da.tramitacaoadministrativo_set.all() \
+                    or da.tramitacaoadministrativo_set.last() \
+                    .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                tramitacao_nova = tramitacao
+                tramitacao_nova.pk = None
+                tramitacao_nova.documento = da
+                tramitacao_nova.save()
+
+        return tramitacao
 
 
 class TramitacaoAdmEditForm(TramitacaoAdmForm):

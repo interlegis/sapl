@@ -1103,6 +1103,10 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         form_class = TramitacaoAdmForm
         logger = logging.getLogger(__name__)
 
+        def get_success_url(self):
+            return reverse('sapl.protocoloadm:tramitacaoadministrativo_list', kwargs={
+                'pk': self.kwargs['pk']})
+
         def get_initial(self):
             initial = super(CreateView, self).get_initial()
             local = DocumentoAdministrativo.objects.get(
