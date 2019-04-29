@@ -157,6 +157,8 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_local_1.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
+         'urgente': False,
+         'texto': 'teste',
          'data_tramitacao': date(2016, 8, 21)},
         follow=True)
 
@@ -175,6 +177,8 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
+         'urgente': False,
+         'texto': 'teste',
          'data_tramitacao': date(2016, 8, 20)},
         follow=True)
 
@@ -193,6 +197,8 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
+         'urgente': False,
+         'texto': 'teste',
          'data_tramitacao': timezone.now().date() + timedelta(
              days=1)},
         follow=True)
@@ -212,6 +218,8 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
+         'urgente': False,
+         'texto': 'teste',
          'data_tramitacao': date(2016, 8, 21),
          'data_encaminhamento': date(2016, 8, 20)},
         follow=True)
@@ -231,6 +239,8 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
+         'urgente': False,
+         'texto': 'teste',
          'data_tramitacao': date(2016, 8, 21),
          'data_fim_prazo': date(2016, 8, 20)},
         follow=True)
@@ -250,6 +260,8 @@ def test_create_tramitacao(admin_client):
          'unidade_tramitacao_destino': unidade_tramitacao_destino_2.pk,
          'documento': documento_adm.pk,
          'status': status.pk,
+         'urgente': False,
+         'texto': 'teste',
          'data_tramitacao': date(2016, 8, 21)},
         follow=True)
 
