@@ -650,11 +650,25 @@ class TramitacaoAdmForm(ModelForm):
         fields = ['data_tramitacao',
                   'unidade_tramitacao_local',
                   'status',
+                  'urgente',
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto',
                   ]
+
+    def __init__(self, *args, **kwargs):
+        super(TramitacaoAdmForm, self).__init__(*args, **kwargs)
+        self.fields['data_tramitacao'].initial = timezone.now().date()
+        ust = UnidadeTramitacao.objects.select_related().all()
+        unidade_tramitacao_destino = [('', '---------')] + [(ut.pk, ut)
+                                                            for ut in ust if ut.comissao and ut.comissao.ativa]
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.orgao])
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.parlamentar])
+        self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
+        self.fields['urgente'].label = "Urgente? *"
 
     def clean(self):
         cleaned_data = super(TramitacaoAdmForm, self).clean()
@@ -742,7 +756,8 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         model = TramitacaoAdministrativo
         fields = ['data_tramitacao',
                   'unidade_tramitacao_local',
-                  'status',
+                  'status', 
+                  'urgente',
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
                   'data_fim_prazo',

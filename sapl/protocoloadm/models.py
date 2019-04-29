@@ -300,6 +300,7 @@ class TramitacaoAdministrativo(models.Model):
         verbose_name=_('Status'))
     documento = models.ForeignKey(DocumentoAdministrativo,
                                   on_delete=models.PROTECT)
+    timestamp = models.DateTimeField(default=timezone.now)
     data_tramitacao = models.DateField(
         verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
@@ -314,8 +315,10 @@ class TramitacaoAdministrativo(models.Model):
         related_name='adm_tramitacoes_destino',
         on_delete=models.PROTECT,
         verbose_name=_('Unidade Destino'))
-    texto = models.TextField(
-        blank=True, verbose_name=_('Texto da Ação'))
+    urgente = models.BooleanField(verbose_name=_('Urgente ?'),
+                                  choices=YES_NO_CHOICES,
+                                  default=False)
+    texto = models.TextField(verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim do Prazo'))
 

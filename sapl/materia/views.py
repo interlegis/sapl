@@ -1201,6 +1201,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 '-timestamp',
                 '-id').first()
 
+            #TODO: Esta checagem foi inserida na issue #2027, mas é mesmo necessária?
             if ultima_tramitacao:
                 if ultima_tramitacao.unidade_tramitacao_destino:
                     context['form'].fields[
@@ -1213,6 +1214,15 @@ class TramitacaoCrud(MasterDetailCrud):
                     msg = _('Unidade de tramitação destino '
                             ' da última tramitação não pode ser vazia!')
                     messages.add_message(self.request, messages.ERROR, msg)
+
+            primeira_tramitacao = not(Tramitacao.objects.filter(
+                materia_id=int(kwargs['root_pk'])).exists())
+
+            # Se não for a primeira tramitação daquela matéria, o campo
+            # não pode ser modificado
+            if not primeira_tramitacao:
+                context['form'].fields[
+                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
 
             return context
 
@@ -1234,7 +1244,6 @@ class TramitacaoCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception as e:
-                # TODO log error
                 msg = _('Tramitação criada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
@@ -1268,7 +1277,6 @@ class TramitacaoCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception:
-                # TODO log error
                 msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')

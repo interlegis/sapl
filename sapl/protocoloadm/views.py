@@ -1120,6 +1120,27 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
+            username = self.request.user.username
+
+            ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
+                documento_id=self.kwargs['pk']).order_by(
+                '-data_tramitacao',
+                '-timestamp',
+                '-id').first()
+
+            #TODO: Esta checagem foi inserida na issue #2027, mas é mesmo necessária?
+            if ultima_tramitacao:
+                if ultima_tramitacao.unidade_tramitacao_destino:
+                    context['form'].fields[
+                        'unidade_tramitacao_local'].choices = [
+                        (ultima_tramitacao.unidade_tramitacao_destino.pk,
+                         ultima_tramitacao.unidade_tramitacao_destino)]
+                else:
+                    self.logger.error('user=' + username + '. Unidade de tramitação destino '
+                                      'da última tramitação não pode ser vazia!')
+                    msg = _('Unidade de tramitação destino '
+                            ' da última tramitação não pode ser vazia!')
+                    messages.add_message(self.request, messages.ERROR, msg)
 
             primeira_tramitacao = not(TramitacaoAdministrativo.objects.filter(
                 documento_id=int(kwargs['root_pk'])).exists())
@@ -1139,7 +1160,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception as e:
-                # TODO log error
                 self.logger.error('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento de documento '
                                   'não enviado. A não configuração do servidor de e-mail '
                                   'impede o envio de aviso de tramitação. ' + str(e))
@@ -1162,7 +1182,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception as e:
-                # TODO log error
                 self.logger.error('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento de documento '
                                   'não enviado. A não configuração do servidor de e-mail '
                                   'impede o envio de aviso de tramitação. ' + str(e))
