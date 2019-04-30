@@ -550,10 +550,7 @@ class TramitacaoForm(ModelForm):
         tramitacao = super(TramitacaoForm, self).save(commit)
         materia = tramitacao.materia
         
-        if tramitacao.status.indicador == "F":
-            materia.em_tramitacao = False
-        else:
-            materia.em_tramitacao = True
+        materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
         materia.save()
 
         anexadas = lista_anexadas(materia)
@@ -565,10 +562,7 @@ class TramitacaoForm(ModelForm):
                 tramitacao_nova.materia = anexada
                 tramitacao_nova.save()
 
-                if tramitacao.status.indicador == "F":
-                    anexada.em_tramitacao = False
-                else:
-                    anexada.em_tramitacao = True
+                anexada.em_tramitacao = False if tramitacao.status.indicador == "F" else True
                 anexada.save()        
 
         return tramitacao
@@ -577,17 +571,12 @@ class TramitacaoForm(ModelForm):
 def lista_anexadas(materia_principal):
     materias_anexadas = []
     anexadas_principal = Anexada.objects.filter(materia_principal=materia_principal)
-
     while anexadas_principal:
         anexadas = []
-
         for anexada in anexadas_principal:
             materias_anexadas.append(anexada.materia_anexada)
-
             anexadas_anexada = Anexada.objects.filter(materia_principal=anexada.materia_anexada)
-            for a in anexadas_anexada:
-                anexadas.append(a)
-
+            anexadas.extend(anexadas_anexada)
         anexadas_principal = anexadas
     
     return materias_anexadas
