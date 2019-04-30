@@ -17,7 +17,7 @@ from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
-from sapl.parlamentares.models import Parlamentar, Mandato, Bloco
+from sapl.parlamentares.models import Parlamentar, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone, choice_anos_com_sessaoplenaria,
@@ -314,41 +314,6 @@ class BancadaForm(ModelForm):
             nome=bancada.nome
         )
         return bancada
-
-
-class BlocoForm(ModelForm):
-
-    class Meta:
-        model = Bloco
-        fields = ['nome', 'partidos', 'data_criacao',
-                  'data_extincao', 'descricao']
-
-    def clean(self):
-        super(BlocoForm, self).clean()
-
-        if not self.is_valid():
-            return self.cleaned_data
-
-        if self.cleaned_data['data_extincao']:
-            if (self.cleaned_data['data_extincao'] <
-                    self.cleaned_data['data_criacao']):
-                msg = _('Data de extinção não pode ser menor que a de criação')
-                raise ValidationError(msg)
-        return self.cleaned_data
-
-    @transaction.atomic
-    def save(self, commit=True):
-        bloco = super(BlocoForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Bloco)
-        object_id = bloco.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=bloco.nome
-        )
-        return bloco
 
 
 class ExpedienteMateriaForm(ModelForm):

@@ -32,12 +32,12 @@ from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
                                  Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
-                                       Parlamentar, SessaoLegislativa, Bloco)
+                                       Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
-from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
+from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
@@ -677,16 +677,6 @@ class BancadaCrud(CrudAux):
 
         def get_success_url(self):
             return reverse('sapl.sessao:bancada_list')
-
-
-class BlocoCrud(CrudAux):
-    model = Bloco
-
-    class CreateView(CrudAux.CreateView):
-        form_class = BlocoForm
-
-        def get_success_url(self):
-            return reverse('sapl.sessao:bloco_list')
 
 
 def recuperar_numero_sessao(request):
