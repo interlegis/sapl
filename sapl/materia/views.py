@@ -1583,15 +1583,10 @@ class MateriaLegislativaCrud(Crud):
                 materia = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
                 anexadas = lista_anexadas(materia)
 
-            if form.instance.em_tramitacao:
                 for anexada in anexadas:
-                    anexada.em_tramitacao = True
+                    anexada.em_tramitacao = True if form.instance.em_tramitacao else False 
                     anexada.save()
-            else:
-                for anexada in anexadas:
-                    anexada.em_tramitacao = False
-                    anexada.save()
-
+    
             return super().form_valid(form)
 
         @property
