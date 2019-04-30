@@ -1118,16 +1118,20 @@ def altera_field_mesa_public_view(request):
             partido_parlamentar_sessao_legislativa(sessao,
                                                    parlamentar))
         if parlamentar.fotografia:
-            thumbnail_url = get_backend().get_thumbnail_url(
-                parlamentar.fotografia,
-                {
-                    'size': (128, 128),
-                    'box': parlamentar.cropping,
-                    'crop': True,
-                    'detail': True,
-                }
-            )
-            lista_fotos.append(thumbnail_url)
+            try:
+                thumbnail_url = get_backend().get_thumbnail_url(
+                    parlamentar.fotografia,
+                    {
+                        'size': (128, 128),
+                        'box': parlamentar.cropping,
+                        'crop': True,
+                        'detail': True,
+                    }
+                )
+                lista_fotos.append(thumbnail_url)
+            except Exception as e:
+                logger.error(e)
+                logger.error('erro processando arquivo: %s' % parlamentar.fotografia.path)
         else:
             lista_fotos.append(None)
 
