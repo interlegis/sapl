@@ -17,13 +17,13 @@ from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
-from sapl.parlamentares.models import Parlamentar, Mandato
+from sapl.parlamentares.models import Parlamentar, Mandato, Bloco
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone, choice_anos_com_sessaoplenaria,
                         FileFieldCheckMixin)
 
-from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
+from .models import (Bancada, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoResultadoVotacao,
                      OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta, OradorOrdemDia, ORDENACAO_RESUMO,

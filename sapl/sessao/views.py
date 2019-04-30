@@ -32,7 +32,7 @@ from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
                                  Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
-                                       Parlamentar, SessaoLegislativa)
+                                       Parlamentar, SessaoLegislativa, Bloco)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
@@ -43,7 +43,7 @@ from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm, RetiradaPautaForm, OradorOrdemDiaForm)
-from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
+from .models import (Bancada, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
