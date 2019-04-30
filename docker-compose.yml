@@ -10,7 +10,6 @@ sapldb:
     - sapldb_data:/var/lib/postgresql/data/
   ports:
     - "5432:5432"
-
 saplredis:
   image: redis:5.0.3-stretch
   restart: always
