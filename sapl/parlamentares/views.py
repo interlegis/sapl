@@ -34,11 +34,15 @@ from sapl.parlamentares.apps import AppConfig
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, ParlamentarFilterSet, VincularParlamentarForm)
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
+                    ParlamentarFilterSet, VincularParlamentarForm,
+                    BlocoForm)
+                    
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
-                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
+                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
+                     Bloco)
 
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
@@ -1164,3 +1168,13 @@ class VincularParlamentarView(PermissionRequiredMixin, FormView):
         mandato.save()
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+class BlocoCrud(CrudAux):
+    model = Bloco
+
+    class CreateView(CrudAux.CreateView):
+        form_class = BlocoForm
+
+        def get_success_url(self):
+            return reverse('sapl.parlamentares:bloco_list')
