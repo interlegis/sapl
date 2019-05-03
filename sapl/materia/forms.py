@@ -38,7 +38,7 @@ from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
-from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
+from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo, Anexado
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
                         ChoiceWithoutValidationField,
@@ -580,20 +580,6 @@ class TramitacaoForm(ModelForm):
         return tramitacao
 
 
-def lista_anexadas(materia_principal):
-    materias_anexadas = []
-    anexadas_principal = Anexada.objects.filter(materia_principal=materia_principal)
-    while anexadas_principal:
-        anexadas = []
-        for anexada in anexadas_principal:
-            materias_anexadas.append(anexada.materia_anexada)
-            anexadas_anexada = Anexada.objects.filter(materia_principal=anexada.materia_anexada)
-            anexadas.extend(anexadas_anexada)
-        anexadas_principal = anexadas
-    
-    return materias_anexadas
-
-
 class TramitacaoUpdateForm(TramitacaoForm):
     unidade_tramitacao_local = forms.ModelChoiceField(
         queryset=UnidadeTramitacao.objects.all(),
@@ -670,6 +656,37 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
         return cd
 
+    @transaction.atomic
+    def save(self, commit=True):
+        tram_principal = super(TramitacaoUpdateForm, self).save(commit)
+        materia = tram_principal.materia
+        for ma in materia.anexadas.all():
+            tram_anexada = ma.tramitacao_set.last()
+            if (tram_principal.status != tram_anexada.status or \
+                tram_principal.data_tramitacao != tram_anexada.data_tramitacao or \
+                tram_principal.unidade_tramitacao_local != tram_anexada.unidade_tramitacao_local or \
+                tram_principal.data_encaminhamento != tram_anexada.data_encaminhamento or \
+                tram_principal.unidade_tramitacao_destino != tram_anexada.unidade_tramitacao_destino or \
+                tram_principal.urgente != tram_anexada.urgente or \
+                tram_principal.turno != tram_anexada.turno or \
+                tram_principal.texto != tram_anexada.texto or \
+                tram_principal.data_fim_prazo != tram_anexada.data_fim_prazo or \
+                tram_principal.user != tram_anexada.user or \
+                tram_principal.ip != tram_anexada.ip):
+
+                tram_anexada.status = tram_principal.status
+                tram_anexada.data_tramitacao = tram_principal.data_tramitacao
+                tram_anexada.unidade_tramitacao_local = tram_principal.unidade_tramitacao_local
+                tram_anexada.data_encaminhamento = tram_principal.data_encaminhamento
+                tram_anexada.unidade_tramitacao_destino = tram_principal.unidade_tramitacao_destino
+                tram_anexada.urgente = tram_principal.urgente
+                tram_anexada.turno = tram_principal.turno
+                tram_anexada.texto = tram_principal.texto
+                tram_anexada.data_fim_prazo = tram_principal.data_fim_prazo
+                tram_anexada.user = tram_principal.user
+                tram_anexada.ip = tram_principal.ip
+                tram_anexada.save()
+        return tram_principal
 
 class LegislacaoCitadaForm(ModelForm):
 

@@ -1299,18 +1299,17 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def delete(self, request, *args, **kwargs):
             tramitacao = Tramitacao.objects.get(id=self.kwargs['pk'])
-            materia = MateriaLegislativa.objects.get(id=tramitacao.materia.id)
+            materia = tramitacao.materia
             url = reverse('sapl.materia:tramitacao_list',
-                          kwargs={'pk': tramitacao.materia.id})
+                          kwargs={'pk': materia.id})
 
             ultima_tramitacao = materia.tramitacao_set.order_by(
                 '-data_tramitacao',
                 '-timestamp',
                 '-id').first()
 
-            username = request.user.username
-
             if tramitacao.pk != ultima_tramitacao.pk:
+                username = request.user.username
                 self.logger.error("user=" + username + ". Não é possível deletar a tramitação de pk={}. "
                                   "Somente a última tramitação (pk={}) pode ser deletada!."
                                   .format(tramitacao.pk, ultima_tramitacao.pk))
@@ -1318,7 +1317,21 @@ class TramitacaoCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacao.delete()
+                tramitacoes_deletar = [tramitacao.id]
+                for ma in materia.anexadas.all():
+                    tram_anexada = ma.tramitacao_set.last()
+                    if (tram_anexada and 
+                        tramitacao.status == tram_anexada.status and \
+                        tramitacao.data_tramitacao == tram_anexada.data_tramitacao and \
+                        tramitacao.unidade_tramitacao_local == tram_anexada.unidade_tramitacao_local and \
+                        tramitacao.data_encaminhamento == tram_anexada.data_encaminhamento and \
+                        tramitacao.unidade_tramitacao_destino == tram_anexada.unidade_tramitacao_destino and \
+                        tramitacao.urgente == tram_anexada.urgente and \
+                        tramitacao.turno == tram_anexada.turno and \
+                        tramitacao.texto == tram_anexada.texto and \
+                        tramitacao.data_fim_prazo == tram_anexada.data_fim_prazo):
+                        tramitacoes_deletar.append(tram_anexada.id)
+                Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
                 return HttpResponseRedirect(url)
 
     class DetailView(MasterDetailCrud.DetailView):
