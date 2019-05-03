@@ -20,6 +20,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       remove_parlamentar_composicao,
                                       lista_parlamentares,
                                       parlamentares_filiados,
+                                      BlocoCrud,
                                       PesquisarParlamentarView, VincularParlamentarView)
 
 from .apps import AppConfig
@@ -49,8 +50,9 @@ urlpatterns = [
 
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +
-                ComposicaoColigacaoCrud.get_urls())),
-
+                ComposicaoColigacaoCrud.get_urls())),    
+    url(r'^sistema/bloco/',
+        include(BlocoCrud.get_urls())),
     url(r'^sistema/frente/',
         include(FrenteCrud.get_urls())),
     url(r'^sistema/frente/atualiza-lista-parlamentares',
@@ -92,4 +94,5 @@ urlpatterns = [
 
     url(r'^mesa-diretora/remove-parlamentar-composicao/$',
         remove_parlamentar_composicao, name='remove_parlamentar_composicao'),
+    
 ]

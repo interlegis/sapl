@@ -127,3 +127,10 @@ Votante:
   {% trans 'Votante' %}:
   - parlamentar user
   - data
+
+Bloco:
+  {% trans 'Bloco' %}:
+  - nome
+  - data_criacao data_extincao
+  - partidos
+  - descricao
