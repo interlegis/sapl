@@ -553,21 +553,29 @@ class TramitacaoForm(ModelForm):
     def save(self, commit=True):
         tramitacao = super(TramitacaoForm, self).save(commit)
         materia = tramitacao.materia
-        
         materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
         materia.save()
-
-        anexadas = lista_anexadas(materia)
-        for anexada in anexadas:
-            if not anexada.tramitacao_set.all() \
-                    or anexada.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
-                tramitacao_nova = tramitacao
-                tramitacao_nova.pk = None
-                tramitacao_nova.materia = anexada
-                tramitacao_nova.save()
-
-                anexada.em_tramitacao = False if tramitacao.status.indicador == "F" else True
-                anexada.save()        
+        lista_tramitacao = []
+        for ma in materia.anexadas.all():
+            if not ma.tramitacao_set.all() \
+                    or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+                ma.save()
+                lista_tramitacao.append(Tramitacao(
+                                            status=tramitacao.status,
+                                            materia=ma,
+                                            data_tramitacao=tramitacao.data_tramitacao,
+                                            unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                                            data_encaminhamento=tramitacao.data_encaminhamento,
+                                            unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                                            urgente=tramitacao.urgente,
+                                            turno=tramitacao.turno,
+                                            texto=tramitacao.texto,
+                                            data_fim_prazo=tramitacao.data_fim_prazo,
+                                            user=tramitacao.user,
+                                            ip=tramitacao.ip
+                                        ))
+        Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
 
