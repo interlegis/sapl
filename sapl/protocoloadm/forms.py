@@ -749,14 +749,25 @@ class TramitacaoAdmForm(ModelForm):
     def save(self, commit=True):
         tramitacao = super(TramitacaoAdmForm, self).save(commit)
         documento = tramitacao.documento
+        lista_tramitacao = []
         for da in documento.anexados.all():
             if not da.tramitacaoadministrativo_set.all() \
-                    or da.tramitacaoadministrativo_set.last() \
-                    .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
-                tramitacao_nova = tramitacao
-                tramitacao_nova.pk = None
-                tramitacao_nova.documento = da
-                tramitacao_nova.save()
+                or da.tramitacaoadministrativo_set.last() \
+                .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                lista_tramitacao.append(TramitacaoAdministrativo(
+                                        status=tramitacao.status,
+                                        documento=da,
+                                        data_tramitacao=tramitacao.data_tramitacao,
+                                        unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                                        data_encaminhamento=tramitacao.data_encaminhamento,
+                                        unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                                        urgente=tramitacao.urgente,
+                                        texto=tramitacao.texto,
+                                        data_fim_prazo=tramitacao.data_fim_prazo,
+                                        user=tramitacao.user,
+                                        ip=tramitacao.ip
+                                        ))
+        TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
 
         return tramitacao
 
