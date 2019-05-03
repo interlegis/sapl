@@ -568,3 +568,37 @@ class Votante(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+@reversion.register()
+class Bloco(models.Model):
+    '''
+        * blocos podem existir por mais de uma legislatura
+    '''
+    nome = models.CharField(
+        max_length=80, verbose_name=_('Nome do Bloco'))
+    partidos = models.ManyToManyField(
+        Partido, blank=True, verbose_name=_('Partidos'))
+    data_criacao = models.DateField(
+        blank=False, null=True, verbose_name=_('Data Criação'))
+    data_extincao = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Dissolução'))
+    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
+    # campo conceitual de reversão genérica para o model Autor que dá a
+    # o meio possível de localização de tipos de autores.
+    autor = SaplGenericRelation(Autor,
+                                related_query_name='bloco_set',
+                                fields_search=(
+                                    ('nome', '__icontains'),
+                                    ('descricao', '__icontains'),
+                                    ('partidos__sigla', '__icontains'),
+                                    ('partidos__nome', '__icontains'),
+                                ))
+
+    class Meta:
+        verbose_name = _('Bloco Parlamentar')
+        verbose_name_plural = _('Blocos Parlamentares')
+
+    def __str__(self):
+        return self.nome

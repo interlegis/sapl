@@ -553,10 +553,14 @@ class TramitacaoForm(ModelForm):
     def save(self, commit=True):
         tramitacao = super(TramitacaoForm, self).save(commit)
         materia = tramitacao.materia
+        materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+        materia.save()
         lista_tramitacao = []
         for ma in materia.anexadas.all():
             if not ma.tramitacao_set.all() \
                     or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+                ma.save()
                 lista_tramitacao.append(Tramitacao(
                                             status=tramitacao.status,
                                             materia=ma,
@@ -574,6 +578,20 @@ class TramitacaoForm(ModelForm):
         Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
+
+
+def lista_anexadas(materia_principal):
+    materias_anexadas = []
+    anexadas_principal = Anexada.objects.filter(materia_principal=materia_principal)
+    while anexadas_principal:
+        anexadas = []
+        for anexada in anexadas_principal:
+            materias_anexadas.append(anexada.materia_anexada)
+            anexadas_anexada = Anexada.objects.filter(materia_principal=anexada.materia_anexada)
+            anexadas.extend(anexadas_anexada)
+        anexadas_principal = anexadas
+    
+    return materias_anexadas
 
 
 class TramitacaoUpdateForm(TramitacaoForm):

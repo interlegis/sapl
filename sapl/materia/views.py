@@ -47,7 +47,8 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 ConfirmarProposicaoForm,
                                 DevolverProposicaoForm, LegislacaoCitadaForm,
                                 OrgaoForm, ProposicaoForm, TipoProposicaoForm,
-                                TramitacaoForm, TramitacaoUpdateForm, MateriaPesquisaSimplesForm)
+                                TramitacaoForm, TramitacaoUpdateForm, MateriaPesquisaSimplesForm,
+                                lista_anexadas)
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
@@ -1233,12 +1234,6 @@ class TramitacaoCrud(MasterDetailCrud):
             self.object = form.save()
             username = self.request.user.username
 
-            if form.instance.status.indicador == 'F':
-                form.instance.materia.em_tramitacao = False
-            else:
-                form.instance.materia.em_tramitacao = True
-            form.instance.materia.save()
-
             try:
                 self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={})."
                                   .format(Tramitacao, self.object, self.request))
@@ -1271,12 +1266,6 @@ class TramitacaoCrud(MasterDetailCrud):
         def form_valid(self, form):
             self.object = form.save()
             username = self.request.user.username
-
-            if form.instance.status.indicador == 'F':
-                form.instance.materia.em_tramitacao = False
-            else:
-                form.instance.materia.em_tramitacao = True
-            form.instance.materia.save()
 
             try:
                 self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
@@ -1610,6 +1599,20 @@ class MateriaLegislativaCrud(Crud):
     class UpdateView(Crud.UpdateView):
 
         form_class = MateriaLegislativaForm
+
+        def form_valid(self, form):
+            self.object = form.save()
+            username = self.request.user.username
+
+            if Anexada.objects.filter(materia_principal=self.kwargs['pk']).exists():
+                materia = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+                anexadas = lista_anexadas(materia)
+
+                for anexada in anexadas:
+                    anexada.em_tramitacao = True if form.instance.em_tramitacao else False 
+                    anexada.save()
+    
+            return super().form_valid(form)
 
         @property
         def cancel_url(self):

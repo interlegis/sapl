@@ -278,6 +278,8 @@ rules_group_geral = {
         (parlamentares.ComposicaoMesa, __base__, __perms_publicas__),
         (parlamentares.Frente, __base__, __perms_publicas__),
         (parlamentares.Votante, __base__, __perms_publicas__),
+        (parlamentares.Bloco, __base__, __perms_publicas__),
+
 
         (sessao.CargoBancada, __base__, __perms_publicas__),
         (sessao.Bancada, __base__, __perms_publicas__),
@@ -286,7 +288,6 @@ rules_group_geral = {
         (sessao.TipoExpediente, __base__, __perms_publicas__),
         (sessao.TipoJustificativa, __base__, __perms_publicas__),
         (sessao.JustificativaAusencia, __base__, __perms_publicas__),
-        (sessao.Bloco, __base__, __perms_publicas__),
         (sessao.ResumoOrdenacao, __base__, __perms_publicas__),
         (sessao.TipoRetiradaPauta, __base__, __perms_publicas__),
 
