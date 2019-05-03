@@ -1436,11 +1436,9 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
 
 class PartidoUpdateForm(PartidoForm):
 
-    opcoes = (('nao','Não'),
-              ('sim','Sim')
-            )
+    opcoes = YES_NO_CHOICES
 
-    historico = forms.ChoiceField(initial='nao', choices=opcoes)
+    historico = forms.ChoiceField(initial=False, choices=opcoes)
 
 
     class Meta:
@@ -1475,7 +1473,7 @@ class PartidoUpdateForm(PartidoForm):
         super(PartidoUpdateForm,self).clean()
         cleaned_data = self.cleaned_data
 
-        is_historico = cleaned_data['historico'] == 'sim' 
+        is_historico = (cleaned_data['historico'] == 'True')
 
         if is_historico: 
             if not cleaned_data['data_criacao'] or not cleaned_data['data_extincao']:
@@ -1484,8 +1482,7 @@ class PartidoUpdateForm(PartidoForm):
                  raise ValidationError("Data de inicio de historico deve ser posterior a data de criação do partido.")
             if self.instance.data_extincao and  self.instance.data_extincao < cleaned_data['data_extincao']:
                  raise ValidationError("Data de fim de historico deve ser anterior a data de extinção do partido.")
-                 
-    
+
             if self.instance.pk:
                 partido = Partido.objects.get(pk=self.instance.pk)
                 historico = HistoricoPartido.objects.filter(partido=partido).order_by('-inicio_historico')
@@ -1499,26 +1496,28 @@ class PartidoUpdateForm(PartidoForm):
         return cleaned_data
 
     def save(self,commit=False):
-       partido = self.instance
-       is_historico = self.cleaned_data['historico'] 
-           
-       if is_historico == "nao":
-           partido.save(commit)
-       elif is_historico == "sim":
-           sigla = self.cleaned_data['sigla']
-           nome = self.cleaned_data['nome']
-           inicio_historico = self.cleaned_data['data_criacao']
-           fim_historico = self.cleaned_data['data_extincao']
-           logo_partido = self.cleaned_data['logo_partido']
-           historico_partido = HistoricoPartido(sigla=sigla,
-                                               nome=nome,
-                                               inicio_historico=inicio_historico,
-                                               fim_historico=fim_historico,
-                                               logo_partido=logo_partido,
-                                               partido=partido,
-                                               )
-           historico_partido.save()
-       return partido
+        partido = self.instance
+    
+        cleaned_data = self.cleaned_data
+        is_historico = (cleaned_data['historico'] == 'True')
+            
+        if not is_historico:
+            partido.save(commit)
+        else:
+            sigla = self.cleaned_data['sigla']
+            nome = self.cleaned_data['nome']
+            inicio_historico = self.cleaned_data['data_criacao']
+            fim_historico = self.cleaned_data['data_extincao']
+            logo_partido = self.cleaned_data['logo_partido']
+            historico_partido = HistoricoPartido(sigla=sigla,
+                                                nome=nome,
+                                                inicio_historico=inicio_historico,
+                                                fim_historico=fim_historico,
+                                                logo_partido=logo_partido,
+                                                partido=partido,
+                                                )
+            historico_partido.save()
+        return partido
 
 class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
 
@@ -1557,3 +1556,4 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
                      row1, row2, row3,
                      form_actions(label='Pesquisar'))
         )
+        
