@@ -14,10 +14,66 @@ from sapl.materia.models import (Anexada, Autoria, DespachoInicial,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao, UnidadeTramitacao)
+from sapl.materia.forms import lista_anexadas
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura
 from sapl.utils import models_with_gr_for_model
+
+
+@pytest.mark.django_db(transaction=False)
+def test_lista_anexadas():
+        tipo_materia = mommy.make(
+                TipoMateriaLegislativa,
+                descricao="Tipo_Teste"
+        )
+        regime_tramitacao = mommy.make(
+                RegimeTramitacao,
+                descricao="Regime_Teste"
+        )
+        materia_principal = mommy.make(
+                MateriaLegislativa,
+                numero=20,
+                ano=2018,
+                data_apresentacao="2018-01-04",
+                regime_tramitacao=regime_tramitacao,
+                tipo=tipo_materia
+        )
+        materia_anexada = mommy.make(
+                MateriaLegislativa,
+                numero=21,
+                ano=2019,
+                data_apresentacao="2019-05-04",
+                regime_tramitacao=regime_tramitacao,
+                tipo=tipo_materia
+        )
+        materia_anexada_anexada = mommy.make(
+                MateriaLegislativa,
+                numero=22,
+                ano=2020,
+                data_apresentacao="2020-01-05",
+                regime_tramitacao=regime_tramitacao,
+                tipo=tipo_materia
+        )
+
+        mommy.make(
+                Anexada,
+                materia_principal=materia_principal,
+                materia_anexada=materia_anexada,
+                data_anexacao="2019-05-11"
+        )
+        mommy.make(
+                Anexada,
+                materia_principal=materia_anexada,
+                materia_anexada=materia_anexada_anexada,
+                data_anexacao="2020-11-05"
+        )
+
+        lista = lista_anexadas(materia_principal)
+        
+        assert len(lista) == 2
+        assert lista[0] == materia_anexada
+        assert lista[1] == materia_anexada_anexada
 
 
 @pytest.mark.django_db(transaction=False)
