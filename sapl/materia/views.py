@@ -47,8 +47,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
                                 ConfirmarProposicaoForm,
                                 DevolverProposicaoForm, LegislacaoCitadaForm,
                                 OrgaoForm, ProposicaoForm, TipoProposicaoForm,
-                                TramitacaoForm, TramitacaoUpdateForm, MateriaPesquisaSimplesForm,
-                                lista_anexadas)
+                                TramitacaoForm, TramitacaoUpdateForm, MateriaPesquisaSimplesForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
@@ -56,7 +55,7 @@ from sapl.settings import MEDIA_ROOT
 from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH_PROPOSICAO,
                         gerar_hash_arquivo, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, montar_row_autor,
-                        show_results_filter_set, mail_service_configured)
+                        show_results_filter_set, mail_service_configured, lista_anexados)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet,
@@ -70,7 +69,7 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status,
-                    ExcluirTramitacaoEmLote)
+                    ExcluirTramitacaoEmLote, compara_tramitacoes_mat)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaAssunto,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -1302,7 +1301,7 @@ class TramitacaoCrud(MasterDetailCrud):
             materia = tramitacao.materia
             url = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': materia.id})
-
+            
             ultima_tramitacao = materia.tramitacao_set.order_by(
                 '-data_tramitacao',
                 '-timestamp',
@@ -1318,18 +1317,10 @@ class TramitacaoCrud(MasterDetailCrud):
                 return HttpResponseRedirect(url)
             else:
                 tramitacoes_deletar = [tramitacao.id]
-                for ma in materia.anexadas.all():
+                mat_anexadas = lista_anexados(materia)
+                for ma in mat_anexadas:
                     tram_anexada = ma.tramitacao_set.last()
-                    if (tram_anexada and 
-                        tramitacao.status == tram_anexada.status and \
-                        tramitacao.data_tramitacao == tram_anexada.data_tramitacao and \
-                        tramitacao.unidade_tramitacao_local == tram_anexada.unidade_tramitacao_local and \
-                        tramitacao.data_encaminhamento == tram_anexada.data_encaminhamento and \
-                        tramitacao.unidade_tramitacao_destino == tram_anexada.unidade_tramitacao_destino and \
-                        tramitacao.urgente == tram_anexada.urgente and \
-                        tramitacao.turno == tram_anexada.turno and \
-                        tramitacao.texto == tram_anexada.texto and \
-                        tramitacao.data_fim_prazo == tram_anexada.data_fim_prazo):
+                    if compara_tramitacoes_mat(tram_anexada, tramitacao):
                         tramitacoes_deletar.append(tram_anexada.id)
                 Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
                 return HttpResponseRedirect(url)
@@ -1619,7 +1610,7 @@ class MateriaLegislativaCrud(Crud):
 
             if Anexada.objects.filter(materia_principal=self.kwargs['pk']).exists():
                 materia = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
-                anexadas = lista_anexadas(materia)
+                anexadas = lista_anexados(materia)
 
                 for anexada in anexadas:
                     anexada.em_tramitacao = True if form.instance.em_tramitacao else False 

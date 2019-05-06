@@ -45,7 +45,8 @@ from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, gerar_hash_arquivo,
                         models_with_gr_for_model, qs_override_django_filter,
-                        choice_anos_com_materias, FilterOverridesMetaMixin, FileFieldCheckMixin)
+                        choice_anos_com_materias, FilterOverridesMetaMixin, FileFieldCheckMixin,
+                        lista_anexados)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -555,8 +556,10 @@ class TramitacaoForm(ModelForm):
         materia = tramitacao.materia
         materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
         materia.save()
+
         lista_tramitacao = []
-        for ma in materia.anexadas.all():
+        lista_anexadas = lista_anexados(materia)
+        for ma in lista_anexadas:
             if not ma.tramitacao_set.all() \
                     or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
                 ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
@@ -579,6 +582,17 @@ class TramitacaoForm(ModelForm):
 
         return tramitacao
 
+
+# Compara se os campos de duas tramitações são iguais, 
+# exceto os campos id, documento_id e timestamp
+def compara_tramitacoes_mat(tramitacao1, tramitacao2):
+    if not tramitacao1 or not tramitacao2:
+        return False
+
+    lst_items = ['id', 'materia_id', 'timestamp']
+    values = [(k,v) for k,v in tramitacao1.__dict__.items() if ((k not in lst_items) and (k[0] != '_'))]
+    other_values = [(k,v) for k,v in tramitacao2.__dict__.items() if (k not in lst_items and k[0] != '_')]
+    return values == other_values
 
 class TramitacaoUpdateForm(TramitacaoForm):
     unidade_tramitacao_local = forms.ModelChoiceField(
@@ -658,35 +672,32 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
     @transaction.atomic
     def save(self, commit=True):
-        tram_principal = super(TramitacaoUpdateForm, self).save(commit)
-        materia = tram_principal.materia
-        for ma in materia.anexadas.all():
-            tram_anexada = ma.tramitacao_set.last()
-            if (tram_principal.status != tram_anexada.status or \
-                tram_principal.data_tramitacao != tram_anexada.data_tramitacao or \
-                tram_principal.unidade_tramitacao_local != tram_anexada.unidade_tramitacao_local or \
-                tram_principal.data_encaminhamento != tram_anexada.data_encaminhamento or \
-                tram_principal.unidade_tramitacao_destino != tram_anexada.unidade_tramitacao_destino or \
-                tram_principal.urgente != tram_anexada.urgente or \
-                tram_principal.turno != tram_anexada.turno or \
-                tram_principal.texto != tram_anexada.texto or \
-                tram_principal.data_fim_prazo != tram_anexada.data_fim_prazo or \
-                tram_principal.user != tram_anexada.user or \
-                tram_principal.ip != tram_anexada.ip):
+        ant_tram_principal = Tramitacao.objects.get(id=self.instance.id)
+        nova_tram_principal = super(TramitacaoUpdateForm, self).save(commit)
+        materia = nova_tram_principal.materia
+        materia.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+        materia.save()
 
-                tram_anexada.status = tram_principal.status
-                tram_anexada.data_tramitacao = tram_principal.data_tramitacao
-                tram_anexada.unidade_tramitacao_local = tram_principal.unidade_tramitacao_local
-                tram_anexada.data_encaminhamento = tram_principal.data_encaminhamento
-                tram_anexada.unidade_tramitacao_destino = tram_principal.unidade_tramitacao_destino
-                tram_anexada.urgente = tram_principal.urgente
-                tram_anexada.turno = tram_principal.turno
-                tram_anexada.texto = tram_principal.texto
-                tram_anexada.data_fim_prazo = tram_principal.data_fim_prazo
-                tram_anexada.user = tram_principal.user
-                tram_anexada.ip = tram_principal.ip
+        lista_anexadas = lista_anexados(materia)
+        for ma in lista_anexadas:
+            tram_anexada = ma.tramitacao_set.last()
+            if compara_tramitacoes_mat(ant_tram_principal, tram_anexada):
+                tram_anexada.status = nova_tram_principal.status
+                tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
+                tram_anexada.unidade_tramitacao_local = nova_tram_principal.unidade_tramitacao_local
+                tram_anexada.data_encaminhamento = nova_tram_principal.data_encaminhamento
+                tram_anexada.unidade_tramitacao_destino = nova_tram_principal.unidade_tramitacao_destino
+                tram_anexada.urgente = nova_tram_principal.urgente
+                tram_anexada.turno = nova_tram_principal.turno
+                tram_anexada.texto = nova_tram_principal.texto
+                tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
+                tram_anexada.user = nova_tram_principal.user
+                tram_anexada.ip = nova_tram_principal.ip
                 tram_anexada.save()
-        return tram_principal
+
+                ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+                ma.save()
+        return nova_tram_principal
 
 class LegislacaoCitadaForm(ModelForm):
 
