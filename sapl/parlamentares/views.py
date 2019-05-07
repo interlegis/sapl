@@ -11,7 +11,7 @@ from django.db.models import F, Q
 from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
@@ -33,14 +33,18 @@ from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
-from .forms import (BancadaForm, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, ParlamentarFilterSet,
-                    VincularParlamentarForm, BlocoForm)
+
+from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
+                    ParlamentarFilterSet, VincularParlamentarForm,
+                    BlocoForm, CargoBlocoForm, CargoBlocoPartidoForm,
+                    BancadaForm)
+                    
 from .models import (Bancada, CargoBancada, CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco, HistoricoPartido)
+                     Bloco, CargoBlocoPartido, HistoricoPartido, CargoBloco)
 
 
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
@@ -1172,6 +1176,17 @@ def altera_field_mesa_public_view(request):
          'msg': ('', 1)})
 
 
+def deleta_historico_partido(request, pk):
+    historico = HistoricoPartido.objects.get(pk=pk)
+    pk_partido = historico.partido.pk
+    historico.delete()
+    
+    return HttpResponseRedirect(
+                reverse(
+                    'sapl.parlamentares:partido_detail',
+                    kwargs={'pk': pk_partido}))
+
+
 class VincularParlamentarView(PermissionRequiredMixin, FormView):
     logger = logging.getLogger(__name__)
     form_class = VincularParlamentarForm
@@ -1209,15 +1224,41 @@ class BlocoCrud(CrudAux):
             return reverse('sapl.parlamentares:bloco_list')
 
 
-def deleta_historico_partido(request, pk):
-    historico = HistoricoPartido.objects.get(pk=pk)
-    pk_partido = historico.partido.pk
-    historico.delete()
-    
-    return HttpResponseRedirect(
+    class DetailView(CrudAux.DetailView):
+        def get_template_names(self):
+            return ['parlamentares/detail_bloco.html']
+
+        def get_context_data(self, **kwargs):
+            context = super(BlocoCrud.DetailView,
+                            self).get_context_data(**kwargs)
+
+            context['vinculados'] = CargoBlocoPartido.objects.filter(bloco=self.object)
+
+            return context
+        
+        
+class CargoBlocoCrud(CrudAux):
+    model = CargoBloco
+   
+    class CreateView(CrudAux.CreateView):
+        form_class = CargoBlocoForm
+
+def vincula_parlamentar_ao_bloco(request,pk):
+    template_name = "parlamentares/vincula_parlamentar_ao_bloco.html"
+    if request.method == 'POST':
+        form = CargoBlocoPartidoForm(request.POST,initial={'bloco_pk': pk})
+        if form.is_valid():
+            vinculo = form.save(commit=False)
+            vinculo.bloco = Bloco.objects.get(pk=pk)
+            vinculo.save()
+            return HttpResponseRedirect(
                 reverse(
-                    'sapl.parlamentares:partido_detail',
-                    kwargs={'pk': pk_partido}))
+                    'sapl.parlamentares:bloco_detail',
+                    kwargs={'pk': pk}))
+    else:
+        form = CargoBlocoPartidoForm(initial={'bloco_pk': pk})
+
+    return render(request, template_name, {'form': form,'pk':pk})
 
 
 def get_sessoes_legislatura(request):
@@ -1229,3 +1270,31 @@ def get_sessoes_legislatura(request):
         json_response['sessoes_legislativas'].append( (s.id, str(s)) )
 
     return JsonResponse(json_response)
+
+
+def edita_vinculo_parlamentar_bloco(request,pk):
+    template_name = "parlamentares/vincula_parlamentar_ao_bloco.html"
+    vinculo = get_object_or_404(CargoBlocoPartido, pk=pk)
+    if request.method == 'POST':
+        form = CargoBlocoPartidoForm(request.POST,instance=vinculo, initial={'bloco_pk':vinculo.bloco.pk})
+        if form.is_valid():
+            vinculo = form.save(commit=True)
+            return HttpResponseRedirect(
+                reverse(
+                    'sapl.parlamentares:bloco_detail',
+                    kwargs={'pk': vinculo.bloco.pk}))
+    else:
+        form = CargoBlocoPartidoForm(instance=vinculo, initial={'bloco_pk':vinculo.bloco.pk})
+
+    return render(request, template_name, {'form': form,'pk':vinculo.bloco.pk})
+
+
+def deleta_vinculo_parlamentar_bloco(request,pk):
+    vinculo = get_object_or_404(CargoBlocoPartido, pk=pk)
+    pk_bloco = vinculo.bloco.pk
+    vinculo.delete()
+    return HttpResponseRedirect(
+        reverse(
+            'sapl.parlamentares:bloco_detail',
+            kwargs={'pk': pk_bloco})
+        )

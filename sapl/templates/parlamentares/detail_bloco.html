@@ -1,0 +1,59 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+{% block actions %}
+    {{ block.super }}
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.parlamentares:vincula_parlamentar_ao_bloco' object.pk%}" class="btn btn-outline-primary">Vincular Parlamentar</a>
+    </div>
+{% endblock actions %}
+
+{% block table_content %}
+{{ block.super }}
+<h3>Integrantes</h3>
+<table style="margin-top:20px" class="table">
+  <thead>
+    <tr>
+      <th scope="col">Parlamentar</th>
+      <th scope="col">Cargo</th>
+      <th scope="col">Data de Inicio</th>
+      <th scope="col">Data Final</th>
+      <th scope="col">Editar</th>
+      <th scope="col">Deletar</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for vinculo in vinculados%}
+    <tr>
+      <td>{{vinculo.parlamentar}}</td>
+      <td>{{vinculo.cargo}}</td>
+      <td>{{vinculo.data_inicio}}</td>
+      <td>{% if vinculo.data_fim %}{{vinculo.data_fim}}{% else %}Sem data final{% endif %}</td>
+      <td><a href="{% url 'sapl.parlamentares:edita-vinculo-parlamentar-bloco' vinculo.pk%}" class="btn btn-outline-primary">Editar</a></td>
+      <td><a class="btn btn-outline-primary btn-outline-danger" style="color:red" data-toggle="modal" data-target="#confirmDelete{{h.pk}}">Deletar</a></td>
+    </tr>
+      <!-- Modal -->
+      <div class="modal fade" id="confirmDelete{{h.pk}}" tabindex="-1" role="dialog" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="confirmDeleteLabel">Deletar</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              Tem certeza que deseja deletar esse Integrante ?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              <a href="{% url 'sapl.parlamentares:deleta-vinculo-parlamentar-bloco' vinculo.pk%}" class="btn btn-outline-danger">Sim, tenho certeza.</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock table_content %}

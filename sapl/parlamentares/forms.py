@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
 from image_cropping.widgets import CropWidget, ImageCropWidget
-from sapl.utils import FileFieldCheckMixin
+from sapl.utils import FileFieldCheckMixin, filiacao_data, intervalos_tem_intersecao
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
@@ -23,7 +23,8 @@ from sapl.rules import SAPL_GROUP_VOTANTE
 import django_filters
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Votante, Bloco, Bancada)
+                     Mandato, Parlamentar, Votante, Bloco, Bancada, CargoBloco,
+                     CargoBlocoPartido)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -586,7 +587,6 @@ class VincularParlamentarForm(forms.Form):
 
 
 class BlocoForm(ModelForm):
-
     class Meta:
         model = Bloco
         fields = ['nome', 'partidos', 'data_criacao',
@@ -671,3 +671,67 @@ class BancadaForm(ModelForm):
             nome=bancada.nome
         )
         return bancada
+class CargoBlocoForm(ModelForm):
+    class Meta:
+        model = CargoBloco
+        fields = '__all__'
+
+class CargoBlocoPartidoForm(ModelForm):
+
+    class Meta:
+        model = CargoBlocoPartido
+        fields = ['cargo','parlamentar','data_inicio','data_fim']
+    
+
+    def __init__(self, *args, **kwargs):
+        super(CargoBlocoPartidoForm, self).__init__(*args, **kwargs)
+        bloco_pk = self.initial['bloco_pk']
+        if bloco_pk:
+            self.bloco = Bloco.objects.get(pk=bloco_pk)
+            partidos = self.bloco.partidos.all().values_list('id', flat=True)
+            parlamentares_filiacao = Filiacao.objects.select_related('partido').filter(partido__in=partidos).values_list('parlamentar', flat=True)
+            self.fields['parlamentar'].queryset = Parlamentar.objects.filter(id__in=parlamentares_filiacao)
+        
+        if self.instance and self.instance.pk:
+            self.fields['parlamentar'].widget.attrs['disabled'] = 'disabled'
+            self.fields['parlamentar'].required = False
+
+
+    def clean(self):
+        super(CargoBlocoPartidoForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        aux_data_fim = cleaned_data['data_fim'] if cleaned_data['data_fim'] else timezone.now().date()
+
+        if cleaned_data['cargo'].unico:
+            for vinculo in CargoBlocoPartido.objects.filter(bloco=self.bloco):
+                if not vinculo.data_fim:
+                    vinculo.data_fim = timezone.now().date()
+                if intervalos_tem_intersecao(cleaned_data['data_inicio'],
+                    aux_data_fim,
+                    vinculo.data_inicio,
+                    vinculo.data_fim) and vinculo.cargo.unico and \
+                    not(self.instance and self.instance.id == vinculo.id):
+                        raise ValidationError("Cargo unico já é utilizado nesse período.")
+        
+        if aux_data_fim <= cleaned_data['data_inicio']:
+            raise ValidationError("Data Inicial deve ser anterior a data final.")
+        
+        if self.instance and self.instance.pk:
+            self.cleaned_data['parlamentar'] = self.instance.parlamentar
+        else:
+            parlamentar = self.cleaned_data.get('parlamentar')
+
+        fora_de_mandato = True
+        for mandato in Mandato.objects.filter(parlamentar=self.cleaned_data.get('parlamentar')):
+            if not intervalos_tem_intersecao(mandato.data_inicio_mandato,
+                    cleaned_data['data_inicio'],
+                    aux_data_fim,
+                    mandato.legislatura.data_fim):
+                fora_de_mandato = False              
+        if fora_de_mandato:
+            raise ValidationError("Data de inicio e fim fora de periodo do mandato do parlamentar.")
+        
+        if self.instance.pk and (cleaned_data['parlamentar'].id != self.instance.parlamentar.id):
+            raise ValidationError("Não é possivel alterar o parlamentar " + str(self.instance.parlamentar))
+        
