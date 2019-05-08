@@ -1,15 +1,14 @@
 {% load common_tags %}
 
 <fieldset>
-    <p align="justify">
-	{% if mesa %}
+  <p align="justify">
+    {% if mesa %}
       <strong>Mesa Diretora: </strong>
       {% for m in mesa %}
         {{m.cargo}}:
-          {{m.parlamentar.nome_completo}} / {% if m.parlamentar|filiacao_data_filter:object.data_inicio %} {{ m.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %} 
-		{% if not forloop.last %} ; {% endif %}
+        {{m.parlamentar.nome_completo}} / {% if m.parlamentar|filiacao_data_filter:object.data_inicio %} {{ m.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %} 
+        {% if not forloop.last %} ; {% endif %}
       {% endfor %}
-	{% endif %}
+    {% endif %}
 	</p>
- 
 </fieldset>
