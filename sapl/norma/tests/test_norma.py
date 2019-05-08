@@ -22,6 +22,7 @@ def test_incluir_norma_submit(admin_client):
     response = admin_client.post(reverse('sapl.norma:normajuridica_create'),
                                  {'tipo': tipo.pk,
                                   'numero': '1',
+                                  'numero_pesquisa': ['1'],
                                   'ano': '2016',
                                   'data': '2016-03-22',
                                   'esfera_federacao': 'E',
@@ -47,6 +48,8 @@ def test_incluir_norma_errors(admin_client):
             [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['numero'] ==
             [_('Este campo é obrigatório.')])
+    assert (response.context_data['form'].errors['numero_pesquisa'] ==
+            [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['ano'] ==
             [_('Este campo é obrigatório.')])
     assert (response.context_data['form'].errors['data'] ==
@@ -69,6 +72,7 @@ def test_norma_form_invalida():
 
     assert errors['tipo'] == [_('Este campo é obrigatório.')]
     assert errors['numero'] == [_('Este campo é obrigatório.')]
+    assert errors['numero_pesquisa'] == [_('Este campo é obrigatório.')]
     assert errors['ano'] == [_('Este campo é obrigatório.')]
     assert errors['data'] == [_('Este campo é obrigatório.')]
     assert errors['esfera_federacao'] == [_('Este campo é obrigatório.')]
@@ -92,6 +96,7 @@ def test_norma_juridica_materia_inexistente():
 
     form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
                                    'numero': '1',
+                                   'numero_pesquisa': ['1'],
                                    'ano': '2017',
                                    'data': '2017-12-12',
                                    'esfera_federacao': 'F',
@@ -118,6 +123,7 @@ def test_norma_juridica_materia_existente():
 
     form = NormaJuridicaForm(data={'tipo': str(tipo.pk),
                                    'numero': '1',
+                                   'numero_pesquisa': ['1'],
                                    'ano': '2017',
                                    'data': '2017-12-12',
                                    'esfera_federacao': 'F',

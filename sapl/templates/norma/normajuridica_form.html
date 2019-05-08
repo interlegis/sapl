@@ -86,7 +86,7 @@
     let ano = $("select#id_ano.select").val();
     let data_apresentacao = $("input#id_data.dateinput").val();
     let ano_apresentacao = data_apresentacao.substr(data_apresentacao.length - 4);
-    
+
     if(ano && ano_apresentacao && ano_apresentacao != ano){
       $('#fundo_modal').fadeIn();
     }

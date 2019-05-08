@@ -95,17 +95,3 @@
 
 {% block table_content %}
 {% endblock table_content %}
-
-{% block extra_js %}
-   <script type="text/javascript">
-     $(document).ready(function() {
-        var numeroField = $("#id_numero");
-        numeroField.keyup(function() {
-            var numero = numeroField.val();
-            if (numero.startsWith("0")) {
-               numeroField.val(numero.replace(/^0+/, ''));
-            }
-        });
-     });
-   </script>
-{% endblock extra_js %}

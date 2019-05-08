@@ -1,5 +1,6 @@
 
 import logging
+import re
 
 from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
@@ -142,12 +143,12 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
 
     def clean(self):
 
-        cleaned_data = super(NormaJuridicaForm, self).clean()
+        cleaned_data = super().clean()
+        cleaned_data['numero_pesquisa'] = list(map(lambda x: str(int(x)) if x.isnumeric() else x, re.split('\W+', cleaned_data['numero'])))
 
         if not self.is_valid():
             return cleaned_data
 
-        import re
         has_digits = re.sub('[^0-9]', '', cleaned_data['numero'])
         if not has_digits:
             self.logger.error("Número de norma ({}) não pode conter somente letras.".format(
@@ -213,7 +214,8 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
         norma = self.instance
         norma.timestamp = timezone.now()
         norma.materia = self.cleaned_data['materia']
-        norma = super(NormaJuridicaForm, self).save(commit=True)
+        norma.numero_pesquisa = self.cleaned_data['numero_pesquisa']
+        norma = super().save(commit=True)
 
         return norma
 

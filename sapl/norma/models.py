@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
@@ -91,6 +92,13 @@ class NormaJuridica(models.Model):
     numero = models.CharField(
         max_length=8,
         verbose_name=_('Número'))
+    numero_pesquisa = ArrayField(
+        models.CharField(
+            max_length=8,
+            verbose_name=_('Número para Pesquisa')
+        ),
+        size=8,
+    )
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
     esfera_federacao = models.CharField(
