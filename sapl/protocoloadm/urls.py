@@ -22,7 +22,8 @@ from sapl.protocoloadm.views import (AcompanhamentoDocumentoView,
                                      doc_texto_integral,
                                      DesvincularDocumentoView,
                                      DesvincularMateriaView,
-                                     AnexadoCrud, DocumentoAnexadoEmLoteView)
+                                     AnexadoCrud, DocumentoAnexadoEmLoteView,
+                                     PrimeiraTramitacaoEmLoteAdmView)
 
 from .apps import AppConfig
 
@@ -98,6 +99,12 @@ urlpatterns_protocolo = [
     url(r'^protocoloadm/recuperar-materia',
         recuperar_materia_protocolo, name='recuperar_materia_protocolo'),
 
+    url(r'^protocoloadm/primeira-tramitacao-em-lote',
+        PrimeiraTramitacaoEmLoteAdmView.as_view(),
+        name='primeira_tramitacao_em_lote_docadm'),
+
+    # url(r'^protocoloadm/tramitacao-em-lote', TramitacaoEmLoteAdmView.as_view(),
+    #     name='tramitacao_em_lote_docadm'),
 
 ]
 

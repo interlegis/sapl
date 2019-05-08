@@ -1407,3 +1407,214 @@ class FichaSelecionaAdmForm(forms.Form):
                 form_actions(label='Gerar Impresso')
             )
         )
+
+
+class PrimeiraTramitacaoEmLoteAdmFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = DocumentoAdministrativo
+        fields = ['tipo', 'data']
+
+    def __init__(self, *args, **kwargs):
+        super(PrimeiraTramitacaoEmLoteAdmFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Documento'
+        self.filters['data'].label = 'Data (Inicial - Final)'
+        self.form.fields['tipo'].required = True
+        self.form.fields['data'].required = False
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Primeira Tramitação'),
+                     row1, row2, form_actions(label='Pesquisar')))
+
+
+class PrimeiraTramitacaoEmLoteAdmForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    class Meta:
+        model = TramitacaoAdministrativo
+        fields = ['data_tramitacao',
+                  'unidade_tramitacao_local',
+                  'status',
+                  'urgente',
+                  'unidade_tramitacao_destino',
+                  'data_encaminhamento',
+                  'data_fim_prazo',
+                  'texto',
+                  'user',
+                  'ip']
+        widgets = {'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()}
+            
+
+    def __init__(self, *args, **kwargs):
+        super(PrimeiraTramitacaoEmLoteAdmForm, self).__init__(*args, **kwargs)
+        self.fields['data_tramitacao'].initial = timezone.now().date()
+        ust = UnidadeTramitacao.objects.select_related().all()
+        unidade_tramitacao_destino = [('', '---------')] + [(ut.pk, ut)
+                                                            for ut in ust if ut.comissao and ut.comissao.ativa]
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.orgao])
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.parlamentar])
+        self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
+        self.fields['urgente'].label = "Urgente? *"
+    
+        row1 = to_row([
+            ('data_tramitacao', 4),
+            ('data_encaminhamento', 4),
+            ('data_fim_prazo', 4)
+        ])
+        row2 = to_row([
+            ('unidade_tramitacao_local', 6),
+            ('unidade_tramitacao_destino', 6),
+        ])
+        row3 = to_row([
+            ('status', 6),
+            ('urgente', 6)
+        ])
+        row4 = to_row([
+            ('texto', 12)
+        ])
+
+        documentos_checkbox_HTML = '''
+            <br\><br\><br\>
+            <fieldset>
+                <legend style="font-size: 24px;">Selecione os documentos para tramitação:</legend>
+                <table class="table table-striped table-hover">
+                    <div class="controls">
+                        <div class="checkbox">
+                            <label for="id_check_all">
+                                <input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
+                            </label>
+                        </div>
+                    </div>
+                    <thead>
+                    <tr><th>Documento</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for documento in object_list %}
+                        <tr>
+                            <td>
+                            <input type="checkbox" name="documentos" value="{{documento.id}}" {% if check %} checked {% endif %}/>
+                            <a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' documento.id %}">
+                                {{documento.tipo.sigla}} {{documento.tipo.descricao}} {{documento.numero}}/{{documento.ano}}
+                            </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </fieldset>
+        '''
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Detalhes da tramitação:',
+                row1, row2, row3, row4,
+                HTML(documentos_checkbox_HTML),
+                form_actions(label='Salvar')
+            )
+        )
+
+
+    def clean(self):
+        cleaned_data = super(PrimeiraTramitacaoEmLoteAdmForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if 'data_encaminhamento' in cleaned_data:
+            data_enc_form = cleaned_data['data_encaminhamento']
+        if 'data_fim_prazo' in cleaned_data:
+            data_prazo_form = cleaned_data['data_fim_prazo']
+        if 'data_tramitacao' in cleaned_data:
+            data_tram_form = cleaned_data['data_tramitacao']
+
+        if not self.is_valid():
+            return cleaned_data
+
+        if not self.instance.data_tramitacao:
+
+            if self.cleaned_data['data_tramitacao'] > timezone.now().date():
+                self.logger.error('A data de tramitação ({}) deve ser '
+                                  'menor ou igual a data de hoje ({})!'
+                                  .format(self.cleaned_data['data_tramitacao'], timezone.now().date()))
+                msg = _(
+                    'A data de tramitação deve ser ' +
+                    'menor ou igual a data de hoje!')
+                raise ValidationError(msg)
+
+        if data_enc_form:
+            if data_enc_form < data_tram_form:
+                self.logger.error('A data de encaminhamento ({}) deve ser '
+                                  'maior que a data de tramitação ({})!'
+                                  .format(data_enc_form, data_tram_form))
+                msg = _('A data de encaminhamento deve ser ' +
+                        'maior que a data de tramitação!')
+                raise ValidationError(msg)
+
+        if data_prazo_form:
+            if data_prazo_form < data_tram_form:
+                self.logger.error('A data fim de prazo ({}) deve ser '
+                                  'maior que a data de tramitação ({})!'
+                                  .format(data_prazo_form, data_tram_form))
+                msg = _('A data fim de prazo deve ser ' +
+                        'maior que a data de tramitação!')
+                raise ValidationError(msg)
+
+        return self.cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=True):
+        cd = self.cleaned_data
+        documentos = self.initial['documentos']
+        user = self.initial['user']
+        ip = self.initial['ip']
+        for doc_id in documentos:
+            doc = DocumentoAdministrativo.objects.get(id=doc_id)
+            tramitacao = TramitacaoAdministrativo.objects.create(
+                status=cd['status'],
+                documento=doc,
+                data_tramitacao=cd['data_tramitacao'],
+                unidade_tramitacao_local=cd['unidade_tramitacao_local'],
+                unidade_tramitacao_destino=cd['unidade_tramitacao_destino'],
+                data_encaminhamento=cd['data_encaminhamento'],
+                urgente=cd['urgente'],
+                texto=cd['texto'],
+                data_fim_prazo=cd['data_fim_prazo'],
+                user=user,
+                ip=ip
+            )
+            doc.tramitacao = False if tramitacao.status.indicador == "F" else True
+            doc.save()
+            lista_tramitacao = []
+            for da in doc.anexados.all():
+                if not da.tramitacaoadministrativo_set.all() \
+                    or da.tramitacaoadministrativo_set.last() \
+                    .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                    da.tramitacao = False if tramitacao.status.indicador == "F" else True
+                    da.save()
+                    lista_tramitacao.append(TramitacaoAdministrativo(
+                                            status=tramitacao.status,
+                                            documento=da,
+                                            data_tramitacao=tramitacao.data_tramitacao,
+                                            unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                                            data_encaminhamento=tramitacao.data_encaminhamento,
+                                            unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                                            urgente=tramitacao.urgente,
+                                            texto=tramitacao.texto,
+                                            data_fim_prazo=tramitacao.data_fim_prazo,
+                                            user=tramitacao.user,
+                                            ip=tramitacao.ip
+                                            ))
+            TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
+
+        return tramitacao

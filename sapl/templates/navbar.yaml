@@ -29,8 +29,12 @@
       url: sapl.materia:receber-proposicao
 
 - title: {% trans 'Documentos Administrativos' %}
-  {% if 'documentos_administrativos'|get_config_attr == 'R' %}check_permission: protocoloadm.list_documentoadministrativo{%endif%}
-  url: sapl.protocoloadm:pesq_doc_adm
+  {% if 'documentos_administrativos'|get_config_attr == 'R' %}check_permission: protocoloadm.list_documentoadministrativo {% endif %}
+  children:
+    - title: {% trans 'Pesquisar Documentos Administrativos' %}
+      url: sapl.protocoloadm:pesq_doc_adm
+    - title: {% trans 'Tramitação em Lote' %}
+      url: sapl.protocoloadm:primeira_tramitacao_em_lote_docadm
 
 - title: {% trans 'Atividade Legislativa' %}
   children:

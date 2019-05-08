@@ -1317,12 +1317,19 @@ class TramitacaoCrud(MasterDetailCrud):
                 return HttpResponseRedirect(url)
             else:
                 tramitacoes_deletar = [tramitacao.id]
+                if materia.tramitacao_set.count() == 0:
+                    materia.em_tramitacao = False
+                    materia.save()
                 mat_anexadas = lista_anexados(materia)
                 for ma in mat_anexadas:
                     tram_anexada = ma.tramitacao_set.last()
                     if compara_tramitacoes_mat(tram_anexada, tramitacao):
                         tramitacoes_deletar.append(tram_anexada.id)
+                        if ma.tramitacao_set.count() == 0:
+                            ma.em_tramitacao = False
+                            ma.save()
                 Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
+
                 return HttpResponseRedirect(url)
 
     class DetailView(MasterDetailCrud.DetailView):
