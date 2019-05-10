@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
@@ -1492,11 +1492,21 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
 
         return context
 
+    def form_invalid(self, form):
+        for key, erro in form.errors.items():
+            messages.add_message(self.request, messages.ERROR, form.fields[key].label + ": " + erro[0])
+        return self.get(self.request, self.kwargs)
+
     def post(self, request, *args, **kwargs):
         user = request.user
         ip = get_client_ip(request)
 
         documentos_ids = request.POST.getlist('documentos')
+        if not documentos_ids:
+            msg = _("Escolha algum Documento para ser tramitado.")
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
         form = PrimeiraTramitacaoEmLoteAdmForm(request.POST, initial=
                                                             {'documentos': documentos_ids,
                                                             'user': user, 'ip':ip})
@@ -1508,9 +1518,18 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
             msg = _('Tramitação completa.')
             self.logger.info('user=' + user.username + '. Tramitação completa.')
             messages.add_message(request, messages.SUCCESS, msg)
-        
-        return self.get(request, self.kwargs)
+            return self.get(request, self.kwargs)
 
+        else:
+            # self.object_list = DocumentoAdministrativo.objects.filter(id__in=documentos_ids)
+            # import ipdb; ipdb.set_trace()
+            # context = self.get_context_data(**kwargs)
+            return self.form_invalid(form)
+        
+
+        # messages.add_message(request, messages.ERROR, form.errors)
+        
+        # import ipdb; ipdb.set_trace()
     #     marcadas = request.POST.getlist('materia_id')
 
     #     tz = timezone.get_current_timezone()
