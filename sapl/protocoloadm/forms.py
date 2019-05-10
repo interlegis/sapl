@@ -1538,15 +1538,12 @@ class PrimeiraTramitacaoEmLoteAdmForm(ModelForm):
         if 'data_tramitacao' in cleaned_data:
             data_tram_form = cleaned_data['data_tramitacao']
 
-        if not self.is_valid():
-            return cleaned_data
-
         if not self.instance.data_tramitacao:
 
-            if self.cleaned_data['data_tramitacao'] > timezone.now().date():
+            if cleaned_data['data_tramitacao'] > timezone.now().date():
                 self.logger.error('A data de tramitação ({}) deve ser '
                                   'menor ou igual a data de hoje ({})!'
-                                  .format(self.cleaned_data['data_tramitacao'], timezone.now().date()))
+                                  .format(cleaned_data['data_tramitacao'], timezone.now().date()))
                 msg = _(
                     'A data de tramitação deve ser ' +
                     'menor ou igual a data de hoje!')
@@ -1570,7 +1567,7 @@ class PrimeiraTramitacaoEmLoteAdmForm(ModelForm):
                         'maior que a data de tramitação!')
                 raise ValidationError(msg)
 
-        return self.cleaned_data
+        return cleaned_data
 
     @transaction.atomic
     def save(self, commit=True):
@@ -1618,3 +1615,37 @@ class PrimeiraTramitacaoEmLoteAdmForm(ModelForm):
             TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
 
         return tramitacao
+
+
+class TramitacaoEmLoteAdmFilterSet(django_filters.FilterSet):
+    class Meta(FilterOverridesMetaMixin):
+        model = DocumentoAdministrativo
+        fields = ['tipo', 'data', 'tramitacaoadministrativo__status',
+                  'tramitacaoadministrativo__unidade_tramitacao_destino']
+
+    def __init__(self, *args, **kwargs):
+        super(TramitacaoEmLoteAdmFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['tipo'].label = _('Tipo de Documento')
+        self.filters['data'].label = _('Data (Inicial - Final)')
+        self.filters['tramitacaoadministrativo__unidade_tramitacao_destino'
+                     ].label = _('Unidade Destino (Último Destino)')
+        self.filters['tramitacaoadministrativo__status'].label = _('Status')
+        self.form.fields['tipo'].required = True
+        self.form.fields['data'].required = False
+        self.form.fields['tramitacaoadministrativo__status'].required = True
+        self.form.fields[
+            'tramitacaoadministrativo__unidade_tramitacao_destino'].required = True
+
+        row1 = to_row([
+            ('tipo', 4),
+            ('tramitacaoadministrativo__unidade_tramitacao_destino', 4),
+            ('tramitacaoadministrativo__status', 4)])
+        row2 = to_row([('data', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Tramitação em Lote'),
+                     row1, row2, form_actions(label=_('Pesquisar'))))

@@ -29,7 +29,7 @@ from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
-from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
@@ -49,6 +49,7 @@ from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     AnexadoForm, AnexadoEmLoteFilterSet,
                     PrimeiraTramitacaoEmLoteAdmFilterSet,
                     PrimeiraTramitacaoEmLoteAdmForm,
+                    TramitacaoEmLoteAdmFilterSet,
                     compara_tramitacoes_doc)
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
@@ -1451,11 +1452,12 @@ class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
 class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteAdmFilterSet
     template_name = 'protocoloadm/em_lote/tramitacaoadm.html'
-    permission_required = ('materia.add_tramitacao', )
+    permission_required = ('documento.add_tramitacao', )
 
     primeira_tramitacao = True
 
     logger = logging.getLogger(__name__)
+
 
     def get_context_data(self, **kwargs):
         context = super(PrimeiraTramitacaoEmLoteAdmView,
@@ -1470,6 +1472,10 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
 
         context['object_list'] = context['object_list'].order_by(
             'ano', 'numero')
+        qr = self.request.GET.copy()
+
+        form = PrimeiraTramitacaoEmLoteAdmForm()
+        context['form'] = form
 
         if self.primeira_tramitacao:
             context['title'] = _('Primeira Tramitação em Lote')
@@ -1478,24 +1484,14 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
                                           if obj.tramitacaoadministrativo_set.all().count() == 0]
         else:
             context['title'] = _('Tramitação em Lote')
-            # context['unidade_local'] = [UnidadeTramitacao.objects.get(
-            #     id=qr['tramitacao__unidade_tramitacao_destino'])]
-
-        qr = self.request.GET.copy()
-
-        form = PrimeiraTramitacaoEmLoteAdmForm()
-        context['form'] = form
+            context['form'].fields['unidade_tramitacao_local'].initial = UnidadeTramitacao.objects.get(
+                id=qr['tramitacaoadministrativo__unidade_tramitacao_destino'])
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
 
         return context
-
-    def form_invalid(self, form):
-        for key, erro in form.errors.items():
-            messages.add_message(self.request, messages.ERROR, form.fields[key].label + ": " + erro[0])
-        return self.get(self.request, self.kwargs)
 
     def post(self, request, *args, **kwargs):
         user = request.user
@@ -1512,134 +1508,81 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
                                                             'user': user, 'ip':ip})
 
         if form.is_valid():
-            cd = form.clean()
+            # cd = form.clean()
             form.save()
 
             msg = _('Tramitação completa.')
             self.logger.info('user=' + user.username + '. Tramitação completa.')
             messages.add_message(request, messages.SUCCESS, msg)
-            return self.get(request, self.kwargs)
+            return self.get_success_url()
 
-        else:
-            # self.object_list = DocumentoAdministrativo.objects.filter(id__in=documentos_ids)
-            # import ipdb; ipdb.set_trace()
-            # context = self.get_context_data(**kwargs)
-            return self.form_invalid(form)
-        
+        return self.form_invalid(form)
 
-        # messages.add_message(request, messages.ERROR, form.errors)
-        
-        # import ipdb; ipdb.set_trace()
-    #     marcadas = request.POST.getlist('materia_id')
+    
+    def get_success_url(self):
+        return HttpResponseRedirect(reverse('sapl.protocoloadm:primeira_tramitacao_em_lote_docadm'))
 
-    #     tz = timezone.get_current_timezone()
 
-    #     username = request.user.username
+    def form_invalid(self, form, *args, **kwargs):
+        for key, erros in form.errors.items():
+            if not key=='__all__':
+                [messages.add_message(self.request, messages.ERROR, form.fields[key].label + ": " + e) for e in erros]
+            else:
+                [messages.add_message(self.request, messages.ERROR, e) for e in erros]
+        return self.get(self.request, kwargs, {'form':form})
 
-    #     if len(marcadas) == 0:
-    #         msg = _('Nenhuma máteria foi selecionada.')
-    #         messages.add_message(request, messages.ERROR, msg)
-    #         return self.get(request, self.kwargs)
-    #     obrigatorios = {'data_tramitacao': 'Data da Tramitação',
-    #                     'unidade_tramitacao_local': 'Unidade Local',
-    #                     'unidade_tramitacao_destino': 'Unidade Destino',
-    #                     'status': 'Status',
-    #                     'urgente': 'Urgente',
-    #                     'texto': 'Texto da Ação'}
-    #     for field, nome in obrigatorios.items():
-    #         if not request.POST[field]:
-    #             msg = _('Campo {} deve ser preenchido.'.format(nome))
-    #             messages.add_message(request, messages.ERROR, msg)
-    #             return self.get(request, self.kwargs)
 
-    #     if not request.POST['data_encaminhamento']:
-    #         data_encaminhamento = None
-    #     else:
-    #         try:
-    #             data_encaminhamento = tz.localize(datetime.strptime(
-    #                 request.POST['data_encaminhamento'], "%d/%m/%Y"))
-    #         except ValueError:
-    #             msg = _('Formato da data de encaminhamento incorreto.')
-    #             messages.add_message(request, messages.ERROR, msg)
-    #             return self.get(request, self.kwargs)
+class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
+    filterset_class = TramitacaoEmLoteAdmFilterSet
 
-    #     if request.POST['data_fim_prazo'] == '':
-    #         data_fim_prazo = None
-    #     else:
-    #         try:
-    #             data_fim_prazo = tz.localize(datetime.strptime(
-    #                 request.POST['data_fim_prazo'], "%d/%m/%Y"))
-    #         except ValueError:
-    #             msg = _('Formato da data fim do prazo incorreto.')
-    #             messages.add_message(request, messages.ERROR, msg)
-    #             return self.get(request, self.kwargs)
+    primeira_tramitacao = False
 
-    #     # issue https://github.com/interlegis/sapl/issues/1123
-    #     # TODO: usar Form
-    #     urgente = request.POST['urgente'] == 'True'
-    #     flag_error = False  
+    def get_context_data(self, **kwargs):
+        context = super(TramitacaoEmLoteAdmView,
+                        self).get_context_data(**kwargs)
 
-    #     materias_principais = [m for m in MateriaLegislativa.objects.filter(id__in=marcadas)]
-    #     materias_anexadas = [m.anexadas.all() for m in MateriaLegislativa.objects.filter(id__in=marcadas) if m.anexadas.all()]
-    #     import ipdb; ipdb.set_trace()
-    #     materias_anexadas = list(itertools.chain.from_iterable(materias_anexadas)) 
-    #     tramitacao_local = int(request.POST['unidade_tramitacao_local'])
-    #     materias_anexadas = list(filter(lambda ma : not ma.tramitacao_set.all() or \
-    #                                     ma.tramitacao_set.last().unidade_tramitacao_destino.id == tramitacao_local,
-    #                                     materias_anexadas))
-    #     materias = set(materias_principais + materias_anexadas)
+        qr = self.request.GET.copy()
 
-    #     for materia in materias:
-    #         try:
-    #             data_tramitacao = tz.localize(datetime.strptime(
-    #                 request.POST['data_tramitacao'], "%d/%m/%Y"))
-    #         except ValueError:
-    #             msg = _('Formato da data da tramitação incorreto.')
-    #             messages.add_message(request, messages.ERROR, msg)
-    #             return self.get(request, self.kwargs)
+        context['primeira_tramitacao'] = False
 
-    #         user = request.user
-    #         ip = get_client_ip(request)
-    #         t = Tramitacao(
-    #             materia=materia,
-    #             data_tramitacao=data_tramitacao,
-    #             data_encaminhamento=data_encaminhamento,
-    #             data_fim_prazo=data_fim_prazo,
-    #             unidade_tramitacao_local_id=request.POST[
-    #                 'unidade_tramitacao_local'],
-    #             unidade_tramitacao_destino_id=request.POST[
-    #                 'unidade_tramitacao_destino'],
-    #             urgente=urgente,
-    #             status_id=request.POST['status'],
-    #             turno=request.POST['turno'],
-    #             texto=request.POST['texto'],
-    #             user=user,
-    #             ip=ip
-    #         )
-    #         t.save()
-    #         try:
-    #             self.logger.debug("user=" + username +
-    #                               ". Tentando enviar tramitação.")
-    #             tramitacao_signal.send(sender=Tramitacao,
-    #                                    post=t,
-    #                                    request=self.request)
+        if ('tramitacao__status' in qr and
+                'tramitacao__unidade_tramitacao_destino' in qr and
+                qr['tramitacao__status'] and
+                qr['tramitacao__unidade_tramitacao_destino']):
+            lista = self.filtra_tramitacao_destino_and_status(
+                qr['tramitacao__status'],
+                qr['tramitacao__unidade_tramitacao_destino'])
+            context['object_list'] = context['object_list'].filter(
+                id__in=lista).distinct()
 
-    #         except Exception as e:
-    #             self.logger.error('user=' + username + '. Tramitação criada , mas e-mail de acompanhamento '
-    #                               'de matéria não enviado. Há problemas na configuração '
-    #                               'do e-mail. ' + str(e))
-    #             flag_error = True
-    #     if flag_error:
-    #         msg = _('Tramitação criada, mas e-mail de acompanhamento '
-    #                 'de matéria não enviado. A não configuração do servidor de e-mail '
-    #                 'impede o envio de aviso de tramitação')
-    #         messages.add_message(self.request, messages.WARNING, msg)
+        return context
 
-    #     status = StatusTramitacao.objects.get(id=request.POST['status'])
 
-    #     for materia in materias:
-    #         if status.indicador == 'F':
-    #             materia.em_tramitacao = False
-    #         elif self.primeira_tramitacao:
-    #             materia.em_tramitacao = True
-    #         materia.save()
+    def pega_ultima_tramitacao(self):
+        return TramitacaoAdministrativo.objects.values(
+            'documento_id').annotate(data_encaminhamento=Max(
+                'data_encaminhamento'),
+            id=Max('id')).values_list('id', flat=True)
+    
+    def filtra_tramitacao_status(self, status):
+        lista = self.pega_ultima_tramitacao()
+        return TramitacaoAdministrativo.objects.filter(
+            id__in=lista,
+            status=status).distinct().values_list('documento_id', flat=True)
+
+
+    def filtra_tramitacao_destino(self, destino):
+        lista = self.pega_ultima_tramitacao()
+        return TramitacaoAdministrativo.objects.filter(
+            id__in=lista,
+            unidade_tramitacao_destino=destino).distinct().values_list(
+                'documento_id', flat=True)
+
+
+    def filtra_tramitacao_destino_and_status(self, status, destino):
+        lista = self.pega_ultima_tramitacao()
+        return TramitacaoAdministrativo.objects.filter(
+            id__in=lista,
+            status=status,
+            unidade_tramitacao_destino=destino).distinct().values_list(
+                'documento_id', flat=True)

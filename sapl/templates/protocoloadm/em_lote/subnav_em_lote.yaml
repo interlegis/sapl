@@ -2,4 +2,4 @@
 - title: {% trans 'Primeira Tramitação' %}
   url: primeira_tramitacao_em_lote_docadm
 - title: {% trans 'Tramitação em Lote' %}
-  url: primeira_tramitacao_em_lote_docadm
+  url: tramitacao_em_lote_docadm
