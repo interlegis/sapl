@@ -334,7 +334,7 @@ def recuperar_materia(request):
         logger.debug("user=" + username +
                      ". Tentando obter numeração da matéria.")
         numeracao = sapl.base.models.AppConfig.objects.last(
-        ).sequencia_numeracao
+        ).sequencia_numeracao_proposicao
     except AttributeError as e:
         logger.error("user=" + username + ". " + str(e) +
                      " Numeracao da matéria definida como None.")
