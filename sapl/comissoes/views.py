@@ -193,12 +193,26 @@ class MateriasTramitacaoListView(ListView):
 class ReuniaoCrud(MasterDetailCrud):
     model = Reuniao
     parent_field = 'comissao'
-    model_set = 'documentoacessorio_set'
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['data', 'nome', 'tema', 'upload_ata']
         ordering = '-data'
+
+    class DetailView(MasterDetailCrud.DetailView):
+        template_name = "comissoes/reuniao_detail.html"
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            docs = []
+            documentos = DocumentoAcessorio.objects.filter(reuniao=self.kwargs['pk']).order_by('nome')
+            docs.extend(documentos)
+
+            context['docs'] = docs
+            context['n_docs'] = len(docs)
+            context['reuniao_pk'] = self.kwargs['pk']
+            return context
 
     class ListView(MasterDetailCrud.ListView):
         logger = logging.getLogger(__name__)
