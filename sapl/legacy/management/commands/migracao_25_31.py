@@ -5,16 +5,27 @@ from sapl.legacy.migracao import migrar
 
 class Command(BaseCommand):
 
-    help = 'Migração de dados do SAPL 2.5 para o SAPL 3.1'
+    help = "Migração de dados do SAPL 2.5 para o SAPL 3.1"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '-a',
-            action='store_true',
+            "-a",
+            action="store_true",
             default=False,
-            dest='apagar_do_legado',
-            help='Apagar entradas migradas do legado',
+            dest="apagar_do_legado",
+            help="Apagar entradas migradas do legado",
+        )
+
+        parser.add_argument(
+            "-f",
+            action="store_true",
+            default=False,
+            dest="flush",
+            help="Apagar banco antes de migrar",
         )
 
     def handle(self, *args, **options):
-        migrar(apagar_do_legado=options['apagar_do_legado'])
+        migrar(
+            apagar_do_legado=options["apagar_do_legado"],
+            flush=options["flush"],
+        )
