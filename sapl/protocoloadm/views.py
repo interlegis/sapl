@@ -34,7 +34,7 @@ from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
-                        get_mime_type_from_file_extension,
+                        get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured)
 
 from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
@@ -46,7 +46,8 @@ from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     DesvincularDocumentoForm, DesvincularMateriaForm,
                     filtra_tramitacao_adm_destino_and_status,
                     filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status,
-                    AnexadoForm, AnexadoEmLoteFilterSet)
+                    AnexadoForm, AnexadoEmLoteFilterSet,
+                    compara_tramitacoes_doc)
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo, Anexado)
@@ -1225,14 +1226,15 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
 
+        logger = logging.getLogger(__name__)
+
         def delete(self, request, *args, **kwargs):
             tramitacao = TramitacaoAdministrativo.objects.get(
                 id=self.kwargs['pk'])
-            documento = DocumentoAdministrativo.objects.get(
-                id=tramitacao.documento.id)
+            documento = tramitacao.documento
             url = reverse(
                 'sapl.protocoloadm:tramitacaoadministrativo_list',
-                kwargs={'pk': tramitacao.documento.id})
+                kwargs={'pk': documento.id})
 
             ultima_tramitacao = \
                 documento.tramitacaoadministrativo_set.order_by(
@@ -1240,11 +1242,21 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     '-id').first()
 
             if tramitacao.pk != ultima_tramitacao.pk:
+                username = request.user.username
+                self.logger.error("user=" + username + ". Não é possível deletar a tramitação de pk={}. "
+                                  "Somente a última tramitação (pk={}) pode ser deletada!."
+                                  .format(tramitacao.pk, ultima_tramitacao.pk))
                 msg = _('Somente a última tramitação pode ser deletada!')
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacao.delete()
+                tramitacoes_deletar = [tramitacao.id]
+                docs_anexados = lista_anexados(documento, False)
+                for da in docs_anexados:
+                    tram_anexada = da.tramitacaoadministrativo_set.last()
+                    if compara_tramitacoes_doc(tram_anexada, tramitacao):
+                        tramitacoes_deletar.append(tram_anexada.id)
+                TramitacaoAdministrativo.objects.filter(id__in=tramitacoes_deletar).delete()
                 return HttpResponseRedirect(url)
 
 
