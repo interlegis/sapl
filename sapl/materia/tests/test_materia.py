@@ -1,3 +1,4 @@
+from datetime import date
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -14,15 +15,16 @@ from sapl.materia.models import (Anexada, Autoria, DespachoInicial,
                                  StatusTramitacao, TipoDocumento,
                                  TipoMateriaLegislativa, TipoProposicao,
                                  Tramitacao, UnidadeTramitacao)
-from sapl.materia.forms import lista_anexadas
+from sapl.materia.forms import (TramitacaoForm, compara_tramitacoes_mat, 
+                                TramitacaoUpdateForm)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura
-from sapl.utils import models_with_gr_for_model
+from sapl.utils import models_with_gr_for_model, lista_anexados
 
 
 @pytest.mark.django_db(transaction=False)
-def test_lista_anexadas():
+def test_lista_materias_anexadas():
         tipo_materia = mommy.make(
                 TipoMateriaLegislativa,
                 descricao="Tipo_Teste"
@@ -69,7 +71,7 @@ def test_lista_anexadas():
                 data_anexacao="2020-11-05"
         )
 
-        lista = lista_anexadas(materia_principal)
+        lista = lista_anexados(materia_principal)
         
         assert len(lista) == 2
         assert lista[0] == materia_anexada
@@ -637,3 +639,178 @@ def test_numeracao_materia_legislativa_por_ano(admin_client):
     response_content = eval(response.content.decode('ascii'))
     esperado_outro_ano = eval('{"ano": "2010", "numero": 1}')
     assert response_content['numero'] == esperado_outro_ano['numero']
+
+
+@pytest.mark.django_db(transaction=False)
+def test_tramitacoes_materias_anexadas(admin_client):
+    tipo_materia = mommy.make(
+            TipoMateriaLegislativa,
+            descricao="Tipo_Teste"
+    )
+    materia_principal = mommy.make(
+            MateriaLegislativa,
+            ano=2018,
+            data_apresentacao="2018-01-04",
+            tipo=tipo_materia
+    )
+    materia_anexada = mommy.make(
+            MateriaLegislativa,
+            ano=2019,
+            data_apresentacao="2019-05-04",
+            tipo=tipo_materia
+    )
+    materia_anexada_anexada = mommy.make(
+            MateriaLegislativa,
+            ano=2020,
+            data_apresentacao="2020-01-05",
+            tipo=tipo_materia
+    )
+
+    mommy.make(
+            Anexada,
+            materia_principal=materia_principal,
+            materia_anexada=materia_anexada,
+            data_anexacao="2019-05-11"
+    )
+    mommy.make(
+            Anexada,
+            materia_principal=materia_anexada,
+            materia_anexada=materia_anexada_anexada,
+            data_anexacao="2020-11-05"
+    )
+
+
+    unidade_tramitacao_local_1 = make_unidade_tramitacao(descricao="Teste 1")
+    unidade_tramitacao_destino_1 = make_unidade_tramitacao(descricao="Teste 2")
+    unidade_tramitacao_destino_2 = make_unidade_tramitacao(descricao="Teste 3")
+
+    status = mommy.make(
+        StatusTramitacao,
+        indicador='R')
+
+    # Teste criação de Tramitacao
+    form = TramitacaoForm(data={})
+    form.data = {'data_tramitacao':date(2019, 5, 6),
+                'unidade_tramitacao_local':unidade_tramitacao_local_1.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_1.pk,
+                'status':status.pk,
+                'urgente': False,
+                'texto': "Texto de teste"}
+    form.instance.materia_id=materia_principal.pk
+
+    assert form.is_valid()
+
+    tramitacao_principal = form.save()
+    tramitacao_anexada = materia_anexada.tramitacao_set.last()
+    tramitacao_anexada_anexada = materia_anexada_anexada.tramitacao_set.last()
+
+    # Verifica se foram criadas as tramitações para as matérias anexadas e anexadas às anexadas
+    assert materia_principal.tramitacao_set.last() == tramitacao_principal
+    assert tramitacao_principal.materia.em_tramitacao == (tramitacao_principal.status.indicador != "F")
+    assert compara_tramitacoes_mat(tramitacao_principal, tramitacao_anexada)
+    assert MateriaLegislativa.objects.get(id=materia_anexada.pk).em_tramitacao \
+            == (tramitacao_anexada.status.indicador != "F")
+    assert compara_tramitacoes_mat(tramitacao_anexada_anexada, tramitacao_principal)
+    assert MateriaLegislativa.objects.get(id=materia_anexada_anexada.pk).em_tramitacao \
+            == (tramitacao_anexada_anexada.status.indicador != "F")
+
+
+    # Teste Edição de Tramitacao
+    form = TramitacaoUpdateForm(data={})
+    # Alterando unidade_tramitacao_destino
+    form.data = {'data_tramitacao':tramitacao_principal.data_tramitacao,
+                'unidade_tramitacao_local':tramitacao_principal.unidade_tramitacao_local.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_2.pk,
+                'status':tramitacao_principal.status.pk,
+                'urgente': tramitacao_principal.urgente,
+                'texto': tramitacao_principal.texto}
+    form.instance = tramitacao_principal
+
+    assert form.is_valid()
+    tramitacao_principal = form.save()
+    tramitacao_anexada = materia_anexada.tramitacao_set.last()
+    tramitacao_anexada_anexada = materia_anexada_anexada.tramitacao_set.last()
+
+    assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+    assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+    assert tramitacao_anexada_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+
+
+    # Teste Remoção de Tramitacao
+    url = reverse('sapl.materia:tramitacao_delete', 
+                    kwargs={'pk': tramitacao_principal.pk})
+    response = admin_client.post(url, {'confirmar':'confirmar'} ,follow=True)
+    assert Tramitacao.objects.filter(id=tramitacao_principal.pk).count() == 0
+    assert Tramitacao.objects.filter(id=tramitacao_anexada.pk).count() == 0
+    assert Tramitacao.objects.filter(id=tramitacao_anexada_anexada.pk).count() == 0
+
+
+    # Testes para quando as tramitações das anexadas divergem
+    form = TramitacaoForm(data={})
+    form.data = {'data_tramitacao':date(2019, 5, 6),
+                'unidade_tramitacao_local':unidade_tramitacao_local_1.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_1.pk,
+                'status':status.pk,
+                'urgente': False,
+                'texto': "Texto de teste"}
+    form.instance.materia_id=materia_principal.pk
+
+    assert form.is_valid()
+
+    tramitacao_principal = form.save()
+    tramitacao_anexada = materia_anexada.tramitacao_set.last()
+    tramitacao_anexada_anexada = materia_anexada_anexada.tramitacao_set.last()
+
+    form = TramitacaoUpdateForm(data={})
+    # Alterando unidade_tramitacao_destino
+    form.data = {'data_tramitacao':tramitacao_anexada.data_tramitacao,
+                'unidade_tramitacao_local':tramitacao_anexada.unidade_tramitacao_local.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_2.pk,
+                'status':tramitacao_anexada.status.pk,
+                'urgente': tramitacao_anexada.urgente,
+                'texto': tramitacao_anexada.texto}
+    form.instance = tramitacao_anexada
+
+    assert form.is_valid()
+
+    tramitacao_anexada = form.save()
+    tramitacao_anexada_anexada = materia_anexada_anexada.tramitacao_set.last()
+
+    assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_1
+    assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+    assert tramitacao_anexada_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+
+    # Editando a tramitação principal, as tramitações anexadas não devem ser editadas
+    form = TramitacaoUpdateForm(data={})
+    # Alterando o texto
+    form.data = {'data_tramitacao':tramitacao_principal.data_tramitacao,
+                'unidade_tramitacao_local':tramitacao_principal.unidade_tramitacao_local.pk,
+                'unidade_tramitacao_destino':tramitacao_principal.unidade_tramitacao_destino.pk,
+                'status':tramitacao_principal.status.pk,
+                'urgente': tramitacao_principal.urgente,
+                'texto': "Testando a alteração"}
+    form.instance = tramitacao_principal
+
+    assert form.is_valid()
+    tramitacao_principal = form.save()
+    tramitacao_anexada = materia_anexada.tramitacao_set.last()
+    tramitacao_anexada_anexada = materia_anexada_anexada.tramitacao_set.last()
+
+    assert tramitacao_principal.texto == "Testando a alteração"
+    assert not tramitacao_anexada.texto == "Testando a alteração"
+    assert not tramitacao_anexada_anexada.texto == "Testando a alteração"
+
+    # Removendo a tramitação pricipal, as tramitações anexadas não devem ser removidas, pois divergiram
+    url = reverse('sapl.materia:tramitacao_delete', 
+                    kwargs={'pk': tramitacao_principal.pk})
+    response = admin_client.post(url, {'confirmar':'confirmar'} ,follow=True)
+    assert Tramitacao.objects.filter(id=tramitacao_principal.pk).count() == 0
+    assert Tramitacao.objects.filter(id=tramitacao_anexada.pk).count() == 1
+    assert Tramitacao.objects.filter(id=tramitacao_anexada_anexada.pk).count() == 1
+
+    # Removendo a tramitação anexada, a tramitação anexada à anexada deve ser removida
+    url = reverse('sapl.materia:tramitacao_delete', 
+                    kwargs={'pk': tramitacao_anexada.pk})
+    response = admin_client.post(url, {'confirmar':'confirmar'} ,follow=True)
+    assert Tramitacao.objects.filter(id=tramitacao_anexada.pk).count() == 0
+    assert Tramitacao.objects.filter(id=tramitacao_anexada_anexada.pk).count() == 0

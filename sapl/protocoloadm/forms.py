@@ -24,7 +24,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
                         choice_anos_com_protocolo, choice_force_optional,
                         choice_anos_com_documentoadministrativo,
                         FilterOverridesMetaMixin, choice_anos_com_materias,
-                        FileFieldCheckMixin)
+                        FileFieldCheckMixin, lista_anexados)
 
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo,
@@ -749,11 +749,17 @@ class TramitacaoAdmForm(ModelForm):
     def save(self, commit=True):
         tramitacao = super(TramitacaoAdmForm, self).save(commit)
         documento = tramitacao.documento
+        documento.tramitacao = False if tramitacao.status.indicador == "F" else True
+        documento.save()
+
         lista_tramitacao = []
-        for da in documento.anexados.all():
+        list_anexados = lista_anexados(documento, False)
+        for da in list_anexados:
             if not da.tramitacaoadministrativo_set.all() \
                 or da.tramitacaoadministrativo_set.last() \
                 .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                da.tramitacao = False if tramitacao.status.indicador == "F" else True
+                da.save()
                 lista_tramitacao.append(TramitacaoAdministrativo(
                                         status=tramitacao.status,
                                         documento=da,
@@ -770,6 +776,19 @@ class TramitacaoAdmForm(ModelForm):
         TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
 
         return tramitacao
+
+
+
+# Compara se os campos de duas tramitações são iguais, 
+# exceto os campos id, documento_id e timestamp
+def compara_tramitacoes_doc(tramitacao1, tramitacao2):
+    if not tramitacao1 or not tramitacao2:
+        return False
+
+    lst_items = ['id', 'documento_id', 'timestamp']
+    values = [(k,v) for k,v in tramitacao1.__dict__.items() if ((k not in lst_items) and (k[0] != '_'))]
+    other_values = [(k,v) for k,v in tramitacao2.__dict__.items() if (k not in lst_items and k[0] != '_')]
+    return values == other_values
 
 
 class TramitacaoAdmEditForm(TramitacaoAdmForm):
@@ -837,6 +856,36 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         cd['unidade_tramitacao_local'] = obj.unidade_tramitacao_local
 
         return cd
+
+
+    @transaction.atomic
+    def save(self, commit=True):
+        # tram_principal = super(TramitacaoAdmEditForm, self).save(commit)
+        ant_tram_principal = TramitacaoAdministrativo.objects.get(id=self.instance.id)
+        nova_tram_principal = super(TramitacaoAdmEditForm, self).save(commit)
+        documento = nova_tram_principal.documento
+        documento.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+        documento.save()
+
+        list_anexados = lista_anexados(documento, False)
+        for da in list_anexados:
+            tram_anexada = da.tramitacaoadministrativo_set.last()
+            if compara_tramitacoes_doc(ant_tram_principal, tram_anexada):
+                tram_anexada.status = nova_tram_principal.status
+                tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
+                tram_anexada.unidade_tramitacao_local = nova_tram_principal.unidade_tramitacao_local
+                tram_anexada.data_encaminhamento = nova_tram_principal.data_encaminhamento
+                tram_anexada.unidade_tramitacao_destino = nova_tram_principal.unidade_tramitacao_destino
+                tram_anexada.urgente = nova_tram_principal.urgente
+                tram_anexada.texto = nova_tram_principal.texto
+                tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
+                tram_anexada.user = nova_tram_principal.user
+                tram_anexada.ip = nova_tram_principal.ip
+                tram_anexada.save()
+
+                da.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+                da.save()
+        return nova_tram_principal
 
 
 class AnexadoForm(ModelForm):
