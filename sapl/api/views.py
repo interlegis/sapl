@@ -26,8 +26,8 @@ from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
-    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo
-from sapl.sessao.models import SessaoPlenaria
+    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
+from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 
 
@@ -489,6 +489,20 @@ class _TramitacaoAdministrativoViewSet(BusinessRulesNotImplementedMixin):
         return qs
 
 
+@customize(Anexado)
+class _AnexadoViewSet(BusinessRulesNotImplementedMixin):
+
+    permission_classes = (
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        if self.request.user.is_anonymous():
+            qs = qs.exclude(documento__restrito=True)
+        return qs
+
+
 @customize(SessaoPlenaria)
 class _SessaoPlenariaViewSet:
 
@@ -497,4 +511,18 @@ class _SessaoPlenariaViewSet:
         years = choice_anos_com_sessaoplenaria()
 
         serializer = ChoiceSerializer(years, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True)
+    def expedientes(self, request, *args, **kwargs):
+
+        sessao = self.get_object()
+
+        page = self.paginate_queryset(sessao.expedientesessao_set.all())
+        if page is not None:
+            serializer = SaplApiViewSetConstrutor.get_class_for_model(
+                ExpedienteSessao).serializer_class(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)

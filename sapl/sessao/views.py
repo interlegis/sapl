@@ -35,21 +35,21 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-from sapl.utils import show_results_filter_set, remover_acentos
+from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
-from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
+from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm, RetiradaPautaForm, OradorOrdemDiaForm)
-from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
+from .models import (Bancada, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
-                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia)
+                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia, ORDENACAO_RESUMO)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
@@ -679,16 +679,6 @@ class BancadaCrud(CrudAux):
             return reverse('sapl.sessao:bancada_list')
 
 
-class BlocoCrud(CrudAux):
-    model = Bloco
-
-    class CreateView(CrudAux.CreateView):
-        form_class = BlocoForm
-
-        def get_success_url(self):
-            return reverse('sapl.sessao:bloco_list')
-
-
 def recuperar_numero_sessao(request):
     try:
         sessao = SessaoPlenaria.objects.filter(
@@ -1296,49 +1286,38 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
     form_class = ResumoOrdenacaoForm
     permission_required = {'sessao.change_resumoordenacao'}
 
+    def get_tupla(self, tupla_key):
+        for tupla in ORDENACAO_RESUMO:
+            if tupla[0] == tupla_key:
+                return tupla
+
+    def get_initial(self):
+        ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
+
+        initial = {
+            'primeiro': self.get_tupla(ordenacao.primeiro),
+            'segundo': self.get_tupla(ordenacao.segundo),
+            'terceiro': self.get_tupla(ordenacao.terceiro),
+            'quarto': self.get_tupla(ordenacao.quarto),
+            'quinto': self.get_tupla(ordenacao.quinto),
+            'sexto': self.get_tupla(ordenacao.sexto),
+            'setimo': self.get_tupla(ordenacao.setimo),
+            'oitavo': self.get_tupla(ordenacao.oitavo),
+            'nono': self.get_tupla(ordenacao.nono),
+            'decimo': self.get_tupla(ordenacao.decimo),
+            'decimo_primeiro': self.get_tupla(ordenacao.decimo_primeiro),
+            'decimo_segundo': self.get_tupla(ordenacao.decimo_segundo),
+            'decimo_terceiro': self.get_tupla(ordenacao.decimo_terceiro),
+            'decimo_quarto': self.get_tupla(ordenacao.decimo_quarto)
+        }
+
+        return initial
+
     def get_success_url(self):
         return reverse('sapl.base:sistema')
 
-    def get_initial(self):
-        initial = super(ResumoOrdenacaoView, self).get_initial()
-        ordenacao = ResumoOrdenacao.objects.first()
-        if ordenacao:
-            initial.update({'primeiro': ordenacao.primeiro,
-                            'segundo': ordenacao.segundo,
-                            'terceiro': ordenacao.terceiro,
-                            'quarto': ordenacao.quarto,
-                            'quinto': ordenacao.quinto,
-                            'sexto': ordenacao.sexto,
-                            'setimo': ordenacao.setimo,
-                            'oitavo': ordenacao.oitavo,
-                            'nono': ordenacao.nono,
-                            'decimo': ordenacao.decimo,
-                            'decimo_primeiro': ordenacao.decimo_primeiro,
-                            'decimo_segundo': ordenacao.decimo_segundo,
-                            'decimo_terceiro': ordenacao.decimo_terceiro,
-                            'decimo_quarto': ordenacao.decimo_quarto})
-        return initial
-
     def form_valid(self, form):
-        ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
-
-        ordenacao.primeiro = form.cleaned_data['primeiro']
-        ordenacao.segundo = form.cleaned_data['segundo']
-        ordenacao.terceiro = form.cleaned_data['terceiro']
-        ordenacao.quarto = form.cleaned_data['quarto']
-        ordenacao.quinto = form.cleaned_data['quinto']
-        ordenacao.sexto = form.cleaned_data['sexto']
-        ordenacao.setimo = form.cleaned_data['setimo']
-        ordenacao.oitavo = form.cleaned_data['oitavo']
-        ordenacao.nono = form.cleaned_data['nono']
-        ordenacao.decimo = form.cleaned_data['decimo']
-        ordenacao.decimo_primeiro = form.cleaned_data['decimo_primeiro']
-        ordenacao.decimo_segundo = form.cleaned_data['decimo_segundo']
-        ordenacao.decimo_terceiro = form.cleaned_data['decimo_terceiro']
-        ordenacao.decimo_quarto = form.cleaned_data['decimo_quarto']
-
-        ordenacao.save()
-
+        form.save()
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -1761,7 +1740,6 @@ class ResumoView(DetailView):
         context.update(get_ocorrencias_da_sessão(self.object))
         # =====================================================================
         # Indica a ordem com a qual o template será renderizado
-        ordenacao = ResumoOrdenacao.objects.first()
         dict_ord_template = {
             'cont_mult': 'conteudo_multimidia.html',
             'exp': 'expedientes.html',
@@ -1779,59 +1757,23 @@ class ResumoView(DetailView):
             'ocorr_sessao': 'ocorrencias_da_sessao.html'
         }
 
-        if ordenacao:
-            try:
-                context.update(
-                    {'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
-                     'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
-                     'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
-                     'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
-                     'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
-                     'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
-                     'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
-                     'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
-                     'nono_ordenacao': dict_ord_template[ordenacao.nono],
-                     'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
-                     'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
-                     'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
-                     'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
-                     'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]})
-            except KeyError as e:
-                self.logger.error('user=' + self.request.user.username + '. ' + "KeyError: " + str(e) + ". Erro "
-                                  "ao tentar utilizar configuração de ordenação. Utilizando ordenação padrão.")
-                context.update(
-                    {'primeiro_ordenacao': dict_ord_template['id_basica'],
-                     'segundo_ordenacao': dict_ord_template['cont_mult'],
-                     'terceiro_ordenacao': dict_ord_template['mesa_d'],
-                     'quarto_ordenacao': dict_ord_template['lista_p'],
-                     'quinto_ordenacao': dict_ord_template['exp'],
-                     'sexto_ordenacao': dict_ord_template['mat_exp'],
-                     'setimo_ordenacao': dict_ord_template['v_n_mat_exp'],
-                     'oitavo_ordenacao': dict_ord_template['oradores_exped'],
-                     'nono_ordenacao': dict_ord_template['lista_p_o_d'],
-                     'decimo_ordenacao': dict_ord_template['mat_o_d'],
-                     'decimo_primeiro_ordenacao': dict_ord_template['v_n_mat_o_d'],
-                     'decimo_segundo_ordenacao': dict_ord_template['oradores_o_d'],
-                     'decimo_terceiro_ordenacao': dict_ord_template['oradores_expli'],
-                     'decimo_quarto_ordenacao': dict_ord_template['ocorr_sessao']
-                     })
-        else:
-            context.update(
-                {'primeiro_ordenacao': dict_ord_template['id_basica'],
-                 'segundo_ordenacao': dict_ord_template['cont_mult'],
-                 'terceiro_ordenacao': dict_ord_template['mesa_d'],
-                 'quarto_ordenacao': dict_ord_template['lista_p'],
-                 'quinto_ordenacao': dict_ord_template['exp'],
-                 'sexto_ordenacao': dict_ord_template['mat_exp'],
-                 'setimo_ordenacao': dict_ord_template['v_n_mat_exp'],
-                 'oitavo_ordenacao': dict_ord_template['oradores_exped'],
-                 'nono_ordenacao': dict_ord_template['lista_p_o_d'],
-                 'decimo_ordenacao': dict_ord_template['mat_o_d'],
-                 'decimo_primeiro_ordenacao': dict_ord_template['v_n_mat_o_d'],
-                 'decimo_segundo_ordenacao': dict_ord_template['oradores_o_d'],
-                 'decimo_terceiro_ordenacao': dict_ord_template['oradores_expli'],
-                 'decimo_quarto_ordenacao': dict_ord_template['ocorr_sessao']
-                 })
+        ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
+        context.update({
+            'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+            'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+            'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+            'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+            'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+            'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+            'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+            'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+            'nono_ordenacao': dict_ord_template[ordenacao.nono],
+            'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+            'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+            'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+            'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
+            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+        })
 
         return context
 
@@ -2163,6 +2105,8 @@ class VotacaoView(SessaoPermissionMixin):
                     votacao.ordem_id = ordem_id
                     votacao.tipo_resultado_votacao_id = int(
                         request.POST['resultado_votacao'])
+                    votacao.user = request.user
+                    votacao.ip = get_client_ip(request)
                     votacao.save()
                 except Exception as e:
                     username = request.user.username
@@ -2383,6 +2327,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             votacao.numero_votos_nao = votos_nao
             votacao.numero_abstencoes = abstencoes
             votacao.observacao = request.POST.get('observacao', None)
+            votacao.user = request.user
+            votacao.ip = get_client_ip(request)
 
             votacao.materia_id = materia_votacao.materia.id
             if self.ordem:
@@ -2410,6 +2356,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 voto_parlamentar.voto = voto
                 voto_parlamentar.parlamentar_id = parlamentar_id
                 voto_parlamentar.votacao_id = votacao.id
+                voto_parlamentar.user = request.user
+                voto_parlamentar.ip = get_client_ip(request)
                 voto_parlamentar.save()
 
                 resultado = form.cleaned_data['resultado_votacao']
@@ -2847,10 +2795,10 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             if (int(request.POST['voto_presidente']) == 0):
                 qtde_presentes -= 1
 
-            if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
+            if qtde_votos != qtde_presentes:
                 form._errors["total_votos"] = ErrorList([u""])
                 return self.render_to_response(context)
-            elif (qtde_presentes == qtde_votos):
+            else:
                 try:
                     votacao = RegistroVotacao()
                     votacao.numero_votos_sim = int(request.POST['votos_sim'])
@@ -2861,6 +2809,8 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
                     votacao.expediente_id = expediente_id
                     votacao.tipo_resultado_votacao_id = int(
                         request.POST['resultado_votacao'])
+                    votacao.user = request.user
+                    votacao.ip = get_client_ip(request)
                     votacao.save()
                 except Exception as e:
                     username = request.user.username
@@ -3544,9 +3494,13 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoExpediente,
                         self).get_context_data(**kwargs)
-        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['pk'] = self.kwargs['pk']
         context['root_pk'] = self.kwargs['pk']
+        if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
+            context['sessao_iniciada'] = False
+            return context
+        context['sessao_iniciada'] = True
+        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         return context
 
@@ -3566,9 +3520,13 @@ class VotacaoEmBlocoOrdemDia(PermissionRequiredForAppCrudMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoOrdemDia,
                         self).get_context_data(**kwargs)
-        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['pk'] = self.kwargs['pk']
         context['root_pk'] = self.kwargs['pk']
+        if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
+            context['sessao_iniciada'] = False
+            return context
+        context['sessao_iniciada'] = True
+        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         return context
 
@@ -3640,6 +3598,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                             resultado = TipoResultadoVotacao.objects.get(
                                 id=request.POST['resultado_votacao'])
                             votacao.tipo_resultado_votacao = resultado
+                            votacao.user = request.user
+                            votacao.ip = get_client_ip(request)
                             votacao.save()
                         except Exception as e:
                             username = request.user.username
@@ -3671,6 +3631,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                             resultado = TipoResultadoVotacao.objects.get(
                                 id=request.POST['resultado_votacao'])
                             votacao.tipo_resultado_votacao = resultado
+                            votacao.user = request.user
+                            votacao.ip = get_client_ip(request)
                             votacao.save()
                         except Exception as e:
                             username = request.user.username
@@ -3848,6 +3810,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         votacao.materia = ordem.materia
                         votacao.ordem = ordem
                         votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.user = request.user
+                        votacao.ip = get_client_ip(request)
                         votacao.save()
 
                         for votos in request.POST.getlist('voto_parlamentar'):
@@ -3862,6 +3826,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                             voto_parlamentar.voto = voto
                             voto_parlamentar.parlamentar_id = parlamentar_id
                             voto_parlamentar.votacao_id = votacao.id
+                            voto_parlamentar.user = request.user
+                            voto_parlamentar.ip = get_client_ip(request)
                             voto_parlamentar.save()
 
                             ordem.resultado = form.cleaned_data['resultado_votacao'].nome
@@ -3889,6 +3855,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         votacao.materia = expediente.materia
                         votacao.expediente = expediente
                         votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.user = request.user
+                        votacao.ip = get_client_ip(request)
                         votacao.save()
 
                         # Salva os votos de cada parlamentar
@@ -3904,6 +3872,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                             voto_parlamentar.voto = voto
                             voto_parlamentar.parlamentar_id = parlamentar_id
                             voto_parlamentar.votacao_id = votacao.id
+                            voto_parlamentar.user = request.user
+                            voto_parlamentar.ip = get_client_ip(request)
                             voto_parlamentar.save()
 
                             expediente.resultado = form.cleaned_data['resultado_votacao'].nome

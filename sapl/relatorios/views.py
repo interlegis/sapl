@@ -519,6 +519,18 @@ def get_sessao_plenaria(sessao, casa):
         inf_basicas_dic["dat_fim_sessao"] = ''
     inf_basicas_dic["hr_fim_sessao"] = sessao.hora_fim
     inf_basicas_dic["nom_camara"] = casa.nome
+    
+    # Conteudo multimidia
+    cont_mult_dic = {}
+    if sessao.url_audio:
+        cont_mult_dic['multimidia_audio'] = str(sessao.url_audio)
+    else:
+        cont_mult_dic['multimidia_audio'] = 'Indisponível'
+    
+    if sessao.url_video:
+        cont_mult_dic['multimidia_video'] = str(sessao.url_video)
+    else:
+        cont_mult_dic['multimidia_video'] = 'Indisponível'
 
     # Lista da composicao da mesa diretora
     lst_mesa = []
@@ -580,7 +592,9 @@ def get_sessao_plenaria(sessao, casa):
         # https://github.com/interlegis/sapl/issues/1046
         conteudo = re.sub('style=".*?"', '', conteudo)
         conteudo = re.sub('class=".*?"', '', conteudo)
+        conteudo = re.sub('align=".*?"', '', conteudo)    # OSTicket Ticket #796450
         conteudo = re.sub('<p\s+>', '<p>', conteudo)
+        conteudo = re.sub('<br\s+/>', '<br/>', conteudo)  # OSTicket Ticket #796450
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
@@ -850,6 +864,7 @@ def get_sessao_plenaria(sessao, casa):
         lst_ocorrencias.append(o)
 
     return (inf_basicas_dic,
+            cont_mult_dic,
             lst_mesa,
             lst_presenca_sessao,
             lst_ausencia_sessao,
@@ -908,6 +923,7 @@ def relatorio_sessao_plenaria(request, pk):
         raise Http404('Essa página não existe')
 
     (inf_basicas_dic,
+     cont_mult_dic,
      lst_mesa,
      lst_presenca_sessao,
      lst_ausencia_sessao,
@@ -932,6 +948,7 @@ def relatorio_sessao_plenaria(request, pk):
         rodape,
         imagem,
         inf_basicas_dic,
+        cont_mult_dic,
         lst_mesa,
         lst_presenca_sessao,
         lst_ausencia_sessao,

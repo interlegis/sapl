@@ -1081,9 +1081,7 @@ class ListarBancadaComissaoAutorExternoView(PermissionRequiredMixin, ListView):
 
 
 def autores_duplicados():
-    return [autor.values() for autor in Autor.objects.values(
-        'nome', 'tipo__descricao').order_by(
-            "nome").annotate(count=Count('nome')).filter(count__gt=1)]
+    return [autor for autor in Autor.objects.values('nome').annotate(count=Count('nome')).filter(count__gt=1)]
 
 
 class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
@@ -1097,8 +1095,7 @@ class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
         return autores_duplicados()
 
     def get_context_data(self, **kwargs):
-        context = super(
-            ListarAutoresDuplicadosView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(

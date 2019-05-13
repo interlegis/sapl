@@ -34,11 +34,15 @@ from sapl.parlamentares.apps import AppConfig
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, ParlamentarFilterSet, VincularParlamentarForm)
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
+                    ParlamentarFilterSet, VincularParlamentarForm,
+                    BlocoForm)
+                    
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
-                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
+                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
+                     Bloco)
 
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
@@ -249,7 +253,6 @@ class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 
             comissoes = []
             for p in object_list:
-                if p.cargo.nome != 'Relator':
                     comissao = [
                         (p.composicao.comissao.nome, reverse(
                             'sapl.comissoes:comissao_detail', kwargs={
@@ -1112,16 +1115,20 @@ def altera_field_mesa_public_view(request):
             partido_parlamentar_sessao_legislativa(sessao,
                                                    parlamentar))
         if parlamentar.fotografia:
-            thumbnail_url = get_backend().get_thumbnail_url(
-                parlamentar.fotografia,
-                {
-                    'size': (128, 128),
-                    'box': parlamentar.cropping,
-                    'crop': True,
-                    'detail': True,
-                }
-            )
-            lista_fotos.append(thumbnail_url)
+            try:
+                thumbnail_url = get_backend().get_thumbnail_url(
+                    parlamentar.fotografia,
+                    {
+                        'size': (128, 128),
+                        'box': parlamentar.cropping,
+                        'crop': True,
+                        'detail': True,
+                    }
+                )
+                lista_fotos.append(thumbnail_url)
+            except Exception as e:
+                logger.error(e)
+                logger.error('erro processando arquivo: %s' % parlamentar.fotografia.path)
         else:
             lista_fotos.append(None)
 
@@ -1160,3 +1167,13 @@ class VincularParlamentarView(PermissionRequiredMixin, FormView):
         mandato.save()
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+class BlocoCrud(CrudAux):
+    model = Bloco
+
+    class CreateView(CrudAux.CreateView):
+        form_class = BlocoForm
+
+        def get_success_url(self):
+            return reverse('sapl.parlamentares:bloco_list')

@@ -84,13 +84,6 @@ CargoBancada:
   {% trans 'Cargo de Bancada' %}:
   - nome_cargo:8 cargo_unico
 
-Bloco:
-  {% trans 'Bloco' %}:
-  - nome
-  - data_criacao data_extincao
-  - partidos
-  - descricao
-
 TipoJustificativa:
   {% trans 'Tipo de Justificativa' %}:
   - descricao

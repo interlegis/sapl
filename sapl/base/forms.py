@@ -1203,7 +1203,8 @@ class ConfiguracoesAppForm(ModelForm):
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
-                  'sequencia_numeracao',
+                  'sequencia_numeracao_protocolo',
+                  'sequencia_numeracao_proposicao',
                   'esfera_federacao',
                   # 'painel_aberto', # TODO: a ser implementado na versão 3.2
                   'texto_articulado_proposicao',

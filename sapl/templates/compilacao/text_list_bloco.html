@@ -20,7 +20,6 @@
       <div class="{{ dpt.tipo_dispositivo.class_css }} {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} ">
         <div class="dptt {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %}"  id="dptt{{dpt.pk}}" >
 
-
           {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao or dpt.tipo_dispositivo.dispositivo_de_articulacao and dpt.dispositivo_subsequente %}
             {% if dpt.auto_inserido %}
               {{ dpt.dispositivo_pai.tipo_dispositivo.rotulo_prefixo_html|safe }}
@@ -31,6 +30,7 @@
               <a class="dpt-link" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>
               {{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
             {% endif %}
+          
           {% endif %}
 
           <span class="dtxt" id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido_id|default:''}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
@@ -43,20 +43,21 @@
                 &nbsp;
               {% endif %}
             </a>
-
           {% endif %}
-            {% if user.is_authenticated and not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
-              {% if perms.compilacao.add_nota or perms.compilacao.add_vide or perms.compilacao.change_dispositivo%}
-                <div class="dne" id="dne{{dpt.pk}}" pk="{{dpt.pk}}">
-                  <ul class="btns-action">
-                    {% if perms.compilacao.change_dispositivo %}<li><a href = "{% url 'sapl.compilacao:ta_text_edit' dpt.ta.pk%}#{{dpt.pk}}" class="btn-action" title="{% trans 'Editar Dispositivo'%}">Ed</a></li>{% endif %}
-                    {% if perms.compilacao.add_nota %}<li><a class="btn-action btn-nota-create"  model="nota" pk="{{dpt.pk}}" title="{% trans 'Adicionar Nota'%}">N</a></li>{% endif %}
-                    {% if perms.compilacao.add_vide %}<li><a class="btn-action btn-vide-create" model="vide"  pk="{{dpt.pk}}" title="{% trans 'Adicionar Vide'%}">V</a></li>{% endif %}
-                  </ul>
-                  <div class="dne-form clearfix"></div>
-                </div>
-              {% endif %}
+
+          {% if user.is_authenticated and not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
+            {% if perms.compilacao.add_nota or perms.compilacao.add_vide or perms.compilacao.change_dispositivo%}
+              <div class="dne" id="dne{{dpt.pk}}" pk="{{dpt.pk}}">
+                <ul class="btns-action">
+                  {% if perms.compilacao.change_dispositivo %}<li><a href = "{% url 'sapl.compilacao:ta_text_edit' dpt.ta.pk%}#{{dpt.pk}}" class="btn-action" title="{% trans 'Editar Dispositivo'%}">Ed</a></li>{% endif %}
+                  {% if perms.compilacao.add_nota %}<li><a class="btn-action btn-nota-create"  model="nota" pk="{{dpt.pk}}" title="{% trans 'Adicionar Nota'%}">N</a></li>{% endif %}
+                  {% if perms.compilacao.add_vide %}<li><a class="btn-action btn-vide-create" model="vide"  pk="{{dpt.pk}}" title="{% trans 'Adicionar Vide'%}">V</a></li>{% endif %}
+                </ul>
+                <div class="dne-form clearfix"></div>
+              </div>
             {% endif %}
+          {% endif %}
+
         </div>
 
         {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}

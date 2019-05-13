@@ -53,9 +53,9 @@ from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
 from sapl.settings import MEDIA_ROOT
 from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH_PROPOSICAO,
-                        gerar_hash_arquivo, get_base_url,
+                        gerar_hash_arquivo, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, montar_row_autor,
-                        show_results_filter_set, mail_service_configured)
+                        show_results_filter_set, mail_service_configured, lista_anexados)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet,
@@ -69,7 +69,7 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status,
-                    ExcluirTramitacaoEmLote)
+                    ExcluirTramitacaoEmLote, compara_tramitacoes_mat)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaAssunto,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -333,7 +333,7 @@ def recuperar_materia(request):
         logger.debug("user=" + username +
                      ". Tentando obter numeração da matéria.")
         numeracao = sapl.base.models.AppConfig.objects.last(
-        ).sequencia_numeracao
+        ).sequencia_numeracao_proposicao
     except AttributeError as e:
         logger.error("user=" + username + ". " + str(e) +
                      " Numeracao da matéria definida como None.")
@@ -1189,6 +1189,8 @@ class TramitacaoCrud(MasterDetailCrud):
             else:
                 initial['unidade_tramitacao_local'] = ''
             initial['data_tramitacao'] = timezone.now().date()
+            initial['ip'] = get_client_ip(self.request)
+            initial['user'] = self.request.user
             return initial
 
         def get_context_data(self, **kwargs):
@@ -1201,6 +1203,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 '-timestamp',
                 '-id').first()
 
+            #TODO: Esta checagem foi inserida na issue #2027, mas é mesmo necessária?
             if ultima_tramitacao:
                 if ultima_tramitacao.unidade_tramitacao_destino:
                     context['form'].fields[
@@ -1214,18 +1217,21 @@ class TramitacaoCrud(MasterDetailCrud):
                             ' da última tramitação não pode ser vazia!')
                     messages.add_message(self.request, messages.ERROR, msg)
 
+            primeira_tramitacao = not(Tramitacao.objects.filter(
+                materia_id=int(kwargs['root_pk'])).exists())
+
+            # Se não for a primeira tramitação daquela matéria, o campo
+            # não pode ser modificado
+            if not primeira_tramitacao:
+                context['form'].fields[
+                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
+
             return context
 
         def form_valid(self, form):
 
             self.object = form.save()
             username = self.request.user.username
-
-            if form.instance.status.indicador == 'F':
-                form.instance.materia.em_tramitacao = False
-            else:
-                form.instance.materia.em_tramitacao = True
-            form.instance.materia.save()
 
             try:
                 self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={})."
@@ -1234,7 +1240,6 @@ class TramitacaoCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception as e:
-                # TODO log error
                 msg = _('Tramitação criada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
@@ -1251,15 +1256,15 @@ class TramitacaoCrud(MasterDetailCrud):
 
         layout_key = 'TramitacaoUpdate'
 
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['ip'] = get_client_ip(self.request)
+            initial['user'] = self.request.user
+            return initial
+
         def form_valid(self, form):
             self.object = form.save()
             username = self.request.user.username
-
-            if form.instance.status.indicador == 'F':
-                form.instance.materia.em_tramitacao = False
-            else:
-                form.instance.materia.em_tramitacao = True
-            form.instance.materia.save()
 
             try:
                 self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
@@ -1268,7 +1273,6 @@ class TramitacaoCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception:
-                # TODO log error
                 msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
@@ -1294,18 +1298,17 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def delete(self, request, *args, **kwargs):
             tramitacao = Tramitacao.objects.get(id=self.kwargs['pk'])
-            materia = MateriaLegislativa.objects.get(id=tramitacao.materia.id)
+            materia = tramitacao.materia
             url = reverse('sapl.materia:tramitacao_list',
-                          kwargs={'pk': tramitacao.materia.id})
-
+                          kwargs={'pk': materia.id})
+            
             ultima_tramitacao = materia.tramitacao_set.order_by(
                 '-data_tramitacao',
                 '-timestamp',
                 '-id').first()
 
-            username = request.user.username
-
             if tramitacao.pk != ultima_tramitacao.pk:
+                username = request.user.username
                 self.logger.error("user=" + username + ". Não é possível deletar a tramitação de pk={}. "
                                   "Somente a última tramitação (pk={}) pode ser deletada!."
                                   .format(tramitacao.pk, ultima_tramitacao.pk))
@@ -1313,9 +1316,24 @@ class TramitacaoCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacao.delete()
+                tramitacoes_deletar = [tramitacao.id]
+                mat_anexadas = lista_anexados(materia)
+                for ma in mat_anexadas:
+                    tram_anexada = ma.tramitacao_set.last()
+                    if compara_tramitacoes_mat(tram_anexada, tramitacao):
+                        tramitacoes_deletar.append(tram_anexada.id)
+                Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
                 return HttpResponseRedirect(url)
 
+    class DetailView(MasterDetailCrud.DetailView):
+
+        template_name = "materia/tramitacao_detail.html"
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['user'] = self.request.user
+            return context
+        
 
 def montar_helper_documento_acessorio(self):
     autor_row = montar_row_autor('autor')
@@ -1585,6 +1603,20 @@ class MateriaLegislativaCrud(Crud):
     class UpdateView(Crud.UpdateView):
 
         form_class = MateriaLegislativaForm
+
+        def form_valid(self, form):
+            self.object = form.save()
+            username = self.request.user.username
+
+            if Anexada.objects.filter(materia_principal=self.kwargs['pk']).exists():
+                materia = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+                anexadas = lista_anexados(materia)
+
+                for anexada in anexadas:
+                    anexada.em_tramitacao = True if form.instance.em_tramitacao else False 
+                    anexada.save()
+    
+            return super().form_valid(form)
 
         @property
         def cancel_url(self):
@@ -2070,11 +2102,39 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
 
         qr = self.request.GET.copy()
         context['object_list'] = context['object_list'].order_by(
-            'ano', 'numero')
+            'numero', '-ano')
         principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
         not_list = [self.kwargs['pk']] + \
                     [m for m in principal.materia_principal_set.all().values_list('materia_anexada_id', flat=True)]
         context['object_list'] = context['object_list'].exclude(pk__in=not_list)
+
+        context['temp_object_list'] = context['object_list']
+        context['object_list'] = []
+        for obj in context['temp_object_list']:
+            materia_anexada = obj
+            ciclico = False
+            anexadas_anexada = Anexada.objects.filter(
+                materia_principal = materia_anexada
+            )
+
+            while anexadas_anexada and not ciclico:
+                anexadas = []
+                
+                for anexa in anexadas_anexada:
+
+                    if principal == anexa.materia_anexada:
+                        ciclico = True
+                    else:
+                        for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
+                            anexadas.append(a)
+                        
+                anexadas_anexada = anexadas
+
+            if not ciclico:
+                context['object_list'].append(obj)
+
+        context['numero_res'] = len(context['object_list'])
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
@@ -2084,19 +2144,31 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('materia_id')
 
-        if len(marcadas) == 0:
-            msg = _('Nenhuma máteria foi selecionada.')
-            messages.add_message(request, messages.ERROR, msg)
-            return self.get(request, self.kwargs)
-
         data_anexacao = datetime.strptime(
             request.POST['data_anexacao'], "%d/%m/%Y").date()
 
         if request.POST['data_desanexacao'] == '':
             data_desanexacao = None
+            v_data_desanexacao = data_anexacao
         else:
             data_desanexacao = datetime.strptime(
                 request.POST['data_desanexacao'], "%d/%m/%Y").date()
+            v_data_desanexacao = data_desanexacao
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+        
+            if data_anexacao > v_data_desanexacao:
+                msg = _('Data de anexação posterior à data de desanexação.')
+                messages.add_message(request, messages.ERROR, msg)
+
+            return self.get(request, self.kwargs)
+
+        if data_anexacao > v_data_desanexacao:
+            msg = _('Data de anexação posterior à data de desanexação.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
 
         principal = MateriaLegislativa.objects.get(pk=kwargs['pk'])
         for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
@@ -2108,9 +2180,11 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
             anexada.data_desanexacao = data_desanexacao
             anexada.save()
 
-        msg = _('Materia(s) anexada(s).')
+        msg = _('Matéria(s) anexada(s).')
         messages.add_message(request, messages.SUCCESS, msg)
-        return self.get(request, self.kwargs)
+
+        sucess_url = reverse('sapl_index') + 'materia/' + kwargs['pk'] + '/anexada'
+        return HttpResponseRedirect(sucess_url)
 
 
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
@@ -2231,6 +2305,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 messages.add_message(request, messages.ERROR, msg)
                 return self.get(request, self.kwargs)
 
+            user = request.user
+            ip = get_client_ip(request)
             t = Tramitacao(
                 materia=materia,
                 data_tramitacao=data_tramitacao,
@@ -2243,7 +2319,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 urgente=urgente,
                 status_id=request.POST['status'],
                 turno=request.POST['turno'],
-                texto=request.POST['texto']
+                texto=request.POST['texto'],
+                user=user,
+                ip=ip
             )
             t.save()
             try:

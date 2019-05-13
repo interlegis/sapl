@@ -290,8 +290,11 @@ class TipoExpediente(models.Model):
 
 @reversion.register()
 class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
-    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.CASCADE)
+    sessao_plenaria = models.ForeignKey(
+        SessaoPlenaria,
+        on_delete=models.CASCADE,
+        related_name='expedientesessao_set'
+    )
     tipo = models.ForeignKey(TipoExpediente, on_delete=models.PROTECT)
     conteudo = models.TextField(
         blank=True, verbose_name=_('Conteúdo do expediente'))
@@ -379,7 +382,7 @@ class OradorExpediente(AbstractOrador):  # OradoresExpediente
 
 
 @reversion.register()
-class OradorOrdemDia(AbstractOrador): # OradoresOrdemDia
+class OradorOrdemDia(AbstractOrador):  # OradoresOrdemDia
 
     class Meta:
         verbose_name = _('Orador da Ordem do Dia')
@@ -453,6 +456,19 @@ class RegistroVotacao(models.Model):
         verbose_name=_('Abstenções'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observações'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          blank=True,
+                          default='')
+    data_hora = models.DateTimeField(
+        verbose_name=_('Data/Hora'),
+        auto_now_add=True,
+        blank=True,
+        null=True)
 
     class Meta:
         verbose_name = _('Votação')
@@ -534,38 +550,22 @@ class SessaoPlenariaPresenca(models.Model):
         ordering = ['parlamentar__nome_parlamentar']
 
 
-@reversion.register()
-class Bloco(models.Model):
-    '''
-        * blocos podem existir por mais de uma legislatura
-    '''
-    nome = models.CharField(
-        max_length=80, verbose_name=_('Nome do Bloco'))
-    partidos = models.ManyToManyField(
-        Partido, blank=True, verbose_name=_('Partidos'))
-    data_criacao = models.DateField(
-        blank=False, null=True, verbose_name=_('Data Criação'))
-    data_extincao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Dissolução'))
-    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
-
-    # campo conceitual de reversão genérica para o model Autor que dá a
-    # o meio possível de localização de tipos de autores.
-    autor = SaplGenericRelation(Autor,
-                                related_query_name='bloco_set',
-                                fields_search=(
-                                    ('nome', '__icontains'),
-                                    ('descricao', '__icontains'),
-                                    ('partidos__sigla', '__icontains'),
-                                    ('partidos__nome', '__icontains'),
-                                ))
-
-    class Meta:
-        verbose_name = _('Bloco Parlamentar')
-        verbose_name_plural = _('Blocos Parlamentares')
-
-    def __str__(self):
-        return self.nome
+ORDENACAO_RESUMO = [
+    ('id_basica', 'Identificação Básica'),
+    ('cont_mult', 'Conteúdo Multimídia'),
+    ('mesa_d', 'Mesa Diretora'),
+    ('lista_p', 'Lista de Presença'),
+    ('exp', 'Expedientes'),
+    ('mat_exp', 'Matérias do Expediente'),
+    ('v_n_mat_exp', 'Votações Nominais - Matérias do Expediente'),
+    ('oradores_exped', 'Oradores do Expediente'),
+    ('lista_p_o_d', 'Lista de Presença Ordem do Dia'),
+    ('mat_o_d', 'Matérias da Ordem do Dia'),
+    ('v_n_mat_o_d', 'Votações Nominais - Matérias da Ordem do Dia'),
+    ('oradores_o_d', 'Oradores da Ordem do Dia'),
+    ('oradores_expli', 'Oradores das Explicações Pessoais'),
+    ('ocorr_sessao', 'Ocorrências da Sessão')
+]
 
 
 @reversion.register()
@@ -574,20 +574,62 @@ class ResumoOrdenacao(models.Model):
         Tabela para registrar em qual ordem serão renderizados os componentes
         da tela de resumo de uma sessão
     '''
-    primeiro = models.CharField(max_length=30)
-    segundo = models.CharField(max_length=30)
-    terceiro = models.CharField(max_length=30)
-    quarto = models.CharField(max_length=30)
-    quinto = models.CharField(max_length=30)
-    sexto = models.CharField(max_length=30)
-    setimo = models.CharField(max_length=30)
-    oitavo = models.CharField(max_length=30)
-    nono = models.CharField(max_length=30)
-    decimo = models.CharField(max_length=30)
-    decimo_primeiro = models.CharField(max_length=30,default="Ocorrências da Sessão")
-    decimo_segundo = models.CharField(max_length=30, default="Votos Nominais Mat Expediente")
-    decimo_terceiro = models.CharField(max_length=30, default="Votos Nominais Mat Ordem Dia")
-    decimo_quarto = models.CharField(max_length=30, default="Oradores da Ordem do Dia")
+    primeiro = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[0][0]
+    )
+    segundo = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[1][0]
+    )
+    terceiro = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[2][0]
+    )
+    quarto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[3][0]
+    )
+    quinto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[4][0]
+    )
+    sexto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[5][0]
+    )
+    setimo = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[6][0]
+    )
+    oitavo = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[7][0]
+    )
+    nono = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[8][0]
+    )
+    decimo = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[9][0]
+    )
+    decimo_primeiro = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[10][0]
+    )
+    decimo_segundo = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[11][0]
+    )
+    decimo_terceiro = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[12][0]
+    )
+    decimo_quarto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[13][0]
+    )
 
     class Meta:
         verbose_name = _('Ordenação do Resumo de uma Sessão')
@@ -595,6 +637,7 @@ class ResumoOrdenacao(models.Model):
 
     def __str__(self):
         return 'Ordenação do Resumo de uma Sessão'
+
 
 @reversion.register()
 class TipoRetiradaPauta(models.Model):
@@ -686,6 +729,7 @@ class JustificativaAusencia(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
 
 class RetiradaPauta(models.Model):
     materia = models.ForeignKey(MateriaLegislativa,

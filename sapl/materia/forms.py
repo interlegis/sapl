@@ -38,14 +38,15 @@ from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
-from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
+from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo, Anexado
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, gerar_hash_arquivo,
                         models_with_gr_for_model, qs_override_django_filter,
-                        choice_anos_com_materias, FilterOverridesMetaMixin, FileFieldCheckMixin)
+                        choice_anos_com_materias, FilterOverridesMetaMixin, FileFieldCheckMixin,
+                        lista_anexados)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -461,7 +462,11 @@ class TramitacaoForm(ModelForm):
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
                   'data_fim_prazo',
-                  'texto']
+                  'texto',
+                  'user',
+                  'ip']
+        widgets = {'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()}
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
@@ -549,16 +554,45 @@ class TramitacaoForm(ModelForm):
     def save(self, commit=True):
         tramitacao = super(TramitacaoForm, self).save(commit)
         materia = tramitacao.materia
-        for ma in materia.anexadas.all():
+        materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+        materia.save()
+
+        lista_tramitacao = []
+        lista_anexadas = lista_anexados(materia)
+        for ma in lista_anexadas:
             if not ma.tramitacao_set.all() \
                     or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
-                tramitacao_nova = tramitacao
-                tramitacao_nova.pk = None
-                tramitacao_nova.materia = ma
-                tramitacao_nova.save()
+                ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+                ma.save()
+                lista_tramitacao.append(Tramitacao(
+                                            status=tramitacao.status,
+                                            materia=ma,
+                                            data_tramitacao=tramitacao.data_tramitacao,
+                                            unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                                            data_encaminhamento=tramitacao.data_encaminhamento,
+                                            unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                                            urgente=tramitacao.urgente,
+                                            turno=tramitacao.turno,
+                                            texto=tramitacao.texto,
+                                            data_fim_prazo=tramitacao.data_fim_prazo,
+                                            user=tramitacao.user,
+                                            ip=tramitacao.ip
+                                        ))
+        Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
 
+
+# Compara se os campos de duas tramitações são iguais, 
+# exceto os campos id, documento_id e timestamp
+def compara_tramitacoes_mat(tramitacao1, tramitacao2):
+    if not tramitacao1 or not tramitacao2:
+        return False
+
+    lst_items = ['id', 'materia_id', 'timestamp']
+    values = [(k,v) for k,v in tramitacao1.__dict__.items() if ((k not in lst_items) and (k[0] != '_'))]
+    other_values = [(k,v) for k,v in tramitacao2.__dict__.items() if (k not in lst_items and k[0] != '_')]
+    return values == other_values
 
 class TramitacaoUpdateForm(TramitacaoForm):
     unidade_tramitacao_local = forms.ModelChoiceField(
@@ -580,11 +614,15 @@ class TramitacaoUpdateForm(TramitacaoForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto',
+                  'user',
+                  'ip'
                   ]
 
         widgets = {
             'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
             'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput()
         }
 
     def clean(self):
@@ -593,33 +631,73 @@ class TramitacaoUpdateForm(TramitacaoForm):
         if not self.is_valid():
             return self.cleaned_data
 
+        cd = self.cleaned_data
+        obj = self.instance
+
         ultima_tramitacao = Tramitacao.objects.filter(
-            materia_id=self.instance.materia_id).order_by(
+            materia_id=obj.materia_id).order_by(
             '-data_tramitacao',
             '-id').first()
 
         # Se a Tramitação que está sendo editada não for a mais recente,
         # ela não pode ter seu destino alterado.
-        if ultima_tramitacao != self.instance:
-            if self.cleaned_data['unidade_tramitacao_destino'] != \
-                    self.instance.unidade_tramitacao_destino:
+        if ultima_tramitacao != obj:
+            if cd['unidade_tramitacao_destino'] != \
+                    obj.unidade_tramitacao_destino:
                 self.logger.error("Você não pode mudar a Unidade de Destino desta "
                                   "tramitação para {}, pois irá conflitar com a Unidade "
                                   "Local da tramitação seguinte ({})."
-                                  .format(self.cleaned_data['unidade_tramitacao_destino'],
-                                          self.instance.unidade_tramitacao_destino))
+                                  .format(cd['unidade_tramitacao_destino'],
+                                          obj.unidade_tramitacao_destino))
                 raise ValidationError(
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
+        
+        # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
+        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
+           cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
+           cd['status'] != obj.status or cd['texto'] != obj.texto or \
+           cd['data_encaminhamento'] != obj.data_encaminhamento or \
+           cd['data_fim_prazo'] != obj.data_fim_prazo or \
+           cd['urgente'] != obj.urgente or \
+           cd['turno'] != obj.turno):
+            cd['user'] = obj.user
+            cd['ip'] = obj.ip
 
-        self.cleaned_data['data_tramitacao'] = \
-            self.instance.data_tramitacao
-        self.cleaned_data['unidade_tramitacao_local'] = \
-            self.instance.unidade_tramitacao_local
+        cd['data_tramitacao'] = obj.data_tramitacao
+        cd['unidade_tramitacao_local'] = obj.unidade_tramitacao_local
 
-        return self.cleaned_data
+        return cd
 
+    @transaction.atomic
+    def save(self, commit=True):
+        ant_tram_principal = Tramitacao.objects.get(id=self.instance.id)
+        nova_tram_principal = super(TramitacaoUpdateForm, self).save(commit)
+        materia = nova_tram_principal.materia
+        materia.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+        materia.save()
+
+        lista_anexadas = lista_anexados(materia)
+        for ma in lista_anexadas:
+            tram_anexada = ma.tramitacao_set.last()
+            if compara_tramitacoes_mat(ant_tram_principal, tram_anexada):
+                tram_anexada.status = nova_tram_principal.status
+                tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
+                tram_anexada.unidade_tramitacao_local = nova_tram_principal.unidade_tramitacao_local
+                tram_anexada.data_encaminhamento = nova_tram_principal.data_encaminhamento
+                tram_anexada.unidade_tramitacao_destino = nova_tram_principal.unidade_tramitacao_destino
+                tram_anexada.urgente = nova_tram_principal.urgente
+                tram_anexada.turno = nova_tram_principal.turno
+                tram_anexada.texto = nova_tram_principal.texto
+                tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
+                tram_anexada.user = nova_tram_principal.user
+                tram_anexada.ip = nova_tram_principal.ip
+                tram_anexada.save()
+
+                ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+                ma.save()
+        return nova_tram_principal
 
 class LegislacaoCitadaForm(ModelForm):
 
@@ -790,6 +868,13 @@ class AnexadaForm(ModelForm):
 
         cleaned_data = self.cleaned_data
 
+        data_anexacao = cleaned_data['data_anexacao']
+        data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
+
+        if data_anexacao > data_desanexacao:
+            self.logger.error("Data de anexação posterior à data de desanexação.")
+            raise ValidationError(_("Data de anexação posterior à data de desanexação."))
+
         try:
             self.logger.info("Tentando obter objeto MateriaLegislativa (numero={}, ano={}, tipo={})."
                              .format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
@@ -817,6 +902,26 @@ class AnexadaForm(ModelForm):
         if is_anexada:
             self.logger.error("Matéria já se encontra anexada.")
             raise ValidationError(_('Matéria já se encontra anexada'))
+        
+        ciclico = False
+        anexadas_anexada = Anexada.objects.filter(materia_principal=materia_anexada)
+
+        while anexadas_anexada and not ciclico:
+            anexadas = []
+
+            for anexa in anexadas_anexada:
+
+                if materia_principal == anexa.materia_anexada:
+                    ciclico = True
+                else: 
+                    for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
+                        anexadas.append(a)
+
+            anexadas_anexada = anexadas
+        
+        if ciclico:
+            self.logger.error("A matéria não pode ser anexada por uma de suas anexadas.")
+            raise ValidationError(_("A matéria não pode ser anexada por uma de suas anexadas."))
 
         cleaned_data['materia_anexada'] = materia_anexada
 
@@ -1481,10 +1586,10 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
             'hash_code': forms.HiddenInput(), }
 
     def __init__(self, *args, **kwargs):
-        self.texto_articulado_proposicao = sapl.base.models.AppConfig.attr(
+        self.texto_articulado_proposicao = AppConfig.attr(
             'texto_articulado_proposicao')
 
-        self.receber_recibo = sapl.base.models.AppConfig.attr(
+        self.receber_recibo = AppConfig.attr(
             'receber_recibo_proposicao')
 
         if not self.texto_articulado_proposicao:
@@ -1506,7 +1611,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
         ]
 
-        if sapl.base.models.AppConfig.objects.last().escolher_numero_materia_proposicao:
+        if AppConfig.objects.last().escolher_numero_materia_proposicao:
             fields.append(to_column(('numero_materia_futuro', 12)),)
         else:
             if 'numero_materia_futuro' in self._meta.fields:
@@ -1639,12 +1744,17 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
             return super().save(commit)
 
         inst.ano = timezone.now().year
-        numero__max = Proposicao.objects.filter(
-            autor=inst.autor,
-            ano=timezone.now().year).aggregate(Max('numero_proposicao'))
+        sequencia_numeracao = AppConfig.attr('sequencia_numeracao_proposicao')
+        if sequencia_numeracao == 'A':
+            numero__max = Proposicao.objects.filter(
+                autor=inst.autor,
+                ano=timezone.now().year).aggregate(Max('numero_proposicao'))
+        elif sequencia_numeracao == 'B':
+            numero__max = Proposicao.objects.filter(
+                ano=timezone.now().year).aggregate(Max('numero_proposicao'))
         numero__max = numero__max['numero_proposicao__max']
         inst.numero_proposicao = (
-            numero__max + 1) if numero__max else 1
+                numero__max + 1) if numero__max else 1
 
         self.gerar_hash(inst, receber_recibo)
 
@@ -1741,7 +1851,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         required=False, widget=widgets.TextInput(
             attrs={'readonly': 'readonly'}))
 
-    regime_tramitacao = forms.ModelChoiceField(
+    regime_tramitacao = forms.ModelChoiceField(label="Regime de tramitação",
         required=False, queryset=RegimeTramitacao.objects.all())
 
     gerar_protocolo = forms.ChoiceField(
@@ -1774,8 +1884,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
     def __init__(self, *args, **kwargs):
 
         self.proposicao_incorporacao_obrigatoria = \
-            sapl.base.models.AppConfig.attr(
-                'proposicao_incorporacao_obrigatoria')
+            AppConfig.attr('proposicao_incorporacao_obrigatoria')
 
         if self.proposicao_incorporacao_obrigatoria != 'C':
             if 'gerar_protocolo' in self._meta.fields:
@@ -1807,6 +1916,10 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         # esta chamada isola o __init__ de ProposicaoForm
         super(ProposicaoForm, self).__init__(*args, **kwargs)
 
+        if self.instance.tipo.content_type.model_class() ==\
+                TipoMateriaLegislativa:
+            self.fields['regime_tramitacao'].required = True
+
         fields = [
             Fieldset(
                 _('Dados Básicos'),
@@ -1823,7 +1936,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             )
         ]
 
-        if not sapl.base.models.AppConfig.objects.last().escolher_numero_materia_proposicao or \
+        if not AppConfig.objects.last().escolher_numero_materia_proposicao or \
            not self.instance.numero_materia_futuro:
             if 'numero_materia_futuro' in self._meta.fields:
                 del fields[0][0][3]
@@ -1903,7 +2016,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+        numeracao = AppConfig.attr('sequencia_numeracao_proposicao')
 
         if not numeracao:
             self.logger.error("A sequência de numeração (por ano ou geral)"
@@ -1980,8 +2093,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             try:
                 self.logger.debug(
                     "Tentando obter modelo de sequência de numeração.")
-                numeracao = sapl.base.models.AppConfig.objects.last(
-                ).sequencia_numeracao
+                numeracao = AppConfig.objects.last(
+                ).sequencia_numeracao_protocolo
             except AttributeError as e:
                 self.logger.error("Erro ao obter modelo. " + str(e))
                 pass
@@ -2007,7 +2120,6 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             elif numeracao == 'U':
                 numero = MateriaLegislativa.objects.filter(
                     tipo=tipo).aggregate(Max('numero'))
-
             if numeracao is None:
                 numero['numero__max'] = 0
 
@@ -2133,7 +2245,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         GenericForeignKey
         """
 
-        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+        numeracao = AppConfig.attr('sequencia_numeracao_protocolo')
         if numeracao == 'A':
             nm = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))

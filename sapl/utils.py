@@ -5,7 +5,7 @@ import os
 import re
 from unicodedata import normalize as unicodedata_normalize
 import unicodedata
-
+import logging
 from crispy_forms.layout import HTML, Button
 from django import forms
 from django.apps import apps
@@ -940,15 +940,41 @@ def remover_acentos(string):
 
 def mail_service_configured(request=None):
 
+    logger = logging.getLogger(__name__)
+
     if settings.EMAIL_RUNNING is None:
         result = True
         try:
             connection = get_connection()
             connection.open()
         except Exception as e:
+            logger.error(str(e))
             result = False
         finally:
             connection.close()
         settings.EMAIL_RUNNING = result
 
     return settings.EMAIL_RUNNING
+
+
+def lista_anexados(principal, isMateriaLegislativa=True):
+    anexados_total = []
+    if isMateriaLegislativa: #MateriaLegislativa
+        from sapl.materia.models import Anexada
+        anexados_iterator = Anexada.objects.filter(materia_principal=principal)
+    else: #DocAdm
+        from sapl.protocoloadm.models import Anexado
+        anexados_iterator = Anexado.objects.filter(documento_principal=principal)
+    while anexados_iterator:
+        anexados_tmp = []
+        for anx in anexados_iterator:
+            if isMateriaLegislativa:
+                anexados_total.append(anx.materia_anexada)
+                anexados_anexado = Anexada.objects.filter(materia_principal=anx.materia_anexada)
+            else:
+                anexados_total.append(anx.documento_anexado)
+                anexados_anexado = Anexado.objects.filter(documento_principal=anx.documento_anexado)
+            anexados_tmp.extend(anexados_anexado)
+        anexados_iterator = anexados_tmp
+    
+    return anexados_total

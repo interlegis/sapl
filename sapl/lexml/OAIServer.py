@@ -1,3 +1,4 @@
+import unicodedata
 from datetime import datetime
 
 import oaipmh
@@ -11,6 +12,7 @@ from lxml.builder import ElementMaker
 from sapl.base.models import AppConfig, CasaLegislativa
 from sapl.lexml.models import LexmlPublicador, LexmlProvedor
 from sapl.norma.models import NormaJuridica
+from sapl.utils import LISTA_DE_UFS
 
 
 class OAILEXML:
@@ -122,22 +124,33 @@ class OAIServer:
         else:
             return None
 
+    @staticmethod
+    def remove_acentos(linha):
+        res = unicodedata.normalize('NFKD', linha).encode('ASCII', 'ignore')
+        res = res.decode("UTF-8")
+        remove_list = ["\'", "\"", "-"]
+        for i in remove_list:
+            res = res.replace(i, "")
+        return res
+
     def monta_urn(self, norma, esfera):
         if norma:
             urn = 'urn:lex:br;'
             esferas = {'M': 'municipal', 'E': 'estadual'}
-            municipio = casa.municipio.lower()
-            uf = casa.uf.lower()
+            municipio = self.remove_acentos(casa.municipio.lower())
+            uf_map = dict(LISTA_DE_UFS)
+            uf_desc = uf_map.get(casa.uf.upper(), '').lower()
+            uf_desc = self.remove_acentos(uf_desc)
             for x in [' ', '.de.', '.da.', '.das.', '.do.', '.dos.']:
                 municipio = municipio.replace(x, '.')
-                uf = uf.replace(x, '.')
+                uf_desc = uf_desc.replace(x, '.')
             if esfera == 'M':
-                urn += '{};{}:'.format(uf, municipio)
+                urn += '{};{}:'.format(uf_desc, municipio)
                 if norma.tipo.equivalente_lexml == 'regimento.interno' or norma.tipo.equivalente_lexml == 'resolucao':
                     urn += 'camara.'
                 urn += esferas[esfera] + ':'
             elif esfera == 'E':
-                urn += '{}:{}:'.format(uf, esferas[esfera])
+                urn += '{}:{}:'.format(uf_desc, esferas[esfera])
             else:
                 urn += ':'
             if norma.tipo.equivalente_lexml:
@@ -166,11 +179,14 @@ class OAIServer:
             return ''
 
     def monta_xml(self, urn, norma):
+        BASE_URL_SAPL = self.config['base_url']
+        BASE_URL_SAPL = BASE_URL_SAPL[:BASE_URL_SAPL.find('/', 8)]
+
         publicador = LexmlPublicador.objects.first()
         if norma and publicador:
             LEXML = ElementMaker(namespace=self.ns['lexml'], nsmap=self.ns)
             oai_lexml = LEXML.LexML()
-            oai_lexml.attrib['{{}}schemaLocation'.format(self.XSI_NS)] = '{} {}'.format(
+            oai_lexml.attrib['{{{pre}}}schemaLocation'.format(pre=self.XSI_NS)] = '{} {}'.format(
                 'http://www.lexml.gov.br/oai_lexml', 'http://projeto.lexml.gov.br/esquemas/oai_lexml.xsd')
             texto_integral = norma.texto_integral
             mime_types = {'doc': 'application/msword',
@@ -178,20 +194,21 @@ class OAIServer:
                           'odt': 'application/vnd.oasis.opendocument.text',
                           'pdf': 'application/pdf',
                           'rtf': 'application/rtf'}
+
             if texto_integral:
-                url_conteudo = self.config['base_url'] + texto_integral.url
+                url_conteudo = BASE_URL_SAPL + texto_integral.url
                 extensao = texto_integral.url.split('.')[-1]
                 formato = mime_types.get(extensao, 'application/octet-stream')
             else:
                 formato = 'text/html'
-                url_conteudo = self.config['base_url'] + reverse('sapl.norma:normajuridica_detail',
-                                                                 kwargs={'pk': norma.numero})
+                url_conteudo = BASE_URL_SAPL + reverse('sapl.norma:normajuridica_detail',
+                                                                 kwargs={'pk': norma.pk})
             element_maker = ElementMaker()
             id_publicador = str(publicador.id_publicador)
             item_conteudo = element_maker.Item(url_conteudo, formato=formato, idPublicador=id_publicador,
                                                tipo='conteudo')
             oai_lexml.append(item_conteudo)
-            url = self.config['base_url'] + reverse('sapl.norma:normajuridica_detail', kwargs={'pk': norma.numero})
+            url = BASE_URL_SAPL + reverse('sapl.norma:normajuridica_detail', kwargs={'pk': norma.pk})
             item_metadado = element_maker.Item(url, formato='text/html', idPublicador=id_publicador, tipo='metadado')
             oai_lexml.append(item_metadado)
             documento_individual = element_maker.DocumentoIndividual(urn)

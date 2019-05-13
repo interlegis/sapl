@@ -23,30 +23,15 @@ from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         autor_modal, timezone, choice_anos_com_sessaoplenaria,
                         FileFieldCheckMixin)
 
-from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
+from .models import (Bancada, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoResultadoVotacao,
-                     OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta, OradorOrdemDia)
+                     OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta, OradorOrdemDia, ORDENACAO_RESUMO,
+                     ResumoOrdenacao)
 
 
 MES_CHOICES = RANGE_MESES
 DIA_CHOICES = RANGE_DIAS_MES
-
-
-ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
-                    ('exp', 'Expedientes'),
-                    ('id_basica', 'Identificação Básica'),
-                    ('lista_p', 'Lista de Presença'),
-                    ('lista_p_o_d', 'Lista de Presença Ordem do Dia'),
-                    ('mat_exp', 'Matérias do Expediente'),
-                    ('mat_o_d', 'Matérias da Ordem do Dia'),
-                    ('mesa_d', 'Mesa Diretora'),
-                    ('oradores_exped', 'Oradores do Expediente'),
-                    ('oradores_expli', 'Oradores das Explicações Pessoais'),
-                    ('ocorr_sessao', 'Ocorrências da Sessão'),
-                    ('v_n_mat_exp', 'Votações Nominais - Matérias do Expediente'),
-                    ('v_n_mat_o_d', 'Votações Nominais - Matérias da Ordem do Dia'),
-                    ('oradores_o_d', 'Oradores da Ordem do Dia')]
 
 
 class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
@@ -329,41 +314,6 @@ class BancadaForm(ModelForm):
             nome=bancada.nome
         )
         return bancada
-
-
-class BlocoForm(ModelForm):
-
-    class Meta:
-        model = Bloco
-        fields = ['nome', 'partidos', 'data_criacao',
-                  'data_extincao', 'descricao']
-
-    def clean(self):
-        super(BlocoForm, self).clean()
-
-        if not self.is_valid():
-            return self.cleaned_data
-
-        if self.cleaned_data['data_extincao']:
-            if (self.cleaned_data['data_extincao'] <
-                    self.cleaned_data['data_criacao']):
-                msg = _('Data de extinção não pode ser menor que a de criação')
-                raise ValidationError(msg)
-        return self.cleaned_data
-
-    @transaction.atomic
-    def save(self, commit=True):
-        bloco = super(BlocoForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Bloco)
-        object_id = bloco.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=bloco.nome
-        )
-        return bloco
 
 
 class ExpedienteMateriaForm(ModelForm):
@@ -807,38 +757,64 @@ class PautaSessaoFilterSet(SessaoPlenariaFilterSet):
 
 
 class ResumoOrdenacaoForm(forms.Form):
-    primeiro = forms.ChoiceField(label=_('1°'),
-                                 choices=ORDENACAO_RESUMO)
-    segundo = forms.ChoiceField(label=_('2°'),
-                                choices=ORDENACAO_RESUMO)
-    terceiro = forms.ChoiceField(label='3°',
-                                 choices=ORDENACAO_RESUMO)
-    quarto = forms.ChoiceField(label=_('4°'),
-                               choices=ORDENACAO_RESUMO)
-    quinto = forms.ChoiceField(label=_('5°'),
-                               choices=ORDENACAO_RESUMO)
-    sexto = forms.ChoiceField(label=_('6°'),
-                              choices=ORDENACAO_RESUMO)
-    setimo = forms.ChoiceField(label=_('7°'),
-                               choices=ORDENACAO_RESUMO)
-    oitavo = forms.ChoiceField(label=_('8°'),
-                               choices=ORDENACAO_RESUMO)
-    nono = forms.ChoiceField(label=_('9°'),
-                             choices=ORDENACAO_RESUMO)
-    decimo = forms.ChoiceField(label='10°',
-                               choices=ORDENACAO_RESUMO)
-    decimo_primeiro = forms.ChoiceField(label='11°',
-                                        choices=ORDENACAO_RESUMO)
-    decimo_segundo = forms.ChoiceField(label='12°',
-                                        choices=ORDENACAO_RESUMO)
-    decimo_terceiro = forms.ChoiceField(label='13°',
-                                        choices=ORDENACAO_RESUMO)
-    decimo_quarto = forms.ChoiceField(label='14°',
-                                      choices=ORDENACAO_RESUMO)
+    primeiro = forms.ChoiceField(
+        label='1°',
+        choices=ORDENACAO_RESUMO
+    )
+    segundo = forms.ChoiceField(
+        label='2°',
+        choices=ORDENACAO_RESUMO
+    )
+    terceiro = forms.ChoiceField(
+        label='3°',
+        choices=ORDENACAO_RESUMO
+    )
+    quarto = forms.ChoiceField(
+        label='4°',
+        choices=ORDENACAO_RESUMO
+    )
+    quinto = forms.ChoiceField(
+        label='5°',
+        choices=ORDENACAO_RESUMO
+    )
+    sexto = forms.ChoiceField(
+        label='6°',
+        choices=ORDENACAO_RESUMO
+    )
+    setimo = forms.ChoiceField(
+        label='7°',
+        choices=ORDENACAO_RESUMO
+    )
+    oitavo = forms.ChoiceField(
+        label='8°',
+        choices=ORDENACAO_RESUMO
+    )
+    nono = forms.ChoiceField(
+        label='9°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo = forms.ChoiceField(
+        label='10°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo_primeiro = forms.ChoiceField(
+        label='11°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo_segundo = forms.ChoiceField(
+        label='12°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo_terceiro = forms.ChoiceField(
+        label='13°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo_quarto = forms.ChoiceField(
+        label='14°',
+        choices=ORDENACAO_RESUMO
+    )
 
     def __init__(self, *args, **kwargs):
-        super(ResumoOrdenacaoForm, self).__init__(*args, **kwargs)
-
         row1 = to_row(
             [('primeiro', 12)])
         row2 = to_row(
@@ -878,6 +854,8 @@ class ResumoOrdenacaoForm(forms.Form):
                      form_actions(label='Atualizar'))
         )
 
+        super().__init__(*args, **kwargs)
+
     def clean(self):
         super(ResumoOrdenacaoForm, self).clean()
 
@@ -895,6 +873,27 @@ class ResumoOrdenacaoForm(forms.Form):
                         raise ValidationError(_(
                             'Não é possível ter campos repetidos'))
         return self.cleaned_data
+
+    def save(self):
+        ordenacao = ResumoOrdenacao.objects.get()
+        cleaned_data = self.cleaned_data
+
+        ordenacao.primeiro = cleaned_data['primeiro']
+        ordenacao.segundo = cleaned_data['segundo']
+        ordenacao.terceiro = cleaned_data['terceiro']
+        ordenacao.quarto = cleaned_data['quarto']
+        ordenacao.quinto = cleaned_data['quinto']
+        ordenacao.sexto = cleaned_data['sexto']
+        ordenacao.setimo = cleaned_data['setimo']
+        ordenacao.oitavo = cleaned_data['oitavo']
+        ordenacao.nono = cleaned_data['nono']
+        ordenacao.decimo = cleaned_data['decimo']
+        ordenacao.decimo_primeiro = cleaned_data['decimo_primeiro']
+        ordenacao.decimo_segundo = cleaned_data['decimo_segundo']
+        ordenacao.decimo_terceiro = cleaned_data['decimo_terceiro']
+        ordenacao.decimo_quarto = cleaned_data['decimo_quarto']
+
+        ordenacao.save()
 
 
 class JustificativaAusenciaForm(ModelForm):

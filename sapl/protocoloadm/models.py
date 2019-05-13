@@ -6,7 +6,8 @@ import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
-from sapl.utils import RANGE_ANOS, YES_NO_CHOICES, texto_upload_path
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
+                        get_settings_auth_user_model)
 
 
 @reversion.register()
@@ -170,6 +171,18 @@ class DocumentoAdministrativo(models.Model):
                                    verbose_name=_('Acesso Restrito'),
                                    blank=True)
 
+    anexados = models.ManyToManyField(
+        'self',
+        blank=True,
+        through='Anexado',
+        symmetrical=False,
+        related_name='anexo_de',
+        through_fields=(
+            'documento_principal',
+            'documento_anexado'
+        )
+    )
+
     class Meta:
         verbose_name = _('Documento Administrativo')
         verbose_name_plural = _('Documentos Administrativos')
@@ -288,6 +301,7 @@ class TramitacaoAdministrativo(models.Model):
         verbose_name=_('Status'))
     documento = models.ForeignKey(DocumentoAdministrativo,
                                   on_delete=models.PROTECT)
+    timestamp = models.DateTimeField(default=timezone.now)
     data_tramitacao = models.DateField(
         verbose_name=_('Data Tramitação'))
     unidade_tramitacao_local = models.ForeignKey(
@@ -302,10 +316,21 @@ class TramitacaoAdministrativo(models.Model):
         related_name='adm_tramitacoes_destino',
         on_delete=models.PROTECT,
         verbose_name=_('Unidade Destino'))
-    texto = models.TextField(
-        blank=True, verbose_name=_('Texto da Ação'))
+    urgente = models.BooleanField(verbose_name=_('Urgente ?'),
+                                  choices=YES_NO_CHOICES,
+                                  default=False)
+    texto = models.TextField(verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim do Prazo'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             verbose_name=_('Usuário'),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          blank=True,
+                          default='')
 
     class Meta:
         verbose_name = _('Tramitação de Documento Administrativo')
@@ -315,6 +340,36 @@ class TramitacaoAdministrativo(models.Model):
         return _('%(documento)s - %(status)s') % {
             'documento': self.documento, 'status': self.status
         }
+
+
+@reversion.register()
+class Anexado(models.Model):
+    documento_principal = models.ForeignKey(
+        DocumentoAdministrativo, related_name='documento_principal_set',
+        on_delete = models.CASCADE,
+        verbose_name=_('Documento Principal')
+    )
+    documento_anexado = models.ForeignKey(
+        DocumentoAdministrativo, related_name='documento_anexado_set',
+        on_delete = models.CASCADE,
+        verbose_name=_('Documento Anexado')
+    )
+    data_anexacao = models.DateField(verbose_name=_('Data Anexação'))
+    data_desanexacao = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Desanexação')
+    )
+
+    class Meta:
+        verbose_name = _('Anexado')
+        verbose_name_plural = _('Anexados')
+
+    def __str__(self):
+        return _('Anexado: %(documento_anexado_tipo)s %(documento_anexado_numero)s'
+                 '/%(documento_anexado_ano)s\n') % {
+                     'documento_anexado_tipo': self.documento_anexado.tipo,
+                     'documento_anexado_numero': self.documento_anexado.numero,
+                     'documento_anexado_ano': self.documento_anexado.ano
+                 }
 
 
 @reversion.register()

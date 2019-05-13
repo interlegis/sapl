@@ -1545,7 +1545,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
                     if not anterior:
                         self.logger.error("user=" + username + ". Não é possível excluir este Dispositivo (id={}) sem"
-                                          " excluir toda a sua estrutura!!!".format(base.ta_id))
+                                          " excluir toda a sua estrutura!!!".format(base.id))
                         raise Exception(
                             _('Não é possível excluir este Dispositivo sem'
                               ' excluir toda a sua estrutura!!!'))
@@ -1566,8 +1566,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                         for candidato in parents:
                             if candidato == base:
                                 self.logger.error("user=" + username + ". Não é possível excluir este "
-                                                  "Dispositivo ({}) sem "
-                                                  "excluir toda a sua estrutura!!!".format(candidato))
+                                                  "Dispositivo (id={}) sem "
+                                                  "excluir toda a sua estrutura!!!".format(candidato.id))
                                 raise Exception(
                                     _('Não é possível excluir este '
                                       'Dispositivo sem '
@@ -1604,8 +1604,8 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                                 break
                         else:
                             self.logger.error("user=" + username + ". Não é possível excluir este "
-                                              "Dispositivo ({}) sem excluir toda "
-                                              "a sua estrutura!!!".format(candidato))
+                                              "Dispositivo (id={}) sem excluir toda "
+                                              "a sua estrutura!!!".format(candidato.id))
                             raise Exception(
                                 _('Não é possível excluir este '
                                   'Dispositivo sem '
@@ -1643,6 +1643,7 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
 
                     # excluir e renumerar irmaos
                     profundidade_base = base.get_profundidade()
+                    auto_inserido_base = base.auto_inserido
                     base.delete()
 
                     for irmao in irmaos_posteriores:
@@ -1666,6 +1667,11 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                         i.set_numero_completo([0, 0, 0, 0, 0, 0, ])
                         i.rotulo = i.rotulo_padrao(local_insert=1)
                         i.save()
+
+                    if not irmaos.exists() and \
+                            auto_inserido_base and \
+                            pai_base.nivel:
+                        self.remover_dispositivo(pai_base, False)
                 else:
                     # Renumerar Dispostivos de Contagem Contínua
                     # de dentro da base se pai
@@ -2224,9 +2230,15 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                             dispositivo_pai=dp.dispositivo_pai).count()
 
                         if qtd_existente >= pp[0].quantidade_permitida:
-                            data = {'pk': base.pk,
-                                    'pai': [base.dispositivo_pai.pk, ]}
-                            self.set_message(data, 'warning',
+                            data = {'pk': None
+                                    if base.dispositivo_pai else
+                                    base.pk,
+                                    'pai': [
+                                        base.dispositivo_pai.pk if
+                                        base.dispositivo_pai else
+                                        base.pk,
+                                    ]}
+                            self.set_message(data, 'danger',
                                              _('Limite de inserções de '
                                                'dispositivos deste tipo '
                                                'foi excedido.'), time=6000)
@@ -2512,7 +2524,7 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                                   local_add=local_add,
                                   create_auto_inserts=True)
 
-        if data:
+        if data and data['pk']:
 
             ndp = Dispositivo.objects.get(pk=data['pk'])
 
@@ -2538,6 +2550,9 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
             bloco_alteracao.ordenar_bloco_alteracao()
 
             data.update({'pk': ndp.pk,
+                         'pai': [bloco_alteracao.pk, ]})
+        else:
+            data.update({'pk': bloco_alteracao.pk,
                          'pai': [bloco_alteracao.pk, ]})
 
         return data

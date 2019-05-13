@@ -23,7 +23,7 @@ from sapl.rules import SAPL_GROUP_VOTANTE
 import django_filters
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Votante)
+                     Mandato, Parlamentar, Votante, Bloco)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -242,6 +242,21 @@ class ParlamentarCreateForm(ParlamentarForm):
             'biografia': forms.Textarea(
                 attrs={'id': 'texto-rico'})
         }
+
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+        parlamentar = Parlamentar.objects.filter(nome_parlamentar=cleaned_data['nome_parlamentar']).exists()
+
+        if parlamentar:
+            self.logger.error('Parlamentar já cadastrado.')
+            raise ValidationError('Parlamentar já cadastrado.')
+
+        return cleaned_data
 
     @transaction.atomic
     def save(self, commit=True):
@@ -568,3 +583,38 @@ class VincularParlamentarForm(forms.Form):
             raise ValidationError(_('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.'))
 
         return cleaned_data
+
+
+class BlocoForm(ModelForm):
+
+    class Meta:
+        model = Bloco
+        fields = ['nome', 'partidos', 'data_criacao',
+                  'data_extincao', 'descricao']
+
+    def clean(self):
+        super(BlocoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if self.cleaned_data['data_extincao']:
+            if (self.cleaned_data['data_extincao'] <
+                    self.cleaned_data['data_criacao']):
+                msg = _('Data de extinção não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        return self.cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=True):
+        bloco = super(BlocoForm, self).save(commit)
+        content_type = ContentType.objects.get_for_model(Bloco)
+        object_id = bloco.pk
+        tipo = TipoAutor.objects.get(content_type=content_type)
+        Autor.objects.create(
+            content_type=content_type,
+            object_id=object_id,
+            tipo=tipo,
+            nome=bloco.nome
+        )
+        return bloco

@@ -13,9 +13,9 @@ from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
 from sapl.norma.models import (AnexoNormaJuridica, NormaJuridica,
                                NormaRelacionada, TipoVinculoNormaJuridica)
 from sapl.parlamentares.models import (Frente, Mandato, Parlamentar, Partido,
-                                       TipoAfastamento, Votante)
+                                       TipoAfastamento, Votante, Bloco)
 from sapl.protocoloadm.models import DocumentoAdministrativo
-from sapl.sessao.models import (Bancada, Bloco, CargoBancada,
+from sapl.sessao.models import (Bancada, CargoBancada,
                                 ExpedienteMateria, Orador, OradorExpediente,
                                 OrdemDia, RegistroVotacao, ResumoOrdenacao,
                                 SessaoPlenaria, TipoResultadoVotacao,
