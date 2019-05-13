@@ -253,7 +253,6 @@ class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 
             comissoes = []
             for p in object_list:
-                if p.cargo.nome != 'Relator':
                     comissao = [
                         (p.composicao.comissao.nome, reverse(
                             'sapl.comissoes:comissao_detail', kwargs={
