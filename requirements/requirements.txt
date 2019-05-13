@@ -26,7 +26,7 @@ unipath==1.1
 WeasyPrint==44
 Pillow==5.1.0
 gunicorn==19.9.0
-kombu==4.1.0
+kombu==4.2.0
 billiard==3.5.0.2
 celery==4.1.0
 celery-haystack==0.10
