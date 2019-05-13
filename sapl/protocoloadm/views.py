@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
@@ -1452,7 +1452,7 @@ class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
 class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteAdmFilterSet
     template_name = 'protocoloadm/em_lote/tramitacaoadm.html'
-    permission_required = ('documento.add_tramitacao', )
+    permission_required = ('materia.add_tramitacao', )
 
     primeira_tramitacao = True
 

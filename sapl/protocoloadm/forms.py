@@ -1593,7 +1593,8 @@ class PrimeiraTramitacaoEmLoteAdmForm(ModelForm):
             doc.tramitacao = False if tramitacao.status.indicador == "F" else True
             doc.save()
             lista_tramitacao = []
-            for da in doc.anexados.all():
+            anexados = lista_anexados(doc, False)
+            for da in anexados:
                 if not da.tramitacaoadministrativo_set.all() \
                     or da.tramitacaoadministrativo_set.last() \
                     .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
