@@ -103,6 +103,7 @@ rules_group_protocolo = {
 rules_group_comissoes = {
     'group': SAPL_GROUP_COMISSOES,
     'rules': [
+        (materia.PautaReuniao, __base__, __perms_publicas__),
         (comissoes.Comissao, __base__, __perms_publicas__),
         (comissoes.Composicao, __base__, __perms_publicas__),
         (comissoes.Participacao, __base__, __perms_publicas__),

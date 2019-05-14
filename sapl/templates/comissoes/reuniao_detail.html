@@ -22,12 +22,16 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <div class="actions btn-group float-right" role="group">
-                    <a href="{% url 'sapl.comissoes:pauta_add' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Adicionar Matéria' %}</a>
-                    <a href="{% url 'sapl.comissoes:pauta_remove' reuniao_pk %}" class="btn btn-outline-primary btn-outline-danger">{% trans 'Remover Matéria' %}</a>
-                </div>
+                {% if perms.comissoes.add_reuniao %}
+                    <div class="actions btn-group float-right" role="group">
+                        <a href="{% url 'sapl.comissoes:pauta_add' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Adicionar Matéria' %}</a>
+                        <a href="{% url 'sapl.comissoes:pauta_remove' reuniao_pk %}" class="btn btn-outline-primary btn-outline-danger">{% trans 'Remover Matéria' %}</a>
+                    </div>
+                {% endif %}
             {% else %}
-                <a href="{% url 'sapl.comissoes:pauta_add' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Adicionar Matéria' %}</a>
+                {% if perms.comissoes.add_reuniao %}
+                    <a href="{% url 'sapl.comissoes:pauta_add' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Adicionar Matéria' %}</a>
+                {% endif %}
             {% endif %}
             <br /><br />
         <h2 class="legend">Documentos Acessórios</h2>
@@ -49,9 +53,13 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <a href="{% url 'sapl.comissoes:documentoacessorio_create' reuniao_pk %}" class="btn btn-outline-primary float-right">{% trans 'Adicionar Documento' %}</a>
+                {% if perms.comissoes.add_reuniao %}
+                    <a href="{% url 'sapl.comissoes:documentoacessorio_create' reuniao_pk %}" class="btn btn-outline-primary float-right">{% trans 'Adicionar Documento' %}</a>
+                {% endif %}
             {% else %}
-                <a href="{% url 'sapl.comissoes:documentoacessorio_create' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Adicionar Documento' %}</a>
+                {% if perms.comissoes.add_reuniao %}
+                    <a href="{% url 'sapl.comissoes:documentoacessorio_create' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Adicionar Documento' %}</a>
+                {% endif %}
             {% endif %}
             <br /><br />
 {% endblock detail_content %}
