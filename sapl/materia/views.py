@@ -2179,8 +2179,8 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         msg = _('Matéria(s) anexada(s).')
         messages.add_message(request, messages.SUCCESS, msg)
 
-        sucess_url = reverse('sapl_index') + 'materia/' + kwargs['pk'] + '/anexada'
-        return HttpResponseRedirect(sucess_url)
+        success_url = reverse('sapl.materia:anexada_list', kwargs={'pk': kwargs['pk']})
+        return HttpResponseRedirect(success_url)
 
 
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
