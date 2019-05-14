@@ -68,61 +68,7 @@
       </li>
     {% endif %}
   {% endfor %}
-  {% comment "" %}
   
-  {% for key, values in view.get_vigencias.items %}
-    {% if forloop.first %}
-      <ul class="nav nav-pills cp-vigencias">
-        {% for dispositivo in values %}
-          <li class="nav-item {% if view.inicio_vigencia == dispositivo.inicio_vigencia %}active{%endif%}">
-            <a class="nav-link" href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto Original'%}</a>
-          </li>
-        {% endfor %}
-    {% elif forloop.last %}
-      {% for dispositivo in values %}
-        <li class="nav-item {% if not view.inicio_vigencia%}active{% endif %}">
-          <a class="nav-link" href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_id %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{% if dispositivo.ta_publicado_id in ta_pub_list %}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Texto Atual'%}</a>
-        </li>
-        {% if forloop.parentloop.last %}
-          </ul>
-          <span class="vigencia-active">
-
-            {% if view.inicio_vigencia and view.fim_vigencia %}
-              {% blocktrans with inicio_vigencia=view.inicio_vigencia fim_vigencia=view.fim_vigencia%}
-                Vigência entre <b>{{inicio_vigencia}}</b> e <b>{{fim_vigencia}}</b>.
-              {% endblocktrans%}
-            {% else%}
-              {% blocktrans with inicio_vigencia=dispositivo.inicio_vigencia%}
-                Vigência a partir de <b>{{inicio_vigencia}}</b>.
-              {% endblocktrans%}
-            {% endif %}
-            <br>
-            {% if view.ta_vigencia %}
-                <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' view.ta_vigencia %}">{{ta_pub_list|lookup:view.ta_vigencia}}</a></small>
-            {% elif view.ta_vigencia and view.ta_vigencia != 0%}
-                <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_publicado.pk %}">{{dispositivo.ta_publicado}}</a></small>
-            {% endif %}
-          </span>
-        {% endif%}
-      {% endfor %}
-    {% else %}
-      <li class="nav-item dropdown {% if values.inicio_vigencia.year == key %}active{% endif %}">
-      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{ key }}</a>
-        <ul class="dropdown-menu" role="menu">
-          <div class="arrow top"></div>
-          {% for dispositivo in values %}
-            <li class="dropdown-item" >
-            {% if not forloop.parentloop.first %}
-              <a href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
-            {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </li>
-    {% endif %}
-  {% endfor %}
-  {% endcomment %}
-
   <div class="tipo-vigencias d-flex fixed-bottom justify-content-center">
     <div class="btn-group btn-group-sm">
       <a class="btn btn-primary active" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a>

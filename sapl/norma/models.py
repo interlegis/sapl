@@ -145,9 +145,11 @@ class NormaJuridica(models.Model):
 
     def get_normas_relacionadas(self):
         principais = NormaRelacionada.objects.filter(
-            norma_principal=self.id)
+            norma_principal=self.id).order_by('norma_principal__data',
+                                              'norma_relacionada__data')
         relacionadas = NormaRelacionada.objects.filter(
-            norma_relacionada=self.id)
+            norma_relacionada=self.id).order_by('norma_principal__data',
+                                                'norma_relacionada__data')
         return (principais, relacionadas)
 
     def get_anexos_norma_juridica(self):
@@ -311,6 +313,7 @@ class NormaRelacionada(models.Model):
     class Meta:
         verbose_name = _('Norma Relacionada')
         verbose_name_plural = _('Normas Relacionadas')
+        ordering = ('norma_principal__data', 'norma_relacionada__data')
 
     def __str__(self):
         return _('Principal: %(norma_principal)s'
@@ -348,3 +351,20 @@ class AnexoNormaJuridica(models.Model):
     def __str__(self):
         return _('Anexo: %(anexo)s da norma %(norma)s') % {
             'anexo': self.anexo_arquivo, 'norma': self.norma}
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.anexo_arquivo:
+            anexo_arquivo = self.anexo_arquivo
+            self.anexo_arquivo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.anexo_arquivo = anexo_arquivo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)

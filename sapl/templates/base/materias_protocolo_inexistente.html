@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load common_tags %}
+{% block base_content %}
+    <fieldset>
+        <h1>Lista de Matérias Legislativas com Protocolo Inexistente</h1>
+        <br/>
+        {% if not materias_protocolo_inexistente %}
+            <p>{{ NO_ENTRIES_MSG }}</p>
+        {% else %}
+            <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th>Matéria Legislativa</th>
+                    <th>Ano</th>
+                    <th>Número Protocolo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for materia, ano, numero_protocolo in materias_protocolo_inexistente %}
+                    <tr>
+                      <td>
+                         <a href="{% url 'sapl_index' %}materia/{{ materia.pk }}">{{ materia }}</a>
+                      </td>
+                      <td>{{ ano }}</td>
+                      <td>{{ numero_protocolo }}</td>
+                     </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </fieldset>
+ {% include 'paginacao.html'%}
+ <br/>
+{% endblock base_content %}

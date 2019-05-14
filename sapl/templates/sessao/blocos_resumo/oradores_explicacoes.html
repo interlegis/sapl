@@ -1,3 +1,5 @@
+{% load common_tags %}
+
 <fieldset>
   <legend>Oradores das Explicações Pessoais</legend>
     <div class="row">
@@ -6,7 +8,7 @@
     </div>
     <div class="row">
       {% for o in oradores_explicacoes %}
-        <div class="col-md-6"><b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {{ o.parlamentar.filiacao_atual }}</div>
+        <div class="col-md-6"><b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {% if o.parlamentar|filiacao_data_filter:object.data_inicio %} {{ o.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</div>
         <div class="col-md-6">{{o.url_discurso}}</div>
         </br>
     {% endfor %}

@@ -1,18 +1,20 @@
 import collections
+import itertools
 import datetime
 import logging
 import os
 
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
-from django.db.models import Count, Q
-from django.http import Http404, HttpResponseRedirect
+from django.db.models import Count, Q, ProtectedError
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.utils import timezone
@@ -35,10 +37,13 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
+from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao
+from sapl.protocoloadm.models import Protocolo
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca)
+                                SessaoPlenariaPresenca, Bancada)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
-                        show_results_filter_set, mail_service_configured)
+                        show_results_filter_set, mail_service_configured,
+                        intervalos_tem_intersecao,)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
@@ -52,7 +57,7 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
                     RelatorioNormasVigenciaFilterSet,
-                    EstatisticasAcessoNormasForm)
+                    EstatisticasAcessoNormasForm, UsuarioFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -606,12 +611,13 @@ class RelatorioMateriasTramitacaoView(FilterView):
             qs = filtra_url_materias_em_tramitacao(
                 qr, qs, 'tramitacao__status', 'status')
 
-        context['object_list'] = qs
+        li = [li1 for li1 in qs if li1.tramitacao_set.last() and li1.tramitacao_set.last().status.indicador != 'F']
+        context['object_list'] = li
 
         qtdes = {}
         for tipo in TipoMateriaLegislativa.objects.all():
-            qs = context['object_list']
-            qtde = len(qs.filter(tipo_id=tipo.id))
+            li = context['object_list']
+            qtde = sum(1 for i in li if i.tipo_id==tipo.id)
             if qtde > 0:
                 qtdes[tipo] = qtde
         context['qtdes'] = qtdes
@@ -918,42 +924,575 @@ class EstatisticasAcessoNormas(TemplateView):
         return self.render_to_response(context)
 
 
-class ListarUsuarioView(PermissionRequiredMixin, ListView):
+class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
     model = get_user_model()
-    template_name = 'auth/user_list.html'
-    context_object_name = 'user_list'
+    template_name = 'base/lista_inconsistencias.html'
+    context_object_name = 'tabela_inconsistencias'
+    permission_required = ('base.list_appconfig',)
+
+    def get_queryset(self):
+        tabela = []
+        tabela.append(
+            ('protocolos_duplicados',
+             'Protocolos duplicados',
+             len(protocolos_duplicados())
+             )
+        )
+        tabela.append(
+            ('protocolos_com_materias',
+             'Protocolos que excedem o limite de matérias vinculadas',
+             len(protocolos_com_materias())
+             )
+        )
+        tabela.append(
+            ('materias_protocolo_inexistente',
+             'Matérias Legislativas com protocolo inexistente',
+             len(materias_protocolo_inexistente())
+             )
+        )
+        tabela.append(
+            ('filiacoes_sem_data_filiacao',
+             'Filiações sem data filiação',
+             len(filiacoes_sem_data_filiacao())
+            )
+        )
+        tabela.append(
+            ('mandato_sem_data_inicio',
+             'Mandatos sem data inicial',
+            len(mandato_sem_data_inicio())
+            )
+        )
+        tabela.append(
+            ('parlamentares_duplicados',
+             'Parlamentares duplicados',
+             len(parlamentares_duplicados())
+            )
+        )
+        tabela.append(
+            ('parlamentares_mandatos_intersecao',
+             'Parlamentares com mandatos em interseção',
+             len(parlamentares_mandatos_intersecao())
+             )
+        )
+        tabela.append(
+            ('parlamentares_filiacoes_intersecao',
+             'Parlamentares com filiações em interseção',
+             len(parlamentares_filiacoes_intersecao())    
+            )
+        )
+        tabela.append(
+            ('autores_duplicados',
+             'Autores duplicados',
+             len(autores_duplicados())
+             )
+        )
+        tabela.append(
+            ('bancada_comissao_autor_externo',
+             'Bancadas e Comissões com autor externo',
+             len(bancada_comissao_autor_externo())
+             )
+        )
+        tabela.append(
+            ('legislatura_infindavel',
+             'Legislaturas sem data fim',
+             len(legislatura_infindavel())
+            )
+        )
+
+        return tabela
+
+
+def legislatura_infindavel():
+    return Legislatura.objects.filter(data_fim__isnull=True).order_by('-numero')
+
+
+class ListarLegislaturaInfindavelView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/legislatura_infindavel.html'
+    context_object_name = 'legislatura_infindavel'
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
 
     def get_queryset(self):
-        qs = super(ListarUsuarioView, self).get_queryset()
-        return qs.order_by('username')
+        return legislatura_infindavel()
 
     def get_context_data(self, **kwargs):
-        context = super(ListarUsuarioView, self).get_context_data(**kwargs)
+        context = super(
+            ListarLegislaturaInfindavelView, self
+            ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
-        context['NO_ENTRIES_MSG'] = 'Nenhum usuário cadastrado.'
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhuma encontrada.'
         return context
+
+
+def bancada_comissao_autor_externo():
+    tipo_autor_externo = TipoAutor.objects.filter(descricao='Externo')
+
+    lista_bancada_autor_externo = []
+    for bancada in Bancada.objects.all().order_by('nome'):
+        autor_externo = bancada.autor.filter(tipo=tipo_autor_externo)
+
+        if autor_externo:
+            q_autor_externo = bancada.autor.get(tipo=tipo_autor_externo)
+            lista_bancada_autor_externo.append(
+                (q_autor_externo, bancada, 'Bancada', 'sistema/bancada')
+            )
+
+    lista_comissao_autor_externo = []
+    for comissao in Comissao.objects.all().order_by('nome'):
+        autor_externo = comissao.autor.filter(tipo=tipo_autor_externo)
+
+        if autor_externo:
+            q_autor_externo = comissao.autor.get(tipo=tipo_autor_externo)
+            lista_comissao_autor_externo.append(
+                (q_autor_externo, comissao, 'Comissão', 'comissao')
+            )
+
+    return lista_bancada_autor_externo + lista_comissao_autor_externo
+
+
+class ListarBancadaComissaoAutorExternoView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/bancada_comissao_autor_externo.html'
+    context_object_name = 'bancada_comissao_autor_externo'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return bancada_comissao_autor_externo()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarBancadaComissaoAutorExternoView, self
+            ).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhuma encontrada.'
+        return context
+
+
+def autores_duplicados():
+    return [autor for autor in Autor.objects.values('nome').annotate(count=Count('nome')).filter(count__gt=1)]
+
+
+class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/autores_duplicados.html'
+    context_object_name = 'autores_duplicados'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return autores_duplicados()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
+
+
+def parlamentares_filiacoes_intersecao():
+    intersecoes = []
+
+    for parlamentar in Parlamentar.objects.all().order_by('nome_parlamentar'):
+        filiacoes = parlamentar.filiacao_set.all()
+        combinacoes = itertools.combinations(filiacoes, 2)
+
+        for c in combinacoes:
+            data_filiacao1 = c[0].data
+            data_desfiliacao1 = c[0].data_desfiliacao if c[0].data_desfiliacao else timezone.now().date()
+
+            data_filiacao2 = c[1].data
+            data_desfiliacao2 = c[1].data_desfiliacao if c[1].data_desfiliacao else timezone.now().date()
+
+            if data_filiacao1 and data_filiacao2:
+                exists = intervalos_tem_intersecao(
+                    data_filiacao1, data_desfiliacao1,
+                    data_filiacao2, data_desfiliacao2)
+                if exists:
+                    intersecoes.append((parlamentar, c[0], c[1]))
+    return intersecoes
+
+
+class ListarParlFiliacoesIntersecaoView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/parlamentares_filiacoes_intersecao.html'
+    context_object_name = 'parlamentares_filiacoes_intersecao'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return parlamentares_filiacoes_intersecao()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarParlFiliacoesIntersecaoView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context        
+
+
+def parlamentares_mandatos_intersecao():
+    intersecoes = []
+
+    for parlamentar in Parlamentar.objects.all().order_by('nome_parlamentar'):
+        mandatos = parlamentar.mandato_set.all()
+        combinacoes = itertools.combinations(mandatos, 2)
+
+        for c in combinacoes:
+            data_inicio_mandato1 = c[0].data_inicio_mandato
+            data_fim_mandato1 = c[0].data_fim_mandato if c[0].data_fim_mandato else timezone.now().date()
+
+            data_inicio_mandato2 = c[1].data_inicio_mandato
+            data_fim_mandato2 = c[1].data_fim_mandato if c[1].data_fim_mandato else timezone.now().date()
+
+            if data_inicio_mandato1 and data_inicio_mandato2:
+                exists = intervalos_tem_intersecao(
+                    data_inicio_mandato1, data_fim_mandato1,
+                    data_inicio_mandato2, data_fim_mandato2)
+                if exists:
+                    intersecoes.append((parlamentar, c[0], c[1]))
+
+    return intersecoes
+
+
+class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/parlamentares_mandatos_intersecao.html'
+    context_object_name = 'parlamentares_mandatos_intersecao'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return parlamentares_mandatos_intersecao()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarParlMandatosIntersecaoView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
+
+
+def parlamentares_duplicados():
+    return [parlamentar.values() for parlamentar in Parlamentar.objects.values(
+        'nome_parlamentar').order_by('nome_parlamentar').annotate(count=Count(
+            'nome_parlamentar')).filter(count__gt=1)]
+
+
+class ListarParlamentaresDuplicadosView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/parlamentares_duplicados.html'
+    context_object_name = 'parlamentares_duplicados'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return parlamentares_duplicados()
+    
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarParlamentaresDuplicadosView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
+ 
+
+def mandato_sem_data_inicio():
+    return Mandato.objects.filter(data_inicio_mandato__isnull=True).order_by('parlamentar')
+
+
+def get_estatistica(request):
+
+    json_dict = {}
+
+    datas = [MateriaLegislativa.objects.all().
+                 order_by('-data_ultima_atualizacao').
+                 values_list('data_ultima_atualizacao', flat=True).
+                 first(),
+             NormaJuridica.objects.all().
+                 order_by('-data_ultima_atualizacao').
+                 values_list('data_ultima_atualizacao', flat=True).
+                 first()] # Retorna [None, None] se inexistem registros
+
+    max_data = ''
+
+    if datas[0] and datas[1]:
+        max_data = max(datas)
+    else:
+        max_data = next(iter([i for i in datas if i is not None]), '')
+
+    json_dict["data_ultima_atualizacao"] = max_data
+    json_dict["num_materias_legislativas"] = MateriaLegislativa.objects.all().count()
+    json_dict["num_normas_juridicas "] = NormaJuridica.objects.all().count()
+    json_dict["num_parlamentares"] = Parlamentar.objects.all().count()
+    json_dict["num_sessoes_plenarias"] = SessaoPlenaria.objects.all().count()
+
+    return JsonResponse(json_dict)
+
+
+class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/mandato_sem_data_inicio.html'
+    context_object_name = 'mandato_sem_data_inicio'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return mandato_sem_data_inicio()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarMandatoSemDataInicioView, self
+            ).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
+
+
+def filiacoes_sem_data_filiacao():
+    return Filiacao.objects.filter(data__isnull=True).order_by('parlamentar')
+
+
+class ListarFiliacoesSemDataFiliacaoView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/filiacoes_sem_data_filiacao.html'
+    context_object_name = 'filiacoes_sem_data_filiacao'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return filiacoes_sem_data_filiacao()
+    
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarFiliacoesSemDataFiliacaoView, self
+            ).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+        ] = 'Nenhuma encontrada.'
+        return context
+
+
+def materias_protocolo_inexistente():
+    materias = []
+    for materia in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero'):
+        exists = Protocolo.objects.filter(
+            ano=materia.ano, numero=materia.numero_protocolo).exists()
+        if not exists:
+            materias.append(
+                (materia, materia.ano, materia.numero_protocolo))
+    return materias
+
+
+class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/materias_protocolo_inexistente.html'
+    context_object_name = 'materias_protocolo_inexistente'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return materias_protocolo_inexistente()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarMatProtocoloInexistenteView, self
+            ).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhuma encontrada.'
+        return context
+
+
+def protocolos_com_materias():
+    protocolos = {}
+    
+    for m in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero_protocolo'):
+        if Protocolo.objects.filter(numero=m.numero_protocolo, ano=m.ano).exists():
+            key = "{}/{}".format(m.numero_protocolo, m.ano)
+            val = protocolos.get(key, list())
+            val.append(m)
+            protocolos[key] = val
+    
+    return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
+
+
+class ListarProtocolosComMateriasView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/protocolos_com_materias.html'
+    context_object_name = 'protocolos_com_materias'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return protocolos_com_materias()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarProtocolosComMateriasView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
+
+
+def protocolos_duplicados():
+    protocolos = {}
+    for p in Protocolo.objects.order_by('-ano', 'numero'):
+        key = "{}/{}".format(p.numero, p.ano)
+        val = protocolos.get(key, list())
+        val.append(p)
+        protocolos[key] = val
+
+    return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
+
+
+class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/protocolos_duplicados.html'
+    context_object_name = 'protocolos_duplicados'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return protocolos_duplicados()
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarProtocolosDuplicadosView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context[
+            'NO_ENTRIES_MSG'
+            ] = 'Nenhum encontrado.'
+        return context
+
+
+class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
+    model = User
+    filterset_class = UsuarioFilterSet
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarUsuarioView,
+              self).get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset().order_by('username').distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarUsuarioView,
+                        self).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        
+        context['NO_ENTRIES_MSG'] = 'Nenhum usuário encontrado!'
+        
+        context['title'] = _('Usuários')
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarUsuarioView, self).get(request)
+
+        data = self.filterset.data
+        url = ''
+        if data:
+            url = "&" + str(self.request.META['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('username=') - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list)
+                                        )
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
+
+        return self.render_to_response(context)
 
 
 class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     model = get_user_model()
     form_class = UsuarioCreateForm
-    success_message = 'Usuário criado com sucesso'
+    success_message = 'Usuário criado com sucesso!'
+    fail_message = 'Usuário não criado!'
     permission_required = ('base.add_appconfig',)
 
     def get_success_url(self):
-        return reverse('sapl.base:user_list')
+        return reverse('sapl.base:usuario')
 
     def form_valid(self, form):
-
         data = form.cleaned_data
 
         new_user = get_user_model().objects.create(
-            username=data['username'], email=data['email'])
+            username=data['username'],
+            email=data['email']
+        )
         new_user.first_name = data['firstname']
         new_user.last_name = data['lastname']
         new_user.set_password(data['password1'])
@@ -965,33 +1504,53 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
         for g in groups:
             g.user_set.add(new_user)
 
+        messages.success(self.request, self.success_message)
         return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        messages.error(self.request, self.fail_message)
+        return super().form_invalid(form)
 
 
 class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
-
     model = get_user_model()
+    template_name = "crud/confirm_delete.html"
     permission_required = ('base.delete_appconfig',)
+    success_url = reverse_lazy('sapl.base:usuario')
+    success_message = "Usuário removido com sucesso!"  
 
-    def get_success_url(self):
-        return reverse('sapl.base:user_list')
+    def delete(self, request, *args, **kwargs):     
+        try:
+            super(DeleteUsuarioView, self).delete(request, *args, **kwargs)
+        except ProtectedError as exception:
+            error_url = reverse_lazy('sapl.base:user_delete', kwargs={'pk': self.kwargs['pk']})
+            error_message = "O usuário não pode ser removido, pois é referenciado por:<br><ul>"
 
-    def get(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
+            for e in exception.protected_objects:
+                error_message += '<li>{} - {}</li>'.format(
+                    e._meta.verbose_name, e
+                )
+            error_message += '</ul>'
+            messages.error(self.request, error_message)
+            return HttpResponseRedirect(error_url)
 
-    def get_queryset(self):
-        qs = super(DeleteUsuarioView, self).get_queryset()
-        return qs.filter(id=self.kwargs['pk'])
+        messages.success(self.request, self.success_message)
+        return HttpResponseRedirect(self.success_url)
+
+    @property
+    def cancel_url(self):
+        return reverse('sapl.base:user_edit',
+                        kwargs={'pk': self.kwargs['pk']})
 
 
 class EditUsuarioView(PermissionRequiredMixin, UpdateView):
     model = get_user_model()
     form_class = UsuarioEditForm
-    success_message = 'Usuário editado com sucesso'
+    success_message = 'Usuário editado com sucesso!'
     permission_required = ('base.change_appconfig',)
 
     def get_success_url(self):
-        return reverse('sapl.base:user_list')
+        return reverse('sapl.base:usuario')
 
     def get_initial(self):
         initial = super(EditUsuarioView, self).get_initial()
@@ -1028,6 +1587,7 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         for g in groups:
             g.user_set.add(user)
 
+        messages.success(self.request, self.success_message)
         return super(EditUsuarioView, self).form_valid(form)
 
 
@@ -1096,8 +1656,11 @@ class AppConfigCrud(CrudAux):
         def gerar_hash(self, inst):
             inst.save()
             if inst.texto_original:
-                inst.hash_code = gerar_hash_arquivo(
-                    inst.texto_original.path, str(inst.pk))
+                try:
+                    inst.hash_code = gerar_hash_arquivo(
+                        inst.texto_original.path, str(inst.pk))
+                except IOError:
+                    raise ValidationError("Existem proposicoes com arquivos inexistentes.")
             elif inst.texto_articulado.exists():
                 ta = inst.texto_articulado.first()
                 inst.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(inst.pk)

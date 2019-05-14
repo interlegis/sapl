@@ -1,7 +1,7 @@
 
 import logging
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -17,8 +17,8 @@ from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.materia.forms import choice_anos_com_materias
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import NormaPesquisaOrderingFilter, RangeWidgetOverride,\
-    choice_anos_com_normas, FilterOverridesMetaMixin
+from sapl.utils import NormaPesquisaOrderingFilter, RangeWidgetOverride, \
+    choice_anos_com_normas, FilterOverridesMetaMixin, FileFieldCheckMixin
 
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, AutoriaNorma)
@@ -71,7 +71,7 @@ class NormaFilterSet(django_filters.FilterSet):
         row4 = to_row([('data_vigencia', 12)])
         row5 = to_row([('o', 6), ('indexacao', 6)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Norma'),
@@ -88,7 +88,7 @@ class NormaFilterSet(django_filters.FilterSet):
         return queryset.filter(q)
 
 
-class NormaJuridicaForm(ModelForm):
+class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
 
     # Campos de MateriaLegislativa
     tipo_materia = forms.ModelChoiceField(
@@ -200,6 +200,8 @@ class NormaJuridicaForm(ModelForm):
         return cleaned_data
 
     def clean_texto_integral(self):
+        super(NormaJuridicaForm, self).clean()
+
         texto_integral = self.cleaned_data.get('texto_integral', False)
         if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
             max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
@@ -238,7 +240,7 @@ class AutoriaNormaForm(ModelForm):
                        ('autor', 4),
                        ('primeiro_autor', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Autoria'),
                      row1, 'data_relativa', form_actions(label='Salvar')))
@@ -269,7 +271,7 @@ class AutoriaNormaForm(ModelForm):
         return cd
 
 
-class AnexoNormaJuridicaForm(ModelForm):
+class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
     class Meta:
         model = AnexoNormaJuridica
         fields = ['norma', 'anexo_arquivo', 'assunto_anexo']
@@ -296,11 +298,10 @@ class AnexoNormaJuridicaForm(ModelForm):
     def save(self, commit=False):
         anexo = self.instance
         anexo.ano = self.cleaned_data['norma'].ano
-        anexo = super(AnexoNormaJuridicaForm, self).save(commit=True)
         anexo.norma = self.cleaned_data['norma']
         anexo.assunto_anexo = self.cleaned_data['assunto_anexo']
         anexo.anexo_arquivo = self.cleaned_data['anexo_arquivo']
-        anexo.save()
+        anexo = super(AnexoNormaJuridicaForm, self).save(commit=True)
         return anexo
 
 
@@ -390,7 +391,7 @@ class NormaPesquisaSimplesForm(forms.Form):
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
-        super(NormaPesquisaSimplesForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         row1 = to_row(
             [('tipo_norma', 6),
@@ -400,39 +401,33 @@ class NormaPesquisaSimplesForm(forms.Form):
         row2 = to_row(
             [('titulo', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                ('Índice de Normas'),
+                'Índice de Normas',
                 row1, row2,
                 form_actions(label='Pesquisar')
             )
         )
 
     def clean(self):
-        super(NormaPesquisaSimplesForm, self).clean()
+        super().clean()
 
         if not self.is_valid():
             return self.cleaned_data
 
         cleaned_data = self.cleaned_data
-
         data_inicial = cleaned_data['data_inicial']
         data_final = cleaned_data['data_final']
 
-        if (data_inicial and data_final and
-                data_inicial > data_final):
-            self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(
-                data_final, data_inicial))
-            raise ValidationError(_(
-                'A Data Final não pode ser menor que a Data Inicial'))
-        else:
-            condicao1 = data_inicial and not data_final
-            condicao2 = not data_inicial and data_final
-            if condicao1 or condicao2:
+        if data_inicial or data_final:
+            if not(data_inicial and data_final):
                 self.logger.error("Caso pesquise por data, os campos de Data Inicial e "
                                   "Data Final devem ser preenchidos obrigatoriamente")
-                raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e ' +
+                raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e '
                                         'Data Final devem ser preenchidos obrigatoriamente'))
+            elif data_inicial > data_final:
+                self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(data_final, data_inicial))
+                raise ValidationError(_('A Data Final não pode ser menor que a Data Inicial'))
 
         return cleaned_data

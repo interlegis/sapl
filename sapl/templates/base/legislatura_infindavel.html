@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load common_tags %}
+{% block base_content %}
+    <fieldset>
+        <h1>Lista de Legislaturas sem Data Fim</h1>
+        <br/>
+        {% if not legislatura_infindavel %}
+            <p>{{ NO_ENTRIES_MSG }}</p>
+        {% else %}
+            <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th>Número Legislatura</th>
+                    <th>Data Eleição</th>
+                    <th>Data Início</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for legislatura in legislatura_infindavel %}
+                    <tr>
+                        <td>{{ legislatura.numero }}</td>
+                        <td>{{ legislatura.data_eleicao }}</td>
+                        <td>{{ legislatura.data_inicio }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </fieldset>
+ {% include 'paginacao.html'%}
+ <br/>
+{% endblock base_content %}

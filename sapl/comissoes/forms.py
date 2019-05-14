@@ -12,6 +12,7 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
                                    Participacao, Reuniao, Periodo)
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
+from sapl.utils import FileFieldCheckMixin
 
 
 class ComposicaoForm(forms.ModelForm):
@@ -382,7 +383,7 @@ class ReuniaoForm(ModelForm):
         return self.cleaned_data
 
 
-class DocumentoAcessorioCreateForm(forms.ModelForm):
+class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
 
     parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
 
@@ -404,7 +405,7 @@ class DocumentoAcessorioCreateForm(forms.ModelForm):
         reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
 
 
-class DocumentoAcessorioEditForm(forms.ModelForm):
+class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
 
     parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
 

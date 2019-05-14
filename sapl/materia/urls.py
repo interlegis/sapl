@@ -8,6 +8,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 CriarProtocoloMateriaView, DespachoInicialCrud,
                                 DocumentoAcessorioCrud,
                                 DocumentoAcessorioEmLoteView,
+                                MateriaAnexadaEmLoteView,
                                 EtiquetaPesquisaView, FichaPesquisaView,
                                 FichaSelecionaView, ImpressosView,
                                 LegislacaoCitadaCrud, MateriaAssuntoCrud,
@@ -24,7 +25,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
                                 proposicao_texto, recuperar_materia,
-                                ExcluirTramitacaoEmLoteView, RetornarProposicao)
+                                ExcluirTramitacaoEmLoteView, RetornarProposicao,
+                                MateriaPesquisaSimplesView)
 from sapl.norma.views import NormaPesquisaSimplesView
 from sapl.protocoloadm.views import (FichaPesquisaAdmView, FichaSelecionaAdmView)
 
@@ -48,6 +50,9 @@ urlpatterns_impressos = [
     url(r'^materia/impressos/norma-pesquisa/$',
         NormaPesquisaSimplesView.as_view(),
         name='impressos_norma_pesquisa'),
+    url(r'^materia/impressos/materia-pesquisa/$',
+        MateriaPesquisaSimplesView.as_view(),
+        name='impressos_materia_pesquisa'),
     url(r'^materia/impressos/ficha-pesquisa-adm/$',
         FichaPesquisaAdmView.as_view(),
         name= 'impressos_ficha_pesquisa_adm'),
@@ -93,6 +98,8 @@ urlpatterns_materia = [
 
     url(r'^materia/acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
         name='acessorio_em_lote'),
+    url(r'^materia/(?P<pk>\d+)/anexada-em-lote', MateriaAnexadaEmLoteView.as_view(),
+        name='anexada_em_lote'),
     url(r'^materia/primeira-tramitacao-em-lote',
         PrimeiraTramitacaoEmLoteView.as_view(),
         name='primeira_tramitacao_em_lote'),

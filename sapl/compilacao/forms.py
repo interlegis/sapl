@@ -3,7 +3,6 @@ from datetime import timedelta
 from crispy_forms.bootstrap import (Alert, FieldWithButtons, FormActions,
                                     InlineCheckboxes, InlineRadios,
                                     StrictButton)
-from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row, Submit)
 from django import forms
@@ -23,9 +22,11 @@ from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                     TipoTextoArticulado, TipoVide,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row,\
     form_actions
 from sapl.utils import YES_NO_CHOICES
+
 
 error_messages = {
     'required': _('Este campo é obrigatório'),
@@ -59,6 +60,13 @@ class TipoTaForm(ModelForm):
         widget=forms.RadioSelect(),
         required=True)
 
+    rodape_global = forms.CharField(
+        label=TipoTextoArticulado._meta.get_field(
+            'rodape_global').verbose_name,
+        widget=forms.Textarea(attrs={'id': 'texto-rico'}),
+        required=False
+    )
+
     class Meta:
         model = TipoTextoArticulado
         fields = ['sigla',
@@ -66,10 +74,12 @@ class TipoTaForm(ModelForm):
                   'content_type',
                   'participacao_social',
                   'publicacao_func',
-                  'perfis'
+                  'perfis',
+                  'rodape_global'
                   ]
 
-        widgets = {'perfis': widgets.CheckboxSelectMultiple()}
+        widgets = {'perfis': widgets.CheckboxSelectMultiple(),
+                   'rodape_global':  forms.Textarea}
 
     def __init__(self, *args, **kwargs):
 
@@ -84,12 +94,18 @@ class TipoTaForm(ModelForm):
             ('perfis', 12),
         ])
 
-        self.helper = FormHelper()
+        row3 = to_row([
+            ('rodape_global', 12),
+        ])
+
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'),
                      row1, css_class="col-md-12"),
             Fieldset(_('Funcionalidades'),
-                     row2, css_class="col-md-12"))
+                     row2, css_class="col-md-12"),
+            Fieldset(_('Nota de Rodapé Global'),
+                     row3, css_class="col-md-12"))
         super(TipoTaForm, self).__init__(*args, **kwargs)
 
 
@@ -153,7 +169,7 @@ class TaForm(ModelForm):
             ('participacao_social', 3),
         ])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Identificação Básica'), row1, css_class="col-md-12"),
             Fieldset(
@@ -204,7 +220,7 @@ class NotaForm(ModelForm):
 
     publicacao = forms.DateField(
         label=Nota._meta.get_field('publicacao').verbose_name,
-        input_formats=['%d/%m/%Y'],
+        input_formats=['%d/%m/%Y', '%d%m%Y'],
         required=True,
         widget=forms.DateInput(
             format='%d/%m/%Y'),
@@ -212,7 +228,7 @@ class NotaForm(ModelForm):
     )
     efetividade = forms.DateField(
         label=Nota._meta.get_field('efetividade').verbose_name,
-        input_formats=['%d/%m/%Y'],
+        input_formats=['%d/%m/%Y', '%d%m%Y'],
         required=True,
         widget=forms.DateInput(
             format='%d/%m/%Y'),
@@ -268,7 +284,7 @@ class NotaForm(ModelForm):
             css_class='form-group row justify-content-between mr-1 ml-1'
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
 
             Div(
@@ -363,7 +379,7 @@ class VideForm(ModelForm):
                 'texto',
                 placeholder=_('Texto Adicional ao Vide')), 12)))))
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Div(
                 Div(HTML(_('Vides')), css_class='card-header bg-light'),
@@ -471,7 +487,7 @@ class PublicacaoForm(ModelForm):
             ('url_externa', 8),
         ])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(Publicacao._meta.verbose_name,
                      row1, row2, row3, css_class="col-md-12"))
@@ -659,7 +675,7 @@ class DispositivoEdicaoBasicaForm(ModelForm):
             for f in fields:
                 self.base_fields.update({f: getattr(self, f)})
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
 
         if not editor_type:
             cancel_label = _('Ir para o Editor Sequencial')
@@ -790,7 +806,7 @@ class DispositivoSearchModalForm(Form):
                 )
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             fields_search,
             Row(to_column((Div(css_class='result-busca-dispositivo'), 12))))
@@ -903,7 +919,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
                      row_vigencia,
                      css_class="col-md-12"))
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
             cancel_label=_('Ir para o Editor Sequencial'))
@@ -1023,7 +1039,7 @@ class DispositivoDefinidorVigenciaForm(Form):
                      row_vigencia,
                      css_class="col-md-12"))
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
             cancel_label=_('Ir para o Editor Sequencial'))
@@ -1162,7 +1178,7 @@ class DispositivoEdicaoAlteracaoForm(ModelForm):
                 if hasattr(self, f):
                     self.base_fields.update({f: getattr(self, f)})
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             *layout,
             cancel_label=_('Ir para o Editor Sequencial'))
@@ -1328,7 +1344,7 @@ class TextNotificacoesForm(Form):
             (Submit('submit-form', _('Filtrar'),
                     css_class='btn btn-primary float-right'), 2)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(field_type_notificacoes)
 
         super(TextNotificacoesForm, self).__init__(*args, **kwargs)
@@ -1374,7 +1390,7 @@ class DispositivoRegistroAlteracaoForm(Form):
         _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(*_fields)
 
         super(DispositivoRegistroAlteracaoForm, self).__init__(*args, **kwargs)
@@ -1431,7 +1447,7 @@ class DispositivoRegistroRevogacaoForm(Form):
         _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(*_fields)
 
         super(DispositivoRegistroRevogacaoForm, self).__init__(*args, **kwargs)
@@ -1481,7 +1497,7 @@ class DispositivoRegistroInclusaoForm(Form):
         _fields = [Div(*layout, css_class="row")] + \
             [to_row([(buttons, 12)])]
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(*_fields)
 
         super(DispositivoRegistroInclusaoForm, self).__init__(*args, **kwargs)

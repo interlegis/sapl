@@ -17,7 +17,7 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView, CreateView
+from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
@@ -27,16 +27,17 @@ from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao
-from sapl.crud.base import Crud, CrudAux, MasterDetailCrud, make_pagination
+from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
+                            RP_LIST, RP_DETAIL)
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
-                        get_mime_type_from_file_extension,
+                        get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured)
 
-from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
+from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
                     DocumentoAdministrativoFilterSet,
                     DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm, ProtocoloDocumentForm,
@@ -44,10 +45,12 @@ from .forms import (AcompanhamentoDocumentoForm, AnularProcoloAdmForm,
                     TramitacaoAdmEditForm, TramitacaoAdmForm,
                     DesvincularDocumentoForm, DesvincularMateriaForm,
                     filtra_tramitacao_adm_destino_and_status,
-                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status)
+                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status,
+                    AnexadoForm, AnexadoEmLoteFilterSet,
+                    compara_tramitacoes_doc)
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
+                     TipoDocumentoAdministrativo, TramitacaoAdministrativo, Anexado)
 
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
@@ -243,7 +246,7 @@ class AcompanhamentoDocumentoView(CreateView):
                                            "documento",
                                            documento,
                                            destinatario)
-                self.logger.info('user={} .Foi enviado um e-mail de confirmação. Confira sua caixa '
+                self.logger.info('user={}. Foi enviado um e-mail de confirmação. Confira sua caixa '
                                  'de mensagens e clique no link que nós enviamos para '
                                  'confirmar o acompanhamento deste documento.'.format(usuario.username))
                 msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
@@ -251,19 +254,50 @@ class AcompanhamentoDocumentoView(CreateView):
                          confirmar o acompanhamento deste documento.')
                 messages.add_message(request, messages.SUCCESS, msg)
 
+            # Se o elemento existir e o email não foi confirmado:
+            # gerar novo hash e reenviar mensagem de email
+            elif not acompanhar[0].confirmado:
+                acompanhar = acompanhar[0]
+                acompanhar.hash = hash_txt
+                acompanhar.save()
+
+                base_url = get_base_url(request)
+
+                destinatario = AcompanhamentoDocumento.objects.get(
+                    documento=documento,
+                    email=email,
+                    confirmado=False
+                )
+
+                casa = CasaLegislativa.objects.first()
+
+                do_envia_email_confirmacao(base_url,
+                                           casa,
+                                           "documento",
+                                           documento,
+                                           destinatario)
+
+                self.logger.info('user={}. Foi enviado um e-mail de confirmação. Confira sua caixa \
+                                  de mensagens e clique no link que nós enviamos para \
+                                  confirmar o acompanhamento deste documento.'.format(usuario.username))
+
+                msg = _('Foi enviado um e-mail de confirmação. Confira sua caixa \
+                        de mensagens e clique no link que nós enviamos para \
+                        confirmar o acompanhamento deste documento.')
+                messages.add_message(request, messages.SUCCESS, msg)
+            
             # Caso esse Acompanhamento já exista
             # avisa ao usuário que esse documento já está sendo acompanhado
             else:
                 self.logger.info('user=' + request.user.username +
                                  '. Este e-mail já está acompanhando esse documento (pk={}).'.format(pk))
                 msg = _('Este e-mail já está acompanhando esse documento.')
-                messages.add_message(request, messages.INFO, msg)
+                messages.add_message(request, messages.ERROR, msg)
 
                 return self.render_to_response(
                     {'form': form,
                      'documento': documento,
-                     'error': _('Esse documento já está\
-                     sendo acompanhada por este e-mail.')})
+                    })
             return HttpResponseRedirect(self.get_success_url())
         else:
             return self.render_to_response(
@@ -451,7 +485,7 @@ class ProtocoloListView(PermissionRequiredMixin, ListView):
 
 class AnularProtocoloAdmView(PermissionRequiredMixin, CreateView):
     template_name = 'protocoloadm/anular_protocoloadm.html'
-    form_class = AnularProcoloAdmForm
+    form_class = AnularProtocoloAdmForm
     form_valid_message = _('Protocolo anulado com sucesso!')
     permission_required = ('protocoloadm.action_anular_protocolo', )
 
@@ -504,12 +538,12 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
     def form_valid(self, form):
         protocolo = form.save(commit=False)
         username = self.request.user.username
-        try:
-            self.logger.debug("user=" + username +
-                              ". Tentando obter sequência de numeração.")
-            numeracao = sapl.base.models.AppConfig.objects.last(
-            ).sequencia_numeracao
-        except AttributeError as e:
+
+        self.logger.debug("user=" + username +
+                          ". Tentando obter sequência de numeração.")
+        numeracao = sapl.base.models.AppConfig.objects.last(
+        ).sequencia_numeracao_protocolo
+        if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
                               "numeração na tabelas auxiliares! " + str(e))
             msg = _('É preciso definir a sequencia de ' +
@@ -691,12 +725,11 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     def form_valid(self, form):
         protocolo = form.save(commit=False)
         username = self.request.user.username
-        try:
-            self.logger.debug("user=" + username +
-                              ". Tentando obter sequência de numeração.")
-            numeracao = sapl.base.models.AppConfig.objects.last(
-            ).sequencia_numeracao
-        except AttributeError:
+        self.logger.debug("user=" + username +
+                          ". Tentando obter sequência de numeração.")
+        numeracao = sapl.base.models.AppConfig.objects.last(
+        ).sequencia_numeracao_protocolo
+        if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
                               "numeração na tabelas auxiliares!")
             msg = _('É preciso definir a sequencia de ' +
@@ -910,6 +943,154 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         return self.render_to_response(context)
 
 
+class AnexadoCrud(MasterDetailCrud):
+    model = Anexado
+    parent_field = 'documento_principal'
+    help_topic = 'documento_anexado'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['documento_anexado', 'data_anexacao']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AnexadoForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AnexadoForm
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo'] = self.object.documento_anexado.tipo.id
+            initial['numero'] = self.object.documento_anexado.numero
+            initial['ano'] = self.object.documento_anexado.ano
+            return initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'AnexadoDetail'
+
+
+class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = AnexadoEmLoteFilterSet
+    template_name = 'protocoloadm/em_lote/anexado.html'
+    permission_required = ('protocoloadm.add_anexado', )
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            DocumentoAnexadoEmLoteView,self
+            ).get_context_data(**kwargs)
+
+        context['root_pk'] = self.kwargs['pk']
+
+        context['subnav_template_name'] = 'protocoloadm/subnav.yaml'
+
+        context['title'] = _('Documentos Anexados em Lote')
+
+        # Verifica se os campos foram preenchidos
+        if not self.request.GET.get('tipo', " "):
+            msg =_('Por favor, selecione um tipo de documento.')
+            messages.add_message(self.request, messages.ERROR, msg)
+                
+            if not self.request.GET.get('data_0', " ") or not self.request.GET.get('data_1', " "):
+                msg =_('Por favor, preencha as datas.')
+                messages.add_message(self.request, messages.ERROR, msg)
+
+            return context
+
+        if not self.request.GET.get('data_0', " ") or not self.request.GET.get('data_1', " "):
+            msg =_('Por favor, preencha as datas.')
+            messages.add_message(self.request, messages.ERROR, msg)
+            return context
+
+        qr = self.request.GET.copy()
+        context['temp_object_list'] = context['object_list'].order_by(
+            'numero', '-ano'
+        )
+
+        context['object_list'] = []
+        for obj in context['temp_object_list']:
+            if not obj.pk == int(context['root_pk']):
+                documento_principal = DocumentoAdministrativo.objects.get(id=context['root_pk'])
+                documento_anexado = obj
+                is_anexado = Anexado.objects.filter(documento_principal=documento_principal,
+                                                    documento_anexado=documento_anexado).exists()
+                if not is_anexado:
+                    ciclico = False
+                    anexados_anexado = Anexado.objects.filter(documento_principal=documento_anexado)
+
+                    while anexados_anexado and not ciclico:
+                        anexados = []
+                        
+                        for anexo in anexados_anexado:
+
+                            if documento_principal == anexo.documento_anexado:
+                                ciclico = True
+                            else:
+                                for a in Anexado.objects.filter(documento_principal=anexo.documento_anexado):
+                                    anexados.append(a)
+
+                        anexados_anexado = anexados
+
+                    if not ciclico:
+                        context['object_list'].append(obj)
+        
+        context['numero_res'] = len(context['object_list'])
+
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcados = request.POST.getlist('documento_id')
+        
+        data_anexacao = datetime.strptime(
+            request.POST['data_anexacao'], "%d/%m/%Y"
+        ).date()
+
+        if request.POST['data_desanexacao'] == '':
+            data_desanexacao = None
+            v_data_desanexacao = data_anexacao
+        else:
+            data_desanexacao = datetime.strptime(
+                request.POST['data_desanexacao'], "%d/%m/%Y"
+            ).date()
+            v_data_desanexacao = data_desanexacao
+
+        if len(marcados) == 0:
+            msg =_('Nenhum documento foi selecionado')
+            messages.add_message(request, messages.ERROR, msg)
+            
+            if data_anexacao > v_data_desanexacao:
+                msg=_('Data de anexação posterior à data de desanexação.')
+                messages.add_message(request, messages.ERROR, msg)
+            
+            return self.get(request, self.kwargs)
+
+        if data_anexacao > v_data_desanexacao:
+            msg =_('Data de anexação posterior à data de desanexação.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, messages.ERROR, msg)
+
+        principal = DocumentoAdministrativo.objects.get(pk = kwargs['pk'])
+        for documento in DocumentoAdministrativo.objects.filter(id__in = marcados):
+            anexado = Anexado()
+            anexado.documento_principal = principal
+            anexado.documento_anexado = documento
+            anexado.data_anexacao = data_anexacao
+            anexado.data_desanexacao = data_desanexacao
+            anexado.save()
+
+        msg = _('Documento(s) anexado(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+
+        success_url = reverse('sapl_index') + 'docadm/' + kwargs['pk'] + '/anexado'
+        return HttpResponseRedirect(success_url)
+
+
 class TramitacaoAdmCrud(MasterDetailCrud):
     model = TramitacaoAdministrativo
     parent_field = 'documento'
@@ -922,6 +1103,10 @@ class TramitacaoAdmCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = TramitacaoAdmForm
         logger = logging.getLogger(__name__)
+
+        def get_success_url(self):
+            return reverse('sapl.protocoloadm:tramitacaoadministrativo_list', kwargs={
+                'pk': self.kwargs['pk']})
 
         def get_initial(self):
             initial = super(CreateView, self).get_initial()
@@ -936,10 +1121,33 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             else:
                 initial['unidade_tramitacao_local'] = ''
             initial['data_tramitacao'] = timezone.now().date()
+            initial['ip'] = get_client_ip(self.request)
+            initial['user'] = self.request.user
             return initial
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
+            username = self.request.user.username
+
+            ultima_tramitacao = TramitacaoAdministrativo.objects.filter(
+                documento_id=self.kwargs['pk']).order_by(
+                '-data_tramitacao',
+                '-timestamp',
+                '-id').first()
+
+            #TODO: Esta checagem foi inserida na issue #2027, mas é mesmo necessária?
+            if ultima_tramitacao:
+                if ultima_tramitacao.unidade_tramitacao_destino:
+                    context['form'].fields[
+                        'unidade_tramitacao_local'].choices = [
+                        (ultima_tramitacao.unidade_tramitacao_destino.pk,
+                         ultima_tramitacao.unidade_tramitacao_destino)]
+                else:
+                    self.logger.error('user=' + username + '. Unidade de tramitação destino '
+                                      'da última tramitação não pode ser vazia!')
+                    msg = _('Unidade de tramitação destino '
+                            ' da última tramitação não pode ser vazia!')
+                    messages.add_message(self.request, messages.ERROR, msg)
 
             primeira_tramitacao = not(TramitacaoAdministrativo.objects.filter(
                 documento_id=int(kwargs['root_pk'])).exists())
@@ -959,7 +1167,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception as e:
-                # TODO log error
                 self.logger.error('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento de documento '
                                   'não enviado. A não configuração do servidor de e-mail '
                                   'impede o envio de aviso de tramitação. ' + str(e))
@@ -974,6 +1181,12 @@ class TramitacaoAdmCrud(MasterDetailCrud):
         form_class = TramitacaoAdmEditForm
         logger = logging.getLogger(__name__)
 
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['ip'] = get_client_ip(self.request)
+            initial['user'] = self.request.user
+            return initial
+
         def form_valid(self, form):
             self.object = form.save()
             username = self.request.user.username
@@ -982,7 +1195,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                                        post=self.object,
                                        request=self.request)
             except Exception as e:
-                # TODO log error
                 self.logger.error('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento de documento '
                                   'não enviado. A não configuração do servidor de e-mail '
                                   'impede o envio de aviso de tramitação. ' + str(e))
@@ -1003,18 +1215,26 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
     class DetailView(DocumentoAdministrativoMixin,
                      MasterDetailCrud.DetailView):
-        pass
+
+        template_name = 'protocoloadm/tramitacaoadministrativo_detail.html'
+        
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['user'] = self.request.user
+            return context
+
 
     class DeleteView(MasterDetailCrud.DeleteView):
+
+        logger = logging.getLogger(__name__)
 
         def delete(self, request, *args, **kwargs):
             tramitacao = TramitacaoAdministrativo.objects.get(
                 id=self.kwargs['pk'])
-            documento = DocumentoAdministrativo.objects.get(
-                id=tramitacao.documento.id)
+            documento = tramitacao.documento
             url = reverse(
                 'sapl.protocoloadm:tramitacaoadministrativo_list',
-                kwargs={'pk': tramitacao.documento.id})
+                kwargs={'pk': documento.id})
 
             ultima_tramitacao = \
                 documento.tramitacaoadministrativo_set.order_by(
@@ -1022,11 +1242,21 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     '-id').first()
 
             if tramitacao.pk != ultima_tramitacao.pk:
+                username = request.user.username
+                self.logger.error("user=" + username + ". Não é possível deletar a tramitação de pk={}. "
+                                  "Somente a última tramitação (pk={}) pode ser deletada!."
+                                  .format(tramitacao.pk, ultima_tramitacao.pk))
                 msg = _('Somente a última tramitação pode ser deletada!')
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacao.delete()
+                tramitacoes_deletar = [tramitacao.id]
+                docs_anexados = lista_anexados(documento, False)
+                for da in docs_anexados:
+                    tram_anexada = da.tramitacaoadministrativo_set.last()
+                    if compara_tramitacoes_doc(tram_anexada, tramitacao):
+                        tramitacoes_deletar.append(tram_anexada.id)
+                TramitacaoAdministrativo.objects.filter(id__in=tramitacoes_deletar).delete()
                 return HttpResponseRedirect(url)
 
 
@@ -1121,7 +1351,7 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 
 class FichaPesquisaAdmView(PermissionRequiredMixin, FormView):
     form_class = FichaPesquisaAdmForm
-    template_name = 'materia/impressos/ficha.html'
+    template_name = 'materia/impressos/impressos_form.html'
     permission_required = ('materia.can_access_impressos', )
 
     def form_valid(self, form):
@@ -1139,7 +1369,7 @@ class FichaPesquisaAdmView(PermissionRequiredMixin, FormView):
 class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
     logger = logging.getLogger(__name__)
     form_class = FichaSelecionaAdmForm
-    template_name = 'materia/impressos/ficha_seleciona.html'
+    template_name = 'materia/impressos/impressos_form.html'
     permission_required = ('materia.can_access_impressos', )
 
     def get_context_data(self, **kwargs):
@@ -1201,8 +1431,8 @@ class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
             self.messages.add_message(self.request, messages.INFO, mensagem)
 
             return self.render_to_response(context)
-        if len(documento.assunto) > 301:
-            documento.assunto = documento.assunto[0:300] + '[...]'
+        if len(documento.assunto) > 201:
+            documento.assunto = documento.assunto[0:200] + '[...]'
         context['documento'] = documento
 
         return gerar_pdf_impressos(self.request, context,

@@ -7,33 +7,33 @@
 
 <script language="Javascript">
   function recuperar_materia() {
-    var tipo_materia = $("#id_tipo_materia").val()
-    var numero_materia = $("#id_numero_materia").val()
-    var ano_materia = $("#id_ano_materia").val()
-    var tipo = $('#id_tipo').val()
-    var ano = $('#id_ano').val()
-    var numero = $('#id_numero').val()
-    var ementa = $('#id_ementa').val()
+    var tipo_materia = $("#id_tipo_materia").val();
+    var numero_materia = $("#id_numero_materia").val();
+    var ano_materia = $("#id_ano_materia").val();
+    var tipo = $('#id_tipo').val();
+    var ano = $('#id_ano').val();
+    var numero = $('#id_numero').val();
+    var ementa = $('#id_ementa').val();
     if (tipo_materia && numero_materia && ano_materia) {
-        if (ementa === undefined || ementa === "") {
-          $.get("/sessao/recuperar-materia",{tipo_materia: tipo_materia,
-              numero_materia: numero_materia,
-              ano_materia: ano_materia},
-              function(data, status) {
-                  $("#id_ementa").val(data.ementa);
-                  $("#id_indexacao").val(data.indexacao);
-              });
+      $.get("/sessao/recuperar-materia",
+            {tipo_materia: tipo_materia,
+             numero_materia: numero_materia,
+             ano_materia: ano_materia},
+        function(data, status) {
+          $("#id_ementa").val(data.ementa);
+          $("#id_indexacao").val(data.indexacao);
         }
-
-     }
-}
+      );
+    }
+  }
   var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"]
   for (i = 0; i < fields.length; i++) {
     $(fields[i]).change(recuperar_materia);
   }
+
   function recuperar_norma() {
-    var tipo = $("#id_tipo").val()
-    var ano = $("#id_ano").val()
+    var tipo = $("#id_tipo").val();
+    var ano = $("#id_ano").val();
 
     if (tipo) {
       $.get("/norma/recuperar-numero-norma",{tipo: tipo,
@@ -44,7 +44,7 @@
                                 });
     }
   }
-  var fields = ["#id_tipo", "#id_ano"]
+  var fields = ["#id_tipo", "#id_ano"];
   for (i = 0; i < fields.length; i++) {
     $(fields[i]).change(recuperar_norma);
   }

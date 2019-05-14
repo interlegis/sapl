@@ -60,6 +60,7 @@ rules_group_administrativo = {
          'can_access_impressos'], __perms_publicas__),
         # TODO: tratar em sapl.api a questão de ostencivo e restritivo
         (protocoloadm.DocumentoAdministrativo, __base__, set()),
+        (protocoloadm.Anexado, __base__, set()),
         (protocoloadm.DocumentoAcessorioAdministrativo, __base__, set()),
         (protocoloadm.TramitacaoAdministrativo, __base__, set()),
     ]
@@ -118,6 +119,8 @@ rules_group_materia = {
         (materia.Autoria, __base__, __perms_publicas__),
         (materia.DespachoInicial, __base__, __perms_publicas__),
         (materia.DocumentoAcessorio, __base__, __perms_publicas__),
+        (materia.MateriaAssunto, __base__, __perms_publicas__),
+        (materia.AssuntoMateria, __base__, __perms_publicas__),
 
         (materia.MateriaLegislativa, __base__ +
          ['can_access_impressos'], __perms_publicas__),
@@ -175,6 +178,7 @@ rules_group_sessao = {
         (sessao.ExpedienteSessao, __base__, __perms_publicas__),
         (sessao.Orador, __base__, __perms_publicas__),
         (sessao.OradorExpediente, __base__, __perms_publicas__),
+        (sessao.OradorOrdemDia, __base__, __perms_publicas__),
         (sessao.OrdemDia, __base__, __perms_publicas__),
         (sessao.PresencaOrdemDia, __base__, __perms_publicas__),
         (sessao.RegistroVotacao, __base__, __perms_publicas__),
@@ -274,6 +278,8 @@ rules_group_geral = {
         (parlamentares.ComposicaoMesa, __base__, __perms_publicas__),
         (parlamentares.Frente, __base__, __perms_publicas__),
         (parlamentares.Votante, __base__, __perms_publicas__),
+        (parlamentares.Bloco, __base__, __perms_publicas__),
+
 
         (sessao.CargoBancada, __base__, __perms_publicas__),
         (sessao.Bancada, __base__, __perms_publicas__),
@@ -282,7 +288,6 @@ rules_group_geral = {
         (sessao.TipoExpediente, __base__, __perms_publicas__),
         (sessao.TipoJustificativa, __base__, __perms_publicas__),
         (sessao.JustificativaAusencia, __base__, __perms_publicas__),
-        (sessao.Bloco, __base__, __perms_publicas__),
         (sessao.ResumoOrdenacao, __base__, __perms_publicas__),
         (sessao.TipoRetiradaPauta, __base__, __perms_publicas__),
 

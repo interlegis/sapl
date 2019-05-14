@@ -6,7 +6,17 @@
 	<h1 class="page-header">
 		Extrato Eletrônico da {{sessaoplenaria}}
 	</h1>
-{% endblock %}
+
+	<div>
+		<p align="right">
+			<strong>
+				<a href="{% url 'sapl.relatorios:resumo_ata_pdf' sessaoplenaria.pk %}">
+					Impressão PDF
+				</a>
+			</strong>
+		</p>
+	</div>
+{% endblock title %}
 
 {% block detail_content %}
 	{% include 'sessao/blocos_ata/'|add:primeiro_ordenacao %}
@@ -19,6 +29,9 @@
 	{% include 'sessao/blocos_ata/'|add:oitavo_ordenacao %}
 	{% include 'sessao/blocos_ata/'|add:nono_ordenacao %}
 	{% include 'sessao/blocos_ata/'|add:decimo_ordenacao %}
-    {% include 'sessao/blocos_ata/'|add:decimo_primeiro_ordenacao %}
+	{% include 'sessao/blocos_ata/'|add:decimo_primeiro_ordenacao %}
+	{% include 'sessao/blocos_ata/'|add:decimo_segundo_ordenacao %}
+	{% include 'sessao/blocos_ata/'|add:decimo_terceiro_ordenacao %}
+	{% include 'sessao/blocos_ata/'|add:decimo_quarto_ordenacao %}
 	{% include 'sessao/blocos_ata/assinaturas.html' %}
 {% endblock detail_content %}

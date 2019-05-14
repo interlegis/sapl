@@ -1,0 +1,86 @@
+{% extends "crud/detail.html" %}
+{% load i18n crispy_forms_tags %}
+{% block actions %}
+{% endblock %}
+{% block detail_content %}
+
+    {% if not show_results %}
+        {% crispy filter.form %}
+    {% endif %}
+
+    {% if show_results %}
+        {% if numero_res > 0 %}
+            {% if numero_res == 1 %}
+                <h3 style="text-align: right;">{% trans 'Pesquisa concluída com sucesso! Foi encontrado 1 documento.' %}</h3>
+            {% else %}
+                <h3 style="text-align: right;">Foram encontrados {{ numero_res }} documentos.</h3>
+            {% endif %}
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <fieldset>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Data Anexação*</label>
+                                <input type="text" name="data_anexacao" class="form-control dateinput" required="True">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Data Desanexação</label>
+                                <input type="text" name="data_desanexacao" class="form-control dateinput">
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <br/>
+                <fieldset>
+                    <legend>Documentos para Anexar em Lote</legend>
+                    <table class="table table-striped table-hover">
+                        <div class="controls">
+                            <div class="checkbox">
+                                <label for="id_check_all">
+                                    <input type="checkbox" id="id_check_all" onchange="checkAll(this)"/>Marcar/Desmarcar Todos
+                                </label>
+                            </div>
+                        </div>
+                        <thead>
+                            <tr>
+                                <th>Documento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for documento in object_list %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="documento_id" value="{{documento.id}}" {% if check %} checked {% endif %}/>
+                                        <a href="{% url 'sapl_index' %}docadm/{{documento.pk}}">{{documento.tipo.sigla}} {{documento.numero}}/{{documento.ano}} - {{documento.tipo.descricao}}</a>                                        
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </fieldset>
+                <input type="submit" value="Salvar" class="btn btn-primary"S>
+            </form>
+            <br/>
+        {% else %}
+            <tr>
+                <td>
+                    <h3 style="text-align: right;">Nenhum documento encontrado.</h3>
+                </td>
+            </tr>
+        {% endif %}
+    {% endif %}
+{% endblock detail_content %}
+{% block extra_js %}
+    <script language="JavaScript">
+        function checkAll(elem) {
+            let checkboxes = document.getElementsByName('documento_id');
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].type == 'checkbox') 
+                    checkboxes[i].checked = elem.checked;
+            }
+        }
+    </script>
+{% endblock %}

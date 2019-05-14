@@ -23,6 +23,12 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
         blank=True,
         verbose_name=_('XML fornecido pela equipe do LexML:'))
 
+    @property
+    def pretty_xml(self):
+        import html
+        safe_xml = html.escape(self.xml)
+        return safe_xml.replace('\n', '<br/>').replace(' ', '&nbsp;')
+
     class Meta:
         verbose_name = _('Provedor Lexml')
         verbose_name_plural = _('Provedores Lexml')

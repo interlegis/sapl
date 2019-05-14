@@ -5,8 +5,7 @@ import os
 import re
 from unicodedata import normalize as unicodedata_normalize
 import unicodedata
-
-from crispy_forms.helper import FormHelper
+import logging
 from crispy_forms.layout import HTML, Button
 from django import forms
 from django.apps import apps
@@ -15,11 +14,14 @@ from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from django.core.mail import get_connection
 from django.db import models
 from django.db.models import Q
+from django.forms import BaseForm
 from django.forms.widgets import SplitDateTimeWidget
 from django.utils import six, timezone
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 from easy_thumbnails import source_generators
@@ -28,8 +30,8 @@ import magic
 from reversion_compare.admin import CompareVersionAdmin
 from unipath.path import Path
 
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-
 
 # (26/10/2018): O separador foi mudador de '/' para 'K'
 # por conta dos leitores de códigos de barra, que trocavam
@@ -39,6 +41,24 @@ SEPARADOR_HASH_PROPOSICAO = 'K'
 
 def pil_image(source, exif_orientation=False, **options):
     return source_generators.pil_image(source, exif_orientation, **options)
+
+
+def dont_break_out(value, max_part=50):
+    _safe = value.split()
+    
+    def chunkstring(string):
+        return re.findall('.{%d}' % max_part, string)
+    
+    def __map(a):
+        if len(a) <= max_part:
+            return a
+        return '<br>' + '<br>'.join(chunkstring(a))
+            
+    _safe = map(__map, _safe)
+    _safe = ' '.join(_safe)
+    
+    _safe = mark_safe(_safe)
+    return value
 
 
 def clear_thumbnails_cache(queryset, field):
@@ -81,7 +101,6 @@ autor_label = '''
     </div>
 '''
 
-
 autor_modal = '''
    <div id="modal_autor" title="Selecione o Autor" align="center">
        <form>
@@ -111,7 +130,7 @@ def montar_row_autor(name):
 
 def montar_helper_autor(self):
     autor_row = montar_row_autor('nome')
-    self.helper = FormHelper()
+    self.helper = SaplFormHelper()
     self.helper.layout = SaplFormLayout(*self.get_layout())
 
     # Adiciona o novo campo 'autor' e mecanismo de busca
@@ -236,6 +255,7 @@ class RangeWidgetOverride(forms.MultiWidget):
 
 
 class CustomSplitDateTimeWidget(SplitDateTimeWidget):
+
     def render(self, name, value, attrs=None, renderer=None):
         rendered_widgets = []
         for i, x in enumerate(self.widgets):
@@ -257,6 +277,7 @@ def register_all_models_in_admin(module_name, exclude_list=[]):
     appname = appname[1] if appname[0] == 'sapl' else appname[0]
     app = apps.get_app_config(appname)
     for model in app.get_models():
+
         class CustomModelAdmin(CompareVersionAdmin):
             list_display = [f.name for f in model._meta.fields
                             if f.name != 'id' and f.name not in exclude_list]
@@ -308,9 +329,11 @@ YES_NO_CHOICES = [(True, _('Sim')), (False, _('Não'))]
 
 
 def listify(function):
+
     @wraps(function)
     def f(*args, **kwargs):
         return list(function(*args, **kwargs))
+
     return f
 
 
@@ -347,7 +370,6 @@ LISTA_DE_UFS = [
 
 RANGE_ANOS = [(year, year) for year in range(timezone.now().year + 1,
                                              1889, -1)]
-
 
 RANGE_MESES = [
     (1, 'Janeiro'),
@@ -428,8 +450,10 @@ def choice_force_optional(callable):
         o item opcional '---------' já que ChoiceFilter já o adiciona, como dito
         anteriormente.
     """
+
     def _func():
         return [('', '---------')] + callable()
+
     return _func
 
 
@@ -505,6 +529,7 @@ def fabrica_validador_de_tipos_de_arquivo(lista, nome):
                 raise ValidationError(_('Tipo de arquivo não suportado'))
         except FileNotFoundError:
             raise ValidationError(_('Arquivo não encontrado'))
+
     # o nome é importante para as migrations
     restringe_tipos_de_arquivo.__name__ = nome
     return restringe_tipos_de_arquivo
@@ -574,6 +599,38 @@ class NormaPesquisaOrderingFilter(django_filters.OrderingFilter):
         return super().filter(qs, _value)
 
 
+class FileFieldCheckMixin(BaseForm):
+
+    def _check(self):
+        cleaned_data = super(FileFieldCheckMixin, self).clean()
+        errors = []
+        for name, campo in self.fields.items():
+            if isinstance(campo, forms.fields.FileField):
+                error = self.errors.get(name)
+                if error:
+                    msgs = [e.replace('Certifique-se de que o arquivo',
+                                      "Certifique-se de que o nome do "
+                                      "arquivo no campo '{}'".format(
+                                          campo.label))
+                            for e in error]
+                    for msg in msgs:
+                        errors.append(msg)
+
+                arquivo = self.cleaned_data.get(name)
+                if arquivo and not isinstance(arquivo, UploadedFile):
+                    if not os.path.exists(arquivo.path):
+                        errors.append("Arquivo referenciado no campo "
+                                      " '%s' inexistente! Marque a "
+                                      "opção Limpar e Salve." % campo.label)
+        if errors:
+            raise ValidationError(errors)
+        return cleaned_data
+
+    def clean(self):
+        """ Alias for _check() """
+        return self._check()
+
+
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
 
     choices = (('DEC', 'Ordem Decrescente'),
@@ -592,7 +649,7 @@ class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
         return super().filter(qs, _value)
 
 
-def gerar_hash_arquivo(arquivo, pk, block_size=2**20):
+def gerar_hash_arquivo(arquivo, pk, block_size=2 ** 20):
     md5 = hashlib.md5()
     arq = open(arquivo, 'rb')
     while True:
@@ -693,7 +750,7 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
     if subpath is None:
         subpath = '_'
 
-    path = str_path %\
+    path = str_path % \
         {
             'prefix': prefix,
             'model_name': instance._meta.model_name,
@@ -883,15 +940,41 @@ def remover_acentos(string):
 
 def mail_service_configured(request=None):
 
+    logger = logging.getLogger(__name__)
+
     if settings.EMAIL_RUNNING is None:
         result = True
         try:
             connection = get_connection()
             connection.open()
         except Exception as e:
+            logger.error(str(e))
             result = False
         finally:
             connection.close()
         settings.EMAIL_RUNNING = result
 
     return settings.EMAIL_RUNNING
+
+
+def lista_anexados(principal, isMateriaLegislativa=True):
+    anexados_total = []
+    if isMateriaLegislativa: #MateriaLegislativa
+        from sapl.materia.models import Anexada
+        anexados_iterator = Anexada.objects.filter(materia_principal=principal)
+    else: #DocAdm
+        from sapl.protocoloadm.models import Anexado
+        anexados_iterator = Anexado.objects.filter(documento_principal=principal)
+    while anexados_iterator:
+        anexados_tmp = []
+        for anx in anexados_iterator:
+            if isMateriaLegislativa:
+                anexados_total.append(anx.materia_anexada)
+                anexados_anexado = Anexada.objects.filter(materia_principal=anx.materia_anexada)
+            else:
+                anexados_total.append(anx.documento_anexado)
+                anexados_anexado = Anexado.objects.filter(documento_principal=anx.documento_anexado)
+            anexados_tmp.extend(anexados_anexado)
+        anexados_iterator = anexados_tmp
+    
+    return anexados_total

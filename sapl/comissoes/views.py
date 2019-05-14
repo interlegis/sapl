@@ -2,7 +2,7 @@ import logging
 
 from django.core.urlresolvers import reverse
 from django.db.models import F
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, JsonResponse
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import ListView
 from django.views.generic.base import RedirectView
@@ -108,7 +108,7 @@ class ComposicaoCrud(MasterDetailCrud):
         paginate_by = None
 
         def take_composicao_pk(self):
-            
+
             username = self.request.user.username
             try:
                 self.logger.debug('user=' + username + '. Tentando obter pk da composição.')
@@ -186,6 +186,7 @@ class MateriasTramitacaoListView(ListView):
         context = super(
             MateriasTramitacaoListView, self).get_context_data(**kwargs)
         context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
+        context['qtde'] = self.object_list.count()
         return context
 
 
@@ -196,7 +197,8 @@ class ReuniaoCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['data', 'nome', 'tema']
+        list_field_names = ['data', 'nome', 'tema', 'upload_ata']
+        ordering = '-data'
 
     class ListView(MasterDetailCrud.ListView):
         logger = logging.getLogger(__name__)
@@ -277,3 +279,15 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             return HttpResponseRedirect(
                 reverse('sapl.comissoes:reuniao_detail',
                         kwargs={'pk': obj.reuniao.pk}))
+
+
+def get_participacoes_comissao(request):
+    parlamentares = []
+
+    composicao_id = request.GET.get('composicao_id')
+    if composicao_id:
+        parlamentares = [{'nome': p.parlamentar.nome_parlamentar, 'id': p.parlamentar.id} for p in
+                         Participacao.objects.filter(composicao_id=composicao_id).order_by(
+                             'parlamentar__nome_parlamentar')]
+
+    return JsonResponse(parlamentares, safe=False)

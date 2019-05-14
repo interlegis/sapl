@@ -26,11 +26,11 @@
 	<h2><span id="relogio"></span></h2>
 	<br />
   <div class="row">
-    <div class="col-md-12"><h3>Cronômetro do Discurso</h3></div>
+    <div class="col-md-12 mb-2"><h3>Cronômetro do Discurso</h3></div>
   </div>
 
   <div class="row">
-    <div class="col-xs-2"><input size="2" id="discurso" name="discurso" value="" readyonly="true" class="form-control"></div>
+    <div class="col-md-2"><input size="2" id="discurso" name="discurso" value="" readyonly="true" class="form-control"></div>
   </div>
 	<br />
 
@@ -41,11 +41,11 @@
 
 	<br /><br >
   <div class="row">
-    <div class="col-md-12"><h3>Cronômetro do Aparte</h3></div>
+    <div class="col-md-12 mb-2"><h3>Cronômetro do Aparte</h3></div>
   </div>
 
   <div class="row">
-    <div class="col-xs-2"><input size="2" id="aparte" name="aparte" value="" readyonly="true" class="form-control"></div>
+    <div class="col-md-2"><input size="2" id="aparte" name="aparte" value="" readyonly="true" class="form-control"></div>
   </div>
 	<br />
 
@@ -56,11 +56,11 @@
 
 	<br /><br >
   <div class="row">
-    <div class="col-md-12"><h3>Cronômetro da Questão de Ordem </h3></div>
+    <div class="col-md-12 mb-2"><h3>Cronômetro da Questão de Ordem </h3></div>
   </div>
 
   <div class="row">
-    <div class="col-xs-2"><input size="2" id="ordem" name="ordem" value="" readyonly="true" class="form-control"></div>
+    <div class="col-md-2"><input size="2" id="ordem" name="ordem" value="" readyonly="true" class="form-control"></div>
   </div>
 	<br />
 
@@ -68,25 +68,28 @@
     <div class="col-md-6"><button type="button" id="ordemStart" class="btn btn-success">Iniciar</button></div>
     <div class="col-md-6"><button type="button" id="ordemReset" class="btn btn-success">Reiniciar</button></div>
   </div>
-<br/>
-<br/>
-<div class="row">
-    <div class="col-md-12"><h3>Cronômetro de Considerações Finais</h3></div>
+
+  <br/>
+  <br/>
+
+  <div class="row">
+    <div class="col-md-12 mb-2"><h3>Cronômetro de Considerações Finais</h3></div>
   </div>
 
   <div class="row">
-    <div class="col-xs-2"><input size="2" id="consideracoes" name="consideracoes" value="" readyonly="true" class="form-control"></div>
+    <div class="col-md-4"><input size="2" id="consideracoes" name="consideracoes" value="" readyonly="true" class="form-control"></div>
   </div>
-    <br />
+  <br />
 
   <div class="row">
     <div class="col-md-6"><button type="button" id="consideracoesStart" class="btn btn-success">Iniciar</button></div>
     <div class="col-md-6"><button type="button" id="consideracoesReset" class="btn btn-success">Reiniciar</button></div>
   </div>
   <br /><br >
-<div class="row">
+
+  <div class="row">
     <div class="col-md-6"><button type="button" id="sinalSonoro" class="btn btn-success" onclick="document.getElementById('audio').play();">Sinal Sonoro</button></div>
-</div>
+  </div>
 
 {% endblock detail_content %}
 
@@ -113,11 +116,11 @@ $(function() {
 	}
 
 	startTime();
-
-	$('#discurso').prop('disabled', true);
-	$('#aparte').prop('disabled', true);
-	$('#ordem').prop('disabled', true);
-    $('#consideracoes').prop('disabled', true);
+    var audioAlertFinish = document.getElementById("audio");
+	$('#discurso').prop('disabled', false);
+	$('#aparte').prop('disabled', false);
+	$('#ordem').prop('disabled', false);
+    $('#consideracoes').prop('disabled', false);
 
     $('#discurso').runner({
         autostart: false,
@@ -127,16 +130,10 @@ $(function() {
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
-
+        audioAlertFinish.play();
         $('#discursoReset').show();
         $('#discurso').runner('stop');
         $('#discursoStart').text('Iniciar');
-        $('#aparteStart').prop('disabled', false);
-        $('#aparteReset').prop('disabled', false);
-        $('#ordemStart').prop('disabled', false);
-        $('#ordemReset').prop('disabled', false);
-        $('#consideracoesStart').prop('disabled', false);
-        $('#consideracoesReset').prop('disabled', false);
 
     });
 
@@ -149,12 +146,6 @@ $(function() {
 			$('#discursoReset').hide();
 			$('#discurso').runner('start');
 			$('#discursoStart').text('Parar');
-			$('#aparteStart').prop('disabled', false);
-			$('#aparteReset').prop('disabled', false);
-			$('#ordemStart').prop('disabled', false);
-			$('#ordemReset').prop('disabled', false);
-            $('#consideracoesStart').prop('disabled', false);
-            $('#consideracoesReset').prop('disabled', false);
 
 		} else {
 
@@ -163,12 +154,6 @@ $(function() {
 			$('#discursoReset').show();
 			$('#discurso').runner('stop');
 			$('#discursoStart').text('Iniciar');
-			$('#aparteStart').prop('disabled', false);
-			$('#aparteReset').prop('disabled', false);
-			$('#ordemStart').prop('disabled', false);
-			$('#ordemReset').prop('disabled', false);
-            $('#consideracoesStart').prop('disabled', false);
-            $('#consideracoesReset').prop('disabled', false);
 		}
     });
 
@@ -188,16 +173,10 @@ $(function() {
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
-
+        audioAlertFinish.play();
         $('#aparteReset').show();
         $('#aparte').runner('stop');
         $('#aparteStart').text('Iniciar');
-        $('#discursoStart').prop('disabled', false);
-        $('#discursoReset').prop('disabled', false);
-        $('#ordemStart').prop('disabled', false);
-        $('#ordemReset').prop('disabled', false);
-        $('#consideracoesStart').prop('disabled', false);
-        $('#consideracoesReset').prop('disabled', false);
 
     });
 
@@ -209,12 +188,7 @@ $(function() {
 			$('#aparteReset').hide();
 	        $('#aparte').runner('start');
 			$('#aparteStart').text('Parar');
-			$('#discursoStart').prop('disabled', false);
-			$('#discursoReset').prop('disabled', false);
-			$('#ordemStart').prop('disabled', false);
-			$('#ordemReset').prop('disabled', false);
-            $('#consideracoesStart').prop('disabled', false);
-            $('#consideracoesReset').prop('disabled', false);
+
 		} else {
 
 			$.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
@@ -222,12 +196,7 @@ $(function() {
 			$('#aparteReset').show();
 			$('#aparte').runner('stop');
 			$('#aparteStart').text('Iniciar');
-			$('#discursoStart').prop('disabled', false);
-			$('#discursoReset').prop('disabled', false);
-			$('#ordemStart').prop('disabled', false);
-			$('#ordemReset').prop('disabled', false);
-            $('#consideracoesStart').prop('disabled', false);
-            $('#consideracoesReset').prop('disabled', false);
+
 		}
     });
 
@@ -247,16 +216,11 @@ $(function() {
         milliseconds: false
 	}).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
-
+        audioAlertFinish.play();
         $('#ordemReset').show();
         $('#ordem').runner('stop');
         $('#ordemStart').text('Iniciar');
-        $('#discursoStart').prop('disabled', false);
-        $('#discursoReset').prop('disabled', false);
-        $('#aparteStart').prop('disabled', false);
-        $('#aparteReset').prop('disabled', false);
-        $('#consideracoesStart').prop('disabled', false);
-        $('#consideracoesReset').prop('disabled', false);
+
     });
 
     $('#ordemStart').click(function() {
@@ -267,12 +231,7 @@ $(function() {
 			$('#ordemReset').hide();
 	        $('#ordem').runner('start');
 			$('#ordemStart').text('Parar');
-			$('#discursoStart').prop('disabled', false);
-			$('#discursoReset').prop('disabled', false);
-			$('#aparteStart').prop('disabled', false);
-			$('#aparteReset').prop('disabled', false);
-            $('#consideracoesStart').prop('disabled', false);
-            $('#consideracoesReset').prop('disabled', false);
+
 
 		} else {
 
@@ -281,12 +240,7 @@ $(function() {
 			$('#ordemReset').show();
 	        $('#ordem').runner('stop');
 			$('#ordemStart').text('Iniciar');
-			$('#discursoStart').prop('disabled', false);
-			$('#discursoReset').prop('disabled', false);
-			$('#aparteStart').prop('disabled', false);
-			$('#aparteReset').prop('disabled', false);
-            $('#consideracoesStart').prop('disabled', false);
-            $('#consideracoesReset').prop('disabled', false);
+
 		}
     });
 
@@ -306,16 +260,11 @@ $(function() {
         milliseconds: false
     }).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
-
+        audioAlertFinish.play();
         $('#consideracoesReset').show();
         $('#consideracoes').runner('stop');
         $('#consideracoesStart').text('Iniciar');
-        $('#discursoStart').prop('disabled', false);
-        $('#discursoReset').prop('disabled', false);
-        $('#ordemStart').prop('disabled', false);
-        $('#ordemReset').prop('disabled', false);
-        $('#aparteStart').prop('disabled', false);
-        $('#aparteReset').prop('disabled', false);
+
 
     });
 
@@ -327,12 +276,7 @@ $(function() {
             $('#consideracoesReset').hide();
             $('#consideracoes').runner('start');
             $('#consideracoesStart').text('Parar');
-            $('#discursoStart').prop('disabled', false);
-            $('#discursoReset').prop('disabled', false);
-            $('#ordemStart').prop('disabled', false);
-            $('#ordemReset').prop('disabled', false);
-            $('#aparteStart').prop('disabled', false);
-            $('#aparteReset').prop('disabled', false);
+
         } else {
 
             $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
@@ -340,12 +284,7 @@ $(function() {
             $('#consideracoesReset').show();
             $('#consideracoes').runner('stop');
             $('#consideracoesStart').text('Iniciar');
-            $('#discursoStart').prop('disabled', false);
-            $('#discursoReset').prop('disabled', false);
-            $('#ordemStart').prop('disabled', false);
-            $('#ordemReset').prop('disabled', false);
-            $('#aparteStart').prop('disabled', false);
-            $('#aparteReset').prop('disabled', false);
+
         }
     });
 

@@ -24,11 +24,8 @@ Entrar no ambiente virtual::
 
 Arquivos Estáticos
 ------------------
-Com o ambiente em produção, os arquivos estáticos devem ser servidos pelo web service, em nosso caso o `NGINX`, logo para ter acesso aos arquivos primeiro devemos rodar o seguinte comando::
-
-   ./manage.py compilescss
-
-para que os arquivos SASS/SCSS sejam compilados em arquivos .css em ambiente de produção, e em seguida rode::
+Com o ambiente em produção, os arquivos estáticos devem ser servidos pelo web service, em nosso caso o `NGINX`, 
+em ambiente de produção, para tanto, rode::
 
    ./manage.py collectstatic --no-input --clear
 

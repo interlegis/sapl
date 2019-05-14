@@ -27,6 +27,7 @@
       url: oradorexpediente_list
     - title: {% trans 'Votação em Bloco' %}
       url: votacao_bloco_expediente
+      check_permission: sessao.add_sessaoplenaria
 
 - title: {% trans 'Ordem do Dia' %}
   children:
@@ -34,8 +35,11 @@
       url: ordemdia_list
     - title: {% trans 'Presença Ordem do Dia' %}
       url: presencaordemdia
+    - title: {% trans 'Oradores da Ordem do Dia' %}
+      url: oradorordemdia_list
     - title: {% trans 'Votação em Bloco' %}
       url: votacao_bloco_ordemdia
+      check_permission: sessao.add_sessaoplenaria
 
 - title: {% trans 'Painel Eletrônico' %}
   url: painel

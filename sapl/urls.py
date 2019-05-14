@@ -60,7 +60,7 @@ urlpatterns = [
     url(r'', include(sapl.api.urls)),
 
     url(r'^favicon\.ico$', RedirectView.as_view(
-        url='/static/img/favicon.ico', permanent=True)),
+        url='/static/sapl/img/favicon.ico', permanent=True)),
 
     url(r'', include(sapl.redireciona_urls.urls)),
 ]

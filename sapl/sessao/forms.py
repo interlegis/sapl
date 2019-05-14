@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.contrib.contenttypes.models import ContentType
@@ -20,32 +20,21 @@ from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
 from sapl.parlamentares.models import Parlamentar, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
-                        autor_modal, timezone, choice_anos_com_sessaoplenaria)
+                        autor_modal, timezone, choice_anos_com_sessaoplenaria,
+                        FileFieldCheckMixin)
 
-from .models import (Bancada, Bloco, ExpedienteMateria, JustificativaAusencia,
+from .models import (Bancada, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoResultadoVotacao,
-                     OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta)
+                     OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta, OradorOrdemDia, ORDENACAO_RESUMO,
+                     ResumoOrdenacao)
 
 
 MES_CHOICES = RANGE_MESES
 DIA_CHOICES = RANGE_DIAS_MES
 
 
-ORDENACAO_RESUMO = [('cont_mult', 'Conteúdo Multimídia'),
-                    ('exp', 'Expedientes'),
-                    ('id_basica', 'Identificação Básica'),
-                    ('lista_p', 'Lista de Presença'),
-                    ('lista_p_o_d', 'Lista de Presença Ordem do Dia'),
-                    ('mat_exp', 'Matérias do Expediente'),
-                    ('mat_o_d', 'Matérias da Ordem do Dia'),
-                    ('mesa_d', 'Mesa Diretora'),
-                    ('oradores_exped', 'Oradores do Expediente'),
-                    ('oradores_expli', 'Oradores das Explicações Pessoais'),
-                    ('ocorr_sessao', 'Ocorrências da Sessão')]
-
-
-class SessaoPlenariaForm(ModelForm):
+class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = SessaoPlenaria
@@ -207,7 +196,7 @@ class RetiradaPautaForm(ModelForm):
                        ('expediente', 6)])
         row3 = to_row([('observacao', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Retirada de Pauta'),
                      row1, row2, row3))
@@ -325,41 +314,6 @@ class BancadaForm(ModelForm):
             nome=bancada.nome
         )
         return bancada
-
-
-class BlocoForm(ModelForm):
-
-    class Meta:
-        model = Bloco
-        fields = ['nome', 'partidos', 'data_criacao',
-                  'data_extincao', 'descricao']
-
-    def clean(self):
-        super(BlocoForm, self).clean()
-
-        if not self.is_valid():
-            return self.cleaned_data
-
-        if self.cleaned_data['data_extincao']:
-            if (self.cleaned_data['data_extincao'] <
-                    self.cleaned_data['data_criacao']):
-                msg = _('Data de extinção não pode ser menor que a de criação')
-                raise ValidationError(msg)
-        return self.cleaned_data
-
-    @transaction.atomic
-    def save(self, commit=True):
-        bloco = super(BlocoForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Bloco)
-        object_id = bloco.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=bloco.nome
-        )
-        return bloco
 
 
 class ExpedienteMateriaForm(ModelForm):
@@ -591,7 +545,7 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
              ('data_inicio__day', 3),
              ('tipo', 3)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(self.titulo,
@@ -664,7 +618,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
         row9 = to_row(
             [('ementa', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria'),
@@ -689,7 +643,29 @@ class OradorForm(ModelForm):
 
         self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
             id__in=ids).order_by('nome_parlamentar')
+    
+    def clean(self):
+        super(OradorForm, self).clean()
+        cleaned_data = self.cleaned_data
 
+        if not self.is_valid():
+            return self.cleaned_data
+
+        sessao_id = self.initial['id_sessao']
+        numero = self.initial.get('numero')
+        numero_ordem = cleaned_data['numero_ordem']
+        ordem = Orador.objects.filter(
+            sessao_plenaria_id=sessao_id,
+            numero_ordem=numero_ordem
+        ).exists()
+
+        if ordem and numero_ordem != numero: 
+            raise ValidationError(_(
+                "Já existe orador nesta posição de ordem de pronunciamento"
+            ))
+        
+        return self.cleaned_data
+    
     class Meta:
         model = Orador
         exclude = ['sessao_plenaria']
@@ -733,37 +709,112 @@ class OradorExpedienteForm(ModelForm):
         exclude = ['sessao_plenaria']
 
 
+class OradorOrdemDiaForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(OradorOrdemDiaForm, self).__init__(*args, **kwargs)
+        
+        id_sessao = int(self.initial['id_sessao'])
+
+        ids = [p.parlamentar.id for p in PresencaOrdemDia.objects.filter(
+            sessao_plenaria_id=id_sessao
+        )]
+
+        self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
+            id__in=ids
+        ).order_by('nome_parlamentar')
+
+
+    def clean(self):
+        super(OradorOrdemDiaForm, self).clean()
+        cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        sessao_id = self.initial['id_sessao']
+        numero = self.initial.get('numero')
+        numero_ordem = cleaned_data['numero_ordem']
+        ordem = OradorOrdemDia.objects.filter(
+            sessao_plenaria_id=sessao_id,
+            numero_ordem=numero_ordem
+        ).exists()
+
+        if ordem and numero_ordem != numero: 
+            raise ValidationError(_(
+                "Já existe orador nesta posição de ordem de pronunciamento"
+            ))
+        
+        return self.cleaned_data
+
+    class Meta:
+        model = OradorOrdemDia
+        exclude = ['sessao_plenaria']
+
+
 class PautaSessaoFilterSet(SessaoPlenariaFilterSet):
     titulo = _('Pesquisa de Pauta de Sessão')
 
 
 class ResumoOrdenacaoForm(forms.Form):
-    primeiro = forms.ChoiceField(label=_('1°'),
-                                 choices=ORDENACAO_RESUMO)
-    segundo = forms.ChoiceField(label=_('2°'),
-                                choices=ORDENACAO_RESUMO)
-    terceiro = forms.ChoiceField(label='3°',
-                                 choices=ORDENACAO_RESUMO)
-    quarto = forms.ChoiceField(label=_('4°'),
-                               choices=ORDENACAO_RESUMO)
-    quinto = forms.ChoiceField(label=_('5°'),
-                               choices=ORDENACAO_RESUMO)
-    sexto = forms.ChoiceField(label=_('6°'),
-                              choices=ORDENACAO_RESUMO)
-    setimo = forms.ChoiceField(label=_('7°'),
-                               choices=ORDENACAO_RESUMO)
-    oitavo = forms.ChoiceField(label=_('8°'),
-                               choices=ORDENACAO_RESUMO)
-    nono = forms.ChoiceField(label=_('9°'),
-                             choices=ORDENACAO_RESUMO)
-    decimo = forms.ChoiceField(label='10°',
-                               choices=ORDENACAO_RESUMO)
-    decimo_primeiro = forms.ChoiceField(label='11°',
-                                        choices=ORDENACAO_RESUMO)
+    primeiro = forms.ChoiceField(
+        label='1°',
+        choices=ORDENACAO_RESUMO
+    )
+    segundo = forms.ChoiceField(
+        label='2°',
+        choices=ORDENACAO_RESUMO
+    )
+    terceiro = forms.ChoiceField(
+        label='3°',
+        choices=ORDENACAO_RESUMO
+    )
+    quarto = forms.ChoiceField(
+        label='4°',
+        choices=ORDENACAO_RESUMO
+    )
+    quinto = forms.ChoiceField(
+        label='5°',
+        choices=ORDENACAO_RESUMO
+    )
+    sexto = forms.ChoiceField(
+        label='6°',
+        choices=ORDENACAO_RESUMO
+    )
+    setimo = forms.ChoiceField(
+        label='7°',
+        choices=ORDENACAO_RESUMO
+    )
+    oitavo = forms.ChoiceField(
+        label='8°',
+        choices=ORDENACAO_RESUMO
+    )
+    nono = forms.ChoiceField(
+        label='9°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo = forms.ChoiceField(
+        label='10°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo_primeiro = forms.ChoiceField(
+        label='11°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo_segundo = forms.ChoiceField(
+        label='12°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo_terceiro = forms.ChoiceField(
+        label='13°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo_quarto = forms.ChoiceField(
+        label='14°',
+        choices=ORDENACAO_RESUMO
+    )
 
     def __init__(self, *args, **kwargs):
-        super(ResumoOrdenacaoForm, self).__init__(*args, **kwargs)
-
         row1 = to_row(
             [('primeiro', 12)])
         row2 = to_row(
@@ -786,14 +837,24 @@ class ResumoOrdenacaoForm(forms.Form):
             [('decimo', 12)])
         row11 = to_row(
             [('decimo_primeiro', 12)])
+        row12 = to_row(
+            [('decimo_segundo', 12)])
+        row13 = to_row(
+            [('decimo_terceiro', 12)])
+        row14 = to_row(
+            [('decimo_quarto', 12)]
+        )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
-                     row6, row7, row8, row9, row10, row11,
+                     row6, row7, row8, row9, row10, 
+                     row11, row12, row13, row14,
                      form_actions(label='Atualizar'))
         )
+
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         super(ResumoOrdenacaoForm, self).clean()
@@ -812,6 +873,27 @@ class ResumoOrdenacaoForm(forms.Form):
                         raise ValidationError(_(
                             'Não é possível ter campos repetidos'))
         return self.cleaned_data
+
+    def save(self):
+        ordenacao = ResumoOrdenacao.objects.get()
+        cleaned_data = self.cleaned_data
+
+        ordenacao.primeiro = cleaned_data['primeiro']
+        ordenacao.segundo = cleaned_data['segundo']
+        ordenacao.terceiro = cleaned_data['terceiro']
+        ordenacao.quarto = cleaned_data['quarto']
+        ordenacao.quinto = cleaned_data['quinto']
+        ordenacao.sexto = cleaned_data['sexto']
+        ordenacao.setimo = cleaned_data['setimo']
+        ordenacao.oitavo = cleaned_data['oitavo']
+        ordenacao.nono = cleaned_data['nono']
+        ordenacao.decimo = cleaned_data['decimo']
+        ordenacao.decimo_primeiro = cleaned_data['decimo_primeiro']
+        ordenacao.decimo_segundo = cleaned_data['decimo_segundo']
+        ordenacao.decimo_terceiro = cleaned_data['decimo_terceiro']
+        ordenacao.decimo_quarto = cleaned_data['decimo_quarto']
+
+        ordenacao.save()
 
 
 class JustificativaAusenciaForm(ModelForm):
@@ -853,7 +935,7 @@ class JustificativaAusenciaForm(ModelForm):
         row8 = to_row(
             [('observacao', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(
             Fieldset(_('Justificativa de Ausência'),
                      row1, row2, row3,
@@ -915,79 +997,3 @@ class JustificativaAusenciaForm(ModelForm):
             justificativa.materias_do_expediente.clear()
             justificativa.materias_da_ordem_do_dia.clear()
         return justificativa
-
-
-class VotacaoEmBlocoFilterSet(MateriaLegislativaFilterSet):
-
-    o = MateriaPesquisaOrderingFilter()
-    tramitacao__status = django_filters.ModelChoiceFilter(
-        required=True,
-        queryset=StatusTramitacao.objects.all(),
-        label=_('Status da Matéria'))
-
-    class Meta:
-        model = MateriaLegislativa
-        fields = ['tramitacao__status',
-                  'numero',
-                  'numero_protocolo',
-                  'ano',
-                  'tipo',
-                  'data_apresentacao',
-                  'data_publicacao',
-                  'autoria__autor__tipo',
-                  # FIXME 'autoria__autor__partido',
-                  'relatoria__parlamentar_id',
-                  'local_origem_externa',
-                  'em_tramitacao',
-                  ]
-
-    def __init__(self, *args, **kwargs):
-        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
-
-        self.filters['tipo'].label = 'Tipo de Matéria'
-        self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
-        # self.filters['autoria__autor__partido'].label = 'Partido do Autor'
-        self.filters['relatoria__parlamentar_id'].label = 'Relatoria'
-
-        row1 = to_row(
-            [('tramitacao__status', 12)])
-        row2 = to_row(
-            [('tipo', 12)])
-        row3 = to_row(
-            [('numero', 4),
-             ('ano', 4),
-             ('numero_protocolo', 4)])
-        row4 = to_row(
-            [('data_apresentacao', 6),
-             ('data_publicacao', 6)])
-        row5 = to_row(
-            [('autoria__autor', 0),
-             (Button('pesquisar',
-                     'Pesquisar Autor',
-                     css_class='btn btn-primary btn-sm'), 2),
-             (Button('limpar',
-                     'limpar Autor',
-                     css_class='btn btn-primary btn-sm'), 10)])
-        row6 = to_row(
-            [('autoria__autor__tipo', 6),
-             # ('autoria__autor__partido', 6)
-             ])
-        row7 = to_row(
-            [('relatoria__parlamentar_id', 6),
-             ('local_origem_externa', 6)])
-        row8 = to_row(
-            [('em_tramitacao', 6),
-             ('o', 6)])
-        row9 = to_row(
-            [('ementa', 12)])
-
-        self.form.helper = FormHelper()
-        self.form.helper.form_method = 'GET'
-        self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa de Matéria'),
-                     row1, row2, row3,
-                     HTML(autor_label),
-                     HTML(autor_modal),
-                     row4, row5, row6, row7, row8, row9,
-                     form_actions(label='Pesquisar'))
-        )

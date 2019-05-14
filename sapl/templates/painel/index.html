@@ -41,7 +41,7 @@
       <div class="d-flex justify-content-center">
         <h1 id="sessao_plenaria" class="title text-title"></h1>
       </div>
-      <div class="row">
+      <div class="row ">
         <div class="col text-center">
           <span id="sessao_plenaria_data" class="text-value"></span>
         </div> 
@@ -61,42 +61,50 @@
       </div>
 
       <div class="row">
-        <div class="col text-center"><span class="text-value" id="date"></span></div>
-        <div class="col text-center"><span class="text-value" id="relogio"></span></div>
+        <div class="col text-center"><span class="text-value data-hora" id="date"></span></div>
+        <div class="col text-center"><span class="text-value data-hora" id="relogio"></span></div>
       </div>
 
-      <div class="d-flex justify-content-end painels">
-        <div class="col-md-4 text-center painel">   
-          <h2 class="text-subtitle">Parlamentares</h2>   
-          <span id="parlamentares" class="text-value text-left"></span>
-        </div>
 
-        <div class="col-md-4 text-center painel" id="aparecer_oradores">  
-          <h2 class="text-subtitle">Oradores</h2>  
-          <span id="orador"></span>     
-        </div>
+      <div class="">
+        <div class="d-flex justify-content-start">
+          <div class="col-md-4">
+            <div class="text-center painel">   
+              <h2 class="text-subtitle">Parlamentares</h2>   
+              <span id="parlamentares" class="text-value text-center"></span>
+            </div>
+          </div>
+          <div class="d-flex col-md-8 painels">
+            <div class="col-md-6 text-center painel" id="aparecer_oradores">  
+              <h2 class="text-subtitle">Oradores</h2>  
+              <span id="orador"></span>     
+            </div>
 
-        <div class="col-md-4 text-center painel">  
-          <h2 class="text-subtitle">Cronômetros</h2>
-            <div class="text-value">
-            Discurso: <span id="cronometro_discurso"></span><br>
-            Aparte: <span id="cronometro_aparte"></span><br>
-            Questão de Ordem: <span id="cronometro_ordem"></span><br>
-            Considerações Finais: <span id="cronometro_consideracoes"></span>
+            <div class="col-md-6 text-center painel">  
+              <h2 class="text-subtitle">Cronômetros</h2>
+                <div class="text-value">
+                Discurso: <span id="cronometro_discurso"></span><br>
+                Aparte: <span id="cronometro_aparte"></span><br>
+                Questão de Ordem: <span id="cronometro_ordem"></span><br>
+                Considerações Finais: <span id="cronometro_consideracoes"></span>
+              </div>
+            </div>
+
+            <div class="col-md-6 text-center painel">      
+              <h2 class="text-subtitle">Resultado</h2>   
+                <span id="votacao" class="text-value"></span> 
+                <h2><span id="resultado_votacao" lass="text-title"></span>
+            </div>
+
+            <div class="col-md-6 text-center painel">      
+              <h2 class="text-subtitle">Matéria em Votação</h2>   
+                <span id="materia_legislativa_texto" class="text-value"></span>
+                <span id="observacao_materia" class="text-value"></span>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div class="col-md-4 text-center painel">      
-          <h2 class="text-subtitle">Resultado</h2>   
-            <span id="votacao" class="text-value"></span> 
-            <h2><span id="resultado_votacao" lass="text-title"></span>
-        </div>
-
-        <div class="col-md-4 text-center painel">      
-          <h2 class="text-subtitle">Matéria em Votação</h2>   
-            <span id="materia_legislativa_texto" class="text-value"></span>
-            <span id="observacao_materia" class="text-value"></span>
-        </div>
       </div>
   </body>
 
@@ -262,8 +270,6 @@
                   votacao.append('<span id="votacao">');
                   $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
                   votacao.append('</span>');
-
-
               }
 
               if (data['materia_legislativa_texto'] && data["status_painel"] == true){

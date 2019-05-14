@@ -17,6 +17,12 @@
 - title: {% trans 'Módulo Parlamentares' %}
   css_class: head_title
   children:
+  - title: {% trans 'Pesquisar Parlamentar' %}
+    url: sapl.parlamentares:pesquisar_parlamentar
+    css_class: btn btn-link
+  - title: {% trans  'Adicionar Parlamentar' %}
+    url: sapl.parlamentares:parlamentar_create
+    css_class: btn btn-link
   - title: {% trans 'Legislatura' %}
     url: sapl.parlamentares:legislatura_list
     css_class: btn btn-link
@@ -72,7 +78,7 @@
     url: sapl.parlamentares:frente_list
     css_class: btn btn-link
   - title: {% trans 'Bloco Parlamentar' %}
-    url: sapl.sessao:bloco_list
+    url: sapl.parlamentares:bloco_list
     css_class: btn btn-link
 - title: {% trans 'Módulo Proposições' %}
   css_class: head_title

@@ -4,8 +4,8 @@ FROM python:3.7-slim
 ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git pkg-config \
                    python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev pgadmin3 \
                    python3-lxml python3-magic postgresql-contrib postgresql-client \
-                   python3-psycopg2 poppler-utils antiword curl jq vim openssh-client bash \
-                   software-properties-common python3-setuptools python3-venv nginx tzdata nodejs 
+                   python3-psycopg2 poppler-utils vim curl jq vim openssh-client bash \
+                   software-properties-common python3-setuptools python3-venv nginx tzdata nodejs \                   
 
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -76,9 +76,11 @@ RUN rm -rf /var/interlegis/sapl/sapl/.env && \
     rm -rf /var/interlegis/sapl/sapl.db
 
 RUN chmod +x /var/interlegis/sapl/start.sh && \
+    chmod +x /var/interlegis/sapl/check_solr.sh && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
-    mkdir /var/log/sapl/
+    mkdir /var/log/sapl/ && touch /var/interlegis/sapl/sapl.log && \
+    ln -s /var/interlegis/sapl/sapl.log /var/log/sapl/sapl.log
 
 # Debian não possui usuário 'nginx' necessário para o Debian
 RUN useradd --no-create-home nginx

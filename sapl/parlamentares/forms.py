@@ -1,7 +1,7 @@
 from datetime import timedelta
 import logging
 
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib.auth import get_user_model
@@ -15,13 +15,15 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
 from image_cropping.widgets import CropWidget, ImageCropWidget
+from sapl.utils import FileFieldCheckMixin
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
+import django_filters
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Votante)
+                     Mandato, Parlamentar, Votante, Bloco)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -196,7 +198,7 @@ class LegislaturaForm(ModelForm):
         return data
 
 
-class ParlamentarForm(ModelForm):
+class ParlamentarForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = Parlamentar
@@ -209,19 +211,30 @@ class ParlamentarForm(ModelForm):
                 attrs={'id': 'texto-rico'})}
 
 
+class ParlamentarFilterSet(django_filters.FilterSet):
+    nome_parlamentar = django_filters.CharFilter(
+        label=_('Nome do Parlamentar'),
+        lookup_expr='icontains')
+
+    class Meta:
+        model = Parlamentar
+        fields = ['nome_parlamentar']
+
+    def __init__(self, *args, **kwargs):
+        super(ParlamentarFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('nome_parlamentar', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Parlamentar'),
+                     row0,
+                     form_actions(label='Pesquisar'))
+        )
+
+
 class ParlamentarCreateForm(ParlamentarForm):
-
-    legislatura = forms.ModelChoiceField(
-        label=_('Legislatura'),
-        required=True,
-        queryset=Legislatura.objects.all().order_by('-data_inicio'),
-        empty_label='----------',
-    )
-
-    data_expedicao_diploma = forms.DateField(
-        label=_('Expedição do Diploma'),
-        required=True,
-    )
 
     class Meta(ParlamentarForm.Meta):
         widgets = {
@@ -230,16 +243,24 @@ class ParlamentarCreateForm(ParlamentarForm):
                 attrs={'id': 'texto-rico'})
         }
 
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+        parlamentar = Parlamentar.objects.filter(nome_parlamentar=cleaned_data['nome_parlamentar']).exists()
+
+        if parlamentar:
+            self.logger.error('Parlamentar já cadastrado.')
+            raise ValidationError('Parlamentar já cadastrado.')
+
+        return cleaned_data
+
     @transaction.atomic
     def save(self, commit=True):
         parlamentar = super(ParlamentarCreateForm, self).save(commit)
-        legislatura = self.cleaned_data['legislatura']
-        Mandato.objects.create(
-            parlamentar=parlamentar,
-            legislatura=legislatura,
-            data_inicio_mandato=legislatura.data_inicio,
-            data_fim_mandato=legislatura.data_fim,
-            data_expedicao_diploma=self.cleaned_data['data_expedicao_diploma'])
         content_type = ContentType.objects.get_for_model(Parlamentar)
         object_id = parlamentar.pk
         tipo = TipoAutor.objects.get(content_type=content_type)
@@ -446,7 +467,7 @@ class VotanteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         row1 = to_row([('username', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Votante'),
                      row1, form_actions(label='Salvar'))
@@ -500,3 +521,100 @@ class VotanteForm(ModelForm):
         votante.user = u
         votante.save()
         return votante
+
+
+class VincularParlamentarForm(forms.Form):
+    logger = logging.getLogger(__name__)
+
+    parlamentar = forms.ModelChoiceField(
+        label=Parlamentar._meta.verbose_name,
+        queryset=Parlamentar.objects.filter(ativo=True),
+        required=True,
+        empty_label='Selecione'
+    )
+
+    legislatura = forms.ModelChoiceField(
+        label=Legislatura._meta.verbose_name,
+        queryset=Legislatura.objects.all(),
+        required=True,
+        empty_label='Selecione'
+    )
+
+    data_expedicao_diploma = forms.DateField(
+        label='Data de Expedição do Diploma',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row([
+            ('parlamentar', 6),
+            ('legislatura', 3),
+            ('data_expedicao_diploma', 3)
+        ])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Vincular Parlamentar',
+                row1,
+                form_actions(label='Vincular')
+            )
+        )
+
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+        parlamentar = cleaned_data['parlamentar']
+        legislatura = cleaned_data['legislatura']
+        data_expedicao_diploma = cleaned_data['data_expedicao_diploma']
+
+        if parlamentar.mandato_set.filter(legislatura=legislatura):
+            self.logger.error('Parlamentar já está vinculado a legislatura informada.')
+            raise ValidationError(_('Parlamentar já está vinculado a legislatura informada.'))
+        elif data_expedicao_diploma and legislatura.data_inicio <= data_expedicao_diploma:
+            self.logger.error('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.')
+            raise ValidationError(_('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.'))
+
+        return cleaned_data
+
+
+class BlocoForm(ModelForm):
+
+    class Meta:
+        model = Bloco
+        fields = ['nome', 'partidos', 'data_criacao',
+                  'data_extincao', 'descricao']
+
+    def clean(self):
+        super(BlocoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if self.cleaned_data['data_extincao']:
+            if (self.cleaned_data['data_extincao'] <
+                    self.cleaned_data['data_criacao']):
+                msg = _('Data de extinção não pode ser menor que a de criação')
+                raise ValidationError(msg)
+        return self.cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=True):
+        bloco = super(BlocoForm, self).save(commit)
+        content_type = ContentType.objects.get_for_model(Bloco)
+        object_id = bloco.pk
+        tipo = TipoAutor.objects.get(content_type=content_type)
+        Autor.objects.create(
+            content_type=content_type,
+            object_id=object_id,
+            tipo=tipo,
+            nome=bloco.nome
+        )
+        return bloco

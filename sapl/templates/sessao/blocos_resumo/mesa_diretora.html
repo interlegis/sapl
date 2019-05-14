@@ -1,9 +1,11 @@
+{% load common_tags %}
+
 <fieldset>
   <legend>Mesa Diretora</legend>
     <div class="row">
       {% for m in mesa %}
         <div class="col-md-12"><b>{{m.cargo}}:
-          </b>{{m.parlamentar.nome_parlamentar}} / {{ m.parlamentar.filiacao_atual }}
+          </b>{{m.parlamentar.nome_parlamentar}} / {% if m.parlamentar|filiacao_data_filter:object.data_inicio %} {{ m.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
         </div>
       {% endfor %}
   </div>

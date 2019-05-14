@@ -18,9 +18,12 @@ TIPO_DOCUMENTO_ADMINISTRATIVO = ((DOC_ADM_OSTENSIVO, _('Ostensiva')),
 RELATORIO_ATOS_ACESSADOS = (('S', _('Sim')),
                             ('N', _('Não')))
 
-SEQUENCIA_NUMERACAO = (('A', _('Sequencial por ano')),
+SEQUENCIA_NUMERACAO_PROTOCOLO = (('A', _('Sequencial por ano')),
                        ('L', _('Sequencial por legislatura')),
                        ('U', _('Sequencial único')))
+
+SEQUENCIA_NUMERACAO_PROPOSICAO = (('A', _('Sequencial por ano para cada autor')),
+                       ('B', _('Sequencial por ano indepententemente do autor')))
 
 ESFERA_FEDERACAO_CHOICES = (('M', _('Municipal')),
                             ('E', _('Estadual')),
@@ -95,10 +98,15 @@ class AppConfig(models.Model):
         verbose_name=_('Estatísticas de acesso a normas'),
         choices=RELATORIO_ATOS_ACESSADOS, default='N')
 
-    sequencia_numeracao = models.CharField(
+    sequencia_numeracao_proposicao = models.CharField(
         max_length=1,
-        verbose_name=_('Sequência de numeração'),
-        choices=SEQUENCIA_NUMERACAO, default='A')
+        verbose_name=_('Sequência de numeração de proposições'),
+        choices=SEQUENCIA_NUMERACAO_PROPOSICAO, default='A')
+
+    sequencia_numeracao_protocolo = models.CharField(
+        max_length=1,
+        verbose_name=_('Sequência de numeração de protocolos'),
+        choices=SEQUENCIA_NUMERACAO_PROTOCOLO, default='A')
 
     esfera_federacao = models.CharField(
         max_length=1,
@@ -159,6 +167,14 @@ class AppConfig(models.Model):
     receber_recibo_proposicao = models.BooleanField(
         verbose_name=_('Protocolar proposição somente com recibo?'),
         choices=YES_NO_CHOICES, default=True)
+
+    protocolo_manual = models.BooleanField(
+        verbose_name=_('Informar data e hora de protocolo?'),
+        choices=YES_NO_CHOICES, default=False)
+
+    escolher_numero_materia_proposicao = models.BooleanField(
+        verbose_name=_('Indicar número da matéria a ser gerada na proposição?'),
+        choices=YES_NO_CHOICES, default=False)
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')

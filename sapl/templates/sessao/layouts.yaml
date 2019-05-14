@@ -39,6 +39,12 @@ OradorExpediente:
   - url_discurso observacao
   - upload_anexo
 
+OradorOrdemDia:
+  {% trans 'Orador da Ordem do Dia' %}:
+  - numero_ordem parlamentar
+  - url_discurso observacao
+  - upload_anexo
+  
 ExpedienteMateria:
   {% trans 'Matéria do Expediente' %}:
   - data_ordem numero_ordem
@@ -77,13 +83,6 @@ Bancada:
 CargoBancada:
   {% trans 'Cargo de Bancada' %}:
   - nome_cargo:8 cargo_unico
-
-Bloco:
-  {% trans 'Bloco' %}:
-  - nome
-  - data_criacao data_extincao
-  - partidos
-  - descricao
 
 TipoJustificativa:
   {% trans 'Tipo de Justificativa' %}:

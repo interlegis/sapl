@@ -52,6 +52,35 @@ def form_actions(more=[Div(css_class='clearfix')],
     )
 
 
+class SaplFormHelper(FormHelper):
+    render_hidden_fields = True  # default = False
+    """
+    até a release 1.6.1 do django-crispy-forms, os fields em Meta.Fields eram 
+    renderizados mesmo se não mencionados no helper.
+    Com esta mudança (https://github.com/django-crispy-forms/django-crispy-forms/commit/6b93e8a362422db8fe54aa731319c7cbc39990ba)
+    render_hidden_fields foi adicionado uma condição em que a cada
+    instância do Helper, fosse decidido se os fields não mencionados serião ou
+    não renderizados... 
+    O Sapl até este commit: https://github.com/interlegis/sapl/commit/22b87f36ebc8659a6ecaf8831ab0f425206b0993
+    utilizou o django-crispy-forms na versão 1.6.1, ou seja,
+    sem a condição render_hidden_fields o que fazia o FormHelper, na 1.6.1 
+    set comportar como se, agora, na 1.7.2 o default fosse True.
+    Como todos os Forms do Sapl foram construídos assumindo que fields 
+    não incluídos explicitamente no Helper, o helper o incluiria implicitamente,
+    e assim o era, de acordo com commit acima do django-crispy-forms, então
+    cria-se essa classe:
+    
+        class SaplFormHelper(FormHelper):
+            render_hidden_fields = True 
+    
+    onde torna o default, antes False, agora = True, o esperado pelos forms do sapl,
+    e substituí-se todos os FormHelper por SaplFormHelper dentro do projeto Sapl
+    
+    
+    esta explicação ficará aqui dentro do código, via commit, e na issue #2456.
+    """
+
+
 class SaplFormLayout(Layout):
 
     def __init__(self, *fields, cancel_label=_('Cancelar'),
@@ -137,6 +166,7 @@ def get_field_display(obj, fieldname):
             value)
     elif 'TextField' in str_type_from_field:
         display = value.replace('\n', '<br/>')
+        display = '<div class="dont-break-out">{}</div>'.format(display)
     else:
         display = str(value)
     return verbose_name, display
@@ -188,8 +218,11 @@ class CrispyLayoutFormMixin:
             pass
         else:
             if self.layout_key:
-                form.helper = FormHelper()
-                form.helper.layout = SaplFormLayout(*self.get_layout())
+                form.helper = SaplFormHelper()
+                layout = self.get_layout()
+
+                form.helper.layout = SaplFormLayout(*layout)
+
             return form
 
     @property

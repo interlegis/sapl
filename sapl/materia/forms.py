@@ -3,7 +3,6 @@ import logging
 import os
 
 from crispy_forms.bootstrap import Alert, InlineRadios
-from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row)
 from django import forms
@@ -26,26 +25,28 @@ import django_filters
 
 import sapl
 from sapl.base.models import AppConfig, Autor, TipoAutor
-from sapl.comissoes.models import Comissao
+from sapl.comissoes.models import Comissao, Participacao, Composicao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  MateriaLegislativa, Orgao, RegimeTramitacao,
                                  TipoDocumento, TipoProposicao, StatusTramitacao,
                                  UnidadeTramitacao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
-from sapl.parlamentares.models import Legislatura, Partido
-from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
+from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
+from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo, Anexado
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
                         ChoiceWithoutValidationField,
                         MateriaPesquisaOrderingFilter, RangeWidgetOverride,
                         autor_label, autor_modal, gerar_hash_arquivo,
                         models_with_gr_for_model, qs_override_django_filter,
-                        choice_anos_com_materias, FilterOverridesMetaMixin)
+                        choice_anos_com_materias, FilterOverridesMetaMixin, FileFieldCheckMixin,
+                        lista_anexados)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -76,7 +77,7 @@ class AdicionarVariasAutoriasFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('nome', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Filtrar Autores'),
@@ -112,7 +113,7 @@ class ReceberProposicaoForm(Form):
 
     def __init__(self, *args, **kwargs):
         row1 = to_row([('cod_hash', 12)])
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Incorporar Proposição'), row1,
@@ -122,7 +123,7 @@ class ReceberProposicaoForm(Form):
         super(ReceberProposicaoForm, self).__init__(*args, **kwargs)
 
 
-class MateriaSimplificadaForm(ModelForm):
+class MateriaSimplificadaForm(FileFieldCheckMixin, ModelForm):
 
     logger = logging.getLogger(__name__)
 
@@ -145,7 +146,7 @@ class MateriaSimplificadaForm(ModelForm):
         row4 = to_row([('ementa', 12)])
         row5 = to_row([('texto_original', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Formulário Simplificado'),
@@ -175,7 +176,7 @@ class MateriaSimplificadaForm(ModelForm):
         return cleaned_data
 
 
-class MateriaLegislativaForm(ModelForm):
+class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
     logger = logging.getLogger(__name__)
 
@@ -204,7 +205,7 @@ class MateriaLegislativaForm(ModelForm):
                                                         widget=forms.HiddenInput())
             self.fields['autor'] = forms.CharField(required=False,
                                                    widget=forms.HiddenInput())
-            if kwargs['instance'].numero_protocolo:
+            if kwargs['instance'].numero_protocolo and Protocolo.objects.filter(numero=kwargs['instance'].numero_protocolo, ano=kwargs['instance'].ano).exists():
                 self.fields['numero_protocolo'].widget.attrs['readonly'] = True
 
     def clean(self):
@@ -340,22 +341,20 @@ class AcompanhamentoMateriaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row([('email', 10)])
+        row1 = to_row([('email', 12)])
 
-        row1.append(
-            Column(form_actions(label='Cadastrar'), css_class='col-md-2')
-        )
-
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                _('Acompanhamento de Matéria por e-mail'), row1
+                _('Acompanhamento de Matéria por e-mail'),
+                row1,
+                form_actions(label='Cadastrar')
             )
         )
         super(AcompanhamentoMateriaForm, self).__init__(*args, **kwargs)
 
 
-class DocumentoAcessorioForm(ModelForm):
+class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
     data = forms.DateField(required=True)
 
     class Meta:
@@ -364,38 +363,82 @@ class DocumentoAcessorioForm(ModelForm):
 
 
 class RelatoriaForm(ModelForm):
-
     logger = logging.getLogger(__name__)
+
+    composicao = forms.ModelChoiceField(
+        required=True,
+        empty_label='---------',
+        queryset=Composicao.objects.all(),
+        label=_('Composição')
+    )
 
     class Meta:
         model = Relatoria
-        fields = ['data_designacao_relator', 'comissao', 'parlamentar',
-                  'data_destituicao_relator', 'tipo_fim_relatoria']
+        fields = [
+            'comissao',
+            'data_designacao_relator',
+            'data_destituicao_relator',
+            'tipo_fim_relatoria',
+            'composicao',
+            'parlamentar'
+        ]
 
         widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
 
     def __init__(self, *args, **kwargs):
-        super(RelatoriaForm, self).__init__(*args, **kwargs)
+        row1 = to_row([('comissao', 12)])
+        row2 = to_row([('data_designacao_relator', 4),
+                       ('data_destituicao_relator', 4),
+                       ('tipo_fim_relatoria', 4)])
+        row3 = to_row([('composicao', 4),
+                       ('parlamentar', 8)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Relatoria'), row1, row2, row3))
+
+        super().__init__(*args, **kwargs)
+        comissao_pk = kwargs['initial']['comissao']
+        composicoes = Composicao.objects.filter(comissao_id=comissao_pk)
+        self.fields['composicao'].choices = [('', '---------')] + \
+                                            [(c.pk, c) for c in composicoes]
+
+        # UPDATE
+        if self.initial.get('composicao') and self.initial.get('parlamentar'):
+            parlamentares = [(p.parlamentar.id, p.parlamentar) for p in
+                             Participacao.objects.filter(composicao__comissao_id=comissao_pk,
+                                                         composicao_id=self.initial['composicao'])]
+
+            self.fields['parlamentar'].choices = [
+                ('', '---------')] + parlamentares
+        # INSERT
+        else:
+            self.fields['parlamentar'].choices = [('', '---------')]
 
     def clean(self):
-        super(RelatoriaForm, self).clean()
-
-        if not self.is_valid():
-            return self.cleaned_data
+        super().clean()
 
         cleaned_data = self.cleaned_data
+
+        if not self.is_valid():
+            return cleaned_data
 
         try:
             self.logger.debug("Tentando obter objeto Comissao.")
             comissao = Comissao.objects.get(id=self.initial['comissao'])
         except ObjectDoesNotExist as e:
-            self.logger.error("Objeto Comissao não encontrado com id={} "
-                              ".A localização atual deve ser uma comissão. "
-                              .format(self.initial['comissao']) + str(e))
+            self.logger.error(
+                "Objeto Comissao não encontrado com id={}. A localização atual deve ser uma comissão. ".format(
+                    self.initial['comissao']) + str(e))
             msg = _('A localização atual deve ser uma comissão.')
             raise ValidationError(msg)
         else:
             cleaned_data['comissao'] = comissao
+
+        if cleaned_data['data_designacao_relator'] < cleaned_data['composicao'].periodo.data_inicio \
+                or cleaned_data['data_designacao_relator'] > cleaned_data['composicao'].periodo.data_fim:
+            raise ValidationError(
+                _('Data de designação deve estar dentro do período da composição.'))
 
         return cleaned_data
 
@@ -419,11 +462,23 @@ class TramitacaoForm(ModelForm):
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
                   'data_fim_prazo',
-                  'texto']
+                  'texto',
+                  'user',
+                  'ip']
+        widgets = {'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()}
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
         self.fields['data_tramitacao'].initial = timezone.now().date()
+        ust = UnidadeTramitacao.objects.select_related().all()
+        unidade_tramitacao_destino = [('', '---------')] + [(ut.pk, ut)
+                                                            for ut in ust if ut.comissao and ut.comissao.ativa]
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.orgao])
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.parlamentar])
+        self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
 
     def clean(self):
         super(TramitacaoForm, self).clean()
@@ -495,6 +550,49 @@ class TramitacaoForm(ModelForm):
 
         return cleaned_data
 
+    @transaction.atomic
+    def save(self, commit=True):
+        tramitacao = super(TramitacaoForm, self).save(commit)
+        materia = tramitacao.materia
+        materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+        materia.save()
+
+        lista_tramitacao = []
+        lista_anexadas = lista_anexados(materia)
+        for ma in lista_anexadas:
+            if not ma.tramitacao_set.all() \
+                    or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+                ma.save()
+                lista_tramitacao.append(Tramitacao(
+                                            status=tramitacao.status,
+                                            materia=ma,
+                                            data_tramitacao=tramitacao.data_tramitacao,
+                                            unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                                            data_encaminhamento=tramitacao.data_encaminhamento,
+                                            unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                                            urgente=tramitacao.urgente,
+                                            turno=tramitacao.turno,
+                                            texto=tramitacao.texto,
+                                            data_fim_prazo=tramitacao.data_fim_prazo,
+                                            user=tramitacao.user,
+                                            ip=tramitacao.ip
+                                        ))
+        Tramitacao.objects.bulk_create(lista_tramitacao)
+
+        return tramitacao
+
+
+# Compara se os campos de duas tramitações são iguais, 
+# exceto os campos id, documento_id e timestamp
+def compara_tramitacoes_mat(tramitacao1, tramitacao2):
+    if not tramitacao1 or not tramitacao2:
+        return False
+
+    lst_items = ['id', 'materia_id', 'timestamp']
+    values = [(k,v) for k,v in tramitacao1.__dict__.items() if ((k not in lst_items) and (k[0] != '_'))]
+    other_values = [(k,v) for k,v in tramitacao2.__dict__.items() if (k not in lst_items and k[0] != '_')]
+    return values == other_values
 
 class TramitacaoUpdateForm(TramitacaoForm):
     unidade_tramitacao_local = forms.ModelChoiceField(
@@ -516,11 +614,15 @@ class TramitacaoUpdateForm(TramitacaoForm):
                   'data_encaminhamento',
                   'data_fim_prazo',
                   'texto',
+                  'user',
+                  'ip'
                   ]
 
         widgets = {
             'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
             'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput()
         }
 
     def clean(self):
@@ -529,33 +631,73 @@ class TramitacaoUpdateForm(TramitacaoForm):
         if not self.is_valid():
             return self.cleaned_data
 
+        cd = self.cleaned_data
+        obj = self.instance
+
         ultima_tramitacao = Tramitacao.objects.filter(
-            materia_id=self.instance.materia_id).order_by(
+            materia_id=obj.materia_id).order_by(
             '-data_tramitacao',
             '-id').first()
 
         # Se a Tramitação que está sendo editada não for a mais recente,
         # ela não pode ter seu destino alterado.
-        if ultima_tramitacao != self.instance:
-            if self.cleaned_data['unidade_tramitacao_destino'] != \
-                    self.instance.unidade_tramitacao_destino:
+        if ultima_tramitacao != obj:
+            if cd['unidade_tramitacao_destino'] != \
+                    obj.unidade_tramitacao_destino:
                 self.logger.error("Você não pode mudar a Unidade de Destino desta "
                                   "tramitação para {}, pois irá conflitar com a Unidade "
                                   "Local da tramitação seguinte ({})."
-                                  .format(self.cleaned_data['unidade_tramitacao_destino'],
-                                          self.instance.unidade_tramitacao_destino))
+                                  .format(cd['unidade_tramitacao_destino'],
+                                          obj.unidade_tramitacao_destino))
                 raise ValidationError(
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
+        
+        # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
+        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
+           cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
+           cd['status'] != obj.status or cd['texto'] != obj.texto or \
+           cd['data_encaminhamento'] != obj.data_encaminhamento or \
+           cd['data_fim_prazo'] != obj.data_fim_prazo or \
+           cd['urgente'] != obj.urgente or \
+           cd['turno'] != obj.turno):
+            cd['user'] = obj.user
+            cd['ip'] = obj.ip
 
-        self.cleaned_data['data_tramitacao'] = \
-            self.instance.data_tramitacao
-        self.cleaned_data['unidade_tramitacao_local'] = \
-            self.instance.unidade_tramitacao_local
+        cd['data_tramitacao'] = obj.data_tramitacao
+        cd['unidade_tramitacao_local'] = obj.unidade_tramitacao_local
 
-        return self.cleaned_data
+        return cd
 
+    @transaction.atomic
+    def save(self, commit=True):
+        ant_tram_principal = Tramitacao.objects.get(id=self.instance.id)
+        nova_tram_principal = super(TramitacaoUpdateForm, self).save(commit)
+        materia = nova_tram_principal.materia
+        materia.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+        materia.save()
+
+        lista_anexadas = lista_anexados(materia)
+        for ma in lista_anexadas:
+            tram_anexada = ma.tramitacao_set.last()
+            if compara_tramitacoes_mat(ant_tram_principal, tram_anexada):
+                tram_anexada.status = nova_tram_principal.status
+                tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
+                tram_anexada.unidade_tramitacao_local = nova_tram_principal.unidade_tramitacao_local
+                tram_anexada.data_encaminhamento = nova_tram_principal.data_encaminhamento
+                tram_anexada.unidade_tramitacao_destino = nova_tram_principal.unidade_tramitacao_destino
+                tram_anexada.urgente = nova_tram_principal.urgente
+                tram_anexada.turno = nova_tram_principal.turno
+                tram_anexada.texto = nova_tram_principal.texto
+                tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
+                tram_anexada.user = nova_tram_principal.user
+                tram_anexada.ip = nova_tram_principal.ip
+                tram_anexada.save()
+
+                ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+                ma.save()
+        return nova_tram_principal
 
 class LegislacaoCitadaForm(ModelForm):
 
@@ -710,7 +852,7 @@ class AnexadaForm(ModelForm):
         empty_label='Selecione',
     )
 
-    numero = forms.CharField(label='Número', required=True)
+    numero = forms.IntegerField(label='Número', required=True)
 
     ano = forms.CharField(label='Ano', required=True)
 
@@ -726,6 +868,13 @@ class AnexadaForm(ModelForm):
 
         cleaned_data = self.cleaned_data
 
+        data_anexacao = cleaned_data['data_anexacao']
+        data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
+
+        if data_anexacao > data_desanexacao:
+            self.logger.error("Data de anexação posterior à data de desanexação.")
+            raise ValidationError(_("Data de anexação posterior à data de desanexação."))
+
         try:
             self.logger.info("Tentando obter objeto MateriaLegislativa (numero={}, ano={}, tipo={})."
                              .format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
@@ -734,8 +883,8 @@ class AnexadaForm(ModelForm):
                 ano=cleaned_data['ano'],
                 tipo=cleaned_data['tipo'])
         except ObjectDoesNotExist:
-            msg = _('A MateriaLegislativa a ser anexada (numero={}, ano={}, tipo={}) não existe no cadastro'
-                    ' de matérias legislativas.'.format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            msg = _('A {} {}/{} não existe no cadastro de matérias legislativas.'
+                    .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
             self.logger.error("A matéria a ser anexada não existe no cadastro"
                               " de matérias legislativas.")
             raise ValidationError(msg)
@@ -745,12 +894,34 @@ class AnexadaForm(ModelForm):
             self.logger.error("Matéria não pode ser anexada a si mesma.")
             raise ValidationError(_('Matéria não pode ser anexada a si mesma'))
 
-        is_anexada = Anexada.objects.filter(materia_principal=materia_principal,
-                                            materia_anexada=materia_anexada
-                                            ).exists()
+        is_anexada = Anexada.objects.filter(
+            materia_principal=materia_principal,
+            materia_anexada=materia_anexada
+        ).exclude(pk=self.instance.pk).exists()
+
         if is_anexada:
             self.logger.error("Matéria já se encontra anexada.")
             raise ValidationError(_('Matéria já se encontra anexada'))
+        
+        ciclico = False
+        anexadas_anexada = Anexada.objects.filter(materia_principal=materia_anexada)
+
+        while anexadas_anexada and not ciclico:
+            anexadas = []
+
+            for anexa in anexadas_anexada:
+
+                if materia_principal == anexa.materia_anexada:
+                    ciclico = True
+                else: 
+                    for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
+                        anexadas.append(a)
+
+            anexadas_anexada = anexadas
+        
+        if ciclico:
+            self.logger.error("A matéria não pode ser anexada por uma de suas anexadas.")
+            raise ValidationError(_("A matéria não pode ser anexada por uma de suas anexadas."))
 
         cleaned_data['materia_anexada'] = materia_anexada
 
@@ -896,7 +1067,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                 ('tipo_listagem', 4)
             ])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa Básica'),
@@ -1016,7 +1187,7 @@ class AutoriaForm(ModelForm):
                        ('autor', 4),
                        ('primeiro_autor', 4)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Autoria'),
                      row1, 'data_relativa', form_actions(label='Salvar')))
@@ -1077,7 +1248,7 @@ class AutoriaMultiCreateForm(Form):
 
         row2 = to_row([('autor', 12), ])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 _('Autorias'), row1, row2, 'data_relativa', 'autores',
@@ -1117,10 +1288,32 @@ class AcessorioEmLoteFilterSet(django_filters.FilterSet):
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data_apresentacao', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Documentos Acessórios em Lote'),
+                     row1, row2, form_actions(label='Pesquisar')))
+
+
+class AnexadaEmLoteFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = MateriaLegislativa
+        fields = ['tipo', 'data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super(AnexadaEmLoteFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data_apresentacao', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Matérias'),
                      row1, row2, form_actions(label='Pesquisar')))
 
 
@@ -1142,7 +1335,7 @@ class PrimeiraTramitacaoEmLoteFilterSet(django_filters.FilterSet):
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data_apresentacao', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Primeira Tramitação'),
@@ -1177,7 +1370,7 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
             ('tramitacao__status', 4)])
         row2 = to_row([('data_apresentacao', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitação em Lote'),
@@ -1241,7 +1434,7 @@ class TipoProposicaoForm(ModelForm):
             )
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(tipo_select)
 
         super(TipoProposicaoForm, self).__init__(*args, **kwargs)
@@ -1331,7 +1524,7 @@ class TipoProposicaoSelect(Select):
         return option
 
 
-class ProposicaoForm(forms.ModelForm):
+class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
     logger = logging.getLogger(__name__)
 
@@ -1368,6 +1561,9 @@ class ProposicaoForm(forms.ModelForm):
         widget=widgets.HiddenInput(),
         required=False)
 
+    numero_materia_futuro = forms.IntegerField(
+        label='Número (Opcional)', required=False)
+
     class Meta:
         model = Proposicao
         fields = ['tipo',
@@ -1381,7 +1577,8 @@ class ProposicaoForm(forms.ModelForm):
                   'numero_materia',
                   'ano_materia',
                   'tipo_texto',
-                  'hash_code']
+                  'hash_code',
+                  'numero_materia_futuro']
 
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
@@ -1389,10 +1586,10 @@ class ProposicaoForm(forms.ModelForm):
             'hash_code': forms.HiddenInput(), }
 
     def __init__(self, *args, **kwargs):
-        self.texto_articulado_proposicao = sapl.base.models.AppConfig.attr(
+        self.texto_articulado_proposicao = AppConfig.attr(
             'texto_articulado_proposicao')
 
-        self.receber_recibo = sapl.base.models.AppConfig.attr(
+        self.receber_recibo = AppConfig.attr(
             'receber_recibo_proposicao')
 
         if not self.texto_articulado_proposicao:
@@ -1414,6 +1611,12 @@ class ProposicaoForm(forms.ModelForm):
 
         ]
 
+        if AppConfig.objects.last().escolher_numero_materia_proposicao:
+            fields.append(to_column(('numero_materia_futuro', 12)),)
+        else:
+            if 'numero_materia_futuro' in self._meta.fields:
+                self._meta.fields.remove('numero_materia_futuro')
+
         if self.texto_articulado_proposicao:
             fields.append(
                 to_column((InlineRadios('tipo_texto'), 5)),)
@@ -1431,7 +1634,7 @@ class ProposicaoForm(forms.ModelForm):
                                 ('ano_materia', 6)]),
                     ), 12)),
         )
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(*fields)
 
         super(ProposicaoForm, self).__init__(*args, **kwargs)
@@ -1490,6 +1693,15 @@ class ProposicaoForm(forms.ModelForm):
                       cd.get('ano_materia', ''),
                       cd.get('numero_materia', ''))
 
+        if cd['numero_materia_futuro'] and \
+                'tipo' in cd and \
+                MateriaLegislativa.objects.filter(tipo=cd['tipo'].tipo_conteudo_related,
+                                                  ano=timezone.now().year,
+                                                  numero=cd['numero_materia_futuro']):
+            raise ValidationError(_("A matéria {} {}/{} já existe.".format(cd['tipo'].tipo_conteudo_related.descricao,
+                                                                           cd['numero_materia_futuro'],
+                                                                           timezone.now().year)))
+
         if tm and am and nm:
             try:
                 self.logger.debug("Tentando obter objeto MateriaLegislativa (tipo_id={}, ano={}, numero={})."
@@ -1532,12 +1744,17 @@ class ProposicaoForm(forms.ModelForm):
             return super().save(commit)
 
         inst.ano = timezone.now().year
-        numero__max = Proposicao.objects.filter(
-            autor=inst.autor,
-            ano=timezone.now().year).aggregate(Max('numero_proposicao'))
+        sequencia_numeracao = AppConfig.attr('sequencia_numeracao_proposicao')
+        if sequencia_numeracao == 'A':
+            numero__max = Proposicao.objects.filter(
+                autor=inst.autor,
+                ano=timezone.now().year).aggregate(Max('numero_proposicao'))
+        elif sequencia_numeracao == 'B':
+            numero__max = Proposicao.objects.filter(
+                ano=timezone.now().year).aggregate(Max('numero_proposicao'))
         numero__max = numero__max['numero_proposicao__max']
         inst.numero_proposicao = (
-            numero__max + 1) if numero__max else 1
+                numero__max + 1) if numero__max else 1
 
         self.gerar_hash(inst, receber_recibo)
 
@@ -1579,7 +1796,7 @@ class DevolverProposicaoForm(forms.ModelForm):
             )
         )
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(*fields)
 
     def clean(self):
@@ -1634,7 +1851,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         required=False, widget=widgets.TextInput(
             attrs={'readonly': 'readonly'}))
 
-    regime_tramitacao = forms.ModelChoiceField(
+    regime_tramitacao = forms.ModelChoiceField(label="Regime de tramitação",
         required=False, queryset=RegimeTramitacao.objects.all())
 
     gerar_protocolo = forms.ChoiceField(
@@ -1654,21 +1871,20 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             'descricao',
             'observacao',
             'gerar_protocolo',
-            'numero_de_paginas'
+            'numero_de_paginas',
+            'numero_materia_futuro'
         ]
         widgets = {
             'descricao': widgets.Textarea(
                 attrs={'readonly': 'readonly', 'rows': 4}),
             'data_envio':  widgets.DateTimeInput(
                 attrs={'readonly': 'readonly'}),
-
         }
 
     def __init__(self, *args, **kwargs):
 
         self.proposicao_incorporacao_obrigatoria = \
-            sapl.base.models.AppConfig.attr(
-                'proposicao_incorporacao_obrigatoria')
+            AppConfig.attr('proposicao_incorporacao_obrigatoria')
 
         if self.proposicao_incorporacao_obrigatoria != 'C':
             if 'gerar_protocolo' in self._meta.fields:
@@ -1700,20 +1916,30 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         # esta chamada isola o __init__ de ProposicaoForm
         super(ProposicaoForm, self).__init__(*args, **kwargs)
 
+        if self.instance.tipo.content_type.model_class() ==\
+                TipoMateriaLegislativa:
+            self.fields['regime_tramitacao'].required = True
+
         fields = [
             Fieldset(
                 _('Dados Básicos'),
                 to_row(
                     [
-                        ('tipo_readonly', 4),
+                        ('tipo_readonly', 3),
                         ('data_envio', 3),
-                        ('autor_readonly', 5),
+                        ('autor_readonly', 3),
+                        ('numero_materia_futuro', 3),
                         ('descricao', 12),
                         ('observacao', 12)
                     ]
                 )
             )
         ]
+
+        if not AppConfig.objects.last().escolher_numero_materia_proposicao or \
+           not self.instance.numero_materia_futuro:
+            if 'numero_materia_futuro' in self._meta.fields:
+                del fields[0][0][3]
 
         fields.append(
             Fieldset(
@@ -1762,11 +1988,13 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         fields.append(
             Fieldset(_('Registro de Incorporação'), Row(*itens_incorporacao)))
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(*fields)
 
         self.fields['tipo_readonly'].initial = self.instance.tipo.descricao
         self.fields['autor_readonly'].initial = str(self.instance.autor)
+        if self.instance.numero_materia_futuro:
+            self.fields['numero_materia_futuro'].initial = self.instance.numero_materia_futuro
 
         if self.instance.materia_de_vinculo:
             self.fields[
@@ -1788,7 +2016,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+        numeracao = AppConfig.attr('sequencia_numeracao_proposicao')
 
         if not numeracao:
             self.logger.error("A sequência de numeração (por ano ou geral)"
@@ -1865,8 +2093,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             try:
                 self.logger.debug(
                     "Tentando obter modelo de sequência de numeração.")
-                numeracao = sapl.base.models.AppConfig.objects.last(
-                ).sequencia_numeracao
+                numeracao = AppConfig.objects.last(
+                ).sequencia_numeracao_protocolo
             except AttributeError as e:
                 self.logger.error("Erro ao obter modelo. " + str(e))
                 pass
@@ -1892,12 +2120,16 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             elif numeracao == 'U':
                 numero = MateriaLegislativa.objects.filter(
                     tipo=tipo).aggregate(Max('numero'))
-
             if numeracao is None:
                 numero['numero__max'] = 0
 
-            max_numero = numero['numero__max'] + \
-                1 if numero['numero__max'] else 1
+            if cd['numero_materia_futuro'] and not MateriaLegislativa.objects.filter(tipo=tipo,
+                                                                                     ano=ano,
+                                                                                     numero=cd['numero_materia_futuro']):
+                max_numero = cd['numero_materia_futuro']
+            else:
+                max_numero = numero['numero__max'] + \
+                    1 if numero['numero__max'] else 1
 
             # dados básicos
             materia = MateriaLegislativa()
@@ -2013,7 +2245,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         GenericForeignKey
         """
 
-        numeracao = sapl.base.models.AppConfig.attr('sequencia_numeracao')
+        numeracao = AppConfig.attr('sequencia_numeracao_protocolo')
         if numeracao == 'A':
             nm = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))
@@ -2118,7 +2350,7 @@ class EtiquetaPesquisaForm(forms.Form):
             [('processo_inicial', 6),
              ('processo_final', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Formulário de Etiqueta'),
@@ -2203,7 +2435,7 @@ class FichaPesquisaForm(forms.Form):
              ('data_inicial', 3),
              ('data_final', 3)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Formulário de Ficha'),
@@ -2244,7 +2476,7 @@ class FichaSelecionaForm(forms.Form):
         row1 = to_row(
             [('materia', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
                 ('Selecione a ficha que deseja imprimir'),
@@ -2314,7 +2546,7 @@ class ExcluirTramitacaoEmLote(forms.Form):
             [('unidade_tramitacao_local', 6),
              ('unidade_tramitacao_destino', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Dados das Tramitações'),
                      row1,
@@ -2323,3 +2555,74 @@ class ExcluirTramitacaoEmLote(forms.Form):
                      form_actions(label='Excluir')
                      )
         )
+
+
+class MateriaPesquisaSimplesForm(forms.Form):
+    tipo_materia = forms.ModelChoiceField(
+        label=TipoMateriaLegislativa._meta.verbose_name,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        required=False,
+        empty_label='Selecione')
+
+    data_inicial = forms.DateField(
+        label='Data Inicial',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    data_final = forms.DateField(
+        label='Data Final',
+        required=False,
+        widget=forms.DateInput(format='%d/%m/%Y')
+    )
+
+    titulo = forms.CharField(
+        label='Título do Relatório',
+        required=False,
+        max_length=150)
+
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('tipo_materia', 6),
+             ('data_inicial', 3),
+             ('data_final', 3)])
+
+        row2 = to_row(
+            [('titulo', 12)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Índice de Materias',
+                row1, row2,
+                form_actions(label='Pesquisar')
+            )
+        )
+
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+        data_inicial = cleaned_data['data_inicial']
+        data_final = cleaned_data['data_final']
+
+        if data_inicial or data_final:
+            if not (data_inicial and data_final):
+                self.logger.error("Caso pesquise por data, os campos de Data Inicial e "
+                                  "Data Final devem ser preenchidos obrigatoriamente")
+                raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e '
+                                        'Data Final devem ser preenchidos obrigatoriamente'))
+            elif data_inicial > data_final:
+                self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(
+                    data_final, data_inicial))
+                raise ValidationError(
+                    _('A Data Final não pode ser menor que a Data Inicial'))
+
+        return cleaned_data

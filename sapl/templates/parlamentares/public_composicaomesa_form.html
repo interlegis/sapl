@@ -31,7 +31,7 @@
     </div>
 	</fieldset>
 	<br />
-	<fieldset class="form-group">
+	<fieldset class="form-group lista-parlamentares">
 		<legend>Composição da Mesa Diretora</legend>
 		<table id="tabela-composicao" class="table table-striped table-hover table-link-ordering">
 		  <thead>
@@ -46,7 +46,10 @@
       	{% for p in composicao_mesa %}
 					<tr>
 						{% if p.parlamentar.fotografia %}
-							<td><img class="avatar-parlamentar" src="{% cropped_thumbnail p.parlamentar "cropping" %}"></td>
+							<td>
+                <div id="w-100">
+                  <img class="img-fluid img-thumbnail" src="{% cropped_thumbnail p.parlamentar "cropping"%}">
+                </div>
 						{% else %}
 							<td></td>
 						{% endif %}
@@ -70,7 +73,7 @@
 //##############################################################
 function retorna_imagem(url){
     if (url != null){
-        image_component = '<img class="avatar-parlamentar" src="' + url + '">'
+        image_component = '<img class="img-fluid img-thumbnail" src="' + url + '">'
         return image_component
     }
 
@@ -113,7 +116,7 @@ function altera_field(id_legislatura, id_sessao=null){
 
           // Atualiza a tabela de composição
           for (i = 0; i < lista_parlamentares.length; i++) {
-              $("#tabela-composicao tbody").append('<tr> <td>' + retorna_imagem(lista_fotos[i]) +'</td> <td><a href="/parlamentar/' + lista_parlamentares[i][0] + '">' + lista_parlamentares[i][1] + '</a></td> <td>' + lista_partidos[i] + '</td> <td>'+ lista_cargos[i][1] + '</td> </tr>');
+              $("#tabela-composicao tbody").append('<tr> <td> <div class="w-100">' + retorna_imagem(lista_fotos[i]) +' </div> </td> <td><a href="/parlamentar/' + lista_parlamentares[i][0] + '">' + lista_parlamentares[i][1] + '</a></td> <td>' + lista_partidos[i] + '</td> <td>'+ lista_cargos[i][1] + '</td> </tr>');
           }
 
           // Garante que a Sessão atual será a selecionada previamente e, no caso em que

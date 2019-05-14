@@ -10,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 
-from sapl.base.models import SEQUENCIA_NUMERACAO, Autor
+from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TextoArticulado)
@@ -18,7 +18,7 @@ from sapl.parlamentares.models import Parlamentar
 #from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
-                        texto_upload_path)
+                        texto_upload_path, get_settings_auth_user_model)
 
 
 EM_TRAMITACAO = [(1, 'Sim'),
@@ -78,8 +78,37 @@ class TipoProposicao(models.Model):
         return self.descricao
 
 
+class TipoMateriaManager(models.Manager):
+
+    def reordene(self, exclude_pk=None):
+        tipos = self.get_queryset()
+        if exclude_pk:
+            tipos = tipos.exclude(pk=exclude_pk)
+        for sr, t in enumerate(tipos, 1):
+            t.sequencia_regimental = sr
+            t.save()
+
+    def reposicione(self, pk, idx):
+        tipos = self.reordene(exclude_pk=pk)
+
+        self.get_queryset(
+        ).filter(
+            sequencia_regimental__gte=idx
+        ).update(
+            sequencia_regimental=models.F('sequencia_regimental') + 1
+        )
+
+        self.get_queryset(
+        ).filter(
+            pk=pk
+        ).update(
+            sequencia_regimental=idx
+        )
+
+
 @reversion.register()
 class TipoMateriaLegislativa(models.Model):
+    objects = TipoMateriaManager()
     sigla = models.CharField(max_length=5, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição '))
     # XXX o que é isso ?
@@ -99,12 +128,19 @@ class TipoMateriaLegislativa(models.Model):
         max_length=1,
         blank=True,
         verbose_name=_('Sequência de numeração'),
-        choices=SEQUENCIA_NUMERACAO)
+        choices=SEQUENCIA_NUMERACAO_PROTOCOLO)
+
+    sequencia_regimental = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_('Sequência Regimental'),
+        help_text=_('A sequência regimental diz respeito ao que define '
+                    'o regimento da Casa Legislativa sobre qual a ordem '
+                    'de entrada das proposições nas Sessões Plenárias.'))
 
     class Meta:
         verbose_name = _('Tipo de Matéria Legislativa')
         verbose_name_plural = _('Tipos de Matérias Legislativas')
-        ordering = ['descricao']
+        ordering = ['sequencia_regimental', 'descricao']
 
     def __str__(self):
         return self.descricao
@@ -461,6 +497,7 @@ class DocumentoAcessorio(models.Model):
     arquivo = models.FileField(
         blank=True,
         null=True,
+        max_length=255,
         upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
         validators=[restringe_tipos_de_arquivo_txt])
@@ -630,10 +667,15 @@ class Relatoria(models.Model):
         verbose_name_plural = _('Relatorias')
 
     def __str__(self):
-        return _('%(materia)s - %(tipo)s - %(data)s') % {
+        if self.tipo_fim_relatoria:
+            return _('%(materia)s - %(tipo)s - %(data)s') % {
+                'materia': self.materia,
+                'tipo': self.tipo_fim_relatoria,
+                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}  
+        else:
+            return _('%(materia)s - %(data)s') % {
             'materia': self.materia,
-            'tipo': self.tipo_fim_relatoria,
-            'data': self.data_designacao_relator}
+            'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
 
 
 @reversion.register()
@@ -686,6 +728,9 @@ class Proposicao(models.Model):
 
     numero_proposicao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Número'))
+
+    numero_materia_futuro = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Número Matéria'))
 
     hash_code = models.CharField(verbose_name=_('Código do Documento'),
                                  max_length=200,
@@ -917,7 +962,8 @@ class Tramitacao(models.Model):
         ('B', 'primeira_votacao', _('1ª Votação')),
         ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
         ('D', 'deliberacao', _('Deliberação')),
-        ('E', 'primeira_segunda_votacao_urgencia', _('1ª e 2ª votações em regime de urgência'))
+        ('E', 'primeira_segunda_votacao_urgencia', _(
+            '1ª e 2ª votações em regime de urgência'))
 
     )
 
@@ -957,6 +1003,15 @@ class Tramitacao(models.Model):
     texto = models.TextField(verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             verbose_name=_('Usuário'),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          blank=True,
+                          default='')
 
     class Meta:
         verbose_name = _('Tramitação')

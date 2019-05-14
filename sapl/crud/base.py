@@ -2,7 +2,6 @@ import logging
 
 from braces.views import FormMessagesMixin
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
-from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.conf.urls import url
@@ -25,6 +24,7 @@ from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
 from sapl.settings import BASE_DIR
@@ -150,7 +150,7 @@ class ListWithSearchForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ListWithSearchForm, self).__init__(*args, **kwargs)
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.form_class = 'form-inline'
         self.helper.form_method = 'GET'
         self.helper.layout = Layout(
@@ -449,18 +449,28 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     if not n:
                         s += '<br>'
                         continue
+
                     m = obj
                     n = n.split('__')
                     for f in n[:-1]:
                         m = getattr(m, f)
                         if not m:
                             break
+
+                    ss = ''
                     if m:
                         ss = get_field_display(m, n[-1])[1]
                         ss = (
                             ('<br>' if '<ul>' in ss else ' - ') + ss)\
                             if ss and j != 0 and s else ss
+
+                    hook = 'hook_{}'.format(''.join(n))
+                    if hasattr(self, hook):
+                        hs, url = getattr(self, hook)(obj, ss, url)
+                        s += str(hs)
+                    else:
                         s += ss
+
                 r.append((s, url))
         return r
 
@@ -571,6 +581,8 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                                 rmo = rmo[0]
                                 if not isinstance(rmo, str):
                                     rmo = rmo[0]
+                                if rmo.startswith('-'):
+                                    rmo = rmo[1:]
                                 fo = '%s__%s' % (fo, rmo)
 
                         fo = desc + fo

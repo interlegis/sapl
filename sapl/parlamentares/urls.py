@@ -17,7 +17,9 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       frente_atualiza_lista_parlamentares,
                                       insere_parlamentar_composicao,
                                       parlamentares_frente_selected,
-                                      remove_parlamentar_composicao)
+                                      remove_parlamentar_composicao,
+                                      parlamentares_filiados, BlocoCrud,
+                                      PesquisarParlamentarView, VincularParlamentarView)
 
 from .apps import AppConfig
 
@@ -33,13 +35,20 @@ urlpatterns = [
         VotanteView.get_urls()
     )),
 
+    url(r'^parlamentar/pesquisar-parlamentar/',
+        PesquisarParlamentarView.as_view(), name='pesquisar_parlamentar'),
+
     url(r'^parlamentar/(?P<pk>\d+)/materias$',
         ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
 
+    url(r'^parlamentar/vincular-parlamentar/$',
+        VincularParlamentarView.as_view(), name='vincular_parlamentar'),
+
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +
-                ComposicaoColigacaoCrud.get_urls())),
-
+                ComposicaoColigacaoCrud.get_urls())),    
+    url(r'^sistema/bloco/',
+        include(BlocoCrud.get_urls())),
     url(r'^sistema/frente/',
         include(FrenteCrud.get_urls())),
     url(r'^sistema/frente/atualiza-lista-parlamentares',
@@ -60,6 +69,7 @@ urlpatterns = [
     url(r'^sistema/parlamentar/tipo-militar/',
         include(TipoMilitarCrud.get_urls())),
     url(r'^sistema/parlamentar/partido/', include(PartidoCrud.get_urls())),
+    url(r'^sistema/parlamentar/partido/(?P<pk>\d+)/filiados$', parlamentares_filiados, name='parlamentares_filiados'),
 
     url(r'^sistema/mesa-diretora/sessao-legislativa/',
         include(SessaoLegislativaCrud.get_urls())),
@@ -80,4 +90,5 @@ urlpatterns = [
 
     url(r'^mesa-diretora/remove-parlamentar-composicao/$',
         remove_parlamentar_composicao, name='remove_parlamentar_composicao'),
+    
 ]

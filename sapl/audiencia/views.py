@@ -86,6 +86,7 @@ class AnexoAudienciaPublicaCrud(MasterDetailCrud):
     model = AnexoAudienciaPublica
     parent_field = 'audiencia'
     help_topic = 'numeracao_docsacess'
+    public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['assunto']
@@ -104,7 +105,5 @@ class AnexoAudienciaPublicaCrud(MasterDetailCrud):
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data', '-id')
 
-    class DetailView(AudienciaPublicaMixin,
-                     MasterDetailCrud.DetailView):
+    class DetailView(AudienciaPublicaMixin, MasterDetailCrud.DetailView):
         pass
-    

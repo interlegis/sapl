@@ -1,7 +1,8 @@
 import logging
+import os
 
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
-from crispy_forms.helper import FormHelper
+from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
 from django import forms
 from django.conf import settings
@@ -28,7 +29,7 @@ from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
 from sapl.materia.models import (
     MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import SessaoLegislativa
+from sapl.parlamentares.models import SessaoLegislativa, Partido
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -36,8 +37,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         RangeWidgetOverride, autor_label, autor_modal,
                         models_with_gr_for_model, qs_override_django_filter,
                         choice_anos_com_normas, choice_anos_com_materias,
-                        FilterOverridesMetaMixin)
-
+                        FilterOverridesMetaMixin, FileFieldCheckMixin)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -64,19 +64,46 @@ def get_roles():
 
 class UsuarioCreateForm(ModelForm):
     logger = logging.getLogger(__name__)
-    username = forms.CharField(required=True, label="Nome de usuário",
-                               max_length=30)
-    firstname = forms.CharField(required=True, label="Nome", max_length=30)
-    lastname = forms.CharField(required=True, label="Sobrenome", max_length=30)
-    password1 = forms.CharField(required=True, widget=forms.PasswordInput,
-                                label='Senha', max_length=128)
-    password2 = forms.CharField(required=True, widget=forms.PasswordInput,
-                                label='Confirmar senha', max_length=128)
-    user_active = forms.ChoiceField(required=False, choices=YES_NO_CHOICES,
-                                    label="Usuário ativo?", initial='True')
-
+    username = forms.CharField(
+        required=True,
+        label="Nome de usuário",
+        max_length=30
+    )
+    firstname = forms.CharField(
+        required=True,
+        label="Nome",
+        max_length=30
+    )
+    lastname = forms.CharField(
+        required=True,
+        label="Sobrenome",
+        max_length=30
+    )
+    password1 = forms.CharField(
+        required=True,
+        widget=forms.PasswordInput,
+        label='Senha',
+        min_length=6,
+        max_length=128
+    )
+    password2 = forms.CharField(
+        required=True,
+        widget=forms.PasswordInput,
+        label='Confirmar senha',
+        min_length=6,
+        max_length=128
+    )
+    user_active = forms.ChoiceField(
+        required=True,
+        choices=YES_NO_CHOICES,
+        label="Usuário ativo?",
+        initial='True'
+    )
     roles = forms.MultipleChoiceField(
-        required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
+        required=True,
+        widget=forms.CheckboxSelectMultiple(),
+        choices=get_roles
+    )
 
     class Meta:
         model = get_user_model()
@@ -84,7 +111,7 @@ class UsuarioCreateForm(ModelForm):
                   'password1', 'password2', 'user_active', 'roles']
 
     def clean(self):
-        super(UsuarioCreateForm, self).clean()
+        super().clean()
 
         if not self.is_valid():
             return self.cleaned_data
@@ -99,7 +126,7 @@ class UsuarioCreateForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        super(UsuarioCreateForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         row0 = to_row([('username', 12)])
 
@@ -112,16 +139,38 @@ class UsuarioCreateForm(ModelForm):
             [('password1', 6),
              ('password2', 6)])
 
-        row4 = to_row([(form_actions(label='Confirmar'), 6)])
-
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row0,
             row1,
             row3,
             row2,
             'roles',
-            row4)
+            form_actions(label='Confirmar'))
+
+
+class UsuarioFilterSet(django_filters.FilterSet):
+    
+    username = django_filters.CharFilter(
+        label=_('Nome de Usuário'), 
+        lookup_expr='icontains')
+
+    class Meta:
+        model = User
+        fields = ['username']
+
+    def __init__(self, *args, **kwargs):
+        super(UsuarioFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('username', 12)])
+        
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Usuário'),
+                     row0,
+                     form_actions(label='Pesquisar'))
+        )
 
 
 class UsuarioEditForm(ModelForm):
@@ -154,12 +203,12 @@ class UsuarioEditForm(ModelForm):
 
         row3 = to_row([(form_actions(label='Salvar Alterações'), 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row1,
             row2,
             'roles',
-            row3)
+            form_actions(label='Salvar Alterações'))
 
     def clean(self):
         super(UsuarioEditForm, self).clean()
@@ -176,7 +225,7 @@ class UsuarioEditForm(ModelForm):
         return data
 
 
-class SessaoLegislativaForm(ModelForm):
+class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
     logger = logging.getLogger(__name__)
 
     class Meta:
@@ -432,7 +481,7 @@ class AutorForm(ModelForm):
         controle_acesso = Fieldset(_('Controle de Acesso do Autor'),
                                    *controle_acesso)
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(autor_select, controle_acesso)
 
         super(AutorForm, self).__init__(*args, **kwargs)
@@ -697,7 +746,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('data_inicio', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Atas das Sessões Plenárias'),
@@ -733,7 +782,7 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('ano', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Normas por mês do ano.'),
@@ -762,7 +811,7 @@ class EstatisticasAcessoNormasForm(Form):
 
         row1 = to_row([('ano', 12)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.form_method = 'GET'
         self.helper.layout = Layout(
             Fieldset(_('Normas por acessos nos meses do ano.'),
@@ -800,7 +849,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         row1 = to_row([('ano', 12)])
         row2 = to_row([('vigencia', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Normas por vigência.'),
@@ -828,7 +877,7 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('data_inicio', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Presença dos parlamentares nas sessões plenárias'),
@@ -859,7 +908,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
         self.filters['tipo'].label = 'Tipo de Matéria'
 
         self.filters['tramitacao__unidade_tramitacao_local'
-                     ].label = _('Unidade Local (Último Local)')
+                     ].label = _('Unidade Local')
         self.filters['tramitacao__status'].label = _('Status')
         row1 = to_row([('tramitacao__data_tramitacao', 12)])
 
@@ -868,7 +917,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
              ('tramitacao__unidade_tramitacao_local', 4),
              ('tramitacao__status', 4)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Histórico de Tramitação'),
@@ -894,14 +943,16 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
-
+        self.filters['tramitacao__unidade_tramitacao_local'].label = 'Unidade de tramitação local'
+        self.filters['tramitacao__status'].label = 'Status de tramitação'
+        
         row1 = to_row([('tramitacao__data_fim_prazo', 12)])
         row2 = to_row(
             [('tipo', 4),
              ('tramitacao__unidade_tramitacao_local', 4),
              ('tramitacao__status', 4)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitações por fim de prazo'),
@@ -932,7 +983,7 @@ class RelatorioReuniaoFilterSet(django_filters.FilterSet):
              ('nome', 4),
              ('tema', 4)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Reunião de Comissão'),
@@ -962,7 +1013,7 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
             [('tipo', 4),
              ('nome', 4)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Audiência Pública'),
@@ -1006,7 +1057,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
         row3 = to_row([('tramitacao__unidade_tramitacao_destino', 12)])
         row4 = to_row([('tramitacao__status', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
@@ -1032,7 +1083,7 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
         row1 = to_row(
             [('ano', 12)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar'),
@@ -1074,7 +1125,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
 
-        self.form.helper = FormHelper()
+        self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar'),
@@ -1086,7 +1137,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
         )
 
 
-class CasaLegislativaForm(ModelForm):
+class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
 
@@ -1116,7 +1167,11 @@ class CasaLegislativaForm(ModelForm):
         }
 
     def clean_logotipo(self):
-        logotipo = self.cleaned_data.get('logotipo', False)
+        # chama __clean de FileFieldCheckMixin
+        # por estar em clean de campo
+        super(CasaLegislativaForm, self)._check()
+
+        logotipo = self.cleaned_data.get('logotipo')
         if logotipo:
             if logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
                 raise ValidationError("Imagem muito grande. ( > 2MB )")
@@ -1148,13 +1203,15 @@ class ConfiguracoesAppForm(ModelForm):
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
-                  'sequencia_numeracao',
+                  'sequencia_numeracao_protocolo',
+                  'sequencia_numeracao_proposicao',
                   'esfera_federacao',
                   # 'painel_aberto', # TODO: a ser implementado na versão 3.2
                   'texto_articulado_proposicao',
                   'texto_articulado_materia',
                   'texto_articulado_norma',
                   'proposicao_incorporacao_obrigatoria',
+                  'protocolo_manual',
                   'cronometro_discurso',
                   'cronometro_aparte',
                   'cronometro_ordem',
@@ -1162,7 +1219,8 @@ class ConfiguracoesAppForm(ModelForm):
                   'mostrar_brasao_painel',
                   'receber_recibo_proposicao',
                   'assinatura_ata',
-                  'estatisticas_acesso_normas']
+                  'estatisticas_acesso_normas',
+                  'escolher_numero_materia_proposicao']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
@@ -1180,7 +1238,7 @@ class ConfiguracoesAppForm(ModelForm):
             self.logger.error('Não há casa legislativa relacionada.')
             raise ValidationError("Não há casa legislativa relacionada.")
 
-        if (not bool(casa.logotipo) and mostrar_brasao_painel):
+        if not casa.logotipo and mostrar_brasao_painel:
             self.logger.error('Não há logitipo configurado para esta '
                               'CasaLegislativa ({}).'.format(casa))
             raise ValidationError("Não há logitipo configurado para esta "
@@ -1196,7 +1254,7 @@ class RecuperarSenhaForm(PasswordResetForm):
     def __init__(self, *args, **kwargs):
         row1 = to_row(
             [('email', 12)])
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Insira o e-mail cadastrado com a sua conta'),
                      row1,
@@ -1233,7 +1291,7 @@ class NovaSenhaForm(SetPasswordForm):
             [('new_password1', 6),
              ('new_password2', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row1,
             form_actions(label='Enviar'))
@@ -1266,7 +1324,7 @@ class AlterarSenhaForm(Form):
             [('new_password1', 6),
              ('new_password2', 6)])
 
-        self.helper = FormHelper()
+        self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row1,
             row2,
@@ -1322,3 +1380,46 @@ class AlterarSenhaForm(Form):
                 "Nova senha não pode ser igual à senha anterior")
 
         return self.cleaned_data
+
+
+class PartidoForm(FileFieldCheckMixin, ModelForm):
+
+    class Meta:
+        model = Partido
+        exclude = []
+
+    def __init__(self, *args, **kwargs):
+
+        super(PartidoForm, self).__init__(*args, **kwargs)
+
+        # TODO Utilizar esses campos na issue #2161 de alteração de nomes de partidos
+        # if self.instance:
+        #     if self.instance.nome:
+        #         self.fields['nome'].widget.attrs['readonly'] = True
+        #         self.fields['sigla'].widget.attrs['readonly'] = True
+
+        row1 = to_row(
+            [('sigla', 2),
+             ('nome', 6),
+             ('data_criacao', 2),
+             ('data_extincao', 2),])
+        row2 = to_row([('observacao', 12)])
+        row3 = to_row([('logo_partido', 12)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            row1, row2, row3,
+            form_actions(label='Salvar'))
+
+    def clean(self):
+
+        cleaned_data = super(PartidoForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+            
+        if cleaned_data['data_criacao'] and cleaned_data['data_extincao']:
+            if cleaned_data['data_criacao'] > cleaned_data['data_extincao']:
+                raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
+
+        return cleaned_data

@@ -1,6 +1,13 @@
+from django.conf import settings
 from rest_framework import serializers
+from rest_framework.relations import StringRelatedField
 
-from sapl.base.models import Autor
+from sapl.base.models import Autor, CasaLegislativa
+
+
+class IntRelatedField(StringRelatedField):
+    def to_representation(self, value):
+        return int(value)
 
 
 class ChoiceSerializer(serializers.Serializer):
@@ -37,4 +44,15 @@ class AutorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Autor
+        fields = '__all__'
+
+
+class CasaLegislativaSerializer(serializers.ModelSerializer):
+    version = serializers.SerializerMethodField()
+
+    def get_version(self, obj):
+        return settings.SAPL_VERSION
+
+    class Meta:
+        model = CasaLegislativa
         fields = '__all__'

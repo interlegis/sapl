@@ -1,4 +1,4 @@
-.. image:: https://travis-ci.org/interlegis/sapl.svg?branch=master
+.. image:: https://travis-ci.org/interlegis/sapl.svg?branch=3.1.x
  :target: https://travis-ci.org/interlegis/sapl
 
 
@@ -17,17 +17,17 @@ atual do sistema (2.5), visite a página do `projeto na Interlegis wiki <https:/
 
 Instalação do Ambiente de Desenvolvimento
 =========================================
-   `Instalação do Ambiente de Desenvolvimento <https://github.com/interlegis/sapl/blob/master/docs/instalacao31.rst>`_
+   `Instalação do Ambiente de Desenvolvimento <https://github.com/interlegis/sapl/blob/3.1.x/docs/instalacao31.rst>`_
 
 
 Instalação do Solr
 ======================
-   `Instalação e configuração do Solr <https://github.com/interlegis/sapl/blob/master/docs/solr.rst>`_
+   `Instalação e configuração do Solr <https://github.com/interlegis/sapl/blob/3.1.x/docs/solr.rst>`_
 
 
 Instruções para Deploy
 ======================
-   `Deploy SAPL com Nginx + Gunicorn <https://github.com/interlegis/sapl/blob/master/docs/deploy.rst>`_
+   `Deploy SAPL com Nginx + Gunicorn <https://github.com/interlegis/sapl/blob/3.1.x/docs/deploy.rst>`_
 
 
 Instruções para Importação da base mysql 2.5
@@ -37,19 +37,19 @@ Instruções para Importação da base mysql 2.5
 
 Instruções para Tradução
 ========================
-   `Instruções para Tradução <https://github.com/interlegis/sapl/blob/master/docs/traducao.rst>`_
+   `Instruções para Tradução <https://github.com/interlegis/sapl/blob/3.1.x/docs/traducao.rst>`_
 
 
 
 Orientações gerais de implementação
 ===================================
-   `Instruções para Implementação <https://github.com/interlegis/sapl/blob/master/docs/implementacoes.rst>`_
+   `Instruções para Implementação <https://github.com/interlegis/sapl/blob/3.1.x/docs/implementacoes.rst>`_
 
 
 
 Orientações gerais sobre o GitHub
 ===================================
-   `Instruções para GitHub <https://github.com/interlegis/sapl/blob/master/docs/howtogit.rst>`_
+   `Instruções para GitHub <https://github.com/interlegis/sapl/blob/3.1.x/docs/howtogit.rst>`_
 
 
 

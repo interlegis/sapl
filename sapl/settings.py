@@ -41,6 +41,8 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
+SAPL_VERSION = '3.1.155'
+
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
@@ -93,7 +95,6 @@ INSTALLED_APPS = (
     'reversion_compare',
 
     'haystack',
-    'whoosh',
     'speedinfo',
 
     'webpack_loader',
@@ -104,8 +105,8 @@ INSTALLED_APPS = (
 # Desabilita a indexação textual até encontramos uma solução para a issue
 # https://github.com/interlegis/sapl/issues/2055
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'  # Disable auto index
-SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
-SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
+SEARCH_BACKEND = ''
+SEARCH_URL = ['','']
 
 # SOLR
 USE_SOLR = config('USE_SOLR', cast=bool, default=False)
@@ -123,7 +124,7 @@ HAYSTACK_CONNECTIONS = {
         'ENGINE': SEARCH_BACKEND,
         SEARCH_URL[0]: SEARCH_URL[1],
         'BATCH_SIZE': 1000,
-        'TIMEOUT': 60,
+        'TIMEOUT': 20,
     },
 }
 
@@ -272,8 +273,8 @@ FRONTEND_CUSTOM = config('FRONTEND_CUSTOM', default=False, cast=bool)
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
-        'BUNDLE_DIR_NAME': 'sapl/static/',
-        'STATS_FILE':  (PROJECT_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.parent.child('sapl-frontend')).child('webpack-stats.json'),
+        'BUNDLE_DIR_NAME': 'sapl/static/sapl/frontend',
+        'STATS_FILE':  (BASE_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.parent.child('sapl-frontend')).child('webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']

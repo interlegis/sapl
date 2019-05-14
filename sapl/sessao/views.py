@@ -1,6 +1,5 @@
 
 import logging
-from operator import itemgetter
 from re import sub
 
 from django.contrib import messages
@@ -29,28 +28,28 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import filtra_tramitacao_status
-from sapl.materia.models import (Autoria, DocumentoAcessorio,
-                                 TipoMateriaLegislativa, Tramitacao)
+from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
+                                 Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-from sapl.utils import show_results_filter_set, remover_acentos
+from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
-from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm, BlocoForm,
+from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
-                    VotacaoNominalForm, RetiradaPautaForm)
-from .models import (Bancada, Bloco, CargoBancada, CargoMesa,
+                    VotacaoNominalForm, RetiradaPautaForm, OradorOrdemDiaForm)
+from .models import (Bancada, CargoBancada, CargoMesa,
                      ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
-                     RetiradaPauta, TipoJustificativa, JustificativaAusencia)
+                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia, ORDENACAO_RESUMO)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
@@ -64,18 +63,29 @@ TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
 
 def reordernar_materias_expediente(request, pk):
     expedientes = ExpedienteMateria.objects.filter(
-        sessao_plenaria_id=pk)
+        sessao_plenaria_id=pk
+    ).order_by(
+        'materia__tipo__sequencia_regimental',
+        'materia__ano',
+        'materia__numero'
+    )
 
     for exp_num, e in enumerate(expedientes, 1):
         e.numero_ordem = exp_num
         e.save()
+
     return HttpResponseRedirect(
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
 
 
 def reordernar_materias_ordem(request, pk):
     ordens = OrdemDia.objects.filter(
-        sessao_plenaria_id=pk)
+        sessao_plenaria_id=pk
+    ).order_by(
+        'materia__tipo__sequencia_regimental',
+        'materia__ano',
+        'materia__numero'
+    )
     for ordem_num, o in enumerate(ordens, 1):
         o.numero_ordem = ordem_num
         o.save()
@@ -83,6 +93,25 @@ def reordernar_materias_ordem(request, pk):
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
+def renumerar_materias_ordem(request, pk):
+    ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
+
+    for ordem_num, o in enumerate(ordens, 1):
+        o.numero_ordem = ordem_num
+        o.save()
+
+    return HttpResponseRedirect(
+        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
+
+def renumerar_materias_expediente(request, pk):
+    expedientes = ExpedienteMateria.objects.filter(sessao_plenaria_id=pk)
+
+    for exp_num, e in enumerate(expedientes, 1):
+        e.numero_ordem = exp_num
+        e.save()
+
+    return HttpResponseRedirect(
+        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
 
 def verifica_presenca(request, model, spk):
     logger = logging.getLogger(__name__)
@@ -589,6 +618,31 @@ class OradorExpedienteCrud(OradorCrud):
                     'numero': self.object.numero_ordem}
 
 
+class OradorOrdemDiaCrud(OradorCrud):
+    model = OradorOrdemDia
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = OradorOrdemDiaForm
+
+        def get_initial(self):
+            return {'id_sessao': self.kwargs['pk']}
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:oradorordemdia_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = OradorOrdemDiaForm
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+
+            initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero': self.object.numero_ordem})
+
+            return initial
+
+
 class OradorCrud(OradorCrud):
     model = Orador
 
@@ -610,6 +664,7 @@ class OradorCrud(OradorCrud):
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero':self.object.numero_ordem})
 
             return initial
 
@@ -622,16 +677,6 @@ class BancadaCrud(CrudAux):
 
         def get_success_url(self):
             return reverse('sapl.sessao:bancada_list')
-
-
-class BlocoCrud(CrudAux):
-    model = Bloco
-
-    class CreateView(CrudAux.CreateView):
-        form_class = BlocoForm
-
-        def get_success_url(self):
-            return reverse('sapl.sessao:bloco_list')
 
 
 def recuperar_numero_sessao(request):
@@ -1023,9 +1068,6 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
         return self.get(self, request, args, kwargs)
 
 
-def ordenar_integrantes_por_cargo(integrantes):
-    return sorted(integrantes, key=lambda k: k['cargo'].id)
-
 
 class MesaView(FormMixin, DetailView):
     template_name = 'sessao/mesa.html'
@@ -1244,43 +1286,38 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
     form_class = ResumoOrdenacaoForm
     permission_required = {'sessao.change_resumoordenacao'}
 
+    def get_tupla(self, tupla_key):
+        for tupla in ORDENACAO_RESUMO:
+            if tupla[0] == tupla_key:
+                return tupla
+
+    def get_initial(self):
+        ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
+
+        initial = {
+            'primeiro': self.get_tupla(ordenacao.primeiro),
+            'segundo': self.get_tupla(ordenacao.segundo),
+            'terceiro': self.get_tupla(ordenacao.terceiro),
+            'quarto': self.get_tupla(ordenacao.quarto),
+            'quinto': self.get_tupla(ordenacao.quinto),
+            'sexto': self.get_tupla(ordenacao.sexto),
+            'setimo': self.get_tupla(ordenacao.setimo),
+            'oitavo': self.get_tupla(ordenacao.oitavo),
+            'nono': self.get_tupla(ordenacao.nono),
+            'decimo': self.get_tupla(ordenacao.decimo),
+            'decimo_primeiro': self.get_tupla(ordenacao.decimo_primeiro),
+            'decimo_segundo': self.get_tupla(ordenacao.decimo_segundo),
+            'decimo_terceiro': self.get_tupla(ordenacao.decimo_terceiro),
+            'decimo_quarto': self.get_tupla(ordenacao.decimo_quarto)
+        }
+
+        return initial
+
     def get_success_url(self):
         return reverse('sapl.base:sistema')
 
-    def get_initial(self):
-        initial = super(ResumoOrdenacaoView, self).get_initial()
-        ordenacao = ResumoOrdenacao.objects.first()
-        if ordenacao:
-            initial.update({'primeiro': ordenacao.primeiro,
-                            'segundo': ordenacao.segundo,
-                            'terceiro': ordenacao.terceiro,
-                            'quarto': ordenacao.quarto,
-                            'quinto': ordenacao.quinto,
-                            'sexto': ordenacao.sexto,
-                            'setimo': ordenacao.setimo,
-                            'oitavo': ordenacao.oitavo,
-                            'nono': ordenacao.nono,
-                            'decimo': ordenacao.decimo,
-                            'decimo_primeiro': ordenacao.decimo_primeiro})
-        return initial
-
     def form_valid(self, form):
-        ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
-
-        ordenacao.primeiro = form.cleaned_data['primeiro']
-        ordenacao.segundo = form.cleaned_data['segundo']
-        ordenacao.terceiro = form.cleaned_data['terceiro']
-        ordenacao.quarto = form.cleaned_data['quarto']
-        ordenacao.quinto = form.cleaned_data['quinto']
-        ordenacao.sexto = form.cleaned_data['sexto']
-        ordenacao.setimo = form.cleaned_data['setimo']
-        ordenacao.oitavo = form.cleaned_data['oitavo']
-        ordenacao.nono = form.cleaned_data['nono']
-        ordenacao.decimo = form.cleaned_data['decimo']
-        ordenacao.decimo_primeiro = form.cleaned_data['decimo_primeiro']
-
-        ordenacao.save()
-
+        form.save()
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -1292,264 +1329,417 @@ def get_turno(turno):
         return ''
 
 
+def get_identificação_basica(sessao_plenaria):
+    # =====================================================================
+    # Identificação Básica
+    data_inicio = sessao_plenaria.data_inicio
+    abertura = data_inicio.strftime('%d/%m/%Y') if data_inicio else ''
+    data_fim = sessao_plenaria.data_fim
+    encerramento = data_fim.strftime('%d/%m/%Y') + ' -' if data_fim else ''
+    return({'basica': [
+        _('Tipo de Sessão: %(tipo)s') % {'tipo': sessao_plenaria.tipo},
+        _('Abertura: %(abertura)s - %(hora_inicio)s') % {
+            'abertura': abertura, 'hora_inicio': sessao_plenaria.hora_inicio},
+        _('Encerramento: %(encerramento)s %(hora_fim)s') % {
+            'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim}
+    ],
+    'sessaoplenaria': sessao_plenaria})
+
+
+def get_conteudo_multimidia(sessao_plenaria):
+    context = {}
+    if sessao_plenaria.url_audio:
+        context['multimidia_audio'] = _(
+            'Audio: ') + str(sessao_plenaria.url_audio)
+    else:
+        context['multimidia_audio'] = _('Audio: Indisponível')
+    if sessao_plenaria.url_video:
+        context['multimidia_video'] = _(
+            'Video: ') + str(sessao_plenaria.url_video)
+    else:
+        context['multimidia_video'] = _('Video: Indisponível')
+    return context
+
+
+def get_mesa_diretora(sessao_plenaria):
+    mesa = IntegranteMesa.objects.filter(sessao_plenaria=sessao_plenaria).order_by('cargo_id')
+    integrantes = [{'parlamentar': m.parlamentar,
+                    'cargo': m.cargo} for m in mesa]
+    return {'mesa': integrantes}
+
+
+def get_presenca_sessao(sessao_plenaria):
+
+    parlamentares_sessao = [p.parlamentar for p in SessaoPlenariaPresenca.objects.filter(
+                                sessao_plenaria_id=sessao_plenaria.id
+                            ).order_by('parlamentar__nome_parlamentar')]
+
+    ausentes_sessao = JustificativaAusencia.objects.filter(
+        sessao_plenaria_id=sessao_plenaria.id
+    ).order_by('parlamentar__nome_parlamentar')
+
+    return ({'presenca_sessao': parlamentares_sessao,
+             'justificativa_ausencia': ausentes_sessao})
+
+
+def get_expedientes(sessao_plenaria):
+    expediente = ExpedienteSessao.objects.filter(
+        sessao_plenaria_id=sessao_plenaria.id).order_by('tipo__nome')
+    expedientes = []
+    for e in expediente:
+        tipo = TipoExpediente.objects.get(id=e.tipo_id)
+        conteudo = e.conteudo
+        ex = {'tipo': tipo, 'conteudo': conteudo}
+        expedientes.append(ex)
+    return ({'expedientes': expedientes})
+
+
+def get_materias_expediente(sessao_plenaria):
+    materias = ExpedienteMateria.objects.filter(
+        sessao_plenaria_id=sessao_plenaria.id)
+
+    materias_expediente = []
+    for m in materias:
+
+        ementa = m.materia.ementa
+        titulo = m.materia
+        numero = m.numero_ordem
+
+        tramitacao = ''
+        tramitacoes = Tramitacao.objects.filter(materia=m.materia).order_by('-pk')
+        for aux_tramitacao in tramitacoes:
+            if aux_tramitacao.turno:
+                tramitacao = aux_tramitacao
+                break
+
+        turno = None
+        if tramitacao:
+            turno = get_turno(tramitacao.turno)
+
+        rv = m.registrovotacao_set.first()
+        rp = m.retiradapauta_set.filter(materia=m.materia).first()
+        if rv:
+            resultado = rv.tipo_resultado_votacao.nome
+            resultado_observacao = rv.observacao
+        elif rp:
+            resultado = rp.tipo_de_retirada.descricao
+            resultado_observacao = rp.observacao
+        else:
+            resultado = _('Matéria não votada')
+            resultado_observacao = _(' ')
+
+        autoria = Autoria.objects.filter(materia_id=m.materia_id)
+        autor = [str(x.autor) for x in autoria]
+
+        mat = {'ementa': ementa,
+               'titulo': titulo,
+               'numero': numero,
+               'turno': turno,
+               'resultado': resultado,
+               'resultado_observacao': resultado_observacao,
+               'autor': autor,
+               'numero_protocolo': m.materia.numero_protocolo,
+               'numero_processo': m.materia.numeracao_set.last(),
+               'observacao': m.observacao
+               }
+        materias_expediente.append(mat)
+
+    context = {'materia_expediente': materias_expediente}
+    return context
+
+
+def get_oradores_expediente(sessao_plenaria):
+    oradores = []
+    for orador in OradorExpediente.objects.filter(
+            sessao_plenaria_id=sessao_plenaria.id).order_by('numero_ordem'):
+        numero_ordem = orador.numero_ordem
+        url_discurso = orador.url_discurso
+        observacao = orador.observacao
+        parlamentar = Parlamentar.objects.get(
+            id=orador.parlamentar_id)
+        ora = {'numero_ordem': numero_ordem,
+               'url_discurso': url_discurso,
+               'parlamentar': parlamentar,
+               'observacao': observacao
+               }
+        oradores.append(ora)
+    return {'oradores': oradores}
+
+
+def get_presenca_ordem_do_dia(sessao_plenaria):
+    parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
+                                            sessao_plenaria_id=sessao_plenaria.id
+                                        ).order_by('parlamentar__nome_parlamentar')]
+
+    return {'presenca_ordem': parlamentares_ordem}
+
+
+def get_assinaturas(sessao_plenaria):
+    mesa_dia = get_mesa_diretora(sessao_plenaria)['mesa']
+
+    presidente_dia = [next(iter(
+        [m['parlamentar'] for m in mesa_dia if m['cargo'].descricao == 'Presidente']),
+        '')]
+
+    parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
+                                    sessao_plenaria_id=sessao_plenaria.id
+                                    ).order_by('parlamentar__nome_parlamentar')]
+
+    parlamentares_mesa = [m['parlamentar'] for m in mesa_dia]
+
+    # filtra parlamentares retirando os que sao da mesa
+    parlamentares_ordem = [p for p in parlamentares_ordem if p not in parlamentares_mesa]
+
+    context = {}
+
+    config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
+    if config_assinatura_ata == 'T' and parlamentares_ordem:
+        context.update(
+            {'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
+        context.update({'assinatura_mesa': mesa_dia,
+                        'assinatura_presentes': parlamentares_ordem})
+    elif config_assinatura_ata == 'M' and mesa_dia:
+        context.update(
+            {'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
+        context.update({'assinatura_mesa': mesa_dia})
+    elif config_assinatura_ata == 'P' and presidente_dia:
+        context.update(
+            {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
+        context.update({'assinatura_mesa': presidente_dia})
+
+    return context
+
+
+def get_materias_ordem_do_dia(sessao_plenaria):
+    ordem = OrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria.id)
+    materias_ordem = []
+    for o in ordem:
+        ementa = o.materia.ementa
+        ementa_observacao = o.observacao
+        titulo = o.materia
+        numero = o.numero_ordem
+
+        tramitacao = ''
+        tramitacoes = Tramitacao.objects.filter(materia=o.materia).order_by('-pk')
+        for aux_tramitacao in tramitacoes:
+            if aux_tramitacao.turno:
+                tramitacao = aux_tramitacao
+                break
+
+        turno = None
+        if tramitacao:
+            turno = get_turno(tramitacao.turno)
+
+        # Verificar resultado
+        rv = o.registrovotacao_set.filter(materia=o.materia).first()
+        rp = o.retiradapauta_set.filter(materia=o.materia).first()
+        if rv:
+            resultado = rv.tipo_resultado_votacao.nome
+            resultado_observacao = rv.observacao
+
+        elif rp:
+            resultado = rp.tipo_de_retirada.descricao
+            resultado_observacao = rp.observacao
+
+        else:
+            resultado = _('Matéria não votada')
+            resultado_observacao = _(' ')
+
+        voto_sim = ""
+        voto_nao = ""
+        voto_abstencoes = ""
+        voto_nominal = []
+
+        if o.tipo_votacao == 2:
+            votos = VotoParlamentar.objects.filter(ordem=o.id)
+            for voto in votos:
+                aux_voto = (voto.parlamentar.nome_completo, voto.voto)
+                voto_nominal.append(aux_voto)
+        try:
+            voto = RegistroVotacao.objects.filter(ordem=o.id).last()
+            voto_sim = voto.numero_votos_sim
+            voto_nao = voto.numero_votos_nao
+            voto_abstencoes = voto.numero_abstencoes
+        except AttributeError:
+            voto_sim = " Não Informado"
+            voto_nao = " Não Informado"
+            voto_abstencoes = " Não Informado"
+
+        autoria = Autoria.objects.filter(
+            materia_id=o.materia_id)
+        autor = [str(x.autor) for x in autoria]
+        mat = {'ementa': ementa,
+               'ementa_observacao': ementa_observacao,
+               'titulo': titulo,
+               'numero': numero,
+               'turno': turno,
+               'resultado': resultado,
+               'resultado_observacao': resultado_observacao,
+               'autor': autor,
+               'numero_protocolo': o.materia.numero_protocolo,
+               'numero_processo': o.materia.numeracao_set.last(),
+               'tipo_votacao': o.TIPO_VOTACAO_CHOICES[o.tipo_votacao],
+               'voto_sim': voto_sim,
+               'voto_nao': voto_nao,
+               'voto_abstencoes': voto_abstencoes,
+               'voto_nominal': voto_nominal,
+               }
+        materias_ordem.append(mat)
+
+    context = {'materias_ordem': materias_ordem}
+    return context
+
+
+def get_oradores_ordemdia(sessao_plenaria):
+    oradores = []
+
+    oradores_ordem_dia = OradorOrdemDia.objects.filter(
+        sessao_plenaria_id=sessao_plenaria.id
+    ).order_by('numero_ordem')
+
+    for orador in oradores_ordem_dia:
+        numero_ordem = orador.numero_ordem
+        url_discurso = orador.url_discurso
+        observacao = orador.observacao
+        parlamentar = Parlamentar.objects.get(
+            id=orador.parlamentar_id
+        )        
+        o = {
+            'numero_ordem': numero_ordem,
+            'url_discurso': url_discurso,
+            'parlamentar': parlamentar,
+            'observacao': observacao
+        }
+        oradores.append(o)
+
+    context = {'oradores_ordemdia': oradores}
+    return context 
+
+ 
+def get_oradores_explicações_pessoais(sessao_plenaria):
+    oradores_explicacoes = []
+    for orador in Orador.objects.filter(
+            sessao_plenaria_id=sessao_plenaria.id).order_by('numero_ordem'):
+        for parlamentar in Parlamentar.objects.filter(
+                id=orador.parlamentar.id):
+            partido_sigla = Filiacao.objects.filter(
+                parlamentar=parlamentar).last()
+            if not partido_sigla:
+                sigla = ''
+            else:
+                sigla = partido_sigla.partido.sigla
+            oradores = {
+                'numero_ordem': orador.numero_ordem,
+                'parlamentar': parlamentar,
+                'sgl_partido': sigla
+            }
+            oradores_explicacoes.append(oradores)
+    context = {'oradores_explicacoes': oradores_explicacoes}
+    return context
+
+
+def get_ocorrencias_da_sessão(sessao_plenaria):
+    ocorrencias_sessao = OcorrenciaSessao.objects.filter(
+        sessao_plenaria_id=sessao_plenaria.id)
+    context = {'ocorrencias_da_sessao': ocorrencias_sessao}
+    return context
+
+
 class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
+    logger = logging.getLogger(__name__)
 
-    def get(self, request, *args, **kwargs):
+    def get_context(self, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
+        # Votos de Votação Nominal de Matérias Expediente
+        materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(
+            sessao_plenaria_id=self.object.id,
+            tipo_votacao=2).order_by('-materia')
+
+        votacoes = []
+        for mevn in materias_expediente_votacao_nominal:
+
+            votos_materia = []
+            titulo_materia = mevn.materia
+            registro = RegistroVotacao.objects.filter(expediente=mevn)
+            if registro:
+                for vp in VotoParlamentar.objects.filter(votacao=registro).order_by('parlamentar'):
+                    votos_materia.append(vp)
+
+            dados_votacao = {
+                'titulo': titulo_materia,
+                'votos': votos_materia
+            }
+            votacoes.append(dados_votacao)
+
+        context.update({'votos_nominais_materia_expediente': votacoes})
+
         # =====================================================================
         # Identificação Básica
-        data_inicio = self.object.data_inicio
-        abertura = data_inicio.strftime('%d/%m/%Y') if data_inicio else ''
-
-        data_fim = self.object.data_fim
-        encerramento = data_fim.strftime('%d/%m/%Y') + ' -' if data_fim else ''
-
-        context.update({'basica': [
-            _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
-            _('Abertura: %(abertura)s - %(hora_inicio)s') % {
-                'abertura': abertura, 'hora_inicio': self.object.hora_inicio},
-            _('Encerramento: %(encerramento)s %(hora_fim)s') % {
-                'encerramento': encerramento, 'hora_fim': self.object.hora_fim}
-        ]})
+        context.update(get_identificação_basica(self.object))
         # =====================================================================
         # Conteúdo Multimídia
-        if self.object.url_audio:
-            context.update({'multimidia_audio':
-                            _('Audio: ') + str(self.object.url_audio)})
-        else:
-            context.update({'multimidia_audio': _('Audio: Indisponível')})
-
-        if self.object.url_video:
-            context.update({'multimidia_video':
-                            _('Video: ') + str(self.object.url_video)})
-        else:
-            context.update({'multimidia_video': _('Video: Indisponível')})
-
+        context.update(get_conteudo_multimidia(self.object))
         # =====================================================================
         # Mesa Diretora
-        mesa = IntegranteMesa.objects.filter(
-            sessao_plenaria=self.object)
-
-        integrantes = []
-        for m in mesa:
-            parlamentar = Parlamentar.objects.get(
-                id=m.parlamentar_id)
-            cargo = CargoMesa.objects.get(
-                id=m.cargo_id)
-            integrante = {'parlamentar': parlamentar, 'cargo': cargo}
-            integrantes.append(integrante)
-
-        context.update({'mesa': ordenar_integrantes_por_cargo(integrantes)})
-
+        context.update(get_mesa_diretora(self.object))
         # =====================================================================
         # Presença Sessão
-        presencas = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=self.object.id
-        ).order_by('parlamentar__nome_parlamentar')
-
-        parlamentares_sessao = [p.parlamentar for p in presencas]
-
-        ausentes_sessao = JustificativaAusencia.objects.filter(
-            sessao_plenaria_id=self.object.id
-        ).order_by('parlamentar__nome_parlamentar')
-
-        context.update({'presenca_sessao': parlamentares_sessao,
-                        'justificativa_ausencia': ausentes_sessao})
-
+        context.update(get_presenca_sessao(self.object))
         # =====================================================================
         # Expedientes
-        expediente = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id).order_by('tipo__nome')
-
-        expedientes = []
-        for e in expediente:
-            tipo = TipoExpediente.objects.get(id=e.tipo_id)
-            conteudo = e.conteudo
-            ex = {'tipo': tipo, 'conteudo': conteudo}
-            expedientes.append(ex)
-        context.update({'expedientes': expedientes})
-
+        context.update(get_expedientes(self.object))
         # =====================================================================
         # Matérias Expediente
-        materias = ExpedienteMateria.objects.filter(
-            sessao_plenaria_id=self.object.id)
-
-        materias_expediente = []
-        for m in materias:
-
-            ementa = m.materia.ementa
-            titulo = m.materia
-            numero = m.numero_ordem
-            tramitacao = m.materia.tramitacao_set.last()
-            turno = None
-
-            if tramitacao:
-                turno = get_turno(tramitacao.turno)
-
-            rv = m.registrovotacao_set.first()
-            rp = m.retiradapauta_set.filter(materia=m.materia).first()
-            if rv:
-                resultado = rv.tipo_resultado_votacao.nome
-                resultado_observacao = rv.observacao
-            elif rp:
-                resultado = rp.tipo_de_retirada.descricao
-                resultado_observacao = rp.observacao
-            else:
-                resultado = _('Matéria não votada')
-                resultado_observacao = _(' ')
-
-            autoria = Autoria.objects.filter(materia_id=m.materia_id)
-            autor = [str(x.autor) for x in autoria]
-
-            mat = {'ementa': ementa,
-                   'titulo': titulo,
-                   'numero': numero,
-                   'turno': turno,
-                   'resultado': resultado,
-                   'resultado_observacao': resultado_observacao,
-                   'autor': autor,
-                   'numero_protocolo': m.materia.numero_protocolo,
-                   'numero_processo': m.materia.numeracao_set.last(),
-                   'observacao': m.observacao
-                   }
-            materias_expediente.append(mat)
-
-        context.update({'materia_expediente': materias_expediente})
-
+        context.update(get_materias_expediente(self.object))
         # =====================================================================
         # Oradores Expediente
-        oradores = []
-        for orador in OradorExpediente.objects.filter(
-                sessao_plenaria_id=self.object.id).order_by('numero_ordem'):
-            numero_ordem = orador.numero_ordem
-            url_discurso = orador.url_discurso
-            observacao = orador.observacao
-            parlamentar = Parlamentar.objects.get(
-                id=orador.parlamentar_id)
-            ora = {'numero_ordem': numero_ordem,
-                   'url_discurso': url_discurso,
-                   'parlamentar': parlamentar,
-                   'observacao': observacao
-                   }
-            oradores.append(ora)
-
-        context.update({'oradores': oradores})
-
+        context.update(get_oradores_expediente(self.object))
         # =====================================================================
         # Presença Ordem do Dia
-        presencas = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=self.object.id
-        ).order_by('parlamentar__nome_parlamentar')
-
-        parlamentares_mesa_dia = [m['parlamentar'] for m in context['mesa']]
-        # composicao_mesa = ComposicaoMesa.objects.filter(sessao_legislativa=sessao)
-
-        presidente_dia = ''
-        for m in context['mesa']:
-            if m['cargo'].descricao == 'Presidente':
-                presidente_dia = [m['parlamentar']]
-                break
-
-        parlamentares_ordem = [p.parlamentar for p in presencas]
-
-        context.update({'presenca_ordem': parlamentares_ordem})
-
-        config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
-        if config_assinatura_ata == 'T' and parlamentares_ordem:
-            context.update(
-                {'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
-            context.update({'assinatura_presentes': parlamentares_ordem})
-        elif config_assinatura_ata == 'M' and parlamentares_mesa_dia:
-            context.update(
-                {'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
-            context.update({'assinatura_presentes': parlamentares_mesa_dia})
-        elif config_assinatura_ata == 'P' and presidente_dia:
-            context.update(
-                {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
-            context.update({'assinatura_presentes': presidente_dia})
-
+        context.update(get_presenca_ordem_do_dia(self.object))
+        # =====================================================================
+        # Assinaturas
+        context.update(get_assinaturas(self.object))
         # =====================================================================
         # Matérias Ordem do Dia
-        ordem = OrdemDia.objects.filter(
-            sessao_plenaria_id=self.object.id)
-        materias_ordem = []
-        for o in ordem:
-            ementa = o.materia.ementa
-            ementa_observacao = o.observacao
-            titulo = o.materia
-            numero = o.numero_ordem
-            tramitacao = o.materia.tramitacao_set.last()
-            turno = None
-            if tramitacao:
-                turno = get_turno(tramitacao.turno)
+        # Votos de Votação Nominal de Matérias Ordem do Dia
+        materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(
+            sessao_plenaria_id=self.object.id,
+            tipo_votacao=2).order_by('-materia')
 
-            # Verificar resultado
-            rv = o.registrovotacao_set.filter(materia=o.materia).first()
-            rp = o.retiradapauta_set.filter(materia=o.materia).first()
-            if rv:
-                resultado = rv.tipo_resultado_votacao.nome
-                resultado_observacao = rv.observacao
-            elif rp:
-                resultado = rp.tipo_de_retirada.descricao
-                resultado_observacao = rp.observacao
-            else:
-                resultado = _('Matéria não votada')
-                resultado_observacao = _(' ')
+        votacoes_od = []
+        for modvn in materias_ordem_dia_votacao_nominal:
+            votos_materia_od = []
+            t_materia = modvn.materia
+            registro_od = RegistroVotacao.objects.filter(ordem=modvn)
+            if registro_od:
+                for vp_od in VotoParlamentar.objects.filter(votacao=registro_od).order_by('parlamentar'):
+                    votos_materia_od.append(vp_od)
 
-            autoria = Autoria.objects.filter(
-                materia_id=o.materia_id)
-            autor = [str(x.autor) for x in autoria]
+            dados_votacao_od = {
+                'titulo': t_materia,
+                'votos': votos_materia_od
+            }
+            votacoes_od.append(dados_votacao_od)
 
-            mat = {'ementa': ementa,
-                   'ementa_observacao': ementa_observacao,
-                   'titulo': titulo,
-                   'numero': numero,
-                   'turno': turno,
-                   'resultado': resultado,
-                   'resultado_observacao': resultado_observacao,
-                   'autor': autor,
-                   'numero_protocolo': o.materia.numero_protocolo,
-                   'numero_processo': o.materia.numeracao_set.last()
-                   }
-            materias_ordem.append(mat)
+        context.update({'votos_nominais_materia_ordem_dia': votacoes_od})
 
-        context.update({'materias_ordem': materias_ordem})
-
+        context.update(get_materias_ordem_do_dia(self.object))
         # =====================================================================
+        # Oradores Ordem do Dia
+        context.update(get_oradores_ordemdia(self.object))
+        # =====================================================================       
         # Oradores nas Explicações Pessoais
-        oradores_explicacoes = []
-        for orador in Orador.objects.filter(
-                sessao_plenaria_id=self.object.id).order_by('numero_ordem'):
-            for parlamentar in Parlamentar.objects.filter(
-                    id=orador.parlamentar.id):
-                partido_sigla = Filiacao.objects.filter(
-                    parlamentar=parlamentar).last()
-                if not partido_sigla:
-                    sigla = ''
-                else:
-                    sigla = partido_sigla.partido.sigla
-                oradores = {
-                    'numero_ordem': orador.numero_ordem,
-                    'parlamentar': parlamentar,
-                    'sgl_partido': sigla
-                }
-                oradores_explicacoes.append(oradores)
-        context.update({'oradores_explicacoes': oradores_explicacoes})
-
+        context.update(get_oradores_explicações_pessoais(self.object))
         # =====================================================================
         # Ocorrẽncias da Sessão
-        ocorrencias_sessao = OcorrenciaSessao.objects.filter(
-            sessao_plenaria_id=self.object.id)
-
-        context.update({'ocorrencias_da_sessao': ocorrencias_sessao})
-
+        context.update(get_ocorrencias_da_sessão(self.object))
         # =====================================================================
         # Indica a ordem com a qual o template será renderizado
-        ordenacao = ResumoOrdenacao.objects.first()
         dict_ord_template = {
             'cont_mult': 'conteudo_multimidia.html',
             'exp': 'expedientes.html',
@@ -1557,40 +1747,38 @@ class ResumoView(DetailView):
             'lista_p': 'lista_presenca.html',
             'lista_p_o_d': 'lista_presenca_ordem_dia.html',
             'mat_exp': 'materias_expediente.html',
+            'v_n_mat_exp': 'votos_nominais_materias_expediente.html',
             'mat_o_d': 'materias_ordem_dia.html',
+            'v_n_mat_o_d': 'votos_nominais_materias_ordem_dia.html',
             'mesa_d': 'mesa_diretora.html',
             'oradores_exped': 'oradores_expediente.html',
+            'oradores_o_d': 'oradores_ordemdia.html',
             'oradores_expli': 'oradores_explicacoes.html',
             'ocorr_sessao': 'ocorrencias_da_sessao.html'
         }
 
-        if ordenacao:
-            context.update(
-                {'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
-                 'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
-                 'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
-                 'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
-                 'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
-                 'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
-                 'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
-                 'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
-                 'nono_ordenacao': dict_ord_template[ordenacao.nono],
-                 'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
-                 'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro]})
-        else:
-            context.update(
-                {'primeiro_ordenacao': dict_ord_template['id_basica'],
-                 'segundo_ordenacao': dict_ord_template['cont_mult'],
-                 'terceiro_ordenacao': dict_ord_template['mesa_d'],
-                 'quarto_ordenacao': dict_ord_template['lista_p'],
-                 'quinto_ordenacao': dict_ord_template['exp'],
-                 'sexto_ordenacao': dict_ord_template['mat_exp'],
-                 'setimo_ordenacao': dict_ord_template['oradores_exped'],
-                 'oitavo_ordenacao': dict_ord_template['lista_p_o_d'],
-                 'nono_ordenacao': dict_ord_template['mat_o_d'],
-                 'decimo_ordenacao': dict_ord_template['oradores_expli'],
-                 'decimo_primeiro_ordenacao': dict_ord_template['ocorr_sessao']})
+        ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
+        context.update({
+            'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+            'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+            'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+            'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+            'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+            'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+            'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+            'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+            'nono_ordenacao': dict_ord_template[ordenacao.nono],
+            'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+            'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+            'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+            'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
+            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+        })
 
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context()
         return self.render_to_response(context)
 
 
@@ -1695,6 +1883,12 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
     model = SessaoPlenaria
 
     logger = logging.getLogger(__name__)
+
+    def get_context_data(self, **kwargs):
+        context = FormMixin.get_context_data(self, **kwargs)
+        context['title'] = 'Ocorrências da Sessão <small>(%s)</small>' % (
+            self.object)
+        return context
 
     def delete(self):
         OcorrenciaSessao.objects.filter(sessao_plenaria=self.object).delete()
@@ -1911,6 +2105,8 @@ class VotacaoView(SessaoPermissionMixin):
                     votacao.ordem_id = ordem_id
                     votacao.tipo_resultado_votacao_id = int(
                         request.POST['resultado_votacao'])
+                    votacao.user = request.user
+                    votacao.ip = get_client_ip(request)
                     votacao.save()
                 except Exception as e:
                     username = request.user.username
@@ -2131,6 +2327,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             votacao.numero_votos_nao = votos_nao
             votacao.numero_abstencoes = abstencoes
             votacao.observacao = request.POST.get('observacao', None)
+            votacao.user = request.user
+            votacao.ip = get_client_ip(request)
 
             votacao.materia_id = materia_votacao.materia.id
             if self.ordem:
@@ -2158,6 +2356,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 voto_parlamentar.voto = voto
                 voto_parlamentar.parlamentar_id = parlamentar_id
                 voto_parlamentar.votacao_id = votacao.id
+                voto_parlamentar.user = request.user
+                voto_parlamentar.ip = get_client_ip(request)
                 voto_parlamentar.save()
 
                 resultado = form.cleaned_data['resultado_votacao']
@@ -2595,10 +2795,10 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             if (int(request.POST['voto_presidente']) == 0):
                 qtde_presentes -= 1
 
-            if (qtde_votos > qtde_presentes or qtde_votos < qtde_presentes):
+            if qtde_votos != qtde_presentes:
                 form._errors["total_votos"] = ErrorList([u""])
                 return self.render_to_response(context)
-            elif (qtde_presentes == qtde_votos):
+            else:
                 try:
                     votacao = RegistroVotacao()
                     votacao.numero_votos_sim = int(request.POST['votos_sim'])
@@ -2609,6 +2809,8 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
                     votacao.expediente_id = expediente_id
                     votacao.tipo_resultado_votacao_id = int(
                         request.POST['resultado_votacao'])
+                    votacao.user = request.user
+                    votacao.ip = get_client_ip(request)
                     votacao.save()
                 except Exception as e:
                     username = request.user.username
@@ -2924,7 +3126,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if data and data.get('data_inicio__year') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
+            url = "&" + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('data_inicio__year=') - 1
                 url = url[ponto_comeco:]
@@ -3005,6 +3207,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
                         self).get_context_data(**kwargs)
 
         context['title'] = _('Pesquisar Matéria Legislativa')
+        context['root_pk'] = self.kwargs['pk']
 
         self.filterset.form.fields['o'].label = _('Ordenação')
 
@@ -3285,17 +3488,20 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
     logger = logging.getLogger(__name__)
 
     def get_queryset(self):
-        kwargs = self.kwargs
-        return ExpedienteMateria.objects.filter(sessao_plenaria_id=kwargs['pk'],
+        return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
                                                 resultado='')
 
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoExpediente,
                         self).get_context_data(**kwargs)
-        context['turno_choices'] = Tramitacao.TURNO_CHOICES
-        context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         context['pk'] = self.kwargs['pk']
         context['root_pk'] = self.kwargs['pk']
+        if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
+            context['sessao_iniciada'] = False
+            return context
+        context['sessao_iniciada'] = True
+        context['turno_choices'] = Tramitacao.TURNO_CHOICES
+        context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         return context
 
 
@@ -3314,9 +3520,13 @@ class VotacaoEmBlocoOrdemDia(PermissionRequiredForAppCrudMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoOrdemDia,
                         self).get_context_data(**kwargs)
-        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['pk'] = self.kwargs['pk']
         context['root_pk'] = self.kwargs['pk']
+        if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
+            context['sessao_iniciada'] = False
+            return context
+        context['sessao_iniciada'] = True
+        context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         return context
 
@@ -3335,7 +3545,9 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
         if not 'context' in locals():
             context = {'pk': self.kwargs['pk'],
                        'root_pk': self.kwargs['pk'],
-                       'title': SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+                       'title': SessaoPlenaria.objects.get(id=self.kwargs['pk']),
+                       'origem': request.POST['origem'],
+                       'subnav_template_name': 'sessao/subnav.yaml'
                        }
 
         if 'marcadas_1' in request.POST:
@@ -3386,6 +3598,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                             resultado = TipoResultadoVotacao.objects.get(
                                 id=request.POST['resultado_votacao'])
                             votacao.tipo_resultado_votacao = resultado
+                            votacao.user = request.user
+                            votacao.ip = get_client_ip(request)
                             votacao.save()
                         except Exception as e:
                             username = request.user.username
@@ -3417,6 +3631,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                             resultado = TipoResultadoVotacao.objects.get(
                                 id=request.POST['resultado_votacao'])
                             votacao.tipo_resultado_votacao = resultado
+                            votacao.user = request.user
+                            votacao.ip = get_client_ip(request)
                             votacao.save()
                         except Exception as e:
                             username = request.user.username
@@ -3514,6 +3730,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
             context = {'pk': self.kwargs['pk'],
                        'root_pk': self.kwargs['pk'],
                        'title': SessaoPlenaria.objects.get(id=self.kwargs['pk']),
+                       'origem': request.POST['origem'],
                        'subnav_template_name': 'sessao/subnav.yaml'}
 
         if 'marcadas_2' in request.POST:
@@ -3593,6 +3810,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         votacao.materia = ordem.materia
                         votacao.ordem = ordem
                         votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.user = request.user
+                        votacao.ip = get_client_ip(request)
                         votacao.save()
 
                         for votos in request.POST.getlist('voto_parlamentar'):
@@ -3607,6 +3826,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                             voto_parlamentar.voto = voto
                             voto_parlamentar.parlamentar_id = parlamentar_id
                             voto_parlamentar.votacao_id = votacao.id
+                            voto_parlamentar.user = request.user
+                            voto_parlamentar.ip = get_client_ip(request)
                             voto_parlamentar.save()
 
                             ordem.resultado = form.cleaned_data['resultado_votacao'].nome
@@ -3634,6 +3855,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         votacao.materia = expediente.materia
                         votacao.expediente = expediente
                         votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.user = request.user
+                        votacao.ip = get_client_ip(request)
                         votacao.save()
 
                         # Salva os votos de cada parlamentar
@@ -3649,6 +3872,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                             voto_parlamentar.voto = voto
                             voto_parlamentar.parlamentar_id = parlamentar_id
                             voto_parlamentar.votacao_id = votacao.id
+                            voto_parlamentar.user = request.user
+                            voto_parlamentar.ip = get_client_ip(request)
                             voto_parlamentar.save()
 
                             expediente.resultado = form.cleaned_data['resultado_votacao'].nome
@@ -3677,7 +3902,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                 voto_parlamentar = VotoParlamentar.objects.filter(
                     ordem=ordens_id[0])
             else:
-                presencas = PresencaOrdemDia.objects.filter(
+                presencas = SessaoPlenariaPresenca.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk'])
                 expedientes_id = self.request.POST.getlist('marcadas_2')
                 voto_parlamentar = VotoParlamentar.objects.filter(
@@ -3692,7 +3917,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                 voto_parlamentar = VotoParlamentar.objects.filter(
                     ordem=ordens_id[0])
             else:
-                presencas = PresencaOrdemDia.objects.filter(
+                presencas = SessaoPlenariaPresenca.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk'])
                 expedientes_id = self.request.POST.getlist('expedientes')
                 voto_parlamentar = VotoParlamentar.objects.filter(

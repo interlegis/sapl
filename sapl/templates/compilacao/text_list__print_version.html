@@ -11,3 +11,10 @@
 
 {% block detail_content %}{% endblock %}
 {% block footer_container %}{% endblock %}
+
+
+{% block base_content %}
+<div class="cp-print">
+  {{ block.super }}
+</div>
+{% endblock %}
