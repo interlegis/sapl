@@ -154,12 +154,10 @@ class HistoricoPartido(models.Model):
         verbose_name=_('Nome')
     )
     inicio_historico = models.DateField(
-        default=timezone.now,
         verbose_name=_('Data Alteração')
     )
 
     fim_historico = models.DateField(
-        default=timezone.now,
         verbose_name=_('Data Alteração')
     )
 
@@ -444,10 +442,10 @@ class Filiacao(models.Model):
         # parlamentares e tela de Filiações do Parlamentar
         ordering = ('parlamentar', '-data', '-data_desfiliacao')
 
-    def get_nome_partido_no_ano(self, ano):
+    def get_nome_partido_ano(self, ano):
         historico = HistoricoPartido.objects.filter(partido=self.partido)
         for h in historico:
-            if ano > h.inicio_historico.year and ano < h.fim_historico.year:
+            if h.inicio_historico.year <= ano <= h.fim_historico.year:
                 return h
         return self.partido    
 

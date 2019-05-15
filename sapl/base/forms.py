@@ -38,7 +38,8 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         RangeWidgetOverride, autor_label, autor_modal,
                         models_with_gr_for_model, qs_override_django_filter,
                         choice_anos_com_normas, choice_anos_com_materias,
-                        FilterOverridesMetaMixin, FileFieldCheckMixin)
+                        FilterOverridesMetaMixin, FileFieldCheckMixin,
+                        intervalos_tem_intersecao)
 from .models import AppConfig, CasaLegislativa
 from operator import xor
 
@@ -1428,7 +1429,7 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
             partido = Partido.objects.get(pk=self.instance.pk)
 
             if xor(cleaned_data['sigla'] == partido.sigla, cleaned_data['nome'] == partido.nome):
-                raise ValidationError(_('O Partido deve ter um novo Nome e uma nova Sigla.'))
+                raise ValidationError(_('O Partido deve ter um novo nome e uma nova sigla.'))
 
             cleaned_data.update({'partido': partido})
 
@@ -1470,27 +1471,29 @@ class PartidoUpdateForm(PartidoForm):
         )
 
     def clean(self):
-        super(PartidoUpdateForm,self).clean()
-        cleaned_data = self.cleaned_data
+        cleaned_data = super(PartidoUpdateForm,self).clean()
+        
+        if not self.is_valid():
+            return cleaned_data
 
-        is_historico = (cleaned_data['historico'] == 'True')
+        is_historico = cleaned_data['historico'] == 'True'
 
         if is_historico: 
             if not cleaned_data['data_criacao'] or not cleaned_data['data_extincao']:
-                   raise ValidationError("Certifique-se de que a data de inicio e fim de historico estão preenchidas")
+                raise ValidationError("Certifique-se de que a data de inicio e fim de historico estão preenchidas")
             if self.instance.data_criacao and  self.instance.data_criacao > cleaned_data['data_criacao']:
-                 raise ValidationError("Data de inicio de historico deve ser posterior a data de criação do partido.")
+                raise ValidationError("Data de inicio de historico deve ser posterior a data de criação do partido.")
             if self.instance.data_extincao and  self.instance.data_extincao < cleaned_data['data_extincao']:
-                 raise ValidationError("Data de fim de historico deve ser anterior a data de extinção do partido.")
+                raise ValidationError("Data de fim de historico deve ser anterior a data de extinção do partido.")
 
             if self.instance.pk:
                 partido = Partido.objects.get(pk=self.instance.pk)
                 historico = HistoricoPartido.objects.filter(partido=partido).order_by('-inicio_historico')
                 for h in historico:
-                    if (h.inicio_historico < cleaned_data['data_extincao'] and \
-                            h.inicio_historico > cleaned_data['data_criacao']) or \
-                            (h.fim_historico < cleaned_data['data_extincao'] and \
-                            h.fim_historico > cleaned_data['data_criacao']):
+                    if intervalos_tem_intersecao(h.inicio_historico,
+                            h.fim_historico,
+                            cleaned_data['data_criacao'],
+                            cleaned_data['data_extincao']):
                         raise ValidationError("Periodo selecionado ja possui um histórico.")                
 
         return cleaned_data
@@ -1499,7 +1502,7 @@ class PartidoUpdateForm(PartidoForm):
         partido = self.instance
     
         cleaned_data = self.cleaned_data
-        is_historico = (cleaned_data['historico'] == 'True')
+        is_historico = cleaned_data['historico'] == 'True'
             
         if not is_historico:
             partido.save(commit)

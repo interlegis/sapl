@@ -684,11 +684,8 @@ class ParlamentarCrud(Crud):
                     partido_aux = filiacao.partido
                     historico = HistoricoPartido.objects.filter(partido=partido_aux).order_by('-fim_historico')  
                     if historico:
-                        for p in historico:
-                            if p.inicio_historico < legislatura.data_fim and p.fim_historico >= legislatura.data_fim:
-                                partido_aux = p
-                                break
-
+                        partido_aux = next(iter([p for p in historico if p.inicio_historico < legislatura.data_fim <= p.fim_historico]), filiacao.partido)
+                    
                     row[1] = (partido_aux.sigla, None, None)
 
             return context
@@ -1081,7 +1078,7 @@ def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
         logger.info("Filiação do parlamentar com (data<={} e data_desfiliacao>={}) "
                     "ou (data<={} e data_desfiliacao=Null encontrada com sucesso."
                     .format(sessao.data_fim, sessao.data_fim, sessao.data_fim))
-        return filiacao.get_nome_partido_no_ano(sessao.data_fim.year).sigla
+        return filiacao.get_nome_partido_ano(sessao.data_fim.year).sigla
 
 
 def altera_field_mesa_public_view(request):

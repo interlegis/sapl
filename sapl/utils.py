@@ -818,11 +818,9 @@ def filiacao_data(parlamentar, data_inicio, data_fim=None):
             data__gte=data_inicio,
             data__lte=data_fim)
 
-    data_referencia = data_inicio
-    if data_fim:
-        data_referencia = data_fim
+    data_referencia = data_fim if data_fim else data_inicio
 
-    return ' | '.join([f.get_nome_partido_no_ano(data_referencia.year).sigla for f in filiacoes])
+    return ' | '.join([f.get_nome_partido_ano(data_referencia.year).sigla for f in filiacoes])
 
 
 def parlamentares_ativos(data_inicio, data_fim=None):

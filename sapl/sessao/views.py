@@ -1626,7 +1626,6 @@ def get_oradores_explicações_pessoais(sessao_plenaria):
             if not partido_sigla:
                 sigla = ''
             else:
-                sigla = filiacao_data(parlamentar, sessao_plenaria.data_inicio)
                 sigla = partido_sigla.partido.sigla
             oradores = {
                 'numero_ordem': orador.numero_ordem,
