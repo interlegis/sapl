@@ -1434,7 +1434,7 @@ class PrimeiraTramitacaoEmLoteAdmFilterSet(django_filters.FilterSet):
                      row1, row2, form_actions(label='Pesquisar')))
 
 
-class PrimeiraTramitacaoEmLoteAdmForm(ModelForm):
+class TramitacaoEmLoteAdmForm(ModelForm):
     logger = logging.getLogger(__name__)
 
     class Meta:
@@ -1454,7 +1454,7 @@ class PrimeiraTramitacaoEmLoteAdmForm(ModelForm):
             
 
     def __init__(self, *args, **kwargs):
-        super(PrimeiraTramitacaoEmLoteAdmForm, self).__init__(*args, **kwargs)
+        super(TramitacaoEmLoteAdmForm, self).__init__(*args, **kwargs)
         self.fields['data_tramitacao'].initial = timezone.now().date()
         ust = UnidadeTramitacao.objects.select_related().all()
         unidade_tramitacao_destino = [('', '---------')] + [(ut.pk, ut)
@@ -1526,7 +1526,7 @@ class PrimeiraTramitacaoEmLoteAdmForm(ModelForm):
 
 
     def clean(self):
-        cleaned_data = super(PrimeiraTramitacaoEmLoteAdmForm, self).clean()
+        cleaned_data = super(TramitacaoEmLoteAdmForm, self).clean()
 
         if not self.is_valid():
             return self.cleaned_data
@@ -1567,14 +1567,20 @@ class PrimeiraTramitacaoEmLoteAdmForm(ModelForm):
                         'maior que a data de tramitação!')
                 raise ValidationError(msg)
 
+        if cleaned_data['unidade_tramitacao_local'] == cleaned_data['unidade_tramitacao_destino']:
+            msg = _('Unidade tramitação local deve ser diferente da unidade tramitação destino.')
+            self.logger.error('Unidade tramitação local ({}) deve ser diferente da unidade tramitação destino'
+                                .format(cleaned_data['unidade_tramitacao_local']))
+            raise ValidationError(msg)
+
         return cleaned_data
 
     @transaction.atomic
     def save(self, commit=True):
         cd = self.cleaned_data
         documentos = self.initial['documentos']
-        user = self.initial['user']
-        ip = self.initial['ip']
+        user = self.initial['user'] if 'user' in self.initial else None
+        ip = self.initial['ip'] if 'ip' in self.initial else ''
         for doc_id in documentos:
             doc = DocumentoAdministrativo.objects.get(id=doc_id)
             tramitacao = TramitacaoAdministrativo.objects.create(

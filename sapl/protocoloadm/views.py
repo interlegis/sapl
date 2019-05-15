@@ -48,7 +48,7 @@ from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status,
                     AnexadoForm, AnexadoEmLoteFilterSet,
                     PrimeiraTramitacaoEmLoteAdmFilterSet,
-                    PrimeiraTramitacaoEmLoteAdmForm,
+                    TramitacaoEmLoteAdmForm,
                     TramitacaoEmLoteAdmFilterSet,
                     compara_tramitacoes_doc)
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
@@ -1474,7 +1474,7 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
             'ano', 'numero')
         qr = self.request.GET.copy()
 
-        form = PrimeiraTramitacaoEmLoteAdmForm()
+        form = TramitacaoEmLoteAdmForm()
         context['form'] = form
 
         if self.primeira_tramitacao:
@@ -1503,7 +1503,7 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        form = PrimeiraTramitacaoEmLoteAdmForm(request.POST, initial=
+        form = TramitacaoEmLoteAdmForm(request.POST, initial=
                                                             {'documentos': documentos_ids,
                                                             'user': user, 'ip':ip})
 
