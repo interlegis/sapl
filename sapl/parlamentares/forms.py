@@ -624,8 +624,7 @@ class BancadaForm(ModelForm):
 
     class Meta:
         model = Bancada
-        fields = ['legislatura', 'nome', 'partido', 'data_criacao',
-                  'data_extincao', 'descricao']
+        fields = ['nome', 'descricao', 'ativo']
 
     def clean(self):
         super(BancadaForm, self).clean()
@@ -633,32 +632,6 @@ class BancadaForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        data = self.cleaned_data
-
-        legislatura = data['legislatura']
-
-        data_criacao = data['data_criacao']
-        if data_criacao:
-            if (data_criacao < legislatura.data_inicio or
-                    data_criacao > legislatura.data_fim):
-                raise ValidationError(_("Data de criação da bancada fora do intervalo"
-                                        " de legislatura informada"))
-
-        data_extincao = data['data_extincao']
-        if data_extincao:
-            if (data_extincao < legislatura.data_inicio or
-                    data_extincao > legislatura.data_fim):
-                raise ValidationError(_("Data fim da bancada fora do intervalo de"
-                                        " legislatura informada"))
-
-        if self.cleaned_data['data_extincao']:
-            if (self.cleaned_data['data_extincao'] <
-                    self.cleaned_data['data_criacao']):
-                msg = _('Data de extinção não pode ser menor que a de criação')
-                raise ValidationError(msg)
-        return self.cleaned_data
-
-    @transaction.atomic
     def save(self, commit=True):
         bancada = super(BancadaForm, self).save(commit)
         content_type = ContentType.objects.get_for_model(Bancada)

@@ -280,7 +280,9 @@ rules_group_geral = {
         (parlamentares.Frente, __base__, __perms_publicas__),
         (parlamentares.Votante, __base__, __perms_publicas__),
         (parlamentares.Bancada, __base__, __perms_publicas__),
+        (parlamentares.MembroBancada, __base__, __perms_publicas__),
         (parlamentares.CargoBancada, __base__, __perms_publicas__),
+        (parlamentares.CargoMembroBancada, __base__, __perms_publicas__),
         (parlamentares.Bloco, __base__, __perms_publicas__),
 
         (sessao.TipoSessaoPlenaria, __base__, __perms_publicas__),
