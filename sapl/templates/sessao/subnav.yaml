@@ -51,4 +51,5 @@
     - title: {% trans 'Resumo' %}
       url: resumo
     - title: {% trans 'Extrato' %}
-      url: resumo_ata     
+      url: resumo_ata
+      check_permission: sessao.add_sessaoplenaria
