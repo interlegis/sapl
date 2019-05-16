@@ -318,7 +318,7 @@ class RemovePautaView(PermissionRequiredMixin, CreateView):
 
         reuniao = Reuniao.objects.get(pk=kwargs['pk'])
         for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
-            PautaReuniao.objects.get(reuniao=reuniao,materia=materia).delete()
+            PautaReuniao.objects.filter(reuniao=reuniao,materia=materia).delete()
 
         msg=_('Matéria(s) removida(s) com sucesso!')
         messages.add_message(request, messages.SUCCESS, msg)
