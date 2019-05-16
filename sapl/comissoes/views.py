@@ -353,7 +353,7 @@ class AdicionaPautaView(PermissionRequiredMixin, CreateView):
         success_url = reverse('sapl.comissoes:reuniao_detail', kwargs={'pk':kwargs['pk']}) 
         marcadas = request.POST.getlist('materia_id')
 
-        if len(marcadas) == 0:
+        if not marcadas:
             msg = _('Nenhuma máteria foi selecionada.')
             messages.add_message(request, messages.WARNING, msg)
             return HttpResponseRedirect(success_url)
