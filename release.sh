@@ -14,9 +14,9 @@ SED_AWKWARD_PATTERN="[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+){0,1}"
 LATEST_VERSION=$(git tag | egrep $VERSION_PATTERN | sort --version-sort | tail -1)
 MAJOR_VERSION=$(echo $LATEST_VERSION | cut -d"-" -f1)
 IS_RC=$(echo $LATEST_VERSION | egrep '(-RC)')
-HAS_MAJOR=$(git tag | egrep $MAJOR_VERSION"$")
+MAJOR_TAG_CREATED=$(git tag | egrep $MAJOR_VERSION"$")
 
-if [ -n "$HAS_MAJOR" ]; then
+if [ -n "$MAJOR_TAG_CREATED" ]; then
    LATEST_VERSION=$MAJOR_VERSION
 fi
 
@@ -45,7 +45,7 @@ function change_files {
 }
 
 function set_major_version {
-    if [ -z "$IS_RC" ] || [ -n "$HAS_MAJOR" ]; then
+    if [ -z "$IS_RC" ] || [ -n "$MAJOR_TAG_CREATED" ]; then
         FINAL_VERSION=$NEXT_VERSION
     else
         FINAL_VERSION=$MAJOR_VERSION
@@ -53,10 +53,6 @@ function set_major_version {
 }
 
 function set_rc_version {
-    IS_RC=$(echo $LATEST_VERSION | egrep '(-RC)')
-    MAJOR_VER=$(echo $LATEST_VERSION | cut -d"-" -f1)
-    HAS_MAJOR=$(git tag | egrep "$MAJOR_VER$")
-
     if [ -z "$IS_RC" ]; then
         NEXT_RC_VERSION=$NEXT_VERSION"-RC0"
     else
