@@ -171,9 +171,7 @@ def lista_materias_comissao(comissao_pk):
         comissao=F('unidade_tramitacao_destino__comissao')).distinct(
             'materia').values_list('materia', 'comissao')
 
-    ts = list(filter(lambda x: x[1] == int(comissao_pk), ts))
-    ts = list(zip(*ts))
-    ts = ts[0] if ts else []
+    ts = [m for (m,c) in ts if c == int(comissao_pk)]
 
     materias = MateriaLegislativa.objects.filter(
         pk__in=ts).order_by('tipo', '-ano', '-numero')
@@ -367,11 +365,7 @@ class AdicionaPautaView(PermissionRequiredMixin, CreateView):
                  pauta.reuniao = reuniao
                  pauta.materia = materia
                  pautas.append(pauta)
-         PautaReuniao.objects.bulk_create(pautas)
-            pauta = PautaReuniao()
-            pauta.reuniao = reuniao
-            pauta.materia = materia
-            pauta.save()
+        PautaReuniao.objects.bulk_create(pautas)
         
         msg = _('Matéria(s) adicionada(s) com sucesso!')
         messages.add_message(request, messages.SUCCESS, msg)
