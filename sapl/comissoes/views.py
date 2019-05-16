@@ -361,7 +361,13 @@ class AdicionaPautaView(PermissionRequiredMixin, CreateView):
             return HttpResponseRedirect(success_url)
             
         reuniao = Reuniao.objects.get(pk=kwargs['pk'])
+        pautas = []
         for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+                 pauta = PautaReuniao()
+                 pauta.reuniao = reuniao
+                 pauta.materia = materia
+                 pautas.append(pauta)
+         PautaReuniao.objects.bulk_create(pautas)
             pauta = PautaReuniao()
             pauta.reuniao = reuniao
             pauta.materia = materia
