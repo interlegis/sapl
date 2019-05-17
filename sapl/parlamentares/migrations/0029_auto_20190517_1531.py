@@ -13,9 +13,22 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL("""
-            update django_content_type set 
-                app_label = 'parlamentares',
-                model = 'bloco'
-            where app_label = 'sessao' and model = 'bloco'
+            update base_autor
+            set tipo_id = (select id
+                           from base_tipoautor
+                           where content_type_id = (select id
+                                                    from django_content_type
+                                                    where app_label = 'parlamentares' and model = 'bloco'))
+            where tipo_id = (select id
+		                     from base_tipoautor
+		                     where content_type_id = (select id
+					         from django_content_type
+					         where app_label = 'sessao' and model = 'bloco'));
         """),
+        migrations.RunSQL("""
+            delete from base_tipoautor
+            where content_type_id = (select id
+                                     from django_content_type
+                                     where app_label = 'sessao' and model = 'bloco')
+        """)
     ]
