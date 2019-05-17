@@ -2351,11 +2351,13 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 materia.em_tramitacao = True
             materia.save()
 
-        msg = _('Tramitação completa.')
+        msg = _('Tramitação completa. ' + "Foram tramitadas " + str(len(marcadas)) + " matéria(s).")
         self.logger.info('user=' + username + '. Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
-        return self.get(request, self.kwargs)
-
+        
+        if self.primeira_tramitacao:
+            return HttpResponseRedirect(reverse('sapl.materia:primeira_tramitacao_em_lote'))
+        return HttpResponseRedirect(reverse('sapl.materia:tramitacao_em_lote'))
 
 class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
     filterset_class = TramitacaoEmLoteFilterSet
