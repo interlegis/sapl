@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
@@ -29,6 +30,11 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Blocos Parlamentares',
             },
             bases=(models.Model,),
+        ),
+        migrations.AlterField(
+            model_name='composicaocoligacao',
+            name='partido',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='parlamentares.Partido', verbose_name='Partidos da Coligação'),
         ),
     ]
 
