@@ -723,7 +723,7 @@ class OradorOrdemDiaForm(ModelForm):
         )]
 
         self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-            id__in=ids
+            id__in=ids, ativo=True
         ).order_by('nome_parlamentar')
 
 
