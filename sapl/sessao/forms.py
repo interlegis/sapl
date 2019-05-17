@@ -675,14 +675,16 @@ class OradorExpedienteForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(OradorExpedienteForm, self).__init__(*args, **kwargs)
-        legislatura_vigente = SessaoPlenaria.objects.get(
-            pk=kwargs['initial']['id_sessao']).legislatura
 
-        if legislatura_vigente:
-            self.fields['parlamentar'].queryset = \
-                Parlamentar.objects.filter(ativo=True,
-                                           mandato__legislatura=legislatura_vigente
-                                           ).order_by('nome_parlamentar')
+        id_sessao = int(self.initial['id_sessao'])
+
+        ids = [p.parlamentar.id for p in SessaoPlenariaPresenca.objects.filter(
+            sessao_plenaria_id=id_sessao
+        )]
+
+        self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
+            id__in=ids, ativo=True
+        ).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()
