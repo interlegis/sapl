@@ -938,7 +938,7 @@ def criar_configuracao_inicial():
             sequencia_numeracao = "U"
     else:
         sequencia_numeracao = "A"
-    appconf = AppConf(sequencia_numeracao=sequencia_numeracao)
+    appconf = AppConf(sequencia_numeracao_protocolo=sequencia_numeracao)
     appconf.save()
     return True
 
