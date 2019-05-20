@@ -166,7 +166,7 @@ def deduplicate_comissao():
         ## TODO: PODEM EXISTIR CASOS DA COMISSAO DE DESTINO NAO TER AUTOR, TERIA QUE CRIAR
         ## TODO: POR ENQUANTO OPTEI POR PEGAR A ULTIMA COMISSAO COM AUTOR CRIADO
         while True:
-            c = comissoes.pop()
+            c = comissoes.pop(0)
             try:
                 Autor.objects.get(content_type=content_type, tipo=tipo, object_id=c)
                 comissoes = [c] + comissoes
