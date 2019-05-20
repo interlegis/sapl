@@ -50,7 +50,7 @@ def move_comissao(from_id, to_id):
                 o.comissao = _to_comissao
                 o.save()
             except IntegrityError as e:
-                print(e)
+                print(str(e))
                 o.delete()
 
 
