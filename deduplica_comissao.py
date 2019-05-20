@@ -25,7 +25,7 @@ def move_comissao(from_id, to_id):
 
     ## TRATA TRAMITACAO
     try:
-        _to_unidade_tramitacao = UnidadeTramitacao.objects.get(comissao=_to_comissao)
+        _to_unidade_tramitacao = UnidadeTramitacao.objects.get_or_create(comissao=_to_comissao)
     except ObjectDoesNotExist:
         _to_unidade_tramitacao = UnidadeTramitacao.objects.create(comissao=_to_comissao)
 
