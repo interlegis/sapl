@@ -45,7 +45,7 @@
             <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% else %}Nominal{% endif %}"  {% if o.tipo_votacao == 2 %} style="display:none;" {% endif %}>
               <td>
                 <input type="checkbox" name="marcadas_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
-                <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
+                <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.materia.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
                 {% if o.materia.numeracao_set.last %}
                   <strong>Processo:</strong> &nbsp; {{o.materia.numeracao_set.last}}</br>
                 {% endif %}

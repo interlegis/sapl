@@ -3489,7 +3489,8 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
 
     def get_queryset(self):
         return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
-                                                resultado='')
+                                                resultado='',
+                                                retiradapauta=None)
 
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoExpediente,
@@ -3515,7 +3516,8 @@ class VotacaoEmBlocoOrdemDia(PermissionRequiredForAppCrudMixin, ListView):
 
     def get_queryset(self):
         return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
-                                       resultado='')
+                                       resultado='',
+                                       retiradapauta=None)
 
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoOrdemDia,
