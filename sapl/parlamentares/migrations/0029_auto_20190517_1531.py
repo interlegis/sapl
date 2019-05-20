@@ -13,22 +13,55 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL("""
-            update base_autor
-            set tipo_id = (select id
-                           from base_tipoautor
-                           where content_type_id = (select id
-                                                    from django_content_type
-                                                    where app_label = 'parlamentares' and model = 'bloco'))
-            where tipo_id = (select id
-		                     from base_tipoautor
-		                     where content_type_id = (select id
-					         from django_content_type
-					         where app_label = 'sessao' and model = 'bloco'));
+            INSERT INTO django_content_type (app_label, model) 
+            SELECT 'parlamentares', 'bloco'
+            WHERE NOT EXISTS (SELECT id 
+                              FROM django_content_type
+                              WHERE app_label = 'parlamentares' AND model = 'bloco');
         """),
         migrations.RunSQL("""
-            delete from base_tipoautor
-            where content_type_id = (select id
-                                     from django_content_type
-                                     where app_label = 'sessao' and model = 'bloco')
-        """)
+            INSERT INTO base_tipoautor (descricao, content_type_id)
+            SELECT 'Bloco Parlamentar', (SELECT id 
+                                         FROM django_content_type
+                                         WHERE app_label = 'parlamentares' AND model = 'bloco')
+            WHERE NOT EXISTS (SELECT id 
+                              FROM base_tipoautor
+                              WHERE content_type_id = (SELECT id 
+                                                       FROM django_content_type
+                                                       WHERE app_label = 'parlamentares' AND model = 'bloco'));
+        """),
+        migrations.RunSQL("""
+            UPDATE auth_permission
+            SET content_type_id = (SELECT id 
+                                         FROM django_content_type
+                                         WHERE app_label = 'parlamentares' AND model = 'bloco')
+            WHERE content_type_id = (SELECT id
+					                 FROM django_content_type
+					                 WHERE app_label = 'sessao' AND model = 'bloco')
+		    AND NOT EXISTS (SELECT id
+		                    FROM django_content_type
+		                    WHERE app_label = 'parlamentares' AND model = 'bloco');                               
+        """),
+        migrations.RunSQL("""
+            UPDATE base_autor
+            SET tipo_id = (SELECT id
+                           FROM base_tipoautor
+                           WHERE content_type_id = (SELECT id
+                                                    FROM django_content_type
+                                                    WHERE app_label = 'parlamentares' AND model = 'bloco')),
+                content_type_id = (SELECT id 
+                                   FROM django_content_type
+                                   WHERE app_label = 'parlamentares' AND model = 'bloco')
+            WHERE tipo_id = (SELECT id
+		                     FROM base_tipoautor
+		                     WHERE content_type_id = (SELECT id
+					                                  FROM django_content_type
+					                                  WHERE app_label = 'sessao' AND model = 'bloco'));
+        """),
+        migrations.RunSQL("""
+            DELETE FROM base_tipoautor
+            WHERE content_type_id = (SELECT id
+                                     FROM django_content_type
+                                     WHERE app_label = 'sessao' AND model = 'bloco');
+        """),
     ]
