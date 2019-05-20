@@ -62,7 +62,6 @@ def test_incluir_sessao_errors(admin_client):
     assert (response.context_data['form'].errors['hora_inicio'] ==
             [_('Este campo é obrigatório.')])
 
-@pytest.mark.django_db(transaction=False)
 class TestResumoView():
     def setup(self):
         self.sessao_plenaria = mommy.make(SessaoPlenaria)
@@ -148,3 +147,13 @@ class TestResumoView():
 
         assert resultado_get_ocorrencia['ocorrencias_da_sessao'][0] == ocorrencia
 
+
+@pytest.mark.django_db(transaction=False)
+def test_get_resumo(admin_client):
+    sessao_plenaria = mommy.make(SessaoPlenaria)
+
+    response = admin_client.get(reverse('sapl.sessao:resumo', 
+                                kwargs={'pk': sessao_plenaria.pk}),
+                                follow=True)
+
+    import ipdb; ipdb.set_trace()

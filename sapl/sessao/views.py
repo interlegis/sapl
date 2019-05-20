@@ -1491,8 +1491,7 @@ def get_assinaturas(sessao_plenaria):
     parlamentares_ordem = [p for p in parlamentares_ordem if p not in parlamentares_mesa]
 
     context = {}
-
-    config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
+    config_assinatura_ata = AppsAppConfig.attr('assinatura_ata')
     if config_assinatura_ata == 'T' and parlamentares_ordem:
         context.update(
             {'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
@@ -1758,22 +1757,57 @@ class ResumoView(DetailView):
         }
 
         ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
-        context.update({
-            'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
-            'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
-            'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
-            'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
-            'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
-            'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
-            'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
-            'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
-            'nono_ordenacao': dict_ord_template[ordenacao.nono],
-            'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
-            'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
-            'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
-            'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
-            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
-        })
+        
+        try:
+            context.update({
+                'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+                'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+                'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+                'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+                'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+                'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+                'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+                'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+                'nono_ordenacao': dict_ord_template[ordenacao.nono],
+                'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+                'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+                'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+                'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
+                'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+            })
+        except KeyError as e:
+            logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
+                              "configuração de ordenação. Utilizando ordenação padrão.")
+            context.update({
+                'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+                'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+                'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+                'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+                'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+                'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+                'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+                'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+                'nono_ordenacao': dict_ord_template[ordenacao.nono],
+                'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+                'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+                'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+                'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
+                'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+            })
+            tmp += inf_basicas(inf_basicas_dic)
+            tmp += multimidia(cont_mult_dic)
+            tmp += mesa(lst_mesa)
+            tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
+            tmp += expedientes(lst_expedientes)
+            tmp += expediente_materia(lst_expediente_materia)
+            tmp += expediente_materia_vot_nom(lst_expediente_materia_vot_nom)
+            tmp += oradores_expediente(lst_oradores_expediente)
+            tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
+            tmp += votacao(lst_votacao)
+            tmp += votacao_vot_nom(lst_votacao_vot_nom)
+            tmp += oradores_ordemdia(lst_oradores_ordemdia)
+            tmp += oradores(lst_oradores)
+            tmp += ocorrencias(lst_ocorrencias)
 
         return context
 
