@@ -145,7 +145,7 @@ def delete_comissao(id):
             m.objects.filter(unidade_tramitacao_destino=unidate_tramitacao).delete()
         unidate_tramitacao.delete()
     except Exception as e:
-        print(e)
+        print(str(e))
 
     comissao.delete()
 
