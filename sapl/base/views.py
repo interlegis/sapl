@@ -516,7 +516,7 @@ class RelatorioDataFimPrazoTramitacaoView(FilterView):
                 (str(UnidadeTramitacao.objects.get(
                     id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
         else:
-            context['tramitacao__unidade_tramitacao_destino'] = ''
+            context['tramitacao__unidade_tramitacao_local'] = ''
 
         return context
 
