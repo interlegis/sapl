@@ -115,7 +115,7 @@ def estatisticas():
                 total = a.objects.filter(autor=autor).count()
                 print(model_name, total)
         except Exception as e:
-            print(e)
+            print(str(e))
             pass
         print('-------------------------------------------------------------------')
 
