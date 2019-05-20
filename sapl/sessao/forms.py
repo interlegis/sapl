@@ -256,9 +256,15 @@ class RetiradaPautaForm(ModelForm):
     def save(self, commit=False):
         retirada = super(RetiradaPautaForm, self).save(commit=commit)
         if retirada.ordem:
-            retirada.materia = retirada.ordem.materia
+            ordem = retirada.ordem
+            retirada.materia = ordem.materia
+            ordem.votacao_aberta = False
+            ordem.save()
         elif retirada.expediente:
-            retirada.materia = retirada.expediente.materia
+            expediente = retirada.expediente
+            retirada.materia = expediente.materia
+            expediente.votacao_aberta = False
+            expediente.save()
         retirada.save()
         return retirada
 
