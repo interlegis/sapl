@@ -3480,12 +3480,9 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
 
 class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
-
-    model = ExpedienteMateria
-    template_name = 'sessao/votacao/votacao_bloco_expediente.html'
+    template_name = 'sessao/votacao/votacao_bloco.html'
     app_label = AppConfig.label
-    context_object_name = 'expedientes'
-    logger = logging.getLogger(__name__)
+    expediente = True
 
     def get_queryset(self):
         return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
@@ -3503,34 +3500,20 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
         context['sessao_iniciada'] = True
         context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+        if self.expediente:
+            context['expediente'] = True
+        else:
+            context['expediente'] = False
         return context
 
 
-class VotacaoEmBlocoOrdemDia(PermissionRequiredForAppCrudMixin, ListView):
-    model = OrdemDia
-    template_name = 'sessao/votacao/votacao_bloco_ordem.html'
-    app_label = AppConfig.label
-    logger = logging.getLogger(__name__)
-    context_object_name = 'ordem_dia'
-    parent_field = 'sessao_plenaria'
+class VotacaoEmBlocoOrdemDia(VotacaoEmBlocoExpediente):
+    expediente = False
 
     def get_queryset(self):
         return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
                                        resultado='',
                                        retiradapauta=None)
-
-    def get_context_data(self, **kwargs):
-        context = super(VotacaoEmBlocoOrdemDia,
-                        self).get_context_data(**kwargs)
-        context['pk'] = self.kwargs['pk']
-        context['root_pk'] = self.kwargs['pk']
-        if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
-            context['sessao_iniciada'] = False
-            return context
-        context['sessao_iniciada'] = True
-        context['turno_choices'] = Tramitacao.TURNO_CHOICES
-        context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
-        return context
 
 
 class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateView):
