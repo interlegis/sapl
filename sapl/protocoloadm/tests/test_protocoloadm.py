@@ -1,10 +1,11 @@
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+from urllib.parse import urlencode
 import pytest
 
 from sapl.base.models import AppConfig
@@ -15,7 +16,8 @@ from sapl.protocoloadm.forms import (AnularProtocoloAdmForm,
                                      MateriaLegislativa, ProtocoloDocumentForm,
                                      ProtocoloMateriaForm, TramitacaoAdmForm,
                                      TramitacaoAdmEditForm,
-                                     compara_tramitacoes_doc)
+                                     compara_tramitacoes_doc,
+                                     TramitacaoEmLoteAdmForm)
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       StatusTramitacaoAdministrativo,
                                       TipoDocumentoAdministrativo,
@@ -703,3 +705,338 @@ def test_tramitacoes_documentos_anexados(admin_client):
     response = admin_client.post(url, {'confirmar':'confirmar'} ,follow=True)
     assert TramitacaoAdministrativo.objects.filter(id=tramitacao_anexada.pk).count() == 0
     assert TramitacaoAdministrativo.objects.filter(id=tramitacao_anexada_anexada.pk).count() == 0
+
+
+@pytest.mark.django_db(transaction=False)
+def test_tramitacao_lote_documentos_form(admin_client):
+    tipo_documento = mommy.make(
+            TipoDocumentoAdministrativo,
+            descricao="Tipo_Teste"
+    )
+    documento = mommy.make(
+            DocumentoAdministrativo,
+            numero=20,
+            ano=2018,
+            data="2019-05-16",
+            tipo=tipo_documento
+    )
+
+    unidade_tramitacao_local_1 = make_unidade_tramitacao(descricao="Teste 1")
+    unidade_tramitacao_destino_1 = make_unidade_tramitacao(descricao="Teste 2")
+
+    status = mommy.make(
+        StatusTramitacaoAdministrativo,
+        indicador='R')
+
+    # Form sem campos obrigatórios
+    documentos = []
+    form = TramitacaoEmLoteAdmForm(initial={'documentos': documentos}, data={})
+
+    errors = form.errors
+    assert errors['data_tramitacao'] == ['Este campo é obrigatório.']
+    assert errors['unidade_tramitacao_local'] == ['Este campo é obrigatório.']
+    assert errors['status'] == ['Este campo é obrigatório.']
+    assert errors['unidade_tramitacao_destino'] == ['Este campo é obrigatório.']
+    assert errors['texto'] == ['Este campo é obrigatório.']
+    assert not form.is_valid()
+
+    # Tramitar apenas um documento sem anexados
+    documentos = [documento.id]
+    now = timezone.now().date()
+
+    form = TramitacaoEmLoteAdmForm(initial={'documentos': documentos}, data={})
+    form.data = {'data_tramitacao': now + timedelta(days=5),
+                'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
+                'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
+                'status': status.id,
+                'urgente': False,
+                'texto': 'aaaa'}
+
+    assert form.errors['__all__'] == \
+        ["A data de tramitação deve ser menor ou igual a data de hoje!"]
+    assert not form.is_valid()
+
+    form = TramitacaoEmLoteAdmForm(initial={'documentos': documentos}, data={})
+    form.data = {'data_tramitacao': '2019-05-14',
+                'data_encaminhamento' : '2019-05-09',
+                'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
+                'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
+                'status': status.id,
+                'urgente': False,
+                'texto': 'aaaa'}
+
+    assert form.errors['__all__'] == \
+        ["A data de encaminhamento deve ser maior que a data de tramitação!"]
+    assert not form.is_valid()
+
+    form = TramitacaoEmLoteAdmForm(initial={'documentos': documentos}, data={})
+    form.data = {'data_tramitacao': '2019-05-14',
+                'data_encaminhamento' : '2019-05-15',
+                'data_fim_prazo': '2019-05-09',
+                'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
+                'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
+                'status': status.id,
+                'urgente': False,
+                'texto': 'aaaa'}
+
+    assert form.errors['__all__'] == \
+        ["A data fim de prazo deve ser maior que a data de tramitação!"]
+    assert not form.is_valid()
+
+    form = TramitacaoEmLoteAdmForm(initial={'documentos': documentos}, data={})
+    form.data = {'data_tramitacao': '2019-05-14',
+                'data_encaminhamento' : '2019-05-15',
+                'data_fim_prazo': '2019-05-18',
+                'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
+                'unidade_tramitacao_destino': unidade_tramitacao_local_1.id,
+                'status': status.id,
+                'urgente': False,
+                'texto': 'aaaa'}
+
+    assert form.errors['__all__'] == \
+        ["Unidade tramitação local deve ser diferente da unidade tramitação destino."]
+    assert not form.is_valid()
+
+    form = TramitacaoEmLoteAdmForm(initial={'documentos': documentos}, data={})
+    form.data = {'data_tramitacao': '2019-05-14',
+                'data_encaminhamento' : '2019-05-15',
+                'data_fim_prazo': '2019-05-18',
+                'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
+                'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
+                'status': status.id,
+                'urgente': False,
+                'texto': 'aaaa'}
+
+    assert form.is_valid()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_tramitacao_lote_documentos_views(admin_client):
+    tipo_documento = mommy.make(
+            TipoDocumentoAdministrativo,
+            descricao="Tipo_Teste"
+    )
+    documento_principal = mommy.make(
+            DocumentoAdministrativo,
+            numero=20,
+            ano=2018,
+            data="2018-01-04",
+            tipo=tipo_documento
+    )
+    documento_anexado = mommy.make(
+            DocumentoAdministrativo,
+            numero=21,
+            ano=2019,
+            data="2019-05-04",
+            tipo=tipo_documento
+    )
+    documento_anexado_anexado = mommy.make(
+            DocumentoAdministrativo,
+            numero=22,
+            ano=2020,
+            data="2020-01-05",
+            tipo=tipo_documento
+    )
+
+    documento_sem_anexados = mommy.make(
+            DocumentoAdministrativo,
+            numero=23,
+            ano=2020,
+            data="2021-01-05",
+            tipo=tipo_documento
+    )
+
+    mommy.make(
+            Anexado,
+            documento_principal=documento_principal,
+            documento_anexado=documento_anexado,
+            data_anexacao="2019-05-11"
+    )
+    mommy.make(
+            Anexado,
+            documento_principal=documento_anexado,
+            documento_anexado=documento_anexado_anexado,
+            data_anexacao="2020-11-05"
+    )
+
+    unidade_tramitacao_local_1 = make_unidade_tramitacao(descricao="Teste 1")
+    unidade_tramitacao_destino_1 = make_unidade_tramitacao(descricao="Teste 2")
+    unidade_tramitacao_destino_2 = make_unidade_tramitacao(descricao="Teste 3")
+    unidade_tramitacao_destino_3 = make_unidade_tramitacao(descricao="Teste 4")
+
+    status = mommy.make(
+        StatusTramitacaoAdministrativo,
+        indicador='R')
+
+    url = reverse('sapl.protocoloadm:primeira_tramitacao_em_lote_docadm')
+    url = url + '?' + urlencode({'tipo':tipo_documento.id, 'data_0':'', 'data_1':''})
+
+    response = admin_client.post(url, {'salvar':'salvar'}, follow=True)
+    assert response.status_code == 200
+
+    msgs = [m.message for m in response.context['messages']]
+    assert len(msgs) == 1
+    assert msgs[0] == 'Escolha algum Documento para ser tramitado.'
+
+    documentos = [documento_sem_anexados.id, documento_anexado_anexado.id]
+
+    response = admin_client.post(url, {'documentos': documentos,'salvar':'salvar'}, follow=True)
+    msgs = [m.message for m in response.context['messages']]
+
+    assert 'Data Tramitação: Este campo é obrigatório.' in msgs
+    assert 'Unidade Local: Este campo é obrigatório.' in msgs
+    assert 'Status: Este campo é obrigatório.' in msgs
+    assert 'Unidade Destino: Este campo é obrigatório.' in msgs
+    assert 'Texto da Ação: Este campo é obrigatório.' in msgs
+
+    # Primeira tramitação em lote
+
+    response = admin_client.post(url, 
+                                    {'documentos': documentos,
+                                    'data_tramitacao': date(2019, 5, 15),
+                                    'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
+                                    'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
+                                    'status': status.id,
+                                    'urgente': False,
+                                    'texto': 'aaaa',
+                                    'salvar':'salvar'}, 
+                                follow=True)
+    
+    assert response.status_code == 200
+
+    assert TramitacaoAdministrativo.objects.all().count() == 2
+    assert documento_sem_anexados.tramitacaoadministrativo_set.all().count() == 1
+    assert documento_anexado_anexado.tramitacaoadministrativo_set.all().count() == 1
+
+    # Segunda tramitação em lote
+
+    url_lote = reverse('sapl.protocoloadm:tramitacao_em_lote_docadm')
+    url_lote = url_lote + '?' + urlencode(
+                                    {'tipo':tipo_documento.id, 
+                                    'tramitacaoadministrativo__unidade_tramitacao_destino':unidade_tramitacao_destino_1.id,
+                                    'tramitacaoadministrativo__status': status.id,
+                                    'data_0':'', 
+                                    'data_1':''})
+
+    response = admin_client.post(url_lote, {'salvar':'salvar'}, follow=True)
+    assert response.status_code == 200
+
+    assert response.context_data['object_list'].count() == 2
+
+    msgs = [m.message for m in response.context['messages']]
+    assert len(msgs) == 1
+    assert msgs[0] == 'Escolha algum Documento para ser tramitado.'
+
+    response = admin_client.post(url_lote, {'documentos':documentos, 'salvar':'salvar'}, follow=True)
+    assert response.status_code == 200
+
+    msgs = [m.message for m in response.context['messages']]
+
+    assert 'Data Tramitação: Este campo é obrigatório.' in msgs
+    assert 'Unidade Local: Este campo é obrigatório.' in msgs
+    assert 'Status: Este campo é obrigatório.' in msgs
+    assert 'Unidade Destino: Este campo é obrigatório.' in msgs
+    assert 'Texto da Ação: Este campo é obrigatório.' in msgs
+
+    response = admin_client.post(url_lote,
+                                {'documentos': documentos,
+                                'data_tramitacao': date(2019, 5, 15),
+                                'unidade_tramitacao_local': unidade_tramitacao_destino_1.id,
+                                'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
+                                'status': status.id,
+                                'urgente': False,
+                                'texto': 'aaaa',
+                                'salvar':'salvar'}, 
+                                follow=True)
+    assert response.status_code == 200
+
+    msgs = [m.message for m in response.context['messages']]
+
+    assert 'Unidade tramitação local deve ser diferente da unidade tramitação destino.' in msgs
+    
+    response = admin_client.post(url_lote,
+                                {'documentos': documentos,
+                                'data_tramitacao': date(2019, 5, 15),
+                                'unidade_tramitacao_local': unidade_tramitacao_destino_1.id,
+                                'unidade_tramitacao_destino': unidade_tramitacao_destino_2.id,
+                                'status': status.id,
+                                'urgente': False,
+                                'texto': 'aaaa',
+                                'salvar':'salvar'}, 
+                                follow=True)
+    assert response.status_code == 200
+
+    msgs = [m.message for m in response.context['messages']]
+
+    assert 'Tramitação completa.' in msgs
+
+    assert TramitacaoAdministrativo.objects.all().count() == 4
+    assert documento_sem_anexados.tramitacaoadministrativo_set.all().count() == 2
+    assert documento_anexado_anexado.tramitacaoadministrativo_set.all().count() == 2
+
+    # Tramitar documentos com anexados
+    # O documento anexado ao anexado não deve tramitar junto porque já está com tramitação diferente
+    documentos = [documento_principal.id]
+
+    response = admin_client.post(url, 
+                                    {'documentos': documentos,
+                                    'data_tramitacao': date(2019, 5, 15),
+                                    'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
+                                    'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
+                                    'status': status.id,
+                                    'urgente': False,
+                                    'texto': 'aaaa',
+                                    'salvar':'salvar'}, 
+                                follow=True)
+    
+    assert response.status_code == 200
+
+    assert TramitacaoAdministrativo.objects.all().count() == 6
+    assert documento_principal.tramitacaoadministrativo_set.all().count() == 1
+    assert documento_anexado.tramitacaoadministrativo_set.all().count() == 1
+
+    # Segunda tramitação com documentos anexados
+    response = admin_client.post(url_lote,
+                                {'documentos': documentos,
+                                'data_tramitacao': date(2019, 5, 15),
+                                'unidade_tramitacao_local': unidade_tramitacao_destino_1.id,
+                                'unidade_tramitacao_destino': unidade_tramitacao_destino_2.id,
+                                'status': status.id,
+                                'urgente': False,
+                                'texto': 'aaaa',
+                                'salvar':'salvar'}, 
+                                follow=True)
+    assert response.status_code == 200
+
+    msgs = [m.message for m in response.context['messages']]
+
+    assert 'Tramitação completa.' in msgs
+
+    assert TramitacaoAdministrativo.objects.all().count() == 8
+    assert documento_principal.tramitacaoadministrativo_set.all().count() == 2
+    assert documento_anexado.tramitacaoadministrativo_set.all().count() == 2
+
+    # Terceira tramitação em lote
+    # Agora, o documento anexado ao anexado deve tramitar junto com o documento principal, 
+    # pois suas tramitações convergiram
+
+    response = admin_client.post(url_lote,
+                                {'documentos': documentos,
+                                'data_tramitacao': date(2019, 5, 15),
+                                'unidade_tramitacao_local': unidade_tramitacao_destino_2.id,
+                                'unidade_tramitacao_destino': unidade_tramitacao_destino_3.id,
+                                'status': status.id,
+                                'urgente': False,
+                                'texto': 'aaaa',
+                                'salvar':'salvar'}, 
+                                follow=True)
+    assert response.status_code == 200
+
+    msgs = [m.message for m in response.context['messages']]
+
+    assert 'Tramitação completa.' in msgs
+
+    assert TramitacaoAdministrativo.objects.all().count() == 11
+    assert documento_principal.tramitacaoadministrativo_set.all().count() == 3
+    assert documento_anexado.tramitacaoadministrativo_set.all().count() == 3
+    assert documento_anexado_anexado.tramitacaoadministrativo_set.all().count() == 3
