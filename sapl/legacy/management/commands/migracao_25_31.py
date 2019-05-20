@@ -17,7 +17,7 @@ class Command(BaseCommand):
         )
 
         parser.add_argument(
-            "-f",
+            "--flush",
             action="store_true",
             default=False,
             dest="flush",
