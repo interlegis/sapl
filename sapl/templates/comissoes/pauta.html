@@ -1,0 +1,68 @@
+{% extends "crud/detail.html" %}
+{% load i18n crispy_forms_tags %}
+{% block actions %}{% endblock %}
+
+{% block title %}
+	<h1 class="page-header">
+        {% if opcao %}
+            Adicionar Matérias à Pauta <small>(Reunião: {{object}})</small>
+        {% else %}
+            Remover Matérias da Pauta <small>(Reunião: {{object}})</small>
+        {% endif %}
+	</h1>
+{% endblock %}
+
+{% block detail_content %}
+    {% if materias %}
+        {% if num_materias == 1 %}
+            <b>Há {{num_materias}} matéria disponível.</b> <br><br>
+        {% else %}
+            <b>Há {{num_materias}} matérias disponíveis.</b> <br><br>
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <fieldset>
+                <table class="table table-striped table-hover">
+                    <div class="controls">
+                        <div class="checkbox">
+                            <label for="id_check_all">
+                                <input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
+                            </label>
+                        </div>
+                    </div>
+                    <thead>
+                        <tr><th>Matéria</th></tr>
+                    </thead>
+                    <tbody onload="checks(materias_checked)">
+                        {% for materia in materias %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="materia_id" value="{{materia.id}}" {% if check %} checked {% endif %}/>
+                                    {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}} - {{materia.tipo.descricao}}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </fieldset>
+            {% if opcao %}
+                <input type="submit" value="Salvar" class="btn btn-primary"S>
+            {% else %}
+                <input type="submit" value="Remover" class="btn btn-danger"S>
+            {% endif %}
+        </form>
+    {% else %}
+        <b>Não há matéria disponível.</b> <br><br>
+    {% endif %}
+{% endblock %}
+{% block extra_js %}
+        <script language="JavaScript">
+            function checkAll(elem){
+                let checkboxes = document.getElementsByName('materia_id');
+                for(let i=0; i<checkboxes.length; i++){
+                    if(checkboxes[i].type == 'checkbox')
+                        checkboxes[i].checked = elem.checked
+                }
+            }
+        </script>
+{% endblock %}
