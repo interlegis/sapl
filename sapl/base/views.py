@@ -27,6 +27,7 @@ from django.views.generic import (CreateView, DeleteView, FormView, ListView,
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
+from haystack.query import SearchQuerySet
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
@@ -43,8 +44,7 @@ from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, Bancada)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
-                        intervalos_tem_intersecao,)
-
+                        intervalos_tem_intersecao, remover_acentos)
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet,
@@ -1748,3 +1748,57 @@ class LogotipoView(RedirectView):
         casa = get_casalegislativa()
         logo = casa and casa.logotipo and casa.logotipo.name
         return os.path.join(settings.MEDIA_URL, logo) if logo else STATIC_LOGO
+
+def filtro_campos(dicionario):
+
+    chaves_desejadas = ['ementa',
+                        'ano',
+                        'numero',
+                        'em_tramitacao',
+                        'data_apresentacao',
+                        'apelido',
+                        'indexacao',
+                        'data_publicacao',
+                        'data',
+                        'data_vigencia']
+    del_list = []
+    for key in dicionario.keys():
+        if key not in chaves_desejadas:
+            del_list = del_list + [key]
+
+    for key in del_list:
+        del dicionario[key]
+
+    return dicionario
+
+def pesquisa_textual(request):
+
+    if 'q' not in request.GET:
+        return JsonResponse({'total': 0,
+                             'resultados': []})
+
+    results = SearchQuerySet().filter(content=request.GET['q'])
+    json_dict = {
+        'total': results.count(),
+        'parametros': request.GET['q'],
+        'resultados': [],
+    }
+
+    for e in results:
+
+        sec_dict = {}
+        try:
+            sec_dict['pk'] = e.object.pk
+        except:
+            # Index and db are out of sync. Object has been deleted from database
+            continue
+        dici = filtro_campos(e.object.__dict__)
+        sec_dict['objeto'] = str(dici) 
+        sec_dict['text'] = str(e.object.ementa)
+
+        sec_dict['model'] = str(type(e.object))
+
+        json_dict['resultados'].append(sec_dict)
+
+
+    return JsonResponse(json_dict)
