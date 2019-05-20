@@ -1,0 +1,65 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block detail_content %}
+    {{ block.super }}
+        <h2 class="legend">Pauta</h2>
+            {% if mats %}
+                <p>Total de Registros: <b>{{num_mats}}</b></p>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Matéria</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mat in mats %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'sapl.materia:materialegislativa_detail' mat.pk %}">{{mat}}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if perms.comissoes.add_reuniao %}
+                    <div class="actions btn-group float-right" role="group">
+                        <a href="{% url 'sapl.comissoes:pauta_add' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Adicionar Matéria' %}</a>
+                        <a href="{% url 'sapl.comissoes:pauta_remove' reuniao_pk %}" class="btn btn-outline-primary btn-outline-danger">{% trans 'Remover Matéria' %}</a>
+                    </div>
+                {% endif %}
+            {% else %}
+                {% if perms.comissoes.add_reuniao %}
+                    <a href="{% url 'sapl.comissoes:pauta_add' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Adicionar Matéria' %}</a>
+                {% endif %}
+            {% endif %}
+            <br /><br />
+        <h2 class="legend">Documentos Acessórios</h2>
+            {% if docs %}
+                <p>Total de registros: <b>{{num_docs}}</b></p>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Documento Acessório</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in docs %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'sapl.comissoes:documentoacessorio_detail' doc.pk %}">{{ doc.nome }}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if perms.comissoes.add_reuniao %}
+                    <a href="{% url 'sapl.comissoes:documentoacessorio_create' reuniao_pk %}" class="btn btn-outline-primary float-right">{% trans 'Adicionar Documento' %}</a>
+                {% endif %}
+            {% else %}
+                {% if perms.comissoes.add_reuniao %}
+                    <a href="{% url 'sapl.comissoes:documentoacessorio_create' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Adicionar Documento' %}</a>
+                {% endif %}
+            {% endif %}
+            <br /><br />
+{% endblock detail_content %}

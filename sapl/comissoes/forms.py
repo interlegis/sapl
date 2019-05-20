@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
                                    Participacao, Reuniao, Periodo)
+from sapl.materia.models import PautaReuniao
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 from sapl.utils import FileFieldCheckMixin
 
@@ -381,6 +382,13 @@ class ReuniaoForm(ModelForm):
                                   .format(self.cleaned_data['hora_fim'], self.cleaned_data['hora_inicio']))
                 raise ValidationError(msg)
         return self.cleaned_data
+
+
+class PautaReuniaoForm(forms.ModelForm):
+
+    class Meta:
+        model = PautaReuniao
+        exclude = ['reuniao']
 
 
 class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
