@@ -135,7 +135,7 @@ def delete_comissao(id):
             a.objects.filter(autor=autor).delete()
         autor.delete()
     except Exception as e:
-        print(e)
+        print(str(e))
 
     try:
         unidate_tramitacao = UnidadeTramitacao.objects.get(comissao=comissao)
