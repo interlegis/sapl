@@ -10,7 +10,7 @@ from sapl.materia.models import DespachoInicial, Autoria, Proposicao, Relatoria,
 from sapl.norma.models import AutoriaNorma
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo, TramitacaoAdministrativo
 
-models_comissoes = [Composicao, DespachoInicial, Relatoria, Reuniao, Relatoria]
+models_comissoes = [Composicao, DespachoInicial, Relatoria, Reuniao]
 
 models_autor = [Autoria, AutoriaNorma, Proposicao, Protocolo, DocumentoAdministrativo]
 
