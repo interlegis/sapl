@@ -1,9 +1,9 @@
 import logging
 import os
 
-from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
+from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
 from sapl.crispy_layout_mixin import SaplFormHelper
-from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
+from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -1464,10 +1464,18 @@ class PartidoUpdateForm(PartidoForm):
         row3 = to_row([('observacao', 12)])
         row4 = to_row([('logo_partido', 12)])
 
+        buttons = FormActions(
+           *[
+               HTML('''<a href="/sistema/parlamentar/partido/{{object.id}}" class="btn btn-dark btn-close-container">%s</a>''' % _('Cancelar'))
+           ],
+            Submit('salvar', _('Salvar'), css_class='float-right',
+               onclick='return true;'),
+            css_class='form-group row justify-content-between'
+        )
+
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
-            row1, row2, row3, row4,
-            form_actions(label='Salvar')
+            row1, row2, row3, row4, to_row([(buttons, 12)]),
         )
 
     def clean(self):
@@ -1479,7 +1487,7 @@ class PartidoUpdateForm(PartidoForm):
         is_historico = cleaned_data['historico'] == 'True'
 
         if is_historico: 
-            if not cleaned_data['data_criacao'] or not cleaned_data['data_extincao']:
+            if not (cleaned_data['data_criacao'] and cleaned_data['data_extincao']):
                 raise ValidationError("Certifique-se de que a data de inicio e fim de historico estão preenchidas")
             if self.instance.data_criacao and  self.instance.data_criacao > cleaned_data['data_criacao']:
                 raise ValidationError("Data de inicio de historico deve ser posterior a data de criação do partido.")

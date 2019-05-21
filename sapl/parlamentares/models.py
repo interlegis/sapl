@@ -442,7 +442,7 @@ class Filiacao(models.Model):
         # parlamentares e tela de Filiações do Parlamentar
         ordering = ('parlamentar', '-data', '-data_desfiliacao')
 
-    def get_nome_partido_ano(self, ano):
+    def nome_partido_ano(self, ano):
         historico = HistoricoPartido.objects.filter(partido=self.partido)
         for h in historico:
             if h.inicio_historico.year <= ano <= h.fim_historico.year:

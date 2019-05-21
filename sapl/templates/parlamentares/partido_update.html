@@ -13,15 +13,15 @@
            $("#id_data_modificacao").attr("disabled", true);
            
             check_change = () => {
-                if($("#id_historico").val() == 'nao'){
+                if($("#id_historico").val() == 'False'){
                     $("#div_id_data_criacao").find("label").text("Data Criação")
                     $("#div_id_data_extincao").find("label").text("Data Extinção")
                     $( "#id_observacao" ).prop( "disabled", false );
 
                 }
                 else {
-                    $("#div_id_data_criacao").find("label").text("Inicio do Histórico")
-                    $("#div_id_data_extincao").find("label").text("Final do Histórico")
+                    $("#div_id_data_criacao").find("label").text("Inicio do Histórico*")
+                    $("#div_id_data_extincao").find("label").text("Final do Histórico*")
                     $( "#id_observacao" ).prop( "disabled", true );
                     $( "#id_observacao" ).val("");
                 }

@@ -1078,7 +1078,7 @@ def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
         logger.info("Filiação do parlamentar com (data<={} e data_desfiliacao>={}) "
                     "ou (data<={} e data_desfiliacao=Null encontrada com sucesso."
                     .format(sessao.data_fim, sessao.data_fim, sessao.data_fim))
-        return filiacao.get_nome_partido_ano(sessao.data_fim.year).sigla
+        return filiacao.nome_partido_ano(sessao.data_fim.year).sigla
 
 
 def altera_field_mesa_public_view(request):
