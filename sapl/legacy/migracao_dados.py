@@ -1078,7 +1078,7 @@ def migrar_dados(flush=False, apagar_do_legado=False):
 
     # recria tipos de autor padrão que não foram criados pela migração
     cria_models_tipo_autor()
-    return primeira_migracao
+    return primeira_migracao, ocorrencias.get("fk", [])
 
 
 def move_para_depois_de(lista, movido, referencias):

@@ -27,11 +27,11 @@ def migrar(flush=False, apagar_do_legado=False):
         "é necessário fazer a exportação de documentos do zope"
     )
     management.call_command("migrate")
-    primeira_migracao = migrar_dados(flush, apagar_do_legado)
+    primeira_migracao, fks_orfas = migrar_dados(flush, apagar_do_legado)
+    assert not fks_orfas, "Ainda existem FKs órfãs"
     migrar_usuarios(REPO.working_dir, primeira_migracao)
     migrar_documentos(REPO, primeira_migracao)
     gravar_marco()
-    # compactar_media()
 
 
 def compactar_media():
