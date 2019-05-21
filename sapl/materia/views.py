@@ -1256,18 +1256,34 @@ class TramitacaoCrud(MasterDetailCrud):
 
         layout_key = 'TramitacaoUpdate'
 
-        def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
-            initial['ip'] = get_client_ip(self.request)
-            initial['user'] = self.request.user
-            return initial
-
         def form_valid(self, form):
+            objeto_antigo = Tramitacao.objects.get(pk=self.kwargs['pk'])
+
             self.object = form.save()
-            username = self.request.user.username
+            objeto_novo = self.object
+
+            user = self.request.user
+
+            # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
+            if not(
+                objeto_antigo.data_tramitacao != objeto_novo.data_tramitacao or \
+                objeto_antigo.unidade_tramitacao_destino != objeto_novo.unidade_tramitacao_destino or \
+                objeto_antigo.status != objeto_novo.status or \
+                objeto_antigo.texto != objeto_novo.texto or \
+                objeto_antigo.data_encaminhamento != objeto_novo.data_encaminhamento or \
+                objeto_antigo.data_fim_prazo != objeto_novo.data_fim_prazo or \
+                objeto_antigo.urgente != objeto_novo.urgente or \
+                objeto_antigo.turno != objeto_novo.turno
+            ):
+                self.object.user = objeto_antigo.user
+                self.object.ip = objeto_antigo.ip
+            else:
+                self.object.user = user
+                self.object.ip = get_client_ip(self.request)
+            self.object.save()
 
             try:
-                self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
+                self.logger.debug("user=" + user.username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
                                   .format(Tramitacao, self.object, self.request))
                 tramitacao_signal.send(sender=Tramitacao,
                                        post=self.object,
@@ -1276,7 +1292,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
-                self.logger.warning('user=' + username + '. Tramitação atualizada, mas e-mail de acompanhamento '
+                self.logger.warning('user=' + user.username + '. Tramitação atualizada, mas e-mail de acompanhamento '
                                     'de matéria não enviado. Há problemas na configuração '
                                     'do e-mail.')
                 messages.add_message(self.request, messages.WARNING, msg)

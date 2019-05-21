@@ -653,17 +653,6 @@ class TramitacaoUpdateForm(TramitacaoForm):
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
-        
-        # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
-        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
-           cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
-           cd['status'] != obj.status or cd['texto'] != obj.texto or \
-           cd['data_encaminhamento'] != obj.data_encaminhamento or \
-           cd['data_fim_prazo'] != obj.data_fim_prazo or \
-           cd['urgente'] != obj.urgente or \
-           cd['turno'] != obj.turno):
-            cd['user'] = obj.user
-            cd['ip'] = obj.ip
 
         cd['data_tramitacao'] = obj.data_tramitacao
         cd['unidade_tramitacao_local'] = obj.unidade_tramitacao_local
