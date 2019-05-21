@@ -29,18 +29,20 @@ FINAL_VERSION=
 
 function change_files {
 
-    echo "Atualizando de "$LATEST_VERSION" para "$FINAL_VERSION
+    OLD_VERSION=$(grep -E 'interlegis/sapl:'$VERSION_PATTERN docker-compose.yml | cut -d':' -f3)
 
-    sed -E s/$LATEST_VERSION/$FINAL_VERSION/g docker-compose.yml > tmp1
+    echo "Atualizando de "$OLD_VERSION" para "$FINAL_VERSION
+
+    sed -E s/$OLD_VERSION/$FINAL_VERSION/g docker-compose.yml > tmp1
     mv tmp1 docker-compose.yml
 
-    sed -E s/$LATEST_VERSION/$FINAL_VERSION/g setup.py > tmp2
+    sed -E s/$OLD_VERSION/$FINAL_VERSION/g setup.py > tmp2
     mv tmp2 setup.py
 
-    sed -E s/$LATEST_VERSION/$FINAL_VERSION/g sapl/templates/base.html > tmp3
+    sed -E s/$OLD_VERSION/$FINAL_VERSION/g sapl/templates/base.html > tmp3
     mv tmp3 sapl/templates/base.html
 
-    sed -E s/$LATEST_VERSION/$FINAL_VERSION/g sapl/settings.py > tmp4
+    sed -E s/$OLD_VERSION/$FINAL_VERSION/g sapl/settings.py > tmp4
     mv tmp4 sapl/settings.py
 }
 
@@ -67,7 +69,7 @@ function set_rc_version {
 function commit_and_push {
    echo "committing..."
    git add docker-compose.yml setup.py sapl/settings.py sapl/templates/base.html
-   git commit -m "Release: $NEXT_VERSION"
+   git commit -m "Release: $FINAL_VERSION"
    git tag $FINAL_VERSION
 
    echo "sending to github..."
@@ -85,17 +87,17 @@ case "$1" in
     --major)
        set_major_version
        echo "generating major release: "$FINAL_VERSION
-       git tag $FINAL_VERSION
+       # git tag $FINAL_VERSION
        change_files
-       # commit_and_push
+       commit_and_push
        exit 0
        ;;
     --rc)
        set_rc_version
        echo "generating release candidate: "$FINAL_VERSION
-       git tag $FINAL_VERSION
+       # git tag $FINAL_VERSION
        change_files
-       # commit_and_push
+       commit_and_push
        exit 0
       ;;
     --undo)
