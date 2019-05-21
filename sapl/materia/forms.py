@@ -194,6 +194,10 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
         model = MateriaLegislativa
         exclude = ['texto_articulado', 'autores', 'proposicao',
                    'anexadas', 'data_ultima_atualizacao']
+        widgets = {
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput()
+        }
 
     def __init__(self, *args, **kwargs):
         super(MateriaLegislativaForm, self).__init__(*args, **kwargs)
