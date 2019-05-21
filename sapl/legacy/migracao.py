@@ -27,6 +27,7 @@ def migrar(flush=False, apagar_do_legado=False):
         "é necessário fazer a exportação de documentos do zope"
     )
     management.call_command("migrate")
+    gravar_marco("producao", versiona=False, gera_backup=False)
     primeira_migracao, fks_orfas = migrar_dados(flush, apagar_do_legado)
     assert not fks_orfas, "Ainda existem FKs órfãs"
     migrar_usuarios(REPO.working_dir, primeira_migracao)
