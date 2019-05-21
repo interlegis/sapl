@@ -1543,8 +1543,6 @@ def adjust_normajuridica_depois_salvar():
         if (norma, assunto) not in ja_migrados
     ]
 
-    assert not Version.objects.get_deleted(AssuntoNorma)
-
     ligacao.objects.bulk_create(
         ligacao(normajuridica_id=norma, assuntonorma_id=assunto)
         for norma, assunto in normas_assuntos
