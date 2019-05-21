@@ -85,17 +85,17 @@ case "$1" in
     --major)
        set_major_version
        echo "generating major release: "$FINAL_VERSION
-       git tag $FINAL_VERSION
+       # git tag $FINAL_VERSION
        change_files
-       # commit_and_push
+       commit_and_push
        exit 0
        ;;
     --rc)
        set_rc_version
        echo "generating release candidate: "$FINAL_VERSION
-       git tag $FINAL_VERSION
+       # git tag $FINAL_VERSION
        change_files
-       # commit_and_push
+       commit_and_push
        exit 0
       ;;
     --undo)
