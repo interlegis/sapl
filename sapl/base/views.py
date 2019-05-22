@@ -450,7 +450,7 @@ class RelatorioHistoricoTramitacaoView(FilterView):
     def get_context_data(self, **kwargs):
         context = super(RelatorioHistoricoTramitacaoView,
                         self).get_context_data(**kwargs)
-        context['title'] = _('Histórico de Tramitações')
+        context['title'] = _('Histórico de Tramitações de Matérias Legislativas')
         if not self.filterset.form.is_valid():
             return context
         qr = self.request.GET.copy()
@@ -465,16 +465,25 @@ class RelatorioHistoricoTramitacaoView(FilterView):
                 str(TipoMateriaLegislativa.objects.get(id=tipo)))
         else:
             context['tipo'] = ''
+
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
             context['tramitacao__status'] = (
                 str(StatusTramitacao.objects.get(id=tramitacao_status)))
         else:
             context['tramitacao__status'] = ''
+
         if self.request.GET['tramitacao__unidade_tramitacao_local']:
             context['tramitacao__unidade_tramitacao_local'] = \
                 (str(UnidadeTramitacao.objects.get(
                     id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
+        else:
+            context['tramitacao__unidade_tramitacao_local'] = ''
+
+        if self.request.GET['tramitacao__unidade_tramitacao_destino']:
+            context['tramitacao__unidade_tramitacao_destino'] = \
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacao__unidade_tramitacao_destino'])))
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
 
