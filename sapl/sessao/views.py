@@ -1757,7 +1757,6 @@ class ResumoView(DetailView):
         }
 
         ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
-        
         try:
             context.update({
                 'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
@@ -1776,39 +1775,24 @@ class ResumoView(DetailView):
                 'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
             })
         except KeyError as e:
-            logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
+            self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
                               "configuração de ordenação. Utilizando ordenação padrão.")
             context.update({
-                'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
-                'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
-                'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
-                'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
-                'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
-                'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
-                'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
-                'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
-                'nono_ordenacao': dict_ord_template[ordenacao.nono],
-                'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
-                'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
-                'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
-                'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
-                'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+                'primeiro_ordenacao': 'identificacao_basica.html',
+                'segundo_ordenacao': 'conteudo_multimidia.html',
+                'terceiro_ordenacao': 'mesa_diretora.html',
+                'quarto_ordenacao': 'lista_presenca.html',
+                'quinto_ordenacao': 'expedientes.html',
+                'sexto_ordenacao': 'materias_expediente.html',
+                'setimo_ordenacao': 'votos_nominais_materias_expediente.html',
+                'oitavo_ordenacao': 'oradores_expediente.html',
+                'nono_ordenacao': 'lista_presenca_ordem_dia.html',
+                'decimo_ordenacao': 'materias_ordem_dia.html',
+                'decimo_primeiro_ordenacao': 'votos_nominais_materias_ordem_dia.html',
+                'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
+                'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
+                'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html'
             })
-            tmp += inf_basicas(inf_basicas_dic)
-            tmp += multimidia(cont_mult_dic)
-            tmp += mesa(lst_mesa)
-            tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
-            tmp += expedientes(lst_expedientes)
-            tmp += expediente_materia(lst_expediente_materia)
-            tmp += expediente_materia_vot_nom(lst_expediente_materia_vot_nom)
-            tmp += oradores_expediente(lst_oradores_expediente)
-            tmp += presenca_ordem_dia(lst_presenca_ordem_dia)
-            tmp += votacao(lst_votacao)
-            tmp += votacao_vot_nom(lst_votacao_vot_nom)
-            tmp += oradores_ordemdia(lst_oradores_ordemdia)
-            tmp += oradores(lst_oradores)
-            tmp += ocorrencias(lst_ocorrencias)
-
         return context
 
     def get(self, request, *args, **kwargs):
