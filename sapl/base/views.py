@@ -39,7 +39,9 @@ from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao
-from sapl.protocoloadm.models import Protocolo
+from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
+                                      StatusTramitacaoAdministrativo, 
+                                      DocumentoAdministrativo)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, Bancada)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
@@ -57,7 +59,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
                     RelatorioNormasVigenciaFilterSet,
-                    EstatisticasAcessoNormasForm, UsuarioFilterSet)
+                    EstatisticasAcessoNormasForm, UsuarioFilterSet,
+                    RelatorioHistoricoTramitacaoAdmFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -1802,3 +1805,51 @@ def pesquisa_textual(request):
 
 
     return JsonResponse(json_dict)
+
+
+class RelatorioHistoricoTramitacaoAdmView(FilterView):
+    model = DocumentoAdministrativo
+    filterset_class = RelatorioHistoricoTramitacaoAdmFilterSet
+    template_name = 'base/RelatorioHistoricoTramitacaoAdm_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioHistoricoTramitacaoAdmView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Histórico de Tramitações de Documento Administrativo')
+        if not self.filterset.form.is_valid():
+            return context
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+        context['data_tramitacao'] = (self.request.GET['tramitacaoadministrativo__data_tramitacao_0'] + ' - ' +
+                                      self.request.GET['tramitacaoadministrativo__data_tramitacao_1'])
+        if self.request.GET['tipo']:
+            tipo = self.request.GET['tipo']
+            context['tipo'] = (
+                str(TipoDocumentoAdministrativo.objects.get(id=tipo)))
+        else:
+            context['tipo'] = ''
+
+        if self.request.GET['tramitacaoadministrativo__status']:
+            tramitacao_status = self.request.GET['tramitacaoadministrativo__status']
+            context['tramitacaoadministrativo__status'] = (
+                str(StatusTramitacaoAdministrativo.objects.get(id=tramitacao_status)))
+        else:
+            context['tramitacaoadministrativo__status'] = ''
+
+        if self.request.GET['tramitacaoadministrativo__unidade_tramitacao_local']:
+            context['tramitacaoadministrativo__unidade_tramitacao_local'] = \
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacaoadministrativo__unidade_tramitacao_local'])))
+        else:
+            context['tramitacaoadministrativo__unidade_tramitacao_local'] = ''
+
+        if self.request.GET['tramitacaoadministrativo__unidade_tramitacao_destino']:
+            context['tramitacaoadministrativo__unidade_tramitacao_destino'] = \
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacaoadministrativo__unidade_tramitacao_destino'])))
+        else:
+            context['tramitacaoadministrativo__unidade_tramitacao_destino'] = ''
+
+        return context

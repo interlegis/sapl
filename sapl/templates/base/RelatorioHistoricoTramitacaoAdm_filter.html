@@ -1,0 +1,48 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not show_results %}
+    <br>
+    {% crispy filter.form %}
+  {% else %}
+    <div class="actions btn-group float-right" role="group">
+      <a href="{% url 'sapl.base:historico_tramitacoes_adm' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+    <b>PARÂMETROS DE PESQUISA:<br /></b>
+    &emsp;Período: {{ data_tramitacao }} <br />
+    &emsp;Tipo de documento: {{ tipo }}<br />
+    &emsp;Status atual: {{ tramitacaoadministrativo__status }}<br />
+    &emsp;Local de origem: {{ tramitacaoadministrativo__unidade_tramitacao_local }}<br />
+    &emsp;Local de destino: {{ tramitacaoadministrativo__unidade_tramitacao_destino }}<br /><br /><br />
+    {% if object_list %}
+      {% if object_list|length == 1 %}
+        <tr><td><h3 style="text-align: left;">Foi encontrado 1 documento com esses parâmetros.</h3></td></tr><br><br>
+      {% else %}
+        <tr><td><h3 style="text-align: left;">Foram encontrados {{object_list|length}} documentos com esses parâmetros.</h3></td></tr><br><br>
+      {% endif %}
+      <table class="table table-bordered table-hover">
+        <thead class="thead-default" >
+          <tr class="active">
+            <th>Documento</th>
+            <th>Ementa</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for documento in object_list %}
+            <tr>
+              <td><a href="{% url 'sapl.protocoloadm:tramitacaoadministrativo_list' documento.pk %}">
+                {{documento.tipo.descricao}} - {{documento.tipo.sigla}} {{documento.numero}}/{{documento.ano}}
+              </a></td>
+              <td>{{documento.ementa}}<br>{{documento.observacao}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+    <tr><td><h3 style="text-align: left;">Nenhum documento encontrado com esses parâmetros.</h3></td></tr><br><br>
+    {% endif %}
+  {% endif %}
+{% endblock base_content %}
