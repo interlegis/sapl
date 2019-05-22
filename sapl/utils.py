@@ -965,16 +965,21 @@ def lista_anexados(principal, isMateriaLegislativa=True):
     else: #DocAdm
         from sapl.protocoloadm.models import Anexado
         anexados_iterator = Anexado.objects.filter(documento_principal=principal)
-    while anexados_iterator:
-        anexados_tmp = []
-        for anx in anexados_iterator:
-            if isMateriaLegislativa:
+
+    anexadas_temp = list(anexados_iterator)
+
+    while anexadas_temp:
+        anx = anexadas_temp.pop()
+        if isMateriaLegislativa:
+            if anx.materia_anexada not in anexados_total:
                 anexados_total.append(anx.materia_anexada)
                 anexados_anexado = Anexada.objects.filter(materia_principal=anx.materia_anexada)
-            else:
+                anexadas_temp.extend(anexados_anexado)
+        else:
+            if anx.documento_anexado not in anexados_total:
                 anexados_total.append(anx.documento_anexado)
                 anexados_anexado = Anexado.objects.filter(documento_principal=anx.documento_anexado)
-            anexados_tmp.extend(anexados_anexado)
-        anexados_iterator = anexados_tmp
-    
+                anexadas_temp.extend(anexados_anexado)
+    if principal in anexados_total:
+        anexados_total.remove(principal)
     return anexados_total
