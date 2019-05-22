@@ -79,6 +79,51 @@ def test_lista_materias_anexadas():
 
 
 @pytest.mark.django_db(transaction=False)
+def test_lista_materias_anexadas_ciclo():
+    tipo_materia = mommy.make(
+        TipoMateriaLegislativa,
+        descricao="Tipo_Teste"
+    )
+    regime_tramitacao = mommy.make(
+        RegimeTramitacao,
+        descricao="Regime_Teste"
+    )
+    materia_principal = mommy.make(
+        MateriaLegislativa,
+        numero=20,
+        ano=2018,
+        data_apresentacao="2018-01-04",
+        regime_tramitacao=regime_tramitacao,
+        tipo=tipo_materia
+    )
+    materia_anexada = mommy.make(
+        MateriaLegislativa,
+        numero=21,
+        ano=2019,
+        data_apresentacao="2019-05-04",
+        regime_tramitacao=regime_tramitacao,
+        tipo=tipo_materia
+    )
+
+    mommy.make(
+        Anexada,
+        materia_principal=materia_principal,
+        materia_anexada=materia_anexada,
+        data_anexacao="2019-05-11"
+    )
+    mommy.make(
+        Anexada,
+        materia_principal=materia_anexada,
+        materia_anexada=materia_principal,
+        data_anexacao="2020-11-05"
+    )
+
+    lista = lista_anexados(materia_principal)
+
+    assert len(lista) == 1
+    assert lista[0] == materia_anexada
+
+@pytest.mark.django_db(transaction=False)
 def make_unidade_tramitacao(descricao):
     # Cria uma comissão para ser a unidade de tramitação
     tipo_comissao = mommy.make(TipoComissao)
