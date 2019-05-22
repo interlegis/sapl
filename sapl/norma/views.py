@@ -79,7 +79,7 @@ class NormaPesquisaView(FilterView):
         qs = qs.extra({
             'nm_i': "CAST(regexp_replace(numero,'[^0-9]','', 'g') AS INTEGER)",
             'norma_letra': "regexp_replace(numero,'[^a-zA-Z]','', 'g')"
-        }).order_by('-data', '-nm_i', '-norma_letra')
+        }).order_by('-data', 'nm_i', 'norma_letra')
 
         return qs
 
