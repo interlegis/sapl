@@ -730,7 +730,28 @@ def apaga_ref_a_mats_e_docs_inexistentes_em_proposicoes():
     )
 
 
-def uniformiza_banco():
+def restringe_e_reaponta_tipo_autor():
+    # restringe somente ao realmente utilizado
+    exec_legado(
+        """delete from tipo_autor where tip_autor not in (
+        select distinct(tip_autor) from autor)"""
+    )
+    conflitos, max_id = encontra_conflitos_tipo_autor()
+    for id_novo, id_antigo in enumerate(conflitos, max_id + 1):
+        exec_legado(
+            f"""
+            update tipo_autor set tip_autor = {id_novo} where tip_autor = {id_antigo};
+            update autor set tip_autor = {id_novo} where tip_autor = {id_antigo};
+            """
+        )
+
+
+def uniformiza_banco(primeira_migracao):
+    "Uniformiza e ajusta o banco legado antes de migrar"
+
+    if not primeira_migracao:
+        restringe_e_reaponta_tipo_autor()
+
     propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO)
     checa_registros_votacao_ambiguos_e_remove_nao_usados()
     propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO_REGISTROS_VOTACAO)
@@ -919,9 +940,9 @@ def fill_vinculo_norma_juridica():
 
 
 def criar_configuracao_inicial():
-    if AppConf.objects.exists():
-        # se estamos refazendo a migração não recriamos o appconf
-        return False
+    # só deve ser chamado na primeira migracão
+    assert not AppConf.objects.exists()
+
     # Ajusta sequencia numérica de protocolo e cria base.AppConfig
     if (
         TipoNumeracaoProtocolo._meta.db_table in TABELAS_LEGADO
@@ -940,7 +961,6 @@ def criar_configuracao_inicial():
         sequencia_numeracao = "A"
     appconf = AppConf(sequencia_numeracao_protocolo=sequencia_numeracao)
     appconf.save()
-    return True
 
 
 def get_sequence_name_and_last_value(model):
@@ -1054,11 +1074,15 @@ def migrar_dados(flush=False, apagar_do_legado=False):
         if arq_ajustes_pre_migracao.exists():
             exec_legado(arq_ajustes_pre_migracao.read_file())
 
-        uniformiza_banco()
+        primeira_migracao = not AppConf.objects.exists()
+
+        uniformiza_banco(primeira_migracao)
 
         if flush:
             do_flush()
-        primeira_migracao = criar_configuracao_inicial()
+
+        if primeira_migracao:
+            criar_configuracao_inicial()
 
         info("Começando migração: ...")
         migrar_todos_os_models(apagar_do_legado)
@@ -1126,9 +1150,6 @@ def migrar_todos_os_models(apagar_do_legado):
 
 def migrar_model(model, apagar_do_legado):
     print("Migrando %s..." % model.__name__)
-
-    if model == TipoAutor:
-        checagem_tipo_autor()
 
     model_legado, tabela_legado, campos_pk_legado = get_estrutura_legado(model)
 
@@ -1267,7 +1288,7 @@ def migrar_model(model, apagar_do_legado):
             exec_legado(sql_delete_legado)
 
 
-def checagem_tipo_autor():
+def encontra_conflitos_tipo_autor():
     # Encontrei conflito de ids em TipoAutor entre
     # um registro que existiu na base e foi apagado e um registro ressuscitado.
     # Então testamos p garantir que não associamos um ressuscitado erroneamente
@@ -1286,17 +1307,22 @@ def checagem_tipo_autor():
     }
     atual_e_historia = {**atual, **historia}
     so_no_legado = set(legado.items()) - set(atual_e_historia.items())
-    # o que está so no legado agora
-    # nao tem conflito com a base atual e sua historia
-    conflito = [
-        (id, desc, atual_e_historia[id], "atual" if id in atual else "apagado")
-        for id, desc in so_no_legado
+
+    # o que:
+    # 1) está so no legado
+    # 2) tem um id igual ao de um registro da base atual (incluindo histórico)
+    # 3) mas com uma descrição difente
+    conflitos = {
+        id: (
+            descricao_no_legado,
+            atual_e_historia[id],
+            "atual" if id in atual else "historia",
+        )
+        for id, descricao_no_legado in so_no_legado
         if id in atual_e_historia
-    ]
-    assert not conflito, f"""
-    Existem tipos do legado em conflito com algum registro atual ou apagado:
-    {conflito}
-    """
+    }
+    max_id = max(*atual_e_historia, *legado)
+    return conflitos, max_id
 
 
 # MIGRATION_ADJUSTMENTS #####################################################
