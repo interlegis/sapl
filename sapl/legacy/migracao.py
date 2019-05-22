@@ -3,6 +3,7 @@ import subprocess
 from getpass import getpass
 
 import requests
+import yaml
 from django.core import management
 from unipath import Path
 
@@ -34,6 +35,7 @@ def migrar(flush=False, apagar_do_legado=False):
     migrar_usuarios(REPO.working_dir, primeira_migracao)
     migrar_documentos(REPO, primeira_migracao)
     gravar_marco()
+    verifica_sequences()
 
 
 def compactar_media():
@@ -102,8 +104,8 @@ def tenta_correcao():
     gravar_marco(versiona=False, gera_backup=False)
 
     sigla = NOME_BANCO_LEGADO[-3:]
-
     repo = f"~/migracao_sapl/repos/sapl_cm_{sigla}"
+
     cd = f"cd {repo}"
     diff_cmd = f"{cd}; diff -rq producao dados"
     print(repo)
@@ -121,18 +123,35 @@ def tenta_correcao():
         f"{diff_cmd} | grep -v 'Only in dados' | grep -v 'Files producao/sequences.yaml and dados/sequences.yaml differ' | tee ~/migracao_sapl/diffs/{sigla}"  # noqa
     )
     print("^" * 80)
-    os.system(f"{cd}; vimdiff producao/sequences.yaml dados/sequences.yaml")
+    verifica_sequences()
 
-    ajustes = Path(
-        f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql"
-    ).read_file()
-    assert ajustes.count("RESSUSCITADOS") <= 1
+
+def verifica_sequences():
+    sigla = NOME_BANCO_LEGADO[-3:]
+    repo = f"~/migracao_sapl/repos/sapl_cm_{sigla}"
+
+    sequences_producao, sequences_dados = [
+        yaml.safe_load(
+            Path(f"{repo}/{base}/sequences.yaml").expand_user().read_file()
+        )
+        for base in ("producao", "dados")
+    ]
+    # as sequences novas devem ter valores maiores ou iguais aos da producao
+    assert all(
+        sequences_dados[seq] >= sequences_producao[seq]
+        for seq in sequences_producao
+    )
 
 
 def commit_ajustes():
     import git
 
     sigla = NOME_BANCO_LEGADO[-3:]
+
+    ajustes = Path(
+        f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql"
+    ).read_file()
+    assert ajustes.count("RESSUSCITADOS") <= 1
 
     consulta_sapl = git.Repo(f"/home/mazza/work/consulta_sapls")
     consulta_sapl.git.add(
