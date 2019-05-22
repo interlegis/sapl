@@ -1127,6 +1127,9 @@ def migrar_todos_os_models(apagar_do_legado):
 def migrar_model(model, apagar_do_legado):
     print("Migrando %s..." % model.__name__)
 
+    if model == TipoAutor:
+        checagem_tipo_autor()
+
     model_legado, tabela_legado, campos_pk_legado = get_estrutura_legado(model)
 
     if len(campos_pk_legado) == 1:
@@ -1262,6 +1265,38 @@ def migrar_model(model, apagar_do_legado):
         # apaga registros migrados do legado
         if apagar_do_legado and sql_delete_legado:
             exec_legado(sql_delete_legado)
+
+
+def checagem_tipo_autor():
+    # Encontrei conflito de ids em TipoAutor entre
+    # um registro que existiu na base e foi apagado e um registro ressuscitado.
+    # Então testamos p garantir que não associamos um ressuscitado erroneamente
+
+    from sapl.legacy.models import TipoAutor as TipoAutorLegado
+
+    atual = {t.id: t.descricao for t in TipoAutor.objects.all()}
+    historia = {
+        t.field_dict["id"]: t.field_dict["descricao"]
+        for t in Version.objects.get_deleted(TipoAutor)
+    }
+    assert not set(atual) & set(historia)
+    legado = {
+        t.pk: t.des_tipo_autor
+        for t in TipoAutorLegado.objects.filter(ind_excluido=False)
+    }
+    atual_e_historia = {**atual, **historia}
+    so_no_legado = set(legado.items()) - set(atual_e_historia.items())
+    # o que está so no legado agora
+    # nao tem conflito com a base atual e sua historia
+    conflito = [
+        (id, desc, atual_e_historia[id], "atual" if id in atual else "apagado")
+        for id, desc in so_no_legado
+        if id in atual_e_historia
+    ]
+    assert not conflito, f"""
+    Existem tipos do legado em conflito com algum registro atual ou apagado:
+    {conflito}
+    """
 
 
 # MIGRATION_ADJUSTMENTS #####################################################
