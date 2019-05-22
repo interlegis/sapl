@@ -1,3 +1,4 @@
+import os
 import subprocess
 from getpass import getpass
 
@@ -99,30 +100,43 @@ def tenta_correcao():
     migrar_dados()
     assert "fk" not in ocorrencias, "AINDA EXISTEM FKS ORFAS"
     gravar_marco(versiona=False, gera_backup=False)
+
+    sigla = NOME_BANCO_LEGADO[-3:]
+
+    repo = f"~/migracao_sapl/repos/sapl_cm_{sigla}"
+    cd = f"cd {repo}"
+    diff_cmd = f"{cd}; diff -rq producao dados"
+    print(repo)
+
+    # print(f"cd ~/migracao_sapl/repos/sapl_cm_{sigla}")
+    os.system(f"cd ~/migracao_sapl/repos/sapl_cm_{sigla}")
+    print("-" * 80)
+    print("todos os difentes")
+    print("-" * 80)
+    os.system(diff_cmd)
+    print("-" * 80)
+    print("estranhos ... ")
+    print("-" * 80)
+    os.system(
+        f"{diff_cmd} | grep -v 'Only in dados' | grep -v 'Files producao/sequences.yaml and dados/sequences.yaml differ' | tee ~/migracao_sapl/diffs/{sigla}"  # noqa
+    )
+    print("^" * 80)
+    os.system(f"{cd}; vimdiff producao/sequences.yaml dados/sequences.yaml")
+
+    ajustes = Path(
+        f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql"
+    ).read_file()
+    assert ajustes.count("RESSUSCITADOS") <= 1
+
+
+def commit_ajustes():
     import git
 
     sigla = NOME_BANCO_LEGADO[-3:]
 
-    from IPython import get_ipython
-
-    ip = get_ipython()
-    if ip:
-        print(f"cd ~/migracao_sapl/repos/sapl_cm_{sigla}")
-        ip.run_line_magic("cd", f"~/migracao_sapl/repos/sapl_cm_{sigla}")
-        ip.system(
-            "diff -rq producao dados | grep -v 'Only in dados' | grep -v 'Files producao/sequences.yaml and dados/sequences.yaml differ'"  # noqa
-        )
-        ip.system("vimdiff producao/sequences.yaml dados/sequences.yaml")
-
-        ajustes = Path(
-            f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql"
-        ).read_file()
-        assert ajustes.count("RESSUSCITADOS") <= 1
-        consulta_sapl = git.Repo(f"/home/mazza/work/consulta_sapls")
-        consulta_sapl.git.add(
-            f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql"
-        )
-        if consulta_sapl.git.diff("--cached"):
-            consulta_sapl.index.commit(
-                f"Ajusta {sigla} (p migração corretiva)"
-            )
+    consulta_sapl = git.Repo(f"/home/mazza/work/consulta_sapls")
+    consulta_sapl.git.add(
+        f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql"
+    )
+    if consulta_sapl.git.diff("--cached"):
+        consulta_sapl.index.commit(f"Ajusta {sigla} (p migração corretiva)")
