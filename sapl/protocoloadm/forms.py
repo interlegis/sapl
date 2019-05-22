@@ -170,6 +170,12 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
     o = AnoNumeroOrderingFilter(help_text='')
 
+    relatorio_pdf = django_filters.ChoiceFilter(
+        label=_('Relatório PDF'),
+        choices=YES_NO_CHOICES,
+        initial=False
+    )
+
     class Meta(FilterOverridesMetaMixin):
         model = DocumentoAdministrativo
         fields = ['tipo',
@@ -207,8 +213,9 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         row4 = to_row(
             [
                 ('tramitacao', 2),
-                ('tramitacaoadministrativo__status', 5),
-                ('tramitacaoadministrativo__unidade_tramitacao_destino', 5),
+                ('tramitacaoadministrativo__status', 2),
+                ('relatorio_pdf', 2),
+                ('tramitacaoadministrativo__unidade_tramitacao_destino', 6),
             ])
 
         self.form.helper = SaplFormHelper()
