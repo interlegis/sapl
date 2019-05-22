@@ -937,6 +937,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
     class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
         fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
+                  'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status', 'tramitacao__data_fim_prazo']
 
     def __init__(self, *args, **kwargs):
@@ -944,20 +945,22 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
-        self.filters['tramitacao__unidade_tramitacao_local'].label = 'Unidade de tramitação local'
+        self.filters['tramitacao__unidade_tramitacao_local'].label = 'Unidade Local (Origem)'
+        self.filters['tramitacao__unidade_tramitacao_destino'].label = 'Unidade Destino'
         self.filters['tramitacao__status'].label = 'Status de tramitação'
-        
+
         row1 = to_row([('tramitacao__data_fim_prazo', 12)])
-        row2 = to_row(
-            [('tipo', 4),
-             ('tramitacao__unidade_tramitacao_local', 4),
-             ('tramitacao__status', 4)])
+        row2 = to_row([('tramitacao__unidade_tramitacao_local', 6),
+                       ('tramitacao__unidade_tramitacao_destino', 6)])
+        row3 = to_row(
+            [('tipo', 6),
+             ('tramitacao__status', 6)])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitações por fim de prazo'),
-                     row1, row2,
+                     row1, row2, row3,
                      form_actions(label='Pesquisar'))
         )
 

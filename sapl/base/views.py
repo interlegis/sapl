@@ -294,11 +294,8 @@ class RelatoriosListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(TemplateView, self).get_context_data(**kwargs)
         estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
-        if estatisticas_acesso_normas == 'S':
-            context['estatisticas_acesso_normas'] = True
-        else:
-            context['estatisticas_acesso_normas'] = False
-
+        context['estatisticas_acesso_normas'] = True if estatisticas_acesso_normas == 'S' else False
+        
         return context
 
 
@@ -514,18 +511,27 @@ class RelatorioDataFimPrazoTramitacaoView(FilterView):
                 str(TipoMateriaLegislativa.objects.get(id=tipo)))
         else:
             context['tipo'] = ''
+
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
             context['tramitacao__status'] = (
                 str(StatusTramitacao.objects.get(id=tramitacao_status)))
         else:
             context['tramitacao__status'] = ''
+
         if self.request.GET['tramitacao__unidade_tramitacao_local']:
             context['tramitacao__unidade_tramitacao_local'] = \
                 (str(UnidadeTramitacao.objects.get(
                     id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
         else:
             context['tramitacao__unidade_tramitacao_local'] = ''
+
+        if self.request.GET['tramitacao__unidade_tramitacao_destino']:
+            context['tramitacao__unidade_tramitacao_destino'] = \
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacao__unidade_tramitacao_destino'])))
+        else:
+            context['tramitacao__unidade_tramitacao_destino'] = ''
 
         return context
 
