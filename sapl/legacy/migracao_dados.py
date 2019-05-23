@@ -740,8 +740,8 @@ def restringe_e_reaponta_tipo_autor():
     for id_novo, id_antigo in enumerate(conflitos, max_id + 1):
         exec_legado(
             f"""
-            update tipo_autor set tip_autor = {id_novo} where tip_autor = {id_antigo};
-            update autor set tip_autor = {id_novo} where tip_autor = {id_antigo};
+    update tipo_autor set tip_autor = {id_novo} where tip_autor = {id_antigo};
+    update autor set tip_autor = {id_novo} where tip_autor = {id_antigo};
             """
         )
 
@@ -1810,3 +1810,37 @@ def gravar_marco(
             # se de fato existe mudança
             REPO.index.commit(f"Grava marco (em {nome_dir})")
         REPO.git.execute("git tag -f".split() + [TAG_MARCO])
+
+
+def apaga_do_legado_apagados_em_producao_das_ocorrencias_fk_faltando():
+    info_tabelas_legado = {}
+    for model in get_models_a_migrar():
+        model_legado, tabela_legado, _ = get_estrutura_legado(model)
+        info_tabelas_legado[tabela_legado] = (model_legado, model)
+
+    fks, sql = ocorrencias["fk"], []
+    for fk in fks:
+        model_legado, model = info_tabelas_legado[fk["tabela"]]
+        nome_campo_novo = {v: k for k, v in field_renames[model].items()}[
+            fk["campo"]
+        ]
+        campo_novo = model._meta.get_field(nome_campo_novo)
+        _, tabela, [nome_pk] = get_estrutura_legado(campo_novo.related_model)
+        sql.append(
+            f"update {tabela} set ind_excluido = 2 where {nome_pk} = {fk['valor']};"  # noqa
+        )
+    sql = "\n".join(set(sql))
+    sql = f"""
+/* Ajuste necessário na migração corretiva:
+  Estes registros foram:
+  * migrados anteriormente (na primeira migração)
+  * apagados na produção
+  * e agora geram FKs órfãs ao tentar a migração corretiva.
+
+  Solução: apagar também previamente no legado
+  na esperança que as propagações de exclusões que rodam na pré-migração
+  possam apagar também os registros que por isso acabaram órfãos
+*/
+{sql}
+"""
+    return sql
