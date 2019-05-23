@@ -1682,6 +1682,13 @@ class MateriaLegislativaCrud(Crud):
     class DetailView(Crud.DetailView):
 
         layout_key = 'MateriaLegislativaDetail'
+        template_name = "materia/materia_detail.html"
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['user'] = self.request.user
+            context['materia'] = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+            return context
 
     class ListView(Crud.ListView, RedirectView):
 
