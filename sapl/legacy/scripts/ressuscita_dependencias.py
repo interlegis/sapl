@@ -1,13 +1,15 @@
 from collections import OrderedDict
 from textwrap import dedent
 
+import pyaml
 import texttable
 import yaml
 from unipath import Path
 
 from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO,
                                         campos_novos_para_antigos, exec_legado,
-                                        get_arquivo_ajustes_pre_migracao,
+                                        get_apagados_que_geram_ocorrencias_fk,
+                                        get_arquivos_ajustes_pre_migracao,
                                         models_novos_para_antigos)
 from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
                                             NOME_BANCO_LEGADO)
@@ -218,11 +220,15 @@ Para facilitar sua conferência, seguem os links para as proposições envolvida
         )
 
 
-def get_dependencias_a_ressuscitar(slug):
+def get_fks_faltando():
     ocorrencias = yaml.load(
         Path(DIR_REPO.child("ocorrencias.yaml").read_file())
     )
-    fks_faltando = ocorrencias.get("fk")
+    return ocorrencias.get("fk", [])
+
+
+def get_dependencias_a_ressuscitar(slug):
+    fks_faltando = get_fks_faltando()
     if not fks_faltando:
         return [], [], []
 
@@ -505,9 +511,39 @@ def get_slug():
     return siglas_para_slugs[sigla]
 
 
+def acrescenta_ao_arquivo_de_ajustes(texto):
+    texto = texto.strip()
+    if texto:
+        arq_ajustes_sql, _ = get_arquivos_ajustes_pre_migracao()
+        conteudo = arq_ajustes_sql.read_file()
+        arq_ajustes_sql.write_file(f"{conteudo}\n{texto}")
+
+
 def adiciona_ressuscitar():
     sqls = get_ressuscitar(get_slug())
-    if sqls.strip():
-        arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
-        conteudo = arq_ajustes_pre_migracao.read_file()
-        arq_ajustes_pre_migracao.write_file("{}\n{}".format(conteudo, sqls))
+    acrescenta_ao_arquivo_de_ajustes(sqls)
+
+
+def adiciona_ressuscitar_apagados_em_producao():
+    fks_faltando = get_fks_faltando()
+    apagados = get_apagados_que_geram_ocorrencias_fk(fks_faltando)
+    reverter = []
+    links = []
+    for (tabela, version_data) in apagados:
+        reverter.append(version_data)
+        links.append(get_link(tabela, version_data["object_id"], get_slug()))
+
+    _, arq_revert = get_arquivos_ajustes_pre_migracao()
+    arq_revert.write_file(pyaml.dump(reverter))
+    links = "\n".join(links)
+    acrescenta_ao_arquivo_de_ajustes(
+        f"""
+/* RESSUSCITADOS
+
+Apagados já no sapl 3.1 que precisaram ser restaurados:
+
+{links}
+
+*/
+"""
+    )

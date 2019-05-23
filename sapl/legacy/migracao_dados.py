@@ -1029,10 +1029,13 @@ def roda_comando_shell(cmd):
     assert res == 0, "O comando falhou: {}".format(cmd)
 
 
-def get_arquivo_ajustes_pre_migracao():
-    return DIR_DADOS_MIGRACAO.child(
-        "ajustes_pre_migracao", "{}.sql".format(SIGLA_CASA)
-    )
+def get_arquivos_ajustes_pre_migracao():
+    return [
+        DIR_DADOS_MIGRACAO.child(
+            "ajustes_pre_migracao", f"{SIGLA_CASA}.{sufixo}"
+        )
+        for sufixo in ("sql", "reverter.yaml")
+    ]
 
 
 def do_flush():
@@ -1070,9 +1073,13 @@ def migrar_dados(flush=False, apagar_do_legado=False):
         exec_legado('SET SESSION sql_mode = "NO_AUTO_VALUE_ON_ZERO";')
 
         # executa ajustes pré-migração, se existirem
-        arq_ajustes_pre_migracao = get_arquivo_ajustes_pre_migracao()
-        if arq_ajustes_pre_migracao.exists():
-            exec_legado(arq_ajustes_pre_migracao.read_file())
+        arq_ajustes_sql, arq_ajustes_reverter = (
+            get_arquivos_ajustes_pre_migracao()
+        )
+        if arq_ajustes_sql.exists():
+            exec_legado(arq_ajustes_sql.read_file())
+        if arq_ajustes_reverter.exists():
+            revert_delete_producao(yaml.load(arq_ajustes_reverter.read_file()))
 
         primeira_migracao = not AppConf.objects.exists()
 
@@ -1812,35 +1819,45 @@ def gravar_marco(
         REPO.git.execute("git tag -f".split() + [TAG_MARCO])
 
 
-def apaga_do_legado_apagados_em_producao_das_ocorrencias_fk_faltando():
-    info_tabelas_legado = {}
-    for model in get_models_a_migrar():
-        model_legado, tabela_legado, _ = get_estrutura_legado(model)
-        info_tabelas_legado[tabela_legado] = (model_legado, model)
+def encode_version(version):
+    return {
+        "content_type__model": version.content_type.model,
+        "object_id": version.object_id,
+    }
 
-    fks, sql = ocorrencias["fk"], []
-    for fk in fks:
-        model_legado, model = info_tabelas_legado[fk["tabela"]]
-        nome_campo_novo = {v: k for k, v in field_renames[model].items()}[
-            fk["campo"]
-        ]
-        campo_novo = model._meta.get_field(nome_campo_novo)
-        _, tabela, [nome_pk] = get_estrutura_legado(campo_novo.related_model)
-        sql.append(
-            f"update {tabela} set ind_excluido = 2 where {nome_pk} = {fk['valor']};"  # noqa
-        )
-    sql = "\n".join(set(sql))
-    sql = f"""
-/* Ajuste necessário na migração corretiva:
-  Estes registros foram:
-  * migrados anteriormente (na primeira migração)
-  * apagados na produção
-  * e agora geram FKs órfãs ao tentar a migração corretiva.
 
-  Solução: apagar também previamente no legado
-  na esperança que as propagações de exclusões que rodam na pré-migração
-  possam apagar também os registros que por isso acabaram órfãos
-*/
-{sql}
-"""
-    return sql
+def get_apagados_que_geram_ocorrencias_fk(fks_faltando):
+    def get_tabela_legado_do_model(model):
+        _, tabela_legado, _ = get_estrutura_legado(model)
+        return tabela_legado
+
+    tabela_legado_p_model = {
+        get_tabela_legado_do_model(model): model
+        for model in get_models_a_migrar()
+    }
+
+    apagados = set()
+    for fk in fks_faltando:
+        model_dependente = tabela_legado_p_model[fk["tabela"]]
+        nome_campo_fk = {
+            v: k for k, v in field_renames[model_dependente].items()
+        }[fk["campo"]]
+        campo_fk = model_dependente._meta.get_field(nome_campo_fk)
+        model_relacionado = campo_fk.related_model
+        _, tabela_relacionada, _ = get_estrutura_legado(model_relacionado)
+        deleted = Version.objects.get_deleted(model_relacionado)
+        version = deleted.get(object_id=fk["valor"])
+        apagados.add((tabela_relacionada, version))
+    return [
+        (tabela_relacionada, encode_version(version))
+        for tabela, version in apagados
+    ]
+
+
+def revert_delete_producao(dados_versions):
+    print("Revertendo registros apagados em produção...")
+    for dados in dados_versions:
+        print(dados)
+        version = Version.objects.get(**dados)
+        version.revert()
+    print("... sucesso")
