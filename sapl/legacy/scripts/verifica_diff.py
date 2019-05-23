@@ -22,7 +22,7 @@ def verifica_diff(sigla):
         f"{diff_cmd} | grep -v 'Files producao/sequences.yaml and dados/sequences.yaml differ' | tee ~/migracao_sapl/diffs/{sigla}.diff"
     ).stdout.splitlines()  # noqa
 
-    assert all(o.startswith("Only in dados") for o in out)
+    assert not any(o.startswith("Only in producao") for o in out)
     verifica_sequences(sigla)
     return out
 
