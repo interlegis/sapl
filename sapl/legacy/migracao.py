@@ -12,6 +12,7 @@ from sapl.legacy.migracao_dados import (REPO, TAG_MARCO, gravar_marco, info,
 from sapl.legacy.migracao_documentos import migrar_documentos
 from sapl.legacy.migracao_usuarios import migrar_usuarios
 from sapl.legacy.scripts.exporta_zope.variaveis_comuns import TAG_ZOPE
+from sapl.legacy.scripts.verifica_diff import verifica_diff
 from sapl.legacy_migration_settings import DIR_REPO, NOME_BANCO_LEGADO
 from sapl.materia.models import Proposicao
 
@@ -102,45 +103,8 @@ def tenta_correcao():
     migrar_dados()
     assert "fk" not in ocorrencias, "AINDA EXISTEM FKS ORFAS"
     gravar_marco(versiona=False, gera_backup=False)
-
     sigla = NOME_BANCO_LEGADO[-3:]
-    repo = f"~/migracao_sapl/repos/sapl_cm_{sigla}"
-
-    cd = f"cd {repo}"
-    diff_cmd = f"{cd}; diff -rq producao dados"
-    print(repo)
-
-    # print(f"cd ~/migracao_sapl/repos/sapl_cm_{sigla}")
-    os.system(f"cd ~/migracao_sapl/repos/sapl_cm_{sigla}")
-    print("-" * 80)
-    print("todos os difentes")
-    print("-" * 80)
-    os.system(diff_cmd)
-    print("-" * 80)
-    print("estranhos ... ")
-    print("-" * 80)
-    os.system(
-        f"{diff_cmd} | grep -v 'Only in dados' | grep -v 'Files producao/sequences.yaml and dados/sequences.yaml differ' | tee ~/migracao_sapl/diffs/{sigla}"  # noqa
-    )
-    print("^" * 80)
-    verifica_sequences()
-
-
-def verifica_sequences():
-    sigla = NOME_BANCO_LEGADO[-3:]
-    repo = f"~/migracao_sapl/repos/sapl_cm_{sigla}"
-
-    sequences_producao, sequences_dados = [
-        yaml.safe_load(
-            Path(f"{repo}/{base}/sequences.yaml").expand_user().read_file()
-        )
-        for base in ("producao", "dados")
-    ]
-    # as sequences novas devem ter valores maiores ou iguais aos da producao
-    assert all(
-        sequences_dados[seq] >= sequences_producao[seq]
-        for seq in sequences_producao
-    )
+    verifica_diff(sigla)
 
 
 def commit_ajustes():
