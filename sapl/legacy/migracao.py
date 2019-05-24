@@ -36,7 +36,8 @@ def migrar(flush=False, apagar_do_legado=False):
     migrar_usuarios(REPO.working_dir, primeira_migracao)
     migrar_documentos(REPO, primeira_migracao)
     gravar_marco()
-    verifica_sequences()
+    sigla = NOME_BANCO_LEGADO[-3:]
+    verifica_diff(sigla)
 
 
 def compactar_media():
