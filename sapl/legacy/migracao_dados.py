@@ -1839,25 +1839,34 @@ def get_apagados_que_geram_ocorrencias_fk(fks_faltando):
     apagados = set()
     for fk in fks_faltando:
         model_dependente = tabela_legado_p_model[fk["tabela"]]
+        if model_dependente == Autor:
+            # isso não funciona para Autor...
+            continue
         nome_campo_fk = {
             v: k for k, v in field_renames[model_dependente].items()
         }[fk["campo"]]
         campo_fk = model_dependente._meta.get_field(nome_campo_fk)
         model_relacionado = campo_fk.related_model
-        _, tabela_relacionada, _ = get_estrutura_legado(model_relacionado)
+        _, tabela_relacionada, [campo_pk] = get_estrutura_legado(
+            model_relacionado
+        )
         deleted = Version.objects.get_deleted(model_relacionado)
         version = deleted.get(object_id=fk["valor"])
-        apagados.add((tabela_relacionada, version))
+        apagados.add((tabela_relacionada, campo_pk, version))
     return [
-        (tabela_relacionada, encode_version(version))
-        for tabela, version in apagados
+        (tabela_relacionada, campo_pk, encode_version(version))
+        for tabela, campo_pk, version in apagados
     ]
 
 
 def revert_delete_producao(dados_versions):
+    if not dados_versions:
+        return
     print("Revertendo registros apagados em produção...")
     for dados in dados_versions:
         print(dados)
-        version = Version.objects.get(**dados)
+        version = Version.objects.get(
+            **dados, revision__comment__contains="Deletado"
+        )
         version.revert()
     print("... sucesso")

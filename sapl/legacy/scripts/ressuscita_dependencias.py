@@ -524,26 +524,35 @@ def adiciona_ressuscitar():
     acrescenta_ao_arquivo_de_ajustes(sqls)
 
 
-def adiciona_ressuscitar_apagados_em_producao():
+def adiciona_resolve_apagados_em_producao(ressucitar=False):
     fks_faltando = get_fks_faltando()
     apagados = get_apagados_que_geram_ocorrencias_fk(fks_faltando)
     reverter = []
-    links = []
-    for (tabela, version_data) in apagados:
-        reverter.append(version_data)
-        links.append(get_link(tabela, version_data["object_id"], get_slug()))
-
-    _, arq_revert = get_arquivos_ajustes_pre_migracao()
-    arq_revert.write_file(pyaml.dump(reverter))
-    links = "\n".join(links)
-    acrescenta_ao_arquivo_de_ajustes(
-        f"""
+    linhas = []
+    for (tabela, campo_pk, version_data) in apagados:
+        id = version_data["object_id"]
+        if ressucitar:
+            reverter.append(version_data)
+            linhas.append(get_link(tabela, id, get_slug()))
+        else:
+            linhas.append(
+                f"update {tabela} set ind_excluido = 1 where {campo_pk} = {id};"
+            )
+    linhas = "\n".join(linhas)
+    if ressucitar:
+        _, arq_revert = get_arquivos_ajustes_pre_migracao()
+        arq_revert.write_file(pyaml.dump(reverter))
+        texto = f"""
 /* RESSUSCITADOS
 
 Apagados já no sapl 3.1 que precisaram ser restaurados:
 
-{links}
-
+{linhas}
 */
 """
-    )
+    else:
+        texto = f"""
+-- apagados em producao - apagado tb aqui p usar propagacoes de exclusao
+{linhas}
+"""
+    acrescenta_ao_arquivo_de_ajustes(texto)
