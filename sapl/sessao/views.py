@@ -1491,8 +1491,7 @@ def get_assinaturas(sessao_plenaria):
     parlamentares_ordem = [p for p in parlamentares_ordem if p not in parlamentares_mesa]
 
     context = {}
-
-    config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
+    config_assinatura_ata = AppsAppConfig.attr('assinatura_ata')
     if config_assinatura_ata == 'T' and parlamentares_ordem:
         context.update(
             {'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
@@ -1758,23 +1757,42 @@ class ResumoView(DetailView):
         }
 
         ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
-        context.update({
-            'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
-            'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
-            'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
-            'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
-            'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
-            'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
-            'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
-            'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
-            'nono_ordenacao': dict_ord_template[ordenacao.nono],
-            'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
-            'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
-            'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
-            'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
-            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
-        })
-
+        try:
+            context.update({
+                'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+                'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+                'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+                'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+                'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+                'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+                'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+                'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+                'nono_ordenacao': dict_ord_template[ordenacao.nono],
+                'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+                'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+                'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+                'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
+                'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+            })
+        except KeyError as e:
+            self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
+                              "configuração de ordenação. Utilizando ordenação padrão.")
+            context.update({
+                'primeiro_ordenacao': 'identificacao_basica.html',
+                'segundo_ordenacao': 'conteudo_multimidia.html',
+                'terceiro_ordenacao': 'mesa_diretora.html',
+                'quarto_ordenacao': 'lista_presenca.html',
+                'quinto_ordenacao': 'expedientes.html',
+                'sexto_ordenacao': 'materias_expediente.html',
+                'setimo_ordenacao': 'votos_nominais_materias_expediente.html',
+                'oitavo_ordenacao': 'oradores_expediente.html',
+                'nono_ordenacao': 'lista_presenca_ordem_dia.html',
+                'decimo_ordenacao': 'materias_ordem_dia.html',
+                'decimo_primeiro_ordenacao': 'votos_nominais_materias_ordem_dia.html',
+                'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
+                'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
+                'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html'
+            })
         return context
 
     def get(self, request, *args, **kwargs):
