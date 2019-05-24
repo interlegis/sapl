@@ -932,6 +932,10 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             length = self.object_list.filter(restrito=False).count()
         else:
             length = self.object_list.count()
+                
+        is_relatorio = url!='' and request.GET.get('relatorio',None)
+        max_elementos_pdf = 10000
+        self.paginate_by = max_elementos_pdf if is_relatorio else 10 
         context = self.get_context_data(filter=self.filterset,
                                         filter_url=url,
                                         numero_res=length
@@ -939,7 +943,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         context['show_results'] = show_results_filter_set(
             self.request.GET.copy())
         
-        if url!='' and request.GET.get('relatorio',None):
+        if is_relatorio:
             return relatorio_doc_administrativos(request,context)
         else:    
             return self.render_to_response(context)
