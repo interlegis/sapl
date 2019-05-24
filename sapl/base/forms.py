@@ -30,6 +30,7 @@ from sapl.materia.models import (
     MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import SessaoLegislativa, Partido
+from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -1423,3 +1424,42 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
                 raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
 
         return cleaned_data
+
+
+class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
+
+    @property
+    def qs(self):
+        parent = super(RelatorioHistoricoTramitacaoAdmFilterSet, self).qs
+        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
+
+    class Meta(FilterOverridesMetaMixin):
+        model = DocumentoAdministrativo
+        fields = ['tipo', 'tramitacaoadministrativo__status', 
+                  'tramitacaoadministrativo__data_tramitacao',
+                  'tramitacaoadministrativo__unidade_tramitacao_local', 
+                  'tramitacaoadministrativo__unidade_tramitacao_destino']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioHistoricoTramitacaoAdmFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Documento'
+        self.filters['tramitacaoadministrativo__status'].label = _('Status')
+        self.filters['tramitacaoadministrativo__unidade_tramitacao_local'].label = _('Unidade Local (Origem)')
+        self.filters['tramitacaoadministrativo__unidade_tramitacao_destino'].label = _('Unidade Destino')
+
+        row1 = to_row([('tramitacaoadministrativo__data_tramitacao', 12)])
+        row2 = to_row([('tramitacaoadministrativo__unidade_tramitacao_local', 6),
+                       ('tramitacaoadministrativo__unidade_tramitacao_destino', 6)])
+        row3 = to_row(
+            [('tipo', 6),
+             ('tramitacaoadministrativo__status', 6)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_(''),
+                     row1, row2, row3,
+                     form_actions(label='Pesquisar'))
+        )
