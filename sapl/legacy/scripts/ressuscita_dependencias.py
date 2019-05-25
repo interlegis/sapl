@@ -77,6 +77,7 @@ origem                        /sistema/materia/origem
 documento_acessorio           /materia/documentoacessorio
 tipo_fim_relatoria            /sistema/materia/tipo-fim-relatoria
 tipo_situacao_militar         /sistema/parlamentar/tipo-militar
+status_tramitacao_administrativo /sistema/status-tramitacao-adm
 """
 urls = dict(stripsplit(urls))
 
