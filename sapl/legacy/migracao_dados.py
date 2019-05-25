@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import re
 import subprocess
@@ -1211,12 +1212,9 @@ def migrar_model(model, apagar_do_legado):
         else:
             campos_chave = campos_pk_legado
 
-        def sem_sufixo_id(k):
-            return k[:-3] if k.endswith("_id") else k
-
         apagados_pelo_usuario = Version.objects.get_deleted(model)
         apagados_pelo_usuario = [
-            {sem_sufixo_id(k): v for k, v in version.field_dict.items()}
+            {k: v for k, v in get_campos_crus_reversion(version).items()}
             for version in apagados_pelo_usuario
         ]
         campos_chave_novos = {campos_velhos_p_novos[c] for c in campos_chave}
@@ -1293,6 +1291,16 @@ def migrar_model(model, apagar_do_legado):
         # apaga registros migrados do legado
         if apagar_do_legado and sql_delete_legado:
             exec_legado(sql_delete_legado)
+
+
+def get_campos_crus_reversion(version):
+    """Pega campos crus de uma versao do django reversion 
+    p evitar erros de deserialização"""
+    assert version.format == "json"
+    [meta] = json.loads(version.serialized_data)
+    campos = meta["fields"]
+    campos["id"] = meta["pk"]
+    return campos
 
 
 def encontra_conflitos_tipo_autor():
