@@ -1868,8 +1868,10 @@ def get_apagados_que_geram_ocorrencias_fk(fks_faltando):
             model_relacionado
         )
         deleted = Version.objects.get_deleted(model_relacionado)
-        version = deleted.get(object_id=fk["valor"])
-        apagados.add((tabela_relacionada, campo_pk, version))
+        versions = deleted.filter(object_id=fk["valor"])
+        if versions:
+            [version] = versions  # se há, deve ser único
+            apagados.add((tabela_relacionada, campo_pk, version))
     return [(*_, encode_version(version)) for *_, version in apagados]
 
 

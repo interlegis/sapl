@@ -539,6 +539,8 @@ def adiciona_resolve_apagados_em_producao(ressucitar=False):
             linhas.append(
                 f"update {tabela} set ind_excluido = 1 where {campo_pk} = {id};"
             )
+    if not linhas:
+        return
     linhas = "\n".join(linhas)
     if ressucitar:
         _, arq_revert = get_arquivos_ajustes_pre_migracao()
