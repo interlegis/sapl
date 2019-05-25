@@ -452,21 +452,31 @@ def get_autorias_sem_repeticoes(autoria, reapontamento):
 def unifica_autores_repetidos_no_legado(campo_agregador):
     "Reúne autores repetidos em um único, antes da migracão"
 
+    # usamos uma tupla neutra se o conjunto é vazio
+    # p q a query seja sintaticamente correta
+    ids_ja_migrados = _formatar_lista_para_sql(
+        get_all_ids_from_model(Autor) or [-1000]
+    )
+
     # enumeramos a repeticoes segundo o campo relevante
     # (p. ex. cod_parlamentar ou cod_comissao)
     # a ordenação prioriza, as entradas:
+    #  - ja migradas previamente
     #  - não excluidas,
     #  - em seguida as que têm col_username,
     #  - em seguida as que têm des_cargo
     autores = exec_legado(
-        """
-            select {cod_parlamentar}, cod_autor from autor
-            where {cod_parlamentar} is not null
-            order by {cod_parlamentar},
-            ind_excluido, col_username desc, des_cargo desc""".format(
-            cod_parlamentar=campo_agregador
-        )
+        f"""
+        select {campo_agregador}, cod_autor,
+        (cod_autor in {ids_ja_migrados}) ja_migrado
+        from autor
+        where {campo_agregador} is not null
+        order by {campo_agregador},
+        ja_migrado desc,
+        ind_excluido, col_username desc, des_cargo desc"""
     )
+    # descartamos o último campo, usado apenas p ordenar corretamente
+    autores = [a[:-1] for a in autores]
 
     reapontamento, apagar = get_reapontamento_de_autores_repetidos(autores)
 
