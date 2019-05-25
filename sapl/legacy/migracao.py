@@ -120,7 +120,7 @@ def commit_ajustes():
 
     consulta_sapl = git.Repo(f"/home/mazza/work/consulta_sapls")
     consulta_sapl.git.add(
-        f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.sql"
+        f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}.*"
     )
     if consulta_sapl.git.diff("--cached"):
         consulta_sapl.index.commit(f"Ajusta {sigla} (p migração corretiva)")
