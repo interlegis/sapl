@@ -1820,7 +1820,11 @@ def gravar_marco(
 
 
 def encode_version(version):
+    # version.id seria suficiente
+    # os campos reduntandes servem como conferência tanto visual
+    # como de consistencia da restauracao posterior
     return {
+        "id": version.id,
         "content_type__model": version.content_type.model,
         "object_id": version.object_id,
     }
@@ -1839,24 +1843,26 @@ def get_apagados_que_geram_ocorrencias_fk(fks_faltando):
     apagados = set()
     for fk in fks_faltando:
         model_dependente = tabela_legado_p_model[fk["tabela"]]
-        if model_dependente == Autor:
-            # isso não funciona para Autor...
-            continue
-        nome_campo_fk = {
-            v: k for k, v in field_renames[model_dependente].items()
-        }[fk["campo"]]
-        campo_fk = model_dependente._meta.get_field(nome_campo_fk)
-        model_relacionado = campo_fk.related_model
+        # não funciona para models em que o mapeamento de campos nao é direto
+        if model_dependente == Participacao:
+            model_relacionado = {
+                "cod_comissao": Comissao,
+                "cod_parlamentar": Parlamentar,
+            }[fk["campo"]]
+        else:
+            nome_campo_fk = {
+                v: k for k, v in field_renames[model_dependente].items()
+            }[fk["campo"]]
+            campo_fk = model_dependente._meta.get_field(nome_campo_fk)
+            model_relacionado = campo_fk.related_model
+
         _, tabela_relacionada, [campo_pk] = get_estrutura_legado(
             model_relacionado
         )
         deleted = Version.objects.get_deleted(model_relacionado)
         version = deleted.get(object_id=fk["valor"])
         apagados.add((tabela_relacionada, campo_pk, version))
-    return [
-        (tabela_relacionada, campo_pk, encode_version(version))
-        for tabela, campo_pk, version in apagados
-    ]
+    return [(*_, encode_version(version)) for *_, version in apagados]
 
 
 def revert_delete_producao(dados_versions):
@@ -1865,8 +1871,6 @@ def revert_delete_producao(dados_versions):
     print("Revertendo registros apagados em produção...")
     for dados in dados_versions:
         print(dados)
-        version = Version.objects.get(
-            **dados, revision__comment__contains="Deletado"
-        )
+        version = Version.objects.get(**dados)
         version.revert()
     print("... sucesso")
