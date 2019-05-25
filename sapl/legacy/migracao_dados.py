@@ -1893,14 +1893,12 @@ def revert_delete_producao(dados_versions):
     if not dados_versions:
         return
     print("Revertendo registros apagados em produção...")
-    restaurados = []
     for dados in dados_versions:
         print(dados)
         version = Version.objects.get(**dados)
         version.revert()
         reverted = version.object
         assert reverted
-        restaurados.append(reverted)
         # restauramos objetos relacinados ao autor
         # teoricamente precisaríamos fazer isso pra todas as generic relations
         if isinstance(reverted, Autor):
@@ -1913,6 +1911,5 @@ def revert_delete_producao(dados_versions):
                 rel.revert()
                 assert reverted.autor_related
                 assert reverted.autor_related == rel.object
-                restaurados.append(rel)
 
     print("... sucesso")
