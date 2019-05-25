@@ -1862,7 +1862,7 @@ def get_apagados_que_geram_ocorrencias_fk(fks_faltando):
     for fk in fks_faltando:
         model_dependente = tabela_legado_p_model[fk["tabela"]]
         # não funciona para models em que o mapeamento de campos nao é direto
-        if model_dependente == Participacao:
+        if model_dependente in (Participacao, Autor):
             model_relacionado = {
                 "cod_comissao": Comissao,
                 "cod_parlamentar": Parlamentar,
@@ -1882,6 +1882,10 @@ def get_apagados_que_geram_ocorrencias_fk(fks_faltando):
         if versions:
             [version] = versions  # se há, deve ser único
             apagados.add((tabela_relacionada, campo_pk, version))
+        # XXX poderíamos gerar aqui os parlementares apontados por autor
+        # para listar como restaurado para o usuário
+        # ... mas já está demais
+        # nós restauramos no método abaixo, mesmo sem o feedback desse detalhe
     return [(*_, encode_version(version)) for *_, version in apagados]
 
 
@@ -1889,8 +1893,26 @@ def revert_delete_producao(dados_versions):
     if not dados_versions:
         return
     print("Revertendo registros apagados em produção...")
+    restaurados = []
     for dados in dados_versions:
         print(dados)
         version = Version.objects.get(**dados)
         version.revert()
+        reverted = version.object
+        assert reverted
+        restaurados.append(reverted)
+        # restauramos objetos relacinados ao autor
+        # teoricamente precisaríamos fazer isso pra todas as generic relations
+        if isinstance(reverted, Autor):
+            apagados_relacionados = Version.objects.get_deleted(
+                reverted.content_type.model_class()
+            )
+            rel = apagados_relacionados.filter(object_id=reverted.object_id)
+            if rel:
+                [rel] = rel
+                rel.revert()
+                assert reverted.autor_related
+                assert reverted.autor_related == rel.object
+                restaurados.append(rel)
+
     print("... sucesso")
