@@ -1946,3 +1946,41 @@ def revert_delete_producao(dados_versions):
                 assert reverted.autor_related == rel.object
 
     print("... sucesso")
+
+
+# UTILS
+
+
+def porids(model):
+    return {o.id: o for o in model.objects.all()}
+
+
+def deletados(model):
+    deletados = Version.objects.get_deleted(model)
+    return {v.object_id: v for v in deletados}
+
+
+def analisa_conflitos_materias():
+    """
+    Analisa conflitos entre materias nao migradas e em producao
+    """
+    res = list(
+        exec_legado(
+            """
+        select cod_materia, tip_id_basica, num_ident_basica, ano_ident_basica 
+        from materia_legislativa where ind_excluido <> 1"""
+        )
+    )
+    materias_legado = {(t, n, a): id for id, t, n, a in res}
+    materias_producao = {
+        (m.tipo_id, m.numero, m.ano): m.id
+        for m in MateriaLegislativa.objects.all()
+    }
+    comuns = set(materias_legado) & set(materias_producao)
+    comuns = {k: (materias_legado[k], materias_producao[k]) for k in comuns}
+    conflitos = {
+        k: (id_legado, id_producao)
+        for k, (id_legado, id_producao) in comuns.items()
+        if id_legado != id_producao
+    }
+    return conflitos
