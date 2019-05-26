@@ -743,18 +743,36 @@ def apaga_ref_a_mats_e_docs_inexistentes_em_proposicoes():
 
 def restringe_e_reaponta_tipo_autor():
     # restringe somente ao realmente utilizado
+    # e corrige um erro comum
     exec_legado(
         """delete from tipo_autor where tip_autor not in (
-        select distinct(tip_autor) from autor)"""
+             select distinct(tip_autor) from autor);
+           update tipo_autor set des_tipo_autor = 'Comissão'
+             where des_tipo_autor = 'Comissao';
+        """
     )
     conflitos, max_id = encontra_conflitos_tipo_autor()
-    for id_novo, id_antigo in enumerate(conflitos, max_id + 1):
-        exec_legado(
-            f"""
+
+    def sql_reaponta_tipo_autor(id_novo, id_antigo):
+        return f"""
     update tipo_autor set tip_autor = {id_novo} where tip_autor = {id_antigo};
     update autor set tip_autor = {id_novo} where tip_autor = {id_antigo};
             """
-        )
+
+    # tenta reapontar para o que é usado agora
+    conflitos_restantes = []
+    for id_antigo, (descricao_no_legado, *_) in conflitos.items():
+        tipo_novo = TipoAutor.objects.filter(descricao=descricao_no_legado)
+        if tipo_novo:
+            [tipo_novo] = tipo_novo
+            id_novo = tipo_novo.id
+            exec_legado(sql_reaponta_tipo_autor(id_novo, id_antigo))
+        else:
+            conflitos_restantes.append(id_antigo)
+
+    # reaponta para novos ids
+    for id_novo, id_antigo in enumerate(conflitos_restantes, max_id + 1):
+        exec_legado(sql_reaponta_tipo_autor(id_novo, id_antigo))
 
 
 def uniformiza_banco(primeira_migracao):
