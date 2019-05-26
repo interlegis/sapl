@@ -1885,6 +1885,11 @@ def get_apagados_que_geram_ocorrencias_fk(fks_faltando):
                 "cod_comissao": Comissao,
                 "cod_parlamentar": Parlamentar,
             }[fk["campo"]]
+        elif model_dependente == TipoProposicao:
+            ind_mat_ou_doc = list(exec_legado(fk["sql"]))[0][2]
+            model_relacionado = CAMPOS_VIRTUAIS_TIPO_PROPOSICAO[
+                ind_mat_ou_doc
+            ].related_model
         else:
             nome_campo_fk = {
                 v: k for k, v in field_renames[model_dependente].items()
