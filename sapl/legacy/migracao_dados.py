@@ -743,14 +743,19 @@ def apaga_ref_a_mats_e_docs_inexistentes_em_proposicoes():
 
 def restringe_e_reaponta_tipo_autor():
     # restringe somente ao realmente utilizado
-    # e corrige um erro comum
     exec_legado(
-        """delete from tipo_autor where tip_autor not in (
+        """  delete from tipo_autor where tip_autor not in (
              select distinct(tip_autor) from autor);
-           update tipo_autor set des_tipo_autor = 'Comissão'
-             where des_tipo_autor = 'Comissao';
         """
     )
+    # e corrige um erro comum
+    if TipoAutor.objects.filter(descricao="Comissão").exists():
+        exec_legado(
+            """  update tipo_autor set des_tipo_autor = 'Comissão'
+                 where des_tipo_autor = 'Comissao';
+            """
+        )
+
     conflitos, max_id = encontra_conflitos_tipo_autor()
 
     def sql_reaponta_tipo_autor(id_novo, id_antigo):
