@@ -209,6 +209,11 @@ def get_pk_legado(tabela):
         # retiramos 'cod_sessao_leg' redundante que da problema
         # ao verificar se o registro já está migrado
         return "cod_cargo", "cod_parlamentar", "cod_sessao_plen"
+    elif tabela == "composicao_mesa":
+        # em alguns bancos a chave é
+        # cod_parlamentar, cod_periodo_comp, cod_cargo
+        # mas essa parece sempre ser uma chave candidata
+        return "cod_parlamentar", "cod_sessao_leg", "cod_cargo"
     res = exec_legado(
         'show index from {} WHERE Key_name = "PRIMARY"'.format(tabela)
     )
