@@ -1,7 +1,8 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
-{% load i18n staticfiles %}
+{% load i18n %}
+{% load webpack_static from webpack_loader %}
 
 {% block sections_nav %} {% endblock %}
 
@@ -24,7 +25,7 @@
         {% for s in page_obj %}
           <tr>
             <td><a href="{% url 'sapl.sessao:pauta_sessao_detail' s.id %}"><strong>{{s}}</strong></br></a></td><td>
-					  <a href="{% url 'sapl.relatorios:relatorio_pauta_sessao' s.pk %}"><img height="30" width="30" src="{% static 'img/pdflogo.png' %}"></a>
+					  <a href="{% url 'sapl.relatorios:relatorio_pauta_sessao' s.pk %}"><img height="30" width="30" src="{% webpack_static 'img/pdflogo.png' %}"></a>
 				    </td>
           </tr>
         {% endfor %}
