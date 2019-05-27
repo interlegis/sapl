@@ -752,28 +752,30 @@ class TramitacaoAdmForm(ModelForm):
         documento.tramitacao = False if tramitacao.status.indicador == "F" else True
         documento.save()
 
-        lista_tramitacao = []
-        list_anexados = lista_anexados(documento, False)
-        for da in list_anexados:
-            if not da.tramitacaoadministrativo_set.all() \
-                or da.tramitacaoadministrativo_set.last() \
-                .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
-                da.tramitacao = False if tramitacao.status.indicador == "F" else True
-                da.save()
-                lista_tramitacao.append(TramitacaoAdministrativo(
-                                        status=tramitacao.status,
-                                        documento=da,
-                                        data_tramitacao=tramitacao.data_tramitacao,
-                                        unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
-                                        data_encaminhamento=tramitacao.data_encaminhamento,
-                                        unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
-                                        urgente=tramitacao.urgente,
-                                        texto=tramitacao.texto,
-                                        data_fim_prazo=tramitacao.data_fim_prazo,
-                                        user=tramitacao.user,
-                                        ip=tramitacao.ip
-                                        ))
-        TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
+        tramitar_anexados = AppConfig.attr('tramitacao_documento')
+        if tramitar_anexados:
+            lista_tramitacao = []
+            anexados_list = lista_anexados(documento, False)
+            for da in anexados_list:
+                if not da.tramitacaoadministrativo_set.all() \
+                    or da.tramitacaoadministrativo_set.last() \
+                    .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                    da.tramitacao = False if tramitacao.status.indicador == "F" else True
+                    da.save()
+                    lista_tramitacao.append(TramitacaoAdministrativo(
+                                            status=tramitacao.status,
+                                            documento=da,
+                                            data_tramitacao=tramitacao.data_tramitacao,
+                                            unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                                            data_encaminhamento=tramitacao.data_encaminhamento,
+                                            unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                                            urgente=tramitacao.urgente,
+                                            texto=tramitacao.texto,
+                                            data_fim_prazo=tramitacao.data_fim_prazo,
+                                            user=tramitacao.user,
+                                            ip=tramitacao.ip
+                                            ))
+            TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
 
         return tramitacao
 
@@ -860,31 +862,32 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
     @transaction.atomic
     def save(self, commit=True):
-        # tram_principal = super(TramitacaoAdmEditForm, self).save(commit)
         ant_tram_principal = TramitacaoAdministrativo.objects.get(id=self.instance.id)
         nova_tram_principal = super(TramitacaoAdmEditForm, self).save(commit)
         documento = nova_tram_principal.documento
         documento.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
         documento.save()
 
-        list_anexados = lista_anexados(documento, False)
-        for da in list_anexados:
-            tram_anexada = da.tramitacaoadministrativo_set.last()
-            if compara_tramitacoes_doc(ant_tram_principal, tram_anexada):
-                tram_anexada.status = nova_tram_principal.status
-                tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
-                tram_anexada.unidade_tramitacao_local = nova_tram_principal.unidade_tramitacao_local
-                tram_anexada.data_encaminhamento = nova_tram_principal.data_encaminhamento
-                tram_anexada.unidade_tramitacao_destino = nova_tram_principal.unidade_tramitacao_destino
-                tram_anexada.urgente = nova_tram_principal.urgente
-                tram_anexada.texto = nova_tram_principal.texto
-                tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
-                tram_anexada.user = nova_tram_principal.user
-                tram_anexada.ip = nova_tram_principal.ip
-                tram_anexada.save()
+        tramitar_anexados = AppConfig.attr('tramitacao_documento')
+        if tramitar_anexados:
+            anexados_list = lista_anexados(documento, False)
+            for da in anexados_list:
+                tram_anexada = da.tramitacaoadministrativo_set.last()
+                if compara_tramitacoes_doc(ant_tram_principal, tram_anexada):
+                    tram_anexada.status = nova_tram_principal.status
+                    tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
+                    tram_anexada.unidade_tramitacao_local = nova_tram_principal.unidade_tramitacao_local
+                    tram_anexada.data_encaminhamento = nova_tram_principal.data_encaminhamento
+                    tram_anexada.unidade_tramitacao_destino = nova_tram_principal.unidade_tramitacao_destino
+                    tram_anexada.urgente = nova_tram_principal.urgente
+                    tram_anexada.texto = nova_tram_principal.texto
+                    tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
+                    tram_anexada.user = nova_tram_principal.user
+                    tram_anexada.ip = nova_tram_principal.ip
+                    tram_anexada.save()
 
-                da.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
-                da.save()
+                    da.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+                    da.save()
         return nova_tram_principal
 
 
@@ -1581,6 +1584,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
         documentos = self.initial['documentos']
         user = self.initial['user'] if 'user' in self.initial else None
         ip = self.initial['ip'] if 'ip' in self.initial else ''
+        tramitar_anexados = AppConfig.attr('tramitacao_documento')
         for doc_id in documentos:
             doc = DocumentoAdministrativo.objects.get(id=doc_id)
             tramitacao = TramitacaoAdministrativo.objects.create(
@@ -1598,28 +1602,30 @@ class TramitacaoEmLoteAdmForm(ModelForm):
             )
             doc.tramitacao = False if tramitacao.status.indicador == "F" else True
             doc.save()
-            lista_tramitacao = []
-            anexados = lista_anexados(doc, False)
-            for da in anexados:
-                if not da.tramitacaoadministrativo_set.all() \
-                    or da.tramitacaoadministrativo_set.last() \
-                    .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
-                    da.tramitacao = False if tramitacao.status.indicador == "F" else True
-                    da.save()
-                    lista_tramitacao.append(TramitacaoAdministrativo(
-                                            status=tramitacao.status,
-                                            documento=da,
-                                            data_tramitacao=tramitacao.data_tramitacao,
-                                            unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
-                                            data_encaminhamento=tramitacao.data_encaminhamento,
-                                            unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
-                                            urgente=tramitacao.urgente,
-                                            texto=tramitacao.texto,
-                                            data_fim_prazo=tramitacao.data_fim_prazo,
-                                            user=tramitacao.user,
-                                            ip=tramitacao.ip
-                                            ))
-            TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
+
+            if tramitar_anexados:
+                lista_tramitacao = []
+                anexados = lista_anexados(doc, False)
+                for da in anexados:
+                    if not da.tramitacaoadministrativo_set.all() \
+                        or da.tramitacaoadministrativo_set.last() \
+                        .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                        da.tramitacao = False if tramitacao.status.indicador == "F" else True
+                        da.save()
+                        lista_tramitacao.append(TramitacaoAdministrativo(
+                                                status=tramitacao.status,
+                                                documento=da,
+                                                data_tramitacao=tramitacao.data_tramitacao,
+                                                unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                                                data_encaminhamento=tramitacao.data_encaminhamento,
+                                                unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                                                urgente=tramitacao.urgente,
+                                                texto=tramitacao.texto,
+                                                data_fim_prazo=tramitacao.data_fim_prazo,
+                                                user=tramitacao.user,
+                                                ip=tramitacao.ip
+                                                ))
+                TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
 
         return tramitacao
 

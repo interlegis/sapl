@@ -24,7 +24,7 @@ from django_filters.views import FilterView
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
-from sapl.base.models import Autor, CasaLegislativa
+from sapl.base.models import Autor, CasaLegislativa, AppConfig
 from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
@@ -93,7 +93,7 @@ def doc_texto_integral(request, pk):
     can_see = True
 
     if not request.user.is_authenticated():
-        app_config = sapl.base.models.AppConfig.objects.last()
+        app_config = AppConfig.objects.last()
         if app_config and app_config.documentos_administrativos == 'R':
             can_see = False
 
@@ -315,7 +315,7 @@ class AcompanhamentoDocumentoView(CreateView):
 class DocumentoAdministrativoMixin:
 
     def has_permission(self):
-        app_config = sapl.base.models.AppConfig.objects.last()
+        app_config = AppConfig.objects.last()
         if app_config and app_config.documentos_administrativos == 'O':
             return True
 
@@ -544,7 +544,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         self.logger.debug("user=" + username +
                           ". Tentando obter sequência de numeração.")
-        numeracao = sapl.base.models.AppConfig.objects.last(
+        numeracao = AppConfig.objects.last(
         ).sequencia_numeracao_protocolo
         if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
@@ -730,7 +730,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         username = self.request.user.username
         self.logger.debug("user=" + username +
                           ". Tentando obter sequência de numeração.")
-        numeracao = sapl.base.models.AppConfig.objects.last(
+        numeracao = AppConfig.objects.last(
         ).sequencia_numeracao_protocolo
         if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
@@ -1257,14 +1257,16 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                 if documento.tramitacaoadministrativo_set.count() == 0:
                     documento.tramitacao = False
                     documento.save()
-                docs_anexados = lista_anexados(documento, False)
-                for da in docs_anexados:
-                    tram_anexada = da.tramitacaoadministrativo_set.last()
-                    if compara_tramitacoes_doc(tram_anexada, tramitacao):
-                        tramitacoes_deletar.append(tram_anexada.id)
-                        if da.tramitacaoadministrativo_set.count() == 0:
-                            da.tramitacao = False
-                            da.save()
+                tramitar_anexados = AppConfig.attr('tramitacao_documento')
+                if tramitar_anexados:
+                    docs_anexados = lista_anexados(documento, False)
+                    for da in docs_anexados:
+                        tram_anexada = da.tramitacaoadministrativo_set.last()
+                        if compara_tramitacoes_doc(tram_anexada, tramitacao):
+                            tramitacoes_deletar.append(tram_anexada.id)
+                            if da.tramitacaoadministrativo_set.count() == 0:
+                                da.tramitacao = False
+                                da.save()
                 TramitacaoAdministrativo.objects.filter(id__in=tramitacoes_deletar).delete()
 
                 return HttpResponseRedirect(url)
@@ -1503,12 +1505,11 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        form = TramitacaoEmLoteAdmForm(request.POST, initial=
-                                                            {'documentos': documentos_ids,
-                                                            'user': user, 'ip':ip})
+        form = TramitacaoEmLoteAdmForm(request.POST, 
+                                       initial= {'documentos': documentos_ids,
+                                                'user': user, 'ip':ip})
 
         if form.is_valid():
-            # cd = form.clean()
             form.save()
 
             msg = _('Tramitação completa.')
@@ -1563,6 +1564,7 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
             'documento_id').annotate(data_encaminhamento=Max(
                 'data_encaminhamento'),
             id=Max('id')).values_list('id', flat=True)
+
     
     def filtra_tramitacao_status(self, status):
         lista = self.pega_ultima_tramitacao()

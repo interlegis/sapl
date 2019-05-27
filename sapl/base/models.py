@@ -176,6 +176,14 @@ class AppConfig(models.Model):
         verbose_name=_('Indicar número da matéria a ser gerada na proposição?'),
         choices=YES_NO_CHOICES, default=False)
 
+    tramitacao_materia = models.BooleanField(
+        verbose_name=_('Tramitar matérias anexadas junto com as matérias principais?'),
+        choices=YES_NO_CHOICES, default=True)
+    
+    tramitacao_documento = models.BooleanField(
+        verbose_name=_('Tramitar documentos anexados junto com os documentos principais?'),
+        choices=YES_NO_CHOICES, default=True)
+
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')
