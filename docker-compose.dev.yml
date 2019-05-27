@@ -18,12 +18,12 @@ saplredis:
 sapl:
   #image: interlegis/sapl:master
   build: .
-  dockerfile: ./docker_devel/Dockerfile
+  dockerfile: Dockerfile.dev
   restart: always
   environment:
     ADMIN_PASSWORD: interlegis
     ADMIN_EMAIL: email@dominio.net
-    DEBUG: 'False'
+    DEBUG: 'True'
     EMAIL_PORT: 587
     EMAIL_USE_TLS: 'False'
     EMAIL_HOST: smtp.dominio.net
@@ -35,9 +35,9 @@ sapl:
     HOST_CHANNEL_LAYERS: saplredis
     TZ: America/Sao_Paulo
   volumes:
-    - .:/var/interlegis/sapl
+    - ./sapl:/var/interlegis/sapl/sapl
   links:
     - sapldb
     - saplredis
   ports:
-    - "8000:8000"
+    - "80:80"

@@ -26,24 +26,9 @@ WORKDIR /var/interlegis/sapl/
 RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
     rm -r /root/.cache
 
-COPY docker_devel/.env /var/interlegis/sapl/sapl/.env
+#RUN python3 manage.py collectstatic --noinput --clear
 
-RUN python3 manage.py collectstatic --noinput --clear
+RUN chmod +x start_devel.sh
 
-# Remove .env(fake) e sapl.db da imagem
-RUN rm -rf /var/interlegis/sapl/sapl/.env && \
-    rm -rf /var/interlegis/sapl/sapl.db
+CMD ["/var/interlegis/sapl/start_devel.sh"]
 
-RUN chmod +x /var/interlegis/sapl/start.sh && \
-    ln -sf /dev/stdout /var/log/nginx/access.log && \
-    ln -sf /dev/stderr /var/log/nginx/error.log && \
-    mkdir /var/log/sapl/ && touch /var/interlegis/sapl/sapl.log && \
-    ln -s /var/interlegis/sapl/sapl.log /var/log/sapl/sapl.log
-
-VOLUME [ "/var/interlegis/sapl"]
-
-EXPOSE 8000
-
-CMD python3 manage.py runserver 0.0.0.0:8000
-
-#CMD ["/var/interlegis/sapl/start.sh"]

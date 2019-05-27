@@ -1,6 +1,23 @@
 Instalação do Ambiente de Desenvolvimento
 =========================================
 
+**Opção desenvolver utilizando docker-composer:**
+
+* Instale docker e docker-composer
+
+    * `Docker <https://linuxize.com/post/how-to-install-and-use-docker-on-ubuntu-18-04/>`_
+    * `Docker-composer <https://linuxize.com/post/how-to-install-and-use-docker-compose-on-ubuntu-18-04/>`_
+
+
+* Rode o docker-compose para desenvolvimento:
+
+::
+
+    docker-compose -f ./docker-compose.dev.yml up --build
+
+
+**Opção desenvolver utilizando máquina local**
+
 * Procedimento testado nos seguintes SO's:
 
   * `Ubuntu 16.04 64bits <https://github.com/interlegis/sapl/blob/master/README.rst>`_;
