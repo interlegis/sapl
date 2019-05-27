@@ -7,7 +7,7 @@ from django.db.models import Max
 from model_mommy import mommy
 import pytest
 
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.models import Autor, TipoAutor, AppConfig
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autoria, DespachoInicial,
                                  DocumentoAcessorio, MateriaLegislativa,
@@ -688,6 +688,8 @@ def test_numeracao_materia_legislativa_por_ano(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_tramitacoes_materias_anexadas(admin_client):
+    config = mommy.make(AppConfig, tramitacao_materia=True)
+
     tipo_materia = mommy.make(
             TipoMateriaLegislativa,
             descricao="Tipo_Teste"
@@ -859,3 +861,104 @@ def test_tramitacoes_materias_anexadas(admin_client):
     response = admin_client.post(url, {'confirmar':'confirmar'} ,follow=True)
     assert Tramitacao.objects.filter(id=tramitacao_anexada.pk).count() == 0
     assert Tramitacao.objects.filter(id=tramitacao_anexada_anexada.pk).count() == 0
+
+
+    # Agora testando para caso não seja desejado tramitar as matérias anexadas
+    # junto com as matérias principais
+
+    assert Tramitacao.objects.all().count() == 0
+
+    config.tramitacao_materia = False
+    config.save()
+
+    # Teste criação de Tramitacao
+    form = TramitacaoForm(data={})
+    form.data = {'data_tramitacao':date(2019, 5, 6),
+                'unidade_tramitacao_local':unidade_tramitacao_local_1.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_1.pk,
+                'status':status.pk,
+                'urgente': False,
+                'texto': "Texto de teste"}
+    form.instance.materia_id=materia_principal.pk
+
+    assert form.is_valid()
+
+    tramitacao_principal = form.save()
+    tramitacao_anexada = materia_anexada.tramitacao_set.last()
+    tramitacao_anexada_anexada = materia_anexada_anexada.tramitacao_set.last()
+
+    # Deve ser criada tramitação apenas para a matéria principal
+    assert materia_principal.tramitacao_set.last() == tramitacao_principal
+    assert not tramitacao_anexada
+    assert not tramitacao_anexada_anexada
+
+    
+    # Criação de uma tramitação igual para a anexada à principal para testar a edição
+    form = TramitacaoForm(data={})
+    form.data = {'data_tramitacao':date(2019, 5, 6),
+                'unidade_tramitacao_local':unidade_tramitacao_local_1.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_1.pk,
+                'status':status.pk,
+                'urgente': False,
+                'texto': "Texto de teste"}
+    form.instance.materia_id=materia_anexada.pk
+
+    assert form.is_valid()
+
+    tramitacao_anexada = form.save()
+    tramitacao_principal = materia_principal.tramitacao_set.last()
+    tramitacao_anexada_anexada = materia_anexada_anexada.tramitacao_set.last()
+    
+    assert materia_anexada.tramitacao_set.last() == tramitacao_anexada
+    assert materia_principal.tramitacao_set.all().count() == 1
+    assert compara_tramitacoes_mat(tramitacao_principal, tramitacao_anexada)
+    assert not tramitacao_anexada_anexada
+
+    # Teste Edição de Tramitacao
+    form = TramitacaoUpdateForm(data={})
+    # Alterando unidade_tramitacao_destino
+    form.data = {'data_tramitacao':tramitacao_principal.data_tramitacao,
+                'unidade_tramitacao_local':tramitacao_principal.unidade_tramitacao_local.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_2.pk,
+                'status':tramitacao_principal.status.pk,
+                'urgente': tramitacao_principal.urgente,
+                'texto': tramitacao_principal.texto}
+    form.instance = tramitacao_principal
+
+    assert form.is_valid()
+    tramitacao_principal = form.save()
+    tramitacao_anexada = materia_anexada.tramitacao_set.last()
+    tramitacao_anexada_anexada = materia_anexada_anexada.tramitacao_set.last()
+
+    assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+    assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_1
+    assert not tramitacao_anexada_anexada
+
+    # Alterando a tramitação anexada para testar a remoção de tramitações
+    # Alterando unidade_tramitacao_destino
+    form = TramitacaoUpdateForm(data={})
+    form.data = {'data_tramitacao':tramitacao_principal.data_tramitacao,
+                'unidade_tramitacao_local':tramitacao_principal.unidade_tramitacao_local.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_2.pk,
+                'status':tramitacao_principal.status.pk,
+                'urgente': tramitacao_principal.urgente,
+                'texto': tramitacao_principal.texto}
+    form.instance = tramitacao_anexada
+
+    assert form.is_valid()
+    tramitacao_anexada = form.save()
+    tramitacao_principal = materia_principal.tramitacao_set.last()
+    tramitacao_anexada_anexada = materia_anexada_anexada.tramitacao_set.last()
+
+    assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+    assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+    assert not tramitacao_anexada_anexada
+    assert compara_tramitacoes_mat(tramitacao_principal, tramitacao_anexada)
+
+    # Testando a remoção
+    # Removendo a tramitação pricipal, as tramitações anexadas não devem ser removidas
+    url = reverse('sapl.materia:tramitacao_delete', 
+                    kwargs={'pk': tramitacao_principal.pk})
+    response = admin_client.post(url, {'confirmar':'confirmar'} ,follow=True)
+    assert Tramitacao.objects.filter(id=tramitacao_principal.pk).count() == 0
+    assert Tramitacao.objects.filter(id=tramitacao_anexada.pk).count() == 1
