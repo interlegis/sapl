@@ -1622,43 +1622,28 @@ class MateriaLegislativaCrud(Crud):
         form_class = MateriaLegislativaForm
 
         def form_valid(self, form):
-            objeto_antigo = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+            dict_objeto_antigo = MateriaLegislativa.objects.get(
+                pk=self.kwargs['pk']
+            ).__dict__
             
             self.object = form.save()
-            objeto_novo = self.object
+            dict_objeto_novo = self.object.__dict__
 
-            if not(
-                objeto_antigo.tipo != objeto_novo.tipo or \
-                objeto_antigo.ano != objeto_novo.ano or \
-                objeto_antigo.numero != objeto_novo.numero or \
-                objeto_antigo.data_apresentacao != objeto_novo.data_apresentacao or \
-                objeto_antigo.numero_protocolo != objeto_novo.numero_protocolo or \
-                objeto_antigo.tipo_apresentacao != objeto_novo.tipo_apresentacao or \
-                objeto_antigo.texto_original != objeto_novo.texto_original or \
-                objeto_antigo.apelido != objeto_novo.apelido or \
-                objeto_antigo.dias_prazo != objeto_novo.dias_prazo or \
-                objeto_antigo.polemica != objeto_novo.polemica or \
-                objeto_antigo.objeto != objeto_novo.objeto or \
-                objeto_antigo.regime_tramitacao != objeto_novo.regime_tramitacao or \
-                objeto_antigo.em_tramitacao != objeto_novo.em_tramitacao or \
-                objeto_antigo.data_fim_prazo != objeto_novo.data_fim_prazo or \
-                objeto_antigo.data_publicacao != objeto_novo.data_publicacao or \
-                objeto_antigo.complementar != objeto_novo.complementar or \
-                objeto_antigo.tipo_origem_externa != objeto_novo.tipo_origem_externa or \
-                objeto_antigo.numero_origem_externa != objeto_novo.numero_origem_externa or \
-                objeto_antigo.ano_origem_externa != objeto_novo.ano_origem_externa or \
-                objeto_antigo.local_origem_externa != objeto_novo.local_origem_externa or \
-                objeto_antigo.data_origem_externa != objeto_novo.data_origem_externa or \
-                objeto_antigo.ementa != objeto_novo.ementa or \
-                objeto_antigo.indexacao != objeto_novo.indexacao or \
-                objeto_antigo.observacao != objeto_novo.observacao
-            ):
-                self.object.user = objeto_antigo.user
-                self.object.ip = objeto_antigo.ip
-            else:
-                self.object.user = self.request.user
-                self.object.ip = get_client_ip(self.request)
-            self.object.save()
+            atributos = [
+                'tipo_id', 'ano', 'numero', 'data_apresentacao', 'numero_protocolo',
+                'tipo_apresentacao', 'texto_original', 'apelido', 'dias_prazo', 'polemica',
+                'objeto', 'regime_tramitacao_id', 'em_tramitacao', 'data_fim_prazo',
+                'data_publicacao', 'complementar', 'tipo_origem_externa_id', 
+                'numero_origem_externa', 'ano_origem_externa', 'local_origem_externa_id',
+                'data_origem_externa', 'ementa', 'indexacao', 'observacao'
+            ]
+
+            for atributo in atributos:
+                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
+                    self.object.user = self.request.user
+                    self.object.ip = get_client_ip(self.request)
+                    self.object.save()
+                    break
 
             if Anexada.objects.filter(materia_principal=self.kwargs['pk']).exists():
                 materia = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
