@@ -902,12 +902,12 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         context = super(PesquisarDocumentoAdministrativoView,
                         self).get_context_data(**kwargs)
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-
+        if self.paginate_by:
+            paginator = context['paginator']
+            page_obj = context['page_obj']
+            context['page_range'] = make_pagination(
+                page_obj.number, paginator.num_pages)
+                    
         return context
 
     def get(self, request, *args, **kwargs):
@@ -934,8 +934,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             length = self.object_list.count()
                 
         is_relatorio = url!='' and request.GET.get('relatorio',None)
-        max_elementos_pdf = 10000
-        self.paginate_by = max_elementos_pdf if is_relatorio else 10 
+        self.paginate_by = None if is_relatorio else self.paginate_by 
         context = self.get_context_data(filter=self.filterset,
                                         filter_url=url,
                                         numero_res=length
@@ -947,7 +946,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             return relatorio_doc_administrativos(request,context)
         else:    
             return self.render_to_response(context)
-
+        
 class AnexadoCrud(MasterDetailCrud):
     model = Anexado
     parent_field = 'documento_principal'

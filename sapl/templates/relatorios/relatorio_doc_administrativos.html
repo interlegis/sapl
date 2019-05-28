@@ -44,9 +44,9 @@
 
 <body>
   <h2>Documentos Administrativos</h2>
-            {% if page_obj|length %}
+            {% if documentoadministrativo_list|length %}
               <h3>Número de documentos: {{numero_res}}</h3>
-              {% for d in page_obj %}
+              {% for d in documentoadministrativo_list %}
                 <div style="border-top: 1px solid black;margin-bottom:0.3cm">
                 {% if request.user.is_anonymous and not d.restrito or not request.user.is_anonymous%}
                     <strong><a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' d.id %}">{{d.tipo.sigla}} {{d.numero}}/{{d.ano}} - {{d.tipo}}</strong></a></br>
