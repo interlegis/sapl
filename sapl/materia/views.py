@@ -1257,30 +1257,25 @@ class TramitacaoCrud(MasterDetailCrud):
         layout_key = 'TramitacaoUpdate'
 
         def form_valid(self, form):
-            objeto_antigo = Tramitacao.objects.get(pk=self.kwargs['pk'])
+            dict_objeto_antigo = Tramitacao.objects.get(pk=self.kwargs['pk']).__dict__
 
             self.object = form.save()
-            objeto_novo = self.object
+            dict_objeto_novo = self.object.__dict__
 
             user = self.request.user
 
+            atributos = [
+                'data_tramitacao', 'unidade_tramitacao_destino_id', 'status_id', 'texto',
+                'data_encaminhamento', 'data_fim_prazo', 'urgente', 'turno'
+            ]
+
             # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
-            if not(
-                objeto_antigo.data_tramitacao != objeto_novo.data_tramitacao or \
-                objeto_antigo.unidade_tramitacao_destino != objeto_novo.unidade_tramitacao_destino or \
-                objeto_antigo.status != objeto_novo.status or \
-                objeto_antigo.texto != objeto_novo.texto or \
-                objeto_antigo.data_encaminhamento != objeto_novo.data_encaminhamento or \
-                objeto_antigo.data_fim_prazo != objeto_novo.data_fim_prazo or \
-                objeto_antigo.urgente != objeto_novo.urgente or \
-                objeto_antigo.turno != objeto_novo.turno
-            ):
-                self.object.user = objeto_antigo.user
-                self.object.ip = objeto_antigo.ip
-            else:
-                self.object.user = user
-                self.object.ip = get_client_ip(self.request)
-            self.object.save()
+            for atributo in atributos:
+                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
+                    self.object.user = user
+                    self.object.ip = get_client_ip(self.request)
+                    self.object.save()
+                    break
 
             try:
                 self.logger.debug("user=" + user.username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
