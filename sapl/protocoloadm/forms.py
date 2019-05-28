@@ -217,7 +217,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
                HTML('''
                     <div class="form-check">
                         <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
-                        <label class="form-check-label" for="relatorio">Relatorio</label>
+                        <label class="form-check-label" for="relatorio">Gerar relatorio PDF</label>
                     </div>
                 ''' )
            ],
