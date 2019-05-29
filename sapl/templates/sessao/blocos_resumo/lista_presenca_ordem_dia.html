@@ -1,5 +1,6 @@
 {% load common_tags %}
 
+{% if presenca_ordem %}
 <fieldset>
 	<legend>Lista de Presença na Ordem do Dia</legend>
 		<div class="row">
@@ -8,3 +9,5 @@
 		  {% endfor %}
 		</div>
 </fieldset>
+<br /><br /><br />
+{% endif %}
