@@ -598,6 +598,15 @@ class OradorCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'parlamentar']
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
     class CreateView(MasterDetailCrud.CreateView):
 
         form_class = OradorForm
@@ -609,7 +618,7 @@ class OradorCrud(MasterDetailCrud):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
 
-    class UpdateView(MasterDetailCrud.UpdateView):
+class UpdateView(MasterDetailCrud.UpdateView):
 
         form_class = OradorForm
 
@@ -626,10 +635,90 @@ class OradorExpedienteCrud(OradorCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
 
+        form_class = OradorForm
+
+        def get_initial(self):
+            return {'id_sessao': self.kwargs['pk']}
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:orador_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero':self.object.numero_ordem})
+
+            return initial
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+        
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+
+class OradorExpedienteCrud(OradorCrud):
+    model = OradorExpediente
+
+    class CreateView(MasterDetailCrud.CreateView):
+
         form_class = OradorExpedienteForm
 
         def get_initial(self):
             return {'id_sessao': self.kwargs['pk']}
+
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+        
 
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
@@ -642,6 +731,40 @@ class OradorExpedienteCrud(OradorCrud):
             return {'id_sessao': self.object.sessao_plenaria.id,
                     'numero': self.object.numero_ordem}
 
+
+    class ListView(MasterDetailCrud.ListView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
 
 class OradorOrdemDiaCrud(OradorCrud):
     model = OradorOrdemDia
@@ -748,6 +871,14 @@ class SessaoCrud(Crud):
 
         form_class = SessaoPlenariaForm
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao = context['object']
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
         def get_initial(self):
             return {'sessao_legislativa': self.object.sessao_legislativa}
 
@@ -788,6 +919,16 @@ class SessaoCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'sessaoplenaria_list'))
 
+    class DetailView(Crud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao = context['object']
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
 
 class SessaoPermissionMixin(PermissionRequiredForAppCrudMixin,
                             FormMixin,
@@ -821,6 +962,10 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
         context = FormMixin.get_context_data(self, **kwargs)
         context['title'] = '%s <small>(%s)</small>' % (
             _('Presença'), self.object)
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     @method_decorator(permission_required(
@@ -905,16 +1050,24 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             cronometro_ordem = cronometro_ordem.seconds
             cronometro_consideracoes = cronometro_consideracoes.seconds
 
+        sessao_pk = kwargs['pk']
+        sessao = SessaoPlenaria.objects.get(pk=sessao_pk)
         context = TemplateView.get_context_data(self, **kwargs)
         context.update({
             'head_title': str(_('Painel Plenário')),
-            'sessao_id': kwargs['pk'],
-            'root_pk': kwargs['pk'],
-            'sessaoplenaria': SessaoPlenaria.objects.get(pk=kwargs['pk']),
+            'sessao_id': sessao_pk,
+            'root_pk': sessao_pk,
+            'sessaoplenaria': sessao,
             'cronometro_discurso': cronometro_discurso,
             'cronometro_aparte': cronometro_aparte,
             'cronometro_ordem': cronometro_ordem,
             'cronometro_consideracoes': cronometro_consideracoes})
+
+        context.update({'sessao_solene': False})
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            context.update({'sessao_solene': True})
 
         return context
 
@@ -1138,8 +1291,12 @@ class MesaView(FormMixin, DetailView):
         context = FormMixin.get_context_data(self, **kwargs)
         context['title'] = '%s <small>(%s)</small>' % (
             _('Mesa Diretora'), self.object)
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
-
+        
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:mesa', kwargs={'pk': pk})
@@ -1832,6 +1989,10 @@ class ExpedienteView(FormMixin, DetailView):
         context = FormMixin.get_context_data(self, **kwargs)
         context['title'] = '%s <small>(%s)</small>' % (
             _('Expediente Diversos'), self.object)
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     @method_decorator(permission_required('sessao.add_expedientesessao'))
@@ -1921,6 +2082,10 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
         context = FormMixin.get_context_data(self, **kwargs)
         context['title'] = 'Ocorrências da Sessão <small>(%s)</small>' % (
             self.object)
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     def delete(self):

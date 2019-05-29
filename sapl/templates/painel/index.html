@@ -89,17 +89,22 @@
                 Considerações Finais: <span id="cronometro_consideracoes"></span>
               </div>
             </div>
-
-            <div class="col-md-6 text-center painel">      
+            
+            <div class="col-md-6 text-center painel" id="resultado_votacao_div">      
               <h2 class="text-subtitle">Resultado</h2>   
                 <span id="votacao" class="text-value"></span> 
                 <h2><span id="resultado_votacao" lass="text-title"></span>
             </div>
 
-            <div class="col-md-6 text-center painel">      
+            <div class="col-md-6 text-center painel" id="obs_materia_div">      
               <h2 class="text-subtitle">Matéria em Votação</h2>   
                 <span id="materia_legislativa_texto" class="text-value"></span>
                 <span id="observacao_materia" class="text-value"></span>
+            </div>
+
+            <div class="col-md-6 text-center painel" id="tema_solene_div" type="hidden">      
+              <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
+                <span id="sessao_solene_tema" class="text-value"></span>
             </div>
           </div>
         </div>
@@ -203,6 +208,12 @@
               }
               else {
                 $("#message").text("");
+              }
+
+              if (data["sessao_solene"]){
+                $("#resultado_votacao_div").hide();
+                $("#obs_materia_div").hide();
+                $('#tema_solene_div').show();
               }
 
               if (data["brasao"] != null)

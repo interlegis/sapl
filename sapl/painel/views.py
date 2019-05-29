@@ -528,6 +528,7 @@ def get_dados_painel(request, pk):
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
         'sessao_plenaria_hora_inicio': sessao.hora_inicio,
+        'sessao_solene': sessao.tipo.nome == "Solene",
         'cronometro_aparte': get_cronometro_status(request, 'aparte'),
         'cronometro_discurso': get_cronometro_status(request, 'discurso'),
         'cronometro_ordem': get_cronometro_status(request, 'ordem'),
