@@ -587,13 +587,37 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
 
 class OradorCrud(MasterDetailCrud):
-    model = ''
+    model = Orador
     parent_field = 'sessao_plenaria'
     help_topic = 'sessao_plenaria_oradores'
     public = [RP_LIST, RP_DETAIL]
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'parlamentar']
+
+
+    class CreateView(MasterDetailCrud.CreateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            return {'id_sessao': self.kwargs['pk']}
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:orador_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero':self.object.numero_ordem})
+
+            return initial
 
 
 class OradorExpedienteCrud(OradorCrud):
@@ -639,32 +663,6 @@ class OradorOrdemDiaCrud(OradorCrud):
 
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
             initial.update({'numero': self.object.numero_ordem})
-
-            return initial
-
-
-class OradorCrud(OradorCrud):
-    model = Orador
-
-    class CreateView(MasterDetailCrud.CreateView):
-
-        form_class = OradorForm
-
-        def get_initial(self):
-            return {'id_sessao': self.kwargs['pk']}
-
-        def get_success_url(self):
-            return reverse('sapl.sessao:orador_list',
-                           kwargs={'pk': self.kwargs['pk']})
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-
-        form_class = OradorForm
-
-        def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
-            initial.update({'id_sessao': self.object.sessao_plenaria.id})
-            initial.update({'numero':self.object.numero_ordem})
 
             return initial
 
