@@ -21,7 +21,9 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       lista_parlamentares,
                                       parlamentares_filiados,
                                       BlocoCrud,
-                                      PesquisarParlamentarView, VincularParlamentarView)
+                                      PesquisarParlamentarView, 
+                                      VincularParlamentarView,
+                                      deleta_historico_partido)
 
 from .apps import AppConfig
 
@@ -41,7 +43,10 @@ urlpatterns = [
   
     url(r'^parlamentar/pesquisar-parlamentar/',
         PesquisarParlamentarView.as_view(), name='pesquisar_parlamentar'),
-  
+    
+    url(r'^parlamentar/deleta_partido/(?P<pk>\d+)/$',
+        deleta_historico_partido, name='deleta_historico_partido'),
+    
     url(r'^parlamentar/(?P<pk>\d+)/materias$',
         ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
 

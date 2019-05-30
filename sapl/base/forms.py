@@ -1,9 +1,9 @@
 import logging
 import os
 
-from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
+from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
 from sapl.crispy_layout_mixin import SaplFormHelper
-from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
+from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -29,8 +29,8 @@ from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
 from sapl.materia.models import (
     MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import SessaoLegislativa, Partido
 from sapl.protocoloadm.models import DocumentoAdministrativo
+from sapl.parlamentares.models import SessaoLegislativa, Partido, HistoricoPartido
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -38,8 +38,10 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         RangeWidgetOverride, autor_label, autor_modal,
                         models_with_gr_for_model, qs_override_django_filter,
                         choice_anos_com_normas, choice_anos_com_materias,
-                        FilterOverridesMetaMixin, FileFieldCheckMixin)
+                        FilterOverridesMetaMixin, FileFieldCheckMixin,
+                        intervalos_tem_intersecao)
 from .models import AppConfig, CasaLegislativa
+from operator import xor
 
 
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
@@ -151,9 +153,9 @@ class UsuarioCreateForm(ModelForm):
 
 
 class UsuarioFilterSet(django_filters.FilterSet):
-    
+
     username = django_filters.CharFilter(
-        label=_('Nome de Usuário'), 
+        label=_('Nome de Usuário'),
         lookup_expr='icontains')
 
     class Meta:
@@ -164,7 +166,7 @@ class UsuarioFilterSet(django_filters.FilterSet):
         super(UsuarioFilterSet, self).__init__(*args, **kwargs)
 
         row0 = to_row([('username', 12)])
-        
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
@@ -1393,42 +1395,140 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
         model = Partido
         exclude = []
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pk=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-        super(PartidoForm, self).__init__(*args, **kwargs)
-
-        # TODO Utilizar esses campos na issue #2161 de alteração de nomes de partidos
-        # if self.instance:
-        #     if self.instance.nome:
-        #         self.fields['nome'].widget.attrs['readonly'] = True
-        #         self.fields['sigla'].widget.attrs['readonly'] = True
-
-        row1 = to_row(
-            [('sigla', 2),
-             ('nome', 6),
-             ('data_criacao', 2),
-             ('data_extincao', 2),])
+        row1 = to_row([
+            ('sigla', 2),
+            ('nome', 6),
+            ('data_criacao', 2),
+            ('data_extincao', 2)
+            ]
+        )
         row2 = to_row([('observacao', 12)])
         row3 = to_row([('logo_partido', 12)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row1, row2, row3,
-            form_actions(label='Salvar'))
+            form_actions(label='Salvar')
+        )
 
     def clean(self):
-
-        cleaned_data = super(PartidoForm, self).clean()
+        super(PartidoForm,self).clean()
+        cleaned_data = self.cleaned_data
 
         if not self.is_valid():
             return cleaned_data
-            
-        if cleaned_data['data_criacao'] and cleaned_data['data_extincao']:
-            if cleaned_data['data_criacao'] > cleaned_data['data_extincao']:
-                raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
+
+        if cleaned_data['data_criacao'] and cleaned_data['data_extincao'] and cleaned_data['data_criacao'] > \
+                cleaned_data['data_extincao']:
+            raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
+
+        if self.instance.pk:
+            partido = Partido.objects.get(pk=self.instance.pk)
+
+            if xor(cleaned_data['sigla'] == partido.sigla, cleaned_data['nome'] == partido.nome):
+                raise ValidationError(_('O Partido deve ter um novo nome e uma nova sigla.'))
+
+            cleaned_data.update({'partido': partido})
 
         return cleaned_data
 
+class PartidoUpdateForm(PartidoForm):
+
+    opcoes = YES_NO_CHOICES
+
+    historico = forms.ChoiceField(initial=False, choices=opcoes)
+
+
+    class Meta:
+        model = Partido
+        exclude = []
+
+
+    def __init__(self, pk=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row([
+            ('sigla', 6),
+            ('nome', 6),
+            ]
+        )
+        row2 = to_row([
+            ('historico', 2),
+            ('data_criacao', 5),
+            ('data_extincao', 5),
+            ]
+        )
+        row3 = to_row([('observacao', 12)])
+        row4 = to_row([('logo_partido', 12)])
+
+        buttons = FormActions(
+           *[
+               HTML('''<a href="/sistema/parlamentar/partido/{{object.id}}" class="btn btn-dark btn-close-container">%s</a>''' % _('Cancelar'))
+           ],
+            Submit('salvar', _('Salvar'), css_class='float-right',
+               onclick='return true;'),
+            css_class='form-group row justify-content-between'
+        )
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            row1, row2, row3, row4, to_row([(buttons, 12)]),
+        )
+
+    def clean(self):
+        cleaned_data = super(PartidoUpdateForm,self).clean()
+        
+        if not self.is_valid():
+            return cleaned_data
+
+        is_historico = cleaned_data['historico'] == 'True'
+
+        if is_historico: 
+            if not (cleaned_data['data_criacao'] and cleaned_data['data_extincao']):
+                raise ValidationError("Certifique-se de que a data de inicio e fim de historico estão preenchidas")
+            if self.instance.data_criacao and  self.instance.data_criacao > cleaned_data['data_criacao']:
+                raise ValidationError("Data de inicio de historico deve ser posterior a data de criação do partido.")
+            if self.instance.data_extincao and  self.instance.data_extincao < cleaned_data['data_extincao']:
+                raise ValidationError("Data de fim de historico deve ser anterior a data de extinção do partido.")
+
+            if self.instance.pk:
+                partido = Partido.objects.get(pk=self.instance.pk)
+                historico = HistoricoPartido.objects.filter(partido=partido).order_by('-inicio_historico')
+                for h in historico:
+                    if intervalos_tem_intersecao(h.inicio_historico,
+                            h.fim_historico,
+                            cleaned_data['data_criacao'],
+                            cleaned_data['data_extincao']):
+                        raise ValidationError("Periodo selecionado ja possui um histórico.")                
+
+        return cleaned_data
+
+    def save(self,commit=False):
+        partido = self.instance
+    
+        cleaned_data = self.cleaned_data
+        is_historico = cleaned_data['historico'] == 'True'
+            
+        if not is_historico:
+            partido.save(commit)
+        else:
+            sigla = self.cleaned_data['sigla']
+            nome = self.cleaned_data['nome']
+            inicio_historico = self.cleaned_data['data_criacao']
+            fim_historico = self.cleaned_data['data_extincao']
+            logo_partido = self.cleaned_data['logo_partido']
+            historico_partido = HistoricoPartido(sigla=sigla,
+                                                nome=nome,
+                                                inicio_historico=inicio_historico,
+                                                fim_historico=fim_historico,
+                                                logo_partido=logo_partido,
+                                                partido=partido,
+                                                )
+            historico_partido.save()
+        return partido
 
 class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
 
@@ -1467,3 +1567,4 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
                      row1, row2, row3,
                      form_actions(label='Pesquisar'))
         )
+        

@@ -1,0 +1,40 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+
+
+{% block extra_js %}      
+    <script language="Javascript"> 
+        var sigla_inicial = ""
+        var nome_inicial = ""
+
+        $(document).ready(function() {
+           
+           $("#id_data_modificacao").attr("disabled", true);
+           
+            check_change = () => {
+                if($("#id_historico").val() == 'False'){
+                    $("#div_id_data_criacao").find("label").text("Data Criação")
+                    $("#div_id_data_extincao").find("label").text("Data Extinção")
+                    $( "#id_observacao" ).prop( "disabled", false );
+
+                }
+                else {
+                    $("#div_id_data_criacao").find("label").text("Inicio do Histórico*")
+                    $("#div_id_data_extincao").find("label").text("Final do Histórico*")
+                    $( "#id_observacao" ).prop( "disabled", true );
+                    $( "#id_observacao" ).val("");
+                }
+            }
+           check_change();
+           document.getElementById("id_historico").onchange = check_change
+           
+        });
+
+        function abilita_alteracao(){
+            $("#id_data_modificacao").attr("disabled", false );
+        }
+
+    </script>
+
+{% endblock extra_js %} 
