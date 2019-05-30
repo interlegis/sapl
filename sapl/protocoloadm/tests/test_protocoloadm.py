@@ -534,6 +534,9 @@ def make_unidade_tramitacao(descricao):
         
 @pytest.mark.django_db(transaction=False)
 def test_tramitacoes_documentos_anexados(admin_client):
+
+    config = mommy.make(AppConfig, tramitacao_documento=True)
+
     tipo_documento = mommy.make(
             TipoDocumentoAdministrativo,
             descricao="Tipo_Teste"
@@ -707,6 +710,101 @@ def test_tramitacoes_documentos_anexados(admin_client):
     assert TramitacaoAdministrativo.objects.filter(id=tramitacao_anexada_anexada.pk).count() == 0
 
 
+    # Agora testando para caso não seja desejado tramitar os documentos anexados
+    # junto com os documentos principais
+    config.tramitacao_documento = False
+    config.save()
+
+    # Teste criação de Tramitacao
+    form = TramitacaoAdmForm(data={})
+    form.data = {'data_tramitacao':date(2019, 5, 6),
+                'unidade_tramitacao_local':unidade_tramitacao_local_1.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_1.pk,
+                'status':status.pk,
+                'urgente': False,
+                'texto': "Texto de teste"}
+    form.instance.documento_id=documento_principal.pk
+
+    assert form.is_valid()
+    tramitacao_principal = form.save()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+
+    # Verifica se não foram criadas as tramitações para os documentos anexados e anexados aos anexados
+    assert documento_principal.tramitacaoadministrativo_set.last() == tramitacao_principal
+    assert tramitacao_principal.documento.tramitacao == (tramitacao_principal.status.indicador != "F")
+    assert not tramitacao_anexada
+    assert not tramitacao_anexada_anexada
+
+
+    # Cria uma tramitação igual na tramitação anexada para testar a edição
+    form = TramitacaoAdmForm(data={})
+    form.data = {'data_tramitacao':date(2019, 5, 6),
+                'unidade_tramitacao_local':unidade_tramitacao_local_1.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_1.pk,
+                'status':status.pk,
+                'urgente': False,
+                'texto': "Texto de teste"}
+    form.instance.documento_id=documento_anexado.pk
+
+    assert form.is_valid()
+    tramitacao_anexada = form.save()
+    tramitacao_principal = documento_principal.tramitacaoadministrativo_set.last() 
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+
+    assert documento_principal.tramitacaoadministrativo_set.all().count() == 1
+    assert documento_anexado.tramitacaoadministrativo_set.last() == tramitacao_anexada
+    assert not tramitacao_anexada_anexada
+
+    form = TramitacaoAdmEditForm(data={})
+    # Alterando unidade_tramitacao_destino da matéria principal, 
+    # as anexadas não devem ser alteradas
+    form.data = {'data_tramitacao':tramitacao_principal.data_tramitacao,
+                'unidade_tramitacao_local':tramitacao_principal.unidade_tramitacao_local.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_2.pk,
+                'status':tramitacao_principal.status.pk,
+                'urgente': tramitacao_principal.urgente,
+                'texto': tramitacao_principal.texto}
+    form.instance = tramitacao_principal
+
+    assert form.is_valid()
+    tramitacao_principal = form.save()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+
+    assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+    assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_1
+    assert not tramitacao_anexada_anexada
+
+
+    form = TramitacaoAdmEditForm(data={})
+    # Alterando a anexada da principal para testar a remoção de tramitação
+    form.data = {'data_tramitacao':tramitacao_principal.data_tramitacao,
+                'unidade_tramitacao_local':tramitacao_principal.unidade_tramitacao_local.pk,
+                'unidade_tramitacao_destino':unidade_tramitacao_destino_2.pk,
+                'status':tramitacao_principal.status.pk,
+                'urgente': tramitacao_principal.urgente,
+                'texto': tramitacao_principal.texto}
+    form.instance = tramitacao_anexada
+
+    assert form.is_valid()
+    tramitacao_anexada = form.save() 
+    tramitacao_principal = documento_principal.tramitacaoadministrativo_set.last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+
+    assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+    assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_2
+    assert not tramitacao_anexada_anexada
+    assert compara_tramitacoes_doc(tramitacao_anexada, tramitacao_principal)
+
+    # Removendo a tramitação principal, a tramitação anexada não deve ser removida
+    url = reverse('sapl.protocoloadm:tramitacaoadministrativo_delete', 
+                    kwargs={'pk': tramitacao_principal.pk})
+    response = admin_client.post(url, {'confirmar':'confirmar'} ,follow=True)
+    assert TramitacaoAdministrativo.objects.filter(id=tramitacao_principal.pk).count() == 0
+    assert TramitacaoAdministrativo.objects.filter(id=tramitacao_anexada.pk).count() == 1
+
+
 @pytest.mark.django_db(transaction=False)
 def test_tramitacao_lote_documentos_form(admin_client):
     tipo_documento = mommy.make(
@@ -812,6 +910,8 @@ def test_tramitacao_lote_documentos_form(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_tramitacao_lote_documentos_views(admin_client):
+    config = mommy.make(AppConfig, tramitacao_documento=True)
+
     tipo_documento = mommy.make(
             TipoDocumentoAdministrativo,
             descricao="Tipo_Teste"
@@ -1040,3 +1140,83 @@ def test_tramitacao_lote_documentos_views(admin_client):
     assert documento_principal.tramitacaoadministrativo_set.all().count() == 3
     assert documento_anexado.tramitacaoadministrativo_set.all().count() == 3
     assert documento_anexado_anexado.tramitacaoadministrativo_set.all().count() == 3
+
+
+    # Agora testando para caso não seja desejado tramitar os documentos anexados
+    # junto com os documentos principais
+    config.tramitacao_documento = False
+    config.save()
+
+    TramitacaoAdministrativo.objects.all().delete()
+    assert TramitacaoAdministrativo.objects.all().count() == 0
+
+    # Primeira tramitação em lote
+    # Tramitar documentos com anexados
+    # O documento anexado não deve tramitar junto com o prinicpal
+    documentos = [documento_principal.id]
+
+    response = admin_client.post(url, 
+                                {'documentos': documentos,
+                                'data_tramitacao': date(2019, 5, 15),
+                                'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
+                                'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
+                                'status': status.id,
+                                'urgente': False,
+                                'texto': 'aaaa',
+                                'salvar':'salvar'}, 
+                                follow=True)
+    
+    assert response.status_code == 200
+
+    assert TramitacaoAdministrativo.objects.all().count() == 1
+    assert documento_principal.tramitacaoadministrativo_set.all().count() == 1
+    assert documento_anexado.tramitacaoadministrativo_set.all().count() == 0
+    assert documento_anexado_anexado.tramitacaoadministrativo_set.all().count() == 0
+
+    # Tramitar o doc anexado ao principal para testar a segunda tramitação em lote
+    documentos = [documento_anexado.id]
+
+    response = admin_client.post(url, 
+                                {'documentos': documentos,
+                                'data_tramitacao': date(2019, 5, 15),
+                                'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
+                                'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
+                                'status': status.id,
+                                'urgente': False,
+                                'texto': 'aaaa',
+                                'salvar':'salvar'}, 
+                                follow=True)
+    
+    assert response.status_code == 200
+
+    assert TramitacaoAdministrativo.objects.all().count() == 2
+    assert documento_principal.tramitacaoadministrativo_set.all().count() == 1
+    assert documento_anexado.tramitacaoadministrativo_set.all().count() == 1
+    assert documento_anexado_anexado.tramitacaoadministrativo_set.all().count() == 0
+
+    tramitacao_principal = documento_principal.tramitacaoadministrativo_set.last()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
+    assert compara_tramitacoes_doc(tramitacao_anexada, tramitacao_principal)
+
+    documentos = [documento_principal.id]
+    # Segunda tramitação, o documento anexado não deve tramitar com o principal
+    response = admin_client.post(url_lote,
+                                {'documentos': documentos,
+                                'data_tramitacao': date(2019, 5, 15),
+                                'unidade_tramitacao_local': unidade_tramitacao_destino_1.id,
+                                'unidade_tramitacao_destino': unidade_tramitacao_destino_2.id,
+                                'status': status.id,
+                                'urgente': False,
+                                'texto': 'aaaa',
+                                'salvar':'salvar'}, 
+                                follow=True)
+    assert response.status_code == 200
+
+    msgs = [m.message for m in response.context['messages']]
+
+    assert 'Tramitação completa.' in msgs
+
+    assert TramitacaoAdministrativo.objects.all().count() == 3
+    assert documento_principal.tramitacaoadministrativo_set.all().count() == 2
+    assert documento_anexado.tramitacaoadministrativo_set.all().count() == 1
+    assert documento_anexado_anexado.tramitacaoadministrativo_set.all().count() == 0
