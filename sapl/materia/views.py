@@ -1605,6 +1605,16 @@ class MateriaLegislativaCrud(Crud):
 
         form_class = MateriaLegislativaForm
 
+        def form_valid(self, form):
+            self.object = form.save()
+            username = self.request.user.username
+
+            self.object.user = self.request.user
+            self.object.ip = get_client_ip(self.request)
+            self.object.save()
+
+            return super().form_valid(form)
+
         @property
         def cancel_url(self):
             return self.search_url
@@ -1614,8 +1624,28 @@ class MateriaLegislativaCrud(Crud):
         form_class = MateriaLegislativaForm
 
         def form_valid(self, form):
+            dict_objeto_antigo = MateriaLegislativa.objects.get(
+                pk=self.kwargs['pk']
+            ).__dict__
+            
             self.object = form.save()
-            username = self.request.user.username
+            dict_objeto_novo = self.object.__dict__
+
+            atributos = [
+                'tipo_id', 'ano', 'numero', 'data_apresentacao', 'numero_protocolo',
+                'tipo_apresentacao', 'texto_original', 'apelido', 'dias_prazo', 'polemica',
+                'objeto', 'regime_tramitacao_id', 'em_tramitacao', 'data_fim_prazo',
+                'data_publicacao', 'complementar', 'tipo_origem_externa_id', 
+                'numero_origem_externa', 'ano_origem_externa', 'local_origem_externa_id',
+                'data_origem_externa', 'ementa', 'indexacao', 'observacao'
+            ]
+
+            for atributo in atributos:
+                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
+                    self.object.user = self.request.user
+                    self.object.ip = get_client_ip(self.request)
+                    self.object.save()
+                    break
 
             if Anexada.objects.filter(materia_principal=self.kwargs['pk']).exists():
                 materia = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
@@ -1624,7 +1654,7 @@ class MateriaLegislativaCrud(Crud):
                 for anexada in anexadas:
                     anexada.em_tramitacao = True if form.instance.em_tramitacao else False 
                     anexada.save()
-    
+
             return super().form_valid(form)
 
         @property
@@ -1639,6 +1669,13 @@ class MateriaLegislativaCrud(Crud):
     class DetailView(Crud.DetailView):
 
         layout_key = 'MateriaLegislativaDetail'
+        template_name = "materia/materia_detail.html"
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['user'] = self.request.user
+            context['materia'] = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+            return context
 
     class ListView(Crud.ListView, RedirectView):
 
