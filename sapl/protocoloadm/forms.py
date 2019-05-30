@@ -1,9 +1,9 @@
 
 import logging
 
-from crispy_forms.bootstrap import InlineRadios, Alert
+from crispy_forms.bootstrap import InlineRadios, Alert, FormActions
 from sapl.crispy_layout_mixin import SaplFormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div
+from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div, Submit
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
@@ -170,6 +170,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
     o = AnoNumeroOrderingFilter(help_text='')
 
+
     class Meta(FilterOverridesMetaMixin):
         model = DocumentoAdministrativo
         fields = ['tipo',
@@ -207,17 +208,33 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         row4 = to_row(
             [
                 ('tramitacao', 2),
-                ('tramitacaoadministrativo__status', 5),
-                ('tramitacaoadministrativo__unidade_tramitacao_destino', 5),
+                ('tramitacaoadministrativo__status', 4),
+                ('tramitacaoadministrativo__unidade_tramitacao_destino', 6),
             ])
 
+        buttons = FormActions(
+           *[
+               HTML('''
+                    <div class="form-check">
+                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                    </div>
+                ''' )
+           ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+               onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
+        
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar Documento'),
-                     row1, row2,
-                     row3, row4,
-                     form_actions(label='Pesquisar'))
+                    row1, row2,
+                    row3, row4,
+                    buttons,)
         )
 
 

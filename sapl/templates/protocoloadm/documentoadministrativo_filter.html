@@ -81,3 +81,42 @@
 
 {% block table_content %}
 {% endblock table_content %}
+
+
+{% block extra_js %}
+
+<style>
+  .select-error {
+    border-color: red;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+  }
+</style>
+
+<script type="text/javascript">
+
+  validation = () => {
+    if (document.getElementById("relatorio").checked && !$("#id_ano").val()){
+      $("#submit-id-pesquisar").attr("disabled", true);
+      $("#id_ano").addClass("select-error");
+      $("#div_id_ano").append('<spam id="error-ano" style="font-size:8pt;color:red">Selecione uma data.</spam>');
+    }
+    else{
+      error = document.getElementById("error-ano")
+      if (error){
+        $("#submit-id-pesquisar").attr("disabled", false);
+        $("#id_ano").removeClass("select-error");
+        document.getElementById("error-ano").remove();
+      }
+      
+    }
+  }
+
+  document.getElementById("relatorio").onchange = validation;
+  document.getElementById("id_ano").onchange = validation;
+  validation();
+
+
+</script>
+
+{% endblock %}

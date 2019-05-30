@@ -36,6 +36,7 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured)
+from sapl.relatorios.views import relatorio_doc_administrativos
 
 from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
@@ -901,17 +902,16 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         context = super(PesquisarDocumentoAdministrativoView,
                         self).get_context_data(**kwargs)
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-
+        if self.paginate_by:
+            paginator = context['paginator']
+            page_obj = context['page_obj']
+            context['page_range'] = make_pagination(
+                page_obj.number, paginator.num_pages)
+                    
         return context
 
     def get(self, request, *args, **kwargs):
         super(PesquisarDocumentoAdministrativoView, self).get(request)
-
         # Se a pesquisa estiver quebrando com a paginação
         # Olhe esta função abaixo
         # Provavelmente você criou um novo campo no Form/FilterSet
@@ -924,9 +924,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
                 url = url[ponto_comeco:]
         else:
             url = ''
-
         self.filterset.form.fields['o'].label = _('Ordenação')
-
         # é usada essa verificação anônima para quando os documentos administrativos
         # estão no modo ostensivo, mas podem existir documentos administrativos
         # restritos
@@ -934,18 +932,21 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             length = self.object_list.filter(restrito=False).count()
         else:
             length = self.object_list.count()
-
+                
+        is_relatorio = url!='' and request.GET.get('relatorio',None)
+        self.paginate_by = None if is_relatorio else self.paginate_by 
         context = self.get_context_data(filter=self.filterset,
                                         filter_url=url,
                                         numero_res=length
                                         )
-
         context['show_results'] = show_results_filter_set(
             self.request.GET.copy())
-
-        return self.render_to_response(context)
-
-
+        
+        if is_relatorio:
+            return relatorio_doc_administrativos(request,context)
+        else:    
+            return self.render_to_response(context)
+        
 class AnexadoCrud(MasterDetailCrud):
     model = Anexado
     parent_field = 'documento_principal'
