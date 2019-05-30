@@ -35,13 +35,13 @@ from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crud.base import CrudAux, make_pagination
-from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
+from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexada,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa
 from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
                                       StatusTramitacaoAdministrativo, 
-                                      DocumentoAdministrativo)
+                                      DocumentoAdministrativo, Anexado)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, Bancada)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
@@ -1061,8 +1061,126 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              len(legislatura_infindavel())
             )
         )
-
+        tabela.append(
+            ('anexadas_ciclicas',
+             'Matérias Anexadas cíclicas',
+             len(anexados_ciclicos(True))
+             )
+        )
+        tabela.append(
+            ('anexados_ciclicos',
+             'Documentos Anexados cíclicos',
+             len(anexados_ciclicos(False))
+             )
+        )
         return tabela
+
+
+def anexados_ciclicos(ofMateriaLegislativa):
+    ciclicos = []
+    
+    if ofMateriaLegislativa:
+        principais = Anexada.objects.values(
+            'materia_principal'
+        ).annotate(
+            count=Count('materia_principal')
+        ).filter(count__gt=0).order_by('data_anexacao')
+    else:
+        principais = Anexado.objects.values(
+            'documento_principal'
+        ).annotate(
+            count=Count('documento_principal')
+        ).filter(count__gt=0).order_by('data_anexacao')
+
+    for principal in principais:
+        anexados_total = []
+
+        if ofMateriaLegislativa:
+            anexados = Anexada.objects.filter(
+                materia_principal=principal['materia_principal']
+            )
+        else:
+            anexados = Anexado.objects.filter(
+                documento_principal=principal['documento_principal']
+            )
+
+        anexados_temp = list(anexados)
+        while anexados_temp:
+            anexado = anexados_temp.pop()
+            if ofMateriaLegislativa:
+                if anexado.materia_anexada not in anexados_total:
+                    if not principal['materia_principal'] == anexado.materia_anexada.pk:
+                        anexados_total.append(anexado.materia_anexada)
+                        anexados_anexado = Anexada.objects.filter(
+                            materia_principal=anexado.materia_anexada
+                        )
+                        anexados_temp.extend(anexados_anexado)
+                    else:
+                        ciclicos.append((anexado.materia_principal, anexado.materia_anexada))
+            else:
+                if anexado.documento_anexado not in anexados_total:
+                    if not principal['documento_principal'] == anexado.documento_anexado.pk:
+                        anexados_total.append(anexado.documento_anexado)
+                        anexados_anexado = Anexado.objects.filter(
+                            documento_principal=anexado.documento_anexado
+                        )
+                        anexados_temp.extend(anexados_anexado)
+                    else:
+                        ciclicos.append((anexado.documento_principal, anexado.documento_anexado))
+
+    return ciclicos
+
+
+class ListarAnexadosCiclicosView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/anexados_ciclicos.html'
+    context_object_name = 'anexados_ciclicos'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return anexados_ciclicos(False)
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarAnexadosCiclicosView, self
+        ).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages
+        )
+        context['NO_ENTRIES_MSG'] = 'Nenhum encontrado.'
+
+        return context
+
+
+class ListarAnexadasCiclicasView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/anexadas_ciclicas.html'
+    context_object_name = 'anexadas_ciclicas'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return anexados_ciclicos(True)
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarAnexadasCiclicasView, self
+        ).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages
+        )
+        context['NO_ENTRIES_MSG'] = 'Nenhuma encontrada.'
+
+        return context
 
 
 def legislatura_infindavel():
