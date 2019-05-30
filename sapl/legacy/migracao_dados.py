@@ -304,7 +304,7 @@ def exec_sql(sql, db="default"):
 exec_legado = partial(exec_sql, db="legacy")
 
 
-def _formatar_lista_para_sql(iteravel):
+def formatar_lista_para_sql(iteravel):
     lista = list(iteravel)
     if lista:
         return "({})".format(str(lista)[1:-1])  # transforma "[...]" em "(...)"
@@ -316,7 +316,7 @@ def exec_legado_em_subconjunto(sql, ids):
     """Executa uma query sql no legado no formato '.... in {}'
     interpolando `ids`, se houver ids"""
 
-    lista_sql = _formatar_lista_para_sql(ids)
+    lista_sql = formatar_lista_para_sql(ids)
     if lista_sql:
         return exec_legado(sql.format(lista_sql))
     else:
@@ -459,7 +459,7 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
 
     # usamos uma tupla neutra se o conjunto é vazio
     # p q a query seja sintaticamente correta
-    ids_ja_migrados = _formatar_lista_para_sql(
+    ids_ja_migrados = formatar_lista_para_sql(
         get_all_ids_from_model(Autor) or [-1000]
     )
 
@@ -1960,7 +1960,7 @@ def deletados(model):
     return {v.object_id: v for v in deletados}
 
 
-def analisa_conflitos_materias():
+def get_conflitos_materias_legado_e_producao():
     """
     Analisa conflitos entre materias nao migradas e em producao
     """

@@ -6,13 +6,21 @@ import texttable
 import yaml
 from unipath import Path
 
-from sapl.legacy.migracao_dados import (PROPAGACOES_DE_EXCLUSAO,
-                                        campos_novos_para_antigos, exec_legado,
-                                        get_apagados_que_geram_ocorrencias_fk,
-                                        get_arquivos_ajustes_pre_migracao,
-                                        models_novos_para_antigos)
-from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
-                                            NOME_BANCO_LEGADO)
+from sapl.legacy.migracao_dados import (
+    PROPAGACOES_DE_EXCLUSAO,
+    campos_novos_para_antigos,
+    exec_legado,
+    formatar_lista_para_sql,
+    get_apagados_que_geram_ocorrencias_fk,
+    get_arquivos_ajustes_pre_migracao,
+    get_conflitos_materias_legado_e_producao,
+    models_novos_para_antigos,
+)
+from sapl.legacy_migration_settings import (
+    DIR_DADOS_MIGRACAO,
+    DIR_REPO,
+    NOME_BANCO_LEGADO,
+)
 
 
 def stripsplit(ll):
@@ -559,3 +567,19 @@ Apagados já no sapl 3.1 que precisaram ser restaurados:
 {linhas}
 """
     acrescenta_ao_arquivo_de_ajustes(texto)
+
+
+def suspende_temporariamente_migracao_materias_conflito():
+    ids = formatar_lista_para_sql(
+        id_legado
+        for (
+            id_legado,
+            _,
+        ) in get_conflitos_materias_legado_e_producao().values()
+    )
+    acrescenta_ao_arquivo_de_ajustes(
+        f"""
+-- TEMPORARIO: materias em conflito entre legado nao migrado antes e producao
+update materia_legislativa set ind_excluido = 1 where cod_materia in {ids};
+"""
+    )
