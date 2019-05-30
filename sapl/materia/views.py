@@ -1320,14 +1320,16 @@ class TramitacaoCrud(MasterDetailCrud):
                 if materia.tramitacao_set.count() == 0:
                     materia.em_tramitacao = False
                     materia.save()
-                mat_anexadas = lista_anexados(materia)
-                for ma in mat_anexadas:
-                    tram_anexada = ma.tramitacao_set.last()
-                    if compara_tramitacoes_mat(tram_anexada, tramitacao):
-                        tramitacoes_deletar.append(tram_anexada.id)
-                        if ma.tramitacao_set.count() == 0:
-                            ma.em_tramitacao = False
-                            ma.save()
+                tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
+                if tramitar_anexadas:
+                    mat_anexadas = lista_anexados(materia)
+                    for ma in mat_anexadas:
+                        tram_anexada = ma.tramitacao_set.last()
+                        if compara_tramitacoes_mat(tram_anexada, tramitacao):
+                            tramitacoes_deletar.append(tram_anexada.id)
+                            if ma.tramitacao_set.count() == 0:
+                                ma.em_tramitacao = False
+                                ma.save()
                 Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
 
                 return HttpResponseRedirect(url)
@@ -2295,12 +2297,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         flag_error = False  
 
         materias_principais = [m for m in MateriaLegislativa.objects.filter(id__in=marcadas)]
-        materias_anexadas = [m.anexadas.all() for m in MateriaLegislativa.objects.filter(id__in=marcadas) if m.anexadas.all()]
-        materias_anexadas = list(itertools.chain.from_iterable(materias_anexadas)) 
-        tramitacao_local = int(request.POST['unidade_tramitacao_local'])
-        materias_anexadas = list(filter(lambda ma : not ma.tramitacao_set.all() or \
-                                        ma.tramitacao_set.last().unidade_tramitacao_destino.id == tramitacao_local,
-                                        materias_anexadas))
+        tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
+        materias_anexadas = []
+        if tramitar_anexadas:
+            for materia in materias_principais:
+                materias_anexadas = materias_anexadas + lista_anexados(materia)
+
         materias = set(materias_principais + materias_anexadas)
 
         for materia in materias:
@@ -2358,7 +2360,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 materia.em_tramitacao = True
             materia.save()
 
-        msg = _('Tramitação completa. ' + "Foram tramitadas " + str(len(marcadas)) + " matéria(s).")
+        msg = _('Tramitação completa. ' + "Foram tramitadas " + str(len(materias)) + " matéria(s).")
         self.logger.info('user=' + username + '. Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
         

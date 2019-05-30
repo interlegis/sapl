@@ -557,28 +557,30 @@ class TramitacaoForm(ModelForm):
         materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
         materia.save()
 
-        lista_tramitacao = []
-        lista_anexadas = lista_anexados(materia)
-        for ma in lista_anexadas:
-            if not ma.tramitacao_set.all() \
-                    or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
-                ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
-                ma.save()
-                lista_tramitacao.append(Tramitacao(
-                                            status=tramitacao.status,
-                                            materia=ma,
-                                            data_tramitacao=tramitacao.data_tramitacao,
-                                            unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
-                                            data_encaminhamento=tramitacao.data_encaminhamento,
-                                            unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
-                                            urgente=tramitacao.urgente,
-                                            turno=tramitacao.turno,
-                                            texto=tramitacao.texto,
-                                            data_fim_prazo=tramitacao.data_fim_prazo,
-                                            user=tramitacao.user,
-                                            ip=tramitacao.ip
-                                        ))
-        Tramitacao.objects.bulk_create(lista_tramitacao)
+        tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
+        if tramitar_anexadas:
+            lista_tramitacao = []
+            anexadas_list = lista_anexados(materia)
+            for ma in anexadas_list:
+                if not ma.tramitacao_set.all() \
+                        or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                    ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+                    ma.save()
+                    lista_tramitacao.append(Tramitacao(
+                                                status=tramitacao.status,
+                                                materia=ma,
+                                                data_tramitacao=tramitacao.data_tramitacao,
+                                                unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                                                data_encaminhamento=tramitacao.data_encaminhamento,
+                                                unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                                                urgente=tramitacao.urgente,
+                                                turno=tramitacao.turno,
+                                                texto=tramitacao.texto,
+                                                data_fim_prazo=tramitacao.data_fim_prazo,
+                                                user=tramitacao.user,
+                                                ip=tramitacao.ip
+                                            ))
+            Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
 
@@ -678,25 +680,27 @@ class TramitacaoUpdateForm(TramitacaoForm):
         materia.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
         materia.save()
 
-        lista_anexadas = lista_anexados(materia)
-        for ma in lista_anexadas:
-            tram_anexada = ma.tramitacao_set.last()
-            if compara_tramitacoes_mat(ant_tram_principal, tram_anexada):
-                tram_anexada.status = nova_tram_principal.status
-                tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
-                tram_anexada.unidade_tramitacao_local = nova_tram_principal.unidade_tramitacao_local
-                tram_anexada.data_encaminhamento = nova_tram_principal.data_encaminhamento
-                tram_anexada.unidade_tramitacao_destino = nova_tram_principal.unidade_tramitacao_destino
-                tram_anexada.urgente = nova_tram_principal.urgente
-                tram_anexada.turno = nova_tram_principal.turno
-                tram_anexada.texto = nova_tram_principal.texto
-                tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
-                tram_anexada.user = nova_tram_principal.user
-                tram_anexada.ip = nova_tram_principal.ip
-                tram_anexada.save()
+        tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
+        if tramitar_anexadas:
+            anexadas_list = lista_anexados(materia)
+            for ma in anexadas_list:
+                tram_anexada = ma.tramitacao_set.last()
+                if compara_tramitacoes_mat(ant_tram_principal, tram_anexada):
+                    tram_anexada.status = nova_tram_principal.status
+                    tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
+                    tram_anexada.unidade_tramitacao_local = nova_tram_principal.unidade_tramitacao_local
+                    tram_anexada.data_encaminhamento = nova_tram_principal.data_encaminhamento
+                    tram_anexada.unidade_tramitacao_destino = nova_tram_principal.unidade_tramitacao_destino
+                    tram_anexada.urgente = nova_tram_principal.urgente
+                    tram_anexada.turno = nova_tram_principal.turno
+                    tram_anexada.texto = nova_tram_principal.texto
+                    tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
+                    tram_anexada.user = nova_tram_principal.user
+                    tram_anexada.ip = nova_tram_principal.ip
+                    tram_anexada.save()
 
-                ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
-                ma.save()
+                    ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
+                    ma.save()
         return nova_tram_principal
 
 class LegislacaoCitadaForm(ModelForm):
