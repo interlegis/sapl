@@ -37,14 +37,13 @@ from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
-from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
-                    ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
+from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
+                    JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm, RetiradaPautaForm, OradorOrdemDiaForm)
-from .models import (Bancada, CargoBancada, CargoMesa,
-                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
+from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
@@ -55,7 +54,6 @@ from .models import (Bancada, CargoBancada, CargoMesa,
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
-CargoBancadaCrud = CrudAux.build(CargoBancada, '')
 TipoResultadoVotacaoCrud = CrudAux.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
@@ -665,16 +663,6 @@ class OradorOrdemDiaCrud(OradorCrud):
             initial.update({'numero': self.object.numero_ordem})
 
             return initial
-
-
-class BancadaCrud(CrudAux):
-    model = Bancada
-
-    class CreateView(CrudAux.CreateView):
-        form_class = BancadaForm
-
-        def get_success_url(self):
-            return reverse('sapl.sessao:bancada_list')
 
 
 def recuperar_numero_sessao(request):
@@ -1600,7 +1588,7 @@ def get_oradores_ordemdia(sessao_plenaria):
         observacao = orador.observacao
         parlamentar = Parlamentar.objects.get(
             id=orador.parlamentar_id
-        )        
+        )
         o = {
             'numero_ordem': numero_ordem,
             'url_discurso': url_discurso,
@@ -1610,9 +1598,9 @@ def get_oradores_ordemdia(sessao_plenaria):
         oradores.append(o)
 
     context = {'oradores_ordemdia': oradores}
-    return context 
+    return context
 
- 
+
 def get_oradores_explicações_pessoais(sessao_plenaria):
     oradores_explicacoes = []
     for orador in Orador.objects.filter(
@@ -1729,7 +1717,7 @@ class ResumoView(DetailView):
         # =====================================================================
         # Oradores Ordem do Dia
         context.update(get_oradores_ordemdia(self.object))
-        # =====================================================================       
+        # =====================================================================
         # Oradores nas Explicações Pessoais
         context.update(get_oradores_explicações_pessoais(self.object))
         # =====================================================================

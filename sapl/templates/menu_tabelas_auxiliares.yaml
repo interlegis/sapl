@@ -69,10 +69,10 @@
   css_class: head_title
   children:
   - title: {% trans 'Bancadas Parlamentares' %}
-    url: sapl.sessao:bancada_list
+    url: sapl.parlamentares:bancada_list
     css_class: btn btn-link
   - title: {% trans 'Cargo de Bancada Parlamentar' %}
-    url: sapl.sessao:cargobancada_list
+    url: sapl.parlamentares:cargobancada_list
     css_class: btn btn-link
   - title: {% trans 'Frente Parlamentar' %}
     url: sapl.parlamentares:frente_list

@@ -1,9 +1,8 @@
 from django.conf.urls import include, url
 
 from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
-                               AdicionarVariasMateriasOrdemDia, BancadaCrud,
-                               CargoBancadaCrud, ExpedienteMateriaCrud, 
-                               ExpedienteView, JustificativaAusenciaCrud,
+                               AdicionarVariasMateriasOrdemDia,
+                               ExpedienteMateriaCrud, ExpedienteView, JustificativaAusenciaCrud,
                                OcorrenciaSessaoView, MateriaOrdemDiaCrud, OradorOrdemDiaCrud,
                                MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
@@ -94,10 +93,6 @@ urlpatterns = [
         include(TipoJustificativaCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-retirada-pauta/',
         include(TipoRetiradaPautaCrud.get_urls())),
-    url(r'^sistema/bancada/',
-        include(BancadaCrud.get_urls())),
-    url(r'^sistema/cargo-bancada/',
-        include(CargoBancadaCrud.get_urls())),
     url(r'^sistema/resumo-ordenacao/',
         ResumoOrdenacaoView.as_view(),
         name='resumo_ordenacao'),

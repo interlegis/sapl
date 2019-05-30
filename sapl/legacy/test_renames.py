@@ -12,20 +12,19 @@ from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
                                  Tramitacao)
 from sapl.norma.models import (AnexoNormaJuridica, NormaJuridica,
                                NormaRelacionada, TipoVinculoNormaJuridica)
-from sapl.parlamentares.models import (Frente, Mandato, Parlamentar, Partido,
+from sapl.parlamentares.models import (Bancada, CargoBancada, Frente, Mandato, Parlamentar, Partido,
                                        TipoAfastamento, Votante, Bloco)
 from sapl.protocoloadm.models import DocumentoAdministrativo
-from sapl.sessao.models import (Bancada, CargoBancada,
-                                ExpedienteMateria, Orador, OradorExpediente,
+from sapl.sessao.models import (ExpedienteMateria, Orador, OradorExpediente,
                                 OrdemDia, RegistroVotacao, ResumoOrdenacao,
                                 SessaoPlenaria, TipoResultadoVotacao,
                                 VotoParlamentar)
 
 RENAMING_IGNORED_MODELS = [
-    Votante, Frente, Bancada, Bloco, Votante,  # parlamentares
+    Votante, Frente, Bancada, CargoBancada, Bloco, Votante,  # parlamentares
     Composicao, Reuniao,  DocumentoAcessorioComissoes,  # commissoes
     AppConfig, CasaLegislativa,  # base
-    CargoBancada, ResumoOrdenacao,  # sessao
+    ResumoOrdenacao,  # sessao
     AnexoNormaJuridica, TipoVinculoNormaJuridica,  # norma
 
 ]

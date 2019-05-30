@@ -602,3 +602,60 @@ class Bloco(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+@reversion.register()
+class Bancada(models.Model):
+    legislatura = models.ForeignKey(Legislatura,
+                                    on_delete=models.PROTECT,
+                                    verbose_name=_('Legislatura'))
+    nome = models.CharField(
+        max_length=80,
+        verbose_name=_('Nome da Bancada'))
+    partido = models.ForeignKey(Partido,
+                                blank=True,
+                                null=True,
+                                on_delete=models.PROTECT,
+                                verbose_name=_('Partido'))
+    data_criacao = models.DateField(blank=False, null=True,
+                                    verbose_name=_('Data Criação'))
+    data_extincao = models.DateField(blank=True, null=True,
+                                     verbose_name=_('Data Extinção'))
+    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
+    # campo conceitual de reversão genérica para o model Autor que dá a
+    # o meio possível de localização de tipos de autores.
+    autor = SaplGenericRelation(Autor, related_query_name='bancada_set',
+                                fields_search=(
+                                    ('nome', '__icontains'),
+                                    ('descricao', '__icontains'),
+                                    ('partido__sigla', '__icontains'),
+                                    ('partido__nome', '__icontains'),
+                                ))
+
+    class Meta:
+        db_table = 'parlamentares_bancada'
+        verbose_name = _('Bancada Parlamentar')
+        verbose_name_plural = _('Bancadas Parlamentares')
+        ordering = ('-legislatura__numero', )
+
+    def __str__(self):
+        return self.nome
+
+
+@reversion.register()
+class CargoBancada(models.Model):
+    nome_cargo = models.CharField(max_length=80,
+                                  verbose_name=_('Cargo de Bancada'))
+
+    cargo_unico = models.BooleanField(default=False,
+                                      choices=YES_NO_CHOICES,
+                                      verbose_name=_('Cargo Único ?'))
+
+    class Meta:
+        db_table = 'parlamentares_cargobancada'
+        verbose_name = _('Cargo de Bancada')
+        verbose_name_plural = _('Cargos de Bancada')
+
+    def __str__(self):
+        return self.nome_cargo

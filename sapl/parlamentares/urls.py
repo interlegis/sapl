@@ -2,6 +2,7 @@ from django.conf.urls import include, url
 
 from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       ComposicaoColigacaoCrud, DependenteCrud,
+                                      BancadaCrud, CargoBancadaCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
                                       LegislaturaCrud, MandatoCrud,
                                       MesaDiretoraView, NivelInstrucaoCrud,
@@ -46,9 +47,16 @@ urlpatterns = [
 
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +
-                ComposicaoColigacaoCrud.get_urls())),    
+                ComposicaoColigacaoCrud.get_urls())),
+
+    url(r'^sistema/bancada/',
+        include(BancadaCrud.get_urls())),
+    url(r'^sistema/cargo-bancada/',
+        include(CargoBancadaCrud.get_urls())),
+
     url(r'^sistema/bloco/',
         include(BlocoCrud.get_urls())),
+
     url(r'^sistema/frente/',
         include(FrenteCrud.get_urls())),
     url(r'^sistema/frente/atualiza-lista-parlamentares',
@@ -90,5 +98,4 @@ urlpatterns = [
 
     url(r'^mesa-diretora/remove-parlamentar-composicao/$',
         remove_parlamentar_composicao, name='remove_parlamentar_composicao'),
-    
 ]

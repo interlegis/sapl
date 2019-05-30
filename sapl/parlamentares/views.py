@@ -33,18 +33,17 @@ from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
-from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
-                    ParlamentarFilterSet, VincularParlamentarForm,
-                    BlocoForm)
-                    
-from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
+from .forms import (BancadaForm, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, ParlamentarFilterSet,
+                    VincularParlamentarForm, BlocoForm)
+from .models import (Bancada, CargoBancada, CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
                      Bloco)
 
 
+CargoBancadaCrud = CrudAux.build(CargoBancada, '')
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
@@ -100,6 +99,16 @@ class VotanteView(MasterDetailCrud):
             return HttpResponseRedirect(
                 reverse('sapl.parlamentares:votante_list',
                         kwargs={'pk': obj.parlamentar.pk}))
+
+
+class BancadaCrud(CrudAux):
+    model = Bancada
+
+    class CreateView(CrudAux.CreateView):
+        form_class = BancadaForm
+
+        def get_success_url(self):
+            return reverse('sapl.parlamentares:bancada_list')
 
 
 class FrenteList(MasterDetailCrud):

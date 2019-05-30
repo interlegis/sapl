@@ -38,12 +38,12 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao
-from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
-                                      StatusTramitacaoAdministrativo, 
+from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, Bancada
+from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo,
+                                      StatusTramitacaoAdministrativo,
                                       DocumentoAdministrativo)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, Bancada)
+                                SessaoPlenariaPresenca)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
                         intervalos_tem_intersecao, remover_acentos)
@@ -298,7 +298,7 @@ class RelatoriosListView(TemplateView):
         context = super(TemplateView, self).get_context_data(**kwargs)
         estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
         context['estatisticas_acesso_normas'] = True if estatisticas_acesso_normas == 'S' else False
-        
+
         return context
 
 
@@ -824,9 +824,9 @@ class RelatorioNormasPublicadasMesView(FilterView):
             if not meses[norma.data.month] in normas_mes:
                 normas_mes[meses[norma.data.month]] = []
             normas_mes[meses[norma.data.month]].append(norma)
-        
+
         context['normas_mes'] = normas_mes
-        
+
         quant_normas_mes = {}
         for key in normas_mes.keys():
             quant_normas_mes[key] = len(normas_mes[key])
@@ -852,7 +852,7 @@ class RelatorioNormasVigenciaView(FilterView):
             vigencia = kwargs['data']['vigencia']
             if ano:
                 qs = qs.filter(ano=ano)
-            
+
             if vigencia == 'True':
                 qs_dt_not_null = qs.filter(data_vigencia__isnull=True)
                 qs = (qs_dt_not_null | qs.filter(data_vigencia__gte=datetime.datetime.now().date())).distinct()
@@ -875,7 +875,7 @@ class RelatorioNormasVigenciaView(FilterView):
             return context
 
         normas_totais = NormaJuridica.objects.filter(ano=self.request.GET['ano'])
-        
+
         context['quant_total'] = len(normas_totais)
         if self.request.GET['vigencia'] == 'True':
             context['vigencia'] = 'Vigente'
@@ -910,7 +910,7 @@ class EstatisticasAcessoNormas(TemplateView):
             return self.render_to_response(context)
 
         context['ano'] = self.request.GET['ano']
-        
+
         query = '''
                 select norma_id, ano, extract(month from horario_acesso) as mes, count(*)
                 from norma_normaestatisticas
@@ -925,18 +925,18 @@ class EstatisticasAcessoNormas(TemplateView):
         normas_mes = collections.OrderedDict()
         meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
                 7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
-        
+
         for row in rows:
             if not meses[int(row[2])] in normas_mes:
                 normas_mes[meses[int(row[2])]] = []
             norma_est = [NormaJuridica.objects.get(id=row[0]), row[3]]
             normas_mes[meses[int(row[2])]].append(norma_est)
-        
+
         # Ordena por acesso e limita em 5
         for n in normas_mes:
             sorted_by_value = sorted(normas_mes[n], key=lambda kv: kv[1], reverse=True)
             normas_mes[n] = sorted_by_value[0:5]
-        
+
         context['normas_mes'] = normas_mes
 
         return self.render_to_response(context)
@@ -995,7 +995,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         tabela.append(
             ('parlamentares_filiacoes_intersecao',
              'Parlamentares com filiações em interseção',
-             len(parlamentares_filiacoes_intersecao())    
+             len(parlamentares_filiacoes_intersecao())
             )
         )
         tabela.append(
@@ -1167,7 +1167,7 @@ class ListarParlFiliacoesIntersecaoView(PermissionRequiredMixin, ListView):
         context[
             'NO_ENTRIES_MSG'
             ] = 'Nenhum encontrado.'
-        return context        
+        return context
 
 
 def parlamentares_mandatos_intersecao():
@@ -1232,7 +1232,7 @@ class ListarParlamentaresDuplicadosView(PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         return parlamentares_duplicados()
-    
+
     def get_context_data(self, **kwargs):
         context = super(
             ListarParlamentaresDuplicadosView, self).get_context_data(**kwargs)
@@ -1244,7 +1244,7 @@ class ListarParlamentaresDuplicadosView(PermissionRequiredMixin, ListView):
             'NO_ENTRIES_MSG'
             ] = 'Nenhum encontrado.'
         return context
- 
+
 
 def mandato_sem_data_inicio():
     return Mandato.objects.filter(data_inicio_mandato__isnull=True).order_by('parlamentar')
@@ -1316,7 +1316,7 @@ class ListarFiliacoesSemDataFiliacaoView(PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         return filiacoes_sem_data_filiacao()
-    
+
     def get_context_data(self, **kwargs):
         context = super(
             ListarFiliacoesSemDataFiliacaoView, self
@@ -1368,14 +1368,14 @@ class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
 
 def protocolos_com_materias():
     protocolos = {}
-    
+
     for m in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero_protocolo'):
         if Protocolo.objects.filter(numero=m.numero_protocolo, ano=m.ano).exists():
             key = "{}/{}".format(m.numero_protocolo, m.ano)
             val = protocolos.get(key, list())
             val.append(m)
             protocolos[key] = val
-    
+
     return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
 
 
@@ -1464,9 +1464,9 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
 
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
-        
+
         context['NO_ENTRIES_MSG'] = 'Nenhum usuário encontrado!'
-        
+
         context['title'] = _('Usuários')
 
         return context
@@ -1535,9 +1535,9 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
     template_name = "crud/confirm_delete.html"
     permission_required = ('base.delete_appconfig',)
     success_url = reverse_lazy('sapl.base:usuario')
-    success_message = "Usuário removido com sucesso!"  
+    success_message = "Usuário removido com sucesso!"
 
-    def delete(self, request, *args, **kwargs):     
+    def delete(self, request, *args, **kwargs):
         try:
             super(DeleteUsuarioView, self).delete(request, *args, **kwargs)
         except ProtectedError as exception:
@@ -1811,7 +1811,7 @@ def pesquisa_textual(request):
             # Index and db are out of sync. Object has been deleted from database
             continue
         dici = filtro_campos(e.object.__dict__)
-        sec_dict['objeto'] = str(dici) 
+        sec_dict['objeto'] = str(dici)
         sec_dict['text'] = str(e.object.ementa)
 
         sec_dict['model'] = str(type(e.object))
