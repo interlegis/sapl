@@ -18,7 +18,7 @@ from sapl.materia.forms import choice_anos_com_materias
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import NormaPesquisaOrderingFilter, RangeWidgetOverride, \
-    choice_anos_com_normas, FilterOverridesMetaMixin, FileFieldCheckMixin, RANGE_ANOS
+    choice_anos_com_normas, FilterOverridesMetaMixin, FileFieldCheckMixin, ANO_CHOICES
 
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, AutoriaNorma)
@@ -106,7 +106,7 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
     ano_materia = forms.ChoiceField(
         label='Ano Matéria',
         required=False,
-        choices=RANGE_ANOS,
+        choices=ANO_CHOICES,
         widget=forms.Select(attrs={'autocomplete': 'off'})
     )
 
