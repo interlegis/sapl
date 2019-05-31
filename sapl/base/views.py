@@ -1084,13 +1084,13 @@ def anexados_ciclicos(ofMateriaLegislativa):
             'materia_principal'
         ).annotate(
             count=Count('materia_principal')
-        ).filter(count__gt=0).order_by('data_anexacao')
+        ).filter(count__gt=0).order_by('-data_anexacao')
     else:
         principais = Anexado.objects.values(
             'documento_principal'
         ).annotate(
             count=Count('documento_principal')
-        ).filter(count__gt=0).order_by('data_anexacao')
+        ).filter(count__gt=0).order_by('-data_anexacao')
 
     for principal in principais:
         anexados_total = []
@@ -1098,11 +1098,11 @@ def anexados_ciclicos(ofMateriaLegislativa):
         if ofMateriaLegislativa:
             anexados = Anexada.objects.filter(
                 materia_principal=principal['materia_principal']
-            )
+            ).order_by('-data_anexacao')
         else:
             anexados = Anexado.objects.filter(
                 documento_principal=principal['documento_principal']
-            )
+            ).order_by('-data_anexacao')
 
         anexados_temp = list(anexados)
         while anexados_temp:
@@ -1116,7 +1116,7 @@ def anexados_ciclicos(ofMateriaLegislativa):
                         )
                         anexados_temp.extend(anexados_anexado)
                     else:
-                        ciclicos.append((anexado.materia_principal, anexado.materia_anexada))
+                        ciclicos.append((anexado.data_anexacao, anexado.materia_principal, anexado.materia_anexada))
             else:
                 if anexado.documento_anexado not in anexados_total:
                     if not principal['documento_principal'] == anexado.documento_anexado.pk:
@@ -1126,7 +1126,7 @@ def anexados_ciclicos(ofMateriaLegislativa):
                         )
                         anexados_temp.extend(anexados_anexado)
                     else:
-                        ciclicos.append((anexado.documento_principal, anexado.documento_anexado))
+                        ciclicos.append((anexado.data_anexacao, anexado.documento_principal, anexado.documento_anexado))
 
     return ciclicos
 

@@ -15,8 +15,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for fim, inicio in anexadas_ciclicas %}
+                    {% for data, fim, inicio in anexadas_ciclicas %}
                         <tr>
+                            <td>{{ data }}</td>
                             <td>
                                 <a href="{% url 'sapl.materia:materialegislativa_detail' fim.pk %}">{{ fim }}</a>
                             </td>
