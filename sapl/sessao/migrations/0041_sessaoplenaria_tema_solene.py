@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='sessaoplenaria',
-            name='mensagem_solene',
-            field=models.TextField(blank=True, max_length=500, verbose_name='Mensagem Solene'),
+            name='tema_solene',
+            field=models.TextField(blank=True, max_length=500, verbose_name='Tema da Sessão Solene'),
         ),
     ]

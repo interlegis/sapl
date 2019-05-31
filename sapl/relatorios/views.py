@@ -521,7 +521,7 @@ def get_sessao_plenaria(sessao, casa):
     inf_basicas_dic["nom_camara"] = casa.nome
 
     if sessao.tipo.nome == 'Solene':
-        inf_basicas_dic["mensagem_solene"] = sessao.mensagem_solene
+        inf_basicas_dic["tema_solene"] = sessao.tema_solene
     
     # Conteudo multimidia
     cont_mult_dic = {}

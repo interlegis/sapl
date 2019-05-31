@@ -128,9 +128,9 @@ def inf_basicas(inf_basicas_dic):
         if dat_fim_sessao or hr_fim_sessao:
             tmp += '\t\t<para style="P2" spaceAfter="5"><b>Encerramento: </b> ' + \
                 dat_fim_sessao + ' <b>- </b> ' + hr_fim_sessao + '</para>\n'
-    if inf_basicas_dic.get('mensagem_solene'):
-        tmp += '\t\t<para style="P2" spaceAfter="5"><b>Mensagem Solene: </b> ' + \
-                inf_basicas_dic['mensagem_solene'] + '</para>\n'
+    if inf_basicas_dic.get('tema_solene'):
+        tmp += '\t\t<para style="P2" spaceAfter="5"><b>Tema da Sessão Solene: </b> ' + \
+                inf_basicas_dic['tema_solene'] + '</para>\n'
 
     return tmp
 

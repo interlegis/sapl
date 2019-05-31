@@ -1089,6 +1089,10 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             'cronometro_ordem': cronometro_ordem,
             'cronometro_consideracoes': cronometro_consideracoes})
 
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+
         return context
 
 
@@ -1524,7 +1528,7 @@ def get_identificação_basica(sessao_plenaria):
     abertura = data_inicio.strftime('%d/%m/%Y') if data_inicio else ''
     data_fim = sessao_plenaria.data_fim
     encerramento = data_fim.strftime('%d/%m/%Y') + ' -' if data_fim else ''
-    mensagem_solene = sessao_plenaria.mensagem_solene
+    tema_solene = sessao_plenaria.tema_solene
     context = {'basica': [
         _('Tipo de Sessão: %(tipo)s') % {'tipo': sessao_plenaria.tipo},
         _('Abertura: %(abertura)s - %(hora_inicio)s') % {
@@ -1533,8 +1537,8 @@ def get_identificação_basica(sessao_plenaria):
             'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim},
         ],
         'sessaoplenaria': sessao_plenaria}
-    if sessao_plenaria.tipo.nome == "Solene" and mensagem_solene:
-        context.update({'mensagem_solene': 'Mensagem Solene: %s' % mensagem_solene})
+    if sessao_plenaria.tipo.nome == "Solene" and tema_solene:
+        context.update({'tema_solene': 'Tema da Sessão Solene: %s' % tema_solene})
     return context
 
 
