@@ -1,14 +1,17 @@
 import pytest
 from model_mommy import mommy
+import datetime
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from model_mommy import mommy
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.sessao.models import Bancada
-from sapl.protocoloadm.models import Protocolo
+from sapl.protocoloadm.models import (Protocolo, DocumentoAdministrativo,
+                                      TipoDocumentoAdministrativo, Anexado)
 from sapl.materia.models import (TipoMateriaLegislativa, RegimeTramitacao,
-                                 MateriaLegislativa)
+                                 MateriaLegislativa, Anexada)
 from sapl.parlamentares.models import (Parlamentar, Partido, Filiacao,
                                        Legislatura, Mandato)
 
@@ -18,7 +21,7 @@ from sapl.base.views import (protocolos_duplicados, protocolos_com_materias,
                              parlamentares_mandatos_intersecao,
                              parlamentares_filiacoes_intersecao,
                              autores_duplicados,
-                             bancada_comissao_autor_externo)
+                             bancada_comissao_autor_externo, anexados_ciclicos)
 
 
 @pytest.mark.django_db(transaction=False)
@@ -417,6 +420,216 @@ def test_lista_bancada_comissao_autor_externo():
         assert lista_bancada_comissao[0][2:4] == ('Bancada', 'sistema/bancada')
         assert lista_bancada_comissao[1][0:2] == (autor_comissao_b, comissao_b)
         assert lista_bancada_comissao[1][2:4] == ('Comissão', 'comissao')
+
+
+@pytest.mark.django_db(transaction=False)
+def test_lista_anexados_ciclicas():
+        ## DocumentoAdministrativo
+        tipo_documento = mommy.make(
+                TipoDocumentoAdministrativo,
+                sigla="TT",
+                descricao="Tipo_Teste"
+        )
+        
+        documento_a = mommy.make(
+                DocumentoAdministrativo,
+                tipo=tipo_documento,
+                numero=26,
+                ano=2019,
+                data='2019-05-15',
+        )
+        documento_b = mommy.make(
+                DocumentoAdministrativo,
+                tipo=tipo_documento,
+                numero=27,
+                ano=2019,
+                data='2019-05-16',
+        )
+        documento_c = mommy.make(
+                DocumentoAdministrativo,
+                tipo=tipo_documento,
+                numero=28,
+                ano=2019,
+                data='2019-05-17',
+        )
+        documento_a1 = mommy.make(
+                DocumentoAdministrativo,
+                tipo=tipo_documento,
+                numero=29,
+                ano=2019,
+                data='2019-05-18',
+        )
+        documento_b1 = mommy.make(
+                DocumentoAdministrativo,
+                tipo=tipo_documento,
+                numero=30,
+                ano=2019,
+                data='2019-05-19',
+        )
+        documento_c1 = mommy.make(
+                DocumentoAdministrativo,
+                tipo=tipo_documento,
+                numero=31,
+                ano=2019,
+                data='2019-05-20',
+        )
+
+        mommy.make(
+                Anexado,
+                documento_principal=documento_a,
+                documento_anexado=documento_b,
+                data_anexacao='2019-05-21'
+        )
+        mommy.make(
+                Anexado,
+                documento_principal=documento_a,
+                documento_anexado=documento_c,
+                data_anexacao='2019-05-22'
+        )
+        mommy.make(
+                Anexado,
+                documento_principal=documento_b,
+                documento_anexado=documento_c,
+                data_anexacao='2019-05-23'
+        )
+        mommy.make(
+                Anexado,
+                documento_principal=documento_a1,
+                documento_anexado=documento_b1,
+                data_anexacao='2019-05-24'
+        )
+        mommy.make(
+                Anexado,
+                documento_principal=documento_a1,
+                documento_anexado=documento_c1,
+                data_anexacao='2019-05-25'
+        )
+        mommy.make(
+                Anexado,
+                documento_principal=documento_b1,
+                documento_anexado=documento_c1,
+                data_anexacao='2019-05-26'
+        )
+        mommy.make(
+                Anexado,
+                documento_principal=documento_c1,
+                documento_anexado=documento_b1,
+                data_anexacao='2019-05-27'
+        )
+
+        lista_documento_ciclicos = anexados_ciclicos(False)
+
+        ## Matéria
+        tipo_materia = mommy.make(
+                TipoMateriaLegislativa,
+                descricao="Tipo_Teste"
+        )
+        regime_tramitacao = mommy.make(
+                RegimeTramitacao,
+                descricao="Regime_Teste"
+        )
+
+        materia_a = mommy.make(
+                MateriaLegislativa,
+                numero=20,
+                ano=2018,
+                data_apresentacao="2018-01-04",
+                regime_tramitacao=regime_tramitacao,
+                tipo=tipo_materia
+        )
+        materia_b = mommy.make(
+                MateriaLegislativa,
+                numero=21,
+                ano=2019,
+                data_apresentacao="2019-05-04",
+                regime_tramitacao=regime_tramitacao,
+                tipo=tipo_materia
+        )
+        materia_c = mommy.make(
+                MateriaLegislativa,
+                numero=22,
+                ano=2019,
+                data_apresentacao="2019-05-05",
+                regime_tramitacao=regime_tramitacao,
+                tipo=tipo_materia
+        )
+        materia_a1 = mommy.make(
+                MateriaLegislativa,
+                numero=23,
+                ano=2018,
+                data_apresentacao="2019-05-06",
+                regime_tramitacao=regime_tramitacao,
+                tipo=tipo_materia
+        )
+        materia_b1 = mommy.make(
+                MateriaLegislativa,
+                numero=24,
+                ano=2019,
+                data_apresentacao="2019-05-07",
+                regime_tramitacao=regime_tramitacao,
+                tipo=tipo_materia
+        )
+        materia_c1 = mommy.make(
+                MateriaLegislativa,
+                numero=25,
+                ano=2019,
+                data_apresentacao="2019-05-08",
+                regime_tramitacao=regime_tramitacao,
+                tipo=tipo_materia
+        ) 
+
+        mommy.make(
+                Anexada,
+                materia_principal=materia_a,
+                materia_anexada=materia_b,
+                data_anexacao='2019-05-11'
+        )
+        mommy.make(
+                Anexada,
+                materia_principal=materia_a,
+                materia_anexada=materia_c,
+                data_anexacao='2019-05-12'
+        )
+        mommy.make(
+                Anexada,
+                materia_principal=materia_b,
+                materia_anexada=materia_c,
+                data_anexacao='2019-05-13'
+        )
+        mommy.make(
+                Anexada,
+                materia_principal=materia_a1,
+                materia_anexada=materia_b1,
+                data_anexacao='2019-05-11'
+        )
+        mommy.make(
+                Anexada,
+                materia_principal=materia_a1,
+                materia_anexada=materia_c1,
+                data_anexacao='2019-05-12'
+        )
+        mommy.make(
+                Anexada,
+                materia_principal=materia_b1,
+                materia_anexada=materia_c1,
+                data_anexacao='2019-05-13'
+        )
+        mommy.make(
+                Anexada,
+                materia_principal=materia_c1,
+                materia_anexada=materia_b1,
+                data_anexacao='2019-05-14'
+        )
+
+        lista_materias_ciclicas = anexados_ciclicos(True)
+
+        assert len(lista_materias_ciclicas) == 2
+        assert lista_materias_ciclicas[0] == (datetime.date(2019,5,13), materia_b1, materia_c1)
+        assert lista_materias_ciclicas[1] == (datetime.date(2019,5,14), materia_c1, materia_b1)
+
+        assert len(lista_documento_ciclicos) == 2
+        assert lista_documento_ciclicos[0] == (datetime.date(2019,5,26), documento_b1, documento_c1)
+        assert lista_documento_ciclicos[1] == (datetime.date(2019,5,27), documento_c1, documento_b1)
 
 
 @pytest.mark.django_db(transaction=False)
