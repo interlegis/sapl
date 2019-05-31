@@ -842,6 +842,16 @@ def sessao_legislativa_legislatura_ajax(request):
     return JsonResponse({'sessao_legislativa': lista_sessoes})
 
 
+def recuperar_nome_tipo_sessao(request):
+    try:
+        tipo = TipoSessaoPlenaria.objects.get(pk=request.GET['tipo'])
+        tipo_nome = tipo.nome
+    except ObjectDoesNotExist:
+        tipo_nome = ''
+
+    return JsonResponse({'nome_tipo': tipo_nome})
+
+
 class SessaoCrud(Crud):
     model = SessaoPlenaria
     help_topic = 'sessao_legislativa'
@@ -897,11 +907,11 @@ class SessaoCrud(Crud):
 
         @property
         def layout_key(self):
-            sessao = self.object
-            tipo_sessao = sessao.tipo
-            if tipo_sessao.nome == "Solene":
-                return 'SessaoSolene'
-            return 'SessaoPlenaria'
+            # sessao = self.object
+            # tipo_sessao = sessao.tipo
+            # if tipo_sessao.nome == "Solene":
+            #     return 'SessaoSolene'
+            return 'SessaoSolene'
 
         @property
         def cancel_url(self):

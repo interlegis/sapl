@@ -16,6 +16,8 @@
       var legislatura = $("#id_legislatura").val()
       var data_ini = $("#id_data_inicio").val()
 
+      $("#div_id_tema_solene").hide();
+
       if (tipo) {
         $.get("{% url 'sapl.sessao:recuperar_numero_sessao_view' %}",
           { 
@@ -27,10 +29,23 @@
             $("#id_numero").val(data.numero);
           }
         );
+
+        $.get("{% url 'sapl.sessao:recuperar_nome_tipo_sessao' %}",
+          {
+            tipo: tipo, 
+            sessao_legislativa:sessao
+          },
+          function(data, status) {
+            if(data.nome_tipo == "Solene"){
+              $("#div_id_tema_solene").show();
+            }
+          }
+        );
       }
       else{
         $("#id_numero").val('');
       }
+
     }
     $("#id_tipo").click(recuperar_numero_sessao);
     $("#id_sessao_legislativa").click(recuperar_numero_sessao);
@@ -64,6 +79,8 @@
     $("#id_legislatura").ready(altera_legislatura);
 
     $("#id_legislatura").change(altera_legislatura);
+
+    $("#div_id_tema_solene").ready(recuperar_numero_sessao);
   });
 
 </script>

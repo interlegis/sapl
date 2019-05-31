@@ -33,7 +33,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                renumerar_materias_expediente,
                                sessao_legislativa_legislatura_ajax,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
-                               VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView)
+                               VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
+                               recuperar_nome_tipo_sessao)
 
 from .apps import AppConfig
 
@@ -68,6 +69,9 @@ urlpatterns = [
         recuperar_numero_sessao_view,
         name='recuperar_numero_sessao_view'
         ),
+    url(r'^sessao/recuperar-nome-tipo-sessao/',
+        recuperar_nome_tipo_sessao,
+        name='recuperar_nome_tipo_sessao'),
     url(r'^sessao/sessao-legislativa-legislatura-ajax/',
         sessao_legislativa_legislatura_ajax,
         name='sessao_legislativa_legislatura_ajax_view'),
