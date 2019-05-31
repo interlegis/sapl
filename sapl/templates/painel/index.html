@@ -102,7 +102,7 @@
                 <span id="observacao_materia" class="text-value"></span>
             </div>
 
-            <div class="col-md-6 text-center painel" id="tema_solene_div" type="hidden">      
+            <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
               <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
                 <span id="sessao_solene_tema" class="text-value"></span>
             </div>
@@ -203,6 +203,7 @@
               $("#sessao_plenaria").text(data["sessao_plenaria"])
               $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
               $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
+              $("#sessao_solene_tema").text(data["mensagem_solene"])
               if (data["status_painel"] == false) {
                 $("#message").text("PAINEL ENCONTRA-SE FECHADO");
               }

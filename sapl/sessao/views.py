@@ -871,6 +871,14 @@ class SessaoCrud(Crud):
 
         form_class = SessaoPlenariaForm
 
+        @property
+        def layout_key(self):
+            sessao = self.object
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                return 'SessaoSolene'
+            return 'SessaoPlenaria'
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             sessao = context['object']
@@ -886,6 +894,14 @@ class SessaoCrud(Crud):
 
         form_class = SessaoPlenariaForm
         logger = logging.getLogger(__name__)
+
+        @property
+        def layout_key(self):
+            sessao = self.object
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                return 'SessaoSolene'
+            return 'SessaoPlenaria'
 
         @property
         def cancel_url(self):
@@ -921,12 +937,22 @@ class SessaoCrud(Crud):
 
     class DetailView(Crud.DetailView):
 
+        @property
+        def layout_key(self):
+            sessao = self.object
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                return 'SessaoSolene'
+            return 'SessaoPlenaria'
+
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             sessao = context['object']
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
                 context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                # self.layout_key = 'SessaoSolene'
             return context
 
 
@@ -1062,12 +1088,6 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             'cronometro_aparte': cronometro_aparte,
             'cronometro_ordem': cronometro_ordem,
             'cronometro_consideracoes': cronometro_consideracoes})
-
-        context.update({'sessao_solene': False})
-        tipo_sessao = sessao.tipo
-        if tipo_sessao.nome == "Solene":
-            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
-            context.update({'sessao_solene': True})
 
         return context
 
@@ -1504,14 +1524,18 @@ def get_identificação_basica(sessao_plenaria):
     abertura = data_inicio.strftime('%d/%m/%Y') if data_inicio else ''
     data_fim = sessao_plenaria.data_fim
     encerramento = data_fim.strftime('%d/%m/%Y') + ' -' if data_fim else ''
-    return({'basica': [
+    mensagem_solene = sessao_plenaria.mensagem_solene
+    context = {'basica': [
         _('Tipo de Sessão: %(tipo)s') % {'tipo': sessao_plenaria.tipo},
         _('Abertura: %(abertura)s - %(hora_inicio)s') % {
             'abertura': abertura, 'hora_inicio': sessao_plenaria.hora_inicio},
         _('Encerramento: %(encerramento)s %(hora_fim)s') % {
-            'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim}
-    ],
-        'sessaoplenaria': sessao_plenaria})
+            'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim},
+        ],
+        'sessaoplenaria': sessao_plenaria}
+    if sessao_plenaria.tipo.nome == "Solene" and mensagem_solene:
+        context.update({'mensagem_solene': 'Mensagem Solene: %s' % mensagem_solene})
+    return context
 
 
 def get_conteudo_multimidia(sessao_plenaria):
@@ -1965,6 +1989,11 @@ class ResumoView(DetailView):
                 'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
                 'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html'
             })
+
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     def get(self, request, *args, **kwargs):
