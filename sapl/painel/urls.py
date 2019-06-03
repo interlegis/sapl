@@ -3,16 +3,8 @@ from django.conf.urls import url, include
 from .apps import AppConfig
 from .views import (cronometro_painel, get_dados_painel, painel_mensagem_view,
                     painel_parlamentar_view, painel_view, painel_votacao_view,
-<<<<<<< HEAD
                     switch_painel, verifica_painel, votante_view, CronometroPainelCrud,
-<<<<<<< HEAD
                     PainelConfigCrud)
-=======
-                    TipoCronometroCrud)
->>>>>>> Fix #2828 - Adiciona tipo de cronômetro
-=======
-                    switch_painel, verifica_painel, votante_view, CronometroPainelCrud)
->>>>>>> Corrige migrações
 
 app_name = AppConfig.name
 
