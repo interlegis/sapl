@@ -1617,8 +1617,7 @@ class MateriaLegislativaCrud(Crud):
         form_class = MateriaLegislativaForm
 
         def form_valid(self, form):
-            self.object = form.save()
-            username = self.request.user.username
+            self.object = form.instance
 
             self.object.user = self.request.user
             self.object.ip = get_client_ip(self.request)
