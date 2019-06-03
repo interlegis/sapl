@@ -23,19 +23,6 @@ class Painel(models.Model):
 
 
 @reversion.register()
-class TipoCronometro(models.Model):
-    nome = models.CharField(max_length=30, verbose_name=_('Tipo Cronômetro'))
-
-    class Meta:
-        verbose_name = _('Tipo de Cronômetro')
-        verbose_name_plural = _('Tipos de Cronômetro')
-        ordering = ['nome']
-
-    def __str__(self):
-        return self.nome
-
-
-@reversion.register()
 class Cronometro(models.Model):
     CRONOMETRO_TYPES = (
         ('A', _('Aparte')),
