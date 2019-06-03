@@ -290,7 +290,10 @@ def votante_view(request):
 
 @user_passes_test(check_permission)
 def painel_view(request, pk):
-    context = {'head_title': str(_('Painel Plenário')), 'sessao_id': pk}
+    context = {'head_title': str(_('Painel Plenário')), 
+               'sessao_id': pk, 
+               'cronometros': Cronometro.objects.all().order_by('ordenacao')
+               }
     return render(request, 'painel/index.html', context)
 
 
@@ -331,9 +334,21 @@ def painel_votacao_view(request):
     return render(request, 'painel/votacao.html')
 
 
+CRONOMETRO_STATUS = {
+        'start': 'I',
+        'reset': 'R',
+        'stop': 'S',
+        'increment': 'C'
+}
+
 @user_passes_test(check_permission)
 def cronometro_painel(request):
-    request.session[request.GET['tipo']] = request.GET['action']
+    acao = request.GET['action']
+    request.session[request.GET['tipo']] = acao
+    cronometro_id = request.GET['tipo'].split('cronometro_')[1]
+    cronometro = Cronometro.objects.get(id=cronometro_id)
+    cronometro.status = CRONOMETRO_STATUS[acao]
+    cronometro.save()
     return HttpResponse({})
 
 

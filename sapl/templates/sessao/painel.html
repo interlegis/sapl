@@ -37,7 +37,7 @@
     </div>
 
     <div class="row">
-      <div class="col-md-2"><input size="2" id="cronometro_{{cronometro.id}}" name="{{cronometro.tipo}}" value="" readyonly="true" class="form-control"></div>
+      <div class="col-md-2"><input size="2" id="cronometro_{{cronometro.id}}" name="cronometro_{{cronometro.id}}" value="" readyonly="true" class="form-control"></div>
     </div>
     <br />
 
@@ -127,52 +127,44 @@ $(document).ready(function(){
   let audioAlertFinish = document.getElementById("audio");
 
   {% for cron in cronometros %}
-    cronometro = "cronometro_" + "{{cron.id}}";
+    $('#cronometro_' + "{{cron.id}}").prop('disabled', false);
 
-    $('#' + cronometro).prop('disabled', false);
-
-    cronometroStart = '#' + cronometro + '_Start';
-    cronometroReset = '#' + cronometro + '_Reset';
-
-    duracao = {{cron.duracao_cronometro|duration_to_seconds}};
-    console.log(cronometro, duracao, cronometroStart, cronometroReset);
-
-    $('#' + cronometro).runner({
+    $('#cronometro_' + "{{cron.id}}").runner({
       autostart: false,
       countdown: true,
-      startAt: duracao * 1000,
+      startAt: {{cron.duracao_cronometro|duration_to_seconds}} * 1000,
       stopAt: 0,
       milliseconds: false
     }).on('runnerFinish', function(eventObject, info){
-      $.get('/painel/cronometro', { tipo: cronometro, action: 'stop' } );
+      $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
       audioAlertFinish.play();
-      $(cronometroReset).show();
-      $('#' + cronometro).runner('stop');
-      $(cronometroStart).text('Iniciar');
+      $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
+      $('#cronometro_' + "{{cron.id}}").runner('stop');
+      $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
     })
 
-    $(cronometroStart).click(function() {
-      if ($(cronometroStart).text() == 'Iniciar'){
-        $.get('/painel/cronometro', { tipo: cronometro, action: 'start' } );
+    $('#cronometro_' + "{{cron.id}}" + '_Start').click(function() {
+      if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
+        $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'start' } );
 
-        $(cronometroReset).hide();
-        $('#' + cronometro).runner('start');
-        $(cronometroStart).text('Parar');
+        $('#cronometro_' + "{{cron.id}}" + '_Reset').hide();
+        $('#cronometro_' + "{{cron.id}}").runner('start');
+        $('#cronometro_' + "{{cron.id}}" + '_Start').text('Parar');
       } else{
-        $.get('/painel/cronometro', { tipo: cronometro, action: 'stop' } );
+        $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
 
-        $(cronometroReset).show();
-        $('#' + cronometro).runner('stop');
-        $(cronometroStart).text('Iniciar');
+        $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
+        $('#cronometro_' + "{{cron.id}}").runner('stop');
+        $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
       }
     });
 
-    $(cronometroReset).click(function() {
+    $('#cronometro_' + "{{cron.id}}" + '_Reset').click(function() {
 
-      $.get('/painel/cronometro', { tipo: cronometro, action: 'reset' } );
+      $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'reset' } );
 
-      $('#' + cronometro).runner('stop');
-      $('#' + cronometro).runner('reset');
+      $('#cronometro_' + "{{cron.id}}").runner('stop');
+      $('#cronometro_' + "{{cron.id}}").runner('reset');
     });    
   {% endfor %}
 
