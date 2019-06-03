@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
-from sapl.crud.base import Crud
+from sapl.crud.base import Crud, CrudAux
 from sapl.painel.apps import AppConfig
 from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
 from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
@@ -24,11 +24,12 @@ from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 VotoParlamentar)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
-from .models import Cronometro
+from .models import TipoCronometro, Cronometro
 
 VOTACAO_NOMINAL = 2
 
-CronometroPainelCrud = Crud.build(Cronometro, '')
+CronometroPainelCrud = CrudAux.build(Cronometro, '')
+TipoCronometroCrud = CrudAux.build(TipoCronometro, 'tipo_cronometro')
 
 # FIXME mudar lógica
 

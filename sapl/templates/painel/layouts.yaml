@@ -2,3 +2,7 @@
 Cronometro:
   {% trans 'Cronometro' %}:
   - status:3  data_cronometro:6  tipo
+
+TipoCronometro:
+  {% trans 'Tipo de Cronômetro' %}:
+  - nome
