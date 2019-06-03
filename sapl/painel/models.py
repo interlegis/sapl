@@ -1,6 +1,7 @@
 import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from sapl.utils import YES_NO_CHOICES
 
 
 @reversion.register()
@@ -46,14 +47,23 @@ class Cronometro(models.Model):
         verbose_name=_('Duração do cronômetro'),
         blank=True,
         null=True)
-    tipo = models.CharField(max_length=100, 
+    tipo = models.CharField(
+        max_length=100, 
         verbose_name=_('Tipo Cronômetro'), 
         unique=True)
+    ativo = models.BooleanField(
+        default=False, 
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Ativo?'))
+    ordenacao = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name=_("Ordenação"))
 
     class Meta:
         verbose_name = _('Cronômetro')
         verbose_name_plural = _('Cronômetros')
-        ordering = ['tipo']
+        ordering = ['ordenacao']
 
     def __str__(self):
         return self.tipo

@@ -31,6 +31,7 @@ from sapl.materia.forms import filtra_tramitacao_status
 from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
                                  Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
+from sapl.painel.models import Cronometro
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
@@ -874,6 +875,8 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         if request.user.is_anonymous():
             self.template_name = 'painel/index.html'
 
+        # import ipdb; ipdb.set_trace()
+
         request.session['discurso'] = 'stop'
         request.session['aparte'] = 'stop'
         request.session['ordem'] = 'stop'
@@ -882,14 +885,15 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         return TemplateView.get(self, request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        cronometro_discurso = AppsAppConfig.attr('cronometro_discurso')
-        cronometro_aparte = AppsAppConfig.attr('cronometro_aparte')
-        cronometro_ordem = AppsAppConfig.attr('cronometro_ordem')
-        cronometro_consideracoes = AppsAppConfig.attr(
-            'cronometro_consideracoes')
+        # cronometro_discurso = AppsAppConfig.attr('cronometro_discurso')
+        # cronometro_aparte = AppsAppConfig.attr('cronometro_aparte')
+        # cronometro_ordem = AppsAppConfig.attr('cronometro_ordem')
+        # cronometro_consideracoes = AppsAppConfig.attr(
+        #     'cronometro_consideracoes')
 
-        if (not cronometro_discurso or not cronometro_aparte
-                or not cronometro_ordem or not cronometro_consideracoes):
+        cronometros = Cronometro.objects.all().order_by('ordenacao')
+
+        if not cronometros:
 
             username = self.request.user.username
             self.logger.error('user=' + username + '. Você precisa primeiro configurar os cronômetros'
@@ -899,22 +903,13 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
                 nas Configurações da Aplicação')
             messages.add_message(self.request, messages.ERROR, msg)
 
-        else:
-            cronometro_discurso = cronometro_discurso.seconds
-            cronometro_aparte = cronometro_aparte.seconds
-            cronometro_ordem = cronometro_ordem.seconds
-            cronometro_consideracoes = cronometro_consideracoes.seconds
-
         context = TemplateView.get_context_data(self, **kwargs)
         context.update({
             'head_title': str(_('Painel Plenário')),
             'sessao_id': kwargs['pk'],
             'root_pk': kwargs['pk'],
             'sessaoplenaria': SessaoPlenaria.objects.get(pk=kwargs['pk']),
-            'cronometro_discurso': cronometro_discurso,
-            'cronometro_aparte': cronometro_aparte,
-            'cronometro_ordem': cronometro_ordem,
-            'cronometro_consideracoes': cronometro_consideracoes})
+            'cronometros': cronometros})
 
         return context
 

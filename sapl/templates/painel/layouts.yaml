@@ -1,4 +1,4 @@
 {% load i18n %}
 Cronometro:
   {% trans 'Cronometro' %}:
-  - tipo:6  duracao_cronometro:6
+  - tipo:4  duracao_cronometro:4 ativo:2 ordenacao:2
