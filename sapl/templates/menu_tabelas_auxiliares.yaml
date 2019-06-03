@@ -170,8 +170,8 @@
 - title: {% trans 'Módulo Painel' %}
   css_class: head_title
   children:
-  - title: {% trans 'Tipo de Cronômetro' %}
-    url: sapl.painel:tipocronometro_list
+  - title: {% trans 'Cronômetro' %}
+    url: sapl.painel:cronometro_list
     css_class: btn btn-link
 - title: {% trans 'Módulo LexML' %}
   css_class: head_title

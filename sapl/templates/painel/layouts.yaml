@@ -1,8 +1,4 @@
 {% load i18n %}
 Cronometro:
   {% trans 'Cronometro' %}:
-  - status:3  data_cronometro:6  tipo
-
-TipoCronometro:
-  {% trans 'Tipo de Cronômetro' %}:
-  - nome
+  - tipo:6  duracao_cronometro:6

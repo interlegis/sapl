@@ -24,12 +24,11 @@ from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 VotoParlamentar)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
-from .models import TipoCronometro, Cronometro
+from .models import Cronometro
 
 VOTACAO_NOMINAL = 2
 
 CronometroPainelCrud = CrudAux.build(Cronometro, '')
-TipoCronometroCrud = CrudAux.build(TipoCronometro, 'tipo_cronometro')
 
 # FIXME mudar lógica
 
