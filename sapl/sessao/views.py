@@ -890,11 +890,6 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         return TemplateView.get(self, request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        # cronometro_discurso = AppsAppConfig.attr('cronometro_discurso')
-        # cronometro_aparte = AppsAppConfig.attr('cronometro_aparte')
-        # cronometro_ordem = AppsAppConfig.attr('cronometro_ordem')
-        # cronometro_consideracoes = AppsAppConfig.attr(
-        #     'cronometro_consideracoes')
 
         cronometros = Cronometro.objects.all().order_by('ordenacao')
 

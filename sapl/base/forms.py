@@ -1219,10 +1219,6 @@ class ConfiguracoesAppForm(ModelForm):
                   'texto_articulado_norma',
                   'proposicao_incorporacao_obrigatoria',
                   'protocolo_manual',
-                  'cronometro_discurso',
-                  'cronometro_aparte',
-                  'cronometro_ordem',
-                  'cronometro_consideracoes',
                   'mostrar_brasao_painel',
                   'receber_recibo_proposicao',
                   'assinatura_ata',
@@ -1230,13 +1226,6 @@ class ConfiguracoesAppForm(ModelForm):
                   'escolher_numero_materia_proposicao',
                   'tramitacao_materia',
                   'tramitacao_documento']
-
-    def __init__(self, *args, **kwargs):
-        super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
-        self.fields['cronometro_discurso'].widget.attrs['class'] = 'cronometro'
-        self.fields['cronometro_aparte'].widget.attrs['class'] = 'cronometro'
-        self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
-        self.fields['cronometro_consideracoes'].widget.attrs['class'] = 'cronometro'
 
     def clean_mostrar_brasao_painel(self):
         mostrar_brasao_painel = self.cleaned_data.get(
