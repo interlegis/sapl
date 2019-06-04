@@ -292,7 +292,7 @@ def votante_view(request):
 def painel_view(request, pk):
     context = {'head_title': str(_('Painel Plenário')), 
                'sessao_id': pk, 
-               'cronometros': Cronometro.objects.all().order_by('ordenacao')
+               'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao')
                }
     return render(request, 'painel/index.html', context)
 
@@ -344,7 +344,6 @@ CRONOMETRO_STATUS = {
 @user_passes_test(check_permission)
 def cronometro_painel(request):
     acao = request.GET['action']
-    request.session[request.GET['tipo']] = acao
     cronometro_id = request.GET['tipo'].split('cronometro_')[1]
     cronometro = Cronometro.objects.get(id=cronometro_id)
     cronometro.status = CRONOMETRO_STATUS[acao]
@@ -546,7 +545,7 @@ def get_dados_painel(request, pk):
         'C': 'increment'
     }
 
-    dict_status_cronometros = dict(Cronometro.objects.all().order_by('ordenacao').values_list('id', 'status'))
+    dict_status_cronometros = dict(Cronometro.objects.filter(ativo=True).order_by('ordenacao').values_list('id', 'status'))
 
     for key, value in dict_status_cronometros.items():
         dict_status_cronometros[key] = CRONOMETRO_STATUS[dict_status_cronometros[key]]

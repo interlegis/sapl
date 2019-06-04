@@ -78,7 +78,7 @@
           </div>
 
           <div class="col-md-6 text-center painel">  
-            <h2 class="text-subtitle">Cronômetros</h2>
+            <h2 class="text-subtitle">{% if cronometros|length == 1 %}Cronômetro{% elif cronometros|length > 1%}Cronômetros{% endif %}</h2>
             <div class="text-value">
               {% for cronometro in cronometros %}
                 {{cronometro}}: <span id="cronometro_{{cronometro.id}}"></span><br>

@@ -875,23 +875,16 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         if request.user.is_anonymous():
             self.template_name = 'painel/index.html'
 
-        # request.session['discurso'] = 'stop'
-        # request.session['aparte'] = 'stop'
-        # request.session['ordem'] = 'stop'
-        # request.session['consideracoes'] = 'stop'
-
-        cronometros = Cronometro.objects.all().order_by('ordenacao')
+        cronometros = Cronometro.objects.filter(ativo=True).order_by('ordenacao')
         for cronometro in cronometros:
             cronometro.status = 'S' # Stop
             cronometro.save()
-            k = 'cronometro_' + str(cronometro.id)
-            request.session[k] = 'stop'
 
         return TemplateView.get(self, request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
 
-        cronometros = Cronometro.objects.all().order_by('ordenacao')
+        cronometros = Cronometro.objects.filter(ativo=True).order_by('ordenacao')
 
         if not cronometros:
 
