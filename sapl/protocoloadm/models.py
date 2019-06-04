@@ -57,7 +57,6 @@ class Protocolo(models.Model):
                                            null=False,
                                            choices=RANGE_ANOS,
                                            verbose_name=_('Ano do Protocolo'))
-
     data = models.DateField(null=True, blank=True,
                             verbose_name=_('Data do Protocolo'),
                             help_text=_('Informado manualmente'))
