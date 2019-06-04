@@ -551,7 +551,11 @@ def get_dados_painel(request, pk):
         'C': 'increment'
     }
 
+<<<<<<< HEAD
     dict_status_cronometros = dict(Cronometro.objects.filter(ativo=True).order_by('ordenacao').values_list('id', 'status'))
+=======
+    dict_status_cronometros = dict(Cronometro.objects.all().order_by('ordenacao').values_list('id', 'status'))
+>>>>>>> Cronômetros na tela do painel funcionando
 
     for key, value in dict_status_cronometros.items():
         dict_status_cronometros[key] = CRONOMETRO_STATUS[dict_status_cronometros[key]]
@@ -561,8 +565,11 @@ def get_dados_painel(request, pk):
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
         'sessao_plenaria_hora_inicio': sessao.hora_inicio,
         'cronometros': dict_status_cronometros,
+<<<<<<< HEAD
         'sessao_solene': sessao.tipo.nome == "Solene",
         'tema_solene': sessao.tema_solene,
+=======
+>>>>>>> Cronômetros na tela do painel funcionando
         'status_painel': sessao.painel_aberto,
         'brasao': brasao
     }
