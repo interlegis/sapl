@@ -538,15 +538,24 @@ def get_dados_painel(request, pk):
     if casa and app_config and (bool(casa.logotipo)):
         brasao = casa.logotipo.url \
             if app_config.mostrar_brasao_painel else None
+    
+    CRONOMETRO_STATUS = {
+        'I': 'start',
+        'R': 'reset',
+        'S': 'stop',
+        'C': 'increment'
+    }
+
+    dict_status_cronometros = dict(Cronometro.objects.all().order_by('ordenacao').values_list('id', 'status'))
+
+    for key, value in dict_status_cronometros.items():
+        dict_status_cronometros[key] = CRONOMETRO_STATUS[dict_status_cronometros[key]]
 
     response = {
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
         'sessao_plenaria_hora_inicio': sessao.hora_inicio,
-        'cronometro_aparte': get_cronometro_status(request, 'aparte'),
-        'cronometro_discurso': get_cronometro_status(request, 'discurso'),
-        'cronometro_ordem': get_cronometro_status(request, 'ordem'),
-        'cronometro_consideracoes': get_cronometro_status(request, 'consideracoes'),
+        'cronometros': dict_status_cronometros,
         'status_painel': sessao.painel_aberto,
         'brasao': brasao
     }
