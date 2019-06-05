@@ -672,8 +672,12 @@ class OradorForm(ModelForm):
 class OradorExpedienteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        id_sessao = int(self.initial['id_sessao'])
+        sessao = SessaoPlenaria.objects.get(id=id_sessao)
+        legislatura_vigente = sessao.legislatura
         self.fields['parlamentar'].queryset = \
-        Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(mandato__legislatura=legislatura_vigente, 
+                                       ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()
@@ -703,8 +707,12 @@ class OradorExpedienteForm(ModelForm):
 class OradorOrdemDiaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        id_sessao = int(self.initial['id_sessao'])
+        sessao = SessaoPlenaria.objects.get(id=id_sessao)
+        legislatura_vigente = sessao.legislatura
         self.fields['parlamentar'].queryset = \
-        Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(mandato__legislatura=legislatura_vigente, 
+                                       ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorOrdemDiaForm, self).clean()
