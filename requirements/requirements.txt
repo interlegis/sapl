@@ -45,3 +45,4 @@ channels==2.1.7
 
 git+git://github.com/interlegis/trml2pdf.git
 git+git://github.com/interlegis/django-admin-bootstrapped
+cryptography==2.7
