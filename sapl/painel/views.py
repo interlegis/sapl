@@ -24,11 +24,17 @@ from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 VotoParlamentar)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
+from .forms import CronometroForm
 from .models import Cronometro
 
 VOTACAO_NOMINAL = 2
 
-CronometroPainelCrud = CrudAux.build(Cronometro, '')
+class CronometroPainelCrud(CrudAux):
+    model = Cronometro
+
+    class BaseMixin(CrudAux.BaseMixin):
+        form_class = CronometroForm
+
 
 # FIXME mudar lógica
 

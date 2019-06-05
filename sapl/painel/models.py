@@ -44,9 +44,7 @@ class Cronometro(models.Model):
         choices=CRONOMETRO_STATUS,
         default='S')
     duracao_cronometro = models.DurationField(
-        verbose_name=_('Duração do cronômetro'),
-        blank=True,
-        null=True)
+        verbose_name=_('Duração do cronômetro'))
     tipo = models.CharField(
         max_length=100, 
         verbose_name=_('Tipo Cronômetro'), 
