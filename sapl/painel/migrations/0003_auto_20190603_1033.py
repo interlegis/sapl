@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='cronometro',
             name='duracao_cronometro',
-            field=models.DurationField(blank=True, null=True, verbose_name='Duração do cronômetro'),
+            field=models.DurationField(verbose_name='Duração do cronômetro'),
         ),
         migrations.AddField(
             model_name='cronometro',

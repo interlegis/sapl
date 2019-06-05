@@ -9,10 +9,9 @@ def create_default_cronometros(apps, schema_editor):
     tipos_default = ['Cronômetro do Discurso', 'Cronômetro do Aparte', 
                      'Cronômetro da Ordem', 'Cronômetro de Considerações Finais']
     Cronometro = apps.get_model('painel', 'Cronometro')
-    cont = 1
-    for tipo in tipos_default:
-        Cronometro.objects.get_or_create(tipo=tipo, duracao_cronometro='00:30:00', status='S', ativo=True, ordenacao=cont)
-        cont += 1
+    
+    for i,tipo in enumerate(tipos_default):
+        Cronometro.objects.get_or_create(tipo=tipo, duracao_cronometro='00:05:00', status='S', ativo=True, ordenacao=i+1)
 
 
 class Migration(migrations.Migration):
