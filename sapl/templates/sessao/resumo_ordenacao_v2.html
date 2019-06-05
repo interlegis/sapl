@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+<h1 class="page-header">Ordenação do Resumo</h1>
+{% endblock %}
+
+{% block base_content %}
+
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+  $( function() {
+    $( "#sortable" ).sortable();
+    $( "#sortable" ).disableSelection();
+  } );
+  </script>
+
+<script>
+$(function() {
+        let revalue = () => {
+            let aux = 0;
+            $("#sortable li input").each((index,obj) => {
+                obj.name = aux;
+                aux++;
+            })
+            $("#form").submit()
+        }
+
+        document.getElementById("submit").onclick = revalue
+}); 
+</script>
+
+
+<form id="form" method="post">
+    {% csrf_token %}
+    <div class="container" style="margin-top20px; padding:30px;background-color: #444444; border-radius: 15px;">
+      <div class="row">
+        <div class="col-sm-1">
+        <h3 style="color:white;margin-bottom: 20px">Ordem</h3>
+        <ul class="list-group">
+        {% for item in ordenacao %}
+            <li class="list-group-item list-group-item-dark">
+                {{forloop.counter}}º
+            </li>
+        {% endfor %}
+        <ul>
+        </div>
+        <div class="col-sm">
+            <h3 style="color:white; margin-bottom: 20px;">Tópico</h3>
+            <ul class="list-group" id="sortable">
+                {% for item in ordenacao %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center ">
+                        <input type="hidden" name="{{forloop.counter0}}" value="{{item}}">
+                        {{item.1}}
+                        <spam class="ui-icon ui-icon-arrowthick-2-n-s"></spam>
+                    </li>
+                {% endfor %}
+            <ul>      
+        </div>
+      </div>
+    </div>
+    <a class="btn btn-primary" id="submit">Salvar</a>
+</form>
+
+
+{% endblock %}

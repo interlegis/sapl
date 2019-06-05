@@ -1,6 +1,6 @@
-
 import logging
-from re import sub
+from re import sub, search
+import ast
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -22,6 +22,8 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
+from django.shortcuts import render
+
 
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -1317,6 +1319,55 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
     def form_valid(self, form):
         form.save()
         return HttpResponseRedirect(self.get_success_url())
+
+def resumo_ordenacao(request):
+    def get_tupla(tupla_key):
+        for tupla in ORDENACAO_RESUMO:
+            if tupla[0] == tupla_key:
+                return tupla
+    ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
+
+    initial = [
+        get_tupla(ordenacao.primeiro),
+        get_tupla(ordenacao.segundo),
+        get_tupla(ordenacao.terceiro),
+        get_tupla(ordenacao.quarto),
+        get_tupla(ordenacao.quinto),
+        get_tupla(ordenacao.sexto),
+        get_tupla(ordenacao.setimo),
+        get_tupla(ordenacao.oitavo),
+        get_tupla(ordenacao.nono),
+        get_tupla(ordenacao.decimo),
+        get_tupla(ordenacao.decimo_primeiro),
+        get_tupla(ordenacao.decimo_segundo),
+        get_tupla(ordenacao.decimo_terceiro),
+        get_tupla(ordenacao.decimo_quarto)
+    ]
+
+    context = {
+        'ordenacao': initial
+    }
+    if request.method == 'GET':
+        return render(request, 'sessao/resumo_ordenacao_v2.html', context)
+    elif request.method == 'POST':
+        
+        ordenacao.primeiro = ast.literal_eval(request.POST['0'])[0]
+        ordenacao.segundo = ast.literal_eval(request.POST['1'])[0]
+        ordenacao.terceiro = ast.literal_eval(request.POST['2'])[0]
+        ordenacao.quarto = ast.literal_eval(request.POST['3'])[0]
+        ordenacao.quinto = ast.literal_eval(request.POST['4'])[0]
+        ordenacao.sexto = ast.literal_eval(request.POST['5'])[0]
+        ordenacao.setimo = ast.literal_eval(request.POST['6'])[0]
+        ordenacao.oitavo = ast.literal_eval(request.POST['7'])[0]
+        ordenacao.nono = ast.literal_eval(request.POST['8'])[0]
+        ordenacao.decimo = ast.literal_eval(request.POST['9'])[0]
+        ordenacao.decimo_primeiro =ast.literal_eval(request.POST['10'])[0]
+        ordenacao.decimo_segundo = ast.literal_eval(request.POST['11'])[0]
+        ordenacao.decimo_terceiro = ast.literal_eval(request.POST['12'])[0]
+        ordenacao.decimo_quarto = ast.literal_eval(request.POST['13'])[0]
+        ordenacao.save()
+
+        return render(request, 'sessao/resumo_ordenação_v2.html', context)
 
 
 def get_turno(turno):

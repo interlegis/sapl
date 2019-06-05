@@ -33,7 +33,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                renumerar_materias_expediente,
                                sessao_legislativa_legislatura_ajax,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
-                               VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView)
+                               VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
+                               resumo_ordenacao)
 
 from .apps import AppConfig
 
@@ -101,6 +102,11 @@ urlpatterns = [
     url(r'^sistema/resumo-ordenacao/',
         ResumoOrdenacaoView.as_view(),
         name='resumo_ordenacao'),
+    
+    url(r'^sistema/resumo-ordenacao_v2/',
+        resumo_ordenacao,
+        name='resumo_ordenacao_v2'),
+    
     url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias-expediente/',
         AdicionarVariasMateriasExpediente.as_view(),
         name='adicionar_varias_materias_expediente'),
