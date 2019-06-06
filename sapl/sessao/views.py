@@ -42,7 +42,7 @@ from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
-                    PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
+                    PresencaForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm, RetiradaPautaForm, OradorOrdemDiaForm)
 from .models import (Bancada, CargoBancada, CargoMesa,
@@ -1281,45 +1281,6 @@ def remove_parlamentar_composicao(request):
                     'Selecione algum parlamentar para ser excluido!', 0)})
 
 
-class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
-    template_name = 'sessao/resumo_ordenacao.html'
-    form_class = ResumoOrdenacaoForm
-    permission_required = {'sessao.change_resumoordenacao'}
-
-    def get_tupla(self, tupla_key):
-        for tupla in ORDENACAO_RESUMO:
-            if tupla[0] == tupla_key:
-                return tupla
-
-    def get_initial(self):
-        ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
-
-        initial = {
-            'primeiro': self.get_tupla(ordenacao.primeiro),
-            'segundo': self.get_tupla(ordenacao.segundo),
-            'terceiro': self.get_tupla(ordenacao.terceiro),
-            'quarto': self.get_tupla(ordenacao.quarto),
-            'quinto': self.get_tupla(ordenacao.quinto),
-            'sexto': self.get_tupla(ordenacao.sexto),
-            'setimo': self.get_tupla(ordenacao.setimo),
-            'oitavo': self.get_tupla(ordenacao.oitavo),
-            'nono': self.get_tupla(ordenacao.nono),
-            'decimo': self.get_tupla(ordenacao.decimo),
-            'decimo_primeiro': self.get_tupla(ordenacao.decimo_primeiro),
-            'decimo_segundo': self.get_tupla(ordenacao.decimo_segundo),
-            'decimo_terceiro': self.get_tupla(ordenacao.decimo_terceiro),
-            'decimo_quarto': self.get_tupla(ordenacao.decimo_quarto)
-        }
-
-        return initial
-
-    def get_success_url(self):
-        return reverse('sapl.base:sistema')
-
-    def form_valid(self, form):
-        form.save()
-        return HttpResponseRedirect(self.get_success_url())
-
 def resumo_ordenacao(request):
     def get_tupla(tupla_key):
         for tupla in ORDENACAO_RESUMO:
@@ -1348,7 +1309,7 @@ def resumo_ordenacao(request):
         'ordenacao': initial
     }
     if request.method == 'GET':
-        return render(request, 'sessao/resumo_ordenacao_v2.html', context)
+        return render(request, 'sessao/resumo_ordenacao.html', context)
     elif request.method == 'POST':        
         ordenacao.primeiro = ast.literal_eval(request.POST['0'])[0]
         ordenacao.segundo = ast.literal_eval(request.POST['1'])[0]
@@ -1370,7 +1331,7 @@ def resumo_ordenacao(request):
         messages.add_message(request, messages.SUCCESS, msg)
 
         return HttpResponseRedirect(reverse(
-                    'sapl.sessao:resumo_ordenacao_v2'))
+                    'sapl.sessao:resumo_ordenacao'))
 
 
 def get_turno(turno):
