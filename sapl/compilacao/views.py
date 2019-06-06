@@ -2147,8 +2147,11 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
         return self.json_add_next(context, local_add='json_add_in')
 
     def json_add_next(
-            self,
-            context, local_add='json_add_next', create_auto_inserts=True):
+        self,
+        context, local_add='json_add_next',
+        create_auto_inserts=True,
+        registro_inclusao=False
+    ):
 
         try:
 
@@ -2249,7 +2252,9 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
 
             dp.rotulo = dp.rotulo_padrao()
             dp.ordem = ordem
-            dp.incrementar_irmaos(variacao, [local_add, ], force=False)
+
+            if not registro_inclusao:
+                dp.incrementar_irmaos(variacao, [local_add, ], force=False)
 
             dp.publicacao = pub_last
             dp.save()
@@ -2380,9 +2385,10 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                     filho.save()
 
             ''' Renumerar dispositivos de
-            contagem continua, caso a inserção seja uma articulação'''
+            contagem continua, caso a inserção seja uma articulação.
+            Desde que não seja um registro de inclusão através de compilação'''
 
-            if dp.nivel == 0:
+            if dp.nivel == 0 and not registro_inclusao:
 
                 proxima_articulacao = dp.select_next_root()
 
@@ -2522,7 +2528,8 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
 
         data = self.json_add_next(context,
                                   local_add=local_add,
-                                  create_auto_inserts=True)
+                                  create_auto_inserts=True,
+                                  registro_inclusao=True)
 
         if data and data['pk']:
 
@@ -2554,6 +2561,11 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
         else:
             data.update({'pk': bloco_alteracao.pk,
                          'pai': [bloco_alteracao.pk, ]})
+            self.set_message(
+                data, 'danger',
+                _('Não é possível incluir seu Registro de Inclusão, '
+                  'verifique a opção escolhida e as variações possíveis!'),
+                time=10000)
 
         return data
 
