@@ -1349,8 +1349,7 @@ def resumo_ordenacao(request):
     }
     if request.method == 'GET':
         return render(request, 'sessao/resumo_ordenacao_v2.html', context)
-    elif request.method == 'POST':
-        
+    elif request.method == 'POST':        
         ordenacao.primeiro = ast.literal_eval(request.POST['0'])[0]
         ordenacao.segundo = ast.literal_eval(request.POST['1'])[0]
         ordenacao.terceiro = ast.literal_eval(request.POST['2'])[0]
@@ -1367,7 +1366,11 @@ def resumo_ordenacao(request):
         ordenacao.decimo_quarto = ast.literal_eval(request.POST['13'])[0]
         ordenacao.save()
 
-        return render(request, 'sessao/resumo_ordenação_v2.html', context)
+        msg = _('Ordem salva com sucesso.')
+        messages.add_message(request, messages.SUCCESS, msg)
+
+        return HttpResponseRedirect(reverse(
+                    'sapl.sessao:resumo_ordenacao_v2'))
 
 
 def get_turno(turno):
