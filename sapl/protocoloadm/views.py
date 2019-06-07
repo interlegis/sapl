@@ -1455,7 +1455,7 @@ class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
 class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteAdmFilterSet
     template_name = 'protocoloadm/em_lote/tramitacaoadm.html'
-    permission_required = ('materia.add_tramitacao', )
+    permission_required = ('protocoloadm.add_tramitacaoadministrativo', )
 
     primeira_tramitacao = True
 
