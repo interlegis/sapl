@@ -73,9 +73,23 @@ class Bancada(models.Model):
 
 @reversion.register()
 class TipoSessaoPlenaria(models.Model):
-    nome = models.CharField(max_length=30, verbose_name=_('Tipo'))
+
+    TIPO_NUMERACAO_CHOICES = Choices(
+        (1, 'anual', 'Anual'),
+        (2, 'mensal', 'Mensal'),
+        (3, 'quizenal', 'Quinzenal'),
+        (10, 'sessao_legislativa', 'Sessão Legislativa'),
+        (11, 'legislatura', 'Legislatura'),
+        (99, 'unica', 'Numeração Única'),
+    )
+
+    nome = models.CharField(max_length=30, verbose_name=_('Descrição do Tipo'))
     quorum_minimo = models.PositiveIntegerField(
         verbose_name=_('Quórum mínimo'))
+
+    tipo_numeracao = models.PositiveIntegerField(
+        verbose_name=_('Tipo de Numeração'),
+        choices=TIPO_NUMERACAO_CHOICES, default=1)
 
     class Meta:
         verbose_name = _('Tipo de Sessão Plenária')
