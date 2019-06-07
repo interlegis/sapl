@@ -129,9 +129,11 @@ def test_valida_campos_obrigatorios_autoria_form():
 
     errors = form.errors
 
-    assert errors['autor'] == [_('Este campo é obrigatório.')]
+    assert len(errors) == 3
 
-    assert len(errors) == 1
+    assert errors['tipo_autor'] == [_('Este campo é obrigatório.')]
+    assert errors['autor'] == [_('Este campo é obrigatório.')]
+    assert errors['primeiro_autor'] == [_('Este campo é obrigatório.')]
 
 
 @pytest.mark.django_db(transaction=False)
@@ -142,9 +144,12 @@ def test_valida_campos_obrigatorios_autoria_multicreate_form():
 
     errors = form.errors
 
-    assert errors['__all__'] == [_('Ao menos um autor deve ser selecionado para inclusão')]
+    assert len(errors) == 4
 
-    assert len(errors) == 1
+    assert errors['__all__'] == [_('Ao menos um autor deve ser selecionado para inclusão')]
+    assert errors['tipo_autor'] == [_('Este campo é obrigatório.')]
+    assert errors['autor'] == [_('Este campo é obrigatório.')]
+    assert errors['primeiro_autor'] == [_('Este campo é obrigatório.')]
 
 
 @pytest.mark.django_db(transaction=False)

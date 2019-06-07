@@ -243,6 +243,7 @@ def test_autoria_submit(admin_client):
         reverse('sapl.materia:autoria_create',
                 kwargs={'pk': materia_principal.pk}),
         {'autor': autor.pk,
+         'tipo_autor': tipo_autor.pk,
          'primeiro_autor': True,
          'materia_id': materia_principal.pk, },
         follow=True)
