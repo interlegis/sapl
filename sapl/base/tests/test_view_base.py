@@ -3,17 +3,23 @@ from model_mommy import mommy
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from sapl.base.models import Autor, TipoAutor
+from sapl.comissoes.models import Comissao, TipoComissao
+from sapl.sessao.models import Bancada
 from sapl.protocoloadm.models import Protocolo
 from sapl.materia.models import (TipoMateriaLegislativa, RegimeTramitacao,
                                  MateriaLegislativa)
 from sapl.parlamentares.models import (Parlamentar, Partido, Filiacao,
                                        Legislatura, Mandato)
+
 from sapl.base.views import (protocolos_duplicados, protocolos_com_materias,
                              materias_protocolo_inexistente,
                              filiacoes_sem_data_filiacao,
                              mandato_sem_data_inicio, parlamentares_duplicados,
                              parlamentares_mandatos_intersecao,
-                             parlamentares_filiacoes_intersecao)
+                             parlamentares_filiacoes_intersecao,
+                             autores_duplicados,
+                             bancada_comissao_autor_externo, legislatura_infindavel)
 
 
 @pytest.mark.django_db(transaction=False)
@@ -57,11 +63,11 @@ def test_lista_protocolos_com_materias():
 
         tipo_materia = mommy.make(
                 TipoMateriaLegislativa,
-                descricao="Tipo_Teste"
+                descricao="Tipo_Materia_Teste"
         )
         regime_tramitacao = mommy.make(
                 RegimeTramitacao,
-                descricao="Regime_Teste"
+                descricao="Regime_Tramitacao_Teste"
         )
         mommy.make(
                 MateriaLegislativa,
@@ -100,11 +106,11 @@ def test_lista_materias_protocolo_inexistente():
 
         tipo_materia = mommy.make(
                 TipoMateriaLegislativa,
-                descricao="Tipo_Teste"
+                descricao="Tipo_Materia_Teste"
         )
         regime_tramitacao = mommy.make(
                 RegimeTramitacao,
-                descricao="Regime_Teste"
+                descricao="Regime_Tramitacao_Teste"
         )
         mommy.make(
                 MateriaLegislativa,
@@ -135,7 +141,7 @@ def test_lista_materias_protocolo_inexistente():
 def test_lista_mandatos_sem_data_inicio():
         parlamentar = mommy.make(
                 Parlamentar,
-                nome_completo="Nome_Teste",
+                nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
@@ -169,19 +175,19 @@ def test_lista_mandatos_sem_data_inicio():
 def test_lista_parlamentares_duplicados():
         mommy.make(
                 Parlamentar,
-                nome_completo="Nome_Teste",
+                nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
         mommy.make(
                 Parlamentar,
-                nome_completo="Nome_Teste",
+                nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
         mommy.make(
                 Parlamentar,
-                nome_completo="Nome_Teste-1",
+                nome_completo="Nome_Completo_Parlamentar_Teste-1",
                 nome_parlamentar="Nome_Parlamentar_Teste-1",
                 sexo='M'
         )
@@ -207,13 +213,13 @@ def test_lista_parlamentares_mandatos_intersecao():
         )
         parlamentar_a = mommy.make(
                 Parlamentar,
-                nome_completo="Nome_Teste",
+                nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
         parlamentar_b = mommy.make(
                 Parlamentar,
-                nome_completo="Nome_Teste-1",
+                nome_completo="Nome_Completo_Parlamentar_Teste-1",
                 nome_parlamentar="Nome_Parlamentar_Teste-1",
                 sexo='M'
         )
@@ -256,17 +262,17 @@ def test_lista_parlamentares_filiacoes_intersecao():
         partido = mommy.make(
                 Partido,
                 sigla="ST",
-                nome="Nome_Teste"
+                nome="Nome_Partido_Teste"
         )
         parlamentar_a = mommy.make(
                 Parlamentar,
-                nome_completo="Nome_Teste",
+                nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
         parlamentar_b = mommy.make(
                 Parlamentar,
-                nome_completo="Nome_Teste-1",
+                nome_completo="Nome_Completo_Parlamentar_Teste-1",
                 nome_parlamentar="Nome_Parlamentar_Teste-1",
                 sexo='M'
         )
@@ -303,6 +309,115 @@ def test_lista_parlamentares_filiacoes_intersecao():
 
         assert len(lista_parlamentares) == 1
         assert lista_parlamentares == [(parlamentar_a, filiacao_b, filiacao_a)]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_lista_autores_duplicados():
+        tipo_autor = mommy.make(
+                TipoAutor,
+                descricao="Tipo_Autor_Teste"
+        )
+
+        mommy.make(
+                Autor,
+                tipo=tipo_autor,
+                nome="Nome_Autor_Teste"
+        )
+        mommy.make(
+                Autor,
+                tipo=tipo_autor,
+                nome="Nome_Autor_Teste"
+        )
+        mommy.make(
+                Autor,
+                tipo=tipo_autor,
+                nome="Nome_Autor_Teste-1"
+        )
+
+        lista_autores_duplicados = autores_duplicados()
+
+        assert len(lista_autores_duplicados) == 1
+        assert lista_autores_duplicados[0]['count'] == 2
+        assert lista_autores_duplicados[0]['nome'] == "Nome_Autor_Teste"
+
+
+@pytest.mark.django_db(transaction=False)
+def test_lista_bancada_comissao_autor_externo():
+        tipo_autor = mommy.make(
+                TipoAutor,
+                descricao="Tipo_Autor_Teste"
+        )
+        tipo_autor_externo = mommy.make(
+                TipoAutor,
+                descricao="Externo"
+        )
+
+        legislatura = mommy.make(
+                Legislatura,
+                numero=1,
+                data_inicio='2012-01-03',
+                data_fim='2013-01-02',
+                data_eleicao='2011-10-04'
+        )
+
+        bancada_a = mommy.make(
+                Bancada,
+                legislatura=legislatura,
+                nome="Bancada_Teste",
+                data_criacao='2012-01-08',
+        )
+        bancada_a.autor.create(
+                nome="Nome_Autor_Teste",
+                tipo=tipo_autor
+        )
+
+        bancada_b = mommy.make(
+                Bancada,
+                legislatura=legislatura,
+                nome="Bancada_Teste-1",
+                data_criacao='2012-02-02'
+        )
+        autor_bancada_b = bancada_b.autor.create(
+                nome="Nome_Autor_Externo_Teste",
+                tipo=tipo_autor_externo
+        )
+
+        tipo_comissao = mommy.make(
+                TipoComissao,
+                nome="Tipo_Comissao_Teste",
+                natureza='T',
+                sigla="TCT"
+        )
+
+        comissao_a = mommy.make(
+                Comissao,
+                nome="Comissao_Teste",
+                sigla="CT",
+                data_criacao='2012-03-08',
+        )
+        comissao_a.autor.create(
+                nome="Nome_Autor_Teste",
+                tipo=tipo_autor
+        )
+
+        comissao_b = mommy.make(
+                Comissao,
+                nome="Comissao_Teste-1",
+                sigla="CT1",
+                data_criacao='2012-04-01',
+        )
+        autor_comissao_b = comissao_b.autor.create(
+                nome="Nome_Autor_Externo_Teste",
+                tipo=tipo_autor_externo
+        )
+
+        lista_bancada_comissao = bancada_comissao_autor_externo()
+
+        assert len(lista_bancada_comissao) == 2
+        assert lista_bancada_comissao[0][0:2] == (autor_bancada_b, bancada_b)
+        assert lista_bancada_comissao[0][2:4] == ('Bancada', 'sistema/bancada')
+        assert lista_bancada_comissao[1][0:2] == (autor_comissao_b, comissao_b)
+        assert lista_bancada_comissao[1][2:4] == ('Comissão', 'comissao')
 
 
 @pytest.mark.django_db(transaction=False)

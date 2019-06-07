@@ -18,7 +18,7 @@
           {% for quantidade, parlamentar in parlamentares_duplicados %}
             <tr>
               <td>
-                <a href="{% url 'sapl.parlamentares:pesquisar_parlamentar' %}?nome_parlamentar={{parlamentar}}">{{ parlamentar }}</a>
+                <a href="{% url 'sapl.parlamentares:pesquisar_parlamentar' %}?nome_parlamentar={{ parlamentar }}">{{ parlamentar }}</a>
               </td>
               <td>{{ quantidade }}</td>
             </tr>

@@ -21,8 +21,8 @@
               <td>
                 <a href="{% url 'sapl.parlamentares:mandato_list' parlamentar.pk %}">{{ parlamentar }}</a>
               </td>
-              <td>{{ mandato_a.legislatura}}</br>{{mandato_a.data_inicio_mandato|date:"d/m/Y"}} - {{mandato_a.data_fim_mandato|date:"d/m/Y"}}</td>
-              <td>{{ mandato_b.legislatura }}</br>{{mandato_b.data_inicio_mandato|date:"d/m/Y"}} - {{mandato_b.data_fim_mandato|date:"d/m/Y"}}</td>
+              <td>{{ mandato_a.legislatura }}</br>{{ mandato_a.data_inicio_mandato|date:"d/m/Y" }} - {{ mandato_a.data_fim_mandato|date:"d/m/Y" }}</td>
+              <td>{{ mandato_b.legislatura }}</br>{{ mandato_b.data_inicio_mandato|date:"d/m/Y" }} - {{ mandato_b.data_fim_mandato|date:"d/m/Y" }}</td>
             </tr>
           {% endfor %}
         </tbody>
