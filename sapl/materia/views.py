@@ -1432,6 +1432,7 @@ class AutoriaCrud(MasterDetailCrud):
             materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
             initial['data_relativa'] = materia.data_apresentacao
             initial['autor'] = []
+            initial['materia'] = materia
             return initial
 
     class UpdateView(LocalBaseMixin, MasterDetailCrud.UpdateView):
@@ -1441,6 +1442,7 @@ class AutoriaCrud(MasterDetailCrud):
             initial.update({
                 'data_relativa': self.object.materia.data_apresentacao,
                 'tipo_autor': self.object.autor.tipo.id,
+                'materia': self.object.materia
             })
             return initial
 
@@ -1480,8 +1482,9 @@ class AutoriaMultiCreateView(PermissionRequiredForAppCrudMixin, FormView):
 
     def form_valid(self, form):
         autores_selecionados = form.cleaned_data['autor']
+        primeiro_autor = form.cleaned_data['primeiro_autor']
         for autor in autores_selecionados:
-            Autoria.objects.create(materia=self.materia, autor=autor)
+            Autoria.objects.create(materia=self.materia, autor=autor, primeiro_autor=primeiro_autor)
 
         return FormView.form_valid(self, form)
 
