@@ -14,12 +14,11 @@ from sapl.parlamentares.models import (Parlamentar, Partido, Filiacao,
 
 from sapl.base.views import (protocolos_duplicados, protocolos_com_materias,
                              materias_protocolo_inexistente,
-                             filiacoes_sem_data_filiacao,
                              mandato_sem_data_inicio, parlamentares_duplicados,
                              parlamentares_mandatos_intersecao,
                              parlamentares_filiacoes_intersecao,
                              autores_duplicados,
-                             bancada_comissao_autor_externo, legislatura_infindavel)
+                             bancada_comissao_autor_externo)
 
 
 @pytest.mark.django_db(transaction=False)
