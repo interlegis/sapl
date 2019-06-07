@@ -1181,8 +1181,10 @@ class AutoriaForm(ModelForm):
         super(AutoriaForm, self).__init__(*args, **kwargs)
 
         self.fields['primeiro_autor'].required = True
-        materia = kwargs['initial']['materia']
-        self.fields['primeiro_autor'].initial = Autoria.objects.filter(materia=materia).count() == 0
+
+        if 'initial' in kwargs and 'materia' in kwargs['initial']:
+            materia = kwargs['initial']['materia']
+            self.fields['primeiro_autor'].initial = Autoria.objects.filter(materia=materia).count() == 0
 
         row1 = to_row([('tipo_autor', 4),
                        ('autor', 4),
@@ -1251,7 +1253,8 @@ class AutoriaMultiCreateForm(Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['primeiro_autor'].initial = kwargs['initial']['autores'].count() == 0
+        if 'initial' in kwargs and 'autores' in kwargs['initial']:
+            self.fields['primeiro_autor'].initial = kwargs['initial']['autores'].count() == 0
         
         row1 = to_row([('tipo_autor', 10), ('primeiro_autor', 2)])
 
