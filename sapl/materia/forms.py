@@ -1168,7 +1168,7 @@ class DespachoInicialForm(ModelForm):
 class AutoriaForm(ModelForm):
 
     tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
-                                  required=False,
+                                  required=True,
                                   queryset=TipoAutor.objects.all(),
                                   empty_label=_('Selecione'),)
 
@@ -1179,6 +1179,12 @@ class AutoriaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AutoriaForm, self).__init__(*args, **kwargs)
+
+        self.fields['primeiro_autor'].required = True
+
+        if 'initial' in kwargs and 'materia' in kwargs['initial']:
+            materia = kwargs['initial']['materia']
+            self.fields['primeiro_autor'].initial = Autoria.objects.filter(materia=materia).count() == 0
 
         row1 = to_row([('tipo_autor', 4),
                        ('autor', 4),
@@ -1220,7 +1226,7 @@ class AutoriaMultiCreateForm(Form):
     logger = logging.getLogger(__name__)
 
     tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
-                                  required=False,
+                                  required=True,
                                   queryset=TipoAutor.objects.all(),
                                   empty_label=_('Selecione'),)
 
@@ -1230,7 +1236,7 @@ class AutoriaMultiCreateForm(Form):
     autor = ModelMultipleChoiceField(
         queryset=Autor.objects.all(),
         label=_('Possiveis Autores'),
-        required=False,
+        required=True,
         widget=CheckboxSelectMultiple)
 
     autores = ModelMultipleChoiceField(
@@ -1238,10 +1244,19 @@ class AutoriaMultiCreateForm(Form):
         required=False,
         widget=HiddenInput)
 
+    primeiro_autor = forms.ChoiceField(
+        required=True,
+        choices=YES_NO_CHOICES,
+        label="Primeiro Autor?"
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        row1 = to_row([('tipo_autor', 12), ])
+        if 'initial' in kwargs and 'autores' in kwargs['initial']:
+            self.fields['primeiro_autor'].initial = kwargs['initial']['autores'].count() == 0
+        
+        row1 = to_row([('tipo_autor', 10), ('primeiro_autor', 2)])
 
         row2 = to_row([('autor', 12), ])
 
