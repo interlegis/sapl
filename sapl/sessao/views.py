@@ -1280,12 +1280,12 @@ def remove_parlamentar_composicao(request):
                 {'msg': (
                     'Selecione algum parlamentar para ser excluido!', 0)})
 
-
-def resumo_ordenacao(request):
-    def get_tupla(tupla_key):
+def get_tupla(tupla_key):
         for tupla in ORDENACAO_RESUMO:
             if tupla[0] == tupla_key:
                 return tupla
+
+def resumo_ordenacao(request):
     ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
 
     initial = [
