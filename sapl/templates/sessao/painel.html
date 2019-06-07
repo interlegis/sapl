@@ -33,7 +33,7 @@
   {% for cronometro in cronometros %}
 
     <div class="row">
-      <div class="col-md-12 mb-2"><h3>{{cronometro}}</h3></div>
+      <div class="col-md-12 mb-2"><h3><a href="{% url 'sapl.painel:cronometro_detail' cronometro.id %}">{{cronometro}}</a></h3></div>
     </div>
 
     <div class="row">
