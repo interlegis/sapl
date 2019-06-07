@@ -1,7 +1,7 @@
 {% load i18n %}
 TipoSessaoPlenaria:
   {% trans 'Tipo de Sessão Plenária' %}:
-  - nome  quorum_minimo
+  - nome  quorum_minimo tipo_numeracao
 
 SessaoPlenaria:
   {% trans 'Dados Básicos' %}:
