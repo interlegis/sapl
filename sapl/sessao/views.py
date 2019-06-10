@@ -93,6 +93,7 @@ def reordernar_materias_ordem(request, pk):
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
+
 def renumerar_materias_ordem(request, pk):
     ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
 
@@ -103,6 +104,7 @@ def renumerar_materias_ordem(request, pk):
     return HttpResponseRedirect(
         reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
 
+
 def renumerar_materias_expediente(request, pk):
     expedientes = ExpedienteMateria.objects.filter(sessao_plenaria_id=pk)
 
@@ -112,6 +114,7 @@ def renumerar_materias_expediente(request, pk):
 
     return HttpResponseRedirect(
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
+
 
 def verifica_presenca(request, model, spk):
     logger = logging.getLogger(__name__)
@@ -595,7 +598,6 @@ class OradorCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'parlamentar']
 
-
     class CreateView(MasterDetailCrud.CreateView):
 
         form_class = OradorForm
@@ -607,7 +609,6 @@ class OradorCrud(MasterDetailCrud):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
 
-
     class UpdateView(MasterDetailCrud.UpdateView):
 
         form_class = OradorForm
@@ -615,7 +616,7 @@ class OradorCrud(MasterDetailCrud):
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
-            initial.update({'numero':self.object.numero_ordem})
+            initial.update({'numero': self.object.numero_ordem})
 
             return initial
 
@@ -677,11 +678,24 @@ class BancadaCrud(CrudAux):
             return reverse('sapl.sessao:bancada_list')
 
 
-def recuperar_numero_sessao(request):
+def recuperar_numero_sessao_view(request):
     try:
+        tipo = TipoSessaoPlenaria.objects.get(pk=request.GET.get('tipo', '0'))
+        sl = request.GET.get('sessao_legislativa', '0')
+        l = request.GET.get('legislatura', '0')
+        data = request.GET.get('data_inicio', timezone.now())
+
+        if isinstance(data, str):
+            if data:
+                data = timezone.datetime.strptime(data, '%d/%m/%Y').date()
+            else:
+                data = timezone.now().date()
+
         sessao = SessaoPlenaria.objects.filter(
-            tipo__pk=request.GET['tipo'],
-            sessao_legislativa=request.GET['sessao_legislativa']).last()
+            tipo.queryset_tipo_numeracao(
+                l, sl, data
+            )).last()
+
     except ObjectDoesNotExist:
         numero = 1
     else:
@@ -1066,7 +1080,6 @@ class ListMateriaOrdemDiaView(FormMixin, DetailView):
         return self.get(self, request, args, kwargs)
 
 
-
 class MesaView(FormMixin, DetailView):
     template_name = 'sessao/mesa.html'
     form_class = MesaForm
@@ -1341,7 +1354,7 @@ def get_identificação_basica(sessao_plenaria):
         _('Encerramento: %(encerramento)s %(hora_fim)s') % {
             'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim}
     ],
-    'sessaoplenaria': sessao_plenaria})
+        'sessaoplenaria': sessao_plenaria})
 
 
 def get_conteudo_multimidia(sessao_plenaria):
@@ -1360,7 +1373,8 @@ def get_conteudo_multimidia(sessao_plenaria):
 
 
 def get_mesa_diretora(sessao_plenaria):
-    mesa = IntegranteMesa.objects.filter(sessao_plenaria=sessao_plenaria).order_by('cargo_id')
+    mesa = IntegranteMesa.objects.filter(
+        sessao_plenaria=sessao_plenaria).order_by('cargo_id')
     integrantes = [{'parlamentar': m.parlamentar,
                     'cargo': m.cargo} for m in mesa]
     return {'mesa': integrantes}
@@ -1369,8 +1383,8 @@ def get_mesa_diretora(sessao_plenaria):
 def get_presenca_sessao(sessao_plenaria):
 
     parlamentares_sessao = [p.parlamentar for p in SessaoPlenariaPresenca.objects.filter(
-                                sessao_plenaria_id=sessao_plenaria.id
-                            ).order_by('parlamentar__nome_parlamentar')]
+        sessao_plenaria_id=sessao_plenaria.id
+    ).order_by('parlamentar__nome_parlamentar')]
 
     ausentes_sessao = JustificativaAusencia.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
@@ -1404,7 +1418,8 @@ def get_materias_expediente(sessao_plenaria):
         numero = m.numero_ordem
 
         tramitacao = ''
-        tramitacoes = Tramitacao.objects.filter(materia=m.materia).order_by('-pk')
+        tramitacoes = Tramitacao.objects.filter(
+            materia=m.materia).order_by('-pk')
         for aux_tramitacao in tramitacoes:
             if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
@@ -1466,8 +1481,8 @@ def get_oradores_expediente(sessao_plenaria):
 
 def get_presenca_ordem_do_dia(sessao_plenaria):
     parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
-                                            sessao_plenaria_id=sessao_plenaria.id
-                                        ).order_by('parlamentar__nome_parlamentar')]
+        sessao_plenaria_id=sessao_plenaria.id
+    ).order_by('parlamentar__nome_parlamentar')]
 
     return {'presenca_ordem': parlamentares_ordem}
 
@@ -1480,13 +1495,14 @@ def get_assinaturas(sessao_plenaria):
         '')]
 
     parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
-                                    sessao_plenaria_id=sessao_plenaria.id
-                                    ).order_by('parlamentar__nome_parlamentar')]
+        sessao_plenaria_id=sessao_plenaria.id
+    ).order_by('parlamentar__nome_parlamentar')]
 
     parlamentares_mesa = [m['parlamentar'] for m in mesa_dia]
 
     # filtra parlamentares retirando os que sao da mesa
-    parlamentares_ordem = [p for p in parlamentares_ordem if p not in parlamentares_mesa]
+    parlamentares_ordem = [
+        p for p in parlamentares_ordem if p not in parlamentares_mesa]
 
     context = {}
     config_assinatura_ata = AppsAppConfig.attr('assinatura_ata')
@@ -1517,7 +1533,8 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         numero = o.numero_ordem
 
         tramitacao = ''
-        tramitacoes = Tramitacao.objects.filter(materia=o.materia).order_by('-pk')
+        tramitacoes = Tramitacao.objects.filter(
+            materia=o.materia).order_by('-pk')
         for aux_tramitacao in tramitacoes:
             if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
@@ -1600,7 +1617,7 @@ def get_oradores_ordemdia(sessao_plenaria):
         observacao = orador.observacao
         parlamentar = Parlamentar.objects.get(
             id=orador.parlamentar_id
-        )        
+        )
         o = {
             'numero_ordem': numero_ordem,
             'url_discurso': url_discurso,
@@ -1610,9 +1627,9 @@ def get_oradores_ordemdia(sessao_plenaria):
         oradores.append(o)
 
     context = {'oradores_ordemdia': oradores}
-    return context 
+    return context
 
- 
+
 def get_oradores_explicações_pessoais(sessao_plenaria):
     oradores_explicacoes = []
     for orador in Orador.objects.filter(
@@ -1729,7 +1746,7 @@ class ResumoView(DetailView):
         # =====================================================================
         # Oradores Ordem do Dia
         context.update(get_oradores_ordemdia(self.object))
-        # =====================================================================       
+        # =====================================================================
         # Oradores nas Explicações Pessoais
         context.update(get_oradores_explicações_pessoais(self.object))
         # =====================================================================
