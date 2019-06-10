@@ -15,11 +15,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tiposessaoplenaria',
             name='tipo_numeracao',
-            field=models.PositiveIntegerField(choices=[(1, 'Quinzenal'), (2, 'Mensal'), (10, 'Anual'), (11, 'Sessão Legislativa'), (12, 'Legislatura'), (99, 'Numeração Única')], default=10, verbose_name='Tipo de Numeração'),
+            field=models.PositiveIntegerField(choices=[(1, 'Quinzenal'), (2, 'Mensal'), (10, 'Anual'), (11, 'Sessão Legislativa'), (
+                12, 'Legislatura'), (99, 'Numeração Única')], default=11, verbose_name='Tipo de Numeração'),
         ),
         migrations.AlterField(
             model_name='tiposessaoplenaria',
             name='nome',
-            field=models.CharField(max_length=30, verbose_name='Descrição do Tipo'),
+            field=models.CharField(
+                max_length=30, verbose_name='Descrição do Tipo'),
         ),
     ]

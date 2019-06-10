@@ -90,7 +90,7 @@ class TipoSessaoPlenaria(models.Model):
 
     tipo_numeracao = models.PositiveIntegerField(
         verbose_name=_('Tipo de Numeração'),
-        choices=TIPO_NUMERACAO_CHOICES, default=10)
+        choices=TIPO_NUMERACAO_CHOICES, default=11)
 
     class Meta:
         verbose_name = _('Tipo de Sessão Plenária')
