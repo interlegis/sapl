@@ -2,6 +2,7 @@ from operator import xor
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -98,6 +99,29 @@ class TipoSessaoPlenaria(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def queryset_tipo_numeracao(self, legislatura, sessao_legislativa, data):
+
+        qs = Q(tipo=self)
+        tnc = self.TIPO_NUMERACAO_CHOICES
+
+        if self.tipo_numeracao == tnc.unica:
+            pass
+        elif self.tipo_numeracao == tnc.legislatura:
+            qs &= Q(legislatura=legislatura)
+        elif self.tipo_numeracao == tnc.sessao_legislativa:
+            qs &= Q(sessao_legislativa=sessao_legislativa)
+        elif self.tipo_numeracao == tnc.anual:
+            qs &= Q(data_inicio__year=data.year)
+        elif self.tipo_numeracao in (tnc.mensal, tnc.quizenal):
+            qs &= Q(data_inicio__year=data.year, data_inicio__month=data.month)
+
+            if self.tipo_numeracao == tnc.quizenal:
+                if data.day <= 15:
+                    qs &= Q(data_inicio__day__lte=15)
+                else:
+                    qs &= Q(data_inicio__day__gt=15)
+        return qs
 
 
 def get_sessao_media_path(instance, subpath, filename):

@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 
 from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                AdicionarVariasMateriasOrdemDia, BancadaCrud,
-                               CargoBancadaCrud, ExpedienteMateriaCrud, 
+                               CargoBancadaCrud, ExpedienteMateriaCrud,
                                ExpedienteView, JustificativaAusenciaCrud,
                                OcorrenciaSessaoView, MateriaOrdemDiaCrud, OradorOrdemDiaCrud,
                                MesaView, OradorCrud,
@@ -25,7 +25,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoNominalView, VotacaoView, abrir_votacao,
                                atualizar_mesa, insere_parlamentar_composicao,
                                mudar_ordem_materia_sessao, recuperar_materia,
-                               recuperar_numero_sessao,
+                               recuperar_numero_sessao_view,
                                remove_parlamentar_composicao,
                                reordernar_materias_expediente,
                                reordernar_materias_ordem,
@@ -65,7 +65,7 @@ urlpatterns = [
 
     url(r'^sessao/recuperar-materia/', recuperar_materia),
     url(r'^sessao/recuperar-numero-sessao/',
-        recuperar_numero_sessao,
+        recuperar_numero_sessao_view,
         name='recuperar_numero_sessao_view'
         ),
     url(r'^sessao/sessao-legislativa-legislatura-ajax/',
