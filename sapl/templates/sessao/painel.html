@@ -82,8 +82,8 @@ function switch_painel(aberto) {
 
 function checkTime(i) {
   if (i<10) {
-    i = "0" + i
-  };
+    i = "0" + i;
+  }
   return i;
 }
 
@@ -96,12 +96,12 @@ function startTime() {
   s = checkTime(s);
   $("#relogio").text(h+":"+m+":"+s)
   let t = setTimeout(function(){
-      startTime()
+      startTime();
   },500);
 }
 
 $(document).ready(function(){
-  let pk_sessao = {{root_pk}};
+  let pk_sessao = parseInt("{{root_pk}}");
   let botao_abrir = $('#id_abrir_painel');
   let botao_fechar = $('#id_fechar_painel');
 
@@ -111,16 +111,16 @@ $(document).ready(function(){
     dataType: 'json',
     url: "{% url 'sapl.painel:verifica_painel' %}",
     error: function () {
-        alert("Erro ao verificar o Painel");
+      alert("Erro ao verificar o Painel");
     },
     success: function (data) {
-        if (data['status']) {
-            botao_abrir.hide();
-            botao_fechar.show();
-        } else {
-            botao_abrir.show();
-            botao_fechar.hide();
-        }
+      if (data['status']) {
+        botao_abrir.hide();
+        botao_fechar.show();
+      } else {
+        botao_abrir.show();
+        botao_fechar.hide();
+      }
     },
   });
 
@@ -133,7 +133,7 @@ $(document).ready(function(){
     $('#cronometro_' + "{{cron.id}}").runner({
       autostart: false,
       countdown: true,
-      startAt: {{cron.duracao_cronometro|duration_to_seconds}} * 1000,
+      startAt: parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000,
       stopAt: 0,
       milliseconds: false
     }).on('runnerFinish', function(eventObject, info){
@@ -144,26 +144,47 @@ $(document).ready(function(){
       $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
     })
 
-    $('#cronometro_' + "{{cron.id}}" + '_Start').click(function() {
-      if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
-        $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'start' } );
-
-        $('#cronometro_' + "{{cron.id}}" + '_Reset').hide();
-        $('#cronometro_' + "{{cron.id}}").runner('start');
-        $('#cronometro_' + "{{cron.id}}" + '_Start').text('Parar');
-      } else{
-        $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
-
-        $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
-        $('#cronometro_' + "{{cron.id}}").runner('stop');
-        $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
-      }
-    });
+    {% if painel_config.cronometro_ordem and cron.tipo == "Cronômetro da Questão de Ordem" %}
+      $('#cronometro_' + "{{cron.id}}" + '_Start').click(function() {
+        if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
+          {% for c in cronometros %}
+            {% if c.tipo == "Cronômetro da Questão de Ordem" %}
+              $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{c.id}}", action: 'start' } );
+              $('#cronometro_' + "{{c.id}}" + '_Reset').hide();
+              $('#cronometro_' + "{{c.id}}").runner('start');
+              $('#cronometro_' + "{{c.id}}" + '_Start').text('Parar');
+            {% else %}
+              $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{c.id}}", action: 'stop' } );
+              $('#cronometro_' + "{{c.id}}" + '_Reset').show();
+              $('#cronometro_' + "{{c.id}}").runner('stop');
+              $('#cronometro_' + "{{c.id}}" + '_Start').text('Iniciar');
+            {% endif %}
+          {% endfor %}
+        } else{
+          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
+          $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
+          $('#cronometro_' + "{{cron.id}}").runner('stop');
+          $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
+        }
+      });
+    {% else %}
+      $('#cronometro_' + "{{cron.id}}" + '_Start').click(function() {
+        if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
+          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'start' } );
+          $('#cronometro_' + "{{cron.id}}" + '_Reset').hide();
+          $('#cronometro_' + "{{cron.id}}").runner('start');
+          $('#cronometro_' + "{{cron.id}}" + '_Start').text('Parar');
+        } else{
+          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
+          $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
+          $('#cronometro_' + "{{cron.id}}").runner('stop');
+          $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
+        }
+      });
+    {% endif %}
 
     $('#cronometro_' + "{{cron.id}}" + '_Reset').click(function() {
-
       $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'reset' } );
-
       $('#cronometro_' + "{{cron.id}}").runner('stop');
       $('#cronometro_' + "{{cron.id}}").runner('reset');
     });    
