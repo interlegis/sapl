@@ -2,7 +2,8 @@ from operator import xor
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
+from django.db.models import Q
+from django.utils import timezone, formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
@@ -73,9 +74,23 @@ class Bancada(models.Model):
 
 @reversion.register()
 class TipoSessaoPlenaria(models.Model):
-    nome = models.CharField(max_length=30, verbose_name=_('Tipo'))
+
+    TIPO_NUMERACAO_CHOICES = Choices(
+        (1, 'quizenal', 'Quinzenal'),
+        (2, 'mensal', 'Mensal'),
+        (10, 'anual', 'Anual'),
+        (11, 'sessao_legislativa', 'Sessão Legislativa'),
+        (12, 'legislatura', 'Legislatura'),
+        (99, 'unica', 'Numeração Única'),
+    )
+
+    nome = models.CharField(max_length=30, verbose_name=_('Descrição do Tipo'))
     quorum_minimo = models.PositiveIntegerField(
         verbose_name=_('Quórum mínimo'))
+
+    tipo_numeracao = models.PositiveIntegerField(
+        verbose_name=_('Tipo de Numeração'),
+        choices=TIPO_NUMERACAO_CHOICES, default=11)
 
     class Meta:
         verbose_name = _('Tipo de Sessão Plenária')
@@ -84,6 +99,29 @@ class TipoSessaoPlenaria(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def queryset_tipo_numeracao(self, legislatura, sessao_legislativa, data):
+
+        qs = Q(tipo=self)
+        tnc = self.TIPO_NUMERACAO_CHOICES
+
+        if self.tipo_numeracao == tnc.unica:
+            pass
+        elif self.tipo_numeracao == tnc.legislatura:
+            qs &= Q(legislatura=legislatura)
+        elif self.tipo_numeracao == tnc.sessao_legislativa:
+            qs &= Q(sessao_legislativa=sessao_legislativa)
+        elif self.tipo_numeracao == tnc.anual:
+            qs &= Q(data_inicio__year=data.year)
+        elif self.tipo_numeracao in (tnc.mensal, tnc.quizenal):
+            qs &= Q(data_inicio__year=data.year, data_inicio__month=data.month)
+
+            if self.tipo_numeracao == tnc.quizenal:
+                if data.day <= 15:
+                    qs &= Q(data_inicio__day__lte=15)
+                else:
+                    qs &= Q(data_inicio__day__gt=15)
+        return qs
 
 
 def get_sessao_media_path(instance, subpath, filename):
@@ -176,7 +214,34 @@ class SessaoPlenaria(models.Model):
         verbose_name_plural = _('Sessões Plenárias')
 
     def __str__(self):
-        return _('%(numero)sª Sessão %(tipo_nome)s'
+
+        tnc = self.tipo.TIPO_NUMERACAO_CHOICES
+
+        base = '{}ª {}'.format(self.numero, self.tipo.nome)
+
+        if self.tipo.tipo_numeracao == tnc.quizenal:
+            base += ' da {}ª Quinzena'.format(
+                1 if self.data_inicio.day > 15 else 2)
+
+        if self.tipo.tipo_numeracao <= tnc.mensal:
+            base += ' do mês de {}'.format(
+                formats.date_format(self.data_inicio, 'F')
+            )
+
+        if self.tipo.tipo_numeracao <= tnc.anual:
+            base += ' de {}'.format(self.data_inicio.year)
+
+        if self.tipo.tipo_numeracao <= tnc.sessao_legislativa:
+            base += ' da {}ª Sessão Legislativa'.format(
+                self.sessao_legislativa.numero)
+
+        if self.tipo.tipo_numeracao <= tnc.legislatura:
+            base += ' da {}ª Legislatura'.format(
+                self.legislatura.numero)
+
+        return base
+
+        """return _('%(numero)sª Sessão %(tipo_nome)s'
                  ' da %(sessao_legislativa_numero)sª Sessão Legislativa'
                  ' da %(legislatura_id)sª Legislatura') % {
 
@@ -185,6 +250,7 @@ class SessaoPlenaria(models.Model):
             'sessao_legislativa_numero': self.sessao_legislativa.numero,
             # XXX check if it shouldn't be legislatura.numero
             'legislatura_id': self.legislatura.numero}
+        """
 
     def delete(self, using=None, keep_parents=False):
         if self.upload_pauta:

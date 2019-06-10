@@ -1,11 +1,11 @@
 {% load i18n %}
 TipoSessaoPlenaria:
   {% trans 'Tipo de Sessão Plenária' %}:
-  - nome  quorum_minimo
+  - nome  quorum_minimo tipo_numeracao
 
 SessaoPlenaria:
   {% trans 'Dados Básicos' %}:
-  - legislatura  sessao_legislativa tipo:3  numero:1
+  - legislatura  sessao_legislativa tipo numero:2
   - data_inicio:5  hora_inicio:5  iniciada
   - data_fim:5  hora_fim:5  finalizada
   - upload_pauta  upload_ata  upload_anexo
