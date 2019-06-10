@@ -7,7 +7,7 @@ from django.db import migrations
 
 def create_default_cronometros(apps, schema_editor):
     tipos_default = ['Cronômetro do Discurso', 'Cronômetro do Aparte', 
-                     'Cronômetro da Ordem', 'Cronômetro de Considerações Finais']
+                     'Cronômetro da Questão de Ordem', 'Cronômetro de Considerações Finais']
     Cronometro = apps.get_model('painel', 'Cronometro')
     
     for i,tipo in enumerate(tipos_default):
