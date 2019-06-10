@@ -24,8 +24,8 @@ from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 VotoParlamentar)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
-from .forms import CronometroForm
-from .models import Cronometro
+from .forms import CronometroForm, ConfiguracoesPainelForm
+from .models import Cronometro, PainelConfig
 
 VOTACAO_NOMINAL = 2
 
@@ -34,6 +34,46 @@ class CronometroPainelCrud(CrudAux):
 
     class BaseMixin(CrudAux.BaseMixin):
         form_class = CronometroForm
+
+
+class PainelConfigCrud(CrudAux):
+    model = PainelConfig
+
+    class BaseMixin(CrudAux.BaseMixin):
+        form_class = ConfiguracoesPainelForm
+        list_url = ''
+        create_url = ''
+
+    class CreateView(CrudAux.CreateView):
+
+        def get(self, request, *args, **kwargs):
+            painel_config = PainelConfig.objects.first()
+
+            if not painel_config:
+                painel_config = PainelConfig()
+                painel_config.save()
+
+            return HttpResponseRedirect(
+                reverse('sapl.painel:painelconfig_update',
+                        kwargs={'pk': painel_config.pk}))
+
+        def post(self, request, *args, **kwargs):
+            return self.get(request, *args, **kwargs)
+
+    class ListView(CrudAux.ListView):
+
+        def get(self, request, *args, **kwargs):
+            return HttpResponseRedirect(reverse('sapl.painel:painelconfig_create'))
+
+    class DetailView(CrudAux.DetailView):
+
+        def get(self, request, *args, **kwargs):
+            return HttpResponseRedirect(reverse('sapl.painel:painelconfig_create'))
+
+    class DeleteView(CrudAux.DeleteView):
+
+        def get(self, request, *args, **kwargs):
+            return HttpResponseRedirect(reverse('sapl.painel:painelconfig_create'))
 
 
 # FIXME mudar lógica

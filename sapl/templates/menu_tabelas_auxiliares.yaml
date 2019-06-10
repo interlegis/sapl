@@ -173,6 +173,9 @@
   - title: {% trans 'Cronômetro' %}
     url: sapl.painel:cronometro_list
     css_class: btn btn-link
+  - title: {% trans 'Configurações do Painel' %}
+    url: sapl.painel:painelconfig_list
+    css_class: btn btn-link
 - title: {% trans 'Módulo LexML' %}
   css_class: head_title
   children:
