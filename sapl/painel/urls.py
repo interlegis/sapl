@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^painel/verifica-painel$', verifica_painel,
         name="verifica_painel"),
     url(r'^painel/cronometro$', cronometro_painel, name='cronometro_painel'),
+    
     url(r'^sistema/cronometro/', include(CronometroPainelCrud.get_urls())),
     url(r'^sistema/painel-config/', include(PainelConfigCrud.get_urls())),
 
