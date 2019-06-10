@@ -3,7 +3,7 @@ from operator import xor
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-from django.utils import timezone
+from django.utils import timezone, formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
@@ -76,11 +76,11 @@ class Bancada(models.Model):
 class TipoSessaoPlenaria(models.Model):
 
     TIPO_NUMERACAO_CHOICES = Choices(
-        (1, 'anual', 'Anual'),
+        (1, 'quizenal', 'Quinzenal'),
         (2, 'mensal', 'Mensal'),
-        (3, 'quizenal', 'Quinzenal'),
-        (10, 'sessao_legislativa', 'Sessão Legislativa'),
-        (11, 'legislatura', 'Legislatura'),
+        (10, 'anual', 'Anual'),
+        (11, 'sessao_legislativa', 'Sessão Legislativa'),
+        (12, 'legislatura', 'Legislatura'),
         (99, 'unica', 'Numeração Única'),
     )
 
@@ -90,7 +90,7 @@ class TipoSessaoPlenaria(models.Model):
 
     tipo_numeracao = models.PositiveIntegerField(
         verbose_name=_('Tipo de Numeração'),
-        choices=TIPO_NUMERACAO_CHOICES, default=1)
+        choices=TIPO_NUMERACAO_CHOICES, default=10)
 
     class Meta:
         verbose_name = _('Tipo de Sessão Plenária')
@@ -214,7 +214,34 @@ class SessaoPlenaria(models.Model):
         verbose_name_plural = _('Sessões Plenárias')
 
     def __str__(self):
-        return _('%(numero)sª Sessão %(tipo_nome)s'
+
+        tnc = self.tipo.TIPO_NUMERACAO_CHOICES
+
+        base = '{}ª {}'.format(self.numero, self.tipo.nome)
+
+        if self.tipo.tipo_numeracao == tnc.quizenal:
+            base += ' da {}ª Quinzena'.format(
+                1 if self.data_inicio.day > 15 else 2)
+
+        if self.tipo.tipo_numeracao <= tnc.mensal:
+            base += ' do mês de {}'.format(
+                formats.date_format(self.data_inicio, 'F')
+            )
+
+        if self.tipo.tipo_numeracao <= tnc.anual:
+            base += ' de {}'.format(self.data_inicio.year)
+
+        if self.tipo.tipo_numeracao <= tnc.sessao_legislativa:
+            base += ' da {}ª Sessão Legislativa'.format(
+                self.sessao_legislativa.numero)
+
+        if self.tipo.tipo_numeracao <= tnc.legislatura:
+            base += ' da {}ª Legislatura'.format(
+                self.legislatura.numero)
+
+        return base
+
+        """return _('%(numero)sª Sessão %(tipo_nome)s'
                  ' da %(sessao_legislativa_numero)sª Sessão Legislativa'
                  ' da %(legislatura_id)sª Legislatura') % {
 
@@ -223,6 +250,7 @@ class SessaoPlenaria(models.Model):
             'sessao_legislativa_numero': self.sessao_legislativa.numero,
             # XXX check if it shouldn't be legislatura.numero
             'legislatura_id': self.legislatura.numero}
+        """
 
     def delete(self, using=None, keep_parents=False):
         if self.upload_pauta:
