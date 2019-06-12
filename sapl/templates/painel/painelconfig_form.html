@@ -6,8 +6,24 @@
 
 <script type="text/javascript">
 
+        function verifica_disparo_cronometro(){
+                disparar_cronometro = $('#id_disparo_cronometro').val() == "True";
+                
+                if(!disparar_cronometro){
+                        $('#div_id_tempo_disparo_antecedencia').hide();
+                        $('#div_id_disparo_cronometro').parent().attr("class","col-md-12");
+                }
+                else{
+                        $('#div_id_tempo_disparo_antecedencia').show();  
+                        $('#div_id_disparo_cronometro').parent().attr("class","col-md-6");
+                }
+        }
+
         $(document).ready(function(){
                 $('#div_id_cronometro_ordem').children().first().append("<br>Atenção! Este cronômetro apenas travará os demais se seu nome for o padrão <b>Cronômetro da Questão de Ordem</b>.");
+        
+                $('#id_disparo_cronometro').ready(verifica_disparo_cronometro);
+                $('#id_disparo_cronometro').change(verifica_disparo_cronometro);
         });
 
 </script>

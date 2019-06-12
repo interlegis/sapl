@@ -6,4 +6,4 @@ Cronometro:
 PainelConfig:
   {% trans 'Configurações do Painel' %}:
   - cronometro_ordem
-  - tipo:6  duracao_cronometro:6
+  - disparo_cronometro:6 tempo_disparo_antecedencia:6
