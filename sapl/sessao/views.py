@@ -883,11 +883,7 @@ class SessaoCrud(Crud):
 
         @property
         def layout_key(self):
-            sessao = self.object
-            tipo_sessao = sessao.tipo
-            if tipo_sessao.nome == "Solene":
-                return 'SessaoSolene'
-            return 'SessaoPlenaria'
+            return 'SessaoSolene'
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -907,10 +903,6 @@ class SessaoCrud(Crud):
 
         @property
         def layout_key(self):
-            # sessao = self.object
-            # tipo_sessao = sessao.tipo
-            # if tipo_sessao.nome == "Solene":
-            #     return 'SessaoSolene'
             return 'SessaoSolene'
 
         @property

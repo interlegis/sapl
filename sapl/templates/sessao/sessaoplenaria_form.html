@@ -7,80 +7,88 @@
 
 <script language="Javascript">
 
-  {% if not object %}
-    // faz recuperação do próximo número apenas em caso de inclusão de sessão plenária
-    // Seleciona o numero de acordo com o tipo
-    function recuperar_numero_sessao() {
-      var tipo = $("#id_tipo").val()
-      var sessao = $("#id_sessao_legislativa").val()
-      var legislatura = $("#id_legislatura").val()
-      var data_ini = $("#id_data_inicio").val()
+  function recuperar_numero_sessao() {
+    var tipo = $("#id_tipo").val();
+    var sessao = $("#id_sessao_legislativa").val();
+    var legislatura = $("#id_legislatura").val();
+    var data_ini = $("#id_data_inicio").val();
 
-      $("#div_id_tema_solene").hide();
-
-      if (tipo) {
-        $.get("{% url 'sapl.sessao:recuperar_numero_sessao_view' %}",
-          { 
-            tipo: tipo,
-        	  sessao_legislativa: sessao,
-            data_inicio: data_ini
-       	  },
-          function(data, status) {
-            $("#id_numero").val(data.numero);
-          }
-        );
-
-        $.get("{% url 'sapl.sessao:recuperar_nome_tipo_sessao' %}",
-          {
-            tipo: tipo, 
-            sessao_legislativa:sessao
-          },
-          function(data, status) {
-            if(data.nome_tipo == "Solene"){
-              $("#div_id_tema_solene").show();
-            }
-          }
-        );
-      }
-      else{
-        $("#id_numero").val('');
-      }
-
+    if (tipo) {
+      $.get("{% url 'sapl.sessao:recuperar_numero_sessao_view' %}",
+        { 
+          tipo: tipo,
+          sessao_legislativa: sessao,
+          data_inicio: data_ini
+        },
+        function(data, status) {
+          $("#id_numero").val(data.numero);
+        }
+      );
     }
-    $("#id_tipo").click(recuperar_numero_sessao);
-    $("#id_sessao_legislativa").click(recuperar_numero_sessao);
-    $("#id_legislatura").click(recuperar_numero_sessao);
-  {% endif %}
+  }
 
+  function recuperar_tipo_sessao(){
+    var tipo = $("#id_tipo").val();
+    var sessao = $("#id_sessao_legislativa").val();
 
-  // Filtra as choices de sessao legislativa pela legislatura
-  $(function() {
+    $("#div_id_tema_solene").hide();
 
-    function altera_legislatura(){
-      var id_legislatura = $("#id_legislatura").val();
-      var id_sessao_leg = $("#id_sessao_legislativa").val();
+    if (tipo) {
+      $.get("{% url 'sapl.sessao:recuperar_nome_tipo_sessao' %}",
+        {
+          tipo: tipo, 
+          sessao_legislativa:sessao
+        },
+        function(data, status) {
+          if(data.nome_tipo == "Solene"){
+            $("#div_id_tema_solene").show();
+          }
+        }
+      );
+    }
+  }
+
+  function altera_legislatura(){
+    var id_legislatura = $("#id_legislatura").val();
+    var id_sessao_leg = $("#id_sessao_legislativa").val();
+    $("#id_sessao_legislativa option").remove();
+    if (id_legislatura) {
+      $.get("{% url 'sapl.sessao:sessao_legislativa_legislatura_ajax_view' %}", {legislatura: id_legislatura}, function(data) {
+        lista_sessoes = data['sessao_legislativa'];
+
+        $('#id_sessao_legislativa').append('<option value="">' + '---------' + '</option>');
+        for (i = 0; i < lista_sessoes.length; i++) {
+            $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
+        }
+        $("#id_sessao_legislativa").val(id_sessao_leg);
+      });
+    }
+    else{
       $("#id_sessao_legislativa option").remove();
-      if (id_legislatura) {
-          $.get("{% url 'sapl.sessao:sessao_legislativa_legislatura_ajax_view' %}", {legislatura: id_legislatura}, function(data) {
-              lista_sessoes = data['sessao_legislativa'];
-
-              $('#id_sessao_legislativa').append('<option value="">' + '---------' + '</option>');
-              for (i = 0; i < lista_sessoes.length; i++) {
-                  $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
-              }
-              $("#id_sessao_legislativa").val(id_sessao_leg);
-          });
-      }
-      else{
-        $("#id_sessao_legislativa option").remove();
-      }
     }
+  }
 
+
+  $(document).ready(function(){
+
+    {% if not object %}
+      // faz recuperação do próximo número apenas em caso de inclusão de sessão plenária
+      // Seleciona o numero de acordo com o tipo
+
+      $("#id_tipo").click(recuperar_numero_sessao);
+      $("#id_sessao_legislativa").click(recuperar_numero_sessao);
+      $("#id_legislatura").click(recuperar_numero_sessao);
+
+    {% endif %}
+
+    // Filtra as choices de sessao legislativa pela legislatura
     $("#id_legislatura").ready(altera_legislatura);
-
     $("#id_legislatura").change(altera_legislatura);
 
-    $("#div_id_tema_solene").ready(recuperar_numero_sessao);
+    // Referente a Sessão Solene
+    $("#id_tipo").ready(recuperar_tipo_sessao);
+    $("#id_tipo").change(recuperar_tipo_sessao);
+
   });
 
 </script>
