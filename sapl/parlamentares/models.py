@@ -136,6 +136,7 @@ class Partido(models.Model):
     class Meta:
         verbose_name = _('Partido')
         verbose_name_plural = _('Partidos')
+        ordering = ['sigla', 'nome']
 
     def __str__(self):
         return _('%(sigla)s - %(nome)s') % {
