@@ -2772,14 +2772,25 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
 
         expediente_id = kwargs['oid']
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
-        qtde_presentes = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=self.object.id).count()
+        
+        presentes_id = [
+            presente.parlamentar.id for presente in SessaoPlenariaPresenca.objects.filter(
+                sessao_plenaria_id=self.kwargs['pk']
+            )
+        ]
+        qtde_presentes = len(presentes_id)
+
+        presentes_ativos = Parlamentar.objects.filter(
+            id__in=presentes_id, ativo=True
+        )
+        qtde_ativos = len(presentes_ativos)
 
         materia = {'materia': expediente.materia,
                    'ementa': expediente.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
-                        'total_presentes': qtde_presentes})
+                        'total_presentes': qtde_presentes,
+                        'total_votantes': qtde_ativos})
 
         return self.render_to_response(context)
 
@@ -2799,14 +2810,25 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
 
         expediente_id = kwargs['oid']
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
-        qtde_presentes = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=self.object.id).count()
+
+        presentes_id = [
+            presente.parlamentar.id for presente in SessaoPlenariaPresenca.objects.filter(
+                sessao_plenaria_id=self.kwargs['pk']
+            )
+        ]
+        qtde_presentes = len(presentes_id)
+
+        presentes_ativos = Parlamentar.objects.filter(
+            id__in=presentes_id, ativo=True
+        )
+        qtde_ativos = len(presentes_ativos)
 
         materia = {'materia': expediente.materia,
                    'ementa': expediente.materia.ementa}
         context.update({'votacao_titulo': titulo,
                         'materia': materia,
-                        'total_presentes': qtde_presentes})
+                        'total_presentes': qtde_presentes,
+                        'total_votantes': qtde_ativos})
         context.update({'form': form})
         # ====================================================
 
@@ -2819,16 +2841,14 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             materia_id = kwargs['mid']
             expediente_id = kwargs['oid']
 
-            qtde_presentes = SessaoPlenariaPresenca.objects.filter(
-                sessao_plenaria_id=self.object.id).count()
             qtde_votos = (int(request.POST['votos_sim']) +
                           int(request.POST['votos_nao']) +
                           int(request.POST['abstencoes']))
 
             if (int(request.POST['voto_presidente']) == 0):
-                qtde_presentes -= 1
+                qtde_ativos -= 1
 
-            if qtde_votos != qtde_presentes:
+            if qtde_votos != qtde_ativos:
                 form._errors["total_votos"] = ErrorList([u""])
                 return self.render_to_response(context)
             else:

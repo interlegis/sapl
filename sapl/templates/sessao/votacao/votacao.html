@@ -15,7 +15,7 @@
 					{% for field in form %}
 						{% if field.errors %}
 							{% if field.label == 'total'%}
-								<li>O total de votos não corresponde com a quantidade de presentes!</li>
+								<li>O total de votos não corresponde com a quantidade de votantes!</li>
 							{% else %}
 								<li>O campo <b>{{field.label}}</b> é obrigatório!</li>
 							{% endif %}
@@ -32,6 +32,8 @@
 			<br />
 			<br />
 			<b>Total presentes:</b> {{total_presentes}} (com presidente)
+			<br />
+			<b>Total votantes:</b> {{total_votantes}} (com presidente)
 			<input type="hidden" id="total_votos" name="total_votos">
 		</div>
 		<br />
