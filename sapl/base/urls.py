@@ -38,7 +38,9 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarParlFiliacoesIntersecaoView,
                     ListarAutoresDuplicadosView,
                     ListarBancadaComissaoAutorExternoView,
-                    ListarLegislaturaInfindavelView)
+                    ListarLegislaturaInfindavelView,
+                    pesquisa_textual,
+                    RelatorioHistoricoTramitacaoAdmView)
 
 
 app_name = AppConfig.name
@@ -134,6 +136,9 @@ urlpatterns = [
     url(r'^sistema/relatorios/audiencia$',
         RelatorioAudienciaView.as_view(),
         name='audiencia'),
+    url(r'^sistema/relatorios/historico-tramitacoesadm$',
+        RelatorioHistoricoTramitacaoAdmView.as_view(),
+        name='historico_tramitacoes_adm'),
 
     url(r'^email/validate/(?P<uidb64>[0-9A-Za-z_\-]+)/'
         '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$',
@@ -175,6 +180,9 @@ urlpatterns = [
     url(r'^sistema/inconsistencias/legislatura_infindavel$',
         ListarLegislaturaInfindavelView.as_view(),
         name='lista_legislatura_infindavel'),
+    url(r'^sistema/pesquisa-textual',
+        pesquisa_textual,
+        name='pesquisa_textual'),
 
     url(r'^sistema/estatisticas', get_estatistica),
 

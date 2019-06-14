@@ -24,18 +24,19 @@ from django_filters.views import FilterView
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
-from sapl.base.models import Autor, CasaLegislativa
+from sapl.base.models import Autor, CasaLegislativa, AppConfig
 from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
-from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured)
+from sapl.relatorios.views import relatorio_doc_administrativos
 
 from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
@@ -47,6 +48,9 @@ from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     filtra_tramitacao_adm_destino_and_status,
                     filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status,
                     AnexadoForm, AnexadoEmLoteFilterSet,
+                    PrimeiraTramitacaoEmLoteAdmFilterSet,
+                    TramitacaoEmLoteAdmForm,
+                    TramitacaoEmLoteAdmFilterSet,
                     compara_tramitacoes_doc)
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
@@ -90,7 +94,7 @@ def doc_texto_integral(request, pk):
     can_see = True
 
     if not request.user.is_authenticated():
-        app_config = sapl.base.models.AppConfig.objects.last()
+        app_config = AppConfig.objects.last()
         if app_config and app_config.documentos_administrativos == 'R':
             can_see = False
 
@@ -312,7 +316,7 @@ class AcompanhamentoDocumentoView(CreateView):
 class DocumentoAdministrativoMixin:
 
     def has_permission(self):
-        app_config = sapl.base.models.AppConfig.objects.last()
+        app_config = AppConfig.objects.last()
         if app_config and app_config.documentos_administrativos == 'O':
             return True
 
@@ -541,7 +545,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         self.logger.debug("user=" + username +
                           ". Tentando obter sequência de numeração.")
-        numeracao = sapl.base.models.AppConfig.objects.last(
+        numeracao = AppConfig.objects.last(
         ).sequencia_numeracao_protocolo
         if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
@@ -727,7 +731,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         username = self.request.user.username
         self.logger.debug("user=" + username +
                           ". Tentando obter sequência de numeração.")
-        numeracao = sapl.base.models.AppConfig.objects.last(
+        numeracao = AppConfig.objects.last(
         ).sequencia_numeracao_protocolo
         if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
@@ -898,17 +902,16 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         context = super(PesquisarDocumentoAdministrativoView,
                         self).get_context_data(**kwargs)
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-
+        if self.paginate_by:
+            paginator = context['paginator']
+            page_obj = context['page_obj']
+            context['page_range'] = make_pagination(
+                page_obj.number, paginator.num_pages)
+                    
         return context
 
     def get(self, request, *args, **kwargs):
         super(PesquisarDocumentoAdministrativoView, self).get(request)
-
         # Se a pesquisa estiver quebrando com a paginação
         # Olhe esta função abaixo
         # Provavelmente você criou um novo campo no Form/FilterSet
@@ -921,9 +924,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
                 url = url[ponto_comeco:]
         else:
             url = ''
-
         self.filterset.form.fields['o'].label = _('Ordenação')
-
         # é usada essa verificação anônima para quando os documentos administrativos
         # estão no modo ostensivo, mas podem existir documentos administrativos
         # restritos
@@ -931,18 +932,21 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             length = self.object_list.filter(restrito=False).count()
         else:
             length = self.object_list.count()
-
+                
+        is_relatorio = url!='' and request.GET.get('relatorio',None)
+        self.paginate_by = None if is_relatorio else self.paginate_by 
         context = self.get_context_data(filter=self.filterset,
                                         filter_url=url,
                                         numero_res=length
                                         )
-
         context['show_results'] = show_results_filter_set(
             self.request.GET.copy())
-
-        return self.render_to_response(context)
-
-
+        
+        if is_relatorio:
+            return relatorio_doc_administrativos(request,context)
+        else:    
+            return self.render_to_response(context)
+        
 class AnexadoCrud(MasterDetailCrud):
     model = Anexado
     parent_field = 'documento_principal'
@@ -1087,7 +1091,7 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
         msg = _('Documento(s) anexado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
 
-        success_url = reverse('sapl_index') + 'docadm/' + kwargs['pk'] + '/anexado'
+        success_url = reverse('sapl.protocoloadm:anexado_list', kwargs={'pk': kwargs['pk']})
         return HttpResponseRedirect(success_url)
 
 
@@ -1251,12 +1255,21 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                 return HttpResponseRedirect(url)
             else:
                 tramitacoes_deletar = [tramitacao.id]
-                docs_anexados = lista_anexados(documento, False)
-                for da in docs_anexados:
-                    tram_anexada = da.tramitacaoadministrativo_set.last()
-                    if compara_tramitacoes_doc(tram_anexada, tramitacao):
-                        tramitacoes_deletar.append(tram_anexada.id)
+                if documento.tramitacaoadministrativo_set.count() == 0:
+                    documento.tramitacao = False
+                    documento.save()
+                tramitar_anexados = AppConfig.attr('tramitacao_documento')
+                if tramitar_anexados:
+                    docs_anexados = lista_anexados(documento, False)
+                    for da in docs_anexados:
+                        tram_anexada = da.tramitacaoadministrativo_set.last()
+                        if compara_tramitacoes_doc(tram_anexada, tramitacao):
+                            tramitacoes_deletar.append(tram_anexada.id)
+                            if da.tramitacaoadministrativo_set.count() == 0:
+                                da.tramitacao = False
+                                da.save()
                 TramitacaoAdministrativo.objects.filter(id__in=tramitacoes_deletar).delete()
+
                 return HttpResponseRedirect(url)
 
 
@@ -1437,3 +1450,142 @@ class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
 
         return gerar_pdf_impressos(self.request, context,
                                    'materia/impressos/ficha_adm_pdf.html')
+
+
+class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
+    filterset_class = PrimeiraTramitacaoEmLoteAdmFilterSet
+    template_name = 'protocoloadm/em_lote/tramitacaoadm.html'
+    permission_required = ('materia.add_tramitacao', )
+
+    primeira_tramitacao = True
+
+    logger = logging.getLogger(__name__)
+
+
+    def get_context_data(self, **kwargs):
+        context = super(PrimeiraTramitacaoEmLoteAdmView,
+                        self).get_context_data(**kwargs)
+
+        context['subnav_template_name'] = 'protocoloadm/em_lote/subnav_em_lote.yaml'
+        context['primeira_tramitacao'] = self.primeira_tramitacao
+
+        # Verifica se os campos foram preenchidos
+        if not self.filterset.form.is_valid():
+            return context
+
+        context['object_list'] = context['object_list'].order_by(
+            'ano', 'numero')
+        qr = self.request.GET.copy()
+
+        form = TramitacaoEmLoteAdmForm()
+        context['form'] = form
+
+        if self.primeira_tramitacao:
+            context['title'] = _('Primeira Tramitação em Lote')
+            # Pega somente documentos que não possuem tramitação
+            context['object_list'] = [obj for obj in context['object_list'] 
+                                          if obj.tramitacaoadministrativo_set.all().count() == 0]
+        else:
+            context['title'] = _('Tramitação em Lote')
+            context['form'].fields['unidade_tramitacao_local'].initial = UnidadeTramitacao.objects.get(
+                id=qr['tramitacaoadministrativo__unidade_tramitacao_destino'])
+
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        ip = get_client_ip(request)
+
+        documentos_ids = request.POST.getlist('documentos')
+        if not documentos_ids:
+            msg = _("Escolha algum Documento para ser tramitado.")
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        form = TramitacaoEmLoteAdmForm(request.POST, 
+                                       initial= {'documentos': documentos_ids,
+                                                'user': user, 'ip':ip})
+
+        if form.is_valid():
+            form.save()
+
+            msg = _('Tramitação completa.')
+            self.logger.info('user=' + user.username + '. Tramitação completa.')
+            messages.add_message(request, messages.SUCCESS, msg)
+            return self.get_success_url()
+
+        return self.form_invalid(form)
+
+    
+    def get_success_url(self):
+        return HttpResponseRedirect(reverse('sapl.protocoloadm:primeira_tramitacao_em_lote_docadm'))
+
+
+    def form_invalid(self, form, *args, **kwargs):
+        for key, erros in form.errors.items():
+            if not key=='__all__':
+                [messages.add_message(self.request, messages.ERROR, form.fields[key].label + ": " + e) for e in erros]
+            else:
+                [messages.add_message(self.request, messages.ERROR, e) for e in erros]
+        return self.get(self.request, kwargs, {'form':form})
+
+
+class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
+    filterset_class = TramitacaoEmLoteAdmFilterSet
+
+    primeira_tramitacao = False
+
+    def get_context_data(self, **kwargs):
+        context = super(TramitacaoEmLoteAdmView,
+                        self).get_context_data(**kwargs)
+
+        qr = self.request.GET.copy()
+
+        context['primeira_tramitacao'] = False
+
+        if ('tramitacao__status' in qr and
+                'tramitacao__unidade_tramitacao_destino' in qr and
+                qr['tramitacao__status'] and
+                qr['tramitacao__unidade_tramitacao_destino']):
+            lista = self.filtra_tramitacao_destino_and_status(
+                qr['tramitacao__status'],
+                qr['tramitacao__unidade_tramitacao_destino'])
+            context['object_list'] = context['object_list'].filter(
+                id__in=lista).distinct()
+
+        return context
+
+
+    def pega_ultima_tramitacao(self):
+        return TramitacaoAdministrativo.objects.values(
+            'documento_id').annotate(data_encaminhamento=Max(
+                'data_encaminhamento'),
+            id=Max('id')).values_list('id', flat=True)
+
+    
+    def filtra_tramitacao_status(self, status):
+        lista = self.pega_ultima_tramitacao()
+        return TramitacaoAdministrativo.objects.filter(
+            id__in=lista,
+            status=status).distinct().values_list('documento_id', flat=True)
+
+
+    def filtra_tramitacao_destino(self, destino):
+        lista = self.pega_ultima_tramitacao()
+        return TramitacaoAdministrativo.objects.filter(
+            id__in=lista,
+            unidade_tramitacao_destino=destino).distinct().values_list(
+                'documento_id', flat=True)
+
+
+    def filtra_tramitacao_destino_and_status(self, status, destino):
+        lista = self.pega_ultima_tramitacao()
+        return TramitacaoAdministrativo.objects.filter(
+            id__in=lista,
+            status=status,
+            unidade_tramitacao_destino=destino).distinct().values_list(
+                'documento_id', flat=True)

@@ -103,9 +103,9 @@ def inf_basicas(inf_basicas_dic):
     """
     tmp = ""
     nom_sessao = inf_basicas_dic['nom_sessao']
-    num_sessao_plen = inf_basicas_dic["num_sessao_plen"]
-    num_sessao_leg = inf_basicas_dic["num_sessao_leg"]
-    num_legislatura = inf_basicas_dic["num_legislatura"]
+    # num_sessao_plen = inf_basicas_dic["num_sessao_plen"]
+    # num_sessao_leg = inf_basicas_dic["num_sessao_leg"]
+    # num_legislatura = inf_basicas_dic["num_legislatura"]
     dat_inicio_sessao = inf_basicas_dic["dat_inicio_sessao"]
     hr_inicio_sessao = inf_basicas_dic["hr_inicio_sessao"]
     dat_fim_sessao = inf_basicas_dic["dat_fim_sessao"]
@@ -113,17 +113,21 @@ def inf_basicas(inf_basicas_dic):
     if hr_fim_sessao is None:
         hr_fim_sessao = ''
 
-    tmp += '\t\t<para style="P1">Informações Básicas</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    tmp += '\t\t<para style="P2" spaceAfter="5"><b>Tipo da Sessão: </b> ' + \
-        nom_sessao + '</para>\n'
-    tmp += '\t\t<para style="P2" spaceAfter="5"><b>Abertura: </b> ' + \
-        dat_inicio_sessao + ' <b>- </b> ' + hr_inicio_sessao + '</para>\n'
-
-    tmp += '\t\t<para style="P2" spaceAfter="5"><b>Encerramento: </b> ' + \
-        dat_fim_sessao + ' <b>- </b> ' + hr_fim_sessao + '</para>\n'
+    if nom_sessao or dat_inicio_sessao or hr_inicio_sessao \
+        or dat_fim_sessao or hr_fim_sessao:
+        tmp += '\t\t<para style="P1">Informações Básicas</para>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        if nom_sessao:
+            tmp += '\t\t<para style="P2" spaceAfter="5"><b>Tipo da Sessão: </b> ' + \
+                nom_sessao + '</para>\n'
+        if hr_inicio_sessao:
+            tmp += '\t\t<para style="P2" spaceAfter="5"><b>Abertura: </b> ' + \
+                dat_inicio_sessao + ' <b>- </b> ' + hr_inicio_sessao + '</para>\n'
+        if dat_fim_sessao or hr_fim_sessao:
+            tmp += '\t\t<para style="P2" spaceAfter="5"><b>Encerramento: </b> ' + \
+                dat_fim_sessao + ' <b>- </b> ' + hr_fim_sessao + '</para>\n'
 
     return tmp
 
@@ -136,277 +140,259 @@ def multimidia(cont_mult_dic):
     mul_audio = cont_mult_dic['multimidia_audio']
     mul_video = cont_mult_dic['multimidia_video']
 
-    tmp += '\t\t<para style="P1">Conteúdo Multimídia</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    tmp += '\t\t<para style="P2" spaceAfter="5"><b>Audio: </b> ' + mul_audio + '</para>\n'
-    tmp += '\t\t<para style="P2" spaceAfter="5"><b>Video: </b> ' + mul_video + '</para>\n'
+    if mul_audio or mul_video:
+        tmp += '\t\t<para style="P1">Conteúdo Multimídia</para>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        if mul_audio:
+            tmp += '\t\t<para style="P2" spaceAfter="5"><b>Audio: </b> ' + mul_audio + '</para>\n'
+        if mul_video:
+            tmp += '\t\t<para style="P2" spaceAfter="5"><b>Video: </b> ' + mul_video + '</para>\n'
 
     return tmp
 
 
 def mesa(lst_mesa):
-    """
-
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Mesa Diretora</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    for mesa in lst_mesa:
-        tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
-            str(mesa['des_cargo']) + ':</b> ' + str(mesa['nom_parlamentar']
-                                                    ) + '/' + str(mesa['sgl_partido']) + '</para>\n'
+    if lst_mesa:
+        tmp += '\t\t<para style="P1">Mesa Diretora</para>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        for mesa in lst_mesa:
+            tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
+                str(mesa['des_cargo']) + ':</b> ' + str(mesa['nom_parlamentar']
+                                                        ) + '/' + str(mesa['sgl_partido']) + '</para>\n'
     return tmp
 
 
 def presenca(lst_presenca_sessao, lst_ausencia_sessao):
-    """
-
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Lista de Presença da Sessão</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    for presenca in lst_presenca_sessao:
-        tmp += '\t\t<para style="P2" spaceAfter="5">' + \
-            str(presenca['nom_parlamentar']) + '/' + \
-            str(presenca['sgl_partido']) + '</para>\n'
-
-    tmp += '\t\t<para style="P1">Justificativas de Ausência da Sessão</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    tmp += '<blockTable style="repeater" repeatRows="1">\n'
-    tmp += '<tr><td >Parlamentar</td><td>Justificativa</td><td>Ausente em</td></tr>\n'
-    for ausencia in lst_ausencia_sessao:
-        tmp += '<tr><td>' + \
-            str(ausencia['parlamentar']) + '</td><td> ' + \
-            str(ausencia['justificativa']) + '</td><td>' + \
-            str(ausencia['tipo']) + '</td></tr>\n'
-    tmp += '</blockTable>'
+    if lst_presenca_sessao or lst_ausencia_sessao:
+        if lst_ausencia_sessao:
+            tmp += '\t\t<para style="P1">Lista de Presença da Sessão</para>\n'
+            tmp += '\t\t<para style="P2">\n'
+            tmp += '\t\t\t<font color="white"> <br/></font>\n'
+            tmp += '\t\t</para>\n'
+            for presenca in lst_presenca_sessao:
+                tmp += '\t\t<para style="P2" spaceAfter="5">' + \
+                    str(presenca['nom_parlamentar']) + '/' + \
+                    str(presenca['sgl_partido']) + '</para>\n'
+        if lst_ausencia_sessao:
+            tmp += '\t\t<para style="P1">Justificativas de Ausência da Sessão</para>\n'
+            tmp += '\t\t<para style="P2">\n'
+            tmp += '\t\t\t<font color="white"> <br/></font>\n'
+            tmp += '\t\t</para>\n'
+            tmp += '<blockTable style="repeater" repeatRows="1">\n'
+            tmp += '<tr><td >Parlamentar</td><td>Justificativa</td><td>Ausente em</td></tr>\n'
+            for ausencia in lst_ausencia_sessao:
+                tmp += '<tr><td>' + \
+                    str(ausencia['parlamentar']) + '</td><td> ' + \
+                    str(ausencia['justificativa']) + '</td><td>' + \
+                    str(ausencia['tipo']) + '</td></tr>\n'
+            tmp += '</blockTable>'
     return tmp
 
 
 def expedientes(lst_expedientes):
-    """
-
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Expedientes</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
-    tmp += '\t\t</para>\n'
-    for expediente in lst_expedientes:
-        tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
-            expediente['nom_expediente'] + ': </b></para>\n' + \
-            '<para style="P3">' + \
-            expediente['txt_expediente'] + '</para>\n'
+    if lst_expedientes:
+        tmp += '\t\t<para style="P1">Expedientes</para>\n'
         tmp += '\t\t<para style="P2">\n'
         tmp += '\t\t\t<font color="white"> </font>\n'
         tmp += '\t\t</para>\n'
+        for expediente in lst_expedientes:
+            tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
+                expediente['nom_expediente'] + ': </b></para>\n' + \
+                '<para style="P3">' + \
+                expediente['txt_expediente'] + '</para>\n'
+            tmp += '\t\t<para style="P2">\n'
+            tmp += '\t\t\t<font color="white"> </font>\n'
+            tmp += '\t\t</para>\n'
     return tmp
 
 
 def expediente_materia(lst_expediente_materia):
-    """
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Matérias do Expediente</para>\n\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    tmp += '<blockTable style="repeater" repeatRows="1" colWidths="3.5cm,11.5cm,3.5cm">>\n'
-    tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
-    for expediente_materia in lst_expediente_materia:
-        tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + expediente_materia[
-        'des_turno'] + '</para>\n' + '<para style="P3"><b>' + expediente_materia['num_autores'] + ': </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
-        
-        txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
-        
-        # txt_ementa = dont_break_out(expediente_materia['txt_ementa'])
-                
-        # if len(txt_ementa) > 800:
-        #    txt_ementa = txt_ementa[:800] + "..."
-        tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + expediente_materia['ordem_observacao'] + '</para></td>\n'
-        tmp += '<td><para style="P3"><b>' + \
-            str(expediente_materia['nom_resultado']) + \
-            '</b></para>\n' + '<para style="P3">'
-        if expediente_materia['votacao_observacao'] != txt_ementa:
-            tmp += str(expediente_materia['votacao_observacao'])
-        else:
-            tmp += ' '
-        tmp += '</para></td></tr>\n'
+    if lst_expediente_materia:
+        tmp += '\t\t<para style="P1">Matérias do Expediente</para>\n\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        tmp += '<blockTable style="repeater" repeatRows="1" colWidths="3.5cm,11.5cm,3.5cm">>\n'
+        tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
+        for expediente_materia in lst_expediente_materia:
+            tmp += '<tr><td><para style="P3"><b>' + str(expediente_materia['num_ordem']) + '</b> - ' + expediente_materia['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno: </b>' + expediente_materia[
+            'des_turno'] + '</para>\n' + '<para style="P3"><b>' + expediente_materia['num_autores'] + ': </b>' + str(expediente_materia['nom_autor']) + '</para></td>\n'
+            
+            txt_ementa = expediente_materia['txt_ementa'].replace('&', '&amp;')
+            
+            # txt_ementa = dont_break_out(expediente_materia['txt_ementa'])
+                    
+            # if len(txt_ementa) > 800:
+            #    txt_ementa = txt_ementa[:800] + "..."
+            tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + expediente_materia['ordem_observacao'] + '</para></td>\n'
+            tmp += '<td><para style="P3"><b>' + \
+                str(expediente_materia['nom_resultado']) + \
+                '</b></para>\n' + '<para style="P3">'
+            if expediente_materia['votacao_observacao'] != txt_ementa:
+                tmp += str(expediente_materia['votacao_observacao'])
+            else:
+                tmp += ' '
+            tmp += '</para></td></tr>\n'
 
-    tmp += '\t\t</blockTable>\n'
+        tmp += '\t\t</blockTable>\n'
     return tmp
 
 
 def expediente_materia_vot_nom(lst_expediente_materia_vot_nom):
-    """
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Votações Nominais - Matérias do Expediente</para>\n\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    tmp += '<blockTable style="repeater" repeatRows="1">\n'
-    tmp += '<tr><td >Matéria</td><td>Votos</td></tr>\n'
-    for expediente_materia_vot_nom in lst_expediente_materia_vot_nom:
-        tmp += '<tr><td><para style="P3">' + str(expediente_materia_vot_nom['titulo']) + '</para></td>'
-        if expediente_materia_vot_nom['votos']:
-            tmp += '<td>'
-            for v in expediente_materia_vot_nom['votos']:
-                tmp += '<para style="P3"><b>' + str(v.parlamentar) + '</b> - ' + v.voto + '</para>'
-            tmp += '</td>'
-        else: 
-            tmp += '<td><para style="P3"><b>Matéria não votada</b></para></td>'
-        tmp += '</tr>\n'
-    tmp += '\t\t</blockTable>\n'
+    if lst_expediente_materia_vot_nom:
+        tmp += '\t\t<para style="P1">Votações Nominais - Matérias do Expediente</para>\n\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        tmp += '<blockTable style="repeater" repeatRows="1">\n'
+        tmp += '<tr><td >Matéria</td><td>Votos</td></tr>\n'
+        for expediente_materia_vot_nom in lst_expediente_materia_vot_nom:
+            tmp += '<tr><td><para style="P3">' + str(expediente_materia_vot_nom['titulo']) + '</para></td>'
+            if expediente_materia_vot_nom['votos']:
+                tmp += '<td>'
+                for v in expediente_materia_vot_nom['votos']:
+                    tmp += '<para style="P3"><b>' + str(v.parlamentar) + '</b> - ' + v.voto + '</para>'
+                tmp += '</td>'
+            else: 
+                tmp += '<td><para style="P3"><b>Matéria não votada</b></para></td>'
+            tmp += '</tr>\n'
+        tmp += '\t\t</blockTable>\n'
     return tmp
 
 
 def oradores_expediente(lst_oradores_expediente):
-    """
-
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Oradores do Expediente</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    for orador_expediente in lst_oradores_expediente:
-        tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + str(orador_expediente[
-        'num_ordem']) + '</b> - ' + orador_expediente[
-        'nom_parlamentar'] + '/' + str(orador_expediente[
-        'sgl_partido']) + ' - ' + str(orador_expediente[
-        'observacao']) + '</para>\n'
+    if lst_oradores_expediente:
+        tmp += '\t\t<para style="P1">Oradores do Expediente</para>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        for orador_expediente in lst_oradores_expediente:
+            tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + str(orador_expediente[
+            'num_ordem']) + '</b> - ' + orador_expediente[
+            'nom_parlamentar'] + '/' + str(orador_expediente[
+            'sgl_partido']) + ' - ' + str(orador_expediente[
+            'observacao']) + '</para>\n'
     return tmp
 
 
 def presenca_ordem_dia(lst_presenca_ordem_dia):
-    """
-
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Lista de Presença da Ordem do Dia</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    for presenca_ordem_dia in lst_presenca_ordem_dia:
-        tmp += '\t\t<para style="P2" spaceAfter="5">' + \
-            str(presenca_ordem_dia['nom_parlamentar']) + '/' + \
-            str(presenca_ordem_dia['sgl_partido']) + '</para>\n'
+    if lst_presenca_ordem_dia:
+        tmp += '\t\t<para style="P1">Lista de Presença da Ordem do Dia</para>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        for presenca_ordem_dia in lst_presenca_ordem_dia:
+            tmp += '\t\t<para style="P2" spaceAfter="5">' + \
+                str(presenca_ordem_dia['nom_parlamentar']) + '/' + \
+                str(presenca_ordem_dia['sgl_partido']) + '</para>\n'
     return tmp
 
 
 def votacao(lst_votacao):
-    """
-    """
-
     tmp = ''
-    tmp += '<para style="P1">Matérias da Ordem do Dia</para>\n\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    tmp += '<blockTable style="repeater" repeatRows="1">\n'
-    tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
-    for votacao in lst_votacao:
-        tmp += '<tr><td><para style="P3"><b>' + str(votacao['num_ordem']) + '</b> - ' + votacao['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno:</b> ' + votacao[
-            'des_turno'] + '</para>\n' + '<para style="P3"><b>' + votacao['num_autores'] + ': </b>' + str(votacao['nom_autor']) + '</para></td>\n'
-        txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
-        if len(txt_ementa) > 1000:
-            txt_ementa = txt_ementa[:1000] + "..."
-        tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + votacao['ordem_observacao'] + '</para></td>\n'
-        tmp += '<td><para style="P3"><b>' + \
-            str(votacao['nom_resultado']) + \
-            '</b></para>\n' + '<para style="P3">'
-        if votacao['votacao_observacao'] != txt_ementa:
-            tmp += str(votacao['votacao_observacao'])
-        else:
-            tmp += ' '
-        tmp += '</para></td></tr>\n'
-
-    tmp += '\t\t</blockTable>\n'
+    if lst_votacao:
+        tmp += '<para style="P1">Matérias da Ordem do Dia</para>\n\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        tmp += '<blockTable style="repeater" repeatRows="1">\n'
+        tmp += '<tr><td >Matéria</td><td>Ementa</td><td>Resultado da Votação</td></tr>\n'
+        for votacao in lst_votacao:
+            tmp += '<tr><td><para style="P3"><b>' + str(votacao['num_ordem']) + '</b> - ' + votacao['id_materia'] + '</para>\n' + '<para style="P3"><b>Turno:</b> ' + votacao[
+                'des_turno'] + '</para>\n' + '<para style="P3"><b>' + votacao['num_autores'] + ': </b>' + str(votacao['nom_autor']) + '</para></td>\n'
+            txt_ementa = votacao['txt_ementa'].replace('&', '&amp;')
+            if len(txt_ementa) > 1000:
+                txt_ementa = txt_ementa[:1000] + "..."
+            tmp += '<td><para style="P4">' + txt_ementa + '</para>' + '<para style="P4">' + votacao['ordem_observacao'] + '</para></td>\n'
+            tmp += '<td><para style="P3"><b>' + \
+                str(votacao['nom_resultado']) + \
+                '</b></para>\n' + '<para style="P3">'
+            if votacao['votacao_observacao'] != txt_ementa:
+                tmp += str(votacao['votacao_observacao'])
+            else:
+                tmp += ' '
+            tmp += '</para></td></tr>\n'
+        tmp += '\t\t</blockTable>\n'
     return tmp
 
 
 def votacao_vot_nom(lst_votacao_vot_nom):
-    """
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Votações Nominais - Matérias da Ordem do Dia</para>\n\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    tmp += '<blockTable style="repeater" repeatRows="1">\n'
-    tmp += '<tr><td >Matéria</td><td>Votos</td></tr>\n'
-    for votacao_vot_nom in lst_votacao_vot_nom:
-        tmp += '<tr><td><para style="P3">' + str(votacao_vot_nom['titulo']) + '</para></td>'
-        if votacao_vot_nom['votos']:
-            tmp += '<td>'
-            for v in votacao_vot_nom['votos']:
-                tmp += '<para style="P3"><b>' + str(v.parlamentar) + '</b> - ' + v.voto + '</para>'
-            tmp += '</td>'
-        else: 
-            tmp += '<td><para style="P3"><b>Matéria não votada</b></para></td>'
-        tmp += '</tr>\n'
-    tmp += '\t\t</blockTable>\n'
+    if lst_votacao_vot_nom:
+        tmp += '\t\t<para style="P1">Votações Nominais - Matérias da Ordem do Dia</para>\n\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        tmp += '<blockTable style="repeater" repeatRows="1">\n'
+        tmp += '<tr><td >Matéria</td><td>Votos</td></tr>\n'
+        for votacao_vot_nom in lst_votacao_vot_nom:
+            tmp += '<tr><td><para style="P3">' + str(votacao_vot_nom['titulo']) + '</para></td>'
+            if votacao_vot_nom['votos']:
+                tmp += '<td>'
+                for v in votacao_vot_nom['votos']:
+                    tmp += '<para style="P3"><b>' + str(v.parlamentar) + '</b> - ' + v.voto + '</para>'
+                tmp += '</td>'
+            else: 
+                tmp += '<td><para style="P3"><b>Matéria não votada</b></para></td>'
+            tmp += '</tr>\n'
+        tmp += '\t\t</blockTable>\n'
     return tmp
 
 
 def oradores_ordemdia(lst_oradores_ordemdia):
-    """
-
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Oradores da Ordem do Dia</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    for orador_ordemdia in lst_oradores_ordemdia:
-        tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
-        str(orador_ordemdia['num_ordem']) + '</b> - ' + \
-        orador_ordemdia['nome_parlamentar'] + '/' + \
-        str(orador_ordemdia['sigla']) + ' - ' + \
-        str(orador_ordemdia['observacao']) + '</para>\n'
+    if lst_oradores_ordemdia:
+        tmp += '\t\t<para style="P1">Oradores da Ordem do Dia</para>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        for orador_ordemdia in lst_oradores_ordemdia:
+            tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
+            str(orador_ordemdia['num_ordem']) + '</b> - ' + \
+            orador_ordemdia['nome_parlamentar'] + '/' + \
+            str(orador_ordemdia['sigla']) + ' - ' + \
+            str(orador_ordemdia['observacao']) + '</para>\n'
     return tmp
 
 
 def oradores(lst_oradores):
-    """
-
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Oradores das Explicações Pessoais</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> <br/></font>\n'
-    tmp += '\t\t</para>\n'
-    for orador in lst_oradores:
-        tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
-            str(orador['num_ordem']) + '</b> - ' + orador['nom_parlamentar'] + \
-            '/' + str(orador['sgl_partido']) + '</para>\n'
+    if lst_oradores:
+        tmp += '\t\t<para style="P1">Oradores das Explicações Pessoais</para>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        for orador in lst_oradores:
+            tmp += '\t\t<para style="P2" spaceAfter="5"><b>' + \
+                str(orador['num_ordem']) + '</b> - ' + orador['nom_parlamentar'] + \
+                '/' + str(orador['sgl_partido']) + '</para>\n'
     return tmp
 
 
 def ocorrencias(lst_ocorrencias):
-    """
-
-    """
     tmp = ''
-    tmp += '\t\t<para style="P1">Ocorrências da Sessão</para>\n'
-    tmp += '\t\t<para style="P2">\n'
-    tmp += '\t\t\t<font color="white"> </font>\n'
-    tmp += '\t\t</para>\n'
-    for ocorrencia in lst_ocorrencias:
-        tmp += '\t\t<para style="P3">' + \
-               str(ocorrencia.conteudo) + '</para>\n'
+    if lst_ocorrencias:
+        tmp += '\t\t<para style="P1">Ocorrências da Sessão</para>\n'
         tmp += '\t\t<para style="P2">\n'
         tmp += '\t\t\t<font color="white"> </font>\n'
         tmp += '\t\t</para>\n'
+        for ocorrencia in lst_ocorrencias:
+            tmp += '\t\t<para style="P3">' + \
+                str(ocorrencia.conteudo) + '</para>\n'
+            tmp += '\t\t<para style="P2">\n'
+            tmp += '\t\t\t<font color="white"> </font>\n'
+            tmp += '\t\t</para>\n'
     return tmp
 
 

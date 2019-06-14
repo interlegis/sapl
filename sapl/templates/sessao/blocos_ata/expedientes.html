@@ -3,8 +3,12 @@
 	{% if expedientes %}
         <strong>Expedientes: </strong> 
         {% for e in expedientes %}
-              <b>{{e.tipo}}</b>:
-                 {{e.conteudo|striptags|safe}}
+            <b>{{e.tipo}}</b>:
+                {% if e.conteudo %}
+                    {{e.conteudo|striptags|safe}}
+                {% else %}
+                    Sem registro
+                {% endif %}
         {% endfor %}
 	{% endif %}
 	</p>

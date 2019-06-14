@@ -1,0 +1,166 @@
+{% extends "crud/detail.html" %}
+{% load i18n crispy_forms_tags %}
+
+{% block base_content %}
+        
+    {% if sessao_iniciada %}
+    <form method="POST" enctype="application/x-www-form-urlencoded" id="form" action="{% url 'sapl.sessao:votacaoblocosimb' pk %}">
+        {% csrf_token %}
+        <br><br>
+        <table class="table table-striped table-bordered">
+            <thead class="thead-default">
+            <tr>
+                <td><h3>{% trans "Tipo de Votação" %}</h3></td>
+            </tr>
+            </thead>
+            <tr>
+            <td class="col-md-12">
+                <fieldset id="tipo_votacao" name="tipo">
+                <input type="radio" name="tipo_votacao" id="tipo_votacao_1" value="1" onchange="alteraTipoVotacao()" checked="checked"> <label for="tipo">Simbólica</label>
+                </br>
+                <input type="radio" name="tipo_votacao" id="tipo_votacao_2" value="2" onchange="alteraTipoVotacao()" > <label for="tipo">Nominal</label>
+                </br>
+                </fieldset>
+            </td>
+            </tr>
+        </table>
+        
+        <br>
+        
+        <h3 id='frase_selecione'>{% if expediente %} Selecione o(s) expediente(s) desejado(s). {% else %} Selecione a(s) ordem(s) do dia desejada(s). {% endif %}</h3>
+        
+        <table id='tab_mats' class="table table-striped table-bordered">
+            <thead class="thead-default">
+                <tr>
+                    <td><h3> {% if expediente %}  {% trans "Expediente" %} {% else %} {% trans "Ordem do Dia" %} {% endif %} </h3></td>
+                </tr>
+            </thead>
+            
+            <div class="checkbox" id="check_all">
+                <label for="id_check_all">
+                    <input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
+                </label>
+            </div>
+
+            {% for o in object_list %}
+            {% if o.tipo_votacao == 1 or o.tipo_votacao == 2 %}
+                <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% else %}Nominal{% endif %}"  {% if o.tipo_votacao == 2 %} style="display:none;" {% endif %}>
+                <td>
+                    <input type="checkbox" name="marcadas_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
+                    <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.materia.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
+                    {% if o.materia.numeracao_set.last %}
+                    <strong>Processo:</strong> &nbsp; {{o.materia.numeracao_set.last}}</br>
+                    {% endif %}
+                    <strong>Autor:</strong>
+                    {% for a in o.materia.autoria_set.all %}
+                    {% if not forloop.first %}
+                        , &nbsp;&nbsp; {{a.autor|default_if_none:""}}
+                    {% else %}
+                        &nbsp;{{a.autor|default_if_none:""}}
+                    {% endif %}
+                    {% endfor %}
+                    </br>
+                    {% if o.materia.numero_protocolo %}
+                    <strong>Protocolo:</strong> &nbsp; {{o.materia.numero_protocolo}}</br>
+                    {% endif %}
+                    {% if  o.materia.tramitacao_set.last %}
+                    {% if o.materia.tramitacao_set.last.turno %}
+                        <strong>Turno:</strong>&nbsp;
+                        {% for t in turno_choices %}
+                        {% if t.0 == o.materia.tramitacao_set.last.turno %}
+                            {{ t.1 }}
+                        {% endif %}
+                        {% endfor %}</br>
+                    {% endif %}
+                    {% endif %}
+                    <strong>Ementa:</strong>&nbsp;{{ o.materia.ementa|safe }}</br>
+                    <p></p>
+                </td>
+                </tr>         
+            {% endif %}
+            {% endfor %}
+        </table>
+
+        
+        <table class="table table-striped table-bordered" style="display:none" id="nenhuma_mat">
+            <tr>
+                <td>
+                    <h3>{% if expediente %} Nenhuma matéria do expediente aberta. {% else %} Nenhuma matéria da ordem do dia aberta. {% endif %} </h3>
+                </td>
+            </tr>
+        </table>
+        {% if expediente %}
+            <a href="{% url 'sapl.sessao:expedientemateria_list' pk %}" class="btn btn-warning mb-3" id="but_cancel">Voltar</a>
+            <input type="hidden" id="origem" name="origem" value="expediente">
+        {% else %}
+            <a href="{% url 'sapl.sessao:ordemdia_list' pk %}" class="btn btn-warning mb-3" id="but_cancel">Voltar</a>
+            <input type="hidden" id="origem" name="origem" value="ordem">
+        {% endif %}
+        <input type="submit" value="Registrar votação" class="btn btn-primary mb-3 float-right" id="but_reg">
+    </form>
+    {% endif %}
+
+{% endblock base_content %}
+
+{% block extra_js %}
+	<script>
+        $(document).ready(function(){
+            checa_tipo_votacao();
+            $('#tipo_votacao_1').prop('checked', true)
+        });
+
+        $(window).on('beforeunload', function () {
+        $("input[type=submit], input[type=button]").prop("disabled", "disabled");
+    });
+	</script>
+
+    <script language="JavaScript">
+        function checkAll(elem) {
+            let checkboxes = document.getElementsByName('marcadas_1');
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].type == 'checkbox') 
+                    checkboxes[i].checked = elem.checked;
+            }
+        
+            checkboxes = document.getElementsByName('marcadas_2');
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].type == 'checkbox') 
+                    checkboxes[i].checked = elem.checked;
+            }
+        }
+    
+        function alteraTipoVotacao() {
+            $(".Simbolica").toggle();
+            $(".Nominal").toggle();
+
+            checa_tipo_votacao();
+        }
+
+        function checa_tipo_votacao(){
+            tipo_votacao = document.querySelector('input[name="tipo_votacao"]:checked').value;
+            numero_marcadas = document.getElementsByName('marcadas_'+tipo_votacao).length;
+
+            if(numero_marcadas == 0){
+                document.getElementById('frase_selecione').style.display = 'none';
+                document.getElementById('tab_mats').style.display = 'none';
+                document.getElementById('check_all').style.display = 'none';
+                document.getElementById('but_reg').style.display = 'none';
+                document.getElementById('nenhuma_mat').style.display = '';
+            }
+            else{
+                document.getElementById('frase_selecione').style.display = '';
+                document.getElementById('tab_mats').style.display = '';
+                document.getElementById('check_all').style.display = '';
+                document.getElementById('but_reg').style.display = '';
+                document.getElementById('nenhuma_mat').style.display = 'none';
+            }
+
+            if(tipo_votacao == "1"){
+                $('#form').attr("action", "{% url 'sapl.sessao:votacaoblocosimb' pk %}")
+            }
+            else{
+                $('#form').attr("action", "{% url 'sapl.sessao:votacaobloconom' pk %}")
+            }
+        }
+	</script>
+{% endblock extra_js%}

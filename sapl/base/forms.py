@@ -30,6 +30,7 @@ from sapl.materia.models import (
     MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import SessaoLegislativa, Partido
+from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
@@ -898,32 +899,33 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
     class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
-        fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
-                  'tramitacao__status', 'tramitacao__data_tramitacao']
+        fields = ['tipo', 'tramitacao__status', 'tramitacao__data_tramitacao',
+        'tramitacao__unidade_tramitacao_local', 'tramitacao__unidade_tramitacao_destino']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioHistoricoTramitacaoFilterSet, self).__init__(
             *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
-
-        self.filters['tramitacao__unidade_tramitacao_local'
-                     ].label = _('Unidade Local')
         self.filters['tramitacao__status'].label = _('Status')
-        row1 = to_row([('tramitacao__data_tramitacao', 12)])
+        self.filters['tramitacao__unidade_tramitacao_local'].label = _('Unidade Local (Origem)')
+        self.filters['tramitacao__unidade_tramitacao_destino'].label = _('Unidade Destino')
 
-        row2 = to_row(
-            [('tipo', 4),
-             ('tramitacao__unidade_tramitacao_local', 4),
-             ('tramitacao__status', 4)])
+        row1 = to_row([('tramitacao__data_tramitacao', 12)])
+        row2 = to_row([('tramitacao__unidade_tramitacao_local', 6),
+                       ('tramitacao__unidade_tramitacao_destino', 6)])
+        row3 = to_row(
+            [('tipo', 6),
+             ('tramitacao__status', 6)])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Histórico de Tramitação'),
-                     row1, row2,
+            Fieldset(_(''),
+                     row1, row2, row3,
                      form_actions(label='Pesquisar'))
         )
+
 
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
@@ -936,6 +938,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
     class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
         fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
+                  'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status', 'tramitacao__data_fim_prazo']
 
     def __init__(self, *args, **kwargs):
@@ -943,20 +946,22 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
-        self.filters['tramitacao__unidade_tramitacao_local'].label = 'Unidade de tramitação local'
+        self.filters['tramitacao__unidade_tramitacao_local'].label = 'Unidade Local (Origem)'
+        self.filters['tramitacao__unidade_tramitacao_destino'].label = 'Unidade Destino'
         self.filters['tramitacao__status'].label = 'Status de tramitação'
-        
+
         row1 = to_row([('tramitacao__data_fim_prazo', 12)])
-        row2 = to_row(
-            [('tipo', 4),
-             ('tramitacao__unidade_tramitacao_local', 4),
-             ('tramitacao__status', 4)])
+        row2 = to_row([('tramitacao__unidade_tramitacao_local', 6),
+                       ('tramitacao__unidade_tramitacao_destino', 6)])
+        row3 = to_row(
+            [('tipo', 6),
+             ('tramitacao__status', 6)])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitações por fim de prazo'),
-                     row1, row2,
+                     row1, row2, row3,
                      form_actions(label='Pesquisar'))
         )
 
@@ -1220,7 +1225,9 @@ class ConfiguracoesAppForm(ModelForm):
                   'receber_recibo_proposicao',
                   'assinatura_ata',
                   'estatisticas_acesso_normas',
-                  'escolher_numero_materia_proposicao']
+                  'escolher_numero_materia_proposicao',
+                  'tramitacao_materia',
+                  'tramitacao_documento']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
@@ -1423,3 +1430,42 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
                 raise ValidationError("Certifique-se de que a data de criação seja anterior à data de extinção.")
 
         return cleaned_data
+
+
+class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
+
+    @property
+    def qs(self):
+        parent = super(RelatorioHistoricoTramitacaoAdmFilterSet, self).qs
+        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
+
+    class Meta(FilterOverridesMetaMixin):
+        model = DocumentoAdministrativo
+        fields = ['tipo', 'tramitacaoadministrativo__status', 
+                  'tramitacaoadministrativo__data_tramitacao',
+                  'tramitacaoadministrativo__unidade_tramitacao_local', 
+                  'tramitacaoadministrativo__unidade_tramitacao_destino']
+
+    def __init__(self, *args, **kwargs):
+        super(RelatorioHistoricoTramitacaoAdmFilterSet, self).__init__(
+            *args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Documento'
+        self.filters['tramitacaoadministrativo__status'].label = _('Status')
+        self.filters['tramitacaoadministrativo__unidade_tramitacao_local'].label = _('Unidade Local (Origem)')
+        self.filters['tramitacaoadministrativo__unidade_tramitacao_destino'].label = _('Unidade Destino')
+
+        row1 = to_row([('tramitacaoadministrativo__data_tramitacao', 12)])
+        row2 = to_row([('tramitacaoadministrativo__unidade_tramitacao_local', 6),
+                       ('tramitacaoadministrativo__unidade_tramitacao_destino', 6)])
+        row3 = to_row(
+            [('tipo', 6),
+             ('tramitacaoadministrativo__status', 6)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_(''),
+                     row1, row2, row3,
+                     form_actions(label='Pesquisar'))
+        )

@@ -256,9 +256,15 @@ class RetiradaPautaForm(ModelForm):
     def save(self, commit=False):
         retirada = super(RetiradaPautaForm, self).save(commit=commit)
         if retirada.ordem:
-            retirada.materia = retirada.ordem.materia
+            ordem = retirada.ordem
+            retirada.materia = ordem.materia
+            ordem.votacao_aberta = False
+            ordem.save()
         elif retirada.expediente:
-            retirada.materia = retirada.expediente.materia
+            expediente = retirada.expediente
+            retirada.materia = expediente.materia
+            expediente.votacao_aberta = False
+            expediente.save()
         retirada.save()
         return retirada
 
@@ -631,19 +637,11 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
 
 
 class OradorForm(ModelForm):
-
     def __init__(self, *args, **kwargs):
-        super(OradorForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        self.fields['parlamentar'].queryset = \
+        Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
 
-        id_sessao = int(self.initial['id_sessao'])
-
-        ids = [s.parlamentar.id for
-               s in SessaoPlenariaPresenca.objects.filter(
-                   sessao_plenaria_id=id_sessao)]
-
-        self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-            id__in=ids).order_by('nome_parlamentar')
-    
     def clean(self):
         super(OradorForm, self).clean()
         cleaned_data = self.cleaned_data
@@ -659,30 +657,23 @@ class OradorForm(ModelForm):
             numero_ordem=numero_ordem
         ).exists()
 
-        if ordem and numero_ordem != numero: 
+        if ordem and numero_ordem != numero:
             raise ValidationError(_(
                 "Já existe orador nesta posição de ordem de pronunciamento"
             ))
-        
+
+
         return self.cleaned_data
-    
     class Meta:
         model = Orador
         exclude = ['sessao_plenaria']
 
 
 class OradorExpedienteForm(ModelForm):
-
     def __init__(self, *args, **kwargs):
-        super(OradorExpedienteForm, self).__init__(*args, **kwargs)
-        legislatura_vigente = SessaoPlenaria.objects.get(
-            pk=kwargs['initial']['id_sessao']).legislatura
-
-        if legislatura_vigente:
-            self.fields['parlamentar'].queryset = \
-                Parlamentar.objects.filter(ativo=True,
-                                           mandato__legislatura=legislatura_vigente
-                                           ).order_by('nome_parlamentar')
+        super().__init__(*args, **kwargs)
+        self.fields['parlamentar'].queryset = \
+        Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()
@@ -692,7 +683,7 @@ class OradorExpedienteForm(ModelForm):
             return self.cleaned_data
 
         sessao_id = self.initial['id_sessao']
-        numero = self.initial.get('numero')  # Retorna None se inexistente
+        numero = self.initial.get('numero', None)
         ordem = OradorExpediente.objects.filter(
             sessao_plenaria_id=sessao_id,
             numero_ordem=cleaned_data['numero_ordem']
@@ -710,20 +701,10 @@ class OradorExpedienteForm(ModelForm):
 
 
 class OradorOrdemDiaForm(ModelForm):
-
     def __init__(self, *args, **kwargs):
-        super(OradorOrdemDiaForm, self).__init__(*args, **kwargs)
-        
-        id_sessao = int(self.initial['id_sessao'])
-
-        ids = [p.parlamentar.id for p in PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=id_sessao
-        )]
-
-        self.fields['parlamentar'].queryset = Parlamentar.objects.filter(
-            id__in=ids
-        ).order_by('nome_parlamentar')
-
+        super().__init__(*args, **kwargs)
+        self.fields['parlamentar'].queryset = \
+        Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorOrdemDiaForm, self).clean()
@@ -740,11 +721,11 @@ class OradorOrdemDiaForm(ModelForm):
             numero_ordem=numero_ordem
         ).exists()
 
-        if ordem and numero_ordem != numero: 
+        if ordem and numero_ordem != numero:
             raise ValidationError(_(
                 "Já existe orador nesta posição de ordem de pronunciamento"
             ))
-        
+
         return self.cleaned_data
 
     class Meta:
@@ -849,7 +830,7 @@ class ResumoOrdenacaoForm(forms.Form):
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
-                     row6, row7, row8, row9, row10, 
+                     row6, row7, row8, row9, row10,
                      row11, row12, row13, row14,
                      form_actions(label='Atualizar'))
         )

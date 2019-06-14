@@ -587,13 +587,37 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
 
 class OradorCrud(MasterDetailCrud):
-    model = ''
+    model = Orador
     parent_field = 'sessao_plenaria'
     help_topic = 'sessao_plenaria_oradores'
     public = [RP_LIST, RP_DETAIL]
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'parlamentar']
+
+
+    class CreateView(MasterDetailCrud.CreateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            return {'id_sessao': self.kwargs['pk']}
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:orador_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero':self.object.numero_ordem})
+
+            return initial
 
 
 class OradorExpedienteCrud(OradorCrud):
@@ -639,32 +663,6 @@ class OradorOrdemDiaCrud(OradorCrud):
 
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
             initial.update({'numero': self.object.numero_ordem})
-
-            return initial
-
-
-class OradorCrud(OradorCrud):
-    model = Orador
-
-    class CreateView(MasterDetailCrud.CreateView):
-
-        form_class = OradorForm
-
-        def get_initial(self):
-            return {'id_sessao': self.kwargs['pk']}
-
-        def get_success_url(self):
-            return reverse('sapl.sessao:orador_list',
-                           kwargs={'pk': self.kwargs['pk']})
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-
-        form_class = OradorForm
-
-        def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
-            initial.update({'id_sessao': self.object.sessao_plenaria.id})
-            initial.update({'numero':self.object.numero_ordem})
 
             return initial
 
@@ -1491,8 +1489,7 @@ def get_assinaturas(sessao_plenaria):
     parlamentares_ordem = [p for p in parlamentares_ordem if p not in parlamentares_mesa]
 
     context = {}
-
-    config_assinatura_ata = AppsAppConfig.objects.first().assinatura_ata
+    config_assinatura_ata = AppsAppConfig.attr('assinatura_ata')
     if config_assinatura_ata == 'T' and parlamentares_ordem:
         context.update(
             {'texto_assinatura': 'Assinatura de Todos os Parlamentares Presentes na Sessão'})
@@ -1758,23 +1755,42 @@ class ResumoView(DetailView):
         }
 
         ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
-        context.update({
-            'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
-            'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
-            'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
-            'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
-            'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
-            'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
-            'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
-            'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
-            'nono_ordenacao': dict_ord_template[ordenacao.nono],
-            'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
-            'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
-            'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
-            'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
-            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
-        })
-
+        try:
+            context.update({
+                'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+                'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+                'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+                'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+                'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+                'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+                'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+                'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+                'nono_ordenacao': dict_ord_template[ordenacao.nono],
+                'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+                'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+                'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+                'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
+                'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+            })
+        except KeyError as e:
+            self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
+                              "configuração de ordenação. Utilizando ordenação padrão.")
+            context.update({
+                'primeiro_ordenacao': 'identificacao_basica.html',
+                'segundo_ordenacao': 'conteudo_multimidia.html',
+                'terceiro_ordenacao': 'mesa_diretora.html',
+                'quarto_ordenacao': 'lista_presenca.html',
+                'quinto_ordenacao': 'expedientes.html',
+                'sexto_ordenacao': 'materias_expediente.html',
+                'setimo_ordenacao': 'votos_nominais_materias_expediente.html',
+                'oitavo_ordenacao': 'oradores_expediente.html',
+                'nono_ordenacao': 'lista_presenca_ordem_dia.html',
+                'decimo_ordenacao': 'materias_ordem_dia.html',
+                'decimo_primeiro_ordenacao': 'votos_nominais_materias_ordem_dia.html',
+                'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
+                'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
+                'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html'
+            })
         return context
 
     def get(self, request, *args, **kwargs):
@@ -3480,16 +3496,14 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
 
 class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
-
-    model = ExpedienteMateria
-    template_name = 'sessao/votacao/votacao_bloco_expediente.html'
+    template_name = 'sessao/votacao/votacao_bloco.html'
     app_label = AppConfig.label
-    context_object_name = 'expedientes'
-    logger = logging.getLogger(__name__)
+    expediente = True
 
     def get_queryset(self):
         return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
-                                                resultado='')
+                                                resultado='',
+                                                retiradapauta=None)
 
     def get_context_data(self, **kwargs):
         context = super(VotacaoEmBlocoExpediente,
@@ -3502,33 +3516,20 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
         context['sessao_iniciada'] = True
         context['turno_choices'] = Tramitacao.TURNO_CHOICES
         context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+        if self.expediente:
+            context['expediente'] = True
+        else:
+            context['expediente'] = False
         return context
 
 
-class VotacaoEmBlocoOrdemDia(PermissionRequiredForAppCrudMixin, ListView):
-    model = OrdemDia
-    template_name = 'sessao/votacao/votacao_bloco_ordem.html'
-    app_label = AppConfig.label
-    logger = logging.getLogger(__name__)
-    context_object_name = 'ordem_dia'
-    parent_field = 'sessao_plenaria'
+class VotacaoEmBlocoOrdemDia(VotacaoEmBlocoExpediente):
+    expediente = False
 
     def get_queryset(self):
         return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
-                                       resultado='')
-
-    def get_context_data(self, **kwargs):
-        context = super(VotacaoEmBlocoOrdemDia,
-                        self).get_context_data(**kwargs)
-        context['pk'] = self.kwargs['pk']
-        context['root_pk'] = self.kwargs['pk']
-        if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
-            context['sessao_iniciada'] = False
-            return context
-        context['sessao_iniciada'] = True
-        context['turno_choices'] = Tramitacao.TURNO_CHOICES
-        context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
-        return context
+                                       resultado='',
+                                       retiradapauta=None)
 
 
 class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateView):

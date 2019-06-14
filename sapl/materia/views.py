@@ -1256,18 +1256,29 @@ class TramitacaoCrud(MasterDetailCrud):
 
         layout_key = 'TramitacaoUpdate'
 
-        def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
-            initial['ip'] = get_client_ip(self.request)
-            initial['user'] = self.request.user
-            return initial
-
         def form_valid(self, form):
+            dict_objeto_antigo = Tramitacao.objects.get(pk=self.kwargs['pk']).__dict__
+
             self.object = form.save()
-            username = self.request.user.username
+            dict_objeto_novo = self.object.__dict__
+
+            user = self.request.user
+
+            atributos = [
+                'data_tramitacao', 'unidade_tramitacao_destino_id', 'status_id', 'texto',
+                'data_encaminhamento', 'data_fim_prazo', 'urgente', 'turno'
+            ]
+
+            # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
+            for atributo in atributos:
+                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
+                    self.object.user = user
+                    self.object.ip = get_client_ip(self.request)
+                    self.object.save()
+                    break
 
             try:
-                self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
+                self.logger.debug("user=" + user.username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
                                   .format(Tramitacao, self.object, self.request))
                 tramitacao_signal.send(sender=Tramitacao,
                                        post=self.object,
@@ -1276,7 +1287,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
                         'de matéria não enviado. Há problemas na configuração '
                         'do e-mail.')
-                self.logger.warning('user=' + username + '. Tramitação atualizada, mas e-mail de acompanhamento '
+                self.logger.warning('user=' + user.username + '. Tramitação atualizada, mas e-mail de acompanhamento '
                                     'de matéria não enviado. Há problemas na configuração '
                                     'do e-mail.')
                 messages.add_message(self.request, messages.WARNING, msg)
@@ -1317,12 +1328,21 @@ class TramitacaoCrud(MasterDetailCrud):
                 return HttpResponseRedirect(url)
             else:
                 tramitacoes_deletar = [tramitacao.id]
-                mat_anexadas = lista_anexados(materia)
-                for ma in mat_anexadas:
-                    tram_anexada = ma.tramitacao_set.last()
-                    if compara_tramitacoes_mat(tram_anexada, tramitacao):
-                        tramitacoes_deletar.append(tram_anexada.id)
+                if materia.tramitacao_set.count() == 0:
+                    materia.em_tramitacao = False
+                    materia.save()
+                tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
+                if tramitar_anexadas:
+                    mat_anexadas = lista_anexados(materia)
+                    for ma in mat_anexadas:
+                        tram_anexada = ma.tramitacao_set.last()
+                        if compara_tramitacoes_mat(tram_anexada, tramitacao):
+                            tramitacoes_deletar.append(tram_anexada.id)
+                            if ma.tramitacao_set.count() == 0:
+                                ma.em_tramitacao = False
+                                ma.save()
                 Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
+
                 return HttpResponseRedirect(url)
 
     class DetailView(MasterDetailCrud.DetailView):
@@ -1596,6 +1616,15 @@ class MateriaLegislativaCrud(Crud):
 
         form_class = MateriaLegislativaForm
 
+        def form_valid(self, form):
+            self.object = form.instance
+
+            self.object.user = self.request.user
+            self.object.ip = get_client_ip(self.request)
+            self.object.save()
+
+            return super().form_valid(form)
+
         @property
         def cancel_url(self):
             return self.search_url
@@ -1605,8 +1634,28 @@ class MateriaLegislativaCrud(Crud):
         form_class = MateriaLegislativaForm
 
         def form_valid(self, form):
+            dict_objeto_antigo = MateriaLegislativa.objects.get(
+                pk=self.kwargs['pk']
+            ).__dict__
+            
             self.object = form.save()
-            username = self.request.user.username
+            dict_objeto_novo = self.object.__dict__
+
+            atributos = [
+                'tipo_id', 'ano', 'numero', 'data_apresentacao', 'numero_protocolo',
+                'tipo_apresentacao', 'texto_original', 'apelido', 'dias_prazo', 'polemica',
+                'objeto', 'regime_tramitacao_id', 'em_tramitacao', 'data_fim_prazo',
+                'data_publicacao', 'complementar', 'tipo_origem_externa_id', 
+                'numero_origem_externa', 'ano_origem_externa', 'local_origem_externa_id',
+                'data_origem_externa', 'ementa', 'indexacao', 'observacao'
+            ]
+
+            for atributo in atributos:
+                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
+                    self.object.user = self.request.user
+                    self.object.ip = get_client_ip(self.request)
+                    self.object.save()
+                    break
 
             if Anexada.objects.filter(materia_principal=self.kwargs['pk']).exists():
                 materia = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
@@ -1615,7 +1664,7 @@ class MateriaLegislativaCrud(Crud):
                 for anexada in anexadas:
                     anexada.em_tramitacao = True if form.instance.em_tramitacao else False 
                     anexada.save()
-    
+
             return super().form_valid(form)
 
         @property
@@ -1630,6 +1679,13 @@ class MateriaLegislativaCrud(Crud):
     class DetailView(Crud.DetailView):
 
         layout_key = 'MateriaLegislativaDetail'
+        template_name = "materia/materia_detail.html"
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['user'] = self.request.user
+            context['materia'] = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+            return context
 
     class ListView(Crud.ListView, RedirectView):
 
@@ -2183,8 +2239,8 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         msg = _('Matéria(s) anexada(s).')
         messages.add_message(request, messages.SUCCESS, msg)
 
-        sucess_url = reverse('sapl_index') + 'materia/' + kwargs['pk'] + '/anexada'
-        return HttpResponseRedirect(sucess_url)
+        success_url = reverse('sapl.materia:anexada_list', kwargs={'pk': kwargs['pk']})
+        return HttpResponseRedirect(success_url)
 
 
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
@@ -2288,12 +2344,12 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         flag_error = False  
 
         materias_principais = [m for m in MateriaLegislativa.objects.filter(id__in=marcadas)]
-        materias_anexadas = [m.anexadas.all() for m in MateriaLegislativa.objects.filter(id__in=marcadas) if m.anexadas.all()]
-        materias_anexadas = list(itertools.chain.from_iterable(materias_anexadas)) 
-        tramitacao_local = int(request.POST['unidade_tramitacao_local'])
-        materias_anexadas = list(filter(lambda ma : not ma.tramitacao_set.all() or \
-                                        ma.tramitacao_set.last().unidade_tramitacao_destino.id == tramitacao_local,
-                                        materias_anexadas))
+        tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
+        materias_anexadas = []
+        if tramitar_anexadas:
+            for materia in materias_principais:
+                materias_anexadas = materias_anexadas + lista_anexados(materia)
+
         materias = set(materias_principais + materias_anexadas)
 
         for materia in materias:
@@ -2351,11 +2407,13 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
                 materia.em_tramitacao = True
             materia.save()
 
-        msg = _('Tramitação completa.')
+        msg = _('Tramitação completa. ' + "Foram tramitadas " + str(len(materias)) + " matéria(s).")
         self.logger.info('user=' + username + '. Tramitação completa.')
         messages.add_message(request, messages.SUCCESS, msg)
-        return self.get(request, self.kwargs)
-
+        
+        if self.primeira_tramitacao:
+            return HttpResponseRedirect(reverse('sapl.materia:primeira_tramitacao_em_lote'))
+        return HttpResponseRedirect(reverse('sapl.materia:tramitacao_em_lote'))
 
 class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
     filterset_class = TramitacaoEmLoteFilterSet

@@ -147,4 +147,3 @@ class TestResumoView():
         resultado_get_ocorrencia = get_ocorrencias_da_sessão(self.sessao_plenaria)
 
         assert resultado_get_ocorrencia['ocorrencias_da_sessao'][0] == ocorrencia
-

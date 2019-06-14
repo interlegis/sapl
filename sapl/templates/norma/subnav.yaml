@@ -15,6 +15,6 @@
 #  Em nada mais a integração interfere em NormaJuridica
 
 {% if 'texto_articulado_norma'|get_config_attr %}
-- title: {% trans 'Texto' %}
+- title: {% trans 'Texto Compilado' %}
   url: norma_ta
 {% endif %}

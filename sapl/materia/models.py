@@ -11,7 +11,7 @@ from model_utils import Choices
 import reversion
 
 from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor
-from sapl.comissoes.models import Comissao
+from sapl.comissoes.models import Comissao, Reuniao
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TextoArticulado)
 from sapl.parlamentares.models import Parlamentar
@@ -279,6 +279,20 @@ class MateriaLegislativa(models.Model):
         auto_now=True,
         verbose_name=_('Data'))
 
+    user = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário'),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+    ip = models.CharField(
+        verbose_name=_('IP'),
+        max_length=30,
+        blank=True,
+        default=''
+    )
+
     class Meta:
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
@@ -399,6 +413,30 @@ class AcompanhamentoMateria(models.Model):
                 'email': self.email,
                 'data': str(self.data_cadastro.strftime('%d/%m/%Y'))
             }
+
+
+@reversion.register()
+class PautaReuniao(models.Model):
+    reuniao = models.ForeignKey(
+        Reuniao, related_name='reuniao_set',
+        on_delete=models.CASCADE,
+        verbose_name=_('Reunião')
+    )
+    materia = models.ForeignKey(
+        MateriaLegislativa, related_name='materia_set',
+        verbose_name=_('Matéria')
+    )
+
+    class Meta:
+        verbose_name = _('Matéria da Pauta')
+        verbose_name_plural = ('Matérias da Pauta')
+
+    def __str__(self):
+        return _('Reunião: %(reuniao)s'
+                 ' - Matéria: %(materia)s') % {
+                     'reuniao': self.reuniao,
+                     'materia': self.materia
+                 }
 
 
 @reversion.register()

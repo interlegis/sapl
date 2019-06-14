@@ -33,11 +33,11 @@
           <td> Atas de Sessão Plenária. </td>
         </tr>
         <tr>
-          <td><a href="{% url 'sapl.base:historico_tramitacoes' %}">Histórico de tramitações</a></td>
+          <td><a href="{% url 'sapl.base:historico_tramitacoes' %}">Histórico de tramitações de Matérias</a></td>
           <td> Histórico de tramitações por período e local informados. </td>
         </tr>
         <tr>
-          <td><a href="{% url 'sapl.base:data_fim_prazo_tramitacoes' %}">Tramitações por fim de prazo</a></td>
+          <td><a href="{% url 'sapl.base:data_fim_prazo_tramitacoes' %}">Tramitações de Matérias por fim de prazo</a></td>
           <td> Tramitações com fim de prazo no intervalo informado. </td>
         </tr>
         <tr>
@@ -55,6 +55,10 @@
         <tr>
           <td><a href="{% url 'sapl.base:normas_por_vigencia' %}">Normas por vigência</a></td>
           <td> Normas vigentes ou não vigentes. </td>
+        </tr>
+        <tr>
+          <td><a href="{% url 'sapl.base:historico_tramitacoes_adm' %}">Histórico de tramitações de Documentos</a></td>
+          <td> Histórico de tramitações de Documentos por período e local informados. </td>
         </tr>
         {% if estatisticas_acesso_normas %}
           <tr>

@@ -12,7 +12,7 @@ install_requires = [
     'django>=1.11.19,<2.0',
     'django-haystack==2.8.1',
     'django-filter==2.0.0',
-    'djangorestframework==3.9.0',
+    'djangorestframework==3.9.1',
     'dj-database-url==0.5.0',
     'django-braces==1.9.0',
     'django-crispy-forms==1.7.2',
@@ -43,7 +43,7 @@ install_requires = [
 ]
 setup(
     name='interlegis-sapl',
-    version='3.1.156',
+    version='3.1.157-RC5',
     packages=find_packages(),
     include_package_data=True,
     license='GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007',

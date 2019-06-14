@@ -1,35 +1,42 @@
 {% load common_tags %}
 
+{% if presenca_sessao or justificativa_ausencia %}
 <fieldset>
+  {% if presenca_sessao %}
   <legend>Lista de Presença na Sessão</legend>
-    <div class="row">
-      {% for p in presenca_sessao %}
-        <div class="col-md-12">{{p.nome_parlamentar}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</div>
-      {% endfor %}
-    </div>
+  <div class="row">
+    {% for p in presenca_sessao %}
+      <div class="col-md-12">{{p.nome_parlamentar}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</div>
+    {% endfor %}
+  </div>
   </br></br></br>
-    <div class="row">
+  {% endif %}
+  {% if justificativa_ausencia %}
+  <div class="row">
     <legend>Justificativas de Ausência na Sessão</legend>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Parlamentar</th>
-              <th>Justificativa</th>
-              <th>Ausente em</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for j in justificativa_ausencia %}
-              <tr>
-                <td>  {{ j.parlamentar }}  </td>
-                <td> {{ j.tipo_ausencia }} </td>
-                {% if j.ausencia == 1 %}
-                    <td> Matéria </td>
-                {% else %}
-                  <td> Sessão </td>
-                {% endif %}
-            {% endfor %}
-          </tbody>
-        </table>
-    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Parlamentar</th>
+          <th>Justificativa</th>
+          <th>Ausente em</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for j in justificativa_ausencia %}
+          <tr>
+            <td>  {{ j.parlamentar }}  </td>
+            <td> {{ j.tipo_ausencia }} </td>
+            {% if j.ausencia == 1 %}
+                <td> Matéria </td>
+            {% else %}
+              <td> Sessão </td>
+            {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 </fieldset>
+<br /><br /><br />
+{% endif %}

@@ -27,6 +27,7 @@ from django.views.generic import (CreateView, DeleteView, FormView, ListView,
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
+from haystack.query import SearchQuerySet
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
@@ -38,13 +39,14 @@ from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao
-from sapl.protocoloadm.models import Protocolo
+from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
+                                      StatusTramitacaoAdministrativo, 
+                                      DocumentoAdministrativo)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, Bancada)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
-                        intervalos_tem_intersecao,)
-
+                        intervalos_tem_intersecao, remover_acentos)
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet,
@@ -57,7 +59,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
                     RelatorioNormasVigenciaFilterSet,
-                    EstatisticasAcessoNormasForm, UsuarioFilterSet)
+                    EstatisticasAcessoNormasForm, UsuarioFilterSet,
+                    RelatorioHistoricoTramitacaoAdmFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -294,11 +297,8 @@ class RelatoriosListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(TemplateView, self).get_context_data(**kwargs)
         estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
-        if estatisticas_acesso_normas == 'S':
-            context['estatisticas_acesso_normas'] = True
-        else:
-            context['estatisticas_acesso_normas'] = False
-
+        context['estatisticas_acesso_normas'] = True if estatisticas_acesso_normas == 'S' else False
+        
         return context
 
 
@@ -450,7 +450,7 @@ class RelatorioHistoricoTramitacaoView(FilterView):
     def get_context_data(self, **kwargs):
         context = super(RelatorioHistoricoTramitacaoView,
                         self).get_context_data(**kwargs)
-        context['title'] = _('Histórico de Tramitações')
+        context['title'] = _('Histórico de Tramitações de Matérias Legislativas')
         if not self.filterset.form.is_valid():
             return context
         qr = self.request.GET.copy()
@@ -465,16 +465,25 @@ class RelatorioHistoricoTramitacaoView(FilterView):
                 str(TipoMateriaLegislativa.objects.get(id=tipo)))
         else:
             context['tipo'] = ''
+
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
             context['tramitacao__status'] = (
                 str(StatusTramitacao.objects.get(id=tramitacao_status)))
         else:
             context['tramitacao__status'] = ''
+
         if self.request.GET['tramitacao__unidade_tramitacao_local']:
             context['tramitacao__unidade_tramitacao_local'] = \
                 (str(UnidadeTramitacao.objects.get(
                     id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
+        else:
+            context['tramitacao__unidade_tramitacao_local'] = ''
+
+        if self.request.GET['tramitacao__unidade_tramitacao_destino']:
+            context['tramitacao__unidade_tramitacao_destino'] = \
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacao__unidade_tramitacao_destino'])))
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
 
@@ -505,16 +514,25 @@ class RelatorioDataFimPrazoTramitacaoView(FilterView):
                 str(TipoMateriaLegislativa.objects.get(id=tipo)))
         else:
             context['tipo'] = ''
+
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
             context['tramitacao__status'] = (
                 str(StatusTramitacao.objects.get(id=tramitacao_status)))
         else:
             context['tramitacao__status'] = ''
+
         if self.request.GET['tramitacao__unidade_tramitacao_local']:
             context['tramitacao__unidade_tramitacao_local'] = \
                 (str(UnidadeTramitacao.objects.get(
                     id=self.request.GET['tramitacao__unidade_tramitacao_local'])))
+        else:
+            context['tramitacao__unidade_tramitacao_local'] = ''
+
+        if self.request.GET['tramitacao__unidade_tramitacao_destino']:
+            context['tramitacao__unidade_tramitacao_destino'] = \
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacao__unidade_tramitacao_destino'])))
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
 
@@ -1748,3 +1766,105 @@ class LogotipoView(RedirectView):
         casa = get_casalegislativa()
         logo = casa and casa.logotipo and casa.logotipo.name
         return os.path.join(settings.MEDIA_URL, logo) if logo else STATIC_LOGO
+
+def filtro_campos(dicionario):
+
+    chaves_desejadas = ['ementa',
+                        'ano',
+                        'numero',
+                        'em_tramitacao',
+                        'data_apresentacao',
+                        'apelido',
+                        'indexacao',
+                        'data_publicacao',
+                        'data',
+                        'data_vigencia']
+    del_list = []
+    for key in dicionario.keys():
+        if key not in chaves_desejadas:
+            del_list = del_list + [key]
+
+    for key in del_list:
+        del dicionario[key]
+
+    return dicionario
+
+def pesquisa_textual(request):
+
+    if 'q' not in request.GET:
+        return JsonResponse({'total': 0,
+                             'resultados': []})
+
+    results = SearchQuerySet().filter(content=request.GET['q'])
+    json_dict = {
+        'total': results.count(),
+        'parametros': request.GET['q'],
+        'resultados': [],
+    }
+
+    for e in results:
+
+        sec_dict = {}
+        try:
+            sec_dict['pk'] = e.object.pk
+        except:
+            # Index and db are out of sync. Object has been deleted from database
+            continue
+        dici = filtro_campos(e.object.__dict__)
+        sec_dict['objeto'] = str(dici) 
+        sec_dict['text'] = str(e.object.ementa)
+
+        sec_dict['model'] = str(type(e.object))
+
+        json_dict['resultados'].append(sec_dict)
+
+
+    return JsonResponse(json_dict)
+
+
+class RelatorioHistoricoTramitacaoAdmView(FilterView):
+    model = DocumentoAdministrativo
+    filterset_class = RelatorioHistoricoTramitacaoAdmFilterSet
+    template_name = 'base/RelatorioHistoricoTramitacaoAdm_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(RelatorioHistoricoTramitacaoAdmView,
+                        self).get_context_data(**kwargs)
+        context['title'] = _('Histórico de Tramitações de Documento Administrativo')
+        if not self.filterset.form.is_valid():
+            return context
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+        context['data_tramitacao'] = (self.request.GET['tramitacaoadministrativo__data_tramitacao_0'] + ' - ' +
+                                      self.request.GET['tramitacaoadministrativo__data_tramitacao_1'])
+        if self.request.GET['tipo']:
+            tipo = self.request.GET['tipo']
+            context['tipo'] = (
+                str(TipoDocumentoAdministrativo.objects.get(id=tipo)))
+        else:
+            context['tipo'] = ''
+
+        if self.request.GET['tramitacaoadministrativo__status']:
+            tramitacao_status = self.request.GET['tramitacaoadministrativo__status']
+            context['tramitacaoadministrativo__status'] = (
+                str(StatusTramitacaoAdministrativo.objects.get(id=tramitacao_status)))
+        else:
+            context['tramitacaoadministrativo__status'] = ''
+
+        if self.request.GET['tramitacaoadministrativo__unidade_tramitacao_local']:
+            context['tramitacaoadministrativo__unidade_tramitacao_local'] = \
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacaoadministrativo__unidade_tramitacao_local'])))
+        else:
+            context['tramitacaoadministrativo__unidade_tramitacao_local'] = ''
+
+        if self.request.GET['tramitacaoadministrativo__unidade_tramitacao_destino']:
+            context['tramitacaoadministrativo__unidade_tramitacao_destino'] = \
+                (str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacaoadministrativo__unidade_tramitacao_destino'])))
+        else:
+            context['tramitacaoadministrativo__unidade_tramitacao_destino'] = ''
+
+        return context

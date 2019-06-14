@@ -1,5 +1,6 @@
 {% load common_tags %}
 
+{% if oradores_explicacoes %}
 <fieldset>
   <legend>Oradores das Explicações Pessoais</legend>
     <div class="row">
@@ -14,3 +15,5 @@
     {% endfor %}
     </div>
 </fieldset>
+<br /><br /><br />
+{% endif %}

@@ -168,7 +168,7 @@ SaplApiViewSetConstrutor.build_class()
    http://localhost:9000/api/ 
    desde que settings.DEBUG=True
 
-**SaplSetViews** é um dict de dicts de models conforme:
+**SaplApiViewSetConstrutor._built_sets** é um dict de dicts de models conforme:
     {
         ...
     
@@ -201,8 +201,6 @@ SaplApiViewSetConstrutor.build_class()
 # rest_framework.viewsets.ModelViewSet conforme exemplo para a classe autor
 
 # decorator para recuperar e transformar o default
-
-
 class customize(object):
     def __init__(self, model):
         self.model = model
@@ -243,7 +241,7 @@ class _AutorViewSet:
         /api/base/autor/{pk}/  PATCH  - partial_update 
         /api/base/autor/{pk}/  DELETE - destroy
 
-    * rotas desta classe local:
+    * rotas desta classe local criadas pelo método build:
         /api/base/autor/parlamentar
             devolve apenas autores que são parlamentares
         /api/base/autor/comissao
@@ -256,8 +254,6 @@ class _AutorViewSet:
             devolve apenas autores que são Frene parlamentares
         /api/base/autor/orgao
             devolve apenas autores que são Órgãos
-
-
     """
 
     def list_for_content_type(self, content_type):
