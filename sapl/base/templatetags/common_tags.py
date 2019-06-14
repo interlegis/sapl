@@ -224,7 +224,38 @@ def audio_url(value):
 
 @register.filter
 def video_url(value):
-    return True if url(value) and value.endswith("mp4") else False
+    video_extensions = ["mp4", "ogg", "webm", "3gp", "ogv"]
+    has_ext = False
+    for i in video_extensions:
+        if value.endswith(i):
+            has_ext = True
+            break
+
+    return url(value) and has_ext
+
+
+@register.filter
+def youtube_url(value):
+    import re
+    # Test if YouTube video
+    # tested on https://pythex.org/
+    youtube_pattern = "^(http://?|https://?www\.?youtube\.com/watch\?v=)"
+    r = re.findall(youtube_pattern, value)
+    return True if r else False
+
+@register.filter
+def facebook_url(value):
+    import re
+    youtube_pattern = "^(https?://www\.facebook\.com/(?:video\.php\?v=\d+|.*?/videos/\d+)/)"
+    r = re.findall(youtube_pattern, value)
+    return True if r else False
+
+@register.filter
+def get_youtube_id(value):
+    from urllib.parse import urlparse, parse_qs
+    u_pars = urlparse(value)
+    quer_v = parse_qs(u_pars.query).get('v')[0]
+    return quer_v
 
 
 @register.filter

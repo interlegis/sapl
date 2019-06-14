@@ -74,11 +74,19 @@
                         </div>
                       {% elif column.text|video_url %}
                         <div class="form-control-static">
-                            <video width="320" height="120" controls>
+                            <video width="420" height="230" controls>
                                 <source src="{{ column.text|safe }}" type="video/{{ column.text|file_extension }}">
                                 <p>Este navegador não suporta o elemento vídeo.</p>
                             </video>
                         </div>
+                      {% elif column.text|youtube_url %}
+                          <iframe id="ytplayer" type="text/html" width="420" height="230"
+                          src="http://www.youtube.com/embed/{{ column.text|get_youtube_id }}"
+                          frameborder="0"></iframe>
+                      {% elif column.text|facebook_url %}
+                          <div class="fb-video" data-href="{{ column.text|safe }}" 
+                            data-width="420" data-show-text="false">
+                          </div>
                       {% elif column.text|url %}
                         <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe|default:"" }} </a></div>
                       {% else %}
@@ -131,4 +139,7 @@
   {% endblock table_content %}
 
 {% endblock base_content %}
-{% block extra_js %}{% endblock %}
+{% block extra_js %}
+  <div id="fb-root"></div>
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.3"></script>
+{% endblock %}
