@@ -30,16 +30,17 @@ def migrar(primeira_migracao=False, apagar_do_legado=False):
         "é necessário fazer a exportação de documentos do zope"
     )
     management.call_command("migrate")
-    gravar_marco("producao", versiona=False, gera_backup=False)
-    primeira_migracao, fks_orfas = migrar_dados(
-        primeira_migracao, apagar_do_legado
-    )
+    migracao_corretiva = not primeira_migracao
+    if migracao_corretiva:
+        gravar_marco("producao", versiona=False, gera_backup=False)
+    fks_orfas = migrar_dados(primeira_migracao, apagar_do_legado)
     assert not fks_orfas, "Ainda existem FKs órfãs"
     migrar_usuarios(REPO.working_dir, primeira_migracao)
     migrar_documentos(REPO, primeira_migracao)
     gravar_marco()
-    sigla = NOME_BANCO_LEGADO[-3:]
-    verifica_diff(sigla)
+    if migracao_corretiva:
+        sigla = NOME_BANCO_LEGADO[-3:]
+        verifica_diff(sigla)
 
 
 def compactar_media():
