@@ -980,7 +980,10 @@ def fill_vinculo_norma_juridica():
 
 def criar_configuracao_inicial():
     # só deve ser chamado na primeira migracão
-    assert not AppConf.objects.exists()
+    appconf = AppConf.objects.first()
+    if appconf:
+        appconf.delete()
+        assert not AppConf.objects.exists()
 
     # Ajusta sequencia numérica de protocolo e cria base.AppConfig
     if (
@@ -1088,7 +1091,7 @@ def do_flush():
     fill_vinculo_norma_juridica()
 
 
-def migrar_dados(flush=False, apagar_do_legado=False):
+def migrar_dados(primeira_migracao=False, apagar_do_legado=False):
     try:
         # limpa tudo antes de migrar
         _cached_get_all_ids_from_model.cache_clear()
@@ -1120,14 +1123,10 @@ def migrar_dados(flush=False, apagar_do_legado=False):
         if arq_ajustes_reverter.exists():
             revert_delete_producao(yaml.load(arq_ajustes_reverter.read_file()))
 
-        primeira_migracao = not AppConf.objects.exists()
-
         uniformiza_banco(primeira_migracao)
 
-        if flush:
-            do_flush()
-
         if primeira_migracao:
+            do_flush()
             criar_configuracao_inicial()
 
         info("Começando migração: ...")

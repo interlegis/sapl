@@ -21,7 +21,7 @@ def adornar_msg(msg):
     return "\n{1}\n{0}\n{1}".format(msg, "#" * len(msg))
 
 
-def migrar(flush=False, apagar_do_legado=False):
+def migrar(primeira_migracao=False, apagar_do_legado=False):
     if TAG_MARCO in REPO.tags:
         info("A migração já está feita.")
         return
@@ -31,7 +31,9 @@ def migrar(flush=False, apagar_do_legado=False):
     )
     management.call_command("migrate")
     gravar_marco("producao", versiona=False, gera_backup=False)
-    primeira_migracao, fks_orfas = migrar_dados(flush, apagar_do_legado)
+    primeira_migracao, fks_orfas = migrar_dados(
+        primeira_migracao, apagar_do_legado
+    )
     assert not fks_orfas, "Ainda existem FKs órfãs"
     migrar_usuarios(REPO.working_dir, primeira_migracao)
     migrar_documentos(REPO, primeira_migracao)
