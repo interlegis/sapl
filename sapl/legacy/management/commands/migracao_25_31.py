@@ -17,15 +17,15 @@ class Command(BaseCommand):
         )
 
         parser.add_argument(
-            "--flush",
+            "--primeira_migracao",
             action="store_true",
             default=False,
-            dest="flush",
+            dest="primeira_migracao",
             help="Apagar banco antes de migrar",
         )
 
     def handle(self, *args, **options):
         migrar(
             apagar_do_legado=options["apagar_do_legado"],
-            flush=options["flush"],
+            primeira_migracao=options["primeira_migracao"],
         )
