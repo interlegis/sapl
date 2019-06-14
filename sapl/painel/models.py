@@ -84,6 +84,12 @@ class PainelConfig(models.Model):
         blank=True,
         null=True)
 
+    tempo_disparo_termino = models.DurationField(
+        verbose_name=_('Cronômetros devem permanecer tocando por quanto tempo ao término tempo?'),
+        default="00:00:05",
+        blank=True,
+        null=True)
+
     class Meta:
         verbose_name = _('Configurações do Painel')
         verbose_name_plural = _('Configurações do Painel')

@@ -99,6 +99,22 @@ function startTime() {
   },500);
 }
 
+function playAudioNumVezes(audio, times, ended) {
+  if (times <= 0) {
+      return;
+  }
+  let played = 0;
+  audio.addEventListener("ended", function() {
+      played++;
+      if (played < times) {            
+          audio.play();
+      } else if (ended) {
+          ended();
+      }
+  });
+  audio.play();
+}
+
 
 $(document).ready(function(){
   let pk_sessao = parseInt("{{root_pk}}");
@@ -127,6 +143,12 @@ $(document).ready(function(){
 	startTime();
   let audioAlertFinish = document.getElementById("audio");
 
+  // Obtém duração do disparo ao término do tempo e converte para segundos
+  var duracao_disparo = "{{ painel_config.tempo_disparo_termino }}";
+  let tmp = duracao_disparo.split(":");
+  duracao_disparo = parseInt(tmp[0])*3600 + parseInt(tmp[1])*60 + parseInt(tmp[2]);
+  let num_vezes_toca_audio = Math.round(duracao_disparo/audioAlertFinish.duration);
+
   {% for cron in cronometros %}
     $('#cronometro_' + "{{cron.id}}").prop('disabled', false);
 
@@ -147,7 +169,7 @@ $(document).ready(function(){
       }
     }).on('runnerFinish', function(eventObject, info){
       $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
-      audioAlertFinish.play();
+      playAudioNumVezes(audioAlertFinish, num_vezes_toca_audio);
       $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
       $('#cronometro_' + "{{cron.id}}").runner('stop');
       $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');

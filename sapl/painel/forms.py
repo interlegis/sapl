@@ -20,8 +20,10 @@ class ConfiguracoesPainelForm(forms.ModelForm):
         model = PainelConfig
         fields = ['cronometro_ordem', 
                   'disparo_cronometro', 
-                  'tempo_disparo_antecedencia']
+                  'tempo_disparo_antecedencia',
+                  'tempo_disparo_termino']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesPainelForm, self).__init__(*args, **kwargs)
         self.fields['tempo_disparo_antecedencia'].widget.attrs['class'] = 'cronometro'
+        self.fields['tempo_disparo_termino'].widget.attrs['class'] = 'cronometro'
