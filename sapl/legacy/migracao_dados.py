@@ -746,13 +746,7 @@ def apaga_ref_a_mats_e_docs_inexistentes_em_proposicoes():
     )
 
 
-def restringe_e_reaponta_tipo_autor():
-    # restringe somente ao realmente utilizado
-    exec_legado(
-        """  delete from tipo_autor where tip_autor not in (
-             select distinct(tip_autor) from autor);
-        """
-    )
+def reaponta_tipo_autor():
     # e corrige um erro comum
     if TipoAutor.objects.filter(descricao="Comissão").exists():
         exec_legado(
@@ -788,8 +782,14 @@ def restringe_e_reaponta_tipo_autor():
 def uniformiza_banco(primeira_migracao):
     "Uniformiza e ajusta o banco legado antes de migrar"
 
+    # restringe TipoAutor somente ao realmente utilizado
+    exec_legado(
+        """  delete from tipo_autor where tip_autor not in (
+             select distinct(tip_autor) from autor);
+        """
+    )
     if not primeira_migracao:
-        restringe_e_reaponta_tipo_autor()
+        reaponta_tipo_autor()
 
     propaga_exclusoes(PROPAGACOES_DE_EXCLUSAO)
     checa_registros_votacao_ambiguos_e_remove_nao_usados()
