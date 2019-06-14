@@ -1619,14 +1619,13 @@ class MateriaLegislativaCrud(Crud):
 
         form_class = MateriaLegislativaForm
 
-        def form_valid(self, form):
-            self.object = form.instance
+        def get_initial(self):
+            initial = super(CreateView, self).get_initial()
 
-            self.object.user = self.request.user
-            self.object.ip = get_client_ip(self.request)
-            self.object.save()
+            initial['user'] = self.request.user
+            initial['ip'] = get_client_ip(self.request)
 
-            return super().form_valid(form)
+            return initial
 
         @property
         def cancel_url(self):

@@ -285,7 +285,7 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         materia = super(MateriaLegislativaForm, self).save(commit)
         materia.save()
-
+        
         if self.cleaned_data['autor']:
             autoria = Autoria()
             autoria.primeiro_autor = primeiro_autor
