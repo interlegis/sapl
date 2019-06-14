@@ -127,7 +127,16 @@ $(function() {
         countdown: true,
         startAt: {{cronometro_discurso}} * 1000,
         stopAt: 0,
-        milliseconds: false
+        milliseconds: false,
+        format: function(value) {
+          let h = Math.floor((value/1000) / 3600);
+          h = checkTime(h);
+          let m = Math.floor((value/1000) % 3600 / 60);
+          m = checkTime(m);
+          let s = Math.floor((value/1000) % 3600 % 60);
+          s = checkTime(s);
+          return h.toString() + ":" + m.toString() + ":" + s.toString();
+        }
 	}).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
         audioAlertFinish.play();
@@ -170,7 +179,16 @@ $(function() {
         countdown: true,
         startAt: {{cronometro_aparte}} * 1000,
         stopAt: 0,
-        milliseconds: false
+        milliseconds: false,
+        format: function(value) {
+          let h = Math.floor((value/1000) / 3600);
+          h = checkTime(h);
+          let m = Math.floor((value/1000) % 3600 / 60);
+          m = checkTime(m);
+          let s = Math.floor((value/1000) % 3600 % 60);
+          s = checkTime(s);
+          return h.toString() + ":" + m.toString() + ":" + s.toString();
+        }
 	}).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
         audioAlertFinish.play();
@@ -213,7 +231,16 @@ $(function() {
         countdown: true,
         startAt: {{cronometro_ordem}} * 1000,
         stopAt: 0,
-        milliseconds: false
+        milliseconds: false,
+        format: function(value) {
+          let h = Math.floor((value/1000) / 3600);
+          h = checkTime(h);
+          let m = Math.floor((value/1000) % 3600 / 60);
+          m = checkTime(m);
+          let s = Math.floor((value/1000) % 3600 % 60);
+          s = checkTime(s);
+          return h.toString() + ":" + m.toString() + ":" + s.toString();
+        }
 	}).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
         audioAlertFinish.play();
@@ -257,7 +284,16 @@ $(function() {
         countdown: true,
         startAt: {{cronometro_consideracoes}} * 1000,
         stopAt: 0,
-        milliseconds: false
+        milliseconds: false,
+        format: function(value) {
+          let h = Math.floor((value/1000) / 3600);
+          h = checkTime(h);
+          let m = Math.floor((value/1000) % 3600 / 60);
+          m = checkTime(m);
+          let s = Math.floor((value/1000) % 3600 % 60);
+          s = checkTime(s);
+          return h.toString() + ":" + m.toString() + ":" + s.toString();
+        }
     }).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
         audioAlertFinish.play();
