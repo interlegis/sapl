@@ -178,6 +178,10 @@
         })
       {% endfor %}
 
+      var tempo_disparo_antecedencia = "{{ painel_config.tempo_disparo_antecedencia }}"
+      let tmp = tempo_disparo_antecedencia.split(":");
+      tempo_disparo_antecedencia = checkTime(parseInt(tmp[0])) + ":" + checkTime(parseInt(tmp[1])) + ":" + checkTime(parseInt(tmp[2]));
+
       var counter = 1;
       (function poll() {
         $.ajax({
@@ -296,8 +300,10 @@
                   cronometros_previous[i] = status_cronometros[i];
                 }
 
-                if($('#cronometro_' + ids[i]).runner('info').formattedTime == 30) 
+                if($('#cronometro_' + ids[i]).runner('info').formattedTime == tempo_disparo_antecedencia && 
+                  "{{ painel_config.disparo_cronometro }}" == "True" )
                   audioAlertFinish.play();
+                
               }
 
               if(data['sessao_finalizada']){
