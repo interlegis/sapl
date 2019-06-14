@@ -161,7 +161,7 @@
         $('#cronometro_' + "{{cron.id}}").runner({
           autostart: false,
           countdown: true,
-          startAt: {{cron.duracao_cronometro|duration_to_seconds}} * 1000,
+          startAt: parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000,
           stopAt: 0,
           milliseconds: false,
           format: function(value) {

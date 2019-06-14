@@ -2,7 +2,6 @@
 {% load i18n %}
 {% load common_tags %}
 {% load staticfiles %}
-
 {% load webpack_static from webpack_loader %}
 {% load render_bundle from webpack_loader %}
 
@@ -100,6 +99,7 @@ function startTime() {
   },500);
 }
 
+
 $(document).ready(function(){
   let pk_sessao = parseInt("{{root_pk}}");
   let botao_abrir = $('#id_abrir_painel');
@@ -135,7 +135,16 @@ $(document).ready(function(){
       countdown: true,
       startAt: parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000,
       stopAt: 0,
-      milliseconds: false
+      milliseconds: false,
+      format: function(value) {
+        let h = Math.floor((value/1000) / 3600);
+        h = checkTime(h);
+        let m = Math.floor((value/1000) % 3600 / 60);
+        m = checkTime(m);
+        let s = Math.floor((value/1000) % 3600 % 60);
+        s = checkTime(s);
+        return h.toString() + ":" + m.toString() + ":" + s.toString();
+      }
     }).on('runnerFinish', function(eventObject, info){
       $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
       audioAlertFinish.play();
@@ -188,6 +197,7 @@ $(document).ready(function(){
       $('#cronometro_' + "{{cron.id}}").runner('stop');
       $('#cronometro_' + "{{cron.id}}").runner('reset');
     });    
+
   {% endfor %}
 
 });
