@@ -26,7 +26,7 @@ from django.core.management.commands.flush import Command as FlushCommand
 from django.db import connections, transaction
 from django.db.models import Max, Q
 from pyaml import UnsafePrettyYAMLDumper
-from reversion.models import Version
+from reversion.models import Revision, Version
 from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
@@ -1083,10 +1083,15 @@ def get_arquivos_ajustes_pre_migracao():
 def do_flush():
     # excluindo database antigo.
     info("Excluindo entradas antigas do banco destino.")
-    FlushCommand().handle(database="default", interactive=False, verbosity=0)
+    FlushCommand().handle(
+        database="default", interactive=False, verbosity=0, allow_cascade=True
+    )
 
     # apaga tipos de autor padrão (criados no flush acima)
     TipoAutor.objects.all().delete()
+    # tb apagamos os dados do reversion, p nao confundir apagados_pelo_usuario
+    Revision.objects.all().delete()
+    Version.objects.all().delete()
 
     fill_vinculo_norma_juridica()
 
