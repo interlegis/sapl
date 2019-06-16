@@ -1938,7 +1938,7 @@ def revert_delete_producao(dados_versions):
         assert reverted
         # restauramos objetos relacinados ao autor
         # teoricamente precisaríamos fazer isso pra todas as generic relations
-        if isinstance(reverted, Autor):
+        if isinstance(reverted, Autor) and reverted.content_type:
             apagados_relacionados = Version.objects.get_deleted(
                 reverted.content_type.model_class()
             )
