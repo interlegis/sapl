@@ -203,13 +203,14 @@ def expedientes(lst_expedientes):
         tmp += '\t\t\t<font color="white"> </font>\n'
         tmp += '\t\t</para>\n'
         for expediente in lst_expedientes:
-            tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
-                expediente['nom_expediente'] + ': </b></para>\n' + \
-                '<para style="P3">' + \
-                expediente['txt_expediente'] + '</para>\n'
-            tmp += '\t\t<para style="P2">\n'
-            tmp += '\t\t\t<font color="white"> </font>\n'
-            tmp += '\t\t</para>\n'
+            if expediente['txt_expediente']:
+                tmp += '\t\t<para style="P2"><b>' + '<br/> ' + \
+                    expediente['nom_expediente'] + ': </b></para>\n' + \
+                    '<para style="P3">' + \
+                    expediente['txt_expediente'] + '</para>\n'
+                tmp += '\t\t<para style="P2">\n'
+                tmp += '\t\t\t<font color="white"> </font>\n'
+                tmp += '\t\t</para>\n'
     return tmp
 
 
