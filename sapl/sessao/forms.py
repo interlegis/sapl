@@ -464,6 +464,9 @@ class VotacaoForm(forms.Form):
     abstencoes = forms.IntegerField(label='Abstenções')
     total_presentes = forms.IntegerField(
         required=False, widget=forms.HiddenInput())
+    total_votantes = forms.IntegerField(
+        required=False, widget=forms.HiddenInput()
+    )
     voto_presidente = forms.IntegerField(
         label='A totalização inclui o voto do Presidente?')
     total_votos = forms.IntegerField(required=False, label='total')
@@ -479,15 +482,16 @@ class VotacaoForm(forms.Form):
         votos_nao = cleaned_data['votos_nao']
         abstencoes = cleaned_data['abstencoes']
         qtde_presentes = cleaned_data['total_presentes']
+        qtde_votantes = cleaned_data['total_votantes']
         qtde_votos = votos_sim + votos_nao + abstencoes
         voto_presidente = cleaned_data['voto_presidente']
 
-        if qtde_presentes and not voto_presidente:
-            qtde_presentes -= 1
+        if qtde_votantes and not voto_presidente:
+            qtde_votantes -= 1
 
-        if qtde_presentes and qtde_votos != qtde_presentes:
+        if qtde_votantes and qtde_votos != qtde_votantes:
             raise ValidationError(
-                'O total de votos não corresponde com a quantidade de presentes!')
+                'O total de votos não corresponde com a quantidade de votantes!')
 
         return cleaned_data
 
