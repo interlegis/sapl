@@ -34,7 +34,7 @@
 	        <br />
 	        <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 				</td>
-	      <td style="width:70%;">{{m.ementa|safe}}<br>{{m.observacao|safe}}</td>
+	      <td style="width:70%;">{{m.ementa|safe}}<br>{{m.observacao|linebreaksbr|safe}}</td>
 	      <td style="width:10%;">{{m.situacao}}</td>
 			</tr>
     {% endfor %}
@@ -62,7 +62,7 @@
         	<br />
         	<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 				</td>
-				<td style="width:70%;">{{m.ementa|safe}}<br>{{m.observacao|safe}}</td>
+				<td style="width:70%;">{{m.ementa|safe}}<br>{{m.observacao|linebreaksbr|safe}}</td>
 				<td style="width:10%;">{{m.situacao}}</td>
 			</tr>
     {% endfor %}
