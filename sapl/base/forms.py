@@ -867,7 +867,9 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
     class Meta(FilterOverridesMetaMixin):
         model = SessaoPlenaria
-        fields = ['data_inicio']
+        fields = ['data_inicio', 
+                  'sessao_legislativa', 
+                  'legislatura']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioPresencaSessaoFilterSet, self).__init__(
@@ -877,12 +879,14 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         self.form.fields['data_inicio'].required = True
 
         row1 = to_row([('data_inicio', 12)])
+        row2 = to_row([('sessao_legislativa', 6),
+                       ('legislatura', 6)])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Presença dos parlamentares nas sessões plenárias'),
-                     row1, form_actions(label='Pesquisar'))
+                     row1, row2, form_actions(label='Pesquisar'))
         )
 
     @property

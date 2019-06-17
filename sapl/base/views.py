@@ -38,7 +38,7 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao
+from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa
 from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
                                       StatusTramitacaoAdministrativo, 
                                       DocumentoAdministrativo)
@@ -356,17 +356,21 @@ class RelatorioPresencaSessaoView(FilterView):
         parlamentares_id = parlamentares_qs.values_list(
             'id', flat=True)
 
+        sessao_legislativa_pk = self.request.GET.get('sessao_legislativa')
+        if sessao_legislativa_pk:
+            param0['sessao_plenaria__sessao_legislativa_id'] = sessao_legislativa_pk
+        
+        legislatura_pk = self.request.GET.get('legislatura')
+        if legislatura_pk:
+            param0['sessao_plenaria__legislatura_id'] = legislatura_pk
+
         # Presenças de cada Parlamentar em Sessões
-        presenca_sessao = SessaoPlenariaPresenca.objects.filter(
-            parlamentar_id__in=parlamentares_id,
-            sessao_plenaria__data_inicio__range=_range).values_list(
+        presenca_sessao = SessaoPlenariaPresenca.objects.filter(**param0).values_list(
             'parlamentar_id').annotate(
             sessao_count=Count('id'))
 
         # Presenças de cada Ordem do Dia
-        presenca_ordem = PresencaOrdemDia.objects.filter(
-            parlamentar_id__in=parlamentares_id,
-            sessao_plenaria__data_inicio__range=_range).values_list(
+        presenca_ordem = PresencaOrdemDia.objects.filter(**param0).values_list(
             'parlamentar_id').annotate(
             sessao_count=Count('id'))
 
@@ -433,6 +437,12 @@ class RelatorioPresencaSessaoView(FilterView):
         context['periodo'] = (
             self.request.GET['data_inicio_0'] +
             ' - ' + self.request.GET['data_inicio_1'])
+        context['sessao_legislativa'] = ''
+        context['legislatura'] = ''
+        if sessao_legislativa_pk:
+            context['sessao_legislativa'] = SessaoLegislativa.objects.get(id=legislatura_pk)
+        if legislatura_pk:
+            context['legislatura'] = Legislatura.objects.get(id=legislatura_pk)
         # =====================================================================
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
