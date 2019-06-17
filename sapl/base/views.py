@@ -440,7 +440,7 @@ class RelatorioPresencaSessaoView(FilterView):
         context['sessao_legislativa'] = ''
         context['legislatura'] = ''
         if sessao_legislativa_pk:
-            context['sessao_legislativa'] = SessaoLegislativa.objects.get(id=legislatura_pk)
+            context['sessao_legislativa'] = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
         if legislatura_pk:
             context['legislatura'] = Legislatura.objects.get(id=legislatura_pk)
         # =====================================================================
