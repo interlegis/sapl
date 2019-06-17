@@ -53,7 +53,6 @@ from .models import (Bancada, CargoBancada, CargoMesa,
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
-TipoExpedienteCrud = CrudAux.build(TipoExpediente, 'tipo_expediente')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
 TipoResultadoVotacaoCrud = CrudAux.build(
@@ -465,6 +464,23 @@ def get_presencas_generic(model, sessao, legislatura):
             yield (m.parlamentar, True)
         else:
             yield (m.parlamentar, False)
+
+
+class TipoExpedienteCrud(CrudAux):
+    model = TipoExpediente
+
+    class DeleteView(CrudAux.DeleteView):
+        
+        def delete(self, *args, **kwargs):
+            self.object = self.get_object()
+            
+            # Se todas as referências a este tipo forem de conteúdo vazio, 
+            # significa que pode ser apagado
+            if self.object.expedientesessao_set.filter(conteudo='').count() == \
+                self.object.expedientesessao_set.all().count():
+                self.object.expedientesessao_set.all().delete()
+
+            return CrudAux.DeleteView.delete(self, *args, **kwargs)
 
 
 class MateriaOrdemDiaCrud(MasterDetailCrud):
