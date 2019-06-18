@@ -1681,7 +1681,7 @@ class MateriaLegislativaCrud(Crud):
     class DetailView(Crud.DetailView):
 
         layout_key = 'MateriaLegislativaDetail'
-        template_name = "materia/materia_detail.html"
+        template_name = "materia/materialegislativa_detail.html"
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
