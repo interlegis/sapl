@@ -236,7 +236,6 @@ def video_url(value):
 
 @register.filter
 def youtube_url(value):
-    import re
     # Test if YouTube video
     # tested on https://pythex.org/
     youtube_pattern = "^(http://?|https://?www\.?youtube\.com/watch\?v=)"
@@ -245,9 +244,8 @@ def youtube_url(value):
 
 @register.filter
 def facebook_url(value):
-    import re
-    youtube_pattern = "^(https?://www\.facebook\.com/(?:video\.php\?v=\d+|.*?/videos/\d+)/)"
-    r = re.findall(youtube_pattern, value)
+    facebook_pattern = "^(http://?|https://?(www?|pt-br?)\.facebook\.com/(.*?)/videos/(.*?))"
+    r = re.findall(facebook_pattern, value)
     return True if r else False
 
 @register.filter
