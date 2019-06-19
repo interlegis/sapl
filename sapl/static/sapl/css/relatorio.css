@@ -54,3 +54,40 @@ fieldset {
     margin:5px;
     padding:0px;
 }
+
+
+table {
+    max-width: 520px;
+}
+table.grayTable {
+    border: 1px solid #6e6e6e;
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+}
+table.grayTable td, table.grayTable th {
+    border: 1px solid #000000;
+}
+table.grayTable tbody td {
+    font-size: 10px;
+    max-width: 80px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    text-align: justify;
+}
+table.grayTable tr:nth-child(even) {
+    background: #dddddd;
+}
+table.grayTable thead {
+    background: #BBBBBB;
+    border-bottom: 2px solid #000000;
+}
+table.grayTable thead th {
+    font-size:10px;
+    color: rgb(0, 0, 0);
+    border-left: 1px solid #000000;
+
+}
+table.grayTable thead th:first-child {
+    border-left: none;
+} 
