@@ -25,7 +25,11 @@
             </dd>
         </dl>
     </section>
-    <p></p>
-</body>
+    {% if info %}
+        <p><b>{{info}}</b></p>
+    {% else %}
+        <p></p>
+    {% endif %}
+</body> 
 
 </html>
