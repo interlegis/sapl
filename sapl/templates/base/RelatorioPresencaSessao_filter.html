@@ -53,3 +53,50 @@
     </table>
   {% endif %}
 {% endblock base_content %}
+
+{% block extra_js %}
+
+<script type="text/javascript">
+
+  $(document).ready(function(){
+
+    var original_options = [];
+    $.each($("#id_sessao_legislativa").children(), function(idx, obj) {
+      original_options.push($(obj));
+    });
+    
+    $('#id_legislatura').change(function(event) {
+      
+      let legislatura = $("#id_legislatura").val();
+      var json_data = {
+        legislatura : legislatura,
+      }
+
+      if(legislatura){
+        $.getJSON("{% url 'sapl.parlamentares:get_sessoes_legislatura' %}", json_data, function(data){
+            if (data) {
+              $("#id_sessao_legislativa").children().remove();
+              if (data.sessoes_legislativas.length > 1) {
+                $("#id_sessao_legislativa").append("<option>---------</option>");
+              }
+              $.each(data.sessoes_legislativas, function(idx, obj) {
+                $("#id_sessao_legislativa")
+                  .append($("<option></option>")
+                  .attr("value", obj[0])
+                  .text(obj[1]));
+              });
+            }
+        });
+      }else{
+        $("#id_sessao_legislativa").children().remove();
+        $.each(original_options, function(idx, obj) {
+          $("#id_sessao_legislativa").append(obj);
+        });
+      }
+    })
+  
+  });
+
+</script>
+
+{% endblock %}

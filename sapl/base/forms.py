@@ -879,8 +879,8 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         self.form.fields['data_inicio'].required = True
 
         row1 = to_row([('data_inicio', 12)])
-        row2 = to_row([('sessao_legislativa', 6),
-                       ('legislatura', 6)])
+        row2 = to_row([('legislatura', 6),
+                       ('sessao_legislativa', 6)])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
