@@ -230,11 +230,9 @@
       {% block webpack_loader_chunks_js %}
       {% endblock webpack_loader_chunks_js %}
 
-      {% block extra_js %}{% endblock %}
+      {% block extra_js %}{% endblock extra_js %}
 
       <script type="text/javascript" >
-
-
         function inIframe () {
           try {
               return window.self !== window.top;
@@ -247,21 +245,19 @@
           if (iframe_set_backend && !inIframe() ) {
             location.href = location.origin + '?iframe=0'
           }
+
+          var form = document.getElementById("formulario-lexml");
+          $("#input-lexml").change(function(){
+            let value = $("#input-lexml").val();
+            let url = "{% url 'sapl.lexml:lexml_search' 'xxx'%}"
+            url = url.replace('xxx', value)
+            form.action = url;
+          });
+
         });
       </script>
 
     {% endblock foot_js %}
-    <script>
-      $(document).ready(function(){
-        var form = document.getElementById("formulario-lexml");
-        $("#input-lexml").change(function(){ 
-          let value = $("#input-lexml").val();
-          let url = "{% url 'sapl.lexml:lexml_search' 'xxx'%}"
-          url = url.replace('xxx', value)
-          form.action = url;
-        });
-      });
-    </script>
 
   </body>
 </html>

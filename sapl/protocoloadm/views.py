@@ -1160,7 +1160,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             # não pode ser modificado
             if not primeira_tramitacao:
                 context['form'].fields[
-                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
+                    'unidade_tramitacao_local'].widget.attrs['readonly'] = True
             return context
 
         def form_valid(self, form):
