@@ -21,26 +21,12 @@
 
 {% block extra_js %}
 	<script language="JavaScript">
-		function checkAll(elem) {
+	function checkAll(elem) {
       let checkboxes = document.getElementsByName('documentos');
       for (let i = 0; i < checkboxes.length; i++) {
         if (checkboxes[i].type == 'checkbox') 
             checkboxes[i].checked = elem.checked;
       }
     }
-
-    $(document).ready(function(){
-      var primeira_tramitacao = {{primeira_tramitacao|yesno:"true,false"}}
-
-      if (primeira_tramitacao == false){
-        $('#id_unidade_tramitacao_local').prop('disabled', true);
-      }
-
-      // Reabilita o campo, no momento do Submit, para que seu dado seja enviado
-      $('input[type=submit]').click(function() {
-        $('#id_unidade_tramitacao_local').attr('disabled', false);
-        $('#id_unidade_tramitacao_local').parents('form').submit();
-      });
-    });
 	</script>
 {% endblock %}
