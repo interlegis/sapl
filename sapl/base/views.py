@@ -342,27 +342,62 @@ class RelatorioPresencaSessaoView(FilterView):
         # Verifica se os campos foram preenchidos
         if not self.filterset.form.is_valid():
             return context
+        
+        cd = self.filterset.form.cleaned_data
+        if not cd['data_inicio'] and not cd['sessao_legislativa'] \
+            and not cd['legislatura']:
+            msg = _("Formulário inválido! Preencha pelo menos algum dos campos.")
+            messages.error(self.request, msg)
+            return context
 
-        # if 'salvar' not in self.request.GET:
-        where = context['object_list'].query.where
-        _range = where.children[0].rhs
+        # Caso a data tenha sido preenchida, verifica se foi preenchida corretamente
+        if ('data_inicio_0' in self.request.GET) and self.request.GET['data_inicio_0'] and \
+           not(('data_inicio_1' in self.request.GET) and self.request.GET['data_inicio_1']):
+            msg = _("Formulário inválido! Preencha a data do Período Final.")
+            messages.error(self.request, msg)
+            return context
 
-        sufixo = 'sessao_plenaria__data_inicio__range'
-        param0 = {'%s' % sufixo: _range}
+        if not(('data_inicio_0' in self.request.GET) and self.request.GET['data_inicio_0']) and \
+           ('data_inicio_1' in self.request.GET) and self.request.GET['data_inicio_1']:
+            msg = _("Formulário inválido! Preencha a data do Período Inicial.")
+            messages.error(self.request, msg)
+            return context
 
+        param0 = {}
+
+        legislatura_pk = self.request.GET.get('legislatura')
+        if legislatura_pk:
+            param0['sessao_plenaria__legislatura_id'] = legislatura_pk
+            legislatura = Legislatura.objects.get(id=legislatura_pk)
+            context['legislatura'] = legislatura
+
+        sessao_legislativa_pk = self.request.GET.get('sessao_legislativa')
+        if sessao_legislativa_pk:
+            param0['sessao_plenaria__sessao_legislativa_id'] = sessao_legislativa_pk
+            sessao_legislativa = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
+            context['sessao_legislativa'] = sessao_legislativa
+
+        _range = []
+
+        if ('data_inicio_0' in self.request.GET) and self.request.GET['data_inicio_0'] and \
+            ('data_inicio_1' in self.request.GET) and self.request.GET['data_inicio_1']:
+            where = context['object_list'].query.where
+            _range = where.children[0].rhs
+
+        elif legislatura_pk and not sessao_legislativa_pk:
+            _range = [legislatura.data_inicio, legislatura.data_fim]
+            
+        elif sessao_legislativa_pk:
+            _range = [sessao_legislativa.data_inicio, sessao_legislativa.data_fim]
+
+        param0 = {'sessao_plenaria__data_inicio__range': _range}
+
+            
         # Parlamentares com Mandato no intervalo de tempo (Ativos)
         parlamentares_qs = parlamentares_ativos(
             _range[0], _range[1]).order_by('nome_parlamentar')
         parlamentares_id = parlamentares_qs.values_list(
             'id', flat=True)
-
-        sessao_legislativa_pk = self.request.GET.get('sessao_legislativa')
-        if sessao_legislativa_pk:
-            param0['sessao_plenaria__sessao_legislativa_id'] = sessao_legislativa_pk
-        
-        legislatura_pk = self.request.GET.get('legislatura')
-        if legislatura_pk:
-            param0['sessao_plenaria__legislatura_id'] = legislatura_pk
 
         # Presenças de cada Parlamentar em Sessões
         presenca_sessao = SessaoPlenariaPresenca.objects.filter(**param0).values_list(

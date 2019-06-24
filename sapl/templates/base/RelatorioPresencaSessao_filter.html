@@ -20,14 +20,15 @@
     </div>
     <br /><br /><br /><br />
     <b>PERÍODO: {{periodo}}</b><br />
-    <b>Sessão Legislativa: {{sessao_legislativa}}</b><br />
     <b>Legislatura: {{legislatura}}</b><br />
+    <b>Sessão Legislativa: {{sessao_legislativa}}</b><br />
     <b>TOTAIS NO PERÍODO - SESSÕES: {{total_sessao}} - ORDENS DO DIA: {{total_ordemdia}}</b>
     <table class="table table-bordered table-hover presenca_table">
       <thead class="thead-default" align="center">
         <tr class="active">
           <th rowspan="2">Nome Parlamentar / Partido</th>
-          <th rowspan="2">Titular</th>
+          <th rowspan="2">Titular?</th>
+          <th rowspan="2">Ativo?</th>
           <th colspan="2">Sessão</th>
           <th colspan="2">Ordem do Dia</th>
         </tr>
@@ -42,7 +43,8 @@
         {% for p in parlamentares %}
           <tr>
             <td><b>{{p.parlamentar}}</b> / {{p.parlamentar|filiacao_intervalo_filter:date_range|default:"Sem Partido"}}</td>
-            <td>{%if p.titular %} Sim {% else %} Não {% endif %}</td>
+            <td>{% if p.titular %} Sim {% else %} Não {% endif %}</td>
+            <td>{% if p.parlamentar.ativo %} Sim {% else %} Não {% endif %}</td>
             <td>{{p.sessao_count}}</td>
             <td>{{p.sessao_porc}}</td>
             <td>{{p.ordemdia_count}}</td>
@@ -77,7 +79,8 @@
             if (data) {
               $("#id_sessao_legislativa").children().remove();
               if (data.sessoes_legislativas.length > 1) {
-                $("#id_sessao_legislativa").append("<option>---------</option>");
+                sel = $("#id_sessao_legislativa").append("<option>---------</option>");
+                sel.children().last().attr("value", "");
               }
               $.each(data.sessoes_legislativas, function(idx, obj) {
                 $("#id_sessao_legislativa")
@@ -92,6 +95,7 @@
         $.each(original_options, function(idx, obj) {
           $("#id_sessao_legislativa").append(obj);
         });
+        $("#id_sessao_legislativa").children().first().attr('selected', true);
       }
     })
   

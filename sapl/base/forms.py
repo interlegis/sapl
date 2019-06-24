@@ -876,7 +876,6 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
             *args, **kwargs)
 
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
-        self.form.fields['data_inicio'].required = True
 
         row1 = to_row([('data_inicio', 12)])
         row2 = to_row([('legislatura', 6),
