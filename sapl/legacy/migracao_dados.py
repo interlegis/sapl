@@ -482,6 +482,9 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
     )
     # descartamos o último campo, usado apenas p ordenar corretamente
     autores = [a[:-1] for a in autores]
+    # ordenamos, pois o order by nesses instalações do mysql parece ignorar case
+    # em alguns acasos temos erros estranhos
+    autores = sorted(autores)
 
     reapontamento, apagar = get_reapontamento_de_autores_repetidos(autores)
 
