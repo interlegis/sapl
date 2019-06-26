@@ -20,12 +20,15 @@
     </div>
     <br /><br /><br /><br />
     <b>PERÍODO: {{periodo}}</b><br />
+    <b>Legislatura: {{legislatura}}</b><br />
+    <b>Sessão Legislativa: {{sessao_legislativa}}</b><br />
     <b>TOTAIS NO PERÍODO - SESSÕES: {{total_sessao}} - ORDENS DO DIA: {{total_ordemdia}}</b>
     <table class="table table-bordered table-hover presenca_table">
       <thead class="thead-default" align="center">
         <tr class="active">
           <th rowspan="2">Nome Parlamentar / Partido</th>
-          <th rowspan="2">Titular</th>
+          <th rowspan="2">Titular?</th>
+          <th rowspan="2">Ativo?</th>
           <th colspan="2">Sessão</th>
           <th colspan="2">Ordem do Dia</th>
         </tr>
@@ -40,7 +43,8 @@
         {% for p in parlamentares %}
           <tr>
             <td><b>{{p.parlamentar}}</b> / {{p.parlamentar|filiacao_intervalo_filter:date_range|default:"Sem Partido"}}</td>
-            <td>{%if p.titular %} Sim {% else %} Não {% endif %}</td>
+            <td>{% if p.titular %} Sim {% else %} Não {% endif %}</td>
+            <td>{% if p.parlamentar.ativo %} Sim {% else %} Não {% endif %}</td>
             <td>{{p.sessao_count}}</td>
             <td>{{p.sessao_porc}}</td>
             <td>{{p.ordemdia_count}}</td>
@@ -51,3 +55,52 @@
     </table>
   {% endif %}
 {% endblock base_content %}
+
+{% block extra_js %}
+
+<script type="text/javascript">
+
+  $(document).ready(function(){
+
+    var original_options = [];
+    $.each($("#id_sessao_legislativa").children(), function(idx, obj) {
+      original_options.push($(obj));
+    });
+    
+    $('#id_legislatura').change(function(event) {
+      
+      let legislatura = $("#id_legislatura").val();
+      var json_data = {
+        legislatura : legislatura,
+      }
+
+      if(legislatura){
+        $.getJSON("{% url 'sapl.parlamentares:get_sessoes_legislatura' %}", json_data, function(data){
+            if (data) {
+              $("#id_sessao_legislativa").children().remove();
+              if (data.sessoes_legislativas.length > 1) {
+                sel = $("#id_sessao_legislativa").append("<option>---------</option>");
+                sel.children().last().attr("value", "");
+              }
+              $.each(data.sessoes_legislativas, function(idx, obj) {
+                $("#id_sessao_legislativa")
+                  .append($("<option></option>")
+                  .attr("value", obj[0])
+                  .text(obj[1]));
+              });
+            }
+        });
+      }else{
+        $("#id_sessao_legislativa").children().remove();
+        $.each(original_options, function(idx, obj) {
+          $("#id_sessao_legislativa").append(obj);
+        });
+        $("#id_sessao_legislativa").children().first().attr('selected', true);
+      }
+    })
+  
+  });
+
+</script>
+
+{% endblock %}

@@ -38,7 +38,7 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao
+from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa
 from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
                                       StatusTramitacaoAdministrativo, 
                                       DocumentoAdministrativo)
@@ -342,14 +342,57 @@ class RelatorioPresencaSessaoView(FilterView):
         # Verifica se os campos foram preenchidos
         if not self.filterset.form.is_valid():
             return context
+        
+        cd = self.filterset.form.cleaned_data
+        if not cd['data_inicio'] and not cd['sessao_legislativa'] \
+            and not cd['legislatura']:
+            msg = _("Formulário inválido! Preencha pelo menos algum dos campos.")
+            messages.error(self.request, msg)
+            return context
 
-        # if 'salvar' not in self.request.GET:
-        where = context['object_list'].query.where
-        _range = where.children[0].rhs
+        # Caso a data tenha sido preenchida, verifica se foi preenchida corretamente
+        if ('data_inicio_0' in self.request.GET) and self.request.GET['data_inicio_0'] and \
+           not(('data_inicio_1' in self.request.GET) and self.request.GET['data_inicio_1']):
+            msg = _("Formulário inválido! Preencha a data do Período Final.")
+            messages.error(self.request, msg)
+            return context
 
-        sufixo = 'sessao_plenaria__data_inicio__range'
-        param0 = {'%s' % sufixo: _range}
+        if not(('data_inicio_0' in self.request.GET) and self.request.GET['data_inicio_0']) and \
+           ('data_inicio_1' in self.request.GET) and self.request.GET['data_inicio_1']:
+            msg = _("Formulário inválido! Preencha a data do Período Inicial.")
+            messages.error(self.request, msg)
+            return context
 
+        param0 = {}
+
+        legislatura_pk = self.request.GET.get('legislatura')
+        if legislatura_pk:
+            param0['sessao_plenaria__legislatura_id'] = legislatura_pk
+            legislatura = Legislatura.objects.get(id=legislatura_pk)
+            context['legislatura'] = legislatura
+
+        sessao_legislativa_pk = self.request.GET.get('sessao_legislativa')
+        if sessao_legislativa_pk:
+            param0['sessao_plenaria__sessao_legislativa_id'] = sessao_legislativa_pk
+            sessao_legislativa = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
+            context['sessao_legislativa'] = sessao_legislativa
+
+        _range = []
+
+        if ('data_inicio_0' in self.request.GET) and self.request.GET['data_inicio_0'] and \
+            ('data_inicio_1' in self.request.GET) and self.request.GET['data_inicio_1']:
+            where = context['object_list'].query.where
+            _range = where.children[0].rhs
+
+        elif legislatura_pk and not sessao_legislativa_pk:
+            _range = [legislatura.data_inicio, legislatura.data_fim]
+            
+        elif sessao_legislativa_pk:
+            _range = [sessao_legislativa.data_inicio, sessao_legislativa.data_fim]
+
+        param0 = {'sessao_plenaria__data_inicio__range': _range}
+
+            
         # Parlamentares com Mandato no intervalo de tempo (Ativos)
         parlamentares_qs = parlamentares_ativos(
             _range[0], _range[1]).order_by('nome_parlamentar')
@@ -357,16 +400,12 @@ class RelatorioPresencaSessaoView(FilterView):
             'id', flat=True)
 
         # Presenças de cada Parlamentar em Sessões
-        presenca_sessao = SessaoPlenariaPresenca.objects.filter(
-            parlamentar_id__in=parlamentares_id,
-            sessao_plenaria__data_inicio__range=_range).values_list(
+        presenca_sessao = SessaoPlenariaPresenca.objects.filter(**param0).values_list(
             'parlamentar_id').annotate(
             sessao_count=Count('id'))
 
         # Presenças de cada Ordem do Dia
-        presenca_ordem = PresencaOrdemDia.objects.filter(
-            parlamentar_id__in=parlamentares_id,
-            sessao_plenaria__data_inicio__range=_range).values_list(
+        presenca_ordem = PresencaOrdemDia.objects.filter(**param0).values_list(
             'parlamentar_id').annotate(
             sessao_count=Count('id'))
 
@@ -433,6 +472,12 @@ class RelatorioPresencaSessaoView(FilterView):
         context['periodo'] = (
             self.request.GET['data_inicio_0'] +
             ' - ' + self.request.GET['data_inicio_1'])
+        context['sessao_legislativa'] = ''
+        context['legislatura'] = ''
+        if sessao_legislativa_pk:
+            context['sessao_legislativa'] = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
+        if legislatura_pk:
+            context['legislatura'] = Legislatura.objects.get(id=legislatura_pk)
         # =====================================================================
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
