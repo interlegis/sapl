@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 ##
 ## Versioning info: [major].[minor].[patch][-RC[num]], example: 3.1.159, 3.1.159-RC1
@@ -100,10 +100,6 @@ case "$1" in
        commit_and_push
        exit 0
       ;;
-    --undo)
-       git tag -d $LATEST_VERSION
-       exit 0
-       ;;
     --top)
        git tag | sort --version-sort | tail "-$2"
        exit 0
