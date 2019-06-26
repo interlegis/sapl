@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.contrib.contenttypes.models import ContentType
@@ -13,6 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 import django_filters
 
 from sapl.base.models import Autor, TipoAutor
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
@@ -60,21 +60,11 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             "para a Legislatura, Sessão Legislativa e Tipo informados. "
             "Favor escolher um número distinto.")
 
-        sessoes = SessaoPlenaria.objects.filter(numero=num,
-                                                sessao_legislativa=sl,
-                                                legislatura=leg,
-                                                tipo=tipo,
-                                                data_inicio__year=abertura.year).\
-            values_list('id', flat=True)
+        qs = tipo.queryset_tipo_numeracao(leg, sl, abertura)
+        qs &= Q(numero=num)
 
-        qtd_sessoes = len(sessoes)
-
-        if qtd_sessoes > 0:
-            if instance.pk:  # update
-                if instance.pk not in sessoes or qtd_sessoes > 1:
-                    raise error
-            else:  # create
-                raise error
+        if SessaoPlenaria.objects.filter(qs).exclude(pk=instance.pk).exists():
+            raise error
 
         # Condições da verificação
         abertura_entre_leg = leg.data_inicio <= abertura <= leg.data_fim
@@ -474,6 +464,9 @@ class VotacaoForm(forms.Form):
     abstencoes = forms.IntegerField(label='Abstenções')
     total_presentes = forms.IntegerField(
         required=False, widget=forms.HiddenInput())
+    total_votantes = forms.IntegerField(
+        required=False, widget=forms.HiddenInput()
+    )
     voto_presidente = forms.IntegerField(
         label='A totalização inclui o voto do Presidente?')
     total_votos = forms.IntegerField(required=False, label='total')
@@ -489,15 +482,16 @@ class VotacaoForm(forms.Form):
         votos_nao = cleaned_data['votos_nao']
         abstencoes = cleaned_data['abstencoes']
         qtde_presentes = cleaned_data['total_presentes']
+        qtde_votantes = cleaned_data['total_votantes']
         qtde_votos = votos_sim + votos_nao + abstencoes
         voto_presidente = cleaned_data['voto_presidente']
 
-        if qtde_presentes and not voto_presidente:
-            qtde_presentes -= 1
+        if qtde_votantes and not voto_presidente:
+            qtde_votantes -= 1
 
-        if qtde_presentes and qtde_votos != qtde_presentes:
+        if qtde_votantes and qtde_votos != qtde_votantes:
             raise ValidationError(
-                'O total de votos não corresponde com a quantidade de presentes!')
+                'O total de votos não corresponde com a quantidade de votantes!')
 
         return cleaned_data
 
@@ -640,7 +634,7 @@ class OradorForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['parlamentar'].queryset = \
-        Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorForm, self).clean()
@@ -662,8 +656,8 @@ class OradorForm(ModelForm):
                 "Já existe orador nesta posição de ordem de pronunciamento"
             ))
 
-
         return self.cleaned_data
+
     class Meta:
         model = Orador
         exclude = ['sessao_plenaria']
@@ -672,8 +666,12 @@ class OradorForm(ModelForm):
 class OradorExpedienteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        id_sessao = int(self.initial['id_sessao'])
+        sessao = SessaoPlenaria.objects.get(id=id_sessao)
+        legislatura_vigente = sessao.legislatura
         self.fields['parlamentar'].queryset = \
-        Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(mandato__legislatura=legislatura_vigente,
+                                       ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()
@@ -703,8 +701,12 @@ class OradorExpedienteForm(ModelForm):
 class OradorOrdemDiaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        id_sessao = int(self.initial['id_sessao'])
+        sessao = SessaoPlenaria.objects.get(id=id_sessao)
+        legislatura_vigente = sessao.legislatura
         self.fields['parlamentar'].queryset = \
-        Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(mandato__legislatura=legislatura_vigente,
+                                       ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorOrdemDiaForm, self).clean()

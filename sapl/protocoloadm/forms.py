@@ -1331,7 +1331,7 @@ def filtra_tramitacao_adm_status(status):
     lista = pega_ultima_tramitacao_adm()
     return TramitacaoAdministrativo.objects.filter(
         id__in=lista,
-        status=status).distinct().values_list('materia_id', flat=True)
+        status=status).distinct().values_list('documento_id', flat=True)
 
 
 def filtra_tramitacao_adm_destino(destino):

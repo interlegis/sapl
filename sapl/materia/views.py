@@ -1224,7 +1224,7 @@ class TramitacaoCrud(MasterDetailCrud):
             # não pode ser modificado
             if not primeira_tramitacao:
                 context['form'].fields[
-                    'unidade_tramitacao_local'].widget.attrs['disabled'] = True
+                    'unidade_tramitacao_local'].widget.attrs['readonly'] = True
 
             return context
 
@@ -1432,6 +1432,7 @@ class AutoriaCrud(MasterDetailCrud):
             materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
             initial['data_relativa'] = materia.data_apresentacao
             initial['autor'] = []
+            initial['materia'] = materia
             return initial
 
     class UpdateView(LocalBaseMixin, MasterDetailCrud.UpdateView):
@@ -1441,6 +1442,7 @@ class AutoriaCrud(MasterDetailCrud):
             initial.update({
                 'data_relativa': self.object.materia.data_apresentacao,
                 'tipo_autor': self.object.autor.tipo.id,
+                'materia': self.object.materia
             })
             return initial
 
@@ -1480,8 +1482,9 @@ class AutoriaMultiCreateView(PermissionRequiredForAppCrudMixin, FormView):
 
     def form_valid(self, form):
         autores_selecionados = form.cleaned_data['autor']
+        primeiro_autor = form.cleaned_data['primeiro_autor']
         for autor in autores_selecionados:
-            Autoria.objects.create(materia=self.materia, autor=autor)
+            Autoria.objects.create(materia=self.materia, autor=autor, primeiro_autor=primeiro_autor)
 
         return FormView.form_valid(self, form)
 
@@ -1616,14 +1619,13 @@ class MateriaLegislativaCrud(Crud):
 
         form_class = MateriaLegislativaForm
 
-        def form_valid(self, form):
-            self.object = form.instance
+        def get_initial(self):
+            initial = super(CreateView, self).get_initial()
 
-            self.object.user = self.request.user
-            self.object.ip = get_client_ip(self.request)
-            self.object.save()
+            initial['user'] = self.request.user
+            initial['ip'] = get_client_ip(self.request)
 
-            return super().form_valid(form)
+            return initial
 
         @property
         def cancel_url(self):
@@ -1679,7 +1681,7 @@ class MateriaLegislativaCrud(Crud):
     class DetailView(Crud.DetailView):
 
         layout_key = 'MateriaLegislativaDetail'
-        template_name = "materia/materia_detail.html"
+        template_name = "materia/materialegislativa_detail.html"
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)

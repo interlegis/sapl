@@ -35,7 +35,7 @@
       url: sapl.protocoloadm:pesq_doc_adm
     - title: {% trans 'Tramitação em Lote' %}
       url: sapl.protocoloadm:primeira_tramitacao_em_lote_docadm
-      check_permission: sapl.documento:add_tramitacao
+      check_permission: sapl.protocoloadm:add_tramitacaoadministrativo
 
 - title: {% trans 'Atividade Legislativa' %}
   children:

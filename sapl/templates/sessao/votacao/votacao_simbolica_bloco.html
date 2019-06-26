@@ -8,9 +8,9 @@
 	<fieldset class="form-group">
 		<legend>Votação Simbólica</legend>
 		{% if ordens or expedientes %}
-			{% if total_presentes == 0 %}
+			{% if total_votantes == 0 %}
 				<div class="alert alert-info alert-dismissible " role="alert">
-					<div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
+					<div>Não existe nenhum parlamentar ativo presente para que a votação ocorra.</div>
 				</div>
 				{% if origem == 'ordem' %}
 					<a href="{% url 'sapl.sessao:votacao_bloco_ordemdia' pk %}" class="btn btn-warning">Voltar</a>
@@ -36,7 +36,10 @@
 					{% endfor %}
 				{% endif %}
 				<b>Total presentes:</b> {{total_presentes}} (com presidente)
+				<br/>
+				<b>Total votantes:</b> {{total_votantes}} (com presidente)
 				<input type="hidden" id="total_presentes" name="total_presentes" value="{{total_presentes}}">
+				<input type="hidden" id="total_votantes" name="total_votantes" value="{{total_votantes}}">
 				</div>
 				<br />
 
