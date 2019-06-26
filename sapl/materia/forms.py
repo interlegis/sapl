@@ -1456,7 +1456,8 @@ class TipoProposicaoForm(ModelForm):
 
         self.fields['content_type'].choices = [
             (ct.pk, ct) for k, ct in content_types.items()]
-        self.fields['content_type'].choices.sort(key=lambda x: str(x[1]))
+        # Ordena por id
+        self.fields['content_type'].choices.sort(key=lambda x: x[0])
 
         if self.instance.pk:
             self.fields[
