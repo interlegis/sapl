@@ -84,6 +84,7 @@
                 {{cronometro}}: <span id="cronometro_{{cronometro.id}}"></span><br>
               {% endfor %}
             </div>
+            
           </div>
 
           <div class="col-md-6 text-center painel">      
@@ -96,6 +97,11 @@
             <h2 class="text-subtitle">Matéria em Votação</h2>   
             <span id="materia_legislativa_texto" class="text-value"></span>
             <span id="observacao_materia" class="text-value"></span>
+
+            <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
+              <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
+                <span id="sessao_solene_tema" class="text-value"></span>
+            </div>
           </div>
           
         </div>
@@ -183,10 +189,17 @@
               $("#sessao_plenaria").text(data["sessao_plenaria"])
               $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
               $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
+              $("#sessao_solene_tema").text(data["tema_solene"])
               if (data["status_painel"] == false) {
                 $("#message").text("PAINEL ENCONTRA-SE FECHADO");
               } else {
                 $("#message").text("");
+              }
+
+              if (data["sessao_solene"]){
+                $("#resultado_votacao_div").hide();
+                $("#obs_materia_div").hide();
+                $('#tema_solene_div').show();
               }
 
               if (data["brasao"] != null)

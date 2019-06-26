@@ -2,8 +2,14 @@
     <p align="justify">
 		<strong>Identificação Básica: </strong> 
 		{% for b in basica %}
-			{{b}}
-			{% if not forloop.last %} ; {% endif %}
+			{{b}} 
+			{% if not forloop.last %} 
+				;
+			{% else %}
+				{% if tema_solene %}
+					; {{tema_solene}}
+				{% endif %}
+			{% endif %}
 		{% endfor %}
 	</p>		  
 </fieldset>

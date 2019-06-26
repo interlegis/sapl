@@ -519,6 +519,9 @@ def get_sessao_plenaria(sessao, casa):
         inf_basicas_dic["dat_fim_sessao"] = ''
     inf_basicas_dic["hr_fim_sessao"] = sessao.hora_fim
     inf_basicas_dic["nom_camara"] = casa.nome
+
+    if sessao.tipo.nome == 'Solene':
+        inf_basicas_dic["tema_solene"] = sessao.tema_solene
     
     # Conteudo multimidia
     cont_mult_dic = {}

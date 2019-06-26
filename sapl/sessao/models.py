@@ -208,6 +208,8 @@ class SessaoPlenaria(models.Model):
     interativa = models.NullBooleanField(blank=True,
                                          choices=YES_NO_CHOICES,
                                          verbose_name=_('Sessão interativa'))
+    tema_solene = models.TextField(
+        blank=True, max_length=500, verbose_name=_('Tema da Sessão Solene'))
 
     class Meta:
         verbose_name = _('Sessão Plenária')

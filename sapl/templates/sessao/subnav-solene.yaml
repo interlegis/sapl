@@ -1,0 +1,34 @@
+{% load i18n common_tags %}
+
+- title: {% trans 'Abertura' %}
+  children:
+    - title: {% trans 'Dados Básicos' %}
+      url: sessaoplenaria_detail
+    - title: {% trans 'Mesa' %}
+      url: mesa
+    - title: {% trans 'Presença' %}
+      url: presenca
+    - title: {% trans 'Explicações Pessoais' %}
+      url: orador_list
+    - title: {% trans 'Ocorrências da Sessão' %}
+      url: ocorrencia_sessao
+
+- title: {% trans 'Expedientes' %}
+  children:
+    - title: {% trans 'Expediente Diversos' %}
+      url: expediente
+    - title: {% trans 'Oradores do Expediente' %}
+      url: oradorexpediente_list
+
+- title: {% trans 'Painel Eletrônico' %}
+  url: painel
+  {% if not 'painel_aberto'|get_config_attr %}check_permission: painel.list_painel{%endif%}
+  check_permission: painel.list_painel
+
+- title: {% trans 'Resumo' %}
+  children:
+    - title: {% trans 'Resumo' %}
+      url: resumo
+    - title: {% trans 'Extrato' %}
+      url: resumo_ata
+      check_permission: sessao.add_sessaoplenaria
