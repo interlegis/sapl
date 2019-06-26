@@ -21,7 +21,6 @@
         {% render_bundle  'painel' 'css' %}
       {% endblock webpack_loader_css %}
 
-
     <style type="text/css">
         html, body {
             max-width: 100%;
@@ -33,79 +32,75 @@
         }
       }
     </style>
-
   </head>
   <body class="painel-principal">
-      <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
+    <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
-      <div class="d-flex justify-content-center">
-        <h1 id="sessao_plenaria" class="title text-title"></h1>
+    <div class="d-flex justify-content-center">
+      <h1 id="sessao_plenaria" class="title text-title"></h1>
+    </div>
+    <div class="row ">
+      <div class="col text-center">
+        <span id="sessao_plenaria_data" class="text-value"></span>
+      </div> 
+      <div class="col text-center">
+        <span id="sessao_plenaria_hora_inicio" class="text-value"></span>
       </div>
-      <div class="row ">
-        <div class="col text-center">
-          <span id="sessao_plenaria_data" class="text-value"></span>
-        </div> 
-        <div class="col text-center">
-          <span id="sessao_plenaria_hora_inicio" class="text-value"></span>
-        </div>
-      </div>    
+    </div>    
 
-      <div class="row justify-content-center">
-        <div class="col-1">
-          <img src="" id="logo-painel" class="logo-painel" alt=""/>
-        </div>
+    <div class="row justify-content-center">
+      <div class="col-1">
+        <img src="" id="logo-painel" class="logo-painel" alt=""/>
       </div>
+    </div>
 
-      <div class="row justify-content-center">
-        <h2 class="text-danger"><span id="message"></span></h2>
-      </div>
+    <div class="row justify-content-center">
+      <h2 class="text-danger"><span id="message"></span></h2>
+    </div>
 
-      <div class="row">
-        <div class="col text-center"><span class="text-value data-hora" id="date"></span></div>
-        <div class="col text-center"><span class="text-value data-hora" id="relogio"></span></div>
-      </div>
+    <div class="row">
+      <div class="col text-center"><span class="text-value data-hora" id="date"></span></div>
+      <div class="col text-center"><span class="text-value data-hora" id="relogio"></span></div>
+    </div>
 
-
-      <div class="">
-        <div class="d-flex justify-content-start">
-          <div class="col-md-4">
-            <div class="text-center painel">   
-              <h2 class="text-subtitle">Parlamentares</h2>   
-              <span id="parlamentares" class="text-value text-center"></span>
-            </div>
-          </div>
-          <div class="d-flex col-md-8 painels">
-            <div class="col-md-6 text-center painel" id="aparecer_oradores">  
-              <h2 class="text-subtitle">Oradores</h2>  
-              <span id="orador"></span>     
-            </div>
-
-            <div class="col-md-6 text-center painel">  
-              <h2 class="text-subtitle">Cronômetros</h2>
-                <div class="text-value">
-                Discurso: <span id="cronometro_discurso"></span><br>
-                Aparte: <span id="cronometro_aparte"></span><br>
-                Questão de Ordem: <span id="cronometro_ordem"></span><br>
-                Considerações Finais: <span id="cronometro_consideracoes"></span>
-              </div>
-            </div>
-
-            <div class="col-md-6 text-center painel">      
-              <h2 class="text-subtitle">Resultado</h2>   
-                <span id="votacao" class="text-value"></span> 
-                <h2><span id="resultado_votacao" lass="text-title"></span>
-            </div>
-
-            <div class="col-md-6 text-center painel">      
-              <h2 class="text-subtitle">Matéria em Votação</h2>   
-                <span id="materia_legislativa_texto" class="text-value"></span>
-                <span id="observacao_materia" class="text-value"></span>
-            </div>
+    <div class="">
+      <div class="d-flex justify-content-start">
+        <div class="col-md-4">
+          <div class="text-center painel">   
+            <h2 class="text-subtitle">Parlamentares</h2>   
+            <span id="parlamentares" class="text-value text-center"></span>
           </div>
         </div>
-      </div>
+        <div class="d-flex col-md-8 painels">
+          <div class="col-md-6 text-center painel" id="aparecer_oradores">  
+            <h2 class="text-subtitle">Oradores</h2>  
+            <span id="orador" class="text-value" align="center"></span>     
+          </div>
 
+          <div class="col-md-6 text-center painel">  
+            <h2 class="text-subtitle">{% if cronometros|length == 1 %}Cronômetro{% elif cronometros|length > 1%}Cronômetros{% endif %}</h2>
+            <div class="text-value">
+              {% for cronometro in cronometros %}
+                {{cronometro}}: <span id="cronometro_{{cronometro.id}}"></span><br>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-md-6 text-center painel">      
+            <h2 class="text-subtitle">Resultado</h2>   
+            <span id="votacao" class="text-value"></span> 
+            <h2><span id="resultado_votacao" lass="text-title"></span>
+          </div>
+
+          <div class="col-md-6 text-center painel">      
+            <h2 class="text-subtitle">Matéria em Votação</h2>   
+            <span id="materia_legislativa_texto" class="text-value"></span>
+            <span id="observacao_materia" class="text-value"></span>
+          </div>
+          
+        </div>
       </div>
+    </div>
   </body>
 
   {% block webpack_loader_js %}
@@ -122,32 +117,47 @@
     var n = d.toLocaleDateString();
     document.getElementById("date").innerHTML = n;
 
-      $(document).ready(function() {
-         //TODO: replace by a fancy jQuery clock
-         function checkTime(i) {
-             if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
-                return i;
-         }
-         function startTime() {
-             var today=new Date();
-             var h=today.getHours();
-             var m=today.getMinutes();
-             var s=today.getSeconds();
-             m = checkTime(m);
-             s = checkTime(s);
-             $("#relogio").text(h+":"+m+":"+s)
-             var t = setTimeout(function(){
-                 startTime()
-             }, 500);
-         }
-         startTime();
+    function checkTime(i) {
+      if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
+        return i;
+    }
 
-        var audioAlertFinish = document.getElementById("audio");
+    function startTime() {
+      var today=new Date();
+      var h=today.getHours();
+      var m=today.getMinutes();
+      var s=today.getSeconds();
+      m = checkTime(m);
+      s = checkTime(s);
+      $("#relogio").text(h+":"+m+":"+s)
+      var t = setTimeout(function(){
+          startTime()
+      }, 500);
+    }
 
-        $('#cronometro_discurso').runner({
+    function show_voto(voto) {
+      if (voto == "Sim"){
+          return '<font color="green"> Sim </font>'
+      }
+      else if (voto == "Não"){
+          return '<font color="red"> Não </font>'
+      }
+      return voto
+    }
+
+    $(document).ready(function() {
+      //TODO: replace by a fancy jQuery clock
+      startTime();
+
+      var audioAlertFinish = document.getElementById("audio");
+
+      var cronometros_previous = [];
+      {% for cron in cronometros %}
+        cronometros_previous.push(0);
+        $('#cronometro_' + "{{cron.id}}").runner({
           autostart: false,
           countdown: true,
-          startAt: {{ 'discurso'|cronometro_to_seconds }} * 1000,
+          startAt: {{cron.duracao_cronometro|duration_to_seconds}} * 1000,
           stopAt: 0,
           milliseconds: false,
           format: function(value) {
@@ -161,72 +171,11 @@
           }
         }).on('runnerFinish', function(eventObject, info){
           audioAlertFinish.play();
-        });
+        })
+      {% endfor %}
 
-        $('#cronometro_aparte').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'aparte'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-            audioAlertFinish.play();
-        });
-
-        $('#cronometro_ordem').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'ordem'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-          audioAlertFinish.play();
-        });
-
-        $('#cronometro_consideracoes').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'consideracoes'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-          audioAlertFinish.play();
-        });
-
-    var discurso_previous;
-    var ordem_previous;
-    var aparte_previous;
-    var consideracoes_previous;
-
-    var counter = 1;
-    (function poll() {
+      var counter = 1;
+      (function poll() {
         $.ajax({
            url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
            type: "GET",
@@ -236,8 +185,7 @@
               $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
               if (data["status_painel"] == false) {
                 $("#message").text("PAINEL ENCONTRA-SE FECHADO");
-              }
-              else {
+              } else {
                 $("#message").text("");
               }
 
@@ -256,56 +204,52 @@
               var presentes_list = data["presentes"];
 
               if (data["status_painel"] == true) {
-                  presentes.append('<table id="parlamentares_list">');
-                  $.each(presentes_list, function (index, parlamentar) {
+                presentes.append('<table id="parlamentares_list">');
+                $.each(presentes_list, function (index, parlamentar) {
 
+                  if (parlamentar.voto == 'Voto Informado'){
+                    $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
+                        parlamentar.nome +
+                        '</td> <td style="padding-right:20px; color:yellow">' +
+                        parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
+                        + '</td></tr>')
+                  } else{
+                    $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
+                        parlamentar.nome +
+                        '</td> <td style="padding-right:20px">' +
+                        parlamentar.partido + '</td> <td style="padding-right:20px">'
+                        + show_voto(parlamentar.voto) + '</td></tr>')
+                  }
+                });
 
-                    if (parlamentar.voto == 'Voto Informado'){
-                      $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
-                          parlamentar.nome +
-                          '</td> <td style="padding-right:20px; color:yellow">' +
-                          parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
-                          + '</td></tr>')
-                    }
-                    else{
-                      $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
-                          parlamentar.nome +
-                          '</td> <td style="padding-right:20px">' +
-                          parlamentar.partido + '</td> <td style="padding-right:20px">'
-                          + show_voto(parlamentar.voto) + '</td></tr>')
-                    }
+                presentes.append('</table>')
 
+                if (data["oradores"].length > 0){
+                  $('#aparecer_oradores').show();
+                  oradores.append('<table id="oradores_list">');
+                  $.each(oradores_list, function (index, orador) {
+                    $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
+                        orador.numero + 'º &nbsp' +
+                        orador.nome +'</td></tr>')
                   });
-                  presentes.append('</table>')
+                  oradores.append('</table>');
+                } else {
+                  $('#aparecer_oradores').hide();
+                }
+              } else{
+                presentes.append('<span id="parlamentares_list">');
+                $('#parlamentares_list').append(
+                    '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
+                presentes.append('</span>');
 
-                  if (data["oradores"].length > 0){
-                    $('#aparecer_oradores').show();
-                    oradores.append('<table id="oradores_list">');
-                    $.each(oradores_list, function (index, orador) {
-                      $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
-                          orador.numero + 'º &nbsp' +
-                          orador.nome +'</td></tr>')
-                    });
-                    oradores.append('</table>');
-                  }
-                  else {
-                    $('#aparecer_oradores').hide();
-                  }
-              }
-              else{
-                  presentes.append('<span id="parlamentares_list">');
-                  $('#parlamentares_list').append(
-                      '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
-                  presentes.append('</span>');
+                oradores.append('<span id="oradores_list">');
+                $('#oradores_list').append(
+                    '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
+                oradores.append('</span>');
 
-                  oradores.append('<span id="oradores_list">');
-                  $('#oradores_list').append(
-                      '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
-                  oradores.append('</span>');
-
-                  votacao.append('<span id="votacao">');
-                  $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
-                  votacao.append('</span>');
+                votacao.append('<span id="votacao">');
+                $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
+                votacao.append('</span>');
               }
 
               if (data['materia_legislativa_texto'] && data["status_painel"] == true){
@@ -319,77 +263,39 @@
                 votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
                 votacao.append("<li>Presentes: " + num_presentes + "</li>")
                 votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
-              }
-
-              else{
+              } else{
                   $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
+              };
+
+              var ids = [];
+              var status_cronometros = []
+              for (var key in data['cronometros']) {
+                  if (data['cronometros'].hasOwnProperty(key)) {           
+                      ids.push(key);
+                      status_cronometros.push(data['cronometros'][key])
+                  }
               }
 
-              var discurso_current = data["cronometro_discurso"];
-              if (!discurso_previous){
-                discurso_previous = ''
-              }
+              for(let i=0; i<status_cronometros.length; i++){
+                if (!cronometros_previous[i])
+                  cronometros_previous[i] = ''
+                
+                if (status_cronometros[i] != cronometros_previous[i]) {
+                  $('#cronometro_' + ids[i]).runner(status_cronometros[i]);
+                  cronometros_previous[i] = status_cronometros[i];
+                }
 
-              if (discurso_current != discurso_previous) {
-                $('#cronometro_discurso').runner(discurso_current);
-                discurso_previous = discurso_current;
-              }
-
-              var aparte_current = data["cronometro_aparte"];
-              if (!aparte_previous){
-                aparte_previous = ''
-              }
-
-              if (aparte_current != aparte_previous) {
-                $('#cronometro_aparte').runner(aparte_current);
-                aparte_previous = aparte_current;
-              }
-
-              var ordem_current = data["cronometro_ordem"];
-              if (!ordem_previous){
-                ordem_previous = ''
-              }
-
-              if (ordem_current != ordem_previous) {
-                $('#cronometro_ordem').runner(ordem_current);
-                ordem_previous = ordem_current;
-              }
-
-              var consideracoes_current = data["cronometro_consideracoes"];
-              if (!consideracoes_previous){
-                consideracoes_previous = ''
-              }
-
-              if (consideracoes_current != consideracoes_previous) {
-                $('#cronometro_consideracoes').runner(consideracoes_current);
-                consideracoes_previous = consideracoes_current;
-              }
-
-              if($('#cronometro_discurso').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if($('#cronometro_aparte').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if($('#cronometro_ordem').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if($('#cronometro_consideracoes').runner('info').formattedTime == "00:00:30") {
+                if($('#cronometro_' + ids[i]).runner('info').formattedTime == 30) 
                   audioAlertFinish.play();
               }
 
               if (data['materia_legislativa_texto']){
                 if (data["status_painel"] == true){
                   $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
-                }
-                else{
+                } else{
                   $("#materia_legislativa_texto").text('A Matéria em votação só aparecerá quando o painel estiver aberto');
                 }
-              }
-              else{
+              } else{
                 $("#materia_legislativa_texto").text('Não há nehuma matéria votada ou para votação');
               }
 
@@ -397,12 +303,10 @@
                 var texto = data['observacao_materia'];
                 if(texto.length > 151) {
                   $("#observacao_materia").text(texto.substr(0, 145).concat('(...)'));
-                }
-                else{
+                } else{
                     $("#observacao_materia").text(texto);
                 }
-              }
-              else{
+              } else{
                 $("#observacao_materia").text('');
               }
 
@@ -410,36 +314,25 @@
                 $("#resultado_votacao").text(data["tipo_resultado"]);
                 $("#resultado_votacao").css("color", "#45919D");
                 var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
-                  if (resultado_votacao_upper.search("APROV") != -1){
-                    $("#resultado_votacao").css("color", "green");
-                  }
-                  if (resultado_votacao_upper.search("REJEIT") != -1){
-                    $("#resultado_votacao").css("color", "red");
-                  }
-              }
-              else{
+                if (resultado_votacao_upper.search("APROV") != -1){
+                  $("#resultado_votacao").css("color", "green");
+                }
+                if (resultado_votacao_upper.search("REJEIT") != -1){
+                  $("#resultado_votacao").css("color", "red");
+                }
+              } else{
                 $("#resultado_votacao").text('');
               }
-           },
-           error: function(err) {
-              console.error(err);
-           },
-           dataType: "json",
-           complete: setTimeout(function() {poll()}, 500),
-           timeout: 20000 // TODO: decrease
+          },
+          error: function(err) {
+            console.error(err);
+          },
+          dataType: "json",
+          complete: setTimeout(function() {poll()}, 500),
+          timeout: 20000 // TODO: decrease
         })
       })();
-      });
-
-     function show_voto(voto) {
-      if (voto == "Sim"){
-          return '<font color="green"> Sim </font>'
-      }
-      else if (voto == "Não"){
-          return '<font color="red"> Não </font>'
-      }
-      return voto
-     }
+    });
   </script>
 </html>
 

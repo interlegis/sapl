@@ -34,10 +34,6 @@ AppConfig:
   {% trans 'Assinaturas' %}:
   - assinatura_ata
 
-  {% trans 'Cronômetros do Painel' %}:
-  - cronometro_discurso cronometro_aparte 
-  - cronometro_ordem cronometro_consideracoes
-
   {% trans 'Configurações do Painel' %}:
   - mostrar_brasao_painel
 

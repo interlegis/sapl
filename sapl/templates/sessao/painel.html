@@ -1,7 +1,11 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+{% load common_tags %}
 {% load staticfiles %}
+
 {% load webpack_static from webpack_loader %}
+{% load render_bundle from webpack_loader %}
+
 {% block actions %} {% endblock %}
 
 {% block title %}
@@ -25,361 +29,145 @@
 	<h1>Operação do Painel Eletrônico</h1>
 	<h2><span id="relogio"></span></h2>
 	<br />
-  <div class="row">
-    <div class="col-md-12 mb-2"><h3>Cronômetro do Discurso</h3></div>
-  </div>
 
-  <div class="row">
-    <div class="col-md-2"><input size="2" id="discurso" name="discurso" value="" readyonly="true" class="form-control"></div>
-  </div>
-	<br />
+  {% for cronometro in cronometros %}
 
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="discursoStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="discursoReset" class="btn btn-success">Reiniciar</button></div>
-  </div>
+    <div class="row">
+      <div class="col-md-12 mb-2"><h3><a href="{% url 'sapl.painel:cronometro_detail' cronometro.id %}">{{cronometro}}</a></h3></div>
+    </div>
 
-	<br /><br >
-  <div class="row">
-    <div class="col-md-12 mb-2"><h3>Cronômetro do Aparte</h3></div>
-  </div>
+    <div class="row">
+      <div class="col-md-2"><input size="2" id="cronometro_{{cronometro.id}}" name="cronometro_{{cronometro.id}}" value="" readyonly="true" class="form-control"></div>
+    </div>
+    <br />
 
-  <div class="row">
-    <div class="col-md-2"><input size="2" id="aparte" name="aparte" value="" readyonly="true" class="form-control"></div>
-  </div>
-	<br />
+    <div class="row">
+      <div class="col-md-6"><button type="button" id="cronometro_{{cronometro.id}}_Start" class="btn btn-success">Iniciar</button></div>
+      <div class="col-md-6"><button type="button" id="cronometro_{{cronometro.id}}_Reset" class="btn btn-success">Reiniciar</button></div>
+    </div>
 
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="aparteStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="aparteReset" class="btn btn-success" class="btn btn-success">Reiniciar</button></div>
-  </div>
-
-	<br /><br >
-  <div class="row">
-    <div class="col-md-12 mb-2"><h3>Cronômetro da Questão de Ordem </h3></div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-2"><input size="2" id="ordem" name="ordem" value="" readyonly="true" class="form-control"></div>
-  </div>
-	<br />
-
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="ordemStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="ordemReset" class="btn btn-success">Reiniciar</button></div>
-  </div>
-
-  <br/>
-  <br/>
-
-  <div class="row">
-    <div class="col-md-12 mb-2"><h3>Cronômetro de Considerações Finais</h3></div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-4"><input size="2" id="consideracoes" name="consideracoes" value="" readyonly="true" class="form-control"></div>
-  </div>
-  <br />
-
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="consideracoesStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="consideracoesReset" class="btn btn-success">Reiniciar</button></div>
-  </div>
-  <br /><br >
+    <br><br>
+  {% endfor %}
 
   <div class="row">
     <div class="col-md-6"><button type="button" id="sinalSonoro" class="btn btn-success" onclick="document.getElementById('audio').play();">Sinal Sonoro</button></div>
   </div>
+  <br><br>
 
 {% endblock detail_content %}
 
 {% block extra_js %}
 <script language="JavaScript">
-$(function() {
-
-	function checkTime(i) {
-		if (i<10) {i = "0" + i};
-			return i;
-	}
-
-	function startTime() {
-		var today=new Date();
-	 	var h=today.getHours();
-		var m=today.getMinutes();
-		var s=today.getSeconds();
-		m = checkTime(m);
-		s = checkTime(s);
-		$("#relogio").text(h+":"+m+":"+s)
-		var t = setTimeout(function(){
-		    startTime()
-		},500);
-	}
-
-	startTime();
-    var audioAlertFinish = document.getElementById("audio");
-	$('#discurso').prop('disabled', false);
-	$('#aparte').prop('disabled', false);
-	$('#ordem').prop('disabled', false);
-    $('#consideracoes').prop('disabled', false);
-
-    $('#discurso').runner({
-        autostart: false,
-        countdown: true,
-        startAt: {{cronometro_discurso}} * 1000,
-        stopAt: 0,
-        milliseconds: false,
-        format: function(value) {
-          let h = Math.floor((value/1000) / 3600);
-          h = checkTime(h);
-          let m = Math.floor((value/1000) % 3600 / 60);
-          m = checkTime(m);
-          let s = Math.floor((value/1000) % 3600 % 60);
-          s = checkTime(s);
-          return h.toString() + ":" + m.toString() + ":" + s.toString();
-        }
-	}).on('runnerFinish', function(eventObject, info){
-        $.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
-        audioAlertFinish.play();
-        $('#discursoReset').show();
-        $('#discurso').runner('stop');
-        $('#discursoStart').text('Iniciar');
-
-    });
-
-    $('#discursoStart').click(function() {
-
-		if ($('#discursoStart').text() == 'Iniciar'){
-
-			$.get('/painel/cronometro', { tipo: 'discurso', action: 'start' } );
-
-			$('#discursoReset').hide();
-			$('#discurso').runner('start');
-			$('#discursoStart').text('Parar');
-
-		} else {
-
-			$.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
-
-			$('#discursoReset').show();
-			$('#discurso').runner('stop');
-			$('#discursoStart').text('Iniciar');
-		}
-    });
-
-    $('#discursoReset').click(function() {
-
-		$.get('/painel/cronometro', { tipo: 'discurso', action: 'reset' } );
-
-        $('#discurso').runner('stop');
-        $('#discurso').runner('reset');
-    });
-
-    $('#aparte').runner({
-        autostart: false,
-        countdown: true,
-        startAt: {{cronometro_aparte}} * 1000,
-        stopAt: 0,
-        milliseconds: false,
-        format: function(value) {
-          let h = Math.floor((value/1000) / 3600);
-          h = checkTime(h);
-          let m = Math.floor((value/1000) % 3600 / 60);
-          m = checkTime(m);
-          let s = Math.floor((value/1000) % 3600 % 60);
-          s = checkTime(s);
-          return h.toString() + ":" + m.toString() + ":" + s.toString();
-        }
-	}).on('runnerFinish', function(eventObject, info){
-        $.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
-        audioAlertFinish.play();
-        $('#aparteReset').show();
-        $('#aparte').runner('stop');
-        $('#aparteStart').text('Iniciar');
-
-    });
-
-	$('#aparteStart').click(function(){
-		if ($('#aparteStart').text() == 'Iniciar') {
-
-			$.get('/painel/cronometro', { tipo: 'aparte', action: 'start' } );
-
-			$('#aparteReset').hide();
-	        $('#aparte').runner('start');
-			$('#aparteStart').text('Parar');
-
-		} else {
-
-			$.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
-
-			$('#aparteReset').show();
-			$('#aparte').runner('stop');
-			$('#aparteStart').text('Iniciar');
-
-		}
-    });
-
-    $('#aparteReset').click(function() {
-
-		$.get('/painel/cronometro', { tipo: 'aparte', action: 'reset' } );
-
-        $('#aparte').runner('stop');
-        $('#aparte').runner('reset');
-    });
-
-    $('#ordem').runner({
-        autostart: false,
-        countdown: true,
-        startAt: {{cronometro_ordem}} * 1000,
-        stopAt: 0,
-        milliseconds: false,
-        format: function(value) {
-          let h = Math.floor((value/1000) / 3600);
-          h = checkTime(h);
-          let m = Math.floor((value/1000) % 3600 / 60);
-          m = checkTime(m);
-          let s = Math.floor((value/1000) % 3600 % 60);
-          s = checkTime(s);
-          return h.toString() + ":" + m.toString() + ":" + s.toString();
-        }
-	}).on('runnerFinish', function(eventObject, info){
-        $.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
-        audioAlertFinish.play();
-        $('#ordemReset').show();
-        $('#ordem').runner('stop');
-        $('#ordemStart').text('Iniciar');
-
-    });
-
-    $('#ordemStart').click(function() {
-		if ($('#ordemStart').text() == 'Iniciar') {
-
-			$.get('/painel/cronometro', { tipo: 'ordem', action: 'start' } );
-
-			$('#ordemReset').hide();
-	        $('#ordem').runner('start');
-			$('#ordemStart').text('Parar');
-
-
-		} else {
-
-			$.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
-
-			$('#ordemReset').show();
-	        $('#ordem').runner('stop');
-			$('#ordemStart').text('Iniciar');
-
-		}
-    });
-
-    $('#ordemReset').click(function() {
-
-		$.get('/painel/cronometro', { tipo: 'ordem', action: 'reset' } );
-
-        $('#ordem').runner('stop');
-        $('#ordem').runner('reset');
-    });
-
-     $('#consideracoes').runner({
-        autostart: false,
-        countdown: true,
-        startAt: {{cronometro_consideracoes}} * 1000,
-        stopAt: 0,
-        milliseconds: false,
-        format: function(value) {
-          let h = Math.floor((value/1000) / 3600);
-          h = checkTime(h);
-          let m = Math.floor((value/1000) % 3600 / 60);
-          m = checkTime(m);
-          let s = Math.floor((value/1000) % 3600 % 60);
-          s = checkTime(s);
-          return h.toString() + ":" + m.toString() + ":" + s.toString();
-        }
-    }).on('runnerFinish', function(eventObject, info){
-        $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
-        audioAlertFinish.play();
-        $('#consideracoesReset').show();
-        $('#consideracoes').runner('stop');
-        $('#consideracoesStart').text('Iniciar');
-
-
-    });
-
-    $('#consideracoesStart').click(function(){
-        if ($('#consideracoesStart').text() == 'Iniciar') {
-
-            $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'start' } );
-
-            $('#consideracoesReset').hide();
-            $('#consideracoes').runner('start');
-            $('#consideracoesStart').text('Parar');
-
-        } else {
-
-            $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
-
-            $('#consideracoesReset').show();
-            $('#consideracoes').runner('stop');
-            $('#consideracoesStart').text('Iniciar');
-
-        }
-    });
-
-    $('#consideracoesReset').click(function() {
-
-        $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'reset' } );
-
-        $('#consideracoes').runner('stop');
-        $('#consideracoes').runner('reset');
-    });
-
-});
 
 function switch_painel(aberto) {
-    var pk_sessao = {{root_pk}};
-    var botao_abrir = $('#id_abrir_painel');
-    var botao_fechar = $('#id_fechar_painel');
+  let pk_sessao = {{root_pk}};
+  let botao_abrir = $('#id_abrir_painel');
+  let botao_fechar = $('#id_fechar_painel');
 
+  $.ajax({
+    data: {pk_sessao: pk_sessao, aberto: aberto},
+    type: 'POST',
+    url: "{% url 'sapl.painel:switch_painel' %}",
+    headers: {'X-CSRFToken': getCookie('csrftoken')},
+  });
 
-    $.ajax({
-        data: {pk_sessao: pk_sessao, aberto: aberto},
-        type: 'POST',
-        url: "{% url 'sapl.painel:switch_painel' %}",
-        headers: {'X-CSRFToken': getCookie('csrftoken')},
-    });
+  if (aberto) {
+    botao_abrir.hide();
+    botao_fechar.show();
+  } else {
+    botao_abrir.show();
+    botao_fechar.hide();
+  }
+}
 
-    if (aberto) {
-        botao_abrir.hide();
-        botao_fechar.show();
-    } else {
-        botao_abrir.show();
-        botao_fechar.hide();
-    }
+function checkTime(i) {
+  if (i<10) {
+    i = "0" + i
+  };
+  return i;
+}
+
+function startTime() {
+  let today=new Date();
+  let h=today.getHours();
+  let m=today.getMinutes();
+  let s=today.getSeconds();
+  m = checkTime(m);
+  s = checkTime(s);
+  $("#relogio").text(h+":"+m+":"+s)
+  let t = setTimeout(function(){
+      startTime()
+  },500);
 }
 
 $(document).ready(function(){
-    var pk_sessao = {{root_pk}};
-    var botao_abrir = $('#id_abrir_painel');
-    var botao_fechar = $('#id_fechar_painel');
+  let pk_sessao = {{root_pk}};
+  let botao_abrir = $('#id_abrir_painel');
+  let botao_fechar = $('#id_fechar_painel');
 
-    $.ajax({
-        data: {pk_sessao: pk_sessao},
-        type: 'GET',
-        dataType: 'json',
-        url: "{% url 'sapl.painel:verifica_painel' %}",
-        error: function () {
-            alert("Erro ao verificar o Painel");
-        },
-        success: function (data) {
-            if (data['status']) {
-                botao_abrir.hide();
-                botao_fechar.show();
-            } else {
-                botao_abrir.show();
-                botao_fechar.hide();
-            }
-        },
+  $.ajax({
+    data: {pk_sessao: pk_sessao},
+    type: 'GET',
+    dataType: 'json',
+    url: "{% url 'sapl.painel:verifica_painel' %}",
+    error: function () {
+        alert("Erro ao verificar o Painel");
+    },
+    success: function (data) {
+        if (data['status']) {
+            botao_abrir.hide();
+            botao_fechar.show();
+        } else {
+            botao_abrir.show();
+            botao_fechar.hide();
+        }
+    },
+  });
+
+	startTime();
+  let audioAlertFinish = document.getElementById("audio");
+
+  {% for cron in cronometros %}
+    $('#cronometro_' + "{{cron.id}}").prop('disabled', false);
+
+    $('#cronometro_' + "{{cron.id}}").runner({
+      autostart: false,
+      countdown: true,
+      startAt: {{cron.duracao_cronometro|duration_to_seconds}} * 1000,
+      stopAt: 0,
+      milliseconds: false
+    }).on('runnerFinish', function(eventObject, info){
+      $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
+      audioAlertFinish.play();
+      $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
+      $('#cronometro_' + "{{cron.id}}").runner('stop');
+      $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
+    })
+
+    $('#cronometro_' + "{{cron.id}}" + '_Start').click(function() {
+      if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
+        $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'start' } );
+
+        $('#cronometro_' + "{{cron.id}}" + '_Reset').hide();
+        $('#cronometro_' + "{{cron.id}}").runner('start');
+        $('#cronometro_' + "{{cron.id}}" + '_Start').text('Parar');
+      } else{
+        $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
+
+        $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
+        $('#cronometro_' + "{{cron.id}}").runner('stop');
+        $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
+      }
     });
 
+    $('#cronometro_' + "{{cron.id}}" + '_Reset').click(function() {
+
+      $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'reset' } );
+
+      $('#cronometro_' + "{{cron.id}}").runner('stop');
+      $('#cronometro_' + "{{cron.id}}").runner('reset');
+    });    
+  {% endfor %}
 
 });
 

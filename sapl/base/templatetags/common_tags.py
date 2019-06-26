@@ -242,6 +242,11 @@ def cronometro_to_seconds(value):
 
 
 @register.filter
+def duration_to_seconds(cronometro_duration):
+    return cronometro_duration.seconds
+
+
+@register.filter
 def to_list_pk(object_list):
     return [o.pk for o in object_list]
 
