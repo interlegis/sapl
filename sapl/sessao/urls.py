@@ -173,7 +173,7 @@ urlpatterns = [
         name='votacaonominalexpdetail'),
     url(r'^sessao/(?P<pk>\d+)/matexp/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteView.as_view(), name='votacaosimbolicaexp'),
-    url(r'^sessao/(?P<pk>\d+)/matexp/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^sessao/(?P<pk>\d+)/matexp/votsimb/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteEditView.as_view(), name='votacaosimbolicaexpedit'),
     url(r'^sessao/(?P<pk>\d+)/matexp/votsec/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteView.as_view(), name='votacaosecretaexp'),
