@@ -65,11 +65,6 @@ def get_roles():
 
 class UsuarioCreateForm(ModelForm):
     logger = logging.getLogger(__name__)
-    username = forms.CharField(
-        required=True,
-        label="Nome de usuário",
-        max_length=30
-    )
     firstname = forms.CharField(
         required=True,
         label="Nome",
@@ -190,24 +185,26 @@ class UsuarioEditForm(ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['email', 'password1', 'password2', 'user_active', 'roles']
+        fields = ['username', 'email', 'password1', 'password2', 'user_active', 'roles']
 
     def __init__(self, *args, **kwargs):
 
         super(UsuarioEditForm, self).__init__(*args, **kwargs)
 
-        row1 = to_row([('email', 6),
+        row1 = to_row([('username', 12)])
+        row2 = to_row([('email', 6),
                        ('user_active', 6)])
-        row2 = to_row(
+        row3 = to_row(
             [('password1', 6),
              ('password2', 6)])
 
-        row3 = to_row([(form_actions(label='Salvar Alterações'), 6)])
+        row4 = to_row([(form_actions(label='Salvar Alterações'), 6)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             row1,
             row2,
+            row3,
             'roles',
             form_actions(label='Salvar Alterações'))
 
