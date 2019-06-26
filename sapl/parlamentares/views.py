@@ -1198,8 +1198,8 @@ class BlocoCrud(CrudAux):
 
         def get_success_url(self):
             return reverse('sapl.parlamentares:bloco_list')
-        
-        
+
+
 def deleta_historico_partido(request, pk):
     historico = HistoricoPartido.objects.get(pk=pk)
     pk_partido = historico.partido.pk
@@ -1210,3 +1210,13 @@ def deleta_historico_partido(request, pk):
                     'sapl.parlamentares:partido_detail',
                     kwargs={'pk': pk_partido}))
 
+
+def get_sessoes_legislatura(request):
+
+    legislatura_id = request.GET['legislatura']
+
+    json_response = {'sessoes_legislativas': []}
+    for s in SessaoLegislativa.objects.filter(legislatura_id=legislatura_id):
+        json_response['sessoes_legislativas'].append( (s.id, str(s)) )
+
+    return JsonResponse(json_response)

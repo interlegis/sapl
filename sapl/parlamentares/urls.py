@@ -23,7 +23,8 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       BlocoCrud,
                                       PesquisarParlamentarView, 
                                       VincularParlamentarView,
-                                      deleta_historico_partido)
+                                      deleta_historico_partido,
+                                      get_sessoes_legislatura)
 
 from .apps import AppConfig
 
@@ -99,5 +100,8 @@ urlpatterns = [
 
     url(r'^mesa-diretora/remove-parlamentar-composicao/$',
         remove_parlamentar_composicao, name='remove_parlamentar_composicao'),
+
+    url(r'^parlamentar/get-sessoes-legislatura/$', 
+        get_sessoes_legislatura, name='get_sessoes_legislatura'),
     
 ]
