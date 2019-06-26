@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='painelconfig',
             name='tempo_disparo_termino',
-            field=models.DurationField(blank=True, default='00:00:05', null=True, verbose_name='Cronômetros devem permanecer tocando por quanto tempo ao término tempo?'),
+            field=models.DurationField(blank=True, default='00:00:05', null=True, verbose_name='Cronômetros devem permanecer tocando por quanto tempo ao término?'),
         ),
     ]
