@@ -11,7 +11,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                PesquisarPautaSessaoView,
                                PesquisarSessaoPlenariaView,
                                PresencaOrdemDiaView, PresencaView,
-                               ResumoOrdenacaoView, ResumoView, ResumoAtaView, RetiradaPautaCrud, SessaoCrud,
+                               ResumoView, ResumoAtaView, RetiradaPautaCrud, SessaoCrud,
                                TipoJustificativaCrud, TipoExpedienteCrud, TipoResultadoVotacaoCrud,
                                TipoExpedienteCrud, TipoResultadoVotacaoCrud, TipoRetiradaPautaCrud,
                                TipoSessaoCrud, VotacaoEditView,
@@ -33,7 +33,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                renumerar_materias_expediente,
                                sessao_legislativa_legislatura_ajax,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
-                               VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView)
+                               VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
+                               resumo_ordenacao)
 
 from .apps import AppConfig
 
@@ -99,7 +100,7 @@ urlpatterns = [
     url(r'^sistema/cargo-bancada/',
         include(CargoBancadaCrud.get_urls())),
     url(r'^sistema/resumo-ordenacao/',
-        ResumoOrdenacaoView.as_view(),
+        resumo_ordenacao,
         name='resumo_ordenacao'),
     url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias-expediente/',
         AdicionarVariasMateriasExpediente.as_view(),
