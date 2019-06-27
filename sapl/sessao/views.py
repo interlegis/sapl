@@ -576,7 +576,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         form_class = ExpedienteMateriaForm
 
         def get_initial(self):
-            initial = super(CreateView, self).get_initial()
+            initial = super().get_initial()
             initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = ExpedienteMateria.objects.filter(
@@ -639,7 +639,7 @@ class UpdateView(MasterDetailCrud.UpdateView):
         form_class = OradorForm
 
         def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
+            initial = super().get_initial()
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
             initial.update({'numero': self.object.numero_ordem})
 
@@ -675,7 +675,7 @@ class OradorExpedienteCrud(OradorCrud):
         form_class = OradorForm
 
         def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
+            initial = super().get_initial()
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
             initial.update({'numero':self.object.numero_ordem})
 
@@ -799,7 +799,7 @@ class OradorOrdemDiaCrud(OradorCrud):
         form_class = OradorOrdemDiaForm
 
         def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
+            initial = super().get_initial()
 
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
             initial.update({'numero': self.object.numero_ordem})
@@ -2862,8 +2862,7 @@ class VotacaoNominalTransparenciaDetailView(TemplateView):
     template_name = 'sessao/votacao/nominal_transparencia.html'
 
     def get_context_data(self, **kwargs):
-        context = super(VotacaoNominalTransparenciaDetailView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         materia_votacao = self.request.GET.get('materia', None)
 
@@ -2947,8 +2946,7 @@ class VotacaoSimbolicaTransparenciaDetailView(TemplateView):
     template_name = 'sessao/votacao/simbolica_transparencia.html'
 
     def get_context_data(self, **kwargs):
-        context = super(VotacaoSimbolicaTransparenciaDetailView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         materia_votacao = self.request.GET.get('materia', None)
 
@@ -3215,7 +3213,7 @@ class SessaoListView(ListView):
         return SessaoPlenaria.objects.all().order_by('-data_inicio')
 
     def get_context_data(self, **kwargs):
-        context = super(SessaoListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         paginator = context['paginator']
         page_obj = context['page_obj']
@@ -3379,8 +3377,7 @@ class PesquisarSessaoPlenariaView(FilterView):
     logger = logging.getLogger(__name__)
 
     def get_filterset_kwargs(self, filterset_class):
-        super(PesquisarSessaoPlenariaView,
-              self).get_filterset_kwargs(filterset_class)
+        super().get_filterset_kwargs(filterset_class)
 
         kwargs = {'data': self.request.GET or None}
 
@@ -3396,8 +3393,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(PesquisarSessaoPlenariaView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         context['title'] = _('Pesquisar Sessão Plenária')
         paginator = context['paginator']
@@ -3409,7 +3405,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         return context
 
     def get(self, request, *args, **kwargs):
-        super(PesquisarSessaoPlenariaView, self).get(request)
+        super().get(request)
 
         # Se a pesquisa estiver quebrando com a paginação
         # Olhe esta função abaixo
@@ -3447,8 +3443,7 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     logger.debug('Pesquisa de PautaSessao.')
 
     def get_context_data(self, **kwargs):
-        context = super(PesquisarPautaSessaoView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = _('Pesquisar Pauta de Sessão')
         return context
 
@@ -3469,8 +3464,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
     logger = logging.getLogger(__name__)
 
     def get_filterset_kwargs(self, filterset_class):
-        super(AdicionarVariasMateriasExpediente,
-              self).get_filterset_kwargs(filterset_class)
+        super().get_filterset_kwargs(filterset_class)
 
         kwargs = {'data': self.request.GET or None}
 
@@ -3494,8 +3488,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(MateriaLegislativaPesquisaView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         context['title'] = _('Pesquisar Matéria Legislativa')
         context['root_pk'] = self.kwargs['pk']
@@ -3562,8 +3555,7 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
     logger = logging.getLogger(__name__)
 
     def get_filterset_kwargs(self, filterset_class):
-        super(AdicionarVariasMateriasExpediente,
-              self).get_filterset_kwargs(filterset_class)
+        super().get_filterset_kwargs(filterset_class)
 
         kwargs = {'data': self.request.GET or None}
 
@@ -3781,8 +3773,7 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
                                                 retiradapauta=None)
 
     def get_context_data(self, **kwargs):
-        context = super(VotacaoEmBlocoExpediente,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['pk'] = self.kwargs['pk']
         context['root_pk'] = self.kwargs['pk']
         if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
