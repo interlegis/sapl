@@ -515,7 +515,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         form_class = OrdemDiaForm
 
         def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
+            initial = super().get_initial()
             initial['tipo_materia'] = self.object.materia.tipo.id
             initial['numero_materia'] = self.object.materia.numero
             initial['ano_materia'] = self.object.materia.ano
