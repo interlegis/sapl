@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load common_tags %}
+{% block base_content %}
+    <fieldset>
+        <h1>Lista de Documentos Anexados Cíclicos</h1>
+        <br/>
+        {% if not anexados_ciclicos %}
+            <p>{{ NO_ENTRIES_MSG }}</p>
+        {% else %}
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Data Anexação</th>
+                        <th>Documento Fim do Ciclo</th>
+                        <th>Documento Início do Ciclo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data, fim, inicio in anexados_ciclicos %}
+                        <tr>
+                            <td>{{ data }}</td>
+                            <td>
+                                <a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' fim.pk %}">{{ fim }}</a>
+                            </td>
+                            <td>
+                                <a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' inicio.pk %}">{{ inicio }}</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </fieldset>
+    {% include 'paginacao.html' %}
+    <br/>
+{% endblock base_content %}
