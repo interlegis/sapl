@@ -72,7 +72,7 @@
                                 <p>Este navegador não suporta o elemento áudio.</p>
                             </audio>
                         </div>
-                      {% elif column.text|video_url %}
+                      {% elif column.text|is_video_url %}
                         <div class="form-control-static">
                             <video width="420" height="230" controls>
                                 <source src="{{ column.text|safe }}" type="video/{{ column.text|file_extension }}">
@@ -81,7 +81,7 @@
                         </div>
                       {% elif column.text|youtube_url %}
                           <iframe id="ytplayer" type="text/html" width="420" height="230"
-                          src="http://www.youtube.com/embed/{{ column.text|get_youtube_id }}"
+                          src="http://www.youtube.com/embed/{{ column.text|youtube_id }}"
                           frameborder="0"></iframe>
                       {% elif column.text|facebook_url %}
                           <div class="fb-video" data-href="{{ column.text|safe }}" 

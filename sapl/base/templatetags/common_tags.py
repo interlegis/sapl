@@ -223,14 +223,9 @@ def audio_url(value):
 
 
 @register.filter
-def video_url(value):
+def is_video_url(value):
     video_extensions = ["mp4", "ogg", "webm", "3gp", "ogv"]
-    has_ext = False
-    for i in video_extensions:
-        if value.endswith(i):
-            has_ext = True
-            break
-
+    has_ext = any([value.endswith(i) for i in video_extensions])
     return url(value) and has_ext
 
 
@@ -249,7 +244,7 @@ def facebook_url(value):
     return True if r else False
 
 @register.filter
-def get_youtube_id(value):
+def youtube_id(value):
     from urllib.parse import urlparse, parse_qs
     u_pars = urlparse(value)
     quer_v = parse_qs(u_pars.query).get('v')[0]
