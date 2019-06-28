@@ -84,24 +84,22 @@
                 {{cronometro}}: <span id="cronometro_{{cronometro.id}}"></span><br>
               {% endfor %}
             </div>
-            
           </div>
-
-          <div class="col-md-6 text-center painel">      
+          <div class="col-md-6 text-center painel" id="resultado_votacao_div">      
             <h2 class="text-subtitle">Resultado</h2>   
             <span id="votacao" class="text-value"></span> 
             <h2><span id="resultado_votacao" lass="text-title"></span>
           </div>
 
-          <div class="col-md-6 text-center painel">      
-            <h2 class="text-subtitle">Matéria em Votação</h2>   
+          <div class="col-md-6 text-center painel" id="obs_materia_div">      
+            <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
             <span id="materia_legislativa_texto" class="text-value"></span>
             <span id="observacao_materia" class="text-value"></span>
+          </div>
 
-            <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
-              <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
-                <span id="sessao_solene_tema" class="text-value"></span>
-            </div>
+          <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
+            <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
+              <span id="sessao_solene_tema" class="text-value"></span>
           </div>
           
         </div>
@@ -329,12 +327,16 @@
                 var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
                 if (resultado_votacao_upper.search("APROV") != -1){
                   $("#resultado_votacao").css("color", "green");
+                  $("#mat_em_votacao").text("Matéria Votada");
                 }
                 if (resultado_votacao_upper.search("REJEIT") != -1){
                   $("#resultado_votacao").css("color", "red");
+                  $("#mat_em_votacao").text("Matéria Votada");
                 }
-              } else{
+              }
+              else{
                 $("#resultado_votacao").text('');
+                $("#mat_em_votacao").text("Matéria em Votação");
               }
           },
           error: function(err) {
