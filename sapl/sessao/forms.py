@@ -968,7 +968,7 @@ class JustificativaAusenciaForm(ModelForm):
 
         if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
             raise ValidationError(
-                "A sessão deve está finalizada para registrar uma Ausência")
+                "A sessão deve estar finalizada para registrar uma Ausência")
         else:
             return self.cleaned_data
 
