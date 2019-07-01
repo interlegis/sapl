@@ -69,7 +69,8 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     filtra_tramitacao_destino,
                     filtra_tramitacao_destino_and_status,
                     filtra_tramitacao_status,
-                    ExcluirTramitacaoEmLote, compara_tramitacoes_mat)
+                    ExcluirTramitacaoEmLote, compara_tramitacoes_mat,
+                    TramitacaoEmLoteForm)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      DespachoInicial, DocumentoAcessorio, MateriaAssunto,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
@@ -2254,39 +2255,34 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
     logger = logging.getLogger(__name__)
 
+
     def get_context_data(self, **kwargs):
         context = super(PrimeiraTramitacaoEmLoteView,
                         self).get_context_data(**kwargs)
 
         context['subnav_template_name'] = 'materia/em_lote/subnav_em_lote.yaml'
+        context['primeira_tramitacao'] = self.primeira_tramitacao
 
         # Verifica se os campos foram preenchidos
         if not self.filterset.form.is_valid():
             return context
 
-        context['title'] = _('Primeira Tramitação em Lote')
-
-        qr = self.request.GET.copy()
-        context['unidade_destino'] = UnidadeTramitacao.objects.all()
-        context['status_tramitacao'] = StatusTramitacao.objects.all()
-        context['turnos_tramitacao'] = Tramitacao.TURNO_CHOICES
-        context['urgente_tramitacao'] = YES_NO_CHOICES
-        context['unidade_local'] = UnidadeTramitacao.objects.all()
-
-        context['primeira_tramitacao'] = True
-
-        # Pega somente matéria que não possuem tramitação
-        if (type(self.__dict__['filterset']).__name__ ==
-                'PrimeiraTramitacaoEmLoteFilterSet'):
-            context['object_list'] = context['object_list'].filter(
-                tramitacao__isnull=True)
-        else:
-            context['title'] = _('Tramitação em Lote')
-            context['unidade_local'] = [UnidadeTramitacao.objects.get(
-                id=qr['tramitacao__unidade_tramitacao_destino'])]
-
         context['object_list'] = context['object_list'].order_by(
             'ano', 'numero')
+        qr = self.request.GET.copy()
+
+        form = TramitacaoEmLoteForm()
+        context['form'] = form
+
+        if self.primeira_tramitacao:
+            context['title'] = _('Primeira Tramitação em Lote')
+            # Pega somente documentos que não possuem tramitação
+            context['object_list'] = [obj for obj in context['object_list'] 
+                                          if obj.tramitacao_set.all().count() == 0]
+        else:
+            context['title'] = _('Tramitação em Lote')
+            context['form'].fields['unidade_tramitacao_local'].initial = UnidadeTramitacao.objects.get(
+                id=qr['tramitacao__unidade_tramitacao_destino'])
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
@@ -2295,127 +2291,42 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         return context
 
     def post(self, request, *args, **kwargs):
+        user = request.user
+        ip = get_client_ip(request)
 
-        marcadas = request.POST.getlist('materia_id')
-
-        tz = timezone.get_current_timezone()
-
-        username = request.user.username
-
-        if len(marcadas) == 0:
-            msg = _('Nenhuma máteria foi selecionada.')
+        materias_ids = request.POST.getlist('materias')
+        if not materias_ids:
+            msg = _("Escolha alguma matéria para ser tramitada.")
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
-        obrigatorios = {'data_tramitacao': 'Data da Tramitação',
-                        'unidade_tramitacao_local': 'Unidade Local',
-                        'unidade_tramitacao_destino': 'Unidade Destino',
-                        'status': 'Status',
-                        'urgente': 'Urgente',
-                        'texto': 'Texto da Ação'}
-        for field, nome in obrigatorios.items():
-            if not request.POST[field]:
-                msg = _('Campo {} deve ser preenchido.'.format(nome))
-                messages.add_message(request, messages.ERROR, msg)
-                return self.get(request, self.kwargs)
 
-        if not request.POST['data_encaminhamento']:
-            data_encaminhamento = None
-        else:
-            try:
-                data_encaminhamento = tz.localize(datetime.strptime(
-                    request.POST['data_encaminhamento'], "%d/%m/%Y"))
-            except ValueError:
-                msg = _('Formato da data de encaminhamento incorreto.')
-                messages.add_message(request, messages.ERROR, msg)
-                return self.get(request, self.kwargs)
+        form = TramitacaoEmLoteForm(request.POST, 
+                                       initial= {'materias': materias_ids,
+                                                'user': user, 'ip':ip})
 
-        if request.POST['data_fim_prazo'] == '':
-            data_fim_prazo = None
-        else:
-            try:
-                data_fim_prazo = tz.localize(datetime.strptime(
-                    request.POST['data_fim_prazo'], "%d/%m/%Y"))
-            except ValueError:
-                msg = _('Formato da data fim do prazo incorreto.')
-                messages.add_message(request, messages.ERROR, msg)
-                return self.get(request, self.kwargs)
+        if form.is_valid():
+            form.save()
 
-        # issue https://github.com/interlegis/sapl/issues/1123
-        # TODO: usar Form
-        urgente = request.POST['urgente'] == 'True'
-        flag_error = False  
+            msg = _('Tramitação completa.')
+            self.logger.info('user=' + user.username + '. Tramitação completa.')
+            messages.add_message(request, messages.SUCCESS, msg)
+            return self.get_success_url()
 
-        materias_principais = [m for m in MateriaLegislativa.objects.filter(id__in=marcadas)]
-        tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
-        materias_anexadas = []
-        if tramitar_anexadas:
-            for materia in materias_principais:
-                materias_anexadas = materias_anexadas + lista_anexados(materia)
+        return self.form_invalid(form)
 
-        materias = set(materias_principais + materias_anexadas)
+    
+    def get_success_url(self):
+        return HttpResponseRedirect(reverse('sapl.materia:primeira_tramitacao_em_lote'))
 
-        for materia in materias:
-            try:
-                data_tramitacao = tz.localize(datetime.strptime(
-                    request.POST['data_tramitacao'], "%d/%m/%Y"))
-            except ValueError:
-                msg = _('Formato da data da tramitação incorreto.')
-                messages.add_message(request, messages.ERROR, msg)
-                return self.get(request, self.kwargs)
 
-            user = request.user
-            ip = get_client_ip(request)
-            t = Tramitacao(
-                materia=materia,
-                data_tramitacao=data_tramitacao,
-                data_encaminhamento=data_encaminhamento,
-                data_fim_prazo=data_fim_prazo,
-                unidade_tramitacao_local_id=request.POST[
-                    'unidade_tramitacao_local'],
-                unidade_tramitacao_destino_id=request.POST[
-                    'unidade_tramitacao_destino'],
-                urgente=urgente,
-                status_id=request.POST['status'],
-                turno=request.POST['turno'],
-                texto=request.POST['texto'],
-                user=user,
-                ip=ip
-            )
-            t.save()
-            try:
-                self.logger.debug("user=" + username +
-                                  ". Tentando enviar tramitação.")
-                tramitacao_signal.send(sender=Tramitacao,
-                                       post=t,
-                                       request=self.request)
+    def form_invalid(self, form, *args, **kwargs):
+        for key, erros in form.errors.items():
+            if not key=='__all__':
+                [messages.add_message(self.request, messages.ERROR, form.fields[key].label + ": " + e) for e in erros]
+            else:
+                [messages.add_message(self.request, messages.ERROR, e) for e in erros]
+        return self.get(self.request, kwargs, {'form':form})
 
-            except Exception as e:
-                self.logger.error('user=' + username + '. Tramitação criada , mas e-mail de acompanhamento '
-                                  'de matéria não enviado. Há problemas na configuração '
-                                  'do e-mail. ' + str(e))
-                flag_error = True
-        if flag_error:
-            msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                    'de matéria não enviado. A não configuração do servidor de e-mail '
-                    'impede o envio de aviso de tramitação')
-            messages.add_message(self.request, messages.WARNING, msg)
-
-        status = StatusTramitacao.objects.get(id=request.POST['status'])
-
-        for materia in materias:
-            if status.indicador == 'F':
-                materia.em_tramitacao = False
-            elif self.primeira_tramitacao:
-                materia.em_tramitacao = True
-            materia.save()
-
-        msg = _('Tramitação completa. ' + "Foram tramitadas " + str(len(materias)) + " matéria(s).")
-        self.logger.info('user=' + username + '. Tramitação completa.')
-        messages.add_message(request, messages.SUCCESS, msg)
-        
-        if self.primeira_tramitacao:
-            return HttpResponseRedirect(reverse('sapl.materia:primeira_tramitacao_em_lote'))
-        return HttpResponseRedirect(reverse('sapl.materia:tramitacao_em_lote'))
 
 class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
     filterset_class = TramitacaoEmLoteFilterSet
@@ -2428,7 +2339,7 @@ class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
 
         qr = self.request.GET.copy()
 
-        context['primeira_tramitacao'] = False
+        context['primeira_tramitacao'] = self.primeira_tramitacao
 
         if ('tramitacao__status' in qr and
                 'tramitacao__unidade_tramitacao_destino' in qr and

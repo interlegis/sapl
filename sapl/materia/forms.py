@@ -1537,6 +1537,203 @@ class TipoProposicaoSelect(Select):
         return option
 
 
+class TramitacaoEmLoteForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    class Meta:
+        model = Tramitacao
+        fields = ['data_tramitacao',
+                  'unidade_tramitacao_local',
+                  'status',
+                  'urgente',
+                  'turno',
+                  'unidade_tramitacao_destino',
+                  'data_encaminhamento',
+                  'data_fim_prazo',
+                  'texto',
+                  'user',
+                  'ip']
+        widgets = {'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()}
+            
+
+    def __init__(self, *args, **kwargs):
+        super(TramitacaoEmLoteForm, self).__init__(*args, **kwargs)
+        self.fields['data_tramitacao'].initial = timezone.now().date()
+        ust = UnidadeTramitacao.objects.select_related().all()
+        unidade_tramitacao_destino = [('', '---------')] + [(ut.pk, ut)
+                                                            for ut in ust if ut.comissao and ut.comissao.ativa]
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.orgao])
+        unidade_tramitacao_destino.extend(
+            [(ut.pk, ut) for ut in ust if ut.parlamentar])
+        self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
+        self.fields['urgente'].label = "Urgente? *"
+    
+        row1 = to_row([
+            ('data_tramitacao', 4),
+            ('data_encaminhamento', 4),
+            ('data_fim_prazo', 4)
+        ])
+        row2 = to_row([
+            ('unidade_tramitacao_local', 6),
+            ('unidade_tramitacao_destino', 6),
+        ])
+        row3 = to_row([
+            ('status', 4),
+            ('urgente', 4),
+            ('turno', 4)
+        ])
+        row4 = to_row([
+            ('texto', 12)
+        ])
+
+        documentos_checkbox_HTML = '''
+            <br\><br\><br\>
+            <fieldset>
+                <legend style="font-size: 24px;">Selecione as matérias para tramitação:</legend>
+                <table class="table table-striped table-hover">
+                    <div class="controls">
+                        <div class="checkbox">
+                            <label for="id_check_all">
+                                <input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
+                            </label>
+                        </div>
+                    </div>
+                    <thead>
+                    <tr><th>Matéria</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for materia in object_list %}
+                        <tr>
+                            <td>
+                            <input type="checkbox" name="materias" value="{{materia.id}}" {% if check %} checked {% endif %}/>
+                            <a href="{% url 'sapl.materia:materialegislativa_detail' materia.id %}">
+                                {{materia.tipo.sigla}} {{materia.tipo.descricao}} {{materia.numero}}/{{materia.ano}}
+                            </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </fieldset>
+        '''
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                'Detalhes da tramitação:',
+                row1, row2, row3, row4,
+                HTML(documentos_checkbox_HTML),
+                form_actions(label='Salvar')
+            )
+        )
+
+
+    def clean(self):
+        cleaned_data = super(TramitacaoEmLoteForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if 'data_encaminhamento' in cleaned_data:
+            data_enc_form = cleaned_data['data_encaminhamento']
+        if 'data_fim_prazo' in cleaned_data:
+            data_prazo_form = cleaned_data['data_fim_prazo']
+        if 'data_tramitacao' in cleaned_data:
+            data_tram_form = cleaned_data['data_tramitacao']
+
+        if not self.instance.data_tramitacao:
+
+            if cleaned_data['data_tramitacao'] > timezone.now().date():
+                self.logger.error('A data de tramitação ({}) deve ser '
+                                  'menor ou igual a data de hoje ({})!'
+                                  .format(cleaned_data['data_tramitacao'], timezone.now().date()))
+                msg = _(
+                    'A data de tramitação deve ser ' +
+                    'menor ou igual a data de hoje!')
+                raise ValidationError(msg)
+
+        if data_enc_form:
+            if data_enc_form < data_tram_form:
+                self.logger.error('A data de encaminhamento ({}) deve ser '
+                                  'maior que a data de tramitação ({})!'
+                                  .format(data_enc_form, data_tram_form))
+                msg = _('A data de encaminhamento deve ser ' +
+                        'maior que a data de tramitação!')
+                raise ValidationError(msg)
+
+        if data_prazo_form:
+            if data_prazo_form < data_tram_form:
+                self.logger.error('A data fim de prazo ({}) deve ser '
+                                  'maior que a data de tramitação ({})!'
+                                  .format(data_prazo_form, data_tram_form))
+                msg = _('A data fim de prazo deve ser ' +
+                        'maior que a data de tramitação!')
+                raise ValidationError(msg)
+
+        if cleaned_data['unidade_tramitacao_local'] == cleaned_data['unidade_tramitacao_destino']:
+            msg = _('Unidade tramitação local deve ser diferente da unidade tramitação destino.')
+            self.logger.error('Unidade tramitação local ({}) deve ser diferente da unidade tramitação destino'
+                                .format(cleaned_data['unidade_tramitacao_local']))
+            raise ValidationError(msg)
+
+        return cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=True):
+        cd = self.cleaned_data
+        materias = self.initial['materias']
+        user = self.initial['user'] if 'user' in self.initial else None
+        ip = self.initial['ip'] if 'ip' in self.initial else ''
+        tramitar_anexadas = AppConfig.attr('tramitacao_materia')
+        for mat_id in materias:
+            mat = MateriaLegislativa.objects.get(id=mat_id)
+            tramitacao = Tramitacao.objects.create(
+                status=cd['status'],
+                materia=mat,
+                data_tramitacao=cd['data_tramitacao'],
+                unidade_tramitacao_local=cd['unidade_tramitacao_local'],
+                unidade_tramitacao_destino=cd['unidade_tramitacao_destino'],
+                data_encaminhamento=cd['data_encaminhamento'],
+                urgente=cd['urgente'],
+                turno=cd['turno'],
+                texto=cd['texto'],
+                data_fim_prazo=cd['data_fim_prazo'],
+                user=user,
+                ip=ip
+            )
+            mat.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+            mat.save()
+
+            if tramitar_anexadas:
+                lista_tramitacao = []
+                anexadas = lista_anexados(mat)
+                for ml in anexadas:
+                    if not ml.tramitacao_set.all() \
+                        or ml.tramitacao_set.last() \
+                        .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                        ml.em_tramitacao = False if tramitacao.status.indicador == "F" else True
+                        ml.save()
+                        lista_tramitacao.append(Tramitacao(
+                                                status=tramitacao.status,
+                                                materia=ml,
+                                                data_tramitacao=tramitacao.data_tramitacao,
+                                                unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                                                data_encaminhamento=tramitacao.data_encaminhamento,
+                                                unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                                                urgente=tramitacao.urgente,
+                                                turno=tramitacao.turno,
+                                                texto=tramitacao.texto,
+                                                data_fim_prazo=tramitacao.data_fim_prazo,
+                                                user=tramitacao.user,
+                                                ip=tramitacao.ip
+                                                ))
+                Tramitacao.objects.bulk_create(lista_tramitacao)     
+
+        return tramitacao
+
+
 class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
     logger = logging.getLogger(__name__)

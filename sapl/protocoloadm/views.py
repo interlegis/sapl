@@ -1545,7 +1545,7 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
 
         qr = self.request.GET.copy()
 
-        context['primeira_tramitacao'] = False
+        context['primeira_tramitacao'] = self.primeira_tramitacao
 
         if ('tramitacao__status' in qr and
                 'tramitacao__unidade_tramitacao_destino' in qr and
