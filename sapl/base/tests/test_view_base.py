@@ -7,12 +7,11 @@ from model_mommy import mommy
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, TipoComissao
-from sapl.sessao.models import Bancada
 from sapl.protocoloadm.models import (Protocolo, DocumentoAdministrativo,
                                       TipoDocumentoAdministrativo, Anexado)
 from sapl.materia.models import (TipoMateriaLegislativa, RegimeTramitacao,
                                  MateriaLegislativa, Anexada)
-from sapl.parlamentares.models import (Parlamentar, Partido, Filiacao,
+from sapl.parlamentares.models import (Bancada, Parlamentar, Partido, Filiacao,
                                        Legislatura, Mandato)
 
 from sapl.base.views import (protocolos_duplicados, protocolos_com_materias,

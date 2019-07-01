@@ -2,6 +2,7 @@ from django.conf.urls import include, url
 
 from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       ComposicaoColigacaoCrud, DependenteCrud,
+                                      BancadaCrud, CargoBancadaCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
                                       LegislaturaCrud, MandatoCrud,
                                       MesaDiretoraView, NivelInstrucaoCrud,
@@ -21,7 +22,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       lista_parlamentares,
                                       parlamentares_filiados,
                                       BlocoCrud,
-                                      PesquisarParlamentarView, 
+                                      PesquisarParlamentarView,
                                       VincularParlamentarView,
                                       deleta_historico_partido,
                                       get_sessoes_legislatura)
@@ -41,13 +42,13 @@ urlpatterns = [
     )),
 
     url(r'^parlamentar/lista$', lista_parlamentares, name='lista_parlamentares'),
-  
+
     url(r'^parlamentar/pesquisar-parlamentar/',
         PesquisarParlamentarView.as_view(), name='pesquisar_parlamentar'),
-    
+
     url(r'^parlamentar/deleta_partido/(?P<pk>\d+)/$',
         deleta_historico_partido, name='deleta_historico_partido'),
-    
+
     url(r'^parlamentar/(?P<pk>\d+)/materias$',
         ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
 
@@ -56,9 +57,16 @@ urlpatterns = [
 
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +
-                ComposicaoColigacaoCrud.get_urls())),    
+                ComposicaoColigacaoCrud.get_urls())),
+
+    url(r'^sistema/bancada/',
+        include(BancadaCrud.get_urls())),
+    url(r'^sistema/cargo-bancada/',
+        include(CargoBancadaCrud.get_urls())),
+
     url(r'^sistema/bloco/',
         include(BlocoCrud.get_urls())),
+
     url(r'^sistema/frente/',
         include(FrenteCrud.get_urls())),
     url(r'^sistema/frente/atualiza-lista-parlamentares',
@@ -101,7 +109,7 @@ urlpatterns = [
     url(r'^mesa-diretora/remove-parlamentar-composicao/$',
         remove_parlamentar_composicao, name='remove_parlamentar_composicao'),
 
-    url(r'^parlamentar/get-sessoes-legislatura/$', 
+    url(r'^parlamentar/get-sessoes-legislatura/$',
         get_sessoes_legislatura, name='get_sessoes_legislatura'),
-    
+
 ]
