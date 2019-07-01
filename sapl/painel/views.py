@@ -523,12 +523,13 @@ def get_dados_painel(request, pk):
     if casa and app_config and (bool(casa.logotipo)):
         brasao = casa.logotipo.url \
             if app_config.mostrar_brasao_painel else None
-
+    
     response = {
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
         'sessao_plenaria_hora_inicio': sessao.hora_inicio,
         'sessao_solene': sessao.tipo.nome == "Solene",
+        'sessao_finalizada': sessao.finalizada,
         'tema_solene': sessao.tema_solene,
         'cronometro_aparte': get_cronometro_status(request, 'aparte'),
         'cronometro_discurso': get_cronometro_status(request, 'discurso'),
