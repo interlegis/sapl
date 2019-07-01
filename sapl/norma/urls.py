@@ -1,6 +1,6 @@
 from django.conf.urls import include, url
 
-from sapl.norma.views import (AnexoNormaJuridicaCrud,AssuntoNormaCrud, NormaCrud, NormaPesquisaView,
+from sapl.norma.views import (AnexoNormaJuridicaCrud,AssuntoNormaCrud, NormaCrud, NormaPesquisaView, NormaDestaquesView,
                               NormaRelacionadaCrud, NormaTaView, TipoNormaCrud,
                               TipoVinculoNormaJuridicaCrud, recuperar_norma,
                               recuperar_numero_norma, AutoriaNormaCrud)
@@ -25,6 +25,10 @@ urlpatterns = [
 
     url(r'^norma/pesquisar$',
         NormaPesquisaView.as_view(), name='norma_pesquisa'),
+		
+    url(r'^norma/destaques$', 
+	    NormaDestaquesView.as_view(), name='norma_de_destaque'),
+
 
     url(r'^norma/recuperar-norma$', recuperar_norma, name="recuperar_norma"),
     url(r'^norma/recuperar-numero-norma$', recuperar_numero_norma,

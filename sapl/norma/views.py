@@ -8,7 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import TemplateView, UpdateView
+from django.views.generic import TemplateView, UpdateView, ListView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
@@ -66,6 +66,15 @@ class NormaRelacionadaCrud(MasterDetailCrud):
     class DetailView(MasterDetailCrud.DetailView):
 
         layout_key = 'NormaRelacionadaDetail'
+
+
+class NormaDestaquesView(ListView):
+    model = NormaJuridica
+    template_name = 'norma/normajuridica_destaques.html'
+    paginate_by = 1000
+
+    def get_queryset(self):
+        return NormaJuridica.objects.filter(norma_de_destaque=True)
 
 
 class NormaPesquisaView(FilterView):
