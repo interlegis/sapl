@@ -1,0 +1,18 @@
+{% extends "crud/list.html" %}
+{% load i18n common_tags crispy_forms_tags%}
+
+{% block extra_js %}
+    <script language="Javascript">
+    $(document).ready(function() {
+        let botao_add = $(".context-actions").children().last().children().first();
+        href = botao_add.attr('href');
+        let materia_id = href.split("/")[2];
+        let new_url = '/materia/' + materia_id + '/despachoinicialmulti/create';
+        console.log(new_url);
+        href = botao_add.attr('href', new_url);
+
+        let tittle = $(".result-count").children().first().children().first().children().first().children().first().attr('tittle');
+        console.log(title);
+    });
+    </script>
+{% endblock %}

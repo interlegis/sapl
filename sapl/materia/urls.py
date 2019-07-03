@@ -26,7 +26,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
                                 proposicao_texto, recuperar_materia,
                                 ExcluirTramitacaoEmLoteView, RetornarProposicao,
-                                MateriaPesquisaSimplesView)
+                                MateriaPesquisaSimplesView,
+                                DespachoInicialMultiCreateView)
 from sapl.norma.views import NormaPesquisaSimplesView
 from sapl.protocoloadm.views import (FichaPesquisaAdmView, FichaSelecionaAdmView)
 
@@ -136,6 +137,9 @@ urlpatterns_proposicao = [
         name='proposicao_texto'),
     url(r'^proposicao/(?P<pk>\d+)/retornar', RetornarProposicao.as_view(),
         name='retornar-proposicao'),
+
+    url(r'^materia/(?P<pk>\d+)/despachoinicialmulti/create', DespachoInicialMultiCreateView.as_view(),
+        name='despacho-inicial-multi'),
 ]
 
 urlpatterns_sistema = [

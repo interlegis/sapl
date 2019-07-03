@@ -5,6 +5,7 @@ import os
 from crispy_forms.bootstrap import Alert, InlineRadios
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row)
+from crispy_forms.helper import FormHelper
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -1114,27 +1115,56 @@ def filtra_tramitacao_destino_and_status(status, destino):
             'materia_id', flat=True)
 
 
-class DespachoInicialForm(ModelForm):
-    comissao = forms.ModelChoiceField(
-        queryset=Comissao.objects.filter(ativa=True))
+class DespachoInicialForm(forms.Form):
+    comissao = forms.ModelMultipleChoiceField(
+        queryset=Comissao.objects.filter(ativa=True),
+        widget=forms.CheckboxSelectMultiple())
 
     class Meta:
         model = DespachoInicial
         fields = ['comissao']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        from crispy_forms.layout import Submit, Layout, Field
+        from crispy_forms.bootstrap import FormActions
+        self.fields['comissao'].label = 'Comissões'
+        self.helper = FormHelper(self)
+        self.helper.form_method = 'POST'
+
+        self.helper.layout = Layout(
+        Div(
+            Div('comissao', css_class="col-md-12"),
+            Div(FormActions(
+                Submit('salvar', 'Salvar', css_class='btn btn-primary ml-5 mt-3 float-left'),
+                )
+            ),
+            css_class='row',
+        ))
+
     def clean(self):
         super(DespachoInicialForm, self).clean()
 
+        comissoes = self.cleaned_data.get('comissao')
+        if not comissoes:
+            msg = _('Você deve escolher pelo menos uma comissão.')
+            raise ValidationError(msg)
+
         if not self.is_valid():
             return self.cleaned_data
-
-        if DespachoInicial.objects.filter(
-            materia=self.instance.materia,
-            comissao=self.cleaned_data['comissao'],
-        ).exclude(pk=self.instance.pk).exists():
-            msg = _('Já existe um Despacho cadastrado para %s' %
-                    self.cleaned_data['comissao'])
-            raise ValidationError(msg)
+        
+        errors = []
+        for comissao in comissoes:
+            if DespachoInicial.objects.filter(
+                materia=self.initial['materia'],
+                comissao=comissao,
+            ).exists():
+                msg = _('Já existe um Despacho cadastrado para %s' %
+                        comissao)
+                errors.append(msg)
+        if errors:
+            raise ValidationError(errors)
 
         return self.cleaned_data
 
