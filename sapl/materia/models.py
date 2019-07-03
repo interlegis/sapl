@@ -485,7 +485,7 @@ class AssuntoMateria(models.Model):
 @reversion.register()
 class DespachoInicial(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
-    comissao = models.ForeignKey(Comissao, on_delete=models.CASCADE)
+    comissao = models.ForeignKey(Comissao, on_delete=models.CASCADE, verbose_name="Comissão")
 
     class Meta:
         verbose_name = _('Despacho Inicial')

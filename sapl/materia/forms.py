@@ -1115,7 +1115,7 @@ def filtra_tramitacao_destino_and_status(status, destino):
             'materia_id', flat=True)
 
 
-class DespachoInicialForm(forms.Form):
+class DespachoInicialCreateForm(forms.Form):
     comissao = forms.ModelMultipleChoiceField(
         queryset=Comissao.objects.filter(ativa=True),
         widget=forms.CheckboxSelectMultiple())
@@ -1144,7 +1144,7 @@ class DespachoInicialForm(forms.Form):
         ))
 
     def clean(self):
-        super(DespachoInicialForm, self).clean()
+        super().clean()
 
         comissoes = self.cleaned_data.get('comissao')
         if not comissoes:
@@ -1168,6 +1168,30 @@ class DespachoInicialForm(forms.Form):
 
         return self.cleaned_data
 
+
+class DespachoInicialForm(ModelForm):
+    comissao = forms.ModelChoiceField(
+        queryset=Comissao.objects.filter(ativa=True), label=_('Comissão'))
+
+    class Meta:
+        model = DespachoInicial
+        fields = ['comissao']
+
+    def clean(self):
+        super(DespachoInicialForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if DespachoInicial.objects.filter(
+            materia=self.instance.materia,
+            comissao=self.cleaned_data['comissao'],
+        ).exclude(pk=self.instance.pk).exists():
+            msg = _('Já existe um Despacho cadastrado para %s' %
+                    self.cleaned_data['comissao'])
+            raise ValidationError(msg)
+
+        return self.cleaned_data
 
 class AutoriaForm(ModelForm):
 
