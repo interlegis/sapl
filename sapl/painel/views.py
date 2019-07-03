@@ -603,6 +603,7 @@ def get_dados_painel(request, pk):
         'sessao_plenaria_hora_inicio': sessao.hora_inicio,
         'cronometros': dict_status_cronometros,
         'sessao_solene': sessao.tipo.nome == "Solene",
+        'sessao_finalizada': sessao.finalizada,
         'tema_solene': sessao.tema_solene,
         'status_painel': sessao.painel_aberto,
         'brasao': brasao
