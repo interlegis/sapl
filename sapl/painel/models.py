@@ -65,3 +65,29 @@ class Cronometro(models.Model):
 
     def __str__(self):
         return self.tipo
+
+
+@reversion.register()
+class PainelConfig(models.Model):
+
+    cronometro_ordem = models.BooleanField(
+        verbose_name=_('Cronômetro da Questão de Ordem deve travar os demais?'),
+        choices=YES_NO_CHOICES, default=True)
+
+    class Meta:
+        verbose_name = _('Configurações do Painel')
+        verbose_name_plural = _('Configurações do Painel')
+        ordering = ('-id',)
+
+    @classmethod
+    def attr(cls, attr):
+        config = PainelConfig.objects.first()
+
+        if not config:
+            config = PainelConfig()
+            config.save()
+
+        return getattr(config, attr)
+
+    def __str__(self):
+        return 'Configurações do Painel'

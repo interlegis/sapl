@@ -1,5 +1,5 @@
 from django import forms
-from .models import Cronometro
+from .models import Cronometro, PainelConfig
 
 class CronometroForm(forms.ModelForm):
 
@@ -12,3 +12,10 @@ class CronometroForm(forms.ModelForm):
         self.fields['duracao_cronometro'].widget.attrs['class'] = 'cronometro'
         if not self.instance.ordenacao:
             self.fields['ordenacao'].initial = Cronometro.objects.last().ordenacao + 1
+
+
+class ConfiguracoesPainelForm(forms.ModelForm):
+
+    class Meta:
+        model = PainelConfig
+        fields = ['cronometro_ordem']

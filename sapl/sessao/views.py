@@ -33,7 +33,7 @@ from sapl.materia.forms import filtra_tramitacao_status
 from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
                                  Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
-from sapl.painel.models import Cronometro
+from sapl.painel.models import Cronometro, PainelConfig
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
@@ -1097,7 +1097,8 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             'sessao_id': kwargs['pk'],
             'root_pk': kwargs['pk'],
             'sessaoplenaria': SessaoPlenaria.objects.get(pk=kwargs['pk']),
-            'cronometros': cronometros})
+            'cronometros': cronometros,
+            'painel_config': PainelConfig.objects.first()})
 
         tipo_sessao = sessao.tipo
         if tipo_sessao.nome == "Solene":

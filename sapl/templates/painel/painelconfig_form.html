@@ -1,0 +1,15 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block extra_js %}
+
+<script type="text/javascript">
+
+        $(document).ready(function(){
+                $('#div_id_cronometro_ordem').children().first().append("<br>Atenção! Este cronômetro apenas travará os demais se seu nome for o padrão <b>Cronômetro da Questão de Ordem</b>.");
+        });
+
+</script>
+
+{% endblock extra_js%}
