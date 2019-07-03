@@ -156,25 +156,6 @@ class MateriaSimplificadaForm(FileFieldCheckMixin, ModelForm):
         )
         super(MateriaSimplificadaForm, self).__init__(*args, **kwargs)
 
-    def clean(self):
-        super(MateriaSimplificadaForm, self).clean()
-
-        if not self.is_valid():
-            return self.cleaned_data
-
-        cleaned_data = self.cleaned_data
-
-        data_apresentacao = cleaned_data['data_apresentacao']
-        ano = cleaned_data['ano']
-
-        if data_apresentacao.year != ano:
-            self.logger.error("O ano da matéria ({}) é diferente"
-                              " do ano na data de apresentação ({}).".format(ano, data_apresentacao.year))
-            raise ValidationError("O ano da matéria não pode ser "
-                                  "diferente do ano na data de apresentação")
-
-        return cleaned_data
-
 
 class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
@@ -255,13 +236,6 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
                                       .format(cleaned_data['tipo'], p.tipo_materia))
                     raise ValidationError(
                         _('Tipo do Protocolo deve ser o mesmo do Tipo Matéria'))
-
-        if data_apresentacao.year != ano:
-            self.logger.error("O ano da matéria ({}) é diferente "
-                              "do ano na data de apresentação ({})."
-                              .format(ano, data_apresentacao.year))
-            raise ValidationError(_("O ano da matéria não pode ser "
-                                    "diferente do ano na data de apresentação"))
 
         ano_origem_externa = cleaned_data['ano_origem_externa']
         data_origem_externa = cleaned_data['data_origem_externa']
