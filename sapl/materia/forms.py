@@ -2,9 +2,9 @@
 import logging
 import os
 
-from crispy_forms.bootstrap import Alert, InlineRadios
+from crispy_forms.bootstrap import Alert, InlineRadios, FormActions
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
-                                 Layout, Row)
+                                 Layout, Row, Submit)
 from crispy_forms.helper import FormHelper
 from django import forms
 from django.contrib.contenttypes.models import ContentType
@@ -1054,9 +1054,6 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      HTML(autor_modal),
                      row4, row6, row7, row9,
                      form_actions(label=_('Pesquisar')))
-
-
-
         )
 
     @property
@@ -1125,23 +1122,33 @@ class DespachoInicialCreateForm(forms.Form):
         fields = ['comissao']
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        from crispy_forms.layout import Submit, Layout, Field
-        from crispy_forms.bootstrap import FormActions
+        # import ipdb; ipdb.set_trace()
+        # kwargs.pop('instance')
         self.fields['comissao'].label = 'Comissões'
-        self.helper = FormHelper(self)
-        self.helper.form_method = 'POST'
+        # self.helper = FormHelper(self)
+        # self.helper.form_method = 'POST'
 
-        self.helper.layout = Layout(
-        Div(
-            Div('comissao', css_class="col-md-12"),
-            Div(FormActions(
-                Submit('salvar', 'Salvar', css_class='btn btn-primary ml-5 mt-3 float-left'),
-                )
-            ),
-            css_class='row',
-        ))
+        # self.helper.layout = Layout(
+        # Div(
+        #     Div('comissao', css_class="col-md-12"),
+        #     Div(FormActions(
+        #         Submit('salvar', 'Salvar', css_class='btn btn-primary ml-5 mt-3 float-left'),
+        #         )
+        #     ),
+        #     css_class='row',
+        # ))
+
+        # super().__init__(*args, **kwargs)
+        # kwargs.pop('instance')
+        row1 = to_row(
+            [('comissao', 12),])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'POST'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa Básica'),
+                     row1))
+
 
     def clean(self):
         super().clean()
