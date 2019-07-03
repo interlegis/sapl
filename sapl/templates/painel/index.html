@@ -393,7 +393,11 @@
                   audioAlertFinish.play();
               }
 
-              if (data['materia_legislativa_texto']){
+              if(data['sessao_finalizada']){
+                $("#obs_materia_div").hide();
+                $("#resultado_votacao_div").hide();
+              }
+              else if (data['materia_legislativa_texto']){
                 if (data["status_painel"] == true){
                   $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
                 }
