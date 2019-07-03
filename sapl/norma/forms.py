@@ -189,14 +189,6 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
         else:
             cleaned_data['materia'] = None
 
-        ano = cleaned_data['ano']
-        data = cleaned_data['data']
-
-        if data.year != ano:
-            self.logger.error("O ano da norma ({}) é diferente "
-                              "do ano no campo data ({}).".format(ano, data.year))
-            raise ValidationError("O ano da norma não pode ser "
-                                  "diferente do ano no campo data")
         return cleaned_data
 
     def clean_texto_integral(self):
