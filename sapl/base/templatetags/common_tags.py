@@ -296,12 +296,20 @@ def urldetail(obj):
 
 @register.filter
 def filiacao_data_filter(parlamentar, data_inicio):
-    return filiacao_data(parlamentar, data_inicio)
+    try:
+        filiacao = filiacao_data(parlamentar, data_inicio)
+    except Exception:
+        filiacao = ''
+    return filiacao
 
 
 @register.filter
 def filiacao_intervalo_filter(parlamentar, date_range):
-    return filiacao_data(parlamentar, date_range[0], date_range[1])
+    try:
+        filiacao = filiacao_data(parlamentar, date_range[0], date_range[1])
+    except Exception:
+        filiacao = ''
+    return filiacao
 
 
 @register.simple_tag
