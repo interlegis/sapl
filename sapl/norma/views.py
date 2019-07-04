@@ -263,10 +263,14 @@ class NormaCrud(Crud):
             return initial
 
         def form_valid(self, form):
-            dict_objeto_antigo = NormaJuridica.objects.get(
+            norma_antiga = NormaJuridica.objects.get(
                 pk=self.kwargs['pk']
-            ).__dict__
-            
+            )
+
+            # Feito desta forma para que sejam materializados os assuntos antigos
+            assuntos_antigos = set(norma_antiga.assuntos.all())
+
+            dict_objeto_antigo = norma_antiga.__dict__
             self.object = form.save()
             dict_objeto_novo = self.object.__dict__
 
@@ -283,6 +287,13 @@ class NormaCrud(Crud):
                     self.object.ip = get_client_ip(self.request)
                     self.object.save()
                     break
+            
+            # Campo Assuntos não veio no __dict__, então é comparado separadamente
+            assuntos_novos = set(self.object.assuntos.all())
+            if assuntos_antigos != assuntos_novos:
+                self.object.user = self.request.user
+                self.object.ip = get_client_ip(self.request)
+                self.object.save()
 
             return super().form_valid(form)
 
