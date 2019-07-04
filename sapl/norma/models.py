@@ -138,6 +138,13 @@ class NormaJuridica(models.Model):
         through_fields=('norma', 'autor'),
         symmetrical=False)
 
+    norma_de_destaque = models.BooleanField(verbose_name=_('Norma de Destaque ?'),
+                                            choices=YES_NO_CHOICES,
+                                            default=False)
+
+    apelido = models.TextField(
+        blank=True, verbose_name=_('Apelido'))
+
     class Meta:
         verbose_name = _('Norma Jurídica')
         verbose_name_plural = _('Normas Jurídicas')

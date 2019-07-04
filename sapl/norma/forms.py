@@ -49,6 +49,9 @@ class NormaFilterSet(django_filters.FilterSet):
         method='filter_ementa',
         label=_('Pesquisar expressões na ementa da norma'))
 
+    apelido = django_filters.CharFilter(lookup_expr='icontains',
+                                          label=_('Apelido'))
+
     indexacao = django_filters.CharFilter(lookup_expr='icontains',
                                           label=_('Indexação'))
 
@@ -60,16 +63,16 @@ class NormaFilterSet(django_filters.FilterSet):
     class Meta(FilterOverridesMetaMixin):
         model = NormaJuridica
         fields = ['tipo', 'numero', 'ano', 'data', 'data_vigencia',
-                  'data_publicacao', 'ementa', 'assuntos']
+                  'data_publicacao', 'ementa', 'assuntos', 'apelido']
 
     def __init__(self, *args, **kwargs):
         super(NormaFilterSet, self).__init__(*args, **kwargs)
 
         row1 = to_row([('tipo', 4), ('numero', 4), ('ano', 4)])
-        row2 = to_row([('data', 6), ('data_publicacao', 6)])
-        row3 = to_row([('ementa', 6), ('assuntos', 6)])
+        row2 = to_row([('ementa', 6), ('assuntos', 6)])
+        row3 = to_row([('data', 6), ('data_publicacao', 6)])
         row4 = to_row([('data_vigencia', 12)])
-        row5 = to_row([('o', 6), ('indexacao', 6)])
+        row5 = to_row([('o', 4), ('indexacao', 4), ('apelido', 4)])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
@@ -132,7 +135,9 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
                   'indexacao',
                   'observacao',
                   'texto_integral',
-                  'assuntos']
+                  'assuntos',
+                  'norma_de_destaque',
+                  'apelido']
         widgets = {'assuntos': widgets.CheckboxSelectMultiple}
 
     def clean(self):
