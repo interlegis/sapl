@@ -1724,10 +1724,11 @@ def get_assinaturas(sessao_plenaria):
         context.update(
             {'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
         context.update({'assinatura_mesa': mesa_dia})
-    elif config_assinatura_ata == 'P' and presidente_dia:
+    elif config_assinatura_ata == 'P' and presidente_dia and presidente_dia[0]:
         context.update(
             {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
-        context.update({'assinatura_mesa': presidente_dia})
+        assinatura_presidente = [{'parlamentar': presidente_dia[0], 'cargo': "Presidente"}]
+        context.update({'assinatura_mesa': assinatura_presidente})
 
     return context
 
