@@ -74,6 +74,22 @@ class PainelConfig(models.Model):
         verbose_name=_('Cronômetro da Questão de Ordem deve travar os demais?'),
         choices=YES_NO_CHOICES, default=True)
 
+    disparo_cronometro = models.BooleanField(
+        verbose_name=_('Cronômetros devem disparar com antecedência?'),
+        choices=YES_NO_CHOICES, default=True)
+
+    tempo_disparo_antecedencia = models.DurationField(
+        verbose_name=_('Cronômetros devem disparar com quanto tempo de antecedência?'),
+        default="00:00:30",
+        blank=True,
+        null=True)
+
+    tempo_disparo_termino = models.DurationField(
+        verbose_name=_('Cronômetros devem permanecer tocando por quanto tempo ao término?'),
+        default="00:00:05",
+        blank=True,
+        null=True)
+
     class Meta:
         verbose_name = _('Configurações do Painel')
         verbose_name_plural = _('Configurações do Painel')
