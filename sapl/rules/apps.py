@@ -84,18 +84,7 @@ def create_proxy_permissions(
 
         ctypes.add(ctype)
 
-        # FIXME: Retirar try except quando sapl passar a usar django 1.11
-        try:
-            logger.info("_get_all_permissions")
-            # Função não existe mais em Django 1.11
-            # como sapl ainda não foi para Django 1.11
-            # esta excessão foi adicionada para caso o
-            # Sapl esteja rodando em um projeto 1.11 não ocorra erros
-            _all_perms_of_klass = _get_all_permissions(klass._meta, ctype)
-        except Exception as e:
-            logger.error(str(e))
-            # Nova função usada em projetos com Django 1.11 e o sapl é uma app
-            _all_perms_of_klass = _get_all_permissions(klass._meta)
+        _all_perms_of_klass = _get_all_permissions(klass._meta)
 
         for perm in _all_perms_of_klass:
             searched_perms.append((ctype, perm))

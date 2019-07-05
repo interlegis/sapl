@@ -104,8 +104,11 @@ class UsuarioCreateForm(ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'firstname', 'lastname', 'email',
-                  'password1', 'password2', 'user_active', 'roles']
+        fields = [
+            get_user_model().USERNAME_FIELD, 'firstname', 'lastname',
+            'password1', 'password2', 'user_active', 'roles'
+        ] + (['email']
+             if get_user_model().USERNAME_FIELD != 'email' else [])
 
     def clean(self):
         super().clean()
@@ -186,8 +189,11 @@ class UsuarioEditForm(ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'email', 'password1',
-                  'password2', 'user_active', 'roles']
+        fields = [
+            get_user_model().USERNAME_FIELD, 'password1',
+            'password2', 'user_active', 'roles'
+        ] + (['email']
+             if get_user_model().USERNAME_FIELD != 'email' else [])
 
     def __init__(self, *args, **kwargs):
 
