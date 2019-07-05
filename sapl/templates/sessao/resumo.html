@@ -20,6 +20,16 @@
 	</p>
 </div>
 
+<div>
+	<p align="right">
+		<strong>
+			<a href="{% url 'sapl.relatorios:relatorio_sessao_plenaria_pdf' sessaoplenaria.pk %}">
+				Impressão PDF (Novo)
+			</a>
+		</strong>
+	</p>
+</div>
+
 	{% include 'sessao/blocos_resumo/'|add:primeiro_ordenacao %}
 
     {% include 'sessao/blocos_resumo/'|add:segundo_ordenacao %}
