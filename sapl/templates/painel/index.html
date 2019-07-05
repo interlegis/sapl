@@ -245,16 +245,36 @@
               var oradores_list = data["oradores"];
               var presentes_list = data["presentes"];
 
-              if (data["status_painel"] == true) {
+              // Se painel está aberto
+              if (data["status_painel"]) {
                 presentes.append('<table id="parlamentares_list">');
                 $.each(presentes_list, function (index, parlamentar) {
-
-                  if (parlamentar.voto == 'Voto Informado'){
-                    $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
-                        parlamentar.nome +
-                        '</td> <td style="padding-right:20px; color:yellow">' +
-                        parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
-                        + '</td></tr>')
+                  // Parlamentar já votou?
+                  if (parlamentar.voto){
+                    // Se a votação já foi finalizada, mostra todos os votos
+                    if (data['tipo_resultado']){
+                      $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:white" >' +
+                          parlamentar.nome +
+                          '</td> <td style="padding-right:20px; color:white">' +
+                          parlamentar.partido + '</td> <td style="padding-right:20px; color:white">'
+                          + show_voto(parlamentar.voto) + '</td></tr>');
+                    }
+                    // Senão verifica a configuração desejada
+                    else{
+                      {% if painel_config.mostrar_votos_antecedencia %} 
+                        $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
+                            parlamentar.nome +
+                            '</td> <td style="padding-right:20px; color:yellow">' +
+                            parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
+                            + show_voto(parlamentar.voto) + '</td></tr>');
+                      {% else %}
+                        $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
+                            parlamentar.nome +
+                            '</td> <td style="padding-right:20px; color:yellow">' +
+                            parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
+                            + '</td></tr>');
+                      {% endif %}
+                    }
                   } else{
                     $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
                         parlamentar.nome +
@@ -358,7 +378,7 @@
                 $("#observacao_materia").text('');
               }
 
-              if (data['tipo_resultado'] && data['status_painel'] == true){
+              if (data['tipo_resultado'] && data['status_painel']){
                 $("#resultado_votacao").text(data["tipo_resultado"]);
                 $("#resultado_votacao").css("color", "#45919D");
                 var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();

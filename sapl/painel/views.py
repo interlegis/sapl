@@ -535,8 +535,11 @@ def get_votos(response, materia):
             for i, p in enumerate(response['presentes']):
                 try:
                     logger.info("Tentando obter votos do parlamentar (id={}).".format(p['parlamentar_id']))
-                    if votos_parlamentares.get(parlamentar_id=p['parlamentar_id']).voto:
-                        response['presentes'][i]['voto'] = 'Voto Informado'
+                    vot_parl = votos_parlamentares.get(parlamentar_id=p['parlamentar_id']).voto
+                    if vot_parl:
+                        response['presentes'][i]['voto'] = vot_parl
+                    else:
+                        response['presentes'][i]['voto'] = ''
                 except ObjectDoesNotExist:
                     logger.error("Votos do parlamentar (id={}) não encontrados. Retornado vazio."
                                  .format(p['parlamentar_id']))
