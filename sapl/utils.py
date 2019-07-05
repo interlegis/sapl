@@ -600,10 +600,6 @@ class NormaPesquisaOrderingFilter(django_filters.OrderingFilter):
 
 
 class FileFieldCheckMixin(BaseForm):
-<<<<<<< HEAD
-
-=======
->>>>>>> 708f5c76... Verificação em forms contendo arquivos (#2534)
     def _check(self):
         cleaned_data = super(FileFieldCheckMixin, self).clean()
         errors = []

@@ -1,9 +1,8 @@
 import logging
 import os
 
-from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
-from sapl.crispy_layout_mixin import SaplFormHelper
-from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
+from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
+from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -26,6 +25,7 @@ from sapl.comissoes.models import Reuniao, Comissao
 from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.materia.models import (
     MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
@@ -187,7 +187,8 @@ class UsuarioEditForm(ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'email', 'password1', 'password2', 'user_active', 'roles']
+        fields = ['username', 'email', 'password1',
+                  'password2', 'user_active', 'roles']
 
     def __init__(self, *args, **kwargs):
 
@@ -866,8 +867,8 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
     class Meta(FilterOverridesMetaMixin):
         model = SessaoPlenaria
-        fields = ['data_inicio', 
-                  'sessao_legislativa', 
+        fields = ['data_inicio',
+                  'sessao_legislativa',
                   'legislatura']
 
     def __init__(self, *args, **kwargs):
@@ -902,7 +903,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
     class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
         fields = ['tipo', 'tramitacao__status', 'tramitacao__data_tramitacao',
-        'tramitacao__unidade_tramitacao_local', 'tramitacao__unidade_tramitacao_destino']
+                  'tramitacao__unidade_tramitacao_local', 'tramitacao__unidade_tramitacao_destino']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioHistoricoTramitacaoFilterSet, self).__init__(
@@ -910,8 +911,10 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['tramitacao__status'].label = _('Status')
-        self.filters['tramitacao__unidade_tramitacao_local'].label = _('Unidade Local (Origem)')
-        self.filters['tramitacao__unidade_tramitacao_destino'].label = _('Unidade Destino')
+        self.filters['tramitacao__unidade_tramitacao_local'].label = _(
+            'Unidade Local (Origem)')
+        self.filters['tramitacao__unidade_tramitacao_destino'].label = _(
+            'Unidade Destino')
 
         row1 = to_row([('tramitacao__data_tramitacao', 12)])
         row2 = to_row([('tramitacao__unidade_tramitacao_local', 6),
@@ -927,7 +930,6 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
                      row1, row2, row3,
                      form_actions(label='Pesquisar'))
         )
-
 
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
@@ -948,7 +950,8 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
-        self.filters['tramitacao__unidade_tramitacao_local'].label = 'Unidade Local (Origem)'
+        self.filters[
+            'tramitacao__unidade_tramitacao_local'].label = 'Unidade Local (Origem)'
         self.filters['tramitacao__unidade_tramitacao_destino'].label = 'Unidade Destino'
         self.filters['tramitacao__status'].label = 'Status de tramitação'
 
@@ -1400,7 +1403,7 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
             [('sigla', 2),
              ('nome', 6),
              ('data_criacao', 2),
-             ('data_extincao', 2),])
+             ('data_extincao', 2), ])
         row2 = to_row([('observacao', 12)])
         row3 = to_row([('logo_partido', 12)])
 
@@ -1483,25 +1486,10 @@ class PartidoUpdateForm(PartidoForm):
         if not self.is_valid():
             return cleaned_data
 
-        is_historico = cleaned_data['historico'] == 'True'
-
-        if is_historico: 
-            if not (cleaned_data['data_criacao'] and cleaned_data['data_extincao']):
-                raise ValidationError("Certifique-se de que a data de inicio e fim de historico estão preenchidas")
-            if self.instance.data_criacao and  self.instance.data_criacao > cleaned_data['data_criacao']:
-                raise ValidationError("Data de inicio de historico deve ser posterior a data de criação do partido.")
-            if self.instance.data_extincao and  self.instance.data_extincao < cleaned_data['data_extincao']:
-                raise ValidationError("Data de fim de historico deve ser anterior a data de extinção do partido.")
-
-            if self.instance.pk:
-                partido = Partido.objects.get(pk=self.instance.pk)
-                historico = HistoricoPartido.objects.filter(partido=partido).order_by('-inicio_historico')
-                for h in historico:
-                    if intervalos_tem_intersecao(h.inicio_historico,
-                            h.fim_historico,
-                            cleaned_data['data_criacao'],
-                            cleaned_data['data_extincao']):
-                        raise ValidationError("Periodo selecionado ja possui um histórico.")                
+        if cleaned_data['data_criacao'] and cleaned_data['data_extincao']:
+            if cleaned_data['data_criacao'] > cleaned_data['data_extincao']:
+                raise ValidationError(
+                    "Certifique-se de que a data de criação seja anterior à data de extinção.")
 
         return cleaned_data
 
@@ -1538,9 +1526,9 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
 
     class Meta(FilterOverridesMetaMixin):
         model = DocumentoAdministrativo
-        fields = ['tipo', 'tramitacaoadministrativo__status', 
+        fields = ['tipo', 'tramitacaoadministrativo__status',
                   'tramitacaoadministrativo__data_tramitacao',
-                  'tramitacaoadministrativo__unidade_tramitacao_local', 
+                  'tramitacaoadministrativo__unidade_tramitacao_local',
                   'tramitacaoadministrativo__unidade_tramitacao_destino']
 
     def __init__(self, *args, **kwargs):
@@ -1549,8 +1537,10 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
 
         self.filters['tipo'].label = 'Tipo de Documento'
         self.filters['tramitacaoadministrativo__status'].label = _('Status')
-        self.filters['tramitacaoadministrativo__unidade_tramitacao_local'].label = _('Unidade Local (Origem)')
-        self.filters['tramitacaoadministrativo__unidade_tramitacao_destino'].label = _('Unidade Destino')
+        self.filters['tramitacaoadministrativo__unidade_tramitacao_local'].label = _(
+            'Unidade Local (Origem)')
+        self.filters['tramitacaoadministrativo__unidade_tramitacao_destino'].label = _(
+            'Unidade Destino')
 
         row1 = to_row([('tramitacaoadministrativo__data_tramitacao', 12)])
         row2 = to_row([('tramitacaoadministrativo__unidade_tramitacao_local', 6),
