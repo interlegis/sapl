@@ -4,11 +4,13 @@ import logging
 import re
 import tempfile
 
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 from sapl.settings import MEDIA_URL
 from sapl.base.models import Autor, CasaLegislativa
@@ -23,7 +25,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
-                                RegistroVotacao, VotoParlamentar, OradorOrdemDia)
+                                RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
@@ -1155,13 +1157,14 @@ def relatorio_pauta_sessao(request, pk):
 
     sessao = SessaoPlenaria.objects.get(id=pk)
 
-    lst_expediente_materia, lst_votacao, inf_basicas_dic = get_pauta_sessao(
+    lst_expediente_materia, lst_votacao, inf_basicas_dic, expedientes = get_pauta_sessao(
         sessao, casa)
     pdf = pdf_pauta_sessao_gerar.principal(rodape,
                                            imagem,
                                            inf_basicas_dic,
                                            lst_expediente_materia,
-                                           lst_votacao)
+                                           lst_votacao,
+                                           expedientes)
 
     response.write(pdf)
 
@@ -1262,9 +1265,21 @@ def get_pauta_sessao(sessao, casa):
 
         lst_votacao.append(dic_votacao)
 
+    expediente = ExpedienteSessao.objects.filter(
+        sessao_plenaria_id=sessao.id)
+    expedientes = []
+    for e in expediente:
+        tipo = TipoExpediente.objects.get(
+            id=e.tipo_id)
+        conteudo = re.sub(
+            '&nbsp;', ' ', strip_tags(e.conteudo.replace('<br/>', '\n')))
+        ex = {'tipo': tipo, 'conteudo': conteudo}
+        expedientes.append(ex)
+
     return (lst_expediente_materia,
             lst_votacao,
-            inf_basicas_dic)
+            inf_basicas_dic,
+            expedientes)
 
 def make_pdf(base_url,main_template,header_template,main_css='',header_css=''):
     html = HTML(base_url=base_url, string=main_template)

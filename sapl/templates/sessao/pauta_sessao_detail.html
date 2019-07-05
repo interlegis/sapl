@@ -18,29 +18,21 @@
 </fieldset>
 
 <fieldset>
-	<legend>Expediente</legend>
-	{% if expedientes %}
-	<table class="table table-striped">
-		<thead>
-			<tr>
-				<th>Sessão Plenaria</th>
-				<th>conteudo</th>
-				<th>tipo</th>
-			</tr>
-		</thead>
-   {% for e in expedientes %}
-    	{% if e.conteudo %}
-	  		<tr>
-		  		<td style="width:20%;">{{e.sessao_plenaria}}</td>
-	      		<td style="width:70%;"><br>{{e.conteudo|safe|linebreaksbr}}</td>
-	      		<td style="width:10%;">{{e.tipo}}</td>
-			</tr>
-		{% endif%}
-    {% endfor %}
-  </table>
-  {% else %}
-  <strong>Não existem Matérias de Ordem do Dia para essa Sessão Plenária</strong>
-  {% endif %}
+	<legend>Expedientes</legend>
+	<table class="table">
+	    <thead class="thead-default">
+			{% for e in expedientes %}
+	    	    <tr>
+	    	        <td>
+	    	        	<b>{{e.tipo}}: </b> <br><br>
+	    	            <div style="border:0.5px solid #BAB4B1; border-radius: 10px; background-color: rgba(225, 225, 225, .8);">
+	    	            	<p>{{e.conteudo}}</p>
+	    	            </div>
+	    	        </td>
+	    	    </tr>
+			{% endfor %}
+	    </thead>
+	</table>
 </fieldset>
 
 <fieldset>
