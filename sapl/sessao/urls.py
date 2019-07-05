@@ -35,7 +35,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
                                VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
                                resumo_ordenacao,
-                               recuperar_nome_tipo_sessao)
+                               recuperar_nome_tipo_sessao,
+                               voto_nominal_parlamentar)
 
 from .apps import AppConfig
 
@@ -193,4 +194,9 @@ urlpatterns = [
     url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
         name='mudar_ordem_materia_sessao'),
+
+    url(r'^sessao/votacao-nominal-parlamentar/',
+        voto_nominal_parlamentar,
+        name='votacao_nominal_parlamentar'
+        ),
 ]
