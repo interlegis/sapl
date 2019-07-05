@@ -3307,8 +3307,7 @@ class PautaSessaoDetailView(DetailView):
 
         expedientes = []
         for e in expediente:
-            tipo = TipoExpediente.objects.get(
-                id=e.tipo_id)
+            tipo = e.tipo
             conteudo = sub(
                 '&nbsp;', ' ', strip_tags(e.conteudo.replace('<br/>', '\n')))
 

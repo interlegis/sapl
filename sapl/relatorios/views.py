@@ -1269,8 +1269,7 @@ def get_pauta_sessao(sessao, casa):
         sessao_plenaria_id=sessao.id)
     expedientes = []
     for e in expediente:
-        tipo = TipoExpediente.objects.get(
-            id=e.tipo_id)
+        tipo = e.tipo
         conteudo = re.sub(
             '&nbsp;', ' ', strip_tags(e.conteudo.replace('<br/>', '\n')))
         ex = {'tipo': tipo, 'conteudo': conteudo}
