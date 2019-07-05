@@ -1,0 +1,38 @@
+{% extends "norma/normajuridica_filter.html" %}
+{% load i18n %}
+
+{% block detail_content %}
+{% endblock detail_content %}
+
+{% block table_content %}
+      <table class="table table-striped">
+    		<thead class="thead-default">
+          <tr>
+            <th>Tipo</th>
+            <th>Número</th>
+            <th>Ano</th>
+            <th>Data</th>
+            <th>Ementa</th>
+            <th>Apelido</th>
+          </tr>
+    		</thead>
+        {% for n in page_obj %}
+          <tr>
+            <td><a href="{% url 'sapl.norma:normajuridica_detail' n.id %}">{{n.tipo}}</a></td>
+            {% if n.texto_integral %}
+                <td><a href="{{n.texto_integral.url}}">{{n.numero}}</a></td>
+            {% else %}
+                <td>{{n.numero}}</td>
+            {% endif %}
+            <td>{{n.ano}}</td>
+            <td>{{n.data}}</td>
+            <td>{{n.ementa|safe}}</td>
+            <td>{{n.apelido|safe}}</td>			
+    			</tr>
+    		{% endfor %}
+    	</table>
+
+{% endblock table_content %}
+
+{% block extra_js %}
+{% endblock extra_js %}
