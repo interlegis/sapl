@@ -137,8 +137,13 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
                   'texto_integral',
                   'assuntos',
                   'norma_de_destaque',
-                  'apelido']
-        widgets = {'assuntos': widgets.CheckboxSelectMultiple}
+                  'apelido',
+                  'user', 
+                  'ip']
+                  
+        widgets = {'assuntos': widgets.CheckboxSelectMultiple,
+                    'user': forms.HiddenInput(),
+                    'ip': forms.HiddenInput()}
 
     def clean(self):
 

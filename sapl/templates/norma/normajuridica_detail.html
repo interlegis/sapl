@@ -87,6 +87,38 @@
     </div>
   </div>
 
+  <br><br>
+
+  {% if user.is_superuser %}
+    <div class="row">
+      {% if object.user %}
+        <div class="col-sm-6">
+          <div id="div_id_user" class="form-group">
+            <p class="control-label">Usuário</p>
+            <div class="controls">
+              <div class="form-control-static">
+                <div class="dont-break-out">
+                  <a href="{% url 'sapl.base:user_edit' object.user.pk %}">{{object.user}}</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      {% if object.ip %}
+        <div class="col-sm-6">
+          <div id="div_ip_user" class="form-group">
+            <p class="control-label">IP</p>
+            <div class="controls">
+              <div class="form-control-static">
+                <div class="dont-break-out">{{object.ip}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      </div>
+    {% endif %}
   {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission %}
     <hr />
     <div class="row">

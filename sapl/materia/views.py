@@ -1621,7 +1621,7 @@ class MateriaLegislativaCrud(Crud):
         form_class = MateriaLegislativaForm
 
         def get_initial(self):
-            initial = super(CreateView, self).get_initial()
+            initial = super().get_initial()
 
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
