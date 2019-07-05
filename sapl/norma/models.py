@@ -10,7 +10,9 @@ from sapl.base.models import Autor
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path)
+                        restringe_tipos_de_arquivo_txt, 
+                        texto_upload_path,
+                        get_settings_auth_user_model)
 
 
 @reversion.register()
@@ -137,6 +139,20 @@ class NormaJuridica(models.Model):
         through='AutoriaNorma',
         through_fields=('norma', 'autor'),
         symmetrical=False)
+
+    user = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário'),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+    ip = models.CharField(
+        verbose_name=_('IP'),
+        max_length=30,
+        blank=True,
+        default=''
+    )
 
     class Meta:
         verbose_name = _('Norma Jurídica')
