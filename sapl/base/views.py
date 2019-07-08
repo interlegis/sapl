@@ -566,7 +566,7 @@ class RelatorioDataFimPrazoTramitacaoView(FilterView):
     def get_context_data(self, **kwargs):
         context = super(RelatorioDataFimPrazoTramitacaoView,
                         self).get_context_data(**kwargs)
-        context['title'] = _('Fim de Prazo de Tramitações')
+        context['title'] = _('Relatório de Tramitações')
         if not self.filterset.form.is_valid():
             return context
         qr = self.request.GET.copy()
