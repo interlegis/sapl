@@ -1,13 +1,11 @@
+from datetime import datetime
+import itertools
 import logging
 import os
-import shutil
-import tempfile
-import weasyprint
-import itertools
-
-from datetime import datetime
 from random import choice
+import shutil
 from string import ascii_letters, digits
+import tempfile
 
 from crispy_forms.layout import HTML
 from django.conf import settings
@@ -27,6 +25,7 @@ from django.views.generic import ListView, TemplateView, CreateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+import weasyprint
 import weasyprint
 
 import sapl
@@ -1142,9 +1141,9 @@ class RelatoriaCrud(MasterDetailCrud):
             parlamentar = relatoria.parlamentar
             comissao = relatoria.comissao
             composicoes = [p.composicao for p in
-                            Participacao.objects.filter(
-                                parlamentar=parlamentar,
-                                composicao__comissao=comissao)]
+                           Participacao.objects.filter(
+                               parlamentar=parlamentar,
+                               composicao__comissao=comissao)]
             data_designacao = relatoria.data_designacao_relator
             composicao = ''
             for c in composicoes:
@@ -1205,7 +1204,8 @@ class TramitacaoCrud(MasterDetailCrud):
                 '-timestamp',
                 '-id').first()
 
-            #TODO: Esta checagem foi inserida na issue #2027, mas é mesmo necessária?
+            # TODO: Esta checagem foi inserida na issue #2027, mas é mesmo
+            # necessária?
             if ultima_tramitacao:
                 if ultima_tramitacao.unidade_tramitacao_destino:
                     context['form'].fields[
@@ -1259,7 +1259,8 @@ class TramitacaoCrud(MasterDetailCrud):
         layout_key = 'TramitacaoUpdate'
 
         def form_valid(self, form):
-            dict_objeto_antigo = Tramitacao.objects.get(pk=self.kwargs['pk']).__dict__
+            dict_objeto_antigo = Tramitacao.objects.get(
+                pk=self.kwargs['pk']).__dict__
 
             self.object = form.save()
             dict_objeto_novo = self.object.__dict__
@@ -1271,7 +1272,8 @@ class TramitacaoCrud(MasterDetailCrud):
                 'data_encaminhamento', 'data_fim_prazo', 'urgente', 'turno'
             ]
 
-            # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
+            # Se não houve qualquer alteração em um dos dados, mantém o usuário
+            # e ip
             for atributo in atributos:
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
                     self.object.user = user
@@ -1314,7 +1316,7 @@ class TramitacaoCrud(MasterDetailCrud):
             materia = tramitacao.materia
             url = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': materia.id})
-            
+
             ultima_tramitacao = materia.tramitacao_set.order_by(
                 '-data_tramitacao',
                 '-timestamp',
@@ -1333,7 +1335,8 @@ class TramitacaoCrud(MasterDetailCrud):
                 if materia.tramitacao_set.count() == 0:
                     materia.em_tramitacao = False
                     materia.save()
-                tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
+                tramitar_anexadas = sapl.base.models.AppConfig.attr(
+                    'tramitacao_materia')
                 if tramitar_anexadas:
                     mat_anexadas = lista_anexados(materia)
                     for ma in mat_anexadas:
@@ -1355,7 +1358,7 @@ class TramitacaoCrud(MasterDetailCrud):
             context = super().get_context_data(**kwargs)
             context['user'] = self.request.user
             return context
-        
+
 
 def montar_helper_documento_acessorio(self):
     autor_row = montar_row_autor('autor')
@@ -1486,7 +1489,8 @@ class AutoriaMultiCreateView(PermissionRequiredForAppCrudMixin, FormView):
         autores_selecionados = form.cleaned_data['autor']
         primeiro_autor = form.cleaned_data['primeiro_autor']
         for autor in autores_selecionados:
-            Autoria.objects.create(materia=self.materia, autor=autor, primeiro_autor=primeiro_autor)
+            Autoria.objects.create(materia=self.materia,
+                                   autor=autor, primeiro_autor=primeiro_autor)
 
         return FormView.form_valid(self, form)
 
@@ -1506,7 +1510,7 @@ class DespachoInicialMultiCreateView(PermissionRequiredForAppCrudMixin, FormView
         context = super().get_context_data(**kwargs)
         context['title'] = '%s <small>(%s)</small>' % (
             _('Adicionar Vários Despachos'), self.materia)
-        context['root_pk']= self.kwargs['pk']
+        context['root_pk'] = self.kwargs['pk']
         context['subnav_template_name'] = 'materia/subnav.yaml'
         return context
 
@@ -1520,7 +1524,8 @@ class DespachoInicialMultiCreateView(PermissionRequiredForAppCrudMixin, FormView
     def form_valid(self, form):
         comissoes_selecionadas = form.cleaned_data['comissao']
         for comissao in comissoes_selecionadas:
-            DespachoInicial.objects.create(materia=self.materia, comissao=comissao)
+            DespachoInicial.objects.create(
+                materia=self.materia, comissao=comissao)
 
         return FormView.form_valid(self, form)
 
@@ -1542,14 +1547,13 @@ class DespachoInicialCrud(MasterDetailCrud):
             initial = super().get_initial()
             self.materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
             initial['materia'] = self.materia
-            import ipdb; ipdb.set_trace()
             return initial
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['title'] = '%s <small>(%s)</small>' % (
                 _('Adicionar Vários Despachos'), self.materia)
-            context['root_pk']= self.kwargs['pk']
+            context['root_pk'] = self.kwargs['pk']
             context['subnav_template_name'] = 'materia/subnav.yaml'
             return context
 
@@ -1563,10 +1567,11 @@ class DespachoInicialCrud(MasterDetailCrud):
         def form_valid(self, form):
             comissoes_selecionadas = form.cleaned_data['comissao']
             for comissao in comissoes_selecionadas:
-                DespachoInicial.objects.create(materia=self.materia, comissao=comissao)
+                DespachoInicial.objects.create(
+                    materia=self.materia, comissao=comissao)
 
             return FormView.form_valid(self, form)
-    
+
 
 class LegislacaoCitadaCrud(MasterDetailCrud):
     model = LegislacaoCitada
@@ -1705,7 +1710,7 @@ class MateriaLegislativaCrud(Crud):
             dict_objeto_antigo = MateriaLegislativa.objects.get(
                 pk=self.kwargs['pk']
             ).__dict__
-            
+
             self.object = form.save()
             dict_objeto_novo = self.object.__dict__
 
@@ -1713,7 +1718,7 @@ class MateriaLegislativaCrud(Crud):
                 'tipo_id', 'ano', 'numero', 'data_apresentacao', 'numero_protocolo',
                 'tipo_apresentacao', 'texto_original', 'apelido', 'dias_prazo', 'polemica',
                 'objeto', 'regime_tramitacao_id', 'em_tramitacao', 'data_fim_prazo',
-                'data_publicacao', 'complementar', 'tipo_origem_externa_id', 
+                'data_publicacao', 'complementar', 'tipo_origem_externa_id',
                 'numero_origem_externa', 'ano_origem_externa', 'local_origem_externa_id',
                 'data_origem_externa', 'ementa', 'indexacao', 'observacao'
             ]
@@ -1730,7 +1735,7 @@ class MateriaLegislativaCrud(Crud):
                 anexadas = lista_anexados(materia)
 
                 for anexada in anexadas:
-                    anexada.em_tramitacao = True if form.instance.em_tramitacao else False 
+                    anexada.em_tramitacao = True if form.instance.em_tramitacao else False
                     anexada.save()
 
             return super().form_valid(form)
@@ -1752,7 +1757,8 @@ class MateriaLegislativaCrud(Crud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['user'] = self.request.user
-            context['materia'] = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+            context['materia'] = MateriaLegislativa.objects.get(
+                pk=self.kwargs['pk'])
             return context
 
     class ListView(Crud.ListView, RedirectView):
@@ -2139,20 +2145,22 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             msg = _('Autor tem que ter menos do que 50 caracteres.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
-            
+
         tmp_name = os.path.join(MEDIA_ROOT, request.FILES['arquivo'].name)
         with open(tmp_name, 'wb') as destination:
             for chunk in request.FILES['arquivo'].chunks():
                 destination.write(chunk)
         try:
             doc_data = tz.localize(datetime.strptime(
-                                    request.POST['data'], "%d/%m/%Y"))
+                request.POST['data'], "%d/%m/%Y"))
         except Exception as e:
-                msg = _('Formato da data incorreto. O formato deve ser da forma dd/mm/aaaa.')
-                messages.add_message(request, messages.ERROR, msg)
-                self.logger.error("User={}. {}. Data inserida: {}".format(username, str(msg), request.POST['data']))
-                os.remove(tmp_name)
-                return self.get(request, self.kwargs)
+            msg = _(
+                'Formato da data incorreto. O formato deve ser da forma dd/mm/aaaa.')
+            messages.add_message(request, messages.ERROR, msg)
+            self.logger.error("User={}. {}. Data inserida: {}".format(
+                username, str(msg), request.POST['data']))
+            os.remove(tmp_name)
+            return self.get(request, self.kwargs)
 
         for materia_id in marcadas:
             doc = DocumentoAcessorio()
@@ -2166,25 +2174,27 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             try:
                 doc.clean_fields()
             except ValidationError as e:
-                for m in [ '%s: %s' % (DocumentoAcessorio()._meta.get_field(k).verbose_name, '</br>'.join(v)) 
-                          for k,v in e.message_dict.items() ]:
+                for m in ['%s: %s' % (DocumentoAcessorio()._meta.get_field(k).verbose_name, '</br>'.join(v))
+                          for k, v in e.message_dict.items()]:
                     # Insere as mensagens de erro no formato:
                     # 'verbose_name do nome do campo': 'mensagem de erro'
                     messages.add_message(request, messages.ERROR, m)
-                    self.logger.error("User={}. {}. Nome do arquivo: {}.".format(username, str(msg), request.FILES['arquivo'].name))
+                    self.logger.error("User={}. {}. Nome do arquivo: {}.".format(
+                        username, str(msg), request.FILES['arquivo'].name))
                 os.remove(tmp_name)
                 return self.get(request, self.kwargs)
             doc.save()
-            diretorio =  os.path.join(MEDIA_ROOT,
-                                      'sapl/public/documentoacessorio', 
-                                      str(doc_data.year),
-                                      str(doc.id))
+            diretorio = os.path.join(MEDIA_ROOT,
+                                     'sapl/public/documentoacessorio',
+                                     str(doc_data.year),
+                                     str(doc.id))
             if not os.path.exists(diretorio):
                 os.makedirs(diretorio)
-            file_path = os.path.join(diretorio, 
+            file_path = os.path.join(diretorio,
                                      request.FILES['arquivo'].name)
             shutil.copy2(tmp_name, file_path)
-            doc.arquivo.name = file_path.split(MEDIA_ROOT + "/")[1]  # Retira MEDIA_ROOT do nome
+            doc.arquivo.name = file_path.split(
+                MEDIA_ROOT + "/")[1]  # Retira MEDIA_ROOT do nome
             doc.save()
         os.remove(tmp_name)
 
@@ -2210,17 +2220,17 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
 
         # Verifica se os campos foram preenchidos
         if not self.request.GET.get('tipo', " "):
-            msg =_('Por favor, selecione um tipo de matéria.')
+            msg = _('Por favor, selecione um tipo de matéria.')
             messages.add_message(self.request, messages.ERROR, msg)
 
             if not self.request.GET.get('data_apresentacao_0', " ") or not self.request.GET.get('data_apresentacao_1', " "):
-                msg =_('Por favor, preencha as datas.')
+                msg = _('Por favor, preencha as datas.')
                 messages.add_message(self.request, messages.ERROR, msg)
 
             return context
 
         if not self.request.GET.get('data_apresentacao_0', " ") or not self.request.GET.get('data_apresentacao_1', " "):
-            msg =_('Por favor, preencha as datas.')
+            msg = _('Por favor, preencha as datas.')
             messages.add_message(self.request, messages.ERROR, msg)
             return context
 
@@ -2229,8 +2239,10 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
             'numero', '-ano')
         principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
         not_list = [self.kwargs['pk']] + \
-                    [m for m in principal.materia_principal_set.all().values_list('materia_anexada_id', flat=True)]
-        context['object_list'] = context['object_list'].exclude(pk__in=not_list)
+            [m for m in principal.materia_principal_set.all(
+            ).values_list('materia_anexada_id', flat=True)]
+        context['object_list'] = context['object_list'].exclude(
+            pk__in=not_list)
 
         context['temp_object_list'] = context['object_list']
         context['object_list'] = []
@@ -2238,12 +2250,12 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
             materia_anexada = obj
             ciclico = False
             anexadas_anexada = Anexada.objects.filter(
-                materia_principal = materia_anexada
+                materia_principal=materia_anexada
             )
 
             while anexadas_anexada and not ciclico:
                 anexadas = []
-                
+
                 for anexa in anexadas_anexada:
 
                     if principal == anexa.materia_anexada:
@@ -2251,7 +2263,7 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
                     else:
                         for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
                             anexadas.append(a)
-                        
+
                 anexadas_anexada = anexadas
 
             if not ciclico:
@@ -2282,7 +2294,7 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         if len(marcadas) == 0:
             msg = _('Nenhuma máteria foi selecionada.')
             messages.add_message(request, messages.ERROR, msg)
-        
+
             if data_anexacao > v_data_desanexacao:
                 msg = _('Data de anexação posterior à data de desanexação.')
                 messages.add_message(request, messages.ERROR, msg)
@@ -2307,7 +2319,8 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         msg = _('Matéria(s) anexada(s).')
         messages.add_message(request, messages.SUCCESS, msg)
 
-        success_url = reverse('sapl.materia:anexada_list', kwargs={'pk': kwargs['pk']})
+        success_url = reverse('sapl.materia:anexada_list',
+                              kwargs={'pk': kwargs['pk']})
         return HttpResponseRedirect(success_url)
 
 
@@ -2391,6 +2404,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             else:
                 [messages.add_message(self.request, messages.ERROR, e) for e in erros]
         return self.get(self.request, kwargs, {'form':form})
+
 
 
 class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):

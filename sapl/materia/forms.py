@@ -3,9 +3,9 @@ import logging
 import os
 
 from crispy_forms.bootstrap import Alert, InlineRadios, FormActions
+from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (HTML, Button, Column, Div, Field, Fieldset,
                                  Layout, Row, Submit)
-from crispy_forms.helper import FormHelper
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -260,7 +260,7 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         materia = super(MateriaLegislativaForm, self).save(commit)
         materia.save()
-        
+
         if self.cleaned_data['autor']:
             autoria = Autoria()
             autoria.primeiro_autor = primeiro_autor
@@ -536,7 +536,8 @@ class TramitacaoForm(ModelForm):
         materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
         materia.save()
 
-        tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
+        tramitar_anexadas = sapl.base.models.AppConfig.attr(
+            'tramitacao_materia')
         if tramitar_anexadas:
             lista_tramitacao = []
             anexadas_list = lista_anexados(materia)
@@ -546,34 +547,37 @@ class TramitacaoForm(ModelForm):
                     ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
                     ma.save()
                     lista_tramitacao.append(Tramitacao(
-                                                status=tramitacao.status,
-                                                materia=ma,
-                                                data_tramitacao=tramitacao.data_tramitacao,
-                                                unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
-                                                data_encaminhamento=tramitacao.data_encaminhamento,
-                                                unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
-                                                urgente=tramitacao.urgente,
-                                                turno=tramitacao.turno,
-                                                texto=tramitacao.texto,
-                                                data_fim_prazo=tramitacao.data_fim_prazo,
-                                                user=tramitacao.user,
-                                                ip=tramitacao.ip
-                                            ))
+                        status=tramitacao.status,
+                        materia=ma,
+                        data_tramitacao=tramitacao.data_tramitacao,
+                        unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
+                        data_encaminhamento=tramitacao.data_encaminhamento,
+                        unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
+                        urgente=tramitacao.urgente,
+                        turno=tramitacao.turno,
+                        texto=tramitacao.texto,
+                        data_fim_prazo=tramitacao.data_fim_prazo,
+                        user=tramitacao.user,
+                        ip=tramitacao.ip
+                    ))
             Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
 
 
-# Compara se os campos de duas tramitações são iguais, 
+# Compara se os campos de duas tramitações são iguais,
 # exceto os campos id, documento_id e timestamp
 def compara_tramitacoes_mat(tramitacao1, tramitacao2):
     if not tramitacao1 or not tramitacao2:
         return False
 
     lst_items = ['id', 'materia_id', 'timestamp']
-    values = [(k,v) for k,v in tramitacao1.__dict__.items() if ((k not in lst_items) and (k[0] != '_'))]
-    other_values = [(k,v) for k,v in tramitacao2.__dict__.items() if (k not in lst_items and k[0] != '_')]
+    values = [(k, v) for k, v in tramitacao1.__dict__.items()
+              if ((k not in lst_items) and (k[0] != '_'))]
+    other_values = [(k, v) for k, v in tramitacao2.__dict__.items()
+                    if (k not in lst_items and k[0] != '_')]
     return values == other_values
+
 
 class TramitacaoUpdateForm(TramitacaoForm):
     unidade_tramitacao_local = forms.ModelChoiceField(
@@ -648,7 +652,8 @@ class TramitacaoUpdateForm(TramitacaoForm):
         materia.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
         materia.save()
 
-        tramitar_anexadas = sapl.base.models.AppConfig.attr('tramitacao_materia')
+        tramitar_anexadas = sapl.base.models.AppConfig.attr(
+            'tramitacao_materia')
         if tramitar_anexadas:
             anexadas_list = lista_anexados(materia)
             for ma in anexadas_list:
@@ -670,6 +675,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
                     ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
                     ma.save()
         return nova_tram_principal
+
 
 class LegislacaoCitadaForm(ModelForm):
 
@@ -844,8 +850,10 @@ class AnexadaForm(ModelForm):
         data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
 
         if data_anexacao > data_desanexacao:
-            self.logger.error("Data de anexação posterior à data de desanexação.")
-            raise ValidationError(_("Data de anexação posterior à data de desanexação."))
+            self.logger.error(
+                "Data de anexação posterior à data de desanexação.")
+            raise ValidationError(
+                _("Data de anexação posterior à data de desanexação."))
 
         try:
             self.logger.info("Tentando obter objeto MateriaLegislativa (numero={}, ano={}, tipo={})."
@@ -874,9 +882,10 @@ class AnexadaForm(ModelForm):
         if is_anexada:
             self.logger.error("Matéria já se encontra anexada.")
             raise ValidationError(_('Matéria já se encontra anexada'))
-        
+
         ciclico = False
-        anexadas_anexada = Anexada.objects.filter(materia_principal=materia_anexada)
+        anexadas_anexada = Anexada.objects.filter(
+            materia_principal=materia_anexada)
 
         while anexadas_anexada and not ciclico:
             anexadas = []
@@ -885,15 +894,17 @@ class AnexadaForm(ModelForm):
 
                 if materia_principal == anexa.materia_anexada:
                     ciclico = True
-                else: 
+                else:
                     for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
                         anexadas.append(a)
 
             anexadas_anexada = anexadas
-        
+
         if ciclico:
-            self.logger.error("A matéria não pode ser anexada por uma de suas anexadas.")
-            raise ValidationError(_("A matéria não pode ser anexada por uma de suas anexadas."))
+            self.logger.error(
+                "A matéria não pode ser anexada por uma de suas anexadas.")
+            raise ValidationError(
+                _("A matéria não pode ser anexada por uma de suas anexadas."))
 
         cleaned_data['materia_anexada'] = materia_anexada
 
@@ -1141,14 +1152,13 @@ class DespachoInicialCreateForm(forms.Form):
         # super().__init__(*args, **kwargs)
         # kwargs.pop('instance')
         row1 = to_row(
-            [('comissao', 12),])
+            [('comissao', 12), ])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'POST'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa Básica'),
                      row1))
-
 
     def clean(self):
         super().clean()
@@ -1160,7 +1170,7 @@ class DespachoInicialCreateForm(forms.Form):
 
         if not self.is_valid():
             return self.cleaned_data
-        
+
         errors = []
         for comissao in comissoes:
             if DespachoInicial.objects.filter(
@@ -1200,6 +1210,7 @@ class DespachoInicialForm(ModelForm):
 
         return self.cleaned_data
 
+
 class AutoriaForm(ModelForm):
 
     tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
@@ -1219,7 +1230,8 @@ class AutoriaForm(ModelForm):
 
         if 'initial' in kwargs and 'materia' in kwargs['initial']:
             materia = kwargs['initial']['materia']
-            self.fields['primeiro_autor'].initial = Autoria.objects.filter(materia=materia).count() == 0
+            self.fields['primeiro_autor'].initial = Autoria.objects.filter(
+                materia=materia).count() == 0
 
         row1 = to_row([('tipo_autor', 4),
                        ('autor', 4),
@@ -1289,8 +1301,9 @@ class AutoriaMultiCreateForm(Form):
         super().__init__(*args, **kwargs)
 
         if 'initial' in kwargs and 'autores' in kwargs['initial']:
-            self.fields['primeiro_autor'].initial = kwargs['initial']['autores'].count() == 0
-        
+            self.fields['primeiro_autor'].initial = kwargs['initial']['autores'].count(
+            ) == 0
+
         row1 = to_row([('tipo_autor', 10), ('primeiro_autor', 2)])
 
         row2 = to_row([('autor', 12), ])
@@ -1999,7 +2012,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
                 ano=timezone.now().year).aggregate(Max('numero_proposicao'))
         numero__max = numero__max['numero_proposicao__max']
         inst.numero_proposicao = (
-                numero__max + 1) if numero__max else 1
+            numero__max + 1) if numero__max else 1
 
         self.gerar_hash(inst, receber_recibo)
 
@@ -2097,7 +2110,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             attrs={'readonly': 'readonly'}))
 
     regime_tramitacao = forms.ModelChoiceField(label="Regime de tramitação",
-        required=False, queryset=RegimeTramitacao.objects.all())
+                                               required=False, queryset=RegimeTramitacao.objects.all())
 
     gerar_protocolo = forms.ChoiceField(
         required=False,
