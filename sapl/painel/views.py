@@ -339,7 +339,8 @@ def painel_view(request, pk):
     context = {'head_title': str(_('Painel Plenário')), 
                'sessao_id': pk, 
                'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao'),
-               'painel_config': PainelConfig.objects.first()
+               'painel_config': PainelConfig.objects.first(),
+               'casa': CasaLegislativa.objects.last()
                }
     return render(request, 'painel/index.html', context)
 

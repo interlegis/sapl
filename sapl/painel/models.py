@@ -90,6 +90,10 @@ class PainelConfig(models.Model):
         blank=True,
         null=True)
 
+    exibir_nome_casa = models.BooleanField(
+        verbose_name=_('Exibir nome da Casa Legislativa no painel?'),
+        choices=YES_NO_CHOICES, default=True)
+
     class Meta:
         verbose_name = _('Configurações do Painel')
         verbose_name_plural = _('Configurações do Painel')

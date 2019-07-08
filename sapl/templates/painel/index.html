@@ -36,6 +36,11 @@
   <body class="painel-principal">
     <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
+    {% if painel_config.exibir_nome_casa %}
+      <div class="d-flex justify-content-center">
+        <h1 id="casa_legislativa" class="title text-title" style="color:red">{{casa.nome}}</h1>
+      </div>
+    {% endif %}
     <div class="d-flex justify-content-center">
       <h1 id="sessao_plenaria" class="title text-title"></h1>
     </div>
