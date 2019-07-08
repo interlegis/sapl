@@ -1126,39 +1126,17 @@ def filtra_tramitacao_destino_and_status(status, destino):
 class DespachoInicialCreateForm(forms.Form):
     comissao = forms.ModelMultipleChoiceField(
         queryset=Comissao.objects.filter(ativa=True),
-        widget=forms.CheckboxSelectMultiple())
-
-    class Meta:
-        model = DespachoInicial
-        fields = ['comissao']
+        widget=forms.CheckboxSelectMultiple(),
+        label=Comissao._meta.verbose_name_plural)
 
     def __init__(self, *args, **kwargs):
-        # import ipdb; ipdb.set_trace()
-        # kwargs.pop('instance')
-        self.fields['comissao'].label = 'Comissões'
-        # self.helper = FormHelper(self)
-        # self.helper.form_method = 'POST'
-
-        # self.helper.layout = Layout(
-        # Div(
-        #     Div('comissao', css_class="col-md-12"),
-        #     Div(FormActions(
-        #         Submit('salvar', 'Salvar', css_class='btn btn-primary ml-5 mt-3 float-left'),
-        #         )
-        #     ),
-        #     css_class='row',
-        # ))
-
-        # super().__init__(*args, **kwargs)
-        # kwargs.pop('instance')
         row1 = to_row(
             [('comissao', 12), ])
 
-        self.form.helper = SaplFormHelper()
-        self.form.helper.form_method = 'POST'
-        self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa Básica'),
-                     row1))
+        self.helper = SaplFormHelper()
+        self.helper.form_method = 'POST'
+        self.helper.layout = SaplFormLayout(row1)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         super().clean()

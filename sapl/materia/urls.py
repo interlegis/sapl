@@ -65,6 +65,12 @@ urlpatterns_impressos = [
 
 urlpatterns_materia = [
 
+    # Esta customização substitui a url do crud desque que ela permaneça antes
+    # da inclusão das urls de DespachoInicialCrud
+    url(r'^materia/(?P<pk>\d+)/despachoinicial/create',
+        DespachoInicialMultiCreateView.as_view(),
+        name='despacho-inicial-multi'),
+
     url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
                               AnexadaCrud.get_urls() +
                               AutoriaCrud.get_urls() +

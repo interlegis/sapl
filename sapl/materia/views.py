@@ -1539,39 +1539,6 @@ class DespachoInicialCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = DespachoInicialForm
 
-    class CreateView(MasterDetailCrud.CreateView):
-        form_class = DespachoInicialCreateForm
-        template_name = 'materia/despachoinicial_multicreate_form.html'
-
-        def get_initial(self):
-            initial = super().get_initial()
-            self.materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
-            initial['materia'] = self.materia
-            return initial
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            context['title'] = '%s <small>(%s)</small>' % (
-                _('Adicionar Vários Despachos'), self.materia)
-            context['root_pk'] = self.kwargs['pk']
-            context['subnav_template_name'] = 'materia/subnav.yaml'
-            return context
-
-        def get_success_url(self):
-            messages.add_message(
-                self.request, messages.SUCCESS,
-                _('Despachos adicionados com sucesso.'))
-            return reverse(
-                'sapl.materia:despachoinicial_list', kwargs={'pk': self.materia.pk})
-
-        def form_valid(self, form):
-            comissoes_selecionadas = form.cleaned_data['comissao']
-            for comissao in comissoes_selecionadas:
-                DespachoInicial.objects.create(
-                    materia=self.materia, comissao=comissao)
-
-            return FormView.form_valid(self, form)
-
 
 class LegislacaoCitadaCrud(MasterDetailCrud):
     model = LegislacaoCitada
