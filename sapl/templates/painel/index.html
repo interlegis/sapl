@@ -252,7 +252,7 @@
                   // Parlamentar já votou?
                   if (parlamentar.voto){
                     // Se a votação já foi finalizada, mostra todos os votos
-                    if (data['tipo_resultado']){
+                    if (data['tipo_resultado'] && data['tipo_resultado'] != "Ainda não foi votada."){
                       $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:white" >' +
                           parlamentar.nome +
                           '</td> <td style="padding-right:20px; color:white">' +
@@ -314,7 +314,7 @@
                 votacao.append('</span>');
               }
 
-              if (data['materia_legislativa_texto'] && data["status_painel"] == true){
+              if (data['materia_legislativa_texto'] && data["status_painel"]){
 
                 var votacao = $("#votacao")
 

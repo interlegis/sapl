@@ -4342,10 +4342,10 @@ class RetiradaPautaCrud(MasterDetailCrud):
 
 
 def voto_nominal_parlamentar(request):
-    parlamentar_id = request.GET['parlamentar_id']
-    parlamentar_voto = request.GET['parlamentar_voto']
-    id_ordem_expediente = request.GET['id_ordem_expediente']
-    is_ordemdia = request.GET['is_ordemdia'] == 'true'
+    parlamentar_id = request.GET.get('parlamentar_id')
+    parlamentar_voto = request.GET.get('parlamentar_voto')
+    id_ordem_expediente = request.GET.get('id_ordem_expediente')
+    is_ordemdia = request.GET.get('is_ordemdia') == 'true'
 
     if is_ordemdia:
         # Apaga o voto (opção selecionada: Não Votou)
