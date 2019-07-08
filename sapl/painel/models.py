@@ -94,6 +94,11 @@ class PainelConfig(models.Model):
         verbose_name=_('Exibir nome da Casa Legislativa no painel?'),
         choices=YES_NO_CHOICES, default=True)
 
+    mostrar_votos_antecedencia = models.BooleanField(
+        default=False, 
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Mostrar votos informados antes do fim da votação?'))
+
     class Meta:
         verbose_name = _('Configurações do Painel')
         verbose_name_plural = _('Configurações do Painel')
