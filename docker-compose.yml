@@ -42,7 +42,9 @@ sapl:
     USE_CHANNEL_LAYERS: 'True'
     PORT_CHANNEL_LAYERS: 6379
     HOST_CHANNEL_LAYERS: saplredis
+    USE_SOLR: 'False'
     TZ: America/Sao_Paulo
+  volumes:
     - sapl_data:/var/interlegis/sapl/data
     - sapl_media:/var/interlegis/sapl/media
   links:
