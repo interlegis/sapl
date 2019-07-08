@@ -970,7 +970,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Tramitações por fim de prazo'),
+            Fieldset(_('Tramitações'),
                      row1, row2, row3,
                      form_actions(label='Pesquisar'))
         )
