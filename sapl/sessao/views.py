@@ -40,14 +40,13 @@ from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, filiacao_data
 
-from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
-                    ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
+from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
+                    JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm, RetiradaPautaForm, OradorOrdemDiaForm)
-from .models import (Bancada, CargoBancada, CargoMesa,
-                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
+from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
@@ -57,7 +56,6 @@ from .models import (Bancada, CargoBancada, CargoMesa,
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
-CargoBancadaCrud = CrudAux.build(CargoBancada, '')
 TipoResultadoVotacaoCrud = CrudAux.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
@@ -473,11 +471,11 @@ class TipoExpedienteCrud(CrudAux):
     model = TipoExpediente
 
     class DeleteView(CrudAux.DeleteView):
-        
+
         def delete(self, *args, **kwargs):
             self.object = self.get_object()
-            
-            # Se todas as referências a este tipo forem de conteúdo vazio, 
+
+            # Se todas as referências a este tipo forem de conteúdo vazio,
             # significa que pode ser apagado
             if self.object.expedientesessao_set.filter(conteudo='').count() == \
                 self.object.expedientesessao_set.all().count():
@@ -693,7 +691,7 @@ class OradorExpedienteCrud(OradorCrud):
                 context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
-        
+
     class DetailView(MasterDetailCrud.DetailView):
 
         def get_context_data(self, **kwargs):
@@ -737,7 +735,7 @@ class OradorExpedienteCrud(OradorCrud):
             if tipo_sessao.nome == "Solene":
                 context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
-        
+
 
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
@@ -808,16 +806,6 @@ class OradorOrdemDiaCrud(OradorCrud):
             initial.update({'numero': self.object.numero_ordem})
 
             return initial
-
-
-class BancadaCrud(CrudAux):
-    model = Bancada
-
-    class CreateView(CrudAux.CreateView):
-        form_class = BancadaForm
-
-        def get_success_url(self):
-            return reverse('sapl.sessao:bancada_list')
 
 
 def recuperar_numero_sessao_view(request):
@@ -1331,7 +1319,7 @@ class MesaView(FormMixin, DetailView):
         if tipo_sessao.nome == "Solene":
             context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
-        
+
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:mesa', kwargs={'pk': pk})
@@ -1513,7 +1501,7 @@ def resumo_ordenacao(request):
     }
     if request.method == 'GET':
         return render(request, 'sessao/resumo_ordenacao.html', context)
-    elif request.method == 'POST':        
+    elif request.method == 'POST':
         ordenacao.primeiro = ast.literal_eval(request.POST['0'])[0]
         ordenacao.segundo = ast.literal_eval(request.POST['1'])[0]
         ordenacao.terceiro = ast.literal_eval(request.POST['2'])[0]
@@ -2328,7 +2316,7 @@ class VotacaoView(SessaoPermissionMixin):
 
         ordem_id = kwargs['oid']
         ordem = OrdemDia.objects.get(id=ordem_id)
-        
+
         presentes_id = [
             presente.parlamentar.id for presente in PresencaOrdemDia.objects.filter(
                 sessao_plenaria_id=self.kwargs['pk']
@@ -3013,7 +3001,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
 
         expediente_id = kwargs['oid']
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
-        
+
         presentes_id = [
             presente.parlamentar.id for presente in SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=self.kwargs['pk']
@@ -3834,7 +3822,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
             if request.POST['origem'] == 'ordem':
                 ordens = OrdemDia.objects.filter(
                     id__in=request.POST.getlist('marcadas_1'))
-                
+
                 presentes_id = [
                     presente.parlamentar.id for presente in PresencaOrdemDia.objects.filter(
                         sessao_plenaria_id=self.kwargs['pk']
@@ -3853,7 +3841,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
             else:
                 expedientes = ExpedienteMateria.objects.filter(
                     id__in=request.POST.getlist('marcadas_1'))
-                
+
                 presentes_id = [
                     presente.parlamentar.id for presente in SessaoPlenariaPresenca.objects.filter(
                         sessao_plenaria_id=self.kwargs['pk']
@@ -3993,7 +3981,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
         if self.request.POST['origem'] == 'ordem':
             ordens = OrdemDia.objects.filter(
                 id__in=self.request.POST.getlist('ordens'))
-                
+
             presentes_id = [
                 presente.parlamentar.id for presente in PresencaOrdemDia.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk']
@@ -4007,12 +3995,12 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
             qtde_ativos = len(presenca_ativos)
 
             context.update({'ordens': ordens,
-                            'total_presentes': qtde_presentes, 
+                            'total_presentes': qtde_presentes,
                             'total_votantes': qtde_ativos})
         elif self.request.POST['origem'] == 'expediente':
             expedientes = ExpedienteMateria.objects.filter(
                 id__in=self.request.POST.getlist('expedientes'))
-                
+
             presentes_id = [
                 presente.parlamentar.id for presente in SessaoPlenariaPresenca.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk']

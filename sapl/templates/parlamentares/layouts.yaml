@@ -116,6 +116,17 @@ ComposicaoColigacao:
   {% trans 'Nome do Partido' %}:
   - partido
 
+Bancada:
+  {% trans 'Bancada' %}:
+  - legislatura
+  - nome partido
+  - data_criacao data_extincao
+  - descricao
+
+CargoBancada:
+  {% trans 'Cargo de Bancada' %}:
+  - nome_cargo:8 cargo_unico
+
 Frente:
   {% trans 'Frente' %}:
   - nome

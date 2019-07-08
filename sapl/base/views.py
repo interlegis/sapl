@@ -41,12 +41,13 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexada,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa
-from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
-                                      StatusTramitacaoAdministrativo, 
+from sapl.parlamentares.models import (Parlamentar, Legislatura, Mandato,
+                                       Filiacao, SessaoLegislativa, Bancada)
+from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo,
+                                      StatusTramitacaoAdministrativo,
                                       DocumentoAdministrativo, Anexado)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, Bancada)
+                                SessaoPlenariaPresenca)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
                         intervalos_tem_intersecao, remover_acentos)
@@ -320,7 +321,7 @@ class RelatoriosListView(TemplateView):
         context = super(TemplateView, self).get_context_data(**kwargs)
         estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
         context['estatisticas_acesso_normas'] = True if estatisticas_acesso_normas == 'S' else False
-        
+
         return context
 
 
@@ -364,7 +365,7 @@ class RelatorioPresencaSessaoView(FilterView):
         # Verifica se os campos foram preenchidos
         if not self.filterset.form.is_valid():
             return context
-        
+
         cd = self.filterset.form.cleaned_data
         if not cd['data_inicio'] and not cd['sessao_legislativa'] \
             and not cd['legislatura']:
@@ -408,13 +409,13 @@ class RelatorioPresencaSessaoView(FilterView):
 
         elif legislatura_pk and not sessao_legislativa_pk:
             _range = [legislatura.data_inicio, legislatura.data_fim]
-            
+
         elif sessao_legislativa_pk:
             _range = [sessao_legislativa.data_inicio, sessao_legislativa.data_fim]
 
         param0 = {'sessao_plenaria__data_inicio__range': _range}
 
-            
+
         # Parlamentares com Mandato no intervalo de tempo (Ativos)
         parlamentares_qs = parlamentares_ativos(
             _range[0], _range[1]).order_by('nome_parlamentar')
@@ -1105,7 +1106,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
 
 def anexados_ciclicos(ofMateriaLegislativa):
     ciclicos = []
-    
+
     if ofMateriaLegislativa:
         principais = Anexada.objects.values(
             'materia_principal'
@@ -1201,7 +1202,7 @@ class ListarAnexadasCiclicasView(PermissionRequiredMixin, ListView):
 
         paginator = context['paginator']
         page_obj = context['page_obj']
-        
+
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages
         )
@@ -1357,7 +1358,7 @@ class ListarParlFiliacoesIntersecaoView(PermissionRequiredMixin, ListView):
         context[
             'NO_ENTRIES_MSG'
             ] = 'Nenhum encontrado.'
-        return context        
+        return context
 
 
 def parlamentares_mandatos_intersecao():
@@ -1508,7 +1509,7 @@ class ListarFiliacoesSemDataFiliacaoView(PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         return filiacoes_sem_data_filiacao()
-    
+
     def get_context_data(self, **kwargs):
         context = super(
             ListarFiliacoesSemDataFiliacaoView, self
@@ -2004,7 +2005,7 @@ def pesquisa_textual(request):
             # Index and db are out of sync. Object has been deleted from database
             continue
         dici = filtro_campos(e.object.__dict__)
-        sec_dict['objeto'] = str(dici) 
+        sec_dict['objeto'] = str(dici)
         sec_dict['text'] = str(e.object.ementa)
 
         sec_dict['model'] = str(type(e.object))

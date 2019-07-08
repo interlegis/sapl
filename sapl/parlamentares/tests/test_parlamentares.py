@@ -2,7 +2,9 @@ import pytest
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_mommy import mommy
+from datetime import datetime
 
+from sapl.parlamentares import forms
 from sapl.parlamentares.forms import FrenteForm, LegislaturaForm, MandatoForm
 from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
@@ -350,3 +352,59 @@ def test_frente_form_valido():
                             })
 
     assert form.is_valid()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_bancada_form():
+    form = forms.BancadaForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['legislatura'] == [_('Este campo é obrigatório.')]
+    assert errors['nome'] == [_('Este campo é obrigatório.')]
+    assert errors['data_criacao'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 3
+
+
+def data(valor):
+    return datetime.strptime(valor, '%Y-%m-%d').date()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_bancada_form_valido():
+    legislatura = mommy.make(Legislatura,
+                             data_inicio=data('2017-11-10'),
+                             data_fim=data('2017-12-31'),
+                             )
+    partido = mommy.make(Partido)
+
+    form = forms.BancadaForm(data={'legislatura': str(legislatura.pk),
+                                   'nome': 'Nome da Bancada',
+                                   'partido': str(partido.pk),
+                                   'data_criacao': '10/11/2017',
+                                   'data_extincao': '10/12/2017',
+                                   'descricao': 'teste'
+                                   })
+
+    assert form.is_valid()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_bancada_form_datas_invalidas():
+    legislatura = mommy.make(Legislatura,
+                             data_inicio=data('2017-11-10'),
+                             data_fim=data('2017-12-31'),
+                             )
+    partido = mommy.make(Partido)
+
+    form = forms.BancadaForm(data={'legislatura': str(legislatura.pk),
+                                   'nome': 'Nome da Bancada',
+                                   'partido': str(partido.pk),
+                                   'data_criacao': '2016-11-01',
+                                   'data_extincao': '2016-10-01',
+                                   'descricao': 'teste'
+                                   })
+    assert not form.is_valid()
