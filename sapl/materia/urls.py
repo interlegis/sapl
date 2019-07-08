@@ -29,7 +29,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 MateriaPesquisaSimplesView,
                                 DespachoInicialMultiCreateView)
 from sapl.norma.views import NormaPesquisaSimplesView
-from sapl.protocoloadm.views import (FichaPesquisaAdmView, FichaSelecionaAdmView)
+from sapl.protocoloadm.views import (
+    FichaPesquisaAdmView, FichaSelecionaAdmView)
 
 from .apps import AppConfig
 
@@ -56,13 +57,14 @@ urlpatterns_impressos = [
         name='impressos_materia_pesquisa'),
     url(r'^materia/impressos/ficha-pesquisa-adm/$',
         FichaPesquisaAdmView.as_view(),
-        name= 'impressos_ficha_pesquisa_adm'),
+        name='impressos_ficha_pesquisa_adm'),
     url(r'^materia/impressos/ficha-seleciona-adm/$',
         FichaSelecionaAdmView.as_view(),
-        name= 'impressos_ficha_seleciona_adm'),
+        name='impressos_ficha_seleciona_adm'),
 ]
 
 urlpatterns_materia = [
+
     url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
                               AnexadaCrud.get_urls() +
                               AutoriaCrud.get_urls() +
@@ -77,7 +79,8 @@ urlpatterns_materia = [
     url(r'^materia/(?P<pk>[0-9]+)/create_simplificado$',
         CriarProtocoloMateriaView.as_view(),
         name='materia_create_simplificado'),
-    url(r'^materia/recuperar-materia', recuperar_materia, name='recuperar_materia'),
+    url(r'^materia/recuperar-materia',
+        recuperar_materia, name='recuperar_materia'),
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
         MateriaTaView.as_view(), name='materia_ta'),
 
@@ -96,6 +99,7 @@ urlpatterns_materia = [
     url(r'^materia/(?P<pk>\d+)/autoria/multicreate',
         AutoriaMultiCreateView.as_view(),
         name='autoria_multicreate'),
+
 
     url(r'^materia/acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
         name='acessorio_em_lote'),
@@ -138,8 +142,6 @@ urlpatterns_proposicao = [
     url(r'^proposicao/(?P<pk>\d+)/retornar', RetornarProposicao.as_view(),
         name='retornar-proposicao'),
 
-    url(r'^materia/(?P<pk>\d+)/despachoinicialmulti/create', DespachoInicialMultiCreateView.as_view(),
-        name='despacho-inicial-multi'),
 ]
 
 urlpatterns_sistema = [
