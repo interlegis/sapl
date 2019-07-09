@@ -11,6 +11,7 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
@@ -148,6 +149,24 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
                     raise ValidationError("A data de abertura da sessão deve estar "
                                           "entre a data de início e fim tanto da "
                                           "Legislatura quanto da Sessão Legislativa.")
+
+
+        upload_pauta = self.cleaned_data.get('upload_pauta', False)
+        upload_ata = self.cleaned_data.get('upload_ata', False)
+        upload_anexo = self.cleaned_data.get('upload_anexo', False)
+
+        if upload_pauta and upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo pauta da sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024))
+        
+        if upload_ata and upload_ata.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo ata da sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024))
+        
+        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo anexo da sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+        
 
         return self.cleaned_data
 
