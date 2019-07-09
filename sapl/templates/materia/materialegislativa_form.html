@@ -99,10 +99,10 @@
     $("#fundo_modal, #close_model_btn").click(function(){ $("#fundo_modal").hide(); });
     $("#meu_modal").click(function(e){ e.stopPropagation(); });
 
-    $("select#id_ano.select.form-control").blur(function(){
+    $("select#id_ano.select.form-control").change(function(){
       verifica_ano();
     });
-    $("input#id_data_apresentacao.dateinput.form-control").blur(function(){
+    $("input#id_data_apresentacao.dateinput.form-control").change(function(){
       verifica_ano();
     });
   });
