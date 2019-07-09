@@ -5,6 +5,7 @@ from crispy_forms.bootstrap import InlineRadios, Alert, FormActions
 from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div, Submit
 from django import forms
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
 from django.db import models, transaction
@@ -1160,7 +1161,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
         if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
             raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_integral.size/1024)/1024))
 
         return self.cleaned_data
 

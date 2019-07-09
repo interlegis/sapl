@@ -253,7 +253,7 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
             raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_original.size/1024)/1024))
 
         return cleaned_data
 
@@ -1863,12 +1863,11 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)
+
         if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
-            max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
-            self.logger.error(
-                "- Arquivo muito grande. ( > {0}MB )".format(max_size))
-            raise ValidationError(
-                "Arquivo muito grande. ( > {0}MB )".format(max_size))
+            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_original.size/1024)/1024))
+
         return texto_original
 
     def gerar_hash(self, inst, receber_recibo):
@@ -1922,12 +1921,6 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
                 self.logger.info("MateriaLegislativa vinculada (tipo_id={}, ano={}, numero={}) com sucesso."
                                  .format(tm, am, nm))
                 cd['materia_de_vinculo'] = materia_de_vinculo
-
-        texto_original = self.cleaned_data.get('texto_original', False)
-
-        if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
 
         return cd
 

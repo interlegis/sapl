@@ -156,15 +156,15 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
         if upload_pauta and upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo pauta da sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+            raise ValidationError("O arquivo Pauta da Sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
                 .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024))
         
         if upload_ata and upload_ata.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo ata da sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+            raise ValidationError("O arquivo Ata da Sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
                 .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024))
         
         if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo anexo da sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+            raise ValidationError("O arquivo Anexo da Sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
                 .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
         
 
@@ -675,6 +675,12 @@ class OradorForm(ModelForm):
                 "Já existe orador nesta posição de ordem de pronunciamento"
             ))
 
+        upload_anexo = self.cleaned_data.get('upload_anexo', False)
+
+        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Anexo do Orador deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+
         return self.cleaned_data
 
     class Meta:
@@ -709,6 +715,12 @@ class OradorExpedienteForm(ModelForm):
         if ordem and (cleaned_data['numero_ordem'] != numero):
             raise ValidationError(_(
                 'Já existe orador nesta posição da ordem de pronunciamento'))
+
+        upload_anexo = self.cleaned_data.get('upload_anexo', False)
+
+        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Anexo do Orador deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
 
         return self.cleaned_data
 
@@ -746,6 +758,12 @@ class OradorOrdemDiaForm(ModelForm):
             raise ValidationError(_(
                 "Já existe orador nesta posição de ordem de pronunciamento"
             ))
+
+        upload_anexo = self.cleaned_data.get('upload_anexo', False)
+
+        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Anexo do Orador deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
 
         return self.cleaned_data
 
@@ -984,6 +1002,12 @@ class JustificativaAusenciaForm(ModelForm):
             return self.cleaned_data
 
         sessao_plenaria = self.instance.sessao_plenaria
+
+        upload_anexo = self.cleaned_data.get('upload_anexo', False)
+
+        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Anexo de Justificativa deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
 
         if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
             raise ValidationError(
