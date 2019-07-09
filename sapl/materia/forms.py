@@ -249,6 +249,12 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
                                     "pode ser diferente do ano na data de "
                                     "origem externa"))
 
+        texto_original = self.cleaned_data.get('texto_original', False)
+
+        if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+
         return cleaned_data
 
     def save(self, commit=False):
@@ -338,6 +344,20 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
     class Meta:
         model = DocumentoAcessorio
         fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
+    
+    def clean(self):
+        super(DocumentoAcessorioForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        arquivo = self.cleaned_data.get('arquivo', False)
+
+        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+
+        return self.cleaned_data
 
 
 class RelatoriaForm(ModelForm):
@@ -1756,7 +1776,6 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
                   'observacao',
                   'texto_original',
                   'materia_de_vinculo',
-
                   'tipo_materia',
                   'numero_materia',
                   'ano_materia',
@@ -1903,6 +1922,13 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
                 self.logger.info("MateriaLegislativa vinculada (tipo_id={}, ano={}, numero={}) com sucesso."
                                  .format(tm, am, nm))
                 cd['materia_de_vinculo'] = materia_de_vinculo
+
+        texto_original = self.cleaned_data.get('texto_original', False)
+
+        if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+
         return cd
 
     def save(self, commit=True):
