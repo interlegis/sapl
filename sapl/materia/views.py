@@ -1529,6 +1529,11 @@ class DespachoInicialMultiCreateView(PermissionRequiredForAppCrudMixin, FormView
 
         return FormView.form_valid(self, form)
 
+    @property
+    def cancel_url(self):
+        return reverse(
+            'sapl.materia:despachoinicial_list', kwargs={'pk': self.materia.pk})
+
 
 class DespachoInicialCrud(MasterDetailCrud):
     model = DespachoInicial
