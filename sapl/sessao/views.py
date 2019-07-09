@@ -4327,3 +4327,61 @@ class RetiradaPautaCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
+
+
+def voto_nominal_parlamentar(request):
+    parlamentar_id = request.GET.get('parlamentar_id')
+    parlamentar_voto = request.GET.get('parlamentar_voto')
+    id_ordem_expediente = request.GET.get('id_ordem_expediente')
+    is_ordemdia = request.GET.get('is_ordemdia') == 'true'
+
+    if is_ordemdia:
+        # Apaga o voto (opção selecionada: Não Votou)
+        if parlamentar_voto == "Não ":
+            VotoParlamentar.objects.filter(ordem_id=id_ordem_expediente, parlamentar_id=parlamentar_id).delete()
+        else:
+            # Salva o voto
+            parlamentar_voto = "Abstenção" if parlamentar_voto == 'Abst'  else parlamentar_voto[:3]
+            try:
+                voto = VotoParlamentar.objects.get(
+                    parlamentar_id=parlamentar_id,
+                    ordem_id=id_ordem_expediente)
+            except ObjectDoesNotExist:
+                voto = VotoParlamentar.objects.create(
+                    parlamentar_id=parlamentar_id,
+                    voto=parlamentar_voto,
+                    user=request.user,
+                    ip=get_client_ip(request),
+                    ordem_id=id_ordem_expediente)
+            else:
+                voto.voto = parlamentar_voto
+                voto.ip = get_client_ip(request)
+                voto.user = request.user
+                voto.save()
+
+    # expediente
+    else:
+        # Apaga o voto (opção selecionada: Não Votou)
+        if parlamentar_voto == "Não ":
+            VotoParlamentar.objects.filter(expediente_id=id_ordem_expediente, parlamentar_id=parlamentar_id).delete()
+        # Salva o voto
+        else:
+            parlamentar_voto = parlamentar_voto[:3]
+            try:
+                voto = VotoParlamentar.objects.get(
+                    parlamentar_id=parlamentar_id,
+                    expediente_id=id_ordem_expediente)
+            except ObjectDoesNotExist:
+                voto = VotoParlamentar.objects.create(
+                    parlamentar_id=parlamentar_id,
+                    voto=parlamentar_voto,
+                    user=request.user,
+                    ip=get_client_ip(request),
+                    expediente_id=id_ordem_expediente)
+            else:
+                voto.voto = parlamentar_voto
+                voto.ip = get_client_ip(request)
+                voto.user = request.user
+                voto.save()
+
+    return JsonResponse({})

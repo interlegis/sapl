@@ -531,6 +531,13 @@ def get_votos(response, materia):
                 votos_parlamentares = VotoParlamentar.objects.filter(
                     expediente_id=materia.id).order_by(
                         'parlamentar__nome_parlamentar')
+            
+            if PainelConfig.attr('mostrar_votos_antecedencia'):
+                response['numero_votos_sim'] = votos_parlamentares.filter(voto="Sim").count()
+                response['numero_votos_nao'] = votos_parlamentares.filter(voto="Não").count()
+                response['numero_abstencoes'] = votos_parlamentares.filter(voto="Abstenção").count()
+                response['total_votos'] = response['numero_votos_sim'] + response['numero_votos_nao'] + \
+                                          response['numero_abstencoes']
 
             for i, p in enumerate(response['presentes']):
                 try:
