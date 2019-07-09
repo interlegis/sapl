@@ -438,7 +438,7 @@ class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
         arquivo = self.cleaned_data.get('arquivo', False)
 
         if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
                 .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
 
         return self.cleaned_data
@@ -465,7 +465,7 @@ class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
         arquivo = self.cleaned_data.get('arquivo', False)
 
         if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
                 .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
 
         return self.cleaned_data
