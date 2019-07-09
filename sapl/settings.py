@@ -239,7 +239,7 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
 SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 EMAIL_RUNNING = None
 
-MAX_DOC_UPLOAD_SIZE = 60 * 1024 * 1024  # 60MB
+MAX_DOC_UPLOAD_SIZE = 80 * 1024 * 1024  # 80MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 
 # Internationalization
