@@ -657,6 +657,20 @@ class DocumentoAcessorioAdministrativoForm(FileFieldCheckMixin, ModelForm):
             'data': forms.DateInput(format='%d/%m/%Y')
         }
 
+    def clean(self):
+        super(DocumentoAcessorioAdministrativoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        arquivo = self.cleaned_data.get('arquivo', False)
+
+        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+
+        return self.cleaned_data
+
 
 class TramitacaoAdmForm(ModelForm):
 
@@ -1141,6 +1155,12 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                     raise ValidationError(_('Protocolo %s/%s já possui'
                                             ' documento vinculado'
                                             % (numero_protocolo, ano_protocolo)))
+
+        texto_integral = self.cleaned_data.get('texto_integral', False)
+
+        if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
 
         return self.cleaned_data
 
