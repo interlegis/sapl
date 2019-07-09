@@ -345,8 +345,8 @@ class RelatorioPresencaSessaoView(FilterView):
         
         cd = self.filterset.form.cleaned_data
         if not cd['data_inicio'] and not cd['sessao_legislativa'] \
-            and not cd['legislatura'] and not cd['tipo']:
-            msg = _("Formulário inválido! Preencha pelo menos algum dos campos.")
+            and not cd['legislatura']:
+            msg = _("Formulário inválido! Preencha pelo menos algum dos campos Período, Legislatura ou Sessão Legislativa.")
             messages.error(self.request, msg)
             return context
 
@@ -375,6 +375,12 @@ class RelatorioPresencaSessaoView(FilterView):
             sessao_legislativa = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
             context['sessao_legislativa'] = sessao_legislativa
 
+        tipo_sessao_plenaria_pk = self.request.GET.get('tipo')
+        context['tipo'] = ''
+        if tipo_sessao_plenaria_pk:
+            param0['sessao_plenaria__tipo_id'] = tipo_sessao_plenaria_pk
+            context['tipo'] = TipoSessaoPlenaria.objects.get(id=tipo_sessao_plenaria_pk)
+
         _range = []
 
         if ('data_inicio_0' in self.request.GET) and self.request.GET['data_inicio_0'] and \
@@ -388,7 +394,7 @@ class RelatorioPresencaSessaoView(FilterView):
         elif sessao_legislativa_pk:
             _range = [sessao_legislativa.data_inicio, sessao_legislativa.data_fim]
 
-        param0 = {'sessao_plenaria__data_inicio__range': _range}
+        param0.update({'sessao_plenaria__data_inicio__range': _range})
 
             
         # Parlamentares com Mandato no intervalo de tempo (Ativos)
@@ -472,9 +478,6 @@ class RelatorioPresencaSessaoView(FilterView):
             ' - ' + self.request.GET['data_inicio_1'])
         context['sessao_legislativa'] = ''
         context['legislatura'] = ''
-
-        tipo_pk = self.request.GET.get('tipo')
-        context['tipo'] = '' if not tipo_pk else TipoSessaoPlenaria.objects.get(id=tipo_pk)
 
         if sessao_legislativa_pk:
             context['sessao_legislativa'] = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
