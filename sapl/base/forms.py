@@ -875,6 +875,7 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         model = SessaoPlenaria
         fields = ['data_inicio',
                   'sessao_legislativa',
+                  'tipo',
                   'legislatura']
 
     def __init__(self, *args, **kwargs):
@@ -884,8 +885,9 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
 
         row1 = to_row([('data_inicio', 12)])
-        row2 = to_row([('legislatura', 6),
-                       ('sessao_legislativa', 6)])
+        row2 = to_row([('legislatura', 4),
+                       ('sessao_legislativa', 4),
+                       ('tipo', 4)])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
