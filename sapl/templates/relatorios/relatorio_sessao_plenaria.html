@@ -1,4 +1,5 @@
 {% load static %}
+{% load webpack_static from webpack_loader %}
 <!DOCTYPE html>
 <meta charset="utf-8">
 </meta>
@@ -40,7 +41,7 @@
             }
         }
    </style>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}"> 
+    <link rel="stylesheet" href="{% webpack_static 'sapl/css/relatorio.css'%}">
 </head>
 
 <body>
