@@ -205,13 +205,11 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
         super(NormaJuridicaForm, self).clean()
 
         texto_integral = self.cleaned_data.get('texto_integral', False)
+
         if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
-            max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
-            tam_fornecido = str(texto_integral.size / (1024 * 1024))
-            self.logger.error("Arquivo muito grande ({}MB). ( Tamanho máximo permitido: {}MB )".format(
-                tam_fornecido, max_size))
-            raise ValidationError(
-                "Arquivo muito grande. ( > {0}MB )".format(max_size))
+            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_integral.size/1024)/1024))
+
         return texto_integral
 
     def save(self, commit=False):
@@ -285,16 +283,16 @@ class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
 
     def clean(self):
         cleaned_data = super(AnexoNormaJuridicaForm, self).clean()
+        
         if not self.is_valid():
             return cleaned_data
+        
         anexo_arquivo = self.cleaned_data.get('anexo_arquivo', False)
+
         if anexo_arquivo and anexo_arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            max_size = str(MAX_DOC_UPLOAD_SIZE / (1024 * 1024))
-            tam_fornecido = str(anexo_arquivo.size / (1024 * 1024))
-            self.logger.error("Arquivo muito grande ({}MB). ( Tamanho máximo permitido: {}MB )".format(
-                tam_fornecido, max_size))
-            raise ValidationError(
-                "Arquivo muito grande. ( > {0}MB )".format(max_size))
+            raise ValidationError("O Arquivo Anexo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (anexo_arquivo.size/1024)/1024))
+
         return cleaned_data
 
     def save(self, commit=False):

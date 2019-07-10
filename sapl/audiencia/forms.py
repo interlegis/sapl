@@ -1,6 +1,7 @@
 import logging
 
 from django import forms
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
@@ -106,8 +107,6 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
             else:
                 cleaned_data['numero'] = 1
 
-
-
         if self.cleaned_data['hora_inicio'] and self.cleaned_data['hora_fim']:
             if (self.cleaned_data['hora_fim'] <
                 self.cleaned_data['hora_inicio']):
@@ -115,6 +114,22 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
                     'de início({})'.format(self.cleaned_data['hora_fim'], self.cleaned_data['hora_inicio']))
                     self.logger.error('Hora de fim anterior à hora de início.')
                     raise ValidationError(msg)
+
+        upload_pauta = self.cleaned_data.get('upload_pauta', False)
+        upload_ata = self.cleaned_data.get('upload_ata', False)
+        upload_anexo = self.cleaned_data.get('upload_anexo', False)
+
+        if upload_pauta and upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Pauta da Audiência Pública deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024))
+        
+        if upload_ata and upload_ata.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Ata da Audiência Pública deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024))
+        
+        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Anexo da Audiência Pública deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
 
         return cleaned_data
 
@@ -140,3 +155,17 @@ class AnexoAudienciaPublicaForm(forms.ModelForm):
                      row1, row2))
         super(AnexoAudienciaPublicaForm, self).__init__(
             *args, **kwargs)
+
+    def clean(self):
+        super(AnexoAudienciaPublicaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        arquivo = self.cleaned_data.get('arquivo', False)
+
+        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+
+        return self.cleaned_data
