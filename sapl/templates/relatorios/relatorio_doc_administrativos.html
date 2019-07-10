@@ -1,8 +1,6 @@
 {% load i18n %}
 {% load common_tags %}
 {% load crispy_forms_tags staticfiles %}
-{% load webpack_static from webpack_loader %}
-
 
 <head>
     <style>
@@ -40,7 +38,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="{% webpack_static '/sapl/css/relatorio.css'%}">
+    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
 </head>	
 
 <body>
