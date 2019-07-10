@@ -1697,12 +1697,6 @@ class TramitacaoEmLoteForm(ModelForm):
                         'maior que a data de tramitação!')
                 raise ValidationError(msg)
 
-        if cleaned_data['unidade_tramitacao_local'] == cleaned_data['unidade_tramitacao_destino']:
-            msg = _('Unidade tramitação local deve ser diferente da unidade tramitação destino.')
-            self.logger.error('Unidade tramitação local ({}) deve ser diferente da unidade tramitação destino'
-                                .format(cleaned_data['unidade_tramitacao_local']))
-            raise ValidationError(msg)
-
         return cleaned_data
 
     @transaction.atomic
