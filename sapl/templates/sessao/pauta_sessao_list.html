@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n staticfiles %}
-
+{% load webpack_static from webpack_loader %}
 {% block base_content %}
 
 	{% if not page_obj %}
@@ -18,7 +18,7 @@
 					<tr>
 						<td>{{sessao}}</td>
 						<td><a href="{% url 'sapl.relatorios:relatorio_sessao_plenaria' sessao.id %}">
-							<img src="{% static 'img/file.png' %}">
+							<img src="{% webpack_static 'img/file.png' %}">
 						</a></td>
 					</tr>
 				{% endfor %}

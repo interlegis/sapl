@@ -1,6 +1,7 @@
 {% extends "crud/list.html" %}
 {% load i18n %}
 {% load crispy_forms_tags staticfiles %}
+{% load webpack_static from webpack_loader %}
 
 {% block base_content %}
   {% if not filter_url %}
@@ -26,7 +27,7 @@
     				<tr>
     					<td>{{sessao}}</td>
     					<td><a href="{{ sessao.upload_ata.url }}">
-    						<img src="{% static 'img/file.png' %}">
+    						<img src="{% webpack_static  'img/file.png' %}">
     					</a></td>
     				</tr>
     			{% endfor %}
