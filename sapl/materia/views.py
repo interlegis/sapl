@@ -51,7 +51,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm,
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
-from sapl.settings import MEDIA_ROOT
+from sapl.settings import MEDIA_ROOT, MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH_PROPOSICAO,
                         gerar_hash_arquivo, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, montar_row_autor,
@@ -2115,6 +2115,13 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         if len(request.POST['autor']) > 50:
             msg = _('Autor tem que ter menos do que 50 caracteres.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        if request.FILES['arquivo'].size > MAX_DOC_UPLOAD_SIZE:
+            msg = _("O arquivo Anexo de Texto Integral deve ser menor que {0:.1f} MB, \
+                o tamanho atual desse arquivo é {1:.1f} MB" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (request.FILES['arquivo'].size/1024)/1024))
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
