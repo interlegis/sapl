@@ -1,5 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+{% load common_tags %}
 {% block actions %} {% endblock %}
 
 {% block detail_content %}
@@ -51,54 +52,102 @@
 		</fieldset>
 		<br />
 		<fieldset class="form-group">
+			
+			<div class="context-actions clearfix">
+  			<div class="actions btn-group float-right" style="margin:10px" role="group">
+	  			<button type="button" class="btn btn-outline-primary btn-lg" data-toggle="modal" data-target="#addModal">Adicionar Novo Membro</button>
+  			</div>
+  		</div>
+
+
+  			
 			<legend>Escolha da Composição da Mesa Diretora</legend>
-	    <div class="row">
-	      <div class="col-md-4">
-	        <label>Composição da Mesa Diretora</label>
-	        <select multiple size="5" class="form-control" id="id_composicao_mesa" name="composicao_mesa">
-	          {% for p in composicao_mesa %}
-		          <option value="{{p.id}}">
-		          	{{p.parlamentar}} || {{p.cargo}}
-		          </option>
-	          {% endfor %}
-	        </select>
-	      </div>
+			<table class="table" id="id_composicao_mesa">
+  			<thead>
+  			  <tr>
+  			    <th scope="col">Parlamentar</th>
+  			    <th scope="col">Cargo</th>
+  			    <th scope="col">Data de Inicio</th>
+  			    <th scope="col">Data Fim</th>
+						<th scope="col">Apagar</th>
+  			  </tr>
+  			</thead>
+  			<tbody>
+					{% for p in composicao_mesa %}
+					<tr>
+  			    <td>{{p.parlamentar}}</td>
+  			    <td>{{p.cargo}}</td>
+  			    <td>{{p.data_inicio|date:"d/m/Y"}}</td>
+  			    <td>{{p.data_fim|date:"d/m/Y"}}</td>
+  			    <td><button id="{{p.id}}" onclick="apaga_membro_mesa(this)" type="button" class="btn btn-danger">Apagar</button></td>
 
-	      <div class="col-md-4" align="center">
-					<br /><br />
-        	{% if perms.parlamentares.add_cargomesa %}
-        		<input type="submit" style="display: none" name="Incluir" id="id_incluir" Value="Incluir" class="btn btn-primary" />
-        	{% endif %}
-	        <br />
-	        <br />
-	        {% if perms.parlamentares.add_composicaomesa %}
-	        	<input type="submit" style="display: none" name="Excluir" id="id_excluir" Value="Excluir" class="btn btn-danger" />
-	        {% endif %}
-	      </div>
+  			  </tr>
+					{% endfor %}
+  			</tbody>
+			</table>
+			</div>
 
-	      <div class="col-md-4">
-	        <label id='parlamentar-cargo-title' style="display: none">Parlamentar | Cargo</label>
-	        <select class="form-control" name="parlamentar" id="id_parlamentar" style="display: none">
-	          {% for p in parlamentares %}
-	          	<option value="{{p.id}}">{{p.nome_parlamentar}}</option>
-	          {% endfor %}
-	        </select>
-					<br />
-	        <select class="form-control" name="cargo" id="id_cargo" style="display: none">
-	          {% for c in cargos_vagos %}
-	          	<option value="{{c.id}}">{{c}}</option>
-	          {% endfor %}
-	        </select>
-	      </div>
-
-	    </div>
 		</fieldset>
+		<!-- Modal -->
+		<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title" id="addModalLabel">Novo Membro Da Mesa</h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+		        
+						<div id='parlamentar-cargo-title'>
+		  				<div>
+	        			<p>Parlamentar</p>
+	        			<select class="form-control" name="parlamentar" id="id_parlamentar" style="display: none">
+	        			  {% for p in parlamentares %}
+	        			  	<option value="{{p.id}}">{{p.nome_parlamentar}}</option>
+	        			  {% endfor %}
+	        			</select>
+							</div>
+							<div>
+								<p>Cargo</p>
+	        			<select class="form-control" name="cargo" id="id_cargo" style="display: none">
+	        			  {% for c in cargos_vagos %}
+	        			  	<option value="{{c.id}}">{{c}}</option>
+	        			  {% endfor %}
+	        			</select>
+							</div>
+							<div class="row">
+    						<div class="col-sm-6">
+									<p>Data Inicio</p>
+									<input class="form-control" type="text" id="datepicker">
+								</div>
+
+								<div class="col-sm-6">
+									<p>Data Fim</p>
+									<input class="form-control" type="text" id="datepicker2">
+								</div>
+			  			</div>
+	      		</div>
+	  
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+						<input type="submit" data-dismiss="modal"  style="display: none" name="Incluir" id="id_incluir" Value="Incluir" class="btn btn-primary" />
+		      </div>
+		    </div>
+		  </div>
+		</div>
+
 	{% endif %}
 {% endblock detail_content %}
 
 
 {% block extra_js %}
-
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script language="Javascript">
 
 		//##############################################################
@@ -131,18 +180,40 @@
     	}
     });
 
+	 $( "#datepicker" ).datepicker();
+	 $( "#datepicker2" ).datepicker();
+	 $( "#datepicker" ).datepicker( "option", "dateFormat", "dd/mm/yy");
+	 $( "#datepicker2" ).datepicker( "option", "dateFormat", "dd/mm/yy");
+	 $( "#datepicker" ).val("01/01/{{sessao_selecionada.data_inicio.year}}");
+	 $( "#datepicker2" ).val("31/12/{{sessao_selecionada.data_inicio.year}}");
+
+	 validate_date = () => {
+		 s_date = ($("#datepicker").val()).split('/')
+		 s_date2 = ($("#datepicker2").val()).split('/')
+		 dt = new Date(day=s_date[2],month=(s_date[1]-1),year=s_date[0])
+		 dt2 = new Date(day=s_date2[2],month=(s_date2[1]-1),year=s_date2[0])
+	
+		 if (dt > dt2){
+			alert("Data Inicial deve ser menor que a final.")
+		 }
+	 }
+
+	 $("#datepicker").change(validate_date)
+
+
+	
     //##############################################################
     //#                     EVENT HANDLERS                         #
     //##############################################################
 
     function errors_handler(msg){
-    	if (msg == null){
-      	  	$("#div-success").hide()
-      	  	$("#div-error").hide()
-      	  	$("#success-message").html('')
-      	  	$("#error-message").html('')
-      	  }
-  	  else{
+    
+      $("#div-success").hide()
+      $("#div-error").hide()
+      $("#success-message").html('')
+      $("#error-message").html('')
+      	  
+  	  if (msg != null){
   	  	if (msg[1] == 0){
   	  		$("#div-error").show()
   	  		$("#error-message").html(msg[0])
@@ -164,7 +235,7 @@
 
       // Limpa os campos que serão atualizados
       $("#id_sessao_legislativa option").remove();
-      $("#id_composicao_mesa option").remove();
+      $("#id_composicao_mesa tbody tr").remove();
       $("#id_parlamentar option").remove();
       $("#id_cargo option").remove();
 
@@ -188,7 +259,13 @@
           }
 
           for (i = 0; i < lista_composicao.length; i++) {
-              $('#id_composicao_mesa').append('<option value="' + lista_composicao[i][0] + '">' + lista_composicao[i][1] + ' || ' + lista_composicao[i][2] + '</option>');
+              $('#id_composicao_mesa').append('<tr value="' + lista_composicao[i][0] + '">' +
+																							 '<td>' + lista_composicao[i][1] + ' </td> ' +
+																							  '<td>' + lista_composicao[i][2] + '</td>' +
+																								'<td>' + lista_composicao[i][3] + '</td>' +
+																								'<td>' + lista_composicao[i][4] + '</td>' +
+																								'<td><button id="'+ lista_composicao[i][0] +'" onclick="apaga_membro_mesa(this)" type="button" class="btn btn-danger">Apagar</button></td>' +
+																								 + '</tr>');
           }
 
           // Caso ainda tenha parlamentares/cargos a serem inseridos, preenche a listagem com
@@ -234,11 +311,15 @@
 	      // Essa mensagem de erro é prioridade
 	      if (data['msg'][1] == 0){
 	      	msg = data['msg']
-	      }
-
+		  }
 				errors_handler(msg)
-
+		  
+		  index_sessao = document.getElementById("id_sessao_legislativa").selectedIndex;
+		  $("#datepicker").val("01/01/" + lista_sessoes[index_sessao][2]);
+	 	  $("#datepicker2").val("31/12/" + lista_sessoes[index_sessao][2]);
+			
       });
+
     }
 
     //#############################################################
@@ -259,7 +340,9 @@
     	$.ajax({
 	        data: {sessao: $("#id_sessao_legislativa").val(),
 	               parlamentar: $("#id_parlamentar").val(),
-	               cargo: $("#id_cargo").val()},
+	               cargo: $("#id_cargo").val(),
+				   data_inicial: $("#datepicker").val(),
+				   data_fim: $("#datepicker2").val()},
 	        type: 'POST',
 	        url: "{% url 'sapl.parlamentares:insere_parlamentar_composicao' %}",
 	        headers: {
@@ -275,15 +358,13 @@
 				             }, 500)
                    },
 	    });
-    })
+		})
 
-    $('#id_excluir').click(function(){
+    function apaga_membro_mesa(selecionado){
     	// Pega o id do parlamentar que foi selecionado
-    	selecionado = $("#id_composicao_mesa option:selected").val()
-
     	if (selecionado){
 	    	$.ajax({
-		        data: {composicao_mesa: selecionado},
+		        data: {composicao_mesa: selecionado.id},
 		        type: 'POST',
 		        url: "{% url 'sapl.parlamentares:remove_parlamentar_composicao' %}",
 		        headers: {
@@ -301,7 +382,7 @@
 	                   },
 		    });
     	}
-    });
+    }
 
 </script>
 

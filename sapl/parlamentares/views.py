@@ -31,7 +31,7 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
-from sapl.utils import (parlamentares_ativos, show_results_filter_set)
+from sapl.utils import intervalos_tem_intersecao, parlamentares_ativos, show_results_filter_set
 
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
@@ -849,22 +849,13 @@ class MesaDiretoraView(FormView):
         mesa = sessao_atual.composicaomesa_set.all().order_by(
             'cargo_id') if sessao_atual else []
 
-        cargos_ocupados = [m.cargo for m in mesa]
-        cargos = CargoMesa.objects.all()
-        cargos_vagos = list(set(cargos) - set(cargos_ocupados))
-
-        parlamentares = legislatura.mandato_set.all()
-        parlamentares_ocupados = [m.parlamentar for m in mesa]
-        parlamentares_vagos = list(
-            set(
-                [p.parlamentar for p in parlamentares if p.parlamentar.ativo]) - set(
-                parlamentares_ocupados))
-        parlamentares_vagos.sort(key=lambda x: x.nome_parlamentar)
+        cargos_vagos = CargoMesa.objects.all()
+        
+        parlamentares = [m.parlamentar for m in legislatura.mandato_set.all()]
+        parlamentares.sort(key=lambda x: x.nome_parlamentar)
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
-        if not cargos_vagos:
-            parlamentares_vagos = []
-
+        
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
@@ -872,7 +863,7 @@ class MesaDiretoraView(FormView):
                 'sessoes': sessoes,
                 'sessao_selecionada': sessao_atual,
                 'composicao_mesa': mesa,
-                'parlamentares': parlamentares_vagos,
+                'parlamentares': parlamentares,
                 'cargos_vagos': cargos_vagos
             })
 
@@ -915,25 +906,16 @@ def altera_field_mesa(request):
     composicao_mesa = ComposicaoMesa.objects.filter(
         sessao_legislativa=sessao_selecionada).order_by('cargo_id')
 
-    cargos_ocupados = [m.cargo for m in composicao_mesa]
     cargos = CargoMesa.objects.all()
-    cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
-    parlamentares = Legislatura.objects.get(
-        id=legislatura).mandato_set.all()
-    parlamentares_ocupados = [m.parlamentar for m in composicao_mesa]
-    parlamentares_vagos = list(
-        set(
-            [p.parlamentar for p in parlamentares]) - set(
-            parlamentares_ocupados))
-
-    parlamentares_vagos.sort(key=lambda x: x.nome_parlamentar)
-    lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
+    parlamentares = [p.parlamentar for p in Legislatura.objects.get(id=legislatura).mandato_set.all()]
+    parlamentares.sort(key=lambda x: x.nome_parlamentar)
+    lista_sessoes = [(s.id, s.__str__(),s.data_inicio.year) for s in sessoes]
     lista_composicao = [(c.id, c.parlamentar.__str__(),
-                         c.cargo.__str__()) for c in composicao_mesa]
+                         c.cargo.__str__(), c.data_inicio.strftime('%d/%m/%Y'), c.data_fim.strftime('%d/%m/%Y')) for c in composicao_mesa]
     lista_parlamentares = [(
-        p.id, p.__str__()) for p in parlamentares_vagos]
-    lista_cargos = [(c.id, c.__str__()) for c in cargos_vagos]
+        p.id, p.__str__()) for p in parlamentares]
+    lista_cargos = [(c.id, c.__str__()) for c in cargos]
 
     return JsonResponse(
         {'lista_sessoes': lista_sessoes,
@@ -951,6 +933,7 @@ def insere_parlamentar_composicao(request):
     """
     logger = logging.getLogger(__name__)
     username = request.user.username
+    msg = ""
     if request.user.has_perm(
             '%s.add_%s' % (
                 AppConfig.label, ComposicaoMesa._meta.model_name)):
@@ -983,22 +966,52 @@ def insere_parlamentar_composicao(request):
                         ". Tentando obter CargoMesa com id={}.".format(request.POST['cargo']))
             composicao.cargo = CargoMesa.objects.get(
                 id=int(request.POST['cargo']))
-            parlamentar_ja_inserido = ComposicaoMesa.objects.filter(
-                sessao_legislativa_id=composicao.sessao_legislativa.id,
-                cargo_id=composicao.cargo.id).exists()
 
-            if parlamentar_ja_inserido:
-                return JsonResponse({'msg': ('Parlamentar já inserido!', 0)})
+            if composicao.cargo.unico:
+                parlamentares_nesse_cargo = ComposicaoMesa.objects.filter(
+                    sessao_legislativa_id=composicao.sessao_legislativa.id,
+                    cargo_id=composicao.cargo.id)
+                aux_data_inicio = datetime.strptime(request.POST['data_inicial'],'%d/%m/%Y')
+                aux_data_fim = datetime.strptime(request.POST['data_fim'],'%d/%m/%Y')
 
+                for cargo_mesa in parlamentares_nesse_cargo:
+                    if intervalos_tem_intersecao(cargo_mesa.data_inicio,
+                                                        cargo_mesa.data_fim,
+                                                        aux_data_inicio.date(),
+                                                        aux_data_fim.date()):
+                        return JsonResponse({'msg': ('Parlamentar já inserido com esse cargo nesse periodo!', 0)})
+            
+            
+            if aux_data_inicio.date() < composicao.sessao_legislativa.data_inicio or aux_data_fim.date() > composicao.sessao_legislativa.data_fim:
+                return JsonResponse({'msg': ('Data fora de período da sessão plenária! O periodo é entre '+
+                                                str(composicao.sessao_legislativa.data_inicio.strftime("%d/%m/%Y")) +" até "+
+                                                str(composicao.sessao_legislativa.data_fim.strftime("%d/%m/%Y")), 0)})
+            
+            id_parlamentar = request.POST.get('parlamentar',None)
+            if id_parlamentar:
+                composicao_parlamentar = ComposicaoMesa.objects.filter(sessao_legislativa_id=composicao.sessao_legislativa.id,
+                                            parlamentar_id=id_parlamentar)
+                
+                for aux_comp in composicao_parlamentar:
+                    if intervalos_tem_intersecao(aux_comp.data_inicio, aux_comp.data_fim,aux_data_inicio.date(),aux_data_fim.date()):
+                        return JsonResponse({'msg': ('Esse parlamentar já possui cargo nesse período.', 0)})
+                        
+
+            composicao.data_inicio = aux_data_inicio
+            composicao.data_fim = aux_data_fim  
             composicao.save()
+            msg = {'msg': ('Parlamentar inserido com sucesso!', 1)}
 
         except MultiValueDictKeyError:
             logger.error("user=" + username +
                          ". 'MultiValueDictKeyError', nenhum cargo foi inserido!")
-            return JsonResponse({'msg': ('Nenhum cargo foi inserido!', 0)})
+            msg = {'msg': ('Nenhum cargo foi inserido!', 0)}
+        
+        except ValueError:
+            msg = {'msg': ('Erro ao cadastrar, verifique se suas datas estão no formato correto dd/mm/aaaa.', 0)}
 
         logger.info("user=" + username + ". Parlamentar inserido com sucesso!")
-        return JsonResponse({'msg': ('Parlamentar inserido com sucesso!', 1)})
+        return JsonResponse(msg)
 
     else:
         logger.error("user=" + username +

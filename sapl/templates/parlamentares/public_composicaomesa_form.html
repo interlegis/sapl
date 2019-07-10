@@ -40,6 +40,7 @@
 					<th>Nome do Parlamentar</th>
 					<th>Partido</th>
 					<th>Cargo</th>
+          <th>Período (Inicio - Fim)</th>
 				</tr>
 			</thead>
 		  <tbody>
@@ -56,6 +57,7 @@
 						<td><a href="{% url 'sapl.parlamentares:parlamentar_detail' p.parlamentar.pk %}">{{p.parlamentar.nome_parlamentar}}</a></td>
 						<td>{{p.parlamentar.filiacao_atual}}</td>
 						<td>{{p.cargo}}</td>
+            <td>{{p.data_inicio|date:"d/m/Y"}} - {{p.data_fim|date:"d/m/Y"}}</td>
 					</tr>
       	{% endfor %}
 			</tbody>

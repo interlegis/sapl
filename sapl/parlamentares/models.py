@@ -556,6 +556,10 @@ class ComposicaoMesa(models.Model):
                                            on_delete=models.PROTECT)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
 
+    data_inicio = models.DateField(verbose_name=_('Data Início'))
+    data_fim = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Fim'))
+
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
         verbose_name_plural = _('Ocupações de cargo na Mesa')
