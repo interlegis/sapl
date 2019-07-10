@@ -886,20 +886,6 @@ def test_tramitacao_lote_documentos_form(admin_client):
                 'data_encaminhamento' : '2019-05-15',
                 'data_fim_prazo': '2019-05-18',
                 'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
-                'unidade_tramitacao_destino': unidade_tramitacao_local_1.id,
-                'status': status.id,
-                'urgente': False,
-                'texto': 'aaaa'}
-
-    assert form.errors['__all__'] == \
-        ["Unidade tramitação local deve ser diferente da unidade tramitação destino."]
-    assert not form.is_valid()
-
-    form = TramitacaoEmLoteAdmForm(initial={'documentos': documentos}, data={})
-    form.data = {'data_tramitacao': '2019-05-14',
-                'data_encaminhamento' : '2019-05-15',
-                'data_fim_prazo': '2019-05-18',
-                'unidade_tramitacao_local': unidade_tramitacao_local_1.id,
                 'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
                 'status': status.id,
                 'urgente': False,
@@ -1037,22 +1023,6 @@ def test_tramitacao_lote_documentos_views(admin_client):
     assert 'Status: Este campo é obrigatório.' in msgs
     assert 'Unidade Destino: Este campo é obrigatório.' in msgs
     assert 'Texto da Ação: Este campo é obrigatório.' in msgs
-
-    response = admin_client.post(url_lote,
-                                {'documentos': documentos,
-                                'data_tramitacao': date(2019, 5, 15),
-                                'unidade_tramitacao_local': unidade_tramitacao_destino_1.id,
-                                'unidade_tramitacao_destino': unidade_tramitacao_destino_1.id,
-                                'status': status.id,
-                                'urgente': False,
-                                'texto': 'aaaa',
-                                'salvar':'salvar'}, 
-                                follow=True)
-    assert response.status_code == 200
-
-    msgs = [m.message for m in response.context['messages']]
-
-    assert 'Unidade tramitação local deve ser diferente da unidade tramitação destino.' in msgs
     
     response = admin_client.post(url_lote,
                                 {'documentos': documentos,
