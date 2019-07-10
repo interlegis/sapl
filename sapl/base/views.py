@@ -47,7 +47,7 @@ from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo,
                                       StatusTramitacaoAdministrativo,
                                       DocumentoAdministrativo, Anexado)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, Bancada, TipoSessaoPlenaria)
+                                SessaoPlenariaPresenca, TipoSessaoPlenaria)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
                         intervalos_tem_intersecao, remover_acentos)
