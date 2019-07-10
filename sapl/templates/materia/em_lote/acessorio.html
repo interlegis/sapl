@@ -22,7 +22,7 @@
             <div class="col-md-4">
               <div class="form-group">
               <label>Tipo*</label>
-              <select name="tipo" class="form-control" required="true">
+              <select name="tipo" class="form-control" required>
                 {% for t in tipos_docs %} <option>{{t}}</option> {% endfor %}
               </select>
               </div>
@@ -31,14 +31,14 @@
             <div class="col-md-4">
               <div class="form-group">
               <label>Nome*</label>
-              <input type="text" name="nome" class="form-control" required="true">
+              <input type="text" name="nome" class="form-control" required>
             </div>
           </div>
 
             <div class="col-md-4">
               <div class="form-group">
               <label>Data*</label>
-              <input type="text" name="data" class="form-control dateinput" required="true">
+              <input type="text" name="data" class="form-control dateinput" required>
             </div>
           </div>
           </div>
@@ -47,7 +47,7 @@
             <div class="col-md-12">
               <div class="form-group">
               <label>Autor:</label>
-              <input type="text" name="autor" class="form-control" required="false">
+              <input type="text" name="autor" class="form-control">
             </div>
           </div>
            </div>
@@ -65,7 +65,7 @@
             <div class="col-md-12">
               <div class="form-group">
               <label>Texto Integral*</label>
-              <input type="file" name="arquivo" required="true">
+              <input type="file" name="arquivo" required>
             </div>
           </div>
           </div>
