@@ -1,6 +1,5 @@
 {% load common_tags %}
 {% load static %}
-{% load webpack_static from webpack_loader %}
 <head>
     <style>
         @page{
@@ -34,7 +33,7 @@
             }
         }
     </style>
-     <link rel="stylesheet" href="{% webpack_static 'sapl/css/relatorio.css'%}">
+     <link rel="stylesheet" href="{% static 'sapl/css/relatorio.css'%}">
 </head>	
 
 <body>
