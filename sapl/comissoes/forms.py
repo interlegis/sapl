@@ -1,6 +1,7 @@
 import logging
 
 from django import forms
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -381,6 +382,23 @@ class ReuniaoForm(ModelForm):
                 self.logger.error("A hora de término da reunião ({}) não pode ser menor que a de início ({})."
                                   .format(self.cleaned_data['hora_fim'], self.cleaned_data['hora_inicio']))
                 raise ValidationError(msg)
+
+        upload_pauta = self.cleaned_data.get('upload_pauta', False)
+        upload_ata = self.cleaned_data.get('upload_ata', False)
+        upload_anexo = self.cleaned_data.get('upload_anexo', False)
+
+        if upload_pauta and upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Pauta da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024))
+        
+        if upload_ata and upload_ata.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Ata da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024))
+        
+        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Anexo da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+
         return self.cleaned_data
 
 
@@ -412,6 +430,20 @@ class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
     def create_documentoacessorio(self):
         reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
 
+    def clean(self):
+        super(DocumentoAcessorioCreateForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        arquivo = self.cleaned_data.get('arquivo', False)
+
+        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+
+        return self.cleaned_data
+
 
 class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
 
@@ -424,3 +456,17 @@ class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
 
     def __init__(self, user=None, **kwargs):
         super(DocumentoAcessorioEditForm, self).__init__(**kwargs)
+
+    def clean(self):
+        super(DocumentoAcessorioEditForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        arquivo = self.cleaned_data.get('arquivo', False)
+
+        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+
+        return self.cleaned_data
