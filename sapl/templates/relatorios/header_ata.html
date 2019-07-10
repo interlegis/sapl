@@ -15,11 +15,11 @@
     <section id="informations">
         <dl>
             <dt class="image-header"> 
-                <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}">
+                <img style="max-height:2cm;max-width:2cm" src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}">
             </dt>
             <dd class="title">
                 <ul>
-                    <li style="margin-top:10px"><h2>{{casa.nome}}</h2></li>
+                    <li style="margin-top:10px;max-height:2cm;"><h2>{{casa.nome}}</h2></li>
                     <li><h3>Sistema de Apoio ao Processo Legislativo</h3></li>
                 </ul>
             </dd>
