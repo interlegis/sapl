@@ -302,9 +302,7 @@ class AnularProtocoloAdmForm(ModelForm):
 
     class Meta:
         model = Protocolo
-        fields = ['numero',
-                  'ano',
-                  'justificativa_anulacao',
+        fields = ['justificativa_anulacao',
                   'anulado',
                   'user_anulacao',
                   'ip_anulacao',
