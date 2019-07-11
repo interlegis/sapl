@@ -4,6 +4,7 @@ import re
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 from webpack_loader import utils
 
 from sapl.base.models import AppConfig
@@ -271,6 +272,12 @@ def cronometro_to_seconds(value):
 def duration_to_seconds(cronometro_duration):
     return cronometro_duration.seconds
 
+@register.filter
+def duration_difference(cronometro_duration, last_time):
+    difference_to_now = timezone.now()-last_time
+    if difference_to_now < cronometro_duration:
+        return (cronometro_duration-difference_to_now).seconds
+    return cronometro_duration.seconds
 
 @register.filter
 def to_list_pk(object_list):

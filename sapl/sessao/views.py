@@ -1055,9 +1055,10 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             self.template_name = 'painel/index.html'
 
         cronometros = Cronometro.objects.filter(ativo=True).order_by('ordenacao')
-        for cronometro in cronometros:
-            cronometro.status = 'S' # Stop
-            cronometro.save()
+        # for cronometro in cronometros:
+        #     cronometro.status = 'S' # Stop
+        #     cronometro.ultima_alteracao_status = timezone.now()
+        #     cronometro.save()
 
         return TemplateView.get(self, request, *args, **kwargs)
 

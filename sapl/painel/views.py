@@ -336,10 +336,12 @@ def votante_view(request):
 
 @user_passes_test(check_permission)
 def painel_view(request, pk):
+    dict_ultima_alteracao_cronometros = dict(Cronometro.objects.filter(ativo=True).order_by('ordenacao').values_list('id', 'ultima_alteracao_status'))
     context = {'head_title': str(_('Painel Plenário')), 
                'sessao_id': pk, 
                'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao'),
                'painel_config': PainelConfig.objects.first(),
+               'ult_alteracao_cronometros': dict_ultima_alteracao_cronometros,
                'casa': CasaLegislativa.objects.last()
                }
     return render(request, 'painel/index.html', context)
@@ -395,20 +397,11 @@ def cronometro_painel(request):
     cronometro_id = request.GET['tipo'].split('cronometro_')[1]
     cronometro = Cronometro.objects.get(id=cronometro_id)
     cronometro.status = CRONOMETRO_STATUS[acao]
+    cronometro.ultima_alteracao_status = timezone.now()
+    # Caso não seja stop, last_time virá como 0
+    cronometro.last_stop_duration = request.GET.get('last_time')
     cronometro.save()
     return HttpResponse({})
-
-
-def get_cronometro_status(request, name):
-    logger = logging.getLogger(__name__)
-    username = request.user.username
-    try:
-        logger.debug("user=" + username + ". Tentando obter cronometro.")
-        cronometro = request.session[name]
-    except KeyError as e:
-        logger.error("user=" + username + ". Erro ao obter cronometro. Retornado como vazio. " + str(e))
-        cronometro = ''
-    return cronometro
 
 
 def get_materia_aberta(pk):

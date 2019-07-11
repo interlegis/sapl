@@ -330,13 +330,21 @@
               };
 
               var ids = [];
-              var status_cronometros = []
+              var status_cronometros = [];
               for (var key in data['cronometros']) {
                   if (data['cronometros'].hasOwnProperty(key)) {           
                       ids.push(key);
-                      status_cronometros.push(data['cronometros'][key])
+                      status_cronometros.push(data['cronometros'][key]);
                   }
               }
+
+              //var ult_alteracao_cronometros = [];
+              //for (let id of ids) {
+              //  ult_alteracao_cronometros.push(data['ult_alteracao_cronometros'][id]);
+              //}
+
+              //console.log(data['ult_alteracao_cronometros']);
+              //console.log(ult_alteracao_cronometros);
 
               for(let i=0; i<status_cronometros.length; i++){
                 if (!cronometros_previous[i])

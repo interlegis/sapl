@@ -115,6 +115,28 @@ function playAudioNumVezes(audio, times, ended) {
   audio.play();
 }
 
+function convertValueToDuration(value){
+  let h = Math.floor((value/1000) / 3600);
+  h = checkTime(h);
+  let m = Math.floor((value/1000) % 3600 / 60);
+  m = checkTime(m);
+  let s = Math.floor((value/1000) % 3600 % 60);
+  s = checkTime(s);
+  return h.toString() + ":" + m.toString() + ":" + s.toString();
+}
+
+function getDifferenceToNow(ultima_alteracao, duracao_cronometro){
+  var today = new Date();
+  var djDate = new Date(ultima_alteracao);
+  var difference = today.getTime() - djDate.getTime();
+  var dif = convertValueToDuration(difference);
+  console.log(difference/(1000));
+  if(dif > convertValueToDuration(duracao_cronometro)){
+    return 0;
+  }
+  return difference/1000;
+}
+
 
 $(document).ready(function(){
   let pk_sessao = parseInt("{{root_pk}}");
@@ -152,23 +174,40 @@ $(document).ready(function(){
   {% for cron in cronometros %}
     $('#cronometro_' + "{{cron.id}}").prop('disabled', false);
 
+    console.log("{{cron.status}}", "{{cron.last_stop_duration}}")
+
+    {% if cron.status == 'I' %}
+      $('#cronometro_' + "{{cron.id}}" + '_Reset').hide();
+      $('#cronometro_' + "{{cron.id}}").runner('start');
+      $('#cronometro_' + "{{cron.id}}" + '_Start').text('Parar');
+      //var resposta = getDifferenceToNow({{ cron.ultima_alteracao_status|date:"U" }} * 1000, "{{cron.duracao_cronometro|duration_to_seconds}}");
+      //console.log(resposta);
+    {% else %}
+      $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
+      $('#cronometro_' + "{{cron.id}}").runner('stop');
+      $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
+    {% endif %}
+
     $('#cronometro_' + "{{cron.id}}").runner({
-      autostart: false,
+      autostart: {% if cron.status == "I"%} true {% else %} false {% endif %},
       countdown: true,
-      startAt: parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000,
+      startAt:
+        {% if cron.status == "R"%}
+          parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000
+        {% elif cron.status == "S"%}
+          {% if cron.last_stop_duration %} 
+            parseInt("{{cron.last_stop_duration|duration_to_seconds}}") * 1000
+          {% else %}
+            parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000
+          {% endif %}
+        {% elif cron.status == "I" %} 
+          parseInt("{{cron.duracao_cronometro|duration_difference:cron.ultima_alteracao_status}}") * 1000
+        {% endif %},
       stopAt: 0,
       milliseconds: false,
-      format: function(value) {
-        let h = Math.floor((value/1000) / 3600);
-        h = checkTime(h);
-        let m = Math.floor((value/1000) % 3600 / 60);
-        m = checkTime(m);
-        let s = Math.floor((value/1000) % 3600 % 60);
-        s = checkTime(s);
-        return h.toString() + ":" + m.toString() + ":" + s.toString();
-      }
+      format: convertValueToDuration
     }).on('runnerFinish', function(eventObject, info){
-      $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
+      $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop', last_time: $('#cronometro_' + "{{c.id}}").val() } );
       playAudioNumVezes(audioAlertFinish, num_vezes_toca_audio);
       $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
       $('#cronometro_' + "{{cron.id}}").runner('stop');
@@ -180,19 +219,19 @@ $(document).ready(function(){
         if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
           {% for c in cronometros %}
             {% if c.tipo == "Cronômetro da Questão de Ordem" %}
-              $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{c.id}}", action: 'start' } );
+              $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{c.id}}", action: 'start', last_time: '0'  } );
               $('#cronometro_' + "{{c.id}}" + '_Reset').hide();
               $('#cronometro_' + "{{c.id}}").runner('start');
               $('#cronometro_' + "{{c.id}}" + '_Start').text('Parar');
             {% else %}
-              $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{c.id}}", action: 'stop' } );
+              $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{c.id}}", action: 'stop', last_time: $('#cronometro_' + "{{c.id}}").val() } );
               $('#cronometro_' + "{{c.id}}" + '_Reset').show();
               $('#cronometro_' + "{{c.id}}").runner('stop');
               $('#cronometro_' + "{{c.id}}" + '_Start').text('Iniciar');
             {% endif %}
           {% endfor %}
         } else{
-          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
+          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop', last_time: $('#cronometro_' + "{{cron.id}}").val() } );
           $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
           $('#cronometro_' + "{{cron.id}}").runner('stop');
           $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
@@ -201,12 +240,12 @@ $(document).ready(function(){
     {% else %}
       $('#cronometro_' + "{{cron.id}}" + '_Start').click(function() {
         if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
-          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'start' } );
+          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'start', last_time: '0' } );
           $('#cronometro_' + "{{cron.id}}" + '_Reset').hide();
           $('#cronometro_' + "{{cron.id}}").runner('start');
           $('#cronometro_' + "{{cron.id}}" + '_Start').text('Parar');
         } else{
-          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop' } );
+          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop', last_time: $('#cronometro_' + "{{cron.id}}").val() } );
           $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
           $('#cronometro_' + "{{cron.id}}").runner('stop');
           $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
@@ -215,8 +254,8 @@ $(document).ready(function(){
     {% endif %}
 
     $('#cronometro_' + "{{cron.id}}" + '_Reset').click(function() {
-      $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'reset' } );
-      $('#cronometro_' + "{{cron.id}}").runner('stop');
+      $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'reset', last_time: '0' } );
+      //$('#cronometro_' + "{{cron.id}}").runner('stop');
       $('#cronometro_' + "{{cron.id}}").runner('reset');
     });    
 
