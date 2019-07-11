@@ -14,7 +14,8 @@ from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         get_settings_auth_user_model,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path)
+                        restringe_tipos_de_arquivo_txt, texto_upload_path,
+                        OverwriteStorage)
 
 
 @reversion.register()
@@ -185,16 +186,19 @@ class SessaoPlenaria(models.Model):
         null=True,
         upload_to=pauta_upload_path,
         verbose_name=_('Pauta da Sessão'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
         blank=True,
         null=True,
         upload_to=ata_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Ata da Sessão'),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_anexo = models.FileField(
         blank=True,
         null=True,
+        storage=OverwriteStorage(),
         upload_to=anexo_upload_path,
         verbose_name=_('Anexo da Sessão'))
     iniciada = models.NullBooleanField(blank=True,
@@ -421,6 +425,7 @@ class AbstractOrador(models.Model):  # Oradores
     upload_anexo = models.FileField(
         blank=True,
         null=True,
+        storage=OverwriteStorage(),
         upload_to=anexo_upload_path,
         verbose_name=_('Anexo do Orador'))
 
@@ -763,6 +768,7 @@ class JustificativaAusencia(models.Model):
     upload_anexo = models.FileField(
         blank=True,
         null=True,
+        storage=OverwriteStorage(),
         upload_to=anexo_upload_path,
         verbose_name=_('Anexo de Justificativa'))
 

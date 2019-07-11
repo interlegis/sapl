@@ -7,7 +7,8 @@ import reversion
 from sapl.base.models import Autor
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
-                        get_settings_auth_user_model)
+                        get_settings_auth_user_model,
+                        OverwriteStorage)
 
 
 @reversion.register()
@@ -164,6 +165,7 @@ class DocumentoAdministrativo(models.Model):
     texto_integral = models.FileField(
         blank=True,
         null=True,
+        storage=OverwriteStorage(),
         upload_to=texto_upload_path,
         verbose_name=_('Texto Integral'))
     restrito = models.BooleanField(default=False,
@@ -229,6 +231,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
         blank=True,
         null=True,
         upload_to=texto_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Arquivo'))
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     autor = models.CharField(

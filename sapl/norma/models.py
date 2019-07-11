@@ -12,7 +12,8 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         restringe_tipos_de_arquivo_txt, 
                         texto_upload_path,
-                        get_settings_auth_user_model)
+                        get_settings_auth_user_model,
+                        OverwriteStorage)
 
 
 @reversion.register()
@@ -82,6 +83,7 @@ class NormaJuridica(models.Model):
         null=True,
         upload_to=norma_upload_path,
         verbose_name=_('Texto Integral'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     tipo = models.ForeignKey(
         TipoNormaJuridica,
@@ -356,6 +358,7 @@ class AnexoNormaJuridica(models.Model):
         null=True,
         upload_to=norma_upload_path,
         verbose_name=_('Arquivo Anexo'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
