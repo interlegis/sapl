@@ -701,7 +701,7 @@ class CargoBlocoPartidoForm(ModelForm):
         super(CargoBlocoPartidoForm, self).clean()
         cleaned_data = self.cleaned_data
 
-        aux_data_fim = cleaned_data['data_fim'] if cleaned_data['data_fim'] else timezone.now().date()
+        aux_data_fim = cleaned_data['data_fim'] if cleaned_data['data_fim'] else (cleaned_data['data_inicio'] + timedelta(days=1))
 
         if cleaned_data['cargo'].unico:
             for vinculo in CargoBlocoPartido.objects.filter(bloco=self.bloco):
@@ -720,7 +720,7 @@ class CargoBlocoPartidoForm(ModelForm):
         if self.instance and self.instance.pk:
             self.cleaned_data['parlamentar'] = self.instance.parlamentar
         else:
-            parlamentar = self.cleaned_data.get('parlamentar')
+            self.cleaned_data['parlamentar'] = self.cleaned_data.get('parlamentar')
 
         fora_de_mandato = True
         for mandato in Mandato.objects.filter(parlamentar=self.cleaned_data.get('parlamentar')):
@@ -731,7 +731,7 @@ class CargoBlocoPartidoForm(ModelForm):
                 fora_de_mandato = False              
         if fora_de_mandato:
             raise ValidationError("Data de inicio e fim fora de periodo do mandato do parlamentar.")
-        
+
         if self.instance.pk and (cleaned_data['parlamentar'].id != self.instance.parlamentar.id):
             raise ValidationError("Não é possivel alterar o parlamentar " + str(self.instance.parlamentar))
         
