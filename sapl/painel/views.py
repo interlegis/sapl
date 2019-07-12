@@ -600,12 +600,18 @@ def get_dados_painel(request, pk):
 
     for key, value in dict_status_cronometros.items():
         dict_status_cronometros[key] = CRONOMETRO_STATUS[dict_status_cronometros[key]]
+    
+    dict_duracao_cronometros = dict(Cronometro.objects.filter(ativo=True).order_by('ordenacao').values_list('id', 'duracao_cronometro'))
+    
+    for key, value in dict_duracao_cronometros.items():
+        dict_duracao_cronometros[key] = value.seconds
 
     response = {
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
         'sessao_plenaria_hora_inicio': sessao.hora_inicio,
         'cronometros': dict_status_cronometros,
+        'duracao_cronometros': dict_duracao_cronometros,
         'sessao_solene': sessao.tipo.nome == "Solene",
         'sessao_finalizada': sessao.finalizada,
         'tema_solene': sessao.tema_solene,
