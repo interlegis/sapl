@@ -336,12 +336,10 @@ def votante_view(request):
 
 @user_passes_test(check_permission)
 def painel_view(request, pk):
-    dict_ultima_alteracao_cronometros = dict(Cronometro.objects.filter(ativo=True).order_by('ordenacao').values_list('id', 'ultima_alteracao_status'))
     context = {'head_title': str(_('Painel Plenário')), 
                'sessao_id': pk, 
                'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao'),
                'painel_config': PainelConfig.objects.first(),
-               'ult_alteracao_cronometros': dict_ultima_alteracao_cronometros,
                'casa': CasaLegislativa.objects.last()
                }
     return render(request, 'painel/index.html', context)
