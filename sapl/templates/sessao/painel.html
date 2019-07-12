@@ -131,25 +131,6 @@ $(document).ready(function(){
   let botao_abrir = $('#id_abrir_painel');
   let botao_fechar = $('#id_fechar_painel');
 
-  $.ajax({
-    data: {pk_sessao: pk_sessao},
-    type: 'GET',
-    dataType: 'json',
-    url: "{% url 'sapl.painel:verifica_painel' %}",
-    error: function () {
-      alert("Erro ao verificar o Painel");
-    },
-    success: function (data) {
-      if (data['status']) {
-        botao_abrir.hide();
-        botao_fechar.show();
-      } else {
-        botao_abrir.show();
-        botao_fechar.hide();
-      }
-    },
-  });
-
 	startTime();
   let audioAlertFinish = document.getElementById("audio");
 
@@ -159,7 +140,10 @@ $(document).ready(function(){
   duracao_disparo = parseInt(tmp[0])*3600 + parseInt(tmp[1])*60 + parseInt(tmp[2]);
   let num_vezes_toca_audio = Math.round(duracao_disparo/audioAlertFinish.duration);
 
+  var cronometros_previous = [];
+
   {% for cron in cronometros %}
+    cronometros_previous.push(0);
     $('#cronometro_' + "{{cron.id}}").prop('disabled', false);
 
     {% if cron.status == 'I' %}
@@ -257,6 +241,89 @@ $(document).ready(function(){
     });    
 
   {% endfor %}
+  (function poll() {
+  $.ajax({
+    data: {pk_sessao: pk_sessao},
+    type: 'GET',
+    dataType: 'json',
+    url: "{% url 'sapl.painel:verifica_painel' %}",
+    error: function () {
+      alert("Erro ao verificar o Painel");
+    },
+    success: function (data) {
+      if (data['status']) {
+        botao_abrir.hide();
+        botao_fechar.show();
+      } else {
+        botao_abrir.show();
+        botao_fechar.hide();
+      }
+
+      // ajustes do painel para caso haja dois controladores
+
+      // obtém todos os ids em uma lista e
+      // converte os dados do status dos cronômetros de dicionário para uma lista
+      var ids = [];
+      var status_cronometros = [];
+      for (var key in data['cronometros']) {
+        if (data['cronometros'].hasOwnProperty(key)) {           
+            ids.push(key);
+            status_cronometros.push(data['cronometros'][key]);
+        }
+      }
+
+      // converte os dados de dicionário para uma lista
+      var duracao_cronometros = [];
+      for (let id of ids) {
+        duracao_cronometros.push(data['duracao_cronometros'][id]);
+      }
+
+      for(let i=0; i<status_cronometros.length; i++){
+        if (!cronometros_previous[i]){
+          cronometros_previous[i] = ''
+        }
+
+        // se houve alteração de status
+        if (status_cronometros[i] != cronometros_previous[i]) {
+          if(status_cronometros[i] == 'reset'){
+            // é necessário recriar o cronômetro com o valor da duração original devido a limitações da API
+            $('#cronometro_' + ids[i]).runner({
+              autostart: false,
+              countdown: true,
+              startAt: parseInt(duracao_cronometros[i]) * 1000,
+              stopAt: 0,
+              milliseconds: false,
+              format: convertValueToDuration
+            }).on('runnerFinish', function(eventObject, info){
+              playAudioNumVezes(audioAlertFinish, num_vezes_toca_audio);
+            });
+          }
+          // ações de start e stop
+          else if(status_cronometros[i] == 'stop'){
+            $('#cronometro_' + ids[i] + '_Reset').show();
+            $('#cronometro_' + ids[i]).runner('stop');
+            $('#cronometro_' + ids[i] + '_Start').text('Iniciar');
+          }
+          else{
+            $('#cronometro_' + ids[i] + '_Reset').hide();
+            $('#cronometro_' + ids[i]).runner('start');
+            $('#cronometro_' + ids[i] + '_Start').text('Parar');
+          }
+          cronometros_previous[i] = status_cronometros[i];
+        }
+
+        // Dispara aviso prévio se estiver configurado
+        //if($('#cronometro_' + ids[i]).runner('info').formattedTime == tempo_disparo_antecedencia 
+        //  && "{{ painel_config.disparo_cronometro }}" == "True" ){
+        //  audioAlertFinish.play();
+        //}
+      }
+
+    },
+    complete: setTimeout(function() {poll()}, 500),
+    timeout: 20000 // TODO: decrease
+  });
+  })();
 
 });
 
