@@ -214,9 +214,15 @@ $(document).ready(function(){
       $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
     })
 
-    {% if painel_config.cronometro_ordem and cron.tipo == "Cronômetro da Questão de Ordem" %}
-      $('#cronometro_' + "{{cron.id}}" + '_Start').click(function() {
-        if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
+    $('#cronometro_' + "{{cron.id}}" + '_Start').click(function() {
+      // Como o botão de start e stop está sendo reaproveitado (é o mesmo botão, que fica mudando de texto),
+      // deve-se checar se é um start ou um stop
+      // Ação de start
+      if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
+        // Cronômetro da questão de ordem é tratado separadamente
+        // porque pode parar os demais quando inicia
+        {% if painel_config.cronometro_ordem and cron.tipo == "Cronômetro da Questão de Ordem" %}
+        // cronometro da questão de ordem
           {% for c in cronometros %}
             {% if c.tipo == "Cronômetro da Questão de Ordem" %}
               $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{c.id}}", action: 'start', last_time: '0'  } );
@@ -230,33 +236,29 @@ $(document).ready(function(){
               $('#cronometro_' + "{{c.id}}" + '_Start').text('Iniciar');
             {% endif %}
           {% endfor %}
-        } else{
-          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop', last_time: $('#cronometro_' + "{{cron.id}}").val() } );
-          $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
-          $('#cronometro_' + "{{cron.id}}").runner('stop');
-          $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
-        }
-      });
-    {% else %}
-      $('#cronometro_' + "{{cron.id}}" + '_Start').click(function() {
-        if ($('#cronometro_' + "{{cron.id}}" + '_Start').text() == 'Iniciar'){
+        // Demais cronômetros
+        {% else %}
           $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'start', last_time: '0' } );
           $('#cronometro_' + "{{cron.id}}" + '_Reset').hide();
           $('#cronometro_' + "{{cron.id}}").runner('start');
           $('#cronometro_' + "{{cron.id}}" + '_Start').text('Parar');
-        } else{
-          $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop', last_time: $('#cronometro_' + "{{cron.id}}").val() } );
-          $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
-          $('#cronometro_' + "{{cron.id}}").runner('stop');
-          $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
-        }
-      });
-    {% endif %}
+        {% endif %}
+      // Ação de stop é igual para todos os cronômetros
+      } else{
+        $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'stop', last_time: $('#cronometro_' + "{{cron.id}}").val() } );
+        $('#cronometro_' + "{{cron.id}}" + '_Reset').show();
+        $('#cronometro_' + "{{cron.id}}").runner('stop');
+        $('#cronometro_' + "{{cron.id}}" + '_Start').text('Iniciar');
+      }
+    });
 
+    // Ação de reset é igual para todos os cronômetros
     $('#cronometro_' + "{{cron.id}}" + '_Reset').click(function() {
       $.get('/painel/cronometro', { tipo: 'cronometro_' + "{{cron.id}}", action: 'reset', last_time: '0' } );
       //$('#cronometro_' + "{{cron.id}}").runner('stop');
-      $('#cronometro_' + "{{cron.id}}").runner('reset');
+      //$('#cronometro_' + "{{cron.id}}").runner('reset');
+      // faz o reset manualmente para que o cronometro retorne para o valor correto
+      $('#cronometro_' + "{{cron.id}}").val(convertValueToDuration(parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000));
     });    
 
   {% endfor %}
