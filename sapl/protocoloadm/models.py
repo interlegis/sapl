@@ -65,12 +65,12 @@ class Protocolo(models.Model):
                             help_text=_('Informado manualmente'))
     timestamp_data_hora_manual = models.DateTimeField(default=timezone.now)
     user_data_hora_manual = models.CharField(
-        max_length=20, blank=True,
+        max_length=256, blank=True,
         verbose_name=_('IP'),
         help_text=_('Usuário que está realizando Protocolo e informando '
                     'data e hora manualmente.'))
     ip_data_hora_manual = models.CharField(
-        max_length=15, blank=True,
+        max_length=256, blank=True,
         verbose_name=_('IP'),
         help_text=_('Endereço IP da estação de trabalho '
                     'do usuário que está realizando Protocolo e informando '
@@ -345,12 +345,12 @@ class TramitacaoAdministrativo(models.Model):
 class Anexado(models.Model):
     documento_principal = models.ForeignKey(
         DocumentoAdministrativo, related_name='documento_principal_set',
-        on_delete = models.CASCADE,
+        on_delete=models.CASCADE,
         verbose_name=_('Documento Principal')
     )
     documento_anexado = models.ForeignKey(
         DocumentoAdministrativo, related_name='documento_anexado_set',
-        on_delete = models.CASCADE,
+        on_delete=models.CASCADE,
         verbose_name=_('Documento Anexado')
     )
     data_anexacao = models.DateField(verbose_name=_('Data Anexação'))
@@ -368,7 +368,7 @@ class Anexado(models.Model):
                      'documento_anexado_tipo': self.documento_anexado.tipo,
                      'documento_anexado_numero': self.documento_anexado.numero,
                      'documento_anexado_ano': self.documento_anexado.ano
-                 }
+        }
 
 
 @reversion.register()
