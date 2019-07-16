@@ -1,8 +1,9 @@
 import logging
 import os
 
-from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
-from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
+
+from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
+from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -38,7 +39,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         RangeWidgetOverride, autor_label, autor_modal,
                         models_with_gr_for_model, qs_override_django_filter,
                         choice_anos_com_normas, choice_anos_com_materias,
-                        FilterOverridesMetaMixin, FileFieldCheckMixin)
+                        FilterOverridesMetaMixin, FileFieldCheckMixin, AnoNumeroOrderingFilter)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -1099,6 +1100,8 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
         queryset=StatusTramitacao.objects.all(),
         label=_('Status Atual'))
 
+    o = AnoNumeroOrderingFilter(help_text='')
+
     @property
     def qs(self):
         parent = super(RelatorioMateriasTramitacaoilterSet, self).qs
@@ -1120,12 +1123,27 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
         row3 = to_row([('tramitacao__unidade_tramitacao_destino', 12)])
         row4 = to_row([('tramitacao__status', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                            <div class="form-check">
+                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                            </div>
+                        ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
                      row1, row2, row3, row4,
-                     form_actions(label='Pesquisar'))
+                     buttons,)
         )
 
 

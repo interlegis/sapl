@@ -1,0 +1,105 @@
+{% load i18n %}
+{% load common_tags %}
+{% load static %}
+
+
+<head>
+    <style>
+        @page{
+            margin-top: 4.5cm;
+            size: A4 portrait;
+
+            @bottom-right {
+                content: "Página" counter(page);
+                height: 3cm;
+                font-size: 8pt;
+            }
+        
+            @bottom-center {
+                border-top: 1px solid black;
+                font-size: 8pt;
+                height: 1cm;
+                content: "{{rodape|safe}}";
+                font-style:italic;
+            }
+            @bottom-left {
+                content: "{{data}}";
+                height: 3cm;
+                font-size: 8pt;
+            }
+              
+            @top-center {
+                content:  string(title);
+            }
+            header {
+                width: 0;
+                height: 0;
+                visibility: hidden;
+                string-set: title content();
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}"> 
+</head>	
+
+  <h2>Matérias em Tramitação</h2>
+            {% if object_list|length %}
+
+            <table class="table table-bordered table-hover">
+      <thead class="thead-default" >
+        <tr class="active"><th colspan="2" class="text-center">QUADRO GERAL</th></tr>
+        <tr class="active">
+          <th>Tipo Matéria</th>
+          <th>Quantidade</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in qtdes.items %}
+          <tr>
+            <td>{{key.sigla}} - {{key}}</td>
+            <td>{{value}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </br>
+  </br>
+
+              {% for materia in object_list %}
+                <div style="border-top: 1px solid black;margin-bottom:0.3cm">
+                 {% if request.user.is_anonymous and not d.restrito or not request.user.is_anonymous%}
+                    <strong>Matéria:</strong> {{materia.tipo.descricao}} {{materia.numero}}/{{materia.ano}}
+                      </br>
+                    <strong>Local Atual:</strong>&nbsp;<a> {{materia.tramitacao_set.last.unidade_tramitacao_destino}} </a>
+                      </br>
+                    <strong>Status:</strong>&nbsp;<a> {{materia.tramitacao_set.last.status}} </a>
+                      </br>
+                    {% if d.protocolo %}
+                      <strong>Protocolo:</strong>&nbsp;<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' d.protocolo.id %}">{{ d.protocolo}}</a></br>
+                    {% endif %}
+                      {% define d.tramitacaoadministrativo_set.last as tram %}
+                      {% if tram.unidade_tramitacao_destino %}
+                      <strong>Localização Atual:</strong> &nbsp;{{tram.unidade_tramitacao_destino}}
+                          </br>
+                         <strong>Status:</strong> {{tram.status}}
+                          </br>
+                      {% endif %}
+                      {% define d.documentoacessorioadministrativo_set.all as acess %}
+                      {% if d.documentoacessorioadministrativo_set.all.exists %}
+                              <strong>Documentos Acessórios:</strong>
+                              <a href="{% url 'sapl.protocoloadm:documentoacessorioadministrativo_list' d.id %}">
+                                  {{ d.documentoacessorioadministrativo_set.all.count }}
+                              </a>
+                              </br>
+                          {% endif %}
+                    {% if d.tramitacao and mail_service_configured %}
+                      <a href="{% url 'sapl.protocoloadm:acompanhar_documento' d.id %}">Acompanhar Documento</a>
+                    {% endif %}
+              {% endif %}
+              </div>
+
+              {% endfor %}
+            {% else  %}
+              <h3>Nenhum documento encontrado com essas especificações</h3>
+            {% endif %}
+</body>
