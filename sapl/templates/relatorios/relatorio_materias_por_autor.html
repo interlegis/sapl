@@ -1,0 +1,101 @@
+{% load i18n %}
+{% load common_tags %}
+{% load static %}
+
+
+<head>
+    <style>
+        @page{
+            margin-top: 4.5cm;
+            size: A4 portrait;
+
+            @bottom-right {
+                content: "Página" counter(page);
+                height: 3cm;
+                font-size: 8pt;
+            }
+        
+            @bottom-center {
+                border-top: 1px solid black;
+                font-size: 8pt;
+                height: 1cm;
+                content: "{{rodape|safe}}";
+                font-style:italic;
+            }
+            @bottom-left {
+                content: "{{data}}";
+                height: 3cm;
+                font-size: 8pt;
+            }
+              
+            @top-center {
+                content:  string(title);
+            }
+            header {
+                width: 0;
+                height: 0;
+                visibility: hidden;
+                string-set: title content();
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}"> 
+</head>	
+
+  <h2>Matérias por Autor</h2>
+            {% if object_list|length %}
+
+            <table class="table table-bordered table-hover">
+      <thead class="thead-default" >
+        <tr class="active"><th colspan="2" class="text-center">QUADRO GERAL</th></tr>
+        <tr class="active">
+          <th>Tipo Matéria</th>
+          <th>Quantidade</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in qtdes.items %}
+          <tr>
+            <td>{{key.sigla}} - {{key}}</td>
+            <td>{{value}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </br>
+  </br>
+    {% if object_list|length %}
+
+        {% for materia in object_list %}
+            {% ifchanged materia.autoria_set.first.autor %}
+                </br>
+                    <strong>Autor: {{ materia.autoria_set.first.autor }}</strong>
+                </br>
+                </br>
+            {% endifchanged %}
+
+            <div style="border-top: 1px solid black;margin-bottom:0.3cm">
+
+                <strong>Matéria:</strong> {{materia.tipo.descricao}} {{materia.numero}}/{{materia.ano}}
+                  </br>
+                <strong>Ementa:</strong> {{materia.ementa}}
+                  </br>
+                <strong>Coautor(es):</strong> {% if materia.autoria_set.first != materia.autoria_set.last %}
+                    {% for autor in materia.autoria_set.all %}
+                      {% if not autor.primeiro_autor %}
+                        {{ autor.autor }}<br />
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                  </br>
+            </div>
+
+
+        {% endfor %}
+    {% endif %}
+
+    {% else  %}
+      <h3>Nenhum documento encontrado com essas especificações</h3>
+    {% endif %}
+
+</body>

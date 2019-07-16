@@ -29,7 +29,7 @@ from django_filters.views import FilterView
 from haystack.views import SearchView
 from haystack.query import SearchQuerySet
 
-from sapl.relatorios.views import relatorio_materia_em_tramitacao
+from sapl.relatorios.views import relatorio_materia_em_tramitacao, relatorio_materia_por_autor
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
@@ -902,7 +902,7 @@ class RelatorioMateriasPorAutorView(FilterView):
 
         qtdes = {}
         for tipo in TipoMateriaLegislativa.objects.all():
-            qs = kwargs['object_list']
+            qs = context['object_list']
             qtde = len(qs.filter(tipo_id=tipo.id))
             if qtde > 0:
                 qtdes[tipo] = qtde
@@ -928,6 +928,43 @@ class RelatorioMateriasPorAutorView(FilterView):
             ' - ' + self.request.GET['data_apresentacao_1'])
 
         return context
+
+    def get(self, request, *args, **kwargs):
+        super(RelatorioMateriasPorAutorView, self).get(request)
+        # Se a pesquisa estiver quebrando com a paginação
+        # Olhe esta função abaixo
+        # Provavelmente você criou um novo campo no Form/FilterSet
+        # Então a ordem da URL está diferente
+        data = self.filterset.data
+        if data and data.get('tipo') is not None:
+            url = "&" + str(self.request.environ['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('tipo=') - 1
+                url = url[ponto_comeco:]
+        else:
+            url = ''
+        self.filterset.form.fields['o'].label = _('Ordenação')
+        # é usada essa verificação anônima para quando os documentos administrativos
+        # estão no modo ostensivo, mas podem existir documentos administrativos
+        # restritos
+        if request.user.is_anonymous():
+            length = self.object_list.filter(restrito=False).count()
+        else:
+            length = self.object_list.count()
+
+        is_relatorio = url != '' and request.GET.get('relatorio', None)
+        self.paginate_by = None if is_relatorio else self.paginate_by
+        context = self.get_context_data(filter=self.filterset,
+                                        filter_url=url,
+                                        numero_res=length
+                                        )
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
+
+        if is_relatorio:
+            return relatorio_materia_por_autor(request, context)
+        else:
+            return self.render_to_response(context)
 
 
 class RelatorioNormasPublicadasMesView(FilterView):
