@@ -43,6 +43,13 @@
 </head>	
 
   <h2>Matérias em Tramitação</h2>
+
+    <b>PARÂMETROS DE PESQUISA:<br /></b>
+    &emsp;Ano: {{ ano }} <br />
+    &emsp;Tipo de matéria: {{ tipo }}<br />
+    &emsp;Status atual: {{ tramitacao__status }}<br />
+    &emsp;Local atual: {{ tramitacao__unidade_tramitacao_destino }}<br /><br /><br />
+
             {% if object_list|length %}
 
             <table class="table table-bordered table-hover">

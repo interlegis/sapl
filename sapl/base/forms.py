@@ -1153,6 +1153,8 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
                                       label='Ano da Matéria',
                                       choices=choice_anos_com_materias)
 
+    o = AnoNumeroOrderingFilter(help_text='')
+
     class Meta:
         model = MateriaLegislativa
         fields = ['ano']
@@ -1182,7 +1184,7 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa de Matéria por Autor'),
+            Fieldset(_('Pesquisa de Matéria por Ano Autor Tipo'),
                      row1,
                      buttons, )
         )
