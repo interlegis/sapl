@@ -30,7 +30,8 @@ from haystack.views import SearchView
 from haystack.query import SearchQuerySet
 
 from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_materia_por_autor,
-                                   relatorio_materia_por_ano_autor, relatorio_presenca_sessao)
+                                   relatorio_materia_por_ano_autor, relatorio_presenca_sessao,
+                                   relatorio_historico_tramitacao)
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
@@ -623,6 +624,40 @@ class RelatorioHistoricoTramitacaoView(FilterView):
             context['tramitacao__unidade_tramitacao_destino'] = ''
 
         return context
+
+    def get(self, request, *args, **kwargs):
+        super(RelatorioHistoricoTramitacaoView, self).get(request)
+        # Se a pesquisa estiver quebrando com a paginação
+        # Olhe esta função abaixo
+        # Provavelmente você criou um novo campo no Form/FilterSet
+        # Então a ordem da URL está diferente
+        data = self.filterset.data
+        if data and data.get('tipo') is not None:
+            url = "&" + str(self.request.environ['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('tipo=') - 1
+                url = url[ponto_comeco:]
+        else:
+            url = ''
+        self.filterset.form.fields['o'].label = _('Ordenação')
+        # é usada essa verificação anônima para quando os documentos administrativos
+        # estão no modo ostensivo, mas podem existir documentos administrativos
+        # restritos
+        length = self.object_list.count()
+
+        is_relatorio = request.GET.get('relatorio', None)
+        self.paginate_by = None if is_relatorio else self.paginate_by
+        context = self.get_context_data(filter=self.filterset,
+                                        filter_url=url,
+                                        numero_res=length
+                                        )
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
+
+        if is_relatorio:
+            return relatorio_historico_tramitacao(request, context)
+        else:
+            return self.render_to_response(context)
 
 
 class RelatorioDataFimPrazoTramitacaoView(FilterView):
