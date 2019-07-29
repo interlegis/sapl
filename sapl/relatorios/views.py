@@ -1390,6 +1390,7 @@ def relatorio_materia_em_tramitacao(request, context):
 
     return response
 
+
 def relatorio_materia_por_autor(request, context):
     base_url = request.build_absolute_uri()
     casa = CasaLegislativa.objects.first()
@@ -1412,6 +1413,7 @@ def relatorio_materia_por_autor(request, context):
 
     return response
 
+
 def relatorio_materia_por_ano_autor(request, context):
     base_url = request.build_absolute_uri()
     casa = CasaLegislativa.objects.first()
@@ -1432,8 +1434,31 @@ def relatorio_materia_por_ano_autor(request, context):
     response['Content-Transfer-Encoding'] = 'binary'
     response.write(pdf_file)
 
+    return response
+
+
+def relatorio_presenca_sessao(request, context):
+    base_url = request.build_absolute_uri()
+    casa = CasaLegislativa.objects.first()
+    rodape = ' '.join(get_rodape(casa))
+
+    context.update({'data': dt.today().strftime('%d/%m/%Y')})
+    context.update({'rodape': rodape})
+
+    header_context = {"casa": casa, 'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+
+    html_template = render_to_string('relatorios/relatorio_presenca_sessao.html', context)
+    html_header = render_to_string('relatorios/header_ata.html', header_context)
+
+    pdf_file = make_pdf(base_url=base_url, main_template=html_template, header_template=html_header)
+
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    response.write(pdf_file)
 
     return response
+
 
 def relatorio_sessao_plenaria_pdf(request, pk):  
     base_url=request.build_absolute_uri()
