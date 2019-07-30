@@ -501,6 +501,7 @@ class RelatorioPresencaSessaoView(FilterView):
             ' - ' + self.request.GET['data_inicio_1'])
         context['sessao_legislativa'] = ''
         context['legislatura'] = ''
+        context['exibir_ordem'] = self.request.GET.get('exibir_ordem_dia') == 'on'
 
         if sessao_legislativa_pk:
             context['sessao_legislativa'] = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
