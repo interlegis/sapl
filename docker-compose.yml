@@ -9,9 +9,10 @@ sapldb:
   volumes:
     - sapldb_data:/var/lib/postgresql/data/
   ports:
-    - "5432:5432"
+    - "5434:5432"
 sapl:
-  image: interlegis/sapl:3.1.159-RC3
+  #image: interlegis/sapl:3.1.159
+  build: .
   restart: always
   environment:
     ADMIN_PASSWORD: interlegis
@@ -30,4 +31,4 @@ sapl:
   links:
     - sapldb
   ports:
-    - "80:80"
+    - "81:80"
