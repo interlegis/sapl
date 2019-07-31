@@ -1,0 +1,30 @@
+sut:
+  build: .
+  dockerfile: Dockerfile.test
+  restart: "no"
+  environment:
+    ADMIN_PASSWORD: interlegis
+    ADMIN_EMAIL: email@dominio.net
+    DEBUG: 'False'
+    EMAIL_PORT: 587
+    EMAIL_USE_TLS: 'False'
+    EMAIL_HOST: smtp.dominio.net
+    EMAIL_HOST_USER: usuariosmtp
+    EMAIL_SEND_USER: usuariosmtp
+    EMAIL_HOST_PASSWORD: senhasmtp
+    TZ: America/Sao_Paulo
+  links:
+    - sapldb
+  ports:
+    - "81:80"
+
+sapldb:
+  image: postgres:10.5-alpine
+  restart: "no"
+  environment:
+    POSTGRES_PASSWORD: sapl
+    POSTGRES_USER: sapl
+    POSTGRES_DB: sapl
+    PGDATA : /var/lib/postgresql/data/
+  ports:
+    - "5434:5432"
