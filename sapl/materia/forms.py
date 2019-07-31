@@ -1831,7 +1831,10 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
             'tipo': TipoProposicaoSelect(),
-            'hash_code': forms.HiddenInput(), }
+            'hash_code': forms.HiddenInput(),
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         self.texto_articulado_proposicao = AppConfig.attr(
