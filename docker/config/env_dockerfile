@@ -1,5 +1,5 @@
 DATABASE_URL = sqlite:///sapl.db
-SECRET_KEY = 'Dockerfile_Key'
+SECRET_KEY = 'mzp++@i1y-6y8ez_=^sfbr!dzuyry#^@v(3g^2d1k9%f=+mhlb'
 DEBUG = False
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
