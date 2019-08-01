@@ -38,13 +38,13 @@ from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
                     ParlamentarFilterSet, VincularParlamentarForm,
                     BlocoForm, CargoBlocoForm, CargoBlocoPartidoForm,
-                    BancadaForm)
+                    BancadaForm, AfastamentoParlamentarForm)
                     
 from .models import (Bancada, CargoBancada, CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco, CargoBlocoPartido, HistoricoPartido, CargoBloco)
+                     Bloco, CargoBlocoPartido, HistoricoPartido, CargoBloco, AfastamentoParlamentar)
 
 
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
@@ -1298,3 +1298,40 @@ def deleta_vinculo_parlamentar_bloco(request,pk):
             'sapl.parlamentares:bloco_detail',
             kwargs={'pk': pk_bloco})
         )
+
+class AfastamentoParlamentarCrud(PermissionRequiredMixin, MasterDetailCrud):
+    model = AfastamentoParlamentar
+    parent_field = 'parlamentar'
+    public = [RP_DETAIL, RP_LIST]
+    list_field_names = ['mandato__legislatura',
+                        'data_inicio',
+                        'data_fim',
+                        'tipo_afastamento']
+
+    class ListView(MasterDetailCrud.ListView):
+        ordering = ('-mandato__legislatura__numero', '-data_inicio')
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            rows = context['rows']
+
+            coluna_coligacao = 2
+            coluna_votos_recebidos = 3
+            for row in rows:
+                if not row[coluna_coligacao][0]:
+                    row[coluna_coligacao] = (' ', None)
+
+                if not row[coluna_votos_recebidos][0]:
+                    row[coluna_votos_recebidos] = (' ', None)
+
+            return context
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = AfastamentoParlamentarForm
+
+        def get_initial(self):
+            parlamentar = Parlamentar.objects.get(pk=self.kwargs['pk'])
+            return {'parlamentar': parlamentar}
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = AfastamentoParlamentarForm

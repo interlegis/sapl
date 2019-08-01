@@ -727,7 +727,6 @@ class CargoBancada(models.Model):
     def __str__(self):
         return self.nome_cargo
 
-        
 class CargoBlocoPartido(models.Model):
     class Meta:
         verbose_name = _('Vinculo bloco parlamentar')
@@ -748,3 +747,32 @@ class CargoBlocoPartido(models.Model):
 
     data_inicio = models.DateField(verbose_name=_('Data Início'))
     data_fim = models.DateField(blank=True, null=True, verbose_name=_('Data Fim'))
+
+
+@reversion.register()
+class AfastamentoParlamentar(models.Model):
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.CASCADE)
+    mandato = models.ForeignKey(Mandato, on_delete=models.CASCADE,
+                                verbose_name=_('Mandato'))
+    tipo_afastamento = models.ForeignKey(TipoAfastamento, 
+                                         on_delete=models.PROTECT,
+                                         verbose_name=_('Tipo de Afastamento'),
+                                         blank=True,
+                                         null=True)
+    data_inicio = models.DateField(verbose_name=_('Início do Afastamento'),
+                                   blank=False,
+                                   null=True)
+    data_fim = models.DateField(verbose_name=_('Fim do Afastamento'),
+                                blank=True,
+                                null=True)
+    observacao = models.TextField(verbose_name=_('Observação'),
+                                  blank=True)
+
+    class Meta:
+        verbose_name = _('Afastamento')
+        verbose_name_plural = _('Afastamentos')
+
+    def __str__(self):
+        return _('%(parlamentar)s %(legislatura)s') % {
+            'parlamentar': self.parlamentar, 'legislatura': self.mandato.legislatura
+        }
