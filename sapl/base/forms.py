@@ -1022,6 +1022,8 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
 
+    o = AnoNumeroOrderingFilter(help_text='')
+
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
@@ -1050,12 +1052,27 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             [('tipo', 6),
              ('tramitacao__status', 6)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                    <div class="form-check">
+                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                    </div>
+                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitações'),
                      row1, row2, row3,
-                     form_actions(label='Pesquisar'))
+                     buttons, )
         )
 
 
