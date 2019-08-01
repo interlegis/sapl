@@ -1243,6 +1243,10 @@ class TramitacaoCrud(MasterDetailCrud):
             initial['data_tramitacao'] = timezone.now().date()
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         def get_context_data(self, **kwargs):
@@ -1324,11 +1328,15 @@ class TramitacaoCrud(MasterDetailCrud):
             ]
 
             # Se não houve qualquer alteração em um dos dados, mantém o usuário
-            # e ip
+            # e ip e data e hora de última edição
             for atributo in atributos:
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
                     self.object.user = user
                     self.object.ip = get_client_ip(self.request)
+
+                    tz = timezone.get_current_timezone()
+                    self.object.ultima_edicao = tz.localize(datetime.now())
+                    
                     self.object.save()
                     break
 

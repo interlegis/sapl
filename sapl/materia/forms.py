@@ -463,9 +463,12 @@ class TramitacaoForm(ModelForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip']
+                  'ip',
+                  'ultima_edicao']
+                
         widgets = {'user': forms.HiddenInput(),
-                   'ip': forms.HiddenInput()}
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()}
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)

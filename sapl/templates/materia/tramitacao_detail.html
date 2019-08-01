@@ -1,18 +1,17 @@
 {% extends "crud/detail_detail.html" %}
 {% load i18n %}
-
 {% block detail_content %}
     {{ block.super }}
     {% if user.is_superuser %}
         <div class="row">
             {% if tramitacao.user %}
-                <div class="col-sm-6">
+                <div class="col-sm-4">
                     <div id="div_id_user" class="form-group">
                         <p class="control-label">Usuário</p> 
                         <div class="controls">
                             <div class="form-control-static">
                                 <div class="dont-break-out">
-                                    <a href="{% url 'sapl.base:user_edit' tramitacao.user.pk %}">{{tramitacao.user}}</a>
+                                    <a href="{% url 'sapl.base:user_edit' tramitacao.user.pk %}">{{ tramitacao.user }}</a>
                                 </div>
                             </div>
                         </div>
@@ -20,13 +19,27 @@
                 </div>
             {% endif %}
             {% if tramitacao.ip %}
-                <div class="col-sm-6">
+                <div class="col-sm-4">
                     <div id="div_ip_user" class="form-group">
                         <p class="control-label">IP</p> 
                         <div class="controls">
                             <div class="form-control-static">
                                 <div class="dont-break-out">
-                                    {{tramitacao.ip}}
+                                    {{ tramitacao.ip }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            {% if tramitacao.ultima_edicao %}
+                <div class="col-sm-4">
+                    <div id="div_ud_user" class="form-group">
+                        <p class="control-label">Data e Hora da Edição</p>
+                        <div class="controls">
+                            <div class="form-control-static">
+                                <div class="dont-break-out">
+                                    {{ tramitacao.ultima_edicao }}
                                 </div>
                             </div>
                         </div>
