@@ -771,6 +771,8 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
 
 class RelatorioAtasFilterSet(django_filters.FilterSet):
 
+    o = AnoNumeroOrderingFilter(help_text='')
+
     class Meta(FilterOverridesMetaMixin):
         model = SessaoPlenaria
         fields = ['data_inicio']
@@ -790,11 +792,26 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('data_inicio', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                            <div class="form-check">
+                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                            </div>
+                                        ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Atas das Sessões Plenárias'),
-                     row1, form_actions(label='Pesquisar'))
+                     row1, buttons, )
         )
 
 
