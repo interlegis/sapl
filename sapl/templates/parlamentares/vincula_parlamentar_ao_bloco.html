@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n common_tags%}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+
+<form method='POST'>
+{% csrf_token %}
+{% for error in form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">
+    {{ error }}
+  </div>
+{% endfor %}
+<div class="container">
+  <div class="row">
+    <div class="col-sm">
+        {{ form.cargo|as_crispy_field }}
+    </div>
+    <div class="col-sm">
+        {{ form.parlamentar|as_crispy_field }}
+    </div>
+  </div>
+    <div class="row">
+    <div class="col-sm">
+        {{ form.data_inicio|as_crispy_field }}
+    </div>
+    <div class="col-sm">
+        {{ form.data_fim|as_crispy_field }}
+    </div>
+  </div>
+</div>
+
+<a href="{% url 'sapl.parlamentares:bloco_detail' pk%}" class="btn btn-dark">Cancelar</a>
+<button type="submit" name="salvar" value="Salvar" class="btn btn-primary float-right" id="submit-id-salvar">Salvar</button>
+
+</form>
+{% endblock base_content %}

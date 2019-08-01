@@ -145,3 +145,9 @@ Bloco:
   - data_criacao data_extincao
   - partidos
   - descricao
+
+CargoBloco:
+  {% trans 'Cargo' %}:
+  - nome
+  - unico
+  - descricao

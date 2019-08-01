@@ -694,6 +694,18 @@ class Bancada(models.Model):
         verbose_name_plural = _('Bancadas Parlamentares')
         ordering = ('-legislatura__numero', )
 
+class CargoBloco(models.Model):
+    class Meta:
+        verbose_name = _('Cargo de Bloco')
+        verbose_name_plural = _('Cargos de Bloco')
+        ordering = ['nome']
+
+    nome = models.CharField(
+        max_length=80, verbose_name=_('Nome do Cargo'))
+    unico = models.BooleanField(
+        choices=YES_NO_CHOICES, verbose_name=_('Cargo Único'), default=True)
+    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+
     def __str__(self):
         return self.nome
 
@@ -714,3 +726,25 @@ class CargoBancada(models.Model):
 
     def __str__(self):
         return self.nome_cargo
+
+        
+class CargoBlocoPartido(models.Model):
+    class Meta:
+        verbose_name = _('Vinculo bloco parlamentar')
+        verbose_name_plural = _('Vinculos bloco parlamentar')
+        ordering = ['data_inicio']
+
+    bloco = models.ForeignKey(
+    Bloco,
+    on_delete=models.PROTECT)
+
+    cargo = models.ForeignKey(
+    CargoBloco,
+    on_delete=models.PROTECT)
+
+    parlamentar = models.ForeignKey(
+    Parlamentar,
+    on_delete=models.PROTECT)
+
+    data_inicio = models.DateField(verbose_name=_('Data Início'))
+    data_fim = models.DateField(blank=True, null=True, verbose_name=_('Data Fim'))
