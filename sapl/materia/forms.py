@@ -1826,7 +1826,10 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
                   'ano_materia',
                   'tipo_texto',
                   'hash_code',
-                  'numero_materia_futuro']
+                  'numero_materia_futuro',
+                  'user',
+                  'ip',
+                  'ultima_edicao']
 
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
@@ -1834,6 +1837,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
             'hash_code': forms.HiddenInput(),
             'user': forms.HiddenInput(),
             'ip': forms.HiddenInput(),
+            'ultima_edicao': forms.HiddenInput()
         }
 
     def __init__(self, *args, **kwargs):

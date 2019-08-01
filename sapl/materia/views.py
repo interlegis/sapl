@@ -1039,6 +1039,9 @@ class ProposicaoCrud(Crud):
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
             
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         def get_context_data(self, **kwargs):
