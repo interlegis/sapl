@@ -5,6 +5,6 @@ while true; do
     if ! [ "$COUNT_PG" -eq "0" ]; then
        break
     fi
-    echo "Esperando Database Setup"
+    echo "Esperando conexão com BD"
     sleep 10
 done
