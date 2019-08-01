@@ -478,8 +478,12 @@ class TipoAfastamento(models.Model):
 @reversion.register()
 class Mandato(models.Model):
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.CASCADE)
-    tipo_afastamento = models.ForeignKey(
-        TipoAfastamento, blank=True, null=True, on_delete=models.PROTECT)
+    tipo_afastamento = models.ForeignKey(TipoAfastamento, 
+                                         blank=True, 
+                                         null=True, 
+                                         on_delete=models.PROTECT, 
+                                         verbose_name=_('Tipo de Afastamento'))
+                                         
     legislatura = models.ForeignKey(Legislatura, on_delete=models.PROTECT,
                                     verbose_name=_('Legislatura'))
     coligacao = models.ForeignKey(
