@@ -177,7 +177,8 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
                    'anexadas', 'data_ultima_atualizacao']
         widgets = {
             'user': forms.HiddenInput(),
-            'ip': forms.HiddenInput()
+            'ip': forms.HiddenInput(),
+            'ultima_edicao': forms.HiddenInput()
         }
 
     def __init__(self, *args, **kwargs):

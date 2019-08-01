@@ -1727,6 +1727,9 @@ class MateriaLegislativaCrud(Crud):
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
 
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         @property
@@ -1758,6 +1761,10 @@ class MateriaLegislativaCrud(Crud):
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
+                    
+                    tz = timezone.get_current_timezone()
+                    self.object.ultima_edicao = tz.localize(datetime.now())
+                    
                     self.object.save()
                     break
 
