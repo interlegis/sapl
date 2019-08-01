@@ -13,12 +13,13 @@ SED_AWKWARD_PATTERN="[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+){0,1}"
 
 LATEST_VERSION=$(git tag | egrep $VERSION_PATTERN | sort --version-sort | tail -1)
 MAJOR_VERSION=$(echo $LATEST_VERSION | cut -d"-" -f1)
-IS_RC=$(echo $LATEST_VERSION | egrep '(-RC)')
 MAJOR_TAG_CREATED=$(git tag | egrep $MAJOR_VERSION"$")
 
 if [ -n "$MAJOR_TAG_CREATED" ]; then
    LATEST_VERSION=$MAJOR_VERSION
 fi
+
+IS_RC=$(echo $LATEST_VERSION | egrep '(-RC)')
 
 LAST_DIGIT=`echo $MAJOR_VERSION | cut -f 3 -d '.'`
 MAIN_REV=`echo $MAJOR_VERSION | cut -f 1,2 -d '.'`
@@ -33,17 +34,13 @@ function change_files {
 
     echo "Atualizando de "$OLD_VERSION" para "$FINAL_VERSION
 
-    sed -E s/$OLD_VERSION/$FINAL_VERSION/g docker-compose.yml > tmp1
-    mv tmp1 docker-compose.yml
+    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" docker-compose.yml
 
-    sed -E s/$OLD_VERSION/$FINAL_VERSION/g setup.py > tmp2
-    mv tmp2 setup.py
+    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" setup.py
 
-    sed -E s/$OLD_VERSION/$FINAL_VERSION/g sapl/templates/base.html > tmp3
-    mv tmp3 sapl/templates/base.html
+    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/templates/base.html
 
-    sed -E s/$OLD_VERSION/$FINAL_VERSION/g sapl/settings.py > tmp4
-    mv tmp4 sapl/settings.py
+    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/settings.py
 }
 
 function set_major_version {
@@ -72,9 +69,12 @@ function commit_and_push {
    git commit -m "Release: $FINAL_VERSION"
    git tag $FINAL_VERSION
 
+   echo "================================================================================"
+   echo " Versão criada e gerada localmente."
    echo "Para enviar pro github execute..."
    echo "git push origin 3.1.x"
    echo "git push origin "$FINAL_VERSION
+   echo "================================================================================"
 
    echo "done."
 }
