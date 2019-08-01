@@ -1,7 +1,21 @@
-version: '2'
+##
+##
+## ATENÇÃO: A ATUALIZAÇÃO DESTE ARQUIVO EM AMBIENTES DE PRODUÇÃO PODE CAUSAR PERDA DE DADOS
+##
+## Esta atualização da versão e formato do arquivo docker-compose.yml pode POTENCIALMENTE causar
+## a perda de dados. Portanto, aconselha-se a fazer o BACKUP da base de dados do PostgreSQL e
+## da pasta 'media', assim como outros arquivos que julgar necessários, mas não expresso neste
+## disclaimer por PRECAUÇÃO.
+##
+## Adicionalmente, temos um novo container (saplsolr) que possui seus volumes que devem ser
+## mapeados para um diretório no host da máquina.
+##
+##
+version: "3.5"
 services:
     sapldb:
       image: postgres:10.5-alpine
+      container_name: postgres
       restart: always
       environment:
         POSTGRES_PASSWORD: sapl
@@ -11,10 +25,13 @@ services:
       volumes:
         - sapldb_data:/var/lib/postgresql/data/
       ports:
-        - "5432:5432"
+        - "5433:5432"
+      networks:
+        - sapl-net
 
     saplsolr:
       image: solr:7.4-alpine
+      container_name: solr
       restart: always
       command: bin/solr start -c -f
       volumes:
@@ -22,10 +39,18 @@ services:
         - solr_configsets:/opt/solr/server/solr/configsets
       ports:
         - "8983:8983"
+      networks:
+        - sapl-net
 
     sapl:
-      image: interlegis/sapl:3.1.152
-      # build: .
+      #image: interlegis/sapl:3.1.159
+      build:
+        context: ../
+        dockerfile: ./docker/Dockerfile
+        # target: sapl
+      container_name: sapl
+      labels:
+         NAME: "sapl"
       restart: always
       environment:
         ADMIN_PASSWORD: interlegis
@@ -35,6 +60,7 @@ services:
         EMAIL_USE_TLS: 'False'
         EMAIL_HOST: smtp.dominio.net
         EMAIL_HOST_USER: usuariosmtp
+        EMAIL_SEND_USER: usuariosmtp
         EMAIL_HOST_PASSWORD: senhasmtp
         USE_SOLR: 'True'
         SOLR_COLLECTION: sapl
@@ -43,18 +69,23 @@ services:
       volumes:
         - sapl_data:/var/interlegis/sapl/data
         - sapl_media:/var/interlegis/sapl/media
-        - sapl_root:/var/interlegis/sapl
-      volumes_from:
+      links:
+        - sapldb
         - saplsolr
       depends_on:
         - sapldb
         - saplsolr
+      networks:
+        - sapl-net
       ports:
         - "80:80"
 volumes:
-  sapldb_data:
-  sapl_data:
-  sapl_media:
-  sapl_root:
-  solr_data:
-  solr_configsets:
+   sapl_data:
+   sapl_media:
+   sapldb_data:
+   solr_data:
+   solr_configsets:
+
+networks:
+   sapl-net:
+      driver: bridge
