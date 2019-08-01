@@ -948,6 +948,8 @@ class ProposicaoCrud(Crud):
         form_class = ProposicaoForm
 
         def form_valid(self, form):
+            tz = timezone.get_current_timezone()
+
             objeto_antigo = Proposicao.objects.get(
                 pk=self.kwargs['pk']
             )
@@ -957,7 +959,7 @@ class ProposicaoCrud(Crud):
             if tipo_texto=='D' and objeto_antigo.texto_articulado.exists() or tipo_texto=='T' and not objeto_antigo.texto_articulado.exists():
                 self.object.user = self.request.user
                 self.object.ip = get_client_ip(self.request)
-                self.object.ultima_edicao = datetime.now()
+                self.object.ultima_edicao = tz.localize(datetime.now())
                 self.object.save()
 
             self.object = form.save()
@@ -972,7 +974,7 @@ class ProposicaoCrud(Crud):
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
-                    self.object.ultima_edicao = datetime.now()
+                    self.object.ultima_edicao = tz.localize(datetime.now())
                     self.object.save()
                     break
             
