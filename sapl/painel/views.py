@@ -363,7 +363,28 @@ def switch_painel(request):
 def verifica_painel(request):
     sessao = SessaoPlenaria.objects.get(id=request.GET['pk_sessao'])
     status = sessao.painel_aberto
-    resposta = JsonResponse(dict(status=status))
+
+    CRONOMETRO_STATUS = {
+        'I': 'start',
+        'R': 'reset',
+        'S': 'stop',
+        'C': 'increment'
+    }
+
+    dict_status_cronometros = dict(Cronometro.objects.filter(ativo=True).order_by('ordenacao').values_list('id', 'status'))
+
+    for key, value in dict_status_cronometros.items():
+        dict_status_cronometros[key] = CRONOMETRO_STATUS[dict_status_cronometros[key]]
+    
+    dict_duracao_cronometros = dict(Cronometro.objects.filter(ativo=True).order_by('ordenacao').values_list('id', 'duracao_cronometro'))
+    
+    for key, value in dict_duracao_cronometros.items():
+        dict_duracao_cronometros[key] = value.seconds
+
+    resposta = JsonResponse(dict(status=status, 
+                                 cronometros=dict_status_cronometros, 
+                                 duracao_cronometros=dict_duracao_cronometros)
+                            )
     return resposta
 
 
@@ -395,20 +416,11 @@ def cronometro_painel(request):
     cronometro_id = request.GET['tipo'].split('cronometro_')[1]
     cronometro = Cronometro.objects.get(id=cronometro_id)
     cronometro.status = CRONOMETRO_STATUS[acao]
+    cronometro.ultima_alteracao_status = timezone.now()
+    # Caso não seja stop, last_time virá como 0
+    cronometro.last_stop_duration = request.GET.get('last_time')
     cronometro.save()
     return HttpResponse({})
-
-
-def get_cronometro_status(request, name):
-    logger = logging.getLogger(__name__)
-    username = request.user.username
-    try:
-        logger.debug("user=" + username + ". Tentando obter cronometro.")
-        cronometro = request.session[name]
-    except KeyError as e:
-        logger.error("user=" + username + ". Erro ao obter cronometro. Retornado como vazio. " + str(e))
-        cronometro = ''
-    return cronometro
 
 
 def get_materia_aberta(pk):
@@ -607,12 +619,18 @@ def get_dados_painel(request, pk):
 
     for key, value in dict_status_cronometros.items():
         dict_status_cronometros[key] = CRONOMETRO_STATUS[dict_status_cronometros[key]]
+    
+    dict_duracao_cronometros = dict(Cronometro.objects.filter(ativo=True).order_by('ordenacao').values_list('id', 'duracao_cronometro'))
+    
+    for key, value in dict_duracao_cronometros.items():
+        dict_duracao_cronometros[key] = value.seconds
 
     response = {
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
         'sessao_plenaria_hora_inicio': sessao.hora_inicio,
         'cronometros': dict_status_cronometros,
+        'duracao_cronometros': dict_duracao_cronometros,
         'sessao_solene': sessao.tipo.nome == "Solene",
         'sessao_finalizada': sessao.finalizada,
         'tema_solene': sessao.tema_solene,

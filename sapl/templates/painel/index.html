@@ -170,6 +170,16 @@
       audio.play();
     }
 
+    function convertValueToDuration(value){
+      let h = Math.floor((value/1000) / 3600);
+      h = checkTime(h);
+      let m = Math.floor((value/1000) % 3600 / 60);
+      m = checkTime(m);
+      let s = Math.floor((value/1000) % 3600 % 60);
+      s = checkTime(s);
+      return h.toString() + ":" + m.toString() + ":" + s.toString();
+    }
+
     $(document).ready(function() {
       //TODO: replace by a fancy jQuery clock
       startTime();
@@ -186,23 +196,26 @@
       {% for cron in cronometros %}
         cronometros_previous.push(0);
         $('#cronometro_' + "{{cron.id}}").runner({
-          autostart: false,
+          autostart: {% if cron.status == "I"%} true {% else %} false {% endif %},
           countdown: true,
-          startAt: parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000,
+          startAt: 
+            {% if cron.status == "R"%}
+              parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000
+            {% elif cron.status == "S"%}
+              {% if cron.last_stop_duration %} 
+                parseInt("{{cron.last_stop_duration|duration_to_seconds}}") * 1000
+              {% else %}
+                parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000
+              {% endif %}
+            {% elif cron.status == "I" %} 
+              parseInt("{{cron.duracao_cronometro|duration_difference:cron.ultima_alteracao_status}}") * 1000
+            {% endif %},
           stopAt: 0,
           milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
+          format: convertValueToDuration
         }).on('runnerFinish', function(eventObject, info){
           playAudioNumVezes(audioAlertFinish, num_vezes_toca_audio);
-        })
+        });
       {% endfor %}
 
       var tempo_disparo_antecedencia = "{{ painel_config.tempo_disparo_antecedencia }}"
@@ -329,27 +342,55 @@
                   $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
               };
 
+              // obtém todos os ids em uma lista e
+               // converte os dados do status dos cronômetros de dicionário para uma lista
               var ids = [];
-              var status_cronometros = []
+              var status_cronometros = [];
               for (var key in data['cronometros']) {
                   if (data['cronometros'].hasOwnProperty(key)) {           
                       ids.push(key);
-                      status_cronometros.push(data['cronometros'][key])
+                      status_cronometros.push(data['cronometros'][key]);
                   }
               }
 
+              // converte os dados de dicionário para uma lista
+              var duracao_cronometros = [];
+              for (let id of ids) {
+                duracao_cronometros.push(data['duracao_cronometros'][id]);
+              }
+
               for(let i=0; i<status_cronometros.length; i++){
-                if (!cronometros_previous[i])
+                if (!cronometros_previous[i]){
                   cronometros_previous[i] = ''
-                
+                }
+
+                // se houve alteração de status
                 if (status_cronometros[i] != cronometros_previous[i]) {
-                  $('#cronometro_' + ids[i]).runner(status_cronometros[i]);
+                  if(status_cronometros[i] == 'reset'){
+                    // é necessário recriar o cronômetro com o valor da duração original devido a limitações da API
+                    $('#cronometro_' + ids[i]).runner({
+                      autostart: false,
+                      countdown: true,
+                      startAt: parseInt(duracao_cronometros[i]) * 1000,
+                      stopAt: 0,
+                      milliseconds: false,
+                      format: convertValueToDuration
+                    }).on('runnerFinish', function(eventObject, info){
+                      playAudioNumVezes(audioAlertFinish, num_vezes_toca_audio);
+                    });
+                  }
+                  // ações de start e stop
+                  else{
+                    $('#cronometro_' + ids[i]).runner(status_cronometros[i]);
+                  }
                   cronometros_previous[i] = status_cronometros[i];
                 }
 
-                if($('#cronometro_' + ids[i]).runner('info').formattedTime == tempo_disparo_antecedencia && 
-                  "{{ painel_config.disparo_cronometro }}" == "True" )
+                // Dispara aviso prévio se estiver configurado
+                if($('#cronometro_' + ids[i]).runner('info').formattedTime == tempo_disparo_antecedencia 
+                  && "{{ painel_config.disparo_cronometro }}" == "True" ){
                   audioAlertFinish.play();
+                }
                 
               }
 

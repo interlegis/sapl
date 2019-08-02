@@ -2,7 +2,7 @@ import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from sapl.utils import YES_NO_CHOICES
-
+from django.utils import timezone
 
 @reversion.register()
 class Painel(models.Model):
@@ -24,12 +24,6 @@ class Painel(models.Model):
 
 @reversion.register()
 class Cronometro(models.Model):
-    CRONOMETRO_TYPES = (
-        ('A', _('Aparte')),
-        ('D', _('Discurso')),
-        ('O', _('Ordem do dia')),
-        ('C', _('Considerações finais'))
-    )
 
     CRONOMETRO_STATUS = (
         ('I', 'Start'),
@@ -42,17 +36,28 @@ class Cronometro(models.Model):
         max_length=1,
         verbose_name=_('Status do cronômetro'),
         choices=CRONOMETRO_STATUS,
-        default='S')
+        default='R')
+
+    ultima_alteracao_status = models.DateTimeField(default=timezone.now)
+
+    last_stop_duration = models.DurationField(
+        blank=True,
+        null=True,
+        verbose_name=_("Última duração salva em stop"))
+
     duracao_cronometro = models.DurationField(
         verbose_name=_('Duração do cronômetro'))
+
     tipo = models.CharField(
         max_length=100, 
         verbose_name=_('Tipo Cronômetro'), 
         unique=True)
+
     ativo = models.BooleanField(
         default=False, 
         choices=YES_NO_CHOICES,
         verbose_name=_('Ativo?'))
+
     ordenacao = models.PositiveIntegerField(
         blank=True,
         null=True,
