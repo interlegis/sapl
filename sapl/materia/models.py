@@ -18,7 +18,8 @@ from sapl.parlamentares.models import Parlamentar
 #from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
-                        texto_upload_path, get_settings_auth_user_model)
+                        texto_upload_path, get_settings_auth_user_model,
+                        OverwriteStorage)
 
 
 EM_TRAMITACAO = [(1, 'Sim'),
@@ -260,6 +261,7 @@ class MateriaLegislativa(models.Model):
         null=True,
         upload_to=materia_upload_path,
         verbose_name=_('Texto Original'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
 
     texto_articulado = GenericRelation(
@@ -538,6 +540,7 @@ class DocumentoAcessorio(models.Model):
         max_length=255,
         upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
 
     proposicao = GenericRelation(
@@ -801,6 +804,7 @@ class Proposicao(models.Model):
         blank=True,
         null=True,
         verbose_name=_('Texto Original'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
 
     texto_articulado = GenericRelation(

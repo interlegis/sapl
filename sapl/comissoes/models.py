@@ -6,7 +6,8 @@ from model_utils import Choices
 from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path)
+                        restringe_tipos_de_arquivo_txt, texto_upload_path,
+                        OverwriteStorage)
 
 
 @reversion.register()
@@ -238,15 +239,18 @@ class Reuniao(models.Model):
         blank=True, null=True,
         upload_to=pauta_upload_path,
         verbose_name=_('Pauta da Reunião'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
         blank=True, null=True,
         upload_to=ata_upload_path,
         verbose_name=_('Ata da Reunião'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_anexo = models.FileField(
         blank=True, null=True,
         upload_to=anexo_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Anexo da Reunião'))
 
     class Meta:
@@ -313,6 +317,7 @@ class DocumentoAcessorio(models.Model):
         null=True,
         upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
 
     data_ultima_atualizacao = models.DateTimeField(
