@@ -1,0 +1,11 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+    <br>
+    Atenção! Quando o indicador selecionado for <b>Fim de mandato</b>, este tipo será exibido em Mandatos do Parlamentar.
+    Quando o indicador selecionado for <b>Afastamento</b>, este tipo será exibido em Afastamentos do Parlamentar.
+    <br><br>
+    {{block.super}}
+{% endblock base_content %}
