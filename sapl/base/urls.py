@@ -38,7 +38,7 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarAutoresDuplicadosView, ListarBancadaComissaoAutorExternoView,
                     ListarLegislaturaInfindavelView, ListarAnexadasCiclicasView,
                     ListarAnexadosCiclicosView, pesquisa_textual,
-                    RelatorioHistoricoTramitacaoAdmView)
+                    RelatorioHistoricoTramitacaoAdmView, RelatorioDocumentosAcessoriosView)
 
 
 app_name = AppConfig.name
@@ -153,6 +153,9 @@ urlpatterns = [
     url(r'^sistema/relatorios/historico-tramitacoesadm$',
         RelatorioHistoricoTramitacaoAdmView.as_view(),
         name='historico_tramitacoes_adm'),
+    url(r'^sistema/relatorios/documentos_acessorios$',
+        RelatorioDocumentosAcessoriosView.as_view(),
+        name='relatorio_documentos_acessorios'),
 
     url(r'^email/validate/(?P<uidb64>[0-9A-Za-z_\-]+)/'
         '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$',

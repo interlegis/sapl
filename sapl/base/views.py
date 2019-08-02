@@ -39,7 +39,8 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexada,
-                                 TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
+                                 TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao,
+                                 DocumentoAcessorio, TipoDocumento)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import (Parlamentar, Legislatura, Mandato,
                                        Filiacao, SessaoLegislativa, Bancada)
@@ -64,7 +65,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
                     RelatorioNormasVigenciaFilterSet,
                     EstatisticasAcessoNormasForm, UsuarioFilterSet,
-                    RelatorioHistoricoTramitacaoAdmFilterSet)
+                    RelatorioHistoricoTramitacaoAdmFilterSet,
+                    RelatorioDocumentosAcessoriosFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -321,6 +323,49 @@ class RelatoriosListView(TemplateView):
         context = super(TemplateView, self).get_context_data(**kwargs)
         estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
         context['estatisticas_acesso_normas'] = True if estatisticas_acesso_normas == 'S' else False
+
+        return context
+
+
+class RelatorioDocumentosAcessoriosView(FilterView):
+    model = DocumentoAcessorio
+    filterset_class = RelatorioDocumentosAcessoriosFilterSet
+    template_name = 'base/RelatorioDocumentosAcessorios_filter.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            RelatorioDocumentosAcessoriosView, self
+        ).get_context_data(**kwargs)
+
+        context['title'] = _('Documentos Acessórios das Matérias Legislativas')
+
+        if not self.filterset.form.is_valid():
+            return context
+        
+        query_dict = self.request.GET.copy()
+        context['show_results'] = show_results_filter_set(query_dict)
+        
+        context['tipo_documento'] = str(
+            TipoDocumento.objects.get(pk=self.request.GET['tipo'])
+        )
+
+        tipo_materia = self.request.GET['materia__tipo']
+        if tipo_materia:
+            context['tipo_materia'] = str(
+                TipoMateriaLegislativa.objects.get(pk=tipo_materia)
+            )
+        else:
+            context['tipo_materia'] = "Não selecionado"
+
+        data_inicial = self.request.GET['data_0']
+        data_final = self.request.GET['data_1']
+        if not data_inicial:
+            data_inicial = "Data Inicial não definida"
+        if not data_final:
+            data_final = "Data Final não definida"
+        context['periodo'] = (
+            data_inicial + ' - ' + data_final
+        )
 
         return context
 

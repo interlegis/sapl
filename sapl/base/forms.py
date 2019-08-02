@@ -26,8 +26,8 @@ from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
                                       to_row)
 from sapl.crispy_layout_mixin import SaplFormHelper
-from sapl.materia.models import (
-    MateriaLegislativa, UnidadeTramitacao, StatusTramitacao)
+from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao,
+                                 DocumentoAcessorio, TipoMateriaLegislativa)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.parlamentares.models import SessaoLegislativa, Partido, HistoricoPartido
@@ -730,6 +730,43 @@ class AutorFormForAdmin(AutorForm):
                   'action_user',
                   'username',
                   'status_user']
+
+
+class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
+
+    @property
+    def qs(self):
+        parent = super(RelatorioDocumentosAcessoriosFilterSet, self).qs
+        return parent.distinct().order_by('-data')
+
+    class Meta(FilterOverridesMetaMixin):
+        model = DocumentoAcessorio
+        fields = ['tipo', 'materia__tipo', 'data']
+
+    def __init__(self, *args, **kwargs):
+        
+        super(
+            RelatorioDocumentosAcessoriosFilterSet, self
+        ).__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Documento'
+        self.filters['materia__tipo'].label = 'Tipo de Matéria do Documento'
+        self.filters['data'].label = 'Período (Data Inicial - Data Final)'
+        
+        self.form.fields['tipo'].required = True
+
+        row0 = to_row([('tipo', 6),
+                       ('materia__tipo', 6)])
+    
+        row1 = to_row([('data', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa'),
+            row0, row1,
+            form_actions(label='Pesquisar'))
+        )
 
 
 class RelatorioAtasFilterSet(django_filters.FilterSet):
