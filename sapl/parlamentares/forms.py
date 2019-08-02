@@ -795,10 +795,10 @@ class AfastamentoParlamentarForm(ModelForm):
                                     
         if data_fim_afastamento:
             if data_fim_afastamento < data_inicio_afastamento:
-                self.logger.error("Data fim de afastamento ({}) menor que data início"
+                self.logger.error("Data fim de afastamento ({}) anterior à data início"
                                   " do afastamento ({})."
                                   .format(data_fim_afastamento, data_inicio_afastamento))
-                raise ValidationError(_("Data fim do afastamento menor que data início do"
+                raise ValidationError(_("Data fim do afastamento anterior à data início do"
                                         " afastamento."))
 
             if data_fim_afastamento < data_inicio_mandato:
@@ -810,7 +810,7 @@ class AfastamentoParlamentarForm(ModelForm):
 
             if data_fim_mandato and data_fim_afastamento > data_fim_mandato:
                 self.logger.error("Data fim de afastamento ({}) posterior ao fim"
-                                  " do mandato informado ({} a {})."
+                                  " do mandato informado ({})."
                                 .format(data_inicio_afastamento, data_fim_mandato))
                 raise ValidationError(_("Data fim do afastamento posterior ao fim"
                                " do mandato informado."))
