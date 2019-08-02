@@ -833,6 +833,24 @@ class Proposicao(models.Model):
     documento_gerado = models.ForeignKey(
         DocumentoAcessorio, blank=True, null=True)"""
 
+    user = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário'),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+    ip = models.CharField(
+        verbose_name=_('IP'),
+        max_length=30,
+        blank=True,
+        default=''
+    )
+    ultima_edicao = models.DateTimeField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
+
     @property
     def perfis(self):
         return self.tipo.perfis.all()
