@@ -11,7 +11,7 @@
 ## mapeados para um diretório no host da máquina.
 ##
 ##
-version: "3"
+version: "3.5"
 services:
     sapldb:
       image: postgres:10.5-alpine
@@ -43,10 +43,11 @@ services:
         - sapl-net
 
     sapl:
-      image: interlegis/sapl:3.1.160-RC0
-#      build:
-#        context: ../
-#        dockerfile: ./docker/Dockerfile
+      #image: interlegis/sapl:3.1.159
+      build:
+        context: ../
+        dockerfile: ./docker/Dockerfile
+        target: sapl
       container_name: sapl
       labels:
          NAME: "sapl"

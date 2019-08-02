@@ -11,7 +11,7 @@
 ## mapeados para um diretório no host da máquina.
 ##
 ##
-version: "3.7"
+version: "3.5"
 services:
     sapldb:
       image: postgres:10.5-alpine

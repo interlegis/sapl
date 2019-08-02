@@ -46,7 +46,7 @@ create_env() {
 
 create_env
 
-/bin/bash busy-wait.sh $DATABASE_URL
+/bin/bash wait-for-it.sh
 
 yes yes | python3 manage.py migrate
 
