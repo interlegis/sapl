@@ -582,32 +582,9 @@ class RelatorioPresencaSessaoView(FilterView):
 
     def get(self, request, *args, **kwargs):
         super(RelatorioPresencaSessaoView, self).get(request)
-        # Se a pesquisa estiver quebrando com a paginação
-        # Olhe esta função abaixo
-        # Provavelmente você criou um novo campo no Form/FilterSet
-        # Então a ordem da URL está diferente
-        data = self.filterset.data
-        if data and data.get('tipo') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('tipo=') - 1
-                url = url[ponto_comeco:]
-        else:
-            url = ''
-        self.filterset.form.fields['o'].label = _('Ordenação')
-        # é usada essa verificação anônima para quando os documentos administrativos
-        # estão no modo ostensivo, mas podem existir documentos administrativos
-        # restritos
-        length = self.object_list.count()
 
         is_relatorio = request.GET.get('relatorio', None)
-        self.paginate_by = None if is_relatorio else self.paginate_by
-        context = self.get_context_data(filter=self.filterset,
-                                        filter_url=url,
-                                        numero_res=length
-                                        )
-        context['show_results'] = show_results_filter_set(
-            self.request.GET.copy())
+        context = self.get_context_data(filter=self.filterset)
 
         if is_relatorio:
             return relatorio_presenca_sessao(request, context)
@@ -976,32 +953,9 @@ class RelatorioMateriasTramitacaoView(FilterView):
 
     def get(self, request, *args, **kwargs):
         super(RelatorioMateriasTramitacaoView, self).get(request)
-        # Se a pesquisa estiver quebrando com a paginação
-        # Olhe esta função abaixo
-        # Provavelmente você criou um novo campo no Form/FilterSet
-        # Então a ordem da URL está diferente
-        data = self.filterset.data
-        if data and data.get('tipo') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('tipo=') - 1
-                url = url[ponto_comeco:]
-        else:
-            url = ''
-        self.filterset.form.fields['o'].label = _('Ordenação')
-        # é usada essa verificação anônima para quando os documentos administrativos
-        # estão no modo ostensivo, mas podem existir documentos administrativos
-        # restritos
-        length = self.object_list.count()
 
-        is_relatorio = url != '' and request.GET.get('relatorio', None)
-        self.paginate_by = None if is_relatorio else self.paginate_by
-        context = self.get_context_data(filter=self.filterset,
-                                        filter_url=url,
-                                        numero_res=length
-                                        )
-        context['show_results'] = show_results_filter_set(
-            self.request.GET.copy())
+        is_relatorio = request.GET.get('relatorio', None)
+        context = self.get_context_data(filter=self.filterset)
 
         if is_relatorio:
             return relatorio_materia_em_tramitacao(request, context)
@@ -1093,32 +1047,8 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
 
     def get(self, request, *args, **kwargs):
         super(RelatorioMateriasPorAnoAutorTipoView, self).get(request)
-        # Se a pesquisa estiver quebrando com a paginação
-        # Olhe esta função abaixo
-        # Provavelmente você criou um novo campo no Form/FilterSet
-        # Então a ordem da URL está diferente
-        data = self.filterset.data
-        if data and data.get('tipo') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('tipo=') - 1
-                url = url[ponto_comeco:]
-        else:
-            url = ''
-        self.filterset.form.fields['o'].label = _('Ordenação')
-        # é usada essa verificação anônima para quando os documentos administrativos
-        # estão no modo ostensivo, mas podem existir documentos administrativos
-        # restritos
-        length = self.object_list.count()
-
-        is_relatorio = request.GET.get('is_relatorio', None)
-        self.paginate_by = None if is_relatorio else self.paginate_by
-        context = self.get_context_data(filter=self.filterset,
-                                        filter_url=url,
-                                        numero_res=length
-                                        )
-        context['show_results'] = show_results_filter_set(
-            self.request.GET.copy())
+        is_relatorio = request.GET.get('relatorio', None)
+        context = self.get_context_data(filter=self.filterset)
 
         if is_relatorio:
             return relatorio_materia_por_ano_autor(request, context)
@@ -1174,32 +1104,8 @@ class RelatorioMateriasPorAutorView(FilterView):
 
     def get(self, request, *args, **kwargs):
         super(RelatorioMateriasPorAutorView, self).get(request)
-        # Se a pesquisa estiver quebrando com a paginação
-        # Olhe esta função abaixo
-        # Provavelmente você criou um novo campo no Form/FilterSet
-        # Então a ordem da URL está diferente
-        data = self.filterset.data
-        if data and data.get('tipo') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('tipo=') - 1
-                url = url[ponto_comeco:]
-        else:
-            url = ''
-        self.filterset.form.fields['o'].label = _('Ordenação')
-        # é usada essa verificação anônima para quando os documentos administrativos
-        # estão no modo ostensivo, mas podem existir documentos administrativos
-        # restritos
-        length = self.object_list.count()
-
-        is_relatorio = url != '' and request.GET.get('relatorio', None)
-        self.paginate_by = None if is_relatorio else self.paginate_by
-        context = self.get_context_data(filter=self.filterset,
-                                        filter_url=url,
-                                        numero_res=length
-                                        )
-        context['show_results'] = show_results_filter_set(
-            self.request.GET.copy())
+        is_relatorio = request.GET.get('relatorio', None)
+        context = self.get_context_data(filter=self.filterset)
 
         if is_relatorio:
             return relatorio_materia_por_autor(request, context)

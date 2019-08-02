@@ -976,8 +976,6 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
 
 class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
-    o = AnoNumeroOrderingFilter(help_text='')
-
     class Meta(FilterOverridesMetaMixin):
         model = SessaoPlenaria
         fields = ['data_inicio',
@@ -1253,8 +1251,6 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
         queryset=StatusTramitacao.objects.all(),
         label=_('Status Atual'))
 
-    o = AnoNumeroOrderingFilter(help_text='')
-
     @property
     def qs(self):
         parent = super(RelatorioMateriasTramitacaoilterSet, self).qs
@@ -1306,8 +1302,6 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
                                       label='Ano da Matéria',
                                       choices=choice_anos_com_materias)
 
-    o = AnoNumeroOrderingFilter(help_text='')
-
     class Meta:
         model = MateriaLegislativa
         fields = ['ano']
@@ -1347,8 +1341,6 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
 class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
-
-    o = AnoNumeroOrderingFilter(help_text='')
 
     @property
     def qs(self):
