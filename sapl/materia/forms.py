@@ -252,8 +252,8 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
         texto_original = self.cleaned_data.get('texto_original', False)
 
         if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_original.size/1024)/1024))
+            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb"
+                                  .format((MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (texto_original.size / 1024) / 1024))
 
         return cleaned_data
 
@@ -343,8 +343,9 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = DocumentoAcessorio
-        fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
-    
+        fields = ['tipo', 'nome', 'data', 'autor',
+                  'ementa', 'indexacao', 'arquivo']
+
     def clean(self):
         super(DocumentoAcessorioForm, self).clean()
 
@@ -354,8 +355,8 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
         arquivo = self.cleaned_data.get('arquivo', False)
 
         if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb"
+                                  .format((MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (arquivo.size / 1024) / 1024))
 
         return self.cleaned_data
 
@@ -1600,7 +1601,6 @@ class TramitacaoEmLoteForm(ModelForm):
                   'ip']
         widgets = {'user': forms.HiddenInput(),
                    'ip': forms.HiddenInput()}
-            
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoEmLoteForm, self).__init__(*args, **kwargs)
@@ -1614,7 +1614,7 @@ class TramitacaoEmLoteForm(ModelForm):
             [(ut.pk, ut) for ut in ust if ut.parlamentar])
         self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
         self.fields['urgente'].label = "Urgente? *"
-    
+
         row1 = to_row([
             ('data_tramitacao', 4),
             ('data_encaminhamento', 4),
@@ -1673,7 +1673,6 @@ class TramitacaoEmLoteForm(ModelForm):
                 form_actions(label='Salvar')
             )
         )
-
 
     def clean(self):
         cleaned_data = super(TramitacaoEmLoteForm, self).clean()
@@ -1750,8 +1749,8 @@ class TramitacaoEmLoteForm(ModelForm):
                 anexadas = lista_anexados(mat)
                 for ml in anexadas:
                     if not ml.tramitacao_set.all() \
-                        or ml.tramitacao_set.last() \
-                        .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                            or ml.tramitacao_set.last() \
+                            .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
                         ml.em_tramitacao = False if tramitacao.status.indicador == "F" else True
                         ml.save()
                         lista_tramitacao.append(Tramitacao(
@@ -1768,7 +1767,7 @@ class TramitacaoEmLoteForm(ModelForm):
                                                 user=tramitacao.user,
                                                 ip=tramitacao.ip
                                                 ))
-                Tramitacao.objects.bulk_create(lista_tramitacao)     
+                Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
 
@@ -1917,8 +1916,8 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
         texto_original = self.cleaned_data.get('texto_original', False)
 
         if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_original.size/1024)/1024))
+            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb"
+                                  .format((MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (texto_original.size / 1024) / 1024))
 
         return texto_original
 
