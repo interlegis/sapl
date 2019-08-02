@@ -772,6 +772,11 @@ class ProposicaoCrud(Crud):
 
             context['title'] = '%s <small>(%s)</small>' % (
                 self.object, self.object.autor)
+
+            context['user'] = self.request.user
+            context['proposicao'] = Proposicao.objects.get(
+                pk=self.kwargs['pk']
+            )
             return context
 
         def get(self, request, *args, **kwargs):
@@ -940,6 +945,40 @@ class ProposicaoCrud(Crud):
     class UpdateView(BaseLocalMixin, Crud.UpdateView):
 
         logger = logging.getLogger(__name__)
+        form_class = ProposicaoForm
+
+        def form_valid(self, form):
+            tz = timezone.get_current_timezone()
+
+            objeto_antigo = Proposicao.objects.get(
+                pk=self.kwargs['pk']
+            )
+            dict_objeto_antigo = objeto_antigo.__dict__
+
+            tipo_texto = self.request.POST.get('tipo_texto', '')
+            if tipo_texto=='D' and objeto_antigo.texto_articulado.exists() or tipo_texto=='T' and not objeto_antigo.texto_articulado.exists():
+                self.object.user = self.request.user
+                self.object.ip = get_client_ip(self.request)
+                self.object.ultima_edicao = tz.localize(datetime.now())
+                self.object.save()
+
+            self.object = form.save()
+            dict_objeto_novo = self.object.__dict__
+
+            atributos = [
+                'tipo_id', 'descricao', 'observacao', 'texto_original',
+                'materia_de_vinculo_id'
+            ]
+
+            for atributo in atributos:
+                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
+                    self.object.user = self.request.user
+                    self.object.ip = get_client_ip(self.request)
+                    self.object.ultima_edicao = tz.localize(datetime.now())
+                    self.object.save()
+                    break
+            
+            return super().form_valid(form)
 
         def _action_is_valid(self, request, *args, **kwargs):
 
@@ -993,6 +1032,17 @@ class ProposicaoCrud(Crud):
         logger = logging.getLogger(__name__)
         form_class = ProposicaoForm
         layout_key = None
+
+        def get_initial(self):
+            initial = super().get_initial()
+
+            initial['user'] = self.request.user
+            initial['ip'] = get_client_ip(self.request)
+            
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
+            return initial
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
