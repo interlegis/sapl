@@ -825,6 +825,8 @@ def ultimo_ano_com_norma():
 
 class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
+    o = AnoNumeroOrderingFilter(help_text='')
+
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
                                       choices=choice_anos_com_normas,
@@ -843,11 +845,26 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('ano', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                            <div class="form-check">
+                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                            </div>
+                                        ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Normas por mês do ano.'),
-                     row1, form_actions(label='Pesquisar'))
+                     row1, buttons, )
         )
 
     @property
