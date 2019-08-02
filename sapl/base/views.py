@@ -34,7 +34,7 @@ from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_ma
                                    relatorio_historico_tramitacao, relatorio_fim_prazo_tramitacao,
                                    relatorio_atas, relatorio_audiencia, relatorio_normas_mes,
                                    relatorio_normas_vigencia, relatorio_historico_tramitacao_adm,
-                                   relatorio_reuniao)
+                                   relatorio_reuniao, relatorio_estatisticas_acesso_normas)
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
@@ -1419,7 +1419,15 @@ class EstatisticasAcessoNormas(TemplateView):
         
         context['normas_mes'] = normas_mes
 
-        return self.render_to_response(context)
+        is_relatorio = request.GET.get('relatorio', None)
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
+
+        if is_relatorio:
+            return relatorio_estatisticas_acesso_normas(request, context)
+        else:
+            return self.render_to_response(context)
 
 
 class ListarInconsistenciasView(PermissionRequiredMixin, ListView):

@@ -875,6 +875,8 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
 class EstatisticasAcessoNormasForm(Form):
 
+    o = AnoNumeroOrderingFilter(help_text='')
+
     ano = forms.ChoiceField(required=True,
                             label='Ano de acesso',
                             choices=RANGE_ANOS,
@@ -889,11 +891,26 @@ class EstatisticasAcessoNormasForm(Form):
 
         row1 = to_row([('ano', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                    <div class="form-check">
+                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                    </div>
+                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.helper = SaplFormHelper()
         self.helper.form_method = 'GET'
         self.helper.layout = Layout(
             Fieldset(_('Normas por acessos nos meses do ano.'),
-                     row1, form_actions(label='Pesquisar'))
+                     row1, buttons)
         )
 
     def clean(self):
