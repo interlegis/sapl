@@ -1,5 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+
 {% block sub_actions %}
     {{ block.super }}
     {% if object.em_tramitacao and mail_service_configured %}
@@ -8,6 +9,7 @@
        </div>
     {% endif %}
 {% endblock sub_actions %}
+
 {% block detail_content %}
     {{ block.super }}
     {% if object.registrovotacao_set.exists %}

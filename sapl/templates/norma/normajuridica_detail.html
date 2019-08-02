@@ -9,96 +9,91 @@
   {% endif %}
 {% endblock %}
 
-
-
 {% block detail_content %}
-      {% for fieldset in view.layout_display %}
-        <h2 class="legend">{{ fieldset.legend }}</h2>
-        {% for row in fieldset.rows %}
-          <div class="row">
-            {% for column in row %}
-              <div class="col-sm-{{ column.span }}">
-                <div id="div_id_{{ column.id }}" class="form-group">
-                  <p class="control-label">{{ column.verbose_name }}</p>
-                  <div class="controls">
-                    {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
-
-                    {% if column.text|url %}
-                      <div class="form-control-static"><a href="{{ column.text|safe }}"> {{ column.text|safe|default:"" }} </a></div>
-                    {% elif column.verbose_name == 'Matéria' %}
-                      {% if object.materia.id %}
-                        <div class="form-control-static"><a href="{% url 'sapl.materia:materialegislativa_detail' object.materia.id  %}"> {{ column.text|safe|default:"" }} </a></div>
-                      {% else %}
-                        <div class="form-control-static">{{ column.text|safe|default:"" }}</div>
-                      {% endif %}
-                    {% else %}
-                      <div class="form-control-static">{{ column.text|safe|default:"" }}</div>
-                    {% endif %}
+  {% for fieldset in view.layout_display %}
+    <h2 class="legend">{{ fieldset.legend }}</h2>
+    {% for row in fieldset.rows %}
+      <div class="row">
+        {% for column in row %}
+          <div class="col-sm-{{ column.span }}">
+            <div id="div_id_{{ column.id }}" class="form-group">
+              <p class="control-label">{{ column.verbose_name }}</p>
+              <div class="controls">
+                {% comment %}TODO Transformar os links em URLs diretamente no CRUD{% endcomment %}
+                {% if column.text|url %}
+                  <div class="form-control-static">
+                    <a href="{{ column.text|safe }}"> {{ column.text|safe|default:"" }} </a>
                   </div>
-                </div>
+                {% elif column.verbose_name == 'Matéria' %}
+                  {% if object.materia.id %}
+                    <div class="form-control-static">
+                      <a href="{% url 'sapl.materia:materialegislativa_detail' object.materia.id  %}"> {{ column.text|safe|default:"" }} </a>
+                    </div>
+                  {% else %}
+                    <div class="form-control-static">{{ column.text|safe|default:"" }}</div>
+                  {% endif %}
+                {% else %}
+                  <div class="form-control-static">{{ column.text|safe|default:"" }}</div>
+                {% endif %}
               </div>
-            {% endfor %}
+            </div>
           </div>
         {% endfor %}
-      {% endfor %}
-
-      <hr />
-      <div class="row">
-        <div class="col-sm-12">
-          <p class="control-label">Normas Relacionadas</p>
-
-            {% if object.get_normas_relacionadas.0|length > 0 %}
-              {% for p in object.get_normas_relacionadas.0 %}
-                <div class="form-control-static">
-                 <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
-                  <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
-                   {{ p.norma_relacionada.epigrafe }}
-                 </a>
-                </div>
-              {% endfor %}
-            {% endif %}
-
-            {% if object.get_normas_relacionadas.1|length > 0 %}
-              {% for r in object.get_normas_relacionadas.1 %}
-                <div class="form-control-static">
-                  <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
-                  <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
-                  {{ r.norma_principal.epigrafe }}
-                  </a>
-                </div>
-              {% endfor %}
-            {% endif %}
-
-        </div>
       </div>
-      <hr />
-      <div class="row">
-        <div class="col-sm-12">
-          &nbsp;<p class="control-label">Anexos Norma Jurídica</p>
-      {% if object.get_anexos_norma_juridica|length > 0 %}
-        {% for p in object.get_anexos_norma_juridica %}
+    {% endfor %}
+  {% endfor %}
+  <hr />
+  <div class="row">
+    <div class="col-sm-12">
+      <p class="control-label">Normas Relacionadas</p>
+      {% if object.get_normas_relacionadas.0|length > 0 %}
+        {% for p in object.get_normas_relacionadas.0 %}
           <div class="form-control-static">
-           <a href="/media/{{p.anexo_arquivo}}">
-            {{ p.anexo_arquivo | to_str | split:"/" | get_last_item_from_list:-1 }}
-           </a>
+            <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
+            <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
+              {{ p.norma_relacionada.epigrafe }}
+            </a>
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% if object.get_normas_relacionadas.1|length > 0 %}
+        {% for r in object.get_normas_relacionadas.1 %}
+          <div class="form-control-static">
+            <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
+            <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
+              {{ r.norma_principal.epigrafe }}
+            </a>
           </div>
         {% endfor %}
       {% endif %}
     </div>
   </div>
-
+  <hr />
+  <div class="row">
+    <div class="col-sm-12">
+      &nbsp;<p class="control-label">Anexos Norma Jurídica</p>
+      {% if object.get_anexos_norma_juridica|length > 0 %}
+        {% for p in object.get_anexos_norma_juridica %}
+          <div class="form-control-static">
+            <a href="/media/{{p.anexo_arquivo}}">
+              {{ p.anexo_arquivo | to_str | split:"/" | get_last_item_from_list:-1 }}
+            </a>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
   <br><br>
-
   {% if user.is_superuser %}
     <div class="row">
       {% if object.user %}
-        <div class="col-sm-6">
+        <div class="col-sm-4">
           <div id="div_id_user" class="form-group">
             <p class="control-label">Usuário</p>
             <div class="controls">
               <div class="form-control-static">
                 <div class="dont-break-out">
-                  <a href="{% url 'sapl.base:user_edit' object.user.pk %}">{{object.user}}</a>
+                  <a href="{% url 'sapl.base:user_edit' object.user.pk %}">{{ object.user }}</a>
                 </div>
               </div>
             </div>
@@ -106,19 +101,35 @@
         </div>
       {% endif %}
       {% if object.ip %}
-        <div class="col-sm-6">
+        <div class="col-sm-4">
           <div id="div_ip_user" class="form-group">
             <p class="control-label">IP</p>
             <div class="controls">
               <div class="form-control-static">
-                <div class="dont-break-out">{{object.ip}}</div>
+                <div class="dont-break-out">
+                  {{ object.ip }}
+                </div>
               </div>
             </div>
           </div>
         </div>
       {% endif %}
-      </div>
-    {% endif %}
+      {% if object.ultima_edicao %}
+        <div class="col-sm-4">
+          <div id="div_ud_user" class="form-group">
+            <p class="control-label">Data e Hora da Edição</p>
+            <div class="controls">
+              <div class="form-control-static">
+                <div class="dont-break-out">
+                  {{ object.ultima_edicao }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
   {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission %}
     <hr />
     <div class="row">
@@ -131,14 +142,12 @@
   {% endif %}
 {% endblock detail_content %}
 
-
 {% block webpack_loader_js %}
     {{ block.super }}
     {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
       {% render_bundle 'compilacao' 'js' %}
     {% endif %}
 {% endblock %}
-
 
 {% block extra_js %}
 {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
