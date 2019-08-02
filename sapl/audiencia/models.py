@@ -7,7 +7,8 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Parlamentar)
 
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path)
+                        restringe_tipos_de_arquivo_txt, texto_upload_path,
+                        OverwriteStorage)
 
 
 def get_audiencia_media_path(instance, subpath, filename):
@@ -89,6 +90,7 @@ class AudienciaPublica(models.Model):
         blank=True,
         null=True,
         upload_to=pauta_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Pauta da Audiência Pública'),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
@@ -96,11 +98,13 @@ class AudienciaPublica(models.Model):
         null=True,
         upload_to=ata_upload_path,
         verbose_name=_('Ata da Audiência Pública'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_anexo = models.FileField(
         blank=True,
         null=True,
         upload_to=anexo_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Anexo da Audiência Pública'))
 
     class Meta:
@@ -156,6 +160,7 @@ class AnexoAudienciaPublica(models.Model):
                                   on_delete=models.PROTECT)
     arquivo = models.FileField(
         upload_to=texto_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Arquivo'))
     data = models.DateField(
         auto_now=timezone.now)

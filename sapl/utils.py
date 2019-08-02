@@ -23,6 +23,7 @@ from django.forms.widgets import SplitDateTimeWidget
 from django.utils import six, timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django.core.files.storage import FileSystemStorage
 import django_filters
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
@@ -983,3 +984,16 @@ def lista_anexados(principal, isMateriaLegislativa=True):
     if principal in anexados_total:
         anexados_total.remove(principal)
     return anexados_total
+
+
+class OverwriteStorage(FileSystemStorage):
+    '''
+    Solução derivada do gist: https://gist.github.com/fabiomontefuscolo/1584462
+
+    Muda o comportamento padrão do Django e o faz sobrescrever arquivos de
+    mesmo nome que foram carregados pelo usuário ao invés de renomeá-los.
+    '''
+    def get_available_name(self, name, max_length=None):
+        if self.exists(name):
+            os.remove(os.path.join(settings.MEDIA_ROOT, name))
+        return name
