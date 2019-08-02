@@ -72,6 +72,7 @@ DocumentoAcessorio:
   - tipo nome data
   - autor
   - ementa
+  - indexacao
   - arquivo
 
 Numeracao:
