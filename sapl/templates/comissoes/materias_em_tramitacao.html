@@ -20,6 +20,7 @@
 			{{materia}}<br>
 			<b>Autor: </b>{{materia.autoria_set.first.autor.nome}}<br>
 			<b>Situação: </b>{{materia.tramitacao_set.last.status.descricao}}<br>
+			<b>Data Fim Prazo da Última Tramitação: </b>{% if materia.tramitacao_set.last.data_fim_prazo %} {{materia.tramitacao_set.last.data_fim_prazo}} {% else %} Não definida. {% endif %}<br>
 			<br>
 		{% endfor %}
 	</fieldset>
