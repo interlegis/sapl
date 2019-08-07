@@ -9,19 +9,19 @@
 
   {% if show_results %}
     <div class="actions btn-group float-right" role="group">
-      <a href="{% url 'sapl.base:materia_por_autor' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+      <a href="{% url 'sapl.base:normas_por_autor' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
     </div>
     <br /><br /><br /><br />
     <b>PARÂMETROS DE PESQUISA:<br /></b>
     &emsp;Autor: {{ autor }}<br />
-    &emsp;Tipo de matéria: {{ tipo }}<br />
-    &emsp;Data de apresentação: {{periodo}}<br /><br /><br/>
+    &emsp;Tipo de Norma: {{ tipo }}<br />
+    &emsp;Data: {{periodo}}<br /><br /><br/>
     {% if object_list %}
       <table class="table table-bordered table-hover">
         <thead class="thead-default" >
           <tr class="active"><th colspan="3" class="text-center">QUADRO GERAL</th></tr>
           <tr class="active">
-            <th colspan="2">Tipo Matéria</th>
+            <th colspan="2">Tipo de Norma</th>
             <th>Quantidade</th>
           </tr>
         </thead>
@@ -34,14 +34,14 @@
           {% endfor %}
         </tbody>
 
-      {% for materia in object_list %}
-          {% ifchanged materia.autoria_set.first.autor %}
+      {% for norma in object_list %}
+          {% ifchanged norma.autorianorma_set.first.autor %}
 
               <thead class="thead-default" >
                 <tr style="border-left: hidden; border-right: hidden;"><th colspan="3"></th></tr>
-                <tr class="active"><th colspan="3" class="text-center">Autor: {{ materia.autoria_set.first.autor }}</th></tr>
+                <tr class="active"><th colspan="3" class="text-center">Autor: {{ norma.autorianorma_set.first.autor }}</th></tr>
                 <tr class="active">
-                  <th width="10%">Matéria</th>
+                  <th width="10%">Norma</th>
                   <th>Ementa</th>
                   <th width="20%">Coautor(es)</th>
                 </tr>
@@ -49,13 +49,13 @@
           {% endifchanged %}
               <tbody>
                   <tr>
-                    <td><a href="{% url 'sapl.materia:materialegislativa_detail' materia.pk %}">
-                      {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
+                    <td><a href="{% url 'sapl.norma:normajuridica_detail' norma.pk %}">
+                      {{norma.tipo.sigla}} {{norma.numero}}/{{norma.ano}}
                     </a></td>
-                    <td>{% autoescape off %}{{materia.ementa}}<br>{{materia.observacao}}{% endautoescape %}</td>
+                    <td>{% autoescape off %}{{norma.ementa}}<br>{{norma.observacao}}{% endautoescape %}</td>
                     <td>
-                        {% if materia.autoria_set.first != materia.autoria_set.last %}
-                          {% for autor in materia.autoria_set.all %}
+                        {% if norma.autorianorma_set.first != norma.autorianorma_set.last %}
+                          {% for autor in norma.autorianorma_set.all %}
                             {% if not autor.primeiro_autor %}
                               {{ autor.autor }}<br />
                             {% endif %}
@@ -68,7 +68,7 @@
       {% endfor %}
       </table>
     {% else %}
-      <h3>Não foram encontradas matérias com os parâmetros pesquisados.</h3>
+    <h3>Não foram encontradas normas com os parâmetros pesquisados.</h3>
     {% endif %}
 
   {% endif %}

@@ -36,7 +36,8 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarAutoresDuplicadosView, ListarBancadaComissaoAutorExternoView,
                     ListarLegislaturaInfindavelView, ListarAnexadasCiclicasView,
                     ListarAnexadosCiclicosView, pesquisa_textual,
-                    RelatorioHistoricoTramitacaoAdmView, RelatorioDocumentosAcessoriosView)
+                    RelatorioHistoricoTramitacaoAdmView, RelatorioDocumentosAcessoriosView,
+                    RelatorioNormasPorAutorView)
 
 
 app_name = AppConfig.name
@@ -138,6 +139,8 @@ urlpatterns = [
     url(r'^sistema/relatorios/documentos_acessorios$',
         RelatorioDocumentosAcessoriosView.as_view(),
         name='relatorio_documentos_acessorios'),
+    url(r'^sistema/relatorios/normas-por-autor$',
+        RelatorioNormasPorAutorView.as_view(), name='normas_por_autor'),
 
     url(r'^email/validate/(?P<uidb64>[0-9A-Za-z_\-]+)/'
         '(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})$',
