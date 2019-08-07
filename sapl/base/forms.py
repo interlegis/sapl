@@ -771,8 +771,6 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
 
 class RelatorioAtasFilterSet(django_filters.FilterSet):
 
-    o = AnoNumeroOrderingFilter(help_text='')
-
     class Meta(FilterOverridesMetaMixin):
         model = SessaoPlenaria
         fields = ['data_inicio']
@@ -1032,8 +1030,6 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
 class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
-    o = AnoNumeroOrderingFilter(help_text='')
-
     @property
     def qs(self):
         parent = super(RelatorioHistoricoTramitacaoFilterSet, self).qs
@@ -1088,8 +1084,6 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
 
-    o = AnoNumeroOrderingFilter(help_text='')
-
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
@@ -1143,8 +1137,6 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
 
 
 class RelatorioReuniaoFilterSet(django_filters.FilterSet):
-
-    o = AnoNumeroOrderingFilter(help_text='')
 
     @property
     def qs(self):
