@@ -70,18 +70,25 @@
 
     <div class="">
       <div class="d-flex justify-content-start">
+      
+        {% if exibicao.parlamentares %}
         <div class="col-md-4">
           <div class="text-center painel">   
             <h2 class="text-subtitle">Parlamentares</h2>   
             <span id="parlamentares" class="text-value text-center"></span>
           </div>
         </div>
+        {% endif %}
+
         <div class="d-flex col-md-8 painels">
+          {% if exibicao.oradores %}
           <div class="col-md-6 text-center painel" id="aparecer_oradores">  
             <h2 class="text-subtitle">Oradores</h2>  
             <span id="orador" class="text-value" align="center"></span>     
           </div>
+          {% endif %}
 
+          {% if exibicao.cronometros %}
           <div class="col-md-6 text-center painel">  
             <h2 class="text-subtitle">{% if cronometros|length == 1 %}Cronômetro{% elif cronometros|length > 1%}Cronômetros{% endif %}</h2>
             <div class="text-value">
@@ -90,17 +97,23 @@
               {% endfor %}
             </div>
           </div>
+          {% endif %}
+
+          {% if exibicao.resultado %}
           <div class="col-md-6 text-center painel" id="resultado_votacao_div">      
             <h2 class="text-subtitle">Resultado</h2>   
             <span id="votacao" class="text-value"></span> 
             <h2><span id="resultado_votacao" lass="text-title"></span>
           </div>
+          {% endif %}
 
+          {% if exibicao.materia %}
           <div class="col-md-6 text-center painel" id="obs_materia_div">      
             <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
             <span id="materia_legislativa_texto" class="text-value"></span>
             <span id="observacao_materia" class="text-value"></span>
           </div>
+          {% endif %}
 
           <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
             <h2 class="text-subtitle">Tema da Sessão Solene</h2>   

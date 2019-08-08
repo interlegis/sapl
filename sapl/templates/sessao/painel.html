@@ -19,9 +19,19 @@
   <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
   <div class="row">
-    <div class="col-md-6"><a href="" onclick="window.open('{% url 'sapl.painel:painel_principal' pk %}','Comprovante','width=800, height=800, scrollbars=yes'); return false;" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>
-    <div class="col-md-3"><button onclick="switch_painel(true)" id="id_abrir_painel" class="btn btn-primary btn-sm active" style="display: none">Abrir Painel</button></div>
-    <div class="col-md-3"><button onclick="switch_painel(false)" id="id_fechar_painel" class="btn btn-danger btn-sm active" style="display: none;">Fechar Painel</button></div>
+    <div class="col-md-4"><a href="" onclick="window.open('{% url 'sapl.painel:painel_principal' pk %}','Comprovante','width=800, height=800, scrollbars=yes'); return false;" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>
+    <div class="col-md-4">
+      <select id="sel-painel-modular" multiple="multiple" class="btn btn-primary btn-sm active">
+        <option value="parlamentares">Parlamentares</option>
+        <option value="oradores">Oradores</option>
+        <option value="cronometros">Cronômetros</option>
+        <option value="resultado-votacao">Resultado da votação</option>
+        <option value="materia-votacao">Matéria em votação / votada</option>
+      </select>
+      <button class="btn btn-primary btn-sm active" onclick="painel_parcial();">Iniciar</button>
+    </div>
+    <div class="col-md-2"><button onclick="switch_painel(true)" id="id_abrir_painel" class="btn btn-primary btn-sm active" style="display: none">Abrir Painel</button></div>
+    <div class="col-md-2"><button onclick="switch_painel(false)" id="id_fechar_painel" class="btn btn-danger btn-sm active" style="display: none;">Fechar Painel</button></div>
   </div>
 	<br />
 
@@ -57,6 +67,31 @@
 
 {% block extra_js %}
 <script language="JavaScript">
+
+function painel_parcial(){
+  let selecionados = $('#sel-painel-modular').find(":selected");
+  let param = 0;
+  // Seleciona um bit diferente do número para cada escolha
+  // Exemplo: se "Parlamentares" estiver selecionado, o bit 0
+  // do parâmetro estará marcado como 1
+  for(var sel of selecionados){
+    if(sel.text == 'Parlamentares')
+      param += 1;
+    else if(sel.text == 'Oradores')
+      param += 2;
+    else if(sel.text == 'Cronômetros')
+      param += 4;
+    else if(sel.text == 'Resultado da votação')
+      param += 8;
+    else if (sel.text == 'Matéria em votação / votada')
+      param += 16;
+  }
+  // Monta a URL passando o parâmetros dos selecionados
+  let url = "{% url 'sapl.painel:painel_parcial' pk 12345 %}";
+  url = url.replace('12345', param.toString());
+  window.open(url,"_blank",'Comprovante', 'width=800, height=800, scrollbars=yes'); 
+  return false;
+}
 
 function switch_painel(aberto) {
   let pk_sessao = {{root_pk}};
@@ -127,6 +162,15 @@ function convertValueToDuration(value){
 
 
 $(document).ready(function(){
+  $('#sel-painel-modular').multiselect({
+            inheritClass: true,
+            buttonText: function(options, select) {
+              return "Painel modular";
+            },
+            includeSelectAllOption: true,
+            selectAllText: 'Selecionar todos',
+            selectAllValue: 'select-all-value'
+  });
   let pk_sessao = parseInt("{{root_pk}}");
   let botao_abrir = $('#id_abrir_painel');
   let botao_fechar = $('#id_fechar_painel');
