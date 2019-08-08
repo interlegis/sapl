@@ -237,6 +237,8 @@ class ParlamentarFilterSet(django_filters.FilterSet):
 
 class ParlamentarCreateForm(ParlamentarForm):
 
+    logger = logging.getLogger(__name__)
+
     class Meta(ParlamentarForm.Meta):
         widgets = {
             'fotografia': forms.ClearableFileInput(),
