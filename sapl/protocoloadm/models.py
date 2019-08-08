@@ -340,6 +340,10 @@ class TramitacaoAdministrativo(models.Model):
                           max_length=30,
                           blank=True,
                           default='')
+    ultima_edicao = models.DateField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
 
     class Meta:
         verbose_name = _('Tramitação de Documento Administrativo')

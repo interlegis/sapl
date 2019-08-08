@@ -1141,6 +1141,10 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial['data_tramitacao'] = timezone.now().date()
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         def get_context_data(self, **kwargs):
@@ -1204,6 +1208,10 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial = super(UpdateView, self).get_initial()
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         def form_valid(self, form):
@@ -1514,15 +1522,19 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
         user = request.user
         ip = get_client_ip(request)
 
+        tz = timezone.get_current_timezone()
+        ultima_edicao = tz.localize(datetime.now())
+
         documentos_ids = request.POST.getlist('documentos')
         if not documentos_ids:
             msg = _("Escolha algum Documento para ser tramitado.")
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        form = TramitacaoEmLoteAdmForm(request.POST,
-                                       initial={'documentos': documentos_ids,
-                                                'user': user, 'ip': ip})
+        form = TramitacaoEmLoteAdmForm(request.POST, 
+                                       initial= {'documentos': documentos_ids,
+                                                'user': user, 'ip':ip,
+                                                'ultima_edicao': ultima_edicao})
 
         if form.is_valid():
             form.save()
