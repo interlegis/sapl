@@ -21,7 +21,7 @@ class AudienciaCrud(Crud):
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['numero', 'nome', 'tipo', 'materia',
                             'data'] 
-        ordering = 'nome', 'numero', 'tipo', 'data'
+        ordering = '-data', 'nome', 'numero', 'tipo'
 
     class ListView(Crud.ListView):
         paginate_by = 10
