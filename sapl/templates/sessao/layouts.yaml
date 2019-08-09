@@ -27,7 +27,7 @@ TipoResultadoVotacao:
 
 TipoExpediente:
   {% trans 'Tipo de Expediente' %}:
-  - nome
+  - nome ordenacao
 
 RegistroVotacao:
   {% trans 'Votação Simbólica' %}:
