@@ -136,6 +136,10 @@ class NormaJuridica(models.Model):
         auto_now=True,
         verbose_name=_('Data'))
 
+    anulada = models.NullBooleanField(
+        blank=True, verbose_name=_('Anulada'),
+        choices=YES_NO_CHOICES)
+
     autores = models.ManyToManyField(
         Autor,
         through='AutoriaNorma',

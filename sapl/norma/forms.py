@@ -60,7 +60,7 @@ class NormaFilterSet(django_filters.FilterSet):
     class Meta(FilterOverridesMetaMixin):
         model = NormaJuridica
         fields = ['tipo', 'numero', 'ano', 'data', 'data_vigencia',
-                  'data_publicacao', 'ementa', 'assuntos']
+                  'data_publicacao', 'ementa', 'assuntos', 'anulada']
 
     def __init__(self, *args, **kwargs):
         super(NormaFilterSet, self).__init__(*args, **kwargs)
@@ -69,7 +69,7 @@ class NormaFilterSet(django_filters.FilterSet):
         row2 = to_row([('data', 6), ('data_publicacao', 6)])
         row3 = to_row([('ementa', 6), ('assuntos', 6)])
         row4 = to_row([('data_vigencia', 12)])
-        row5 = to_row([('o', 6), ('indexacao', 6)])
+        row5 = to_row([('o', 4), ('indexacao', 4), ('anulada', 4)])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
@@ -133,6 +133,7 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
                   'observacao',
                   'texto_integral',
                   'assuntos',
+                  'anulada',
                   'user', 
                   'ip']
         widgets = {'assuntos': widgets.CheckboxSelectMultiple,
