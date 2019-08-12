@@ -32,9 +32,19 @@ VOTACAO_NOMINAL = 2
 class CronometroPainelCrud(CrudAux):
     model = Cronometro
 
+    class ListView(CrudAux.ListView):
+        template_name = "painel/lista_cronometros.html"
+        
     class BaseMixin(CrudAux.BaseMixin):
         form_class = CronometroForm
 
+def ordena_cronometro(request):
+    ordem = request.POST.getlist("ordem", [])
+    for index, o in enumerate(ordem):
+        c = Cronometro.objects.get(id=o)
+        c.ordenacao = index + 1
+        c.save()
+    return JsonResponse({'r':ordem})
 
 class PainelConfigCrud(CrudAux):
     model = PainelConfig
@@ -685,3 +695,4 @@ def get_dados_painel(request, pk):
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(get_presentes(pk, response, None))
+
