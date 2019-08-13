@@ -1,0 +1,81 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load common_tags %}
+
+{% block sections_nav %}{% endblock sections_nav %}
+
+{% block title %}<h1 class="page-header">Cargo {{ object.cargo }}</h1>{% endblock title %}
+
+{% block extra_actions %}
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.parlamentares:membrobancada_detail' object.membro.bancada.pk object.membro.pk %}"
+           class="btn btn-outline-primary">Voltar</a>
+    </div>
+{% endblock extra_actions %}
+
+{% block editions %}
+    <div class="actions btn-group" role="group">
+        <a href="{% url 'sapl.parlamentares:cargomembrobancada_update' object.membro.bancada.pk object.membro.pk object.pk %}" class="btn btn-outline-primary">Editar</a>
+        <a href="" class="btn btn-outline-primary btn-outline-danger">Excluir</a>
+    </div>
+{% endblock editions %}
+
+{% block detail_content %}
+    <h2 class="legend">Cargo</h2>
+    <div class="row">
+        <div class="col">
+            <p class="control-label">Nome do Membro da Bancada Parlamentar</p>
+        </div>
+        <div class="col">
+            <p class="control-label">Data Início de Membro</p>
+        </div>
+        <div class="col">
+            <p class="control-label">Data Fim de Membro</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="form-control-static">
+                <a href="{% url 'sapl.parlamentares:membrobancada_detail' object.membro.bancada.pk object.membro.pk %}">{{ object.membro.parlamentar }}</a>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-control-static">
+                {{ object.membro.data_inicio }}
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-control-static">
+                {% if object.membro.data_fim %}{{ object.membro.data_fim }}{% else %}-{% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <p class="control-label">Nome do Cargo da Bancada Parlamentar</p>
+        </div>
+        <div class="col">
+            <p class="control-label">Data Início no Cargo</p>
+        </div>
+        <div class="col">
+            <p class="control-label">Data Fim no Cargo</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="form-control-static">
+                <a href="{% url 'sapl.parlamentares:cargobancada_detail' object.cargo.pk %}">{{ object.cargo }}</a>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-control-static">
+                {{ object.data_inicio }}
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-control-static">
+                {% if object.data_fim %}{{ object.data_fim }}{% else %}-{% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock detail_content %}

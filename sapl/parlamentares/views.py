@@ -1,6 +1,6 @@
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -17,11 +17,10 @@ from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.generic import FormView
-from django.views.generic.edit import UpdateView
+from django.views.generic import FormView, DetailView
+from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from django_filters.views import FilterView
 from image_cropping.utils import get_backend
-
 
 from sapl.base.forms import SessaoLegislativaForm, PartidoForm, PartidoUpdateForm
 from sapl.base.models import Autor
@@ -32,15 +31,13 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
 from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
-
-
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm,
                     ParlamentarFilterSet, VincularParlamentarForm,
                     BlocoForm, CargoBlocoForm, CargoBlocoPartidoForm,
-                    BancadaForm)
-                    
-from .models import (Bancada, CargoBancada, CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
+                    BancadaForm, MembroBancadaForm, CargoMembroBancadaForm)
+
+from .models import (Bancada, MembroBancada, CargoMembroBancada, CargoBancada, CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
@@ -120,6 +117,125 @@ class BancadaCrud(CrudAux):
 
         def get_success_url(self):
             return reverse('sapl.parlamentares:bancada_list')
+
+    class DetailView(CrudAux.DetailView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            membros = []
+            for membro in Bancada.objects.get(pk=self.kwargs['pk']).membrobancada_set.all():
+                membros.append({
+                    'pk': membro.pk,
+                    'nome': membro.parlamentar.nome_parlamentar,
+                    'ativo': 'Não' if membro.data_fim else 'Sim',
+                })
+
+            context.update({
+                'qntd': len(membros),
+                'membros': membros,
+                'bancada_pk': self.kwargs['pk'],
+            })
+
+            return context
+
+
+class MembroBancadaCreate(CreateView):
+    template_name = 'parlamentares/membrobancada_create.html'
+    form_class = MembroBancadaForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'bancada': Bancada.objects.get(pk=self.kwargs['pk'])})
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy('sapl.parlamentares:bancada_detail',
+                            kwargs={'pk': self.kwargs['pk']})
+
+
+class MembroBancadaDetail(DetailView):
+    model = MembroBancada
+    template_name = 'parlamentares/membrobancada_detail.html'
+    form_class = MembroBancadaForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cargos = CargoMembroBancada.objects.filter(membro__pk=self.kwargs['pk'])
+        context.update({
+            'qntd': len(cargos),
+            'cargos': cargos,
+        })
+        return context
+
+
+class MembroBancadaUpdate(UpdateView):
+    model = MembroBancada
+    template_name = 'parlamentares/membrobancada_update.html'
+    form_class = MembroBancadaForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'bancada': Bancada.objects.get(pk=self.kwargs['bancada_pk'])})
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy('sapl.parlamentares:membrobancada_detail',
+                            kwargs={'bancada_pk': self.kwargs['bancada_pk'], 'pk': self.kwargs['pk']})
+
+
+class MembroBancadaDelete(DeleteView):
+    model = MembroBancada
+    template_name = 'parlamentares/membrobancada_delete.html'
+    form_class = MembroBancadaForm
+
+    def get_success_url(self):
+        return reverse_lazy('sapl.parlamentares:bancada_detail',
+                            kwargs={'pk': self.kwargs['pk']})
+
+
+class CargoMembroBancadaCreate(CreateView):
+    template_name = 'parlamentares/cargomembrobancada_create.html'
+    form_class = CargoMembroBancadaForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'membro': MembroBancada.objects.get(pk=self.kwargs['pk'])})
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy('sapl.parlamentares:membrobancada_detail',
+                            kwargs={'bancada_pk': self.kwargs['bancada_pk'], 'pk': self.kwargs['pk']})
+
+
+class CargoMembroBancadaDetail(DetailView):
+    model = CargoMembroBancada
+    template_name = 'parlamentares/cargomembrobancada_detail.html'
+    form_class = CargoMembroBancadaForm
+
+
+class CargoMembroBancadaUpdate(UpdateView):
+    model = CargoMembroBancada
+    template_name = 'parlamentares/cargomembrobancada_update.html'
+    form_class = CargoMembroBancadaForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'membro': MembroBancada.objects.get(pk=self.kwargs['membro_pk'])})
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy('sapl.parlamentares:cargomembrobancada_detail',
+                            kwargs={'bancada_pk': self.kwargs['bancada_pk'], 'membro_pk': self.kwargs['pk'],
+                                    'pk': self.kwargs['pk']})
+
+
+class CargoMembroBancadaDelete(DeleteView):
+    model = CargoMembroBancada
+    template_name = 'parlamentares/cargomembrobancada_delete.html'
+    form_class = CargoMembroBancadaForm
+
+    def get_success_url(self):
+        return reverse_lazy('sapl.parlamentares:membrobancada_detail',
+                            kwargs={'bancada_pk': self.kwargs['bancada_pk'], 'pk': self.kwargs['pk']})
 
 
 class FrenteList(MasterDetailCrud):
@@ -1180,7 +1296,7 @@ def deleta_historico_partido(request, pk):
     historico = HistoricoPartido.objects.get(pk=pk)
     pk_partido = historico.partido.pk
     historico.delete()
-    
+
     return HttpResponseRedirect(
                 reverse(
                     'sapl.parlamentares:partido_detail',
@@ -1235,11 +1351,11 @@ class BlocoCrud(CrudAux):
             context['vinculados'] = CargoBlocoPartido.objects.filter(bloco=self.object)
 
             return context
-        
-        
+
+
 class CargoBlocoCrud(CrudAux):
     model = CargoBloco
-   
+
     class CreateView(CrudAux.CreateView):
         form_class = CargoBlocoForm
 

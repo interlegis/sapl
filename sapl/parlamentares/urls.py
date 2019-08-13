@@ -22,18 +22,23 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       lista_parlamentares,
                                       parlamentares_filiados,
                                       BlocoCrud, CargoBlocoCrud,
-                                      PesquisarParlamentarView, 
+                                      PesquisarParlamentarView,
                                       VincularParlamentarView,
                                       deleta_historico_partido,
                                       edita_vinculo_parlamentar_bloco,
                                       deleta_vinculo_parlamentar_bloco,
                                       vincula_parlamentar_ao_bloco,
-                                      get_sessoes_legislatura)
+                                      get_sessoes_legislatura,
+                                      MembroBancadaCreate, MembroBancadaDetail,
+                                      MembroBancadaUpdate, MembroBancadaDelete,
+                                      CargoMembroBancadaCreate, CargoMembroBancadaDetail,
+                                      CargoMembroBancadaUpdate, CargoMembroBancadaDelete)
 
 
 from .apps import AppConfig
 
 app_name = AppConfig.name
+
 
 urlpatterns = [
     url(r'^parlamentar/', include(
@@ -78,7 +83,33 @@ urlpatterns = [
         edita_vinculo_parlamentar_bloco,name='edita-vinculo-parlamentar-bloco'),
     url(r'^sistema/deleta-vinculo-parlamentar-bloco/(?P<pk>\d+)/',
         deleta_vinculo_parlamentar_bloco,name='deleta-vinculo-parlamentar-bloco'),
-        
+
+    url(r'^sistema/bancada/(?P<pk>\d+)/membro/create/$',
+        MembroBancadaCreate.as_view(),
+        name='membrobancada_create'),
+    url(r'^sistema/bancada/(?P<bancada_pk>\d+)/membro/(?P<pk>\d+)/$',
+        MembroBancadaDetail.as_view(),
+        name='membrobancada_detail'),
+    url(r'^sistema/bancada/(?P<bancada_pk>\d+)/membro/(?P<pk>\d+)/update/$',
+        MembroBancadaUpdate.as_view(),
+        name='membrobancada_update'),
+    url(r'^sistema/bancada/(?P<bancada_pk>\d+)/membro/(?P<pk>\d+)/delete/$',
+        MembroBancadaDelete.as_view(),
+        name='membrobancada_delete'),
+
+    url(r'^sistema/bancada/(?P<bancada_pk>\d+)/membro/(?P<pk>\d+)/cargo/create/$',
+        CargoMembroBancadaCreate.as_view(),
+        name='cargomembrobancada_create'),
+    url(r'^sistema/bancada/(?P<bancada_pk>\d+)/membro/(?P<membro_pk>\d+)/cargo/(?P<pk>\d+)/$',
+        CargoMembroBancadaDetail.as_view(),
+        name='cargomembrobancada_detail'),
+    url(r'^sistema/bancada/(?P<bancada_pk>\d+)/membro/(?P<membro_pk>\d+)/cargo/(?P<pk>\d+)/update/$',
+        CargoMembroBancadaUpdate.as_view(),
+        name='cargomembrobancada_update'),
+    url(r'^sistema/bancada/(?P<bancada_pk>\d+)/membro/(?P<membro_pk>\d+)/cargo/(?P<pk>\d+)/delete/$',
+        CargoMembroBancadaDelete.as_view(),
+        name='cargomembrobancada_delete'),
+
     url(r'^sistema/frente/',
         include(FrenteCrud.get_urls())),
     url(r'^sistema/frente/atualiza-lista-parlamentares',

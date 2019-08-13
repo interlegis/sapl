@@ -23,8 +23,8 @@ from sapl.rules import SAPL_GROUP_VOTANTE
 import django_filters
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Votante, Bloco, Bancada, CargoBloco,
-                     CargoBlocoPartido)
+                     Mandato, Parlamentar, Votante, Bloco, CargoBloco, CargoBlocoPartido,
+                     Bancada, MembroBancada, CargoMembroBancada)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -622,57 +622,6 @@ class BlocoForm(ModelForm):
         return bloco
 
 
-class BancadaForm(ModelForm):
-
-    class Meta:
-        model = Bancada
-        fields = ['legislatura', 'nome', 'partido', 'data_criacao',
-                  'data_extincao', 'descricao']
-
-    def clean(self):
-        super(BancadaForm, self).clean()
-
-        if not self.is_valid():
-            return self.cleaned_data
-
-        data = self.cleaned_data
-
-        legislatura = data['legislatura']
-
-        data_criacao = data['data_criacao']
-        if data_criacao:
-            if (data_criacao < legislatura.data_inicio or
-                    data_criacao > legislatura.data_fim):
-                raise ValidationError(_("Data de criação da bancada fora do intervalo"
-                                        " de legislatura informada"))
-
-        data_extincao = data['data_extincao']
-        if data_extincao:
-            if (data_extincao < legislatura.data_inicio or
-                    data_extincao > legislatura.data_fim):
-                raise ValidationError(_("Data fim da bancada fora do intervalo de"
-                                        " legislatura informada"))
-
-        if self.cleaned_data['data_extincao']:
-            if (self.cleaned_data['data_extincao'] <
-                    self.cleaned_data['data_criacao']):
-                msg = _('Data de extinção não pode ser menor que a de criação')
-                raise ValidationError(msg)
-        return self.cleaned_data
-
-    @transaction.atomic
-    def save(self, commit=True):
-        bancada = super(BancadaForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Bancada)
-        object_id = bancada.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=bancada.nome
-        )
-        return bancada
 class CargoBlocoForm(ModelForm):
     class Meta:
         model = CargoBloco
@@ -683,7 +632,7 @@ class CargoBlocoPartidoForm(ModelForm):
     class Meta:
         model = CargoBlocoPartido
         fields = ['cargo','parlamentar','data_inicio','data_fim']
-    
+
 
     def __init__(self, *args, **kwargs):
         super(CargoBlocoPartidoForm, self).__init__(*args, **kwargs)
@@ -693,7 +642,7 @@ class CargoBlocoPartidoForm(ModelForm):
             partidos = self.bloco.partidos.all().values_list('id', flat=True)
             parlamentares_filiacao = Filiacao.objects.select_related('partido').filter(partido__in=partidos).values_list('parlamentar', flat=True)
             self.fields['parlamentar'].queryset = Parlamentar.objects.filter(id__in=parlamentares_filiacao)
-        
+
         if self.instance and self.instance.pk:
             self.fields['parlamentar'].widget.attrs['disabled'] = 'disabled'
             self.fields['parlamentar'].required = False
@@ -715,10 +664,10 @@ class CargoBlocoPartidoForm(ModelForm):
                     vinculo.data_fim) and vinculo.cargo.unico and \
                     not(self.instance and self.instance.id == vinculo.id):
                         raise ValidationError("Cargo unico já é utilizado nesse período.")
-        
+
         if aux_data_fim <= cleaned_data['data_inicio']:
             raise ValidationError("Data Inicial deve ser anterior a data final.")
-        
+
         if self.instance and self.instance.pk:
             self.cleaned_data['parlamentar'] = self.instance.parlamentar
         else:
@@ -730,10 +679,197 @@ class CargoBlocoPartidoForm(ModelForm):
                     cleaned_data['data_inicio'],
                     aux_data_fim,
                     mandato.legislatura.data_fim):
-                fora_de_mandato = False              
+                fora_de_mandato = False
         if fora_de_mandato:
             raise ValidationError("Data de inicio e fim fora de periodo do mandato do parlamentar.")
 
         if self.instance.pk and (cleaned_data['parlamentar'].id != self.instance.parlamentar.id):
             raise ValidationError("Não é possivel alterar o parlamentar " + str(self.instance.parlamentar))
-        
+
+
+class BancadaForm(ModelForm):
+
+    class Meta:
+        model = Bancada
+        fields = ['nome', 'descricao', 'ativo']
+
+    def clean(self):
+        super(BancadaForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+    def save(self, commit=True):
+        bancada = super(BancadaForm, self).save(commit)
+        content_type = ContentType.objects.get_for_model(Bancada)
+        object_id = bancada.pk
+        tipo = TipoAutor.objects.get(content_type=content_type)
+        Autor.objects.create(
+            content_type=content_type,
+            object_id=object_id,
+            tipo=tipo,
+            nome=bancada.nome
+        )
+        return bancada
+
+
+class MembroBancadaForm(ModelForm):
+    class Meta:
+        model = MembroBancada
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        self.bancada = kwargs.pop('bancada')
+        super().__init__(*args, **kwargs)
+
+        self.fields['bancada'].choices = [(self.bancada.pk, self.bancada.nome)]
+
+        if not self.instance.pk:
+            action_label = 'Adicionar Membro'
+        else:
+            self.fields['parlamentar'].choices = [(self.instance.parlamentar.pk, self.instance.parlamentar)]
+            self.fields['legislatura'].initial = (self.instance.legislatura.pk, self.instance.legislatura)
+            self.fields['data_inicio'].initial = self.instance.data_inicio
+            self.fields['data_fim'].initial = self.instance.data_fim
+            action_label = 'Atualizar Membro'
+
+        row = to_row([
+            ('parlamentar', 6),
+            ('bancada', 4),
+            ('legislatura', 4),
+            ('data_inicio', 3),
+            ('data_fim', 3),
+        ])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _(action_label),
+                row,
+                form_actions(label=_(action_label))
+            )
+        )
+
+    def clean(self):
+        data = super().clean()
+
+        if not self.is_valid():
+            return data
+
+        data_inicio_legislatura = data['legislatura'].data_inicio
+        data_fim_legislatura = data['legislatura'].data_fim
+        data_inicio = data['data_inicio']
+        data_fim = data['data_fim']
+
+        if data_fim and data_inicio > data_fim:
+            raise ValidationError(_('A data início de membro deve ser anterior a data fim.'))
+        elif data_inicio_legislatura > data_inicio:
+            raise ValidationError(_('A data início de membro deve ser posterior a data início da legislatura.'))
+        elif data_fim and data_fim > data_fim_legislatura:
+            raise ValidationError(_('A data fim de membro deve ser anterior a data fim da legislatura.'))
+
+        return data
+
+    def save(self, commit=False):
+        data = super().save(commit)
+
+        if not self.instance.pk:
+            membro, created = MembroBancada.objects.get_or_create(
+                parlamentar=data.parlamentar,
+                bancada=data.bancada,
+                data_inicio=data.data_inicio,
+                data_fim=data.data_fim,
+                legislatura=data.legislatura)
+        else:
+            membro = MembroBancada.objects.get(pk=self.instance.pk)
+            membro.data_inicio = data.data_inicio
+            membro.data_fim = data.data_fim
+            membro.legislatura = data.legislatura
+            membro.save()
+
+        return membro
+
+
+class CargoMembroBancadaForm(ModelForm):
+    class Meta:
+        model = CargoMembroBancada
+        fields = '__all__'
+
+    data_inicio_membro = forms.DateField(
+        label='Data Início de Membro',
+        required=False,
+        disabled=True, )
+
+    data_fim_membro = forms.DateField(
+        label='Data Fim de Membro',
+        required=False,
+        disabled=True, )
+
+    def __init__(self, *args, **kwargs):
+        self.membro = kwargs.pop('membro')
+        super().__init__(*args, **kwargs)
+
+        self.fields['membro'].choices = [(self.membro.pk, self.membro.parlamentar.nome_parlamentar)]
+        self.fields['data_inicio_membro'].initial = self.membro.data_inicio
+        self.fields['data_fim_membro'].initial = self.membro.data_fim
+
+        if not self.instance.pk:
+            action_label = 'Adicionar Cargo'
+        else:
+            action_label = 'Atualizar Cargo'
+
+        row = to_row([
+            ('membro', 4),
+            ('data_inicio_membro', 3),
+            ('data_fim_membro', 3),
+            ('cargo', 4),
+            ('data_inicio', 3),
+            ('data_fim', 3),
+        ])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(
+                _(action_label),
+                row,
+                form_actions(label=_(action_label))
+            )
+        )
+
+    def clean(self):
+        data = super().clean()
+
+        if not self.is_valid():
+            return data
+
+        data_inicio_membro = self.membro.data_inicio
+        data_fim_membro = self.membro.data_fim
+        data_inicio = data['data_inicio']
+        data_fim = data['data_fim']
+
+        if data_fim and data_inicio > data_fim:
+            raise ValidationError(_('A data início no cargo deve ser anterior a data fim.'))
+        elif data_inicio_membro > data_inicio:
+            raise ValidationError(_('A data início no cargo deve ser posterior a data início de membro.'))
+        elif data_fim and data_fim_membro and data_fim > data_fim_membro:
+            raise ValidationError(_('A data fim no cargo deve ser anterior a data fim de membro.'))
+
+        return data
+
+    def save(self, commit=False):
+        data = super().save(commit)
+
+        if not self.instance.pk:
+            cargo, created = CargoMembroBancada.objects.get_or_create(
+                membro=data.membro,
+                cargo=data.cargo,
+                data_inicio=data.data_inicio,
+                data_fim=data.data_fim)
+        else:
+            cargo = CargoMembroBancada.objects.get(pk=self.instance.pk)
+            cargo.cargo = data.cargo
+            cargo.data_inicio = data.data_inicio
+            cargo.data_fim = data.data_fim
+            cargo.save()
+
+        return cargo
