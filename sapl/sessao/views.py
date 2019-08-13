@@ -1528,7 +1528,7 @@ def get_turno(turno):
         return ''
 
 
-def get_identificação_basica(sessao_plenaria):
+def get_identificacao_basica(sessao_plenaria):
     # =====================================================================
     # Identificação Básica
     data_inicio = sessao_plenaria.data_inicio
@@ -1823,7 +1823,7 @@ def get_oradores_ordemdia(sessao_plenaria):
     return context
 
 
-def get_oradores_explicações_pessoais(sessao_plenaria):
+def get_oradores_explicacoes_pessoais(sessao_plenaria):
     oradores_explicacoes = []
     for orador in Orador.objects.filter(
             sessao_plenaria_id=sessao_plenaria.id).order_by('numero_ordem'):
@@ -1845,7 +1845,7 @@ def get_oradores_explicações_pessoais(sessao_plenaria):
     return context
 
 
-def get_ocorrencias_da_sessão(sessao_plenaria):
+def get_ocorrencias_da_sessao(sessao_plenaria):
     ocorrencias_sessao = OcorrenciaSessao.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id)
     context = {'ocorrencias_da_sessao': ocorrencias_sessao}
@@ -1886,7 +1886,7 @@ class ResumoView(DetailView):
 
         # =====================================================================
         # Identificação Básica
-        context.update(get_identificação_basica(self.object))
+        context.update(get_identificacao_basica(self.object))
         # =====================================================================
         # Conteúdo Multimídia
         context.update(get_conteudo_multimidia(self.object))
@@ -1941,10 +1941,10 @@ class ResumoView(DetailView):
         context.update(get_oradores_ordemdia(self.object))
         # =====================================================================
         # Oradores nas Explicações Pessoais
-        context.update(get_oradores_explicações_pessoais(self.object))
+        context.update(get_oradores_explicacoes_pessoais(self.object))
         # =====================================================================
         # Ocorrẽncias da Sessão
-        context.update(get_ocorrencias_da_sessão(self.object))
+        context.update(get_ocorrencias_da_sessao(self.object))
         # =====================================================================
         # Indica a ordem com a qual o template será renderizado
         dict_ord_template = {

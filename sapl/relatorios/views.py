@@ -27,12 +27,12 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
-from sapl.sessao.views import (get_identificação_basica, get_mesa_diretora,
+from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_presenca_sessao, get_expedientes,
                                get_materias_expediente, get_oradores_expediente,
                                get_presenca_ordem_do_dia, get_materias_ordem_do_dia,
                                get_oradores_ordemdia,
-                               get_oradores_explicações_pessoais, get_ocorrencias_da_sessão, get_assinaturas)
+                               get_oradores_explicacoes_pessoais, get_ocorrencias_da_sessao, get_assinaturas)
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
@@ -1301,7 +1301,7 @@ def resumo_ata_pdf(request,pk):
     sessao_plenaria = SessaoPlenaria.objects.get(pk=pk)
     
     context = {}
-    context.update(get_identificação_basica(sessao_plenaria))
+    context.update(get_identificacao_basica(sessao_plenaria))
     context.update(get_mesa_diretora(sessao_plenaria))
     context.update(get_presenca_sessao(sessao_plenaria))
     context.update(get_expedientes(sessao_plenaria))
@@ -1310,8 +1310,8 @@ def resumo_ata_pdf(request,pk):
     context.update(get_presenca_ordem_do_dia(sessao_plenaria))
     context.update(get_materias_ordem_do_dia(sessao_plenaria))
     context.update(get_oradores_ordemdia(sessao_plenaria))
-    context.update(get_oradores_explicações_pessoais(sessao_plenaria))
-    context.update(get_ocorrencias_da_sessão(sessao_plenaria))
+    context.update(get_oradores_explicacoes_pessoais(sessao_plenaria))
+    context.update(get_ocorrencias_da_sessao(sessao_plenaria))
     context.update(get_assinaturas(sessao_plenaria))
     context.update({'object': sessao_plenaria})
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
