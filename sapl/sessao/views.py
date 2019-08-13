@@ -605,6 +605,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         layout_key = 'ExpedienteMateriaDetail'
 
 
+# Orador das Explicações Pessoais
 class OradorCrud(MasterDetailCrud):
     model = Orador
     parent_field = 'sessao_plenaria'
@@ -630,32 +631,6 @@ class OradorCrud(MasterDetailCrud):
         def get_initial(self):
             return {'id_sessao': self.kwargs['pk']}
 
-        def get_success_url(self):
-            return reverse('sapl.sessao:orador_list',
-                           kwargs={'pk': self.kwargs['pk']})
-
-class UpdateView(MasterDetailCrud.UpdateView):
-
-        form_class = OradorForm
-
-        def get_initial(self):
-            initial = super().get_initial()
-            initial.update({'id_sessao': self.object.sessao_plenaria.id})
-            initial.update({'numero': self.object.numero_ordem})
-
-            return initial
-
-
-class OradorExpedienteCrud(OradorCrud):
-    model = OradorExpediente
-
-    class CreateView(MasterDetailCrud.CreateView):
-
-        form_class = OradorForm
-
-        def get_initial(self):
-            return {'id_sessao': self.kwargs['pk']}
-
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             sessao_pk = context['root_pk']
@@ -668,6 +643,18 @@ class OradorExpedienteCrud(OradorCrud):
         def get_success_url(self):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
+
+    
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
 
 
     class UpdateView(MasterDetailCrud.UpdateView):
@@ -677,21 +664,8 @@ class OradorExpedienteCrud(OradorCrud):
         def get_initial(self):
             initial = super().get_initial()
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
-            initial.update({'numero':self.object.numero_ordem})
-
+            initial.update({'numero': self.object.numero_ordem})
             return initial
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            sessao_pk = context['root_pk']
-            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
-            tipo_sessao = sessao.tipo
-            if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
-            return context
-
-        
-    class DetailView(MasterDetailCrud.DetailView):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -747,6 +721,15 @@ class OradorExpedienteCrud(OradorCrud):
             return {'id_sessao': self.object.sessao_plenaria.id,
                     'numero': self.object.numero_ordem}
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
 
     class ListView(MasterDetailCrud.ListView):
 
@@ -769,14 +752,13 @@ class OradorExpedienteCrud(OradorCrud):
             if tipo_sessao.nome == "Solene":
                 context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
-
-
-    class UpdateView(MasterDetailCrud.UpdateView):
+            
+    class DeleteView(MasterDetailCrud.DeleteView):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            pk = context['root_pk']
-            sessao = SessaoPlenaria.objects.get(id=pk)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
                 context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
@@ -953,6 +935,14 @@ class SessaoCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'sessaoplenaria_list'))
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao = context['object']
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
     class DetailView(Crud.DetailView):
 
         @property
@@ -970,7 +960,6 @@ class SessaoCrud(Crud):
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
                 context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
-                # self.layout_key = 'SessaoSolene'
             return context
 
 
