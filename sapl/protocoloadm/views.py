@@ -551,7 +551,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         ).sequencia_numeracao_protocolo
         if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
-                              "numeração na tabelas auxiliares! " + str(e))
+                              "numeração na tabelas auxiliares! ")
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')
             messages.add_message(self.request, messages.ERROR, msg)

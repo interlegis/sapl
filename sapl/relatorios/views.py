@@ -1411,7 +1411,6 @@ def relatorio_sessao_plenaria_pdf(request, pk):
                 Legislatura".format(inf_basicas_dic['num_sessao_plen'],
                                         inf_basicas_dic['nom_sessao'],
                                         inf_basicas_dic['num_sessao_leg'],
-                                        inf_basicas_dic['num_legislatura'],
                                         inf_basicas_dic['num_legislatura']
                                     )
 
