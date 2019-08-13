@@ -3,6 +3,7 @@
 {% load i18n common_tags crispy_forms_tags%}
 
 {% block container_table_list %}
+
   {% if not rows %}
     <p>{{ NO_ENTRIES_MSG }}</p>
   {% else %}
@@ -13,27 +14,16 @@
           <tr>
             {% for name in headers %}
               <th>
-                {% if view.ordered_list %}
-                  <a title="{% trans 'Clique para alterar a ordem a listagem'%}" href="?o={% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}-{%endif%}{{forloop.counter}}{{ordering_url}}">
                     {{ name }}
-                    {% if 'o' in request.GET or not view.ordering %}
-                      {% if 'o' not in request.GET and forloop.counter == 1 or 'o' in request.GET and forloop.counter|safe == request.GET.o %}
-                        <span class="caret top" title="{% trans 'Listado na Ordem Ascendente'%}"></span>
-                      {% elif 'o' in request.GET and forloop.counter == request.GET.o|str2intabs %}
-                        <span class="caret" title="{% trans 'Listado na Ordem Descendente'%}"></span>
-                      {%endif%}
-                    {%endif%}
-                  </a>
-                {% else %}
-                    {{ name }}
-                {% endif %}
               </th>
             {% endfor %}
+            <th></th>
           </tr>
         </thead>
       <tbody id="sortable">
         {% for o in object_list %}
         <tr data-value='{{o.id}}'>
+
           <td>
             <a href='/sistema/cronometro/{{o.id}}'>{{o}}</a>
           </td>
@@ -44,7 +34,10 @@
             {% if o.ativo %}Sim{% else %}Não{% endif %}
           </td>
           <td>
-            <spam>{{o.ordenacao}}</spam>
+            <spam><b>{{o.ordenacao}}</b></spam>
+          </td>
+          <td>
+            <spam class="ui-icon ui-icon-arrowthick-2-n-s"></spam>
           </td>
         </tr>
         {% endfor %}
@@ -62,6 +55,15 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
         $(function() {
+                var divNova = document.createElement("div"); 
+                divNova.innerText = "";
+                $(divNova).addClass('alert alert-success')
+                $(divNova).attr("style", "margin-left:190px;margin-right:190px")
+                divNova.style.visibility = "hidden"
+                
+                var list = document.getElementById("content");
+                list.insertBefore(divNova, list.childNodes[0]);
+                
                 $( "#sortable" ).sortable({
                     beforeStop: function( event, ui ) {
                       var order = []
@@ -82,17 +84,17 @@
                           },
                           success: function(data){
           						      var msg = data;
-                            $( "#sortable tr td spam" ).each(function(index,obj) {
+                            $( "#sortable tr td spam b" ).each(function(index,obj) {
                               $(obj).text(index+1);
                             });
+                            divNova.style.visibility = "visible"
+                            divNova.innerText = data['msg'];
                           },
 	                      });
                     }
                 });
 
                 $( "#sortable" ).disableSelection();
-                
-                
         }); 
     </script>
 {% endblock %}

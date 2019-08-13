@@ -44,7 +44,7 @@ def ordena_cronometro(request):
         c = Cronometro.objects.get(id=o)
         c.ordenacao = index + 1
         c.save()
-    return JsonResponse({'r':ordem})
+    return JsonResponse({'type':'success','msg':'Ordem mudada com sucesso.'})
 
 class PainelConfigCrud(CrudAux):
     model = PainelConfig
