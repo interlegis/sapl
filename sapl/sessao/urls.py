@@ -35,7 +35,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
                                resumo_ordenacao,
                                recuperar_nome_tipo_sessao,
-                               voto_nominal_parlamentar)
+                               voto_nominal_parlamentar, mostra_status_materia, atualiza_status_materia)
 
 from .apps import AppConfig
 
@@ -116,6 +116,12 @@ urlpatterns = [
         PesquisarPautaSessaoView.as_view(), name='pesquisar_pauta'),
     url(r'^sessao/pauta-sessao/(?P<pk>\d+)$',
         PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
+    url(r'^sessao/pauta-sessao/(?P<sessao_id>\d+)/mostra-situacao-(?P<tipo>[\w-]+)/(?P<materia_id>\d+)/$',
+        mostra_status_materia, name='mostra_status_materia'),
+    url(r'^sessao/pauta-sessao/(?P<sessao_id>\d+)/atualiza-situacao-(?P<tipo>[\w-]+)/(?P<materia_id>\d+)/$',
+        atualiza_status_materia, name='atualiza_status_materia'),
+
+
 
     # Subnav sessão
     url(r'^sessao/(?P<pk>\d+)/expediente$',

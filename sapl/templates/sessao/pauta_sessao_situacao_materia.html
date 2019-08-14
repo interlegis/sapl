@@ -1,0 +1,42 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+    <fieldset>
+        <legend>Atualização da Situação da Matéria em Pauta</legend>
+        <table class="table table-striped">
+            <tr>
+                {% if tipo == expediente %}
+                    <td><b>Matéria do Expediente</b></td>
+                {% else %}
+                    <td><b>Matéria da Ordem Dia</b></td>
+                {% endif %}
+                <td><a href="{% url 'sapl.materia:materialegislativa_detail' materia_id %}">{{ titulo }}</a></td>
+            </tr>
+            <tr>
+                <td><b>Autor{{ autores|length|pluralize:"es" }}</b></td>
+                <td>{{ autores|join:', ' }}</td>
+            </tr>
+            <tr>
+                <td><b>Ementa</b></td>
+                <td>{{ ementa }}</td>
+            </tr>
+            <tr>
+                <td><b>Atual Situação</b></td>
+                <td><a href="{% url 'sapl.materia:tramitacao_detail' tramitacao_id %}">{{ status }}</a></td>
+            </tr>
+            <tr>
+                <td><b>Nova Situação</b></td>
+                <td><a href="{% url 'sapl.materia:tramitacao_detail' nova_tramitacao_id %}">{{ novo_status }}</a></td>
+            </tr>
+        </table>
+    </fieldset>
+    <div><em>Ao apertar em 'Atualizar', não será possível reverter a alteração posteriormente.</em></div>
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.sessao:pauta_sessao_detail' sessao_id %}" class="btn btn-outline-primary">Voltar</a>
+    </div>
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.sessao:atualiza_status_materia' sessao_id tipo materia_id %}" class="btn btn-outline-primary">Atualizar</a>
+    </div>
+{% endblock base_content %}

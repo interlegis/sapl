@@ -1,15 +1,15 @@
 from operator import xor
 
+import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone, formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-import reversion
 
 from sapl.base.models import Autor
-from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, Tramitacao
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
@@ -247,21 +247,29 @@ class AbstractOrdemDia(models.Model):
     TIPO_VOTACAO_CHOICES = Choices(
         (1, 'simbolica', 'Simbólica'),
         (2, 'nominal', 'Nominal'),
-        (3, 'secreta', 'Secreta'),
-    )
+        (3, 'secreta', 'Secreta'),)
 
-    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.CASCADE)
-    materia = models.ForeignKey(MateriaLegislativa,
-                                on_delete=models.PROTECT,
-                                verbose_name=_('Matéria'))
-    data_ordem = models.DateField(verbose_name=_('Data da Sessão'))
+    sessao_plenaria = models.ForeignKey(
+        SessaoPlenaria,
+        on_delete=models.CASCADE)
+    materia = models.ForeignKey(
+        MateriaLegislativa,
+        on_delete=models.PROTECT,
+        verbose_name=_('Matéria'))
+    data_ordem = models.DateField(
+        verbose_name=_('Data da Sessão'))
     observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
-    numero_ordem = models.PositiveIntegerField(verbose_name=_('Nº Ordem'))
-    resultado = models.TextField(blank=True, verbose_name=_('Resultado'))
+        blank=True,
+        verbose_name=_('Observação'))
+    numero_ordem = models.PositiveIntegerField(
+        verbose_name=_('Nº Ordem'))
+    resultado = models.TextField(
+        blank=True,
+        verbose_name=_('Resultado'))
     tipo_votacao = models.PositiveIntegerField(
-        verbose_name=_('Tipo de votação'), choices=TIPO_VOTACAO_CHOICES, default=1)
+        verbose_name=_('Tipo de votação'),
+        choices=TIPO_VOTACAO_CHOICES,
+        default=1)
     votacao_aberta = models.NullBooleanField(
         blank=True,
         choices=YES_NO_CHOICES,
@@ -270,6 +278,10 @@ class AbstractOrdemDia(models.Model):
         blank=True,
         choices=YES_NO_CHOICES,
         verbose_name=_('Registro de Votação Iniciado?'))
+    tramitacao = models.ForeignKey(
+        Tramitacao,
+        null=True,
+        on_delete=models.PROTECT)
 
     class Meta:
         abstract = True
@@ -279,8 +291,7 @@ class AbstractOrdemDia(models.Model):
         return self.materia.ementa
 
     def __str__(self):
-        return 'Ordem do Dia/Expediente: %s - %s em %s' % (
-            self.numero_ordem, self.materia, self.sessao_plenaria)
+        return 'Ordem do Dia/Expediente: %s - %s em %s' % (self.numero_ordem, self.materia, self.sessao_plenaria)
 
 
 @reversion.register()
