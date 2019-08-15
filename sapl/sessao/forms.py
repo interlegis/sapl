@@ -17,7 +17,7 @@ from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
-                                 TipoMateriaLegislativa)
+                                 TipoMateriaLegislativa, Tramitacao)
 from sapl.parlamentares.models import Parlamentar, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
@@ -356,9 +356,13 @@ class ExpedienteMateriaForm(ModelForm):
         return cleaned_data
 
     def save(self, commit=False):
-        expediente = super(ExpedienteMateriaForm, self).save(commit)
-        expediente.materia = self.cleaned_data['materia']
+        expediente = super().save(commit)
+        materia = self.cleaned_data['materia']
+
+        expediente.materia = materia
+        expediente.tramitacao = Tramitacao.objects.filter(materia=materia).first()
         expediente.save()
+
         return expediente
 
 
@@ -394,9 +398,13 @@ class OrdemDiaForm(ExpedienteMateriaForm):
         return self.cleaned_data
 
     def save(self, commit=False):
-        ordem = super(OrdemDiaForm, self).save(commit)
-        ordem.materia = self.cleaned_data['materia']
+        ordem = super().save(commit)
+        materia = self.cleaned_data['materia']
+
+        ordem.materia = materia
+        ordem.tramitacao = Tramitacao.objects.filter(materia=materia).first()
         ordem.save()
+
         return ordem
 
 

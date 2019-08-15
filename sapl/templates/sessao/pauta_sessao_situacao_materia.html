@@ -1,0 +1,72 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+    <h1 class="page-header">Atualização da Situação da Matéria em Pauta</h1>
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.sessao:pauta_sessao_detail' sessao_id %}" class="btn btn-outline-primary">Voltar</a>
+    </div>
+    <h2 class="legend">Identificações Básicas</h2>
+    <div class="row">
+        <div class="col">
+            <p class="control-label">{% if tipo == expediente %} Matéria do Expediente {% else %} Matéria da Ordem Dia {% endif %}</p>
+        </div>
+        <div class="col">
+            <p class="control-label">Autor{{ autores|length|pluralize:"es" }}</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="form-control-static">
+                <a href="{% url 'sapl.materia:materialegislativa_detail' materia_id %}">{{ titulo }}</a>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-control-static">
+                {{ autores|join:', ' }}
+            </div>
+        </div>
+    </div>
+    <br>
+    <h2 class="legend">Dado Textual</h2>
+    <div class="row">
+        <div class="col">
+            <p class="control-label">Ementa</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="form-control-static">
+                {{ ementa }}
+            </div>
+        </div>
+    </div>
+    <br>
+    <h2 class="legend">Situações</h2>
+    <div class="row">
+        <div class="col">
+            <p class="control-label">Atual Situação</p>
+        </div>
+        <div class="col">
+            <p class="control-label">Nova Situação</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="form-control-static">
+                <a href="{% url 'sapl.materia:tramitacao_detail' tramitacao_id %}">{{ status }}</a>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-control-static">
+                <a href="{% url 'sapl.materia:tramitacao_detail' nova_tramitacao_id %}">{{ novo_status }}</a>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div><em>Ao apertar em 'Atualizar', não será possível reverter a alteração posteriormente.</em></div>
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.sessao:atualiza_status_materia' sessao_id tipo materia_id %}" class="btn btn-outline-primary">Atualizar</a>
+    </div>
+{% endblock base_content %}

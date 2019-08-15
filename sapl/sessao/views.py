@@ -24,7 +24,6 @@ from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
 from django.shortcuts import render
 
-
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
@@ -3246,21 +3245,15 @@ class PautaSessaoDetailView(DetailView):
         ]})
         # =====================================================================
         # Matérias Expediente
-        materias = ExpedienteMateria.objects.filter(
-            sessao_plenaria_id=self.object.id)
+        materias = ExpedienteMateria.objects.filter(sessao_plenaria_id=self.object.id)
 
         materias_expediente = []
         for m in materias:
             ementa = m.materia.ementa
             titulo = m.materia
             numero = m.numero_ordem
+            situacao = m.tramitacao.status if m.tramitacao else _("Não informada")
 
-            ultima_tramitacao = m.materia.tramitacao_set.last()
-
-            situacao = ultima_tramitacao.status if ultima_tramitacao else None
-
-            if situacao is None:
-                situacao = _("Não informada")
             rv = m.registrovotacao_set.all()
             if rv:
                 resultado = rv[0].tipo_resultado_votacao.nome
@@ -3287,15 +3280,12 @@ class PautaSessaoDetailView(DetailView):
         context.update({'materia_expediente': materias_expediente})
         # =====================================================================
         # Expedientes
-        expediente = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id)
+        expediente = ExpedienteSessao.objects.filter(sessao_plenaria_id=self.object.id)
 
         expedientes = []
         for e in expediente:
-            tipo = TipoExpediente.objects.get(
-                id=e.tipo_id)
-            conteudo = sub(
-                '&nbsp;', ' ', strip_tags(e.conteudo.replace('<br/>', '\n')))
+            tipo = TipoExpediente.objects.get(id=e.tipo_id)
+            conteudo = sub('&nbsp;', ' ', strip_tags(e.conteudo.replace('<br/>', '\n')))
 
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
@@ -3303,26 +3293,19 @@ class PautaSessaoDetailView(DetailView):
         context.update({'expedientes': expedientes})
         # =====================================================================
         # Orador Expediente
-        oradores = OradorExpediente.objects.filter(
-            sessao_plenaria_id=self.object.id).order_by('numero_ordem')
+        oradores = OradorExpediente.objects.filter(sessao_plenaria_id=self.object.id).order_by('numero_ordem')
         context.update({'oradores': oradores})
         # =====================================================================
         # Matérias Ordem do Dia
-        ordem = OrdemDia.objects.filter(
-            sessao_plenaria_id=self.object.id)
+        ordem = OrdemDia.objects.filter(sessao_plenaria_id=self.object.id)
 
         materias_ordem = []
         for o in ordem:
             ementa = o.materia.ementa
             titulo = o.materia
             numero = o.numero_ordem
+            situacao = o.tramitacao.status if o.tramitacao else _("Não informada")
 
-            ultima_tramitacao = o.materia.tramitacao_set.last()
-
-            situacao = ultima_tramitacao.status if ultima_tramitacao else None
-
-            if situacao is None:
-                situacao = _("Não informada")
             # Verificar resultado
             rv = o.registrovotacao_set.all()
             if rv:
@@ -3332,8 +3315,7 @@ class PautaSessaoDetailView(DetailView):
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
 
-            autoria = Autoria.objects.filter(
-                materia_id=o.materia_id)
+            autoria = Autoria.objects.filter(materia_id=o.materia_id)
             autor = [str(x.autor) for x in autoria]
 
             mat = {'id': o.materia_id,
@@ -3354,6 +3336,46 @@ class PautaSessaoDetailView(DetailView):
         return self.render_to_response(context)
 
 
+def pega_materia_exp_od(sessao_id, tipo, materia_id):
+    models = {
+        'expediente': ExpedienteMateria,
+        'ordemdia': OrdemDia
+    }
+    exp_od = models[tipo].objects.select_related('materia').get(sessao_plenaria=sessao_id, materia=materia_id)
+
+    return exp_od
+
+
+def mostra_status_materia(request, sessao_id, tipo, materia_id):
+    template_name = "sessao/pauta_sessao_situacao_materia.html"
+    exp_od = pega_materia_exp_od(sessao_id, tipo, materia_id)
+    autores = [a.autor.nome for a in exp_od.materia.autoria_set.all()]
+
+    context = {
+        'sessao_id': sessao_id,
+        'materia_id': materia_id,
+        'titulo': exp_od.materia,
+        'exp_od_id': exp_od.id,
+        'tipo': tipo,
+        'autores': autores,
+        'ementa': exp_od.materia.ementa,
+        'tramitacao_id': exp_od.tramitacao.id,
+        'status': exp_od.tramitacao.status,
+        'nova_tramitacao_id': exp_od.materia.tramitacao_set.first().id,
+        'novo_status': exp_od.materia.tramitacao_set.first().status
+    }
+
+    return render(request, template_name, context)
+
+
+def atualiza_status_materia(request, sessao_id, tipo, materia_id):
+    exp_od = pega_materia_exp_od(sessao_id, tipo, materia_id)
+    exp_od.tramitacao = exp_od.materia.tramitacao_set.first()
+    exp_od.save()
+
+    return HttpResponseRedirect(reverse('sapl.sessao:pauta_sessao_detail', kwargs={'pk': sessao_id}))
+
+
 class PesquisarSessaoPlenariaView(FilterView):
     model = SessaoPlenaria
     filterset_class = SessaoPlenariaFilterSet
@@ -3366,11 +3388,9 @@ class PesquisarSessaoPlenariaView(FilterView):
 
         kwargs = {'data': self.request.GET or None}
 
-        qs = self.get_queryset().select_related(
-            'tipo', 'sessao_legislativa', 'legislatura')
+        qs = self.get_queryset().select_related('tipo', 'sessao_legislativa', 'legislatura')
 
-        qs = qs.distinct().order_by(
-            '-legislatura__numero', '-data_inicio', '-hora_inicio')
+        qs = qs.distinct().order_by('-legislatura__numero', '-data_inicio', '-hora_inicio')
 
         kwargs.update({
             'queryset': qs,
