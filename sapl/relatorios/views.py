@@ -886,7 +886,7 @@ def get_sessao_plenaria(sessao, casa):
 def get_turno(materia):
     descricao_turno = ''
     descricao_tramitacao = ''
-    tramitacao = materia.tramitacao_set.last()
+    tramitacao = Tramitacao.objects.filter(materia=materia).first()
 
     if tramitacao:
         if tramitacao.turno:
@@ -1144,9 +1144,7 @@ def relatorio_pauta_sessao(request, pk):
     '''
 
     response = HttpResponse(content_type='application/pdf')
-    response[
-        'Content-Disposition'] = (
-            'inline; filename="relatorio_pauta_sessao.pdf"')
+    response['Content-Disposition'] = 'inline; filename="relatorio_pauta_sessao.pdf"'
 
     casa = CasaLegislativa.objects.first()
 
@@ -1155,13 +1153,8 @@ def relatorio_pauta_sessao(request, pk):
 
     sessao = SessaoPlenaria.objects.get(id=pk)
 
-    lst_expediente_materia, lst_votacao, inf_basicas_dic = get_pauta_sessao(
-        sessao, casa)
-    pdf = pdf_pauta_sessao_gerar.principal(rodape,
-                                           imagem,
-                                           inf_basicas_dic,
-                                           lst_expediente_materia,
-                                           lst_votacao)
+    lst_expediente_materia, lst_votacao, inf_basicas_dic = get_pauta_sessao(sessao, casa)
+    pdf = pdf_pauta_sessao_gerar.principal(rodape, imagem, inf_basicas_dic, lst_expediente_materia, lst_votacao)
 
     response.write(pdf)
 
