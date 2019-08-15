@@ -1090,10 +1090,17 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                   'observacao',
                   'texto_integral',
                   'protocolo',
-                  'restrito'
+                  'restrito',
+                  'user',
+                  'ip',
+                  'ultima_edicao'
                   ]
 
-        widgets = {'protocolo': forms.HiddenInput()}
+        widgets = {'protocolo': forms.HiddenInput(),
+                   'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()
+                    }
 
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
