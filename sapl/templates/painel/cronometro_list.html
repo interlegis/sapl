@@ -1,4 +1,4 @@
-{% extends "crud/list.html" %}
+{% extends "crud/list_tabaux.html" %}
 {% load i18n %}
 {% load i18n common_tags crispy_forms_tags%}
 
@@ -72,7 +72,6 @@
                           order.push($(obj).data('value'))
                         }
                       })
-                      console.log(order)
 
                       $.ajax({
 	                        data: {ordem:order},

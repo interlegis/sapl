@@ -33,18 +33,18 @@ class CronometroPainelCrud(CrudAux):
     model = Cronometro
 
     class ListView(CrudAux.ListView):
-        template_name = "painel/lista_cronometros.html"
+        template_name = "painel/cronometro_list.html"
         
     class BaseMixin(CrudAux.BaseMixin):
         form_class = CronometroForm
 
 def ordena_cronometro(request):
     ordem = request.POST.getlist("ordem", [])
-    for index, o in enumerate(ordem):
+    for index, o in enumerate(ordem, 1):
         c = Cronometro.objects.get(id=o)
-        c.ordenacao = index + 1
+        c.ordenacao = index
         c.save()
-    return JsonResponse({'type':'success','msg':'Ordem mudada com sucesso.'})
+    return JsonResponse({'type':'success','msg':'Ordem alterada com sucesso.'})
 
 class PainelConfigCrud(CrudAux):
     model = PainelConfig
