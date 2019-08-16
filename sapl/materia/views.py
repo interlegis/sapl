@@ -1909,8 +1909,7 @@ class MateriaLegislativaPesquisaView(FilterView):
     paginate_by = 50
 
     def get_filterset_kwargs(self, filterset_class):
-        super(MateriaLegislativaPesquisaView,
-              self).get_filterset_kwargs(filterset_class)
+        super().get_filterset_kwargs(filterset_class)
 
         kwargs = {'data': self.request.GET or None}
 
@@ -1966,8 +1965,7 @@ class MateriaLegislativaPesquisaView(FilterView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(MateriaLegislativaPesquisaView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         context['title'] = _('Pesquisar Matéria Legislativa')
 
