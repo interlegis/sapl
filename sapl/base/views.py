@@ -38,7 +38,7 @@ from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexada,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao,
                                  DocumentoAcessorio, TipoDocumento)
-from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
+from sapl.norma.models import (NormaJuridica, TipoNormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa
 from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
                                       StatusTramitacaoAdministrativo, 
@@ -62,7 +62,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioNormasVigenciaFilterSet,
                     EstatisticasAcessoNormasForm, UsuarioFilterSet,
                     RelatorioHistoricoTramitacaoAdmFilterSet,
-                    RelatorioDocumentosAcessoriosFilterSet)
+                    RelatorioDocumentosAcessoriosFilterSet,
+                    RelatorioNormasPorAutorFilterSet)
 from .models import AppConfig, CasaLegislativa
 
 
@@ -849,15 +850,12 @@ class RelatorioMateriasPorAutorView(FilterView):
     template_name = 'base/RelatorioMateriasPorAutor_filter.html'
 
     def get_filterset_kwargs(self, filterset_class):
-        super(RelatorioMateriasPorAutorView,
-              self).get_filterset_kwargs(filterset_class)
-
+        super().get_filterset_kwargs(filterset_class)
         kwargs = {'data': self.request.GET or None}
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(RelatorioMateriasPorAutorView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         context['title'] = _('Matérias por Autor')
         if not self.filterset.form.is_valid():
@@ -2080,5 +2078,53 @@ class RelatorioHistoricoTramitacaoAdmView(FilterView):
                     id=self.request.GET['tramitacaoadministrativo__unidade_tramitacao_destino'])))
         else:
             context['tramitacaoadministrativo__unidade_tramitacao_destino'] = ''
+
+        return context
+
+
+class RelatorioNormasPorAutorView(FilterView):
+    model = NormaJuridica
+    filterset_class = RelatorioNormasPorAutorFilterSet
+    template_name = 'base/RelatorioNormasPorAutor_filter.html'
+
+    def get_filterset_kwargs(self, filterset_class):
+        super().get_filterset_kwargs(filterset_class)
+        kwargs = {'data': self.request.GET or None}
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['title'] = _('Normas por Autor')
+        if not self.filterset.form.is_valid():
+            return context
+
+        qtdes = {}
+        for tipo in TipoNormaJuridica.objects.all():
+            qs = kwargs['object_list']
+            qtde = len(qs.filter(tipo_id=tipo.id))
+            if qtde > 0:
+                qtdes[tipo] = qtde
+        context['qtdes'] = qtdes
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+        if self.request.GET['tipo']:
+            tipo = int(self.request.GET['tipo'])
+            context['tipo'] = (
+                str(TipoNormaJuridica.objects.get(id=tipo)))
+        else:
+            context['tipo'] = ''
+        
+        if self.request.GET['autorianorma__autor']:
+            autor = int(self.request.GET['autorianorma__autor'])
+            context['autor'] = (str(Autor.objects.get(id=autor)))
+        else:
+            context['autor'] = ''
+        context['periodo'] = (
+            self.request.GET['data_0'] +
+            ' - ' + self.request.GET['data_1'])
 
         return context
