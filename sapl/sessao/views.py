@@ -2081,16 +2081,14 @@ class ExpedienteView(FormMixin, DetailView):
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
-        tipos = TipoExpediente.objects.all().order_by('nome')
+        tipos = TipoExpediente.objects.all().order_by('ordenacao', 'nome')
         expedientes_sessao = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id).order_by('tipo__nome')
+            sessao_plenaria_id=self.object.id).order_by('tipo__ordenacao', 'tipo__nome')
 
-        expedientes_salvos = []
-        for e in expedientes_sessao:
-            expedientes_salvos.append(e.tipo)
+        expedientes_salvos = [e.tipo.id for e in expedientes_sessao]
 
-        tipos_null = list(set(tipos) - set(expedientes_salvos))
-        tipos_null.sort(key=lambda x: x.nome)
+        tipos_null = TipoExpediente.objects.all().exclude(id__in=expedientes_salvos).order_by('ordenacao', 'nome')
+
 
         expedientes = []
         for e, t in zip(expedientes_sessao, tipos):
