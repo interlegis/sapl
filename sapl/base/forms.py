@@ -1162,7 +1162,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
 
     @property
     def qs(self):
-        parent = super(RelatorioMateriasPorAutorFilterSet, self).qs
+        parent = super().qs
         return parent.distinct().filter(autoria__primeiro_autor=True)\
             .order_by('autoria__autor', '-autoria__primeiro_autor', 'tipo', '-ano', '-numero')
 
@@ -1171,8 +1171,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
         fields = ['tipo', 'data_apresentacao']
 
     def __init__(self, *args, **kwargs):
-        super(RelatorioMateriasPorAutorFilterSet, self).__init__(
-            *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
 
@@ -1610,4 +1609,47 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
                      row1, row2, row3,
                      form_actions(label='Pesquisar'))
         )
-        
+
+
+class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
+
+    autorianorma__autor = django_filters.CharFilter(widget=forms.HiddenInput())
+
+    @property
+    def qs(self):
+        parent = super().qs
+        return parent.distinct().filter(autorianorma__primeiro_autor=True)\
+            .order_by('autorianorma__autor', '-autorianorma__primeiro_autor', 'tipo', '-ano', '-numero')
+
+    class Meta(FilterOverridesMetaMixin):
+        model = NormaJuridica
+        fields = ['tipo', 'data']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Norma'
+
+        row1 = to_row(
+            [('tipo', 12)])
+        row2 = to_row(
+            [('data', 12)])
+        row3 = to_row(
+            [('autorianorma__autor', 0),
+             (Button('pesquisar',
+                     'Pesquisar Autor',
+                     css_class='btn btn-primary btn-sm'), 2),
+             (Button('limpar',
+                     'Limpar Autor',
+                     css_class='btn btn-primary btn-sm'), 10)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisar'),
+                     row1, row2,
+                     HTML(autor_label),
+                     HTML(autor_modal),
+                     row3,
+                     form_actions(label='Pesquisar'))
+        )
