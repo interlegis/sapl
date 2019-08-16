@@ -353,7 +353,7 @@ def painel_view(request, pk):
     return render(request, 'painel/index.html', context)
 
 def bit_is_set(number, bit):
-    return number & 1 << bit != 0
+    return (number & (1 << bit)) != 0
 
 @user_passes_test(check_permission)
 def painel_parcial_view(request, pk, opcoes):

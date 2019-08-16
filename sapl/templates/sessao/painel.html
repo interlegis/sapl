@@ -75,16 +75,22 @@ function painel_parcial(){
   // Exemplo: se "Parlamentares" estiver selecionado, o bit 0
   // do parâmetro estará marcado como 1
   for(var sel of selecionados){
-    if(sel.text == 'Parlamentares')
-      param += 1;
-    else if(sel.text == 'Oradores')
-      param += 2;
-    else if(sel.text == 'Cronômetros')
-      param += 4;
-    else if(sel.text == 'Resultado da votação')
-      param += 8;
-    else if (sel.text == 'Matéria em votação / votada')
-      param += 16;
+    switch (sel.text) {
+      case 'Parlamentares':
+        param += 1;
+        break;
+      case 'Oradores':
+        param += 2;
+        break;
+      case 'Cronômetros':
+        param += 4;
+        break;
+      case 'Resultado da votação':
+        param += 8;
+        break;
+      case 'Matéria em votação / votada':
+        param += 16;
+    }
   }
   // Monta a URL passando o parâmetros dos selecionados
   let url = "{% url 'sapl.painel:painel_parcial' pk 12345 %}";
