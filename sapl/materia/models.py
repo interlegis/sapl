@@ -299,7 +299,7 @@ class MateriaLegislativa(models.Model):
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
         unique_together = (("tipo", "numero", "ano"),)
-
+        ordering = ['-id']
         permissions = (("can_access_impressos", "Can access impressos"),)
 
     def __str__(self):
