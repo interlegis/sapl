@@ -118,7 +118,7 @@ class TextExtractField(CharField):
 
 class DocumentoAcessorioIndex(CelerySearchIndex, Indexable):
     model = DocumentoAcessorio
-    index_date = DateTimeField(model_attr='data')
+    data = DateTimeField(model_attr='data', null=True)
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(
@@ -144,7 +144,7 @@ class DocumentoAcessorioIndex(CelerySearchIndex, Indexable):
 
 class NormaJuridicaIndex(DocumentoAcessorioIndex):
     model = NormaJuridica
-    index_date = DateTimeField(model_attr='data')
+    data = DateTimeField(model_attr='data', null=True)
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(
@@ -159,7 +159,7 @@ class NormaJuridicaIndex(DocumentoAcessorioIndex):
 
 class MateriaLegislativaIndex(DocumentoAcessorioIndex):
     model = MateriaLegislativa
-    index_date = DateTimeField(model_attr='data_apresentacao')
+    data = DateTimeField(model_attr='data_apresentacao')
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(
