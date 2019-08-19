@@ -8,7 +8,7 @@ from django.db.models.functions import Concat
 from django.template import loader
 from haystack import connections
 from haystack.constants import Indexable
-from haystack.fields import CharField, DateTimeField
+from haystack.fields import CharField, DateTimeField, IntegerField
 from haystack.utils import get_model_ct_tuple
 
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -145,6 +145,8 @@ class DocumentoAcessorioIndex(CelerySearchIndex, Indexable):
 class NormaJuridicaIndex(DocumentoAcessorioIndex):
     model = NormaJuridica
     data = DateTimeField(model_attr='data', null=True)
+    tipo = CharField(model_attr='tipo__sigla')
+    ano = IntegerField(model_attr='ano')
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(
@@ -159,6 +161,8 @@ class NormaJuridicaIndex(DocumentoAcessorioIndex):
 
 class MateriaLegislativaIndex(DocumentoAcessorioIndex):
     model = MateriaLegislativa
+    tipo = CharField(model_attr='tipo__sigla')
+    ano = IntegerField(model_attr='ano')
     data = DateTimeField(model_attr='data_apresentacao')
     text = TextExtractField(
         document=True, use_template=True,

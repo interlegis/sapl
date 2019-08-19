@@ -120,6 +120,8 @@
     <field name="django_ct" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="django_id" type="string" indexed="true" stored="true" multiValued="false"/>
     <field name="text" type="text_pt" indexed="true" stored="true" multiValued="false" />
+    <field name="tipo" type="string" indexed="true" stored="true" multiValued="false" docValues="true" />
+    <field name="ano" type="pint" required="false" indexed="true" stored="true" multiValued="false" docValues="true" />
     <field name="data" type="pdate" required="false" indexed="true" stored="true" multiValued="false" docValues="true" />
     <field name="last_update" type="pdate" indexed="true" stored="true" default="NOW" docValues="true" />
 
