@@ -22,7 +22,7 @@ from sapl.parlamentares.models import Parlamentar, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone, choice_anos_com_sessaoplenaria,
-                        FileFieldCheckMixin)
+                        FileFieldCheckMixin, verifica_ausencia_parlamentar)
 
 from .models import (ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
@@ -599,8 +599,14 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
 class OradorForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['parlamentar'].queryset = \
-            Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
+        sessao = SessaoPlenaria.objects.get(id=kwargs['initial']['id_sessao'])
+        parlamentares_ativos = Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
+        for p in parlamentares_ativos:
+            if verifica_ausencia_parlamentar(p, sessao.data_inicio, sessao.data_fim):
+                parlamentares_ativos = parlamentares_ativos.exclude(id=p.id)
+        
+        self.fields['parlamentar'].queryset = parlamentares_ativos
+             
 
     def clean(self):
         super(OradorForm, self).clean()
@@ -641,9 +647,13 @@ class OradorExpedienteForm(ModelForm):
         id_sessao = int(self.initial['id_sessao'])
         sessao = SessaoPlenaria.objects.get(id=id_sessao)
         legislatura_vigente = sessao.legislatura
-        self.fields['parlamentar'].queryset = \
-            Parlamentar.objects.filter(mandato__legislatura=legislatura_vigente,
-                                       ativo=True).order_by('nome_parlamentar')
+        
+        parlamentares_ativos = Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
+        for p in parlamentares_ativos:
+            if verifica_ausencia_parlamentar(p, sessao.data_inicio, sessao.data_fim):
+                parlamentares_ativos = parlamentares_ativos.exclude(id=p.id)
+        
+        self.fields['parlamentar'].queryset = parlamentares_ativos
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()

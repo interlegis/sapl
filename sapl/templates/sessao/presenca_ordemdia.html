@@ -31,8 +31,8 @@
   <br />
 
   <div class="controls">
-    {% for parlamentar, check in view.get_presencas_ordem %}
-      {% if parlamentar.ativo %}
+    {% for parlamentar, check, afastado in view.get_presencas_ordem %}
+      {% if parlamentar.ativo and not afastado %}
         <div class="checkbox">
           <label for="id_presenca_{{forloop.counter}}">
             <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}"
@@ -46,6 +46,7 @@
             <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_inativos" value="{{ parlamentar.id }}"
               {% if check %} checked {% endif %} />
             {{ parlamentar.nome_parlamentar }}  / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+            {% if afastado %} (Afastado) {% endif %}
           </label>
         </div>
       {% endif %}
@@ -64,7 +65,7 @@
 </div>
 <br/>
 
-{% for parlamentar, check in view.get_presencas_ordem %}
+{% for parlamentar, check, afastado in view.get_presencas_ordem %}
 {% if check %}
 <div class="row">
   <div class="col-md-6"><label for="parlamentar"> - {{ parlamentar.nome_parlamentar }}  / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</label></div>

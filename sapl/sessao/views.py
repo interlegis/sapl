@@ -35,10 +35,12 @@ from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.painel.models import Cronometro, PainelConfig
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
-                                       Parlamentar, SessaoLegislativa)
+                                       Parlamentar, SessaoLegislativa,
+                                       AfastamentoParlamentar)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
-from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, filiacao_data
+from sapl.utils import (show_results_filter_set, remover_acentos, get_client_ip, filiacao_data,
+                        verifica_ausencia_parlamentar)
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
@@ -453,7 +455,7 @@ def get_presencas_generic(model, sessao, legislatura):
         sessao_plenaria=sessao)
 
     presentes = [p.parlamentar for p in presencas]
-
+    
     presentes = sorted(
         presentes, key=lambda x: remover_acentos(x.nome_parlamentar))
 
@@ -461,10 +463,12 @@ def get_presencas_generic(model, sessao, legislatura):
         legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
 
     for m in mandato:
-        if m.parlamentar in presentes:
-            yield (m.parlamentar, True)
+        parlamentar = m.parlamentar
+        p_afastado = verifica_ausencia_parlamentar(parlamentar, sessao.data_inicio, sessao.data_fim)
+        if parlamentar in presentes:
+            yield (parlamentar, True, p_afastado)
         else:
-            yield (m.parlamentar, False)
+            yield (parlamentar, False, p_afastado)
 
 
 class TipoExpedienteCrud(CrudAux):
@@ -1287,7 +1291,9 @@ class MesaView(FormMixin, DetailView):
         org_parlamentares_vagos.sort(
             key=lambda x: remover_acentos(x.nome_parlamentar))
         org_parlamentares_vagos = [
-            p for p in org_parlamentares_vagos if p.ativo]
+            p for p in org_parlamentares_vagos if (p.ativo and 
+                                                   not verifica_ausencia_parlamentar(p, sessao.data_inicio, sessao.data_fim)
+                                                   )]
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia
         if not cargos_vagos:
