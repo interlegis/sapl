@@ -10,9 +10,8 @@ def deduplica_protocolos(apps, schema_editor):
 
     protocolos = protocolos_duplicados()
     for protocolo in protocolos:
-        protocolos_clones = Protocolo.objects.filter(numero=protocolo[0].numero, ano=protocolo[0].ano).order_by('id')[1:]
-        for protocolo_dispensavel in protocolos_clones:
-            protocolo_dispensavel.delete()
+        protocolo_principal = Protocolo.objects.filter(numero=protocolo['numero'], ano=protocolo['ano']).order_by('-id')[0]
+        Protocolo.objects.filter(numero=protocolo['numero'], ano=protocolo['ano']).exclude(id=protocolo_principal.id).delete()
 
 
 class Migration(migrations.Migration):
