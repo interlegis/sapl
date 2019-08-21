@@ -697,9 +697,7 @@
       <str name="df">text</str>
       <str name="defType">edismax</str>
       <str name="lowercaseOperators">true</str>
-      <!-- Default search field
-         <str name="df">text</str> 
-        -->
+      <str name="q.op">AND</str>
       <!-- Change from JSON to XML format (the default prior to Solr 7.0)
          <str name="wt">xml</str> 
         -->
