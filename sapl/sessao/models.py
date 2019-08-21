@@ -227,7 +227,7 @@ class SessaoPlenaria(models.Model):
 
         if self.tipo.tipo_numeracao == tnc.quizenal:
             base += ' da {}ª Quinzena'.format(
-                1 if self.data_inicio.day > 15 else 2)
+                1 if self.data_inicio.day <= 15 else 2)
 
         if self.tipo.tipo_numeracao <= tnc.mensal:
             base += ' do mês de {}'.format(
