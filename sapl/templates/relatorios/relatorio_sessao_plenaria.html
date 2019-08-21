@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<meta charset="utf-8">
+</meta>
+<html lang="pt-br">
+
+<head>
+   <style>
+            @page{
+            margin-top: 5cm;
+            size: A4 portrait;
+
+            @bottom-right {
+                content: "Página" counter(page);
+                height: 3cm;
+                font-size: 8pt;
+            }
+        
+            @bottom-center {
+                border-top: 1px solid black;
+                font-size: 8pt;
+                height: 1cm;
+                content: "{{rodape|safe}}";
+                font-style:italic;
+            }
+            @bottom-left {
+                content: "{{data}}";
+                height: 3cm;
+                font-size: 8pt;
+            }
+              
+            @top-center {
+                content:  string(title);
+            }
+            header {
+                width: 0;
+                height: 0;
+                visibility: hidden;
+                string-set: title content();
+            }
+        }
+   </style>
+    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
+</head>
+
+<body>
+    <div style="margin-bottom: 3cm">
+        <h2 class="gray-title">Informações Básicas</h2>
+        <p><b>Tipo da Sessão:</b> {{inf_basicas_dic.nom_sessao}}</p>
+        <p><b>Abertura:</b> {{inf_basicas_dic.dat_inicio_sessao}} - {{inf_basicas_dic.hr_inicio_sessao}}</p>
+        <p><b>Encerramento:</b> {{inf_basicas_dic.dat_fim_sessao}} - {{inf_basicas_dic.hr_fim_sessao}}</p>
+
+        <h2 class="gray-title">Mesa Diretora</h2>
+        {% for membro in lst_mesa%}
+            <p><b>{{membro.des_cargo}}:</b> {{membro.nom_parlamentar}}/{{membro.sgl_partido}}</p>
+        {% endfor%}
+
+        <h2 class="gray-title">Lista de Presença da Sessão</h2>
+        {% for membro in lst_presenca_sessao%}
+            <p>{{membro.nom_parlamentar}}/{{membro.sgl_partido}}</p>
+        {% endfor%}
+
+        <h2 class="gray-title">Justificativas de Ausência da Sessão</h2>
+
+        <table class="grayTable">
+            <thead>
+                <tr>
+                    <th>Parlamentar</th>
+                    <th>Justificativa</th>
+                    <th>Ausente em</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ausencia in lst_ausencia_sessao%}
+                    <tr>
+                        <td>{{ausencia.parlamentar}}</td>
+                        <td>{{ausencia.justificativa}}</td>
+                        <td>{{ausencia.tipo}}</td>
+                    </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        <h2 class="gray-title">Expedientes</h2>
+        {% for expediente in lst_expedientes%}
+                <h3>{{expediente.nom_expediente}}</h3>
+                <p style="margin-bottom: 1cm">{{expediente.txt_expediente|safe}}</p>
+        {% endfor%}
+
+
+    <h2 class="gray-title">Matérias do Expediente</h2>
+
+    <table class="grayTable">
+        <thead>
+            <tr>
+                <th>Matéria</th>
+                <th>Ementa</th>
+                <th>Resultado da Votação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for materia in lst_expediente_materia%}
+                <tr>
+                    <td style="width:300px">
+                        <dl>
+                            <dt><b>{{materia.num_ordem}} -</b> {{materia.id_materia}}</dt>
+                            <dt><b>Turno:</b> {{materia.des_turno}}</dt>
+                            <dt><b>{{materia.num_autores}}: </b>{{materia.nom_autor}}</dt>
+                        </dl>
+                    </td>
+                    <td><div style="margin:10px">{{materia.txt_ementa}}</div></td>
+                    <td style="width:10px"><b>{{materia.nom_resultado}}</b></td>
+                </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+        <h2 class="gray-title">Oradores do Expediente</h2>
+
+        {% for orador in lst_oradores_expediente%}
+            <tr>
+                <p> <b>{{orador.num_ordem}}</b> - {{orador.nom_parlamentar}}/{{orador.sgl_partido}}</p>
+            </tr>
+        {% endfor %}
+
+        <h2 class="gray-title">Lista de Presença da Ordem do Dia</h2>
+
+        {% for orador in lst_presenca_ordem_dia%}
+            <tr>
+                <p>{{orador.nom_parlamentar}}/{{orador.sgl_partido}}</p>
+            </tr>
+        {% endfor %}
+
+        <h2 class="gray-title">Matérias da Ordem do Dia</h2>
+
+        <table class="grayTable" style="height: 145px;" width="443">
+                <thead>
+                    <tr>
+                        <th>Matéria</th>
+                        <th>Ementa</th>
+                        <th>Resultado da Votação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for materia in lst_votacao%}
+                        <tr>
+                            <td style="width:300px">
+                                <dl>
+                                    <dt><b>{{materia.num_ordem}} -</b> {{materia.id_materia}}</dt>
+                                    <dt><b>Turno:</b> {{materia.des_turno}}</dt>
+                                    <dt><b>{{materia.num_autores}}: </b>{{materia.nom_autor}}</dt>
+                                </dl>
+                            </td>
+                            <td><div style="margin:10px">{{materia.txt_ementa}}</div></td>
+                            <td style="width:30px"><b>{{materia.nom_resultado}}</b></td>
+                        </tr>
+                    {% endfor %}
+
+                </tbody>
+        </table>
+
+        <div>
+            <h2 class="gray-title">Oradores das Explicações Pessoais</h2>
+                {% for orador in lst_oradores%}
+                  <tr>
+                    <p style="page-break-after: avoid;">{{orador.num_ordem}} - {{orador.nom_parlamentar}}/{{orador.sgl_partido}}</p>
+                   </tr>
+                {% endfor %}
+            </div>
+
+
+        <h2 class="gray-title">Ocorrências da Sessão</h2>
+            {% for ocorrencia in lst_ocorrencias%}
+                    <p>{{ocorrencia}}</p>
+            {% endfor %}
+        </div>
+
+</body>
+
+
+</html> 

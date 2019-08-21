@@ -519,6 +519,9 @@ def get_sessao_plenaria(sessao, casa):
         inf_basicas_dic["dat_fim_sessao"] = ''
     inf_basicas_dic["hr_fim_sessao"] = sessao.hora_fim
     inf_basicas_dic["nom_camara"] = casa.nome
+
+    if sessao.tipo.nome == 'Solene':
+        inf_basicas_dic["tema_solene"] = sessao.tema_solene
     
     # Conteudo multimidia
     cont_mult_dic = {}
@@ -1343,6 +1346,82 @@ def relatorio_doc_administrativos(request, context):
 
     pdf_file = make_pdf(base_url=base_url,main_template=html_template,header_template=html_header)
     
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    response.write(pdf_file)
+
+    return response
+
+def relatorio_sessao_plenaria_pdf(request, pk):  
+    base_url=request.build_absolute_uri()
+    logger = logging.getLogger(__name__)
+    username = request.user.username
+    casa = CasaLegislativa.objects.first()
+    if not casa:
+        raise Http404
+
+    rodape = get_rodape(casa)
+    rodape = ' '.join(rodape)
+
+    try:
+        logger.debug("user=" + username +
+                     ". Tentando obter SessaoPlenaria com id={}.".format(pk))
+        sessao = SessaoPlenaria.objects.get(id=pk)
+    except ObjectDoesNotExist as e:
+        logger.error("user=" + username +
+                     ". Essa SessaoPlenaria não existe (pk={}). ".format(pk) + str(e))
+        raise Http404('Essa página não existe')
+
+    (inf_basicas_dic,
+        cont_mult_dic,
+        lst_mesa,
+        lst_presenca_sessao,
+        lst_ausencia_sessao,
+        lst_expedientes,
+        lst_expediente_materia,
+        lst_expediente_materia_vot_nom,
+        lst_oradores_expediente,
+        lst_presenca_ordem_dia,
+        lst_votacao,
+        lst_votacao_vot_nom,
+        lst_oradores_ordemdia,
+        lst_oradores,
+        lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
+
+    html_template = render_to_string('relatorios/relatorio_sessao_plenaria.html',
+    {       
+        "inf_basicas_dic":inf_basicas_dic,
+        "lst_mesa":lst_mesa,
+        "lst_presenca_sessao":lst_presenca_sessao,
+        "lst_ausencia_sessao":lst_ausencia_sessao,
+        "lst_expedientes":lst_expedientes,
+        "lst_expediente_materia":lst_expediente_materia,
+        "lst_oradores_expediente":lst_oradores_expediente,
+        "lst_presenca_ordem_dia":lst_presenca_ordem_dia,
+        "lst_votacao":lst_votacao,
+        "lst_oradores":lst_oradores,
+        "lst_ocorrencias":lst_ocorrencias,
+        "rodape":rodape,
+        "data": dt.today().strftime('%d/%m/%Y')
+    })
+
+    info = "Resumo da {}ª Reunião {} \
+                da {}ª Sessão Legislativa da {} \
+                Legislatura".format(inf_basicas_dic['num_sessao_plen'],
+                                        inf_basicas_dic['nom_sessao'],
+                                        inf_basicas_dic['num_sessao_leg'],
+                                        inf_basicas_dic['num_legislatura'],
+                                        inf_basicas_dic['num_legislatura']
+                                    )
+
+    html_header = render_to_string('relatorios/header_ata.html',{"casa":casa,
+                                                                "MEDIA_URL": MEDIA_URL,
+                                                                "logotipo": casa.logotipo,  
+                                                                "info":info})
+
+    pdf_file = make_pdf(base_url=base_url, main_template=html_template, header_template=html_header)
+
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
     response['Content-Transfer-Encoding'] = 'binary'

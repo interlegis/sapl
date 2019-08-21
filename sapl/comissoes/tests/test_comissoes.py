@@ -3,7 +3,8 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 from model_mommy import mommy
 
-from sapl.comissoes.models import Comissao, Composicao, Periodo, TipoComissao, Reuniao
+from sapl.comissoes.models import Comissao, Composicao, Periodo
+from sapl.comissoes.models import TipoComissao, Reuniao
 from sapl.parlamentares.models import Filiacao, Parlamentar, Partido
 from sapl.comissoes import forms
 
@@ -43,6 +44,20 @@ def make_filiacao():
                partido=partido)
 
     return Filiacao.objects.first()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_tipo_comissao_model():
+    mommy.make(TipoComissao,
+               nome='Teste_Nome_Tipo_Comissao',
+               natureza='T',
+               sigla='TSTC')
+
+    tipo_comissao = TipoComissao.objects.first()
+
+    assert tipo_comissao.nome == 'Teste_Nome_Tipo_Comissao'
+    assert tipo_comissao.natureza == 'T'
+    assert tipo_comissao.sigla == 'TSTC'
 
 
 @pytest.mark.django_db(transaction=False)
@@ -106,7 +121,7 @@ def test_periodo_invalidas():
 
     form = forms.PeriodoForm(data={'data_inicio': '10/11/2017',
                                    'data_fim': '09/11/2017'
-                                  })
+                                   })
     assert not form.is_valid()
     assert form.errors['__all__'] == [_('A Data Final não pode ser menor que '
                                         'a Data Inicial')]
@@ -123,7 +138,7 @@ def test_valida_campos_obrigatorios_periodo_form():
     assert errors['data_inicio'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 1
-    
+
 
 @pytest.mark.django_db(transaction=False)
 def test_valida_campos_obrigatorios_reuniao_form():
@@ -141,4 +156,3 @@ def test_valida_campos_obrigatorios_reuniao_form():
     assert errors['hora_inicio'] == [_('Este campo é obrigatório.')]
 
     assert len(errors) == 6
-  

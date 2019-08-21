@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 ##
 ## Versioning info: [major].[minor].[patch][-RC[num]], example: 3.1.159, 3.1.159-RC1
@@ -72,19 +72,21 @@ function commit_and_push {
    git commit -m "Release: $FINAL_VERSION"
    git tag $FINAL_VERSION
 
-   echo "sending to github..."
-   git push origin
-   git push origin $FINAL_VERSION
+   echo "Para enviar pro github execute..."
+   echo "git push origin 3.1.x"
+   echo "git push origin "$FINAL_VERSION
 
    echo "done."
 }
 
 case "$1" in
     --latest)
+       git fetch
        echo $LATEST_VERSION
        exit 0
        ;;
     --major)
+       git fetch
        set_major_version
        echo "generating major release: "$FINAL_VERSION
        # git tag $FINAL_VERSION
@@ -93,6 +95,7 @@ case "$1" in
        exit 0
        ;;
     --rc)
+       git fetch
        set_rc_version
        echo "generating release candidate: "$FINAL_VERSION
        # git tag $FINAL_VERSION
@@ -100,10 +103,6 @@ case "$1" in
        commit_and_push
        exit 0
       ;;
-    --undo)
-       git tag -d $LATEST_VERSION
-       exit 0
-       ;;
     --top)
        git tag | sort --version-sort | tail "-$2"
        exit 0

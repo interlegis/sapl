@@ -90,25 +90,23 @@
       <br /><br />
       <form method='POST'>
         {% csrf_token %}
-        <div class="row container-detail clearfix" style="text-align:center">
-          <div  class="row">
+          <div class="row" align="center">
             <div class="col-md-12" id="votos">
-
-               <div id="votosim"><input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim" /></div>
-                &nbsp;
-                <div id="votonao"><input type="submit" class="btn btn-lg btn-danger" id="voto" name="voto" type="submit" value="Não"/></div>
-                &nbsp;
-                <div id="votoabstencao"><input type="submit" class="btn btn-lg btn-secondary" id="voto" name="voto" type="submit" value="Abstenção"/></div>
+              <div id="votosim"><input type="submit" class="btn btn-lg btn-success" id="voto" name="voto" type="submit" value="Sim" /></div>
+              &nbsp;
+              <div id="votonao"><input type="submit" class="btn btn-lg btn-danger" id="voto" name="voto" type="submit" value="Não"/></div>
+              &nbsp;
+              <div id="votoabstencao"><input type="submit" class="btn btn-lg btn-secondary" id="voto" name="voto" type="submit" value="Abstenção"/></div>
             </div>
-            </br>
-            </br>
-            </br>
-            </br>
-            </br>
-            <div id='voltar'><center><button type="button" class="btn btn-lg btn-secondary" onclick="javascript:window.close()">Voltar</button></center></div>
           </div>
-        </div>
-
+          </br>
+          </br>
+          <center><table style="width:30%">
+            <tr>
+                <td style="text-align:center"><button type="button" class="btn btn-lg btn-primary" onclick="javascript:window.location.reload(true)">Atualizar</button></td>
+                <td style="text-align:center"><button type="button" class="btn btn-lg btn-secondary" onclick="javascript:window.close()">Sair</button></td>
+            </tr>
+          </table></center>
       </form>
     </div>
     {% else %}
@@ -139,11 +137,13 @@
   document.getElementById("date").innerHTML = n;
 
   $(window).on('beforeunload', function () {
-            $("input[type=submit], input[type=button]").prop("disabled", "disabled");
-     });
-  $( "#votosim" ).mouseleave(function(){document.location.reload(true);});
-  $( "#votonao" ).mouseleave(function(){document.location.reload(true);});
-  $( "#votoabstencao" ).mouseleave(function(){document.location.reload(true);});
+    $("input[type=submit], input[type=button]").prop("disabled", "disabled");
+  });
+
+  //TODO: Este código é necessário?
+  // $( "#votosim" ).mouseleave(function(){document.location.reload(true);});
+  // $( "#votonao" ).mouseleave(function(){document.location.reload(true);});
+  // $( "#votoabstencao" ).mouseleave(function(){document.location.reload(true);});
 
   $(document).on('keyup', (e) => {
     var tecla_press = e.keyCode;
@@ -160,34 +160,34 @@
         case 86: //86 = valor da tecla V
           document.querySelectorAll("#voltar button")[0].click();
           break;
-
     };
   });
 
-  $(document).ready(
-    function(){
+  function checkTime(i) {
+    if (i<10)
+      i = "0" + i; // add zero in front of numbers < 10  
+    return i;
+  }
 
-      function checkTime(i) {
-             if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
-                return i;
-         }
-         function startTime() {
-             var today=new Date();
-             var h=today.getHours();
-             var m=today.getMinutes();
-             var s=today.getSeconds();
-             m = checkTime(m);
-             s = checkTime(s);
-             $("#relogio").text(h+":"+m+":"+s)
-             var t = setTimeout(function(){
-                 startTime()
-             }, 500);
-         }
-         startTime();
+  function startTime() {
+    var today=new Date();
+    var h=today.getHours();
+    var m=today.getMinutes();
+    var s=today.getSeconds();
+    m = checkTime(m);
+    s = checkTime(s);
+    $("#relogio").text(h+":"+m+":"+s)
+    var t = setTimeout(function(){
+        startTime()
+    }, 500);
+  }
 
-      setTimeout(function() {
-          document.location.reload(true);
-         }, 30000)
-    });
+  $(document).ready(function(){
+    startTime();
+    
+    setTimeout(function() {
+      document.location.reload(true);
+    }, 30000)
+  });
 
 </script>

@@ -1177,3 +1177,14 @@ class BlocoCrud(CrudAux):
 
         def get_success_url(self):
             return reverse('sapl.parlamentares:bloco_list')
+
+
+def get_sessoes_legislatura(request):
+
+    legislatura_id = request.GET['legislatura']
+
+    json_response = {'sessoes_legislativas': []}
+    for s in SessaoLegislativa.objects.filter(legislatura_id=legislatura_id):
+        json_response['sessoes_legislativas'].append( (s.id, str(s)) )
+
+    return JsonResponse(json_response)

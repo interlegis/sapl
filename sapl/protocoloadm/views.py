@@ -11,6 +11,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
@@ -539,6 +540,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         initial['hora'] = timezone.localtime(timezone.now())
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
         protocolo = form.save(commit=False)
         username = self.request.user.username
@@ -726,6 +728,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         initial['hora'] = timezone.localtime(timezone.now())
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
         protocolo = form.save(commit=False)
         username = self.request.user.username
@@ -983,7 +986,7 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
     def get_context_data(self, **kwargs):
         context = super(
-            DocumentoAnexadoEmLoteView,self
+            DocumentoAnexadoEmLoteView, self
             ).get_context_data(**kwargs)
 
         context['root_pk'] = self.kwargs['pk']
@@ -1545,7 +1548,7 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
 
         qr = self.request.GET.copy()
 
-        context['primeira_tramitacao'] = False
+        context['primeira_tramitacao'] = self.primeira_tramitacao
 
         if ('tramitacao__status' in qr and
                 'tramitacao__unidade_tramitacao_destino' in qr and

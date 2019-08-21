@@ -223,8 +223,34 @@ def audio_url(value):
 
 
 @register.filter
-def video_url(value):
-    return True if url(value) and value.endswith("mp4") else False
+def is_video_url(value):
+    video_extensions = ["mp4", "ogg", "webm", "3gp", "ogv"]
+    has_ext = any([value.endswith(i) for i in video_extensions])
+    return url(value) and has_ext
+
+
+@register.filter
+def youtube_url(value):
+    # Test if YouTube video
+    # tested on https://pythex.org/
+    value = value.lower()
+    youtube_pattern = "^((https?://)?(www\.)?youtube\.com\/watch\?v=)"
+    r = re.findall(youtube_pattern, value)
+    return True if r else False
+
+@register.filter
+def facebook_url(value):
+    value = value.lower()
+    facebook_pattern = "^((https?://)?((www|pt-br)\.)?facebook\.com(\/.+)?\/videos(\/.*)?)"
+    r = re.findall(facebook_pattern, value)
+    return True if r else False
+
+@register.filter
+def youtube_id(value):
+    from urllib.parse import urlparse, parse_qs
+    u_pars = urlparse(value)
+    quer_v = parse_qs(u_pars.query).get('v')[0]
+    return quer_v
 
 
 @register.filter
@@ -272,12 +298,20 @@ def urldetail(obj):
 
 @register.filter
 def filiacao_data_filter(parlamentar, data_inicio):
-    return filiacao_data(parlamentar, data_inicio)
+    try:
+        filiacao = filiacao_data(parlamentar, data_inicio)
+    except Exception:
+        filiacao = ''
+    return filiacao
 
 
 @register.filter
 def filiacao_intervalo_filter(parlamentar, date_range):
-    return filiacao_data(parlamentar, date_range[0], date_range[1])
+    try:
+        filiacao = filiacao_data(parlamentar, date_range[0], date_range[1])
+    except Exception:
+        filiacao = ''
+    return filiacao
 
 
 @register.simple_tag

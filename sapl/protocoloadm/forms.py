@@ -5,6 +5,7 @@ from crispy_forms.bootstrap import InlineRadios, Alert, FormActions
 from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div, Submit
 from django import forms
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
 from django.db import models, transaction
@@ -657,6 +658,20 @@ class DocumentoAcessorioAdministrativoForm(FileFieldCheckMixin, ModelForm):
             'data': forms.DateInput(format='%d/%m/%Y')
         }
 
+    def clean(self):
+        super(DocumentoAcessorioAdministrativoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        arquivo = self.cleaned_data.get('arquivo', False)
+
+        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+
+        return self.cleaned_data
+
 
 class TramitacaoAdmForm(ModelForm):
 
@@ -1142,6 +1157,12 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                                             ' documento vinculado'
                                             % (numero_protocolo, ano_protocolo)))
 
+        texto_integral = self.cleaned_data.get('texto_integral', False)
+
+        if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
+            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_integral.size/1024)/1024))
+
         return self.cleaned_data
 
     def save(self, commit=True):
@@ -1586,12 +1607,6 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                 msg = _('A data fim de prazo deve ser ' +
                         'maior que a data de tramitação!')
                 raise ValidationError(msg)
-
-        if cleaned_data['unidade_tramitacao_local'] == cleaned_data['unidade_tramitacao_destino']:
-            msg = _('Unidade tramitação local deve ser diferente da unidade tramitação destino.')
-            self.logger.error('Unidade tramitação local ({}) deve ser diferente da unidade tramitação destino'
-                                .format(cleaned_data['unidade_tramitacao_local']))
-            raise ValidationError(msg)
 
         return cleaned_data
 

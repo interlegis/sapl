@@ -6,7 +6,7 @@ from .views import (relatorio_capa_processo,
                     relatorio_etiqueta_protocolo, relatorio_materia,
                     relatorio_ordem_dia, relatorio_pauta_sessao,
                     relatorio_protocolo, relatorio_sessao_plenaria,
-                    resumo_ata_pdf)
+                    resumo_ata_pdf, relatorio_sessao_plenaria_pdf)
 
 app_name = AppConfig.name
 
@@ -31,4 +31,6 @@ urlpatterns = [
         relatorio_pauta_sessao, name='relatorio_pauta_sessao'),
     url(r'^relatorios/(?P<pk>\d+)/resumo_ata$',
         resumo_ata_pdf, name='resumo_ata_pdf'),
+    url(r'^relatorios/(?P<pk>\d+)/sessao-plenaria-pdf$',
+        relatorio_sessao_plenaria_pdf, name='relatorio_sessao_plenaria_pdf'),
 ]

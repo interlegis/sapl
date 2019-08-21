@@ -33,7 +33,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                renumerar_materias_expediente,
                                sessao_legislativa_legislatura_ajax,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
-                               VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView)
+                               VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
+                               recuperar_nome_tipo_sessao)
 
 from .apps import AppConfig
 
@@ -68,6 +69,9 @@ urlpatterns = [
         recuperar_numero_sessao_view,
         name='recuperar_numero_sessao_view'
         ),
+    url(r'^sessao/recuperar-nome-tipo-sessao/',
+        recuperar_nome_tipo_sessao,
+        name='recuperar_nome_tipo_sessao'),
     url(r'^sessao/sessao-legislativa-legislatura-ajax/',
         sessao_legislativa_legislatura_ajax,
         name='sessao_legislativa_legislatura_ajax_view'),
@@ -173,7 +177,7 @@ urlpatterns = [
         name='votacaonominalexpdetail'),
     url(r'^sessao/(?P<pk>\d+)/matexp/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteView.as_view(), name='votacaosimbolicaexp'),
-    url(r'^sessao/(?P<pk>\d+)/matexp/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^sessao/(?P<pk>\d+)/matexp/votsimb/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteEditView.as_view(), name='votacaosimbolicaexpedit'),
     url(r'^sessao/(?P<pk>\d+)/matexp/votsec/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoExpedienteView.as_view(), name='votacaosecretaexp'),

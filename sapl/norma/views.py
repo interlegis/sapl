@@ -20,7 +20,7 @@ from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
-from sapl.utils import show_results_filter_set
+from sapl.utils import show_results_filter_set, get_client_ip
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm, AutoriaNormaForm)
@@ -217,20 +217,24 @@ class NormaCrud(Crud):
             return self.search_url
 
         def get_initial(self):
-            username = self.request.user.username
+            initial = super().get_initial()
 
+            initial['user'] = self.request.user
+            initial['ip'] = get_client_ip(self.request)
+
+            username = self.request.user.username
             try:
                 self.logger.debug(
                     'user=' + username + '. Tentando obter objeto de modelo da esfera da federação.')
                 esfera = sapl.base.models.AppConfig.objects.last(
                 ).esfera_federacao
-                self.initial['esfera_federacao'] = esfera
+                initial['esfera_federacao'] = esfera
             except:
                 self.logger.error(
                     'user=' + username + '. Erro ao obter objeto de modelo da esfera da federação.')
                 pass
-            self.initial['complemento'] = False
-            return self.initial
+            initial['complemento'] = False
+            return initial
 
         layout_key = 'NormaJuridicaCreate'
 
@@ -249,7 +253,7 @@ class NormaCrud(Crud):
         layout_key = 'NormaJuridicaCreate'
 
         def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
+            initial = super().get_initial()
             norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
             if norma.materia:
                 initial['tipo_materia'] = norma.materia.tipo
@@ -257,6 +261,41 @@ class NormaCrud(Crud):
                 initial['numero_materia'] = norma.materia.numero
                 initial['esfera_federacao'] = norma.esfera_federacao
             return initial
+
+        def form_valid(self, form):
+            norma_antiga = NormaJuridica.objects.get(
+                pk=self.kwargs['pk']
+            )
+
+            # Feito desta forma para que sejam materializados os assuntos antigos
+            assuntos_antigos = set(norma_antiga.assuntos.all())
+
+            dict_objeto_antigo = norma_antiga.__dict__
+            self.object = form.save()
+            dict_objeto_novo = self.object.__dict__
+
+            atributos = ['tipo_id', 'numero', 'ano', 'data', 'esfera_federacao',
+                        'complemento', 'materia_id', 'numero',
+                        'data_publicacao', 'data_vigencia',
+                        'veiculo_publicacao', 'pagina_inicio_publicacao',
+                        'pagina_fim_publicacao', 'ementa', 'indexacao',
+                        'observacao', 'texto_integral']
+
+            for atributo in atributos:
+                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
+                    self.object.user = self.request.user
+                    self.object.ip = get_client_ip(self.request)
+                    self.object.save()
+                    break
+            
+            # Campo Assuntos não veio no __dict__, então é comparado separadamente
+            assuntos_novos = set(self.object.assuntos.all())
+            if assuntos_antigos != assuntos_novos:
+                self.object.user = self.request.user
+                self.object.ip = get_client_ip(self.request)
+                self.object.save()
+
+            return super().form_valid(form)
 
 
 def recuperar_norma(request):

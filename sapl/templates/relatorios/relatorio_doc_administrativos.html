@@ -1,12 +1,11 @@
 {% load i18n %}
 {% load common_tags %}
-{% load static %}
-
+{% load crispy_forms_tags staticfiles %}
 
 <head>
     <style>
         @page{
-            margin-top: 4.5cm;
+            margin-top: 5cm;
             size: A4 portrait;
 
             @bottom-right {
@@ -39,7 +38,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}"> 
+    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
 </head>	
 
 <body>

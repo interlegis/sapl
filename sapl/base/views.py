@@ -35,15 +35,15 @@ from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crud.base import CrudAux, make_pagination
-from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao,
+from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexada,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao
+from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa
 from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
                                       StatusTramitacaoAdministrativo, 
-                                      DocumentoAdministrativo)
+                                      DocumentoAdministrativo, Anexado)
 from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, Bancada)
+                                SessaoPlenariaPresenca, Bancada, TipoSessaoPlenaria)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
                         intervalos_tem_intersecao, remover_acentos)
@@ -342,14 +342,61 @@ class RelatorioPresencaSessaoView(FilterView):
         # Verifica se os campos foram preenchidos
         if not self.filterset.form.is_valid():
             return context
+        
+        cd = self.filterset.form.cleaned_data
+        if not cd['data_inicio'] and not cd['sessao_legislativa'] \
+            and not cd['legislatura']:
+            msg = _("Formulário inválido! Preencha pelo menos algum dos campos Período, Legislatura ou Sessão Legislativa.")
+            messages.error(self.request, msg)
+            return context
 
-        # if 'salvar' not in self.request.GET:
-        where = context['object_list'].query.where
-        _range = where.children[0].rhs
+        # Caso a data tenha sido preenchida, verifica se foi preenchida corretamente
+        if self.request.GET.get('data_inicio_0') and not self.request.GET.get('data_inicio_1'):
+            msg = _("Formulário inválido! Preencha a data do Período Final.")
+            messages.error(self.request, msg)
+            return context
 
-        sufixo = 'sessao_plenaria__data_inicio__range'
-        param0 = {'%s' % sufixo: _range}
+        if not self.request.GET.get('data_inicio_0') and self.request.GET.get('data_inicio_1'):
+            msg = _("Formulário inválido! Preencha a data do Período Inicial.")
+            messages.error(self.request, msg)
+            return context
 
+        param0 = {}
+
+        legislatura_pk = self.request.GET.get('legislatura')
+        if legislatura_pk:
+            param0['sessao_plenaria__legislatura_id'] = legislatura_pk
+            legislatura = Legislatura.objects.get(id=legislatura_pk)
+            context['legislatura'] = legislatura
+
+        sessao_legislativa_pk = self.request.GET.get('sessao_legislativa')
+        if sessao_legislativa_pk:
+            param0['sessao_plenaria__sessao_legislativa_id'] = sessao_legislativa_pk
+            sessao_legislativa = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
+            context['sessao_legislativa'] = sessao_legislativa
+
+        tipo_sessao_plenaria_pk = self.request.GET.get('tipo')
+        context['tipo'] = ''
+        if tipo_sessao_plenaria_pk:
+            param0['sessao_plenaria__tipo_id'] = tipo_sessao_plenaria_pk
+            context['tipo'] = TipoSessaoPlenaria.objects.get(id=tipo_sessao_plenaria_pk)
+
+        _range = []
+
+        if ('data_inicio_0' in self.request.GET) and self.request.GET['data_inicio_0'] and \
+            ('data_inicio_1' in self.request.GET) and self.request.GET['data_inicio_1']:
+            where = context['object_list'].query.where
+            _range = where.children[0].rhs
+
+        elif legislatura_pk and not sessao_legislativa_pk:
+            _range = [legislatura.data_inicio, legislatura.data_fim]
+            
+        elif sessao_legislativa_pk:
+            _range = [sessao_legislativa.data_inicio, sessao_legislativa.data_fim]
+
+        param0.update({'sessao_plenaria__data_inicio__range': _range})
+
+            
         # Parlamentares com Mandato no intervalo de tempo (Ativos)
         parlamentares_qs = parlamentares_ativos(
             _range[0], _range[1]).order_by('nome_parlamentar')
@@ -357,16 +404,12 @@ class RelatorioPresencaSessaoView(FilterView):
             'id', flat=True)
 
         # Presenças de cada Parlamentar em Sessões
-        presenca_sessao = SessaoPlenariaPresenca.objects.filter(
-            parlamentar_id__in=parlamentares_id,
-            sessao_plenaria__data_inicio__range=_range).values_list(
+        presenca_sessao = SessaoPlenariaPresenca.objects.filter(**param0).values_list(
             'parlamentar_id').annotate(
             sessao_count=Count('id'))
 
         # Presenças de cada Ordem do Dia
-        presenca_ordem = PresencaOrdemDia.objects.filter(
-            parlamentar_id__in=parlamentares_id,
-            sessao_plenaria__data_inicio__range=_range).values_list(
+        presenca_ordem = PresencaOrdemDia.objects.filter(**param0).values_list(
             'parlamentar_id').annotate(
             sessao_count=Count('id'))
 
@@ -433,6 +476,14 @@ class RelatorioPresencaSessaoView(FilterView):
         context['periodo'] = (
             self.request.GET['data_inicio_0'] +
             ' - ' + self.request.GET['data_inicio_1'])
+        context['sessao_legislativa'] = ''
+        context['legislatura'] = ''
+        context['exibir_ordem'] = self.request.GET.get('exibir_ordem_dia') == 'on'
+
+        if sessao_legislativa_pk:
+            context['sessao_legislativa'] = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
+        if legislatura_pk:
+            context['legislatura'] = Legislatura.objects.get(id=legislatura_pk)
         # =====================================================================
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -498,7 +549,7 @@ class RelatorioDataFimPrazoTramitacaoView(FilterView):
     def get_context_data(self, **kwargs):
         context = super(RelatorioDataFimPrazoTramitacaoView,
                         self).get_context_data(**kwargs)
-        context['title'] = _('Fim de Prazo de Tramitações')
+        context['title'] = _('Relatório de Tramitações')
         if not self.filterset.form.is_valid():
             return context
         qr = self.request.GET.copy()
@@ -1016,8 +1067,126 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
              len(legislatura_infindavel())
             )
         )
-
+        tabela.append(
+            ('anexadas_ciclicas',
+             'Matérias Anexadas cíclicas',
+             len(anexados_ciclicos(True))
+             )
+        )
+        tabela.append(
+            ('anexados_ciclicos',
+             'Documentos Anexados cíclicos',
+             len(anexados_ciclicos(False))
+             )
+        )
         return tabela
+
+
+def anexados_ciclicos(ofMateriaLegislativa):
+    ciclicos = []
+    
+    if ofMateriaLegislativa:
+        principais = Anexada.objects.values(
+            'materia_principal'
+        ).annotate(
+            count=Count('materia_principal')
+        ).filter(count__gt=0).order_by('-data_anexacao')
+    else:
+        principais = Anexado.objects.values(
+            'documento_principal'
+        ).annotate(
+            count=Count('documento_principal')
+        ).filter(count__gt=0).order_by('-data_anexacao')
+
+    for principal in principais:
+        anexados_total = []
+
+        if ofMateriaLegislativa:
+            anexados = Anexada.objects.filter(
+                materia_principal=principal['materia_principal']
+            ).order_by('-data_anexacao')
+        else:
+            anexados = Anexado.objects.filter(
+                documento_principal=principal['documento_principal']
+            ).order_by('-data_anexacao')
+
+        anexados_temp = list(anexados)
+        while anexados_temp:
+            anexado = anexados_temp.pop()
+            if ofMateriaLegislativa:
+                if anexado.materia_anexada not in anexados_total:
+                    if not principal['materia_principal'] == anexado.materia_anexada.pk:
+                        anexados_total.append(anexado.materia_anexada)
+                        anexados_anexado = Anexada.objects.filter(
+                            materia_principal=anexado.materia_anexada
+                        )
+                        anexados_temp.extend(anexados_anexado)
+                    else:
+                        ciclicos.append((anexado.data_anexacao, anexado.materia_principal, anexado.materia_anexada))
+            else:
+                if anexado.documento_anexado not in anexados_total:
+                    if not principal['documento_principal'] == anexado.documento_anexado.pk:
+                        anexados_total.append(anexado.documento_anexado)
+                        anexados_anexado = Anexado.objects.filter(
+                            documento_principal=anexado.documento_anexado
+                        )
+                        anexados_temp.extend(anexados_anexado)
+                    else:
+                        ciclicos.append((anexado.data_anexacao, anexado.documento_principal, anexado.documento_anexado))
+
+    return ciclicos
+
+
+class ListarAnexadosCiclicosView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/anexados_ciclicos.html'
+    context_object_name = 'anexados_ciclicos'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return anexados_ciclicos(False)
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarAnexadosCiclicosView, self
+        ).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages
+        )
+        context['NO_ENTRIES_MSG'] = 'Nenhum encontrado.'
+
+        return context
+
+
+class ListarAnexadasCiclicasView(PermissionRequiredMixin, ListView):
+    model = get_user_model()
+    template_name = 'base/anexadas_ciclicas.html'
+    context_object_name = 'anexadas_ciclicas'
+    permission_required = ('base.list_appconfig',)
+    paginate_by = 10
+
+    def get_queryset(self):
+        return anexados_ciclicos(True)
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            ListarAnexadasCiclicasView, self
+        ).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages
+        )
+        context['NO_ENTRIES_MSG'] = 'Nenhuma encontrada.'
+
+        return context
 
 
 def legislatura_infindavel():

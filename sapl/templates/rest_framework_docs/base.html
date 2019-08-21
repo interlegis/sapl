@@ -1,4 +1,4 @@
-{% load static from staticfiles %}
+{% load webpack_static from webpack_loader %}
 
 <!DOCTYPE html>
 <html>
@@ -10,7 +10,7 @@
     <title>{% block title %}DRF Docs{% endblock %}</title>
 
     {% block style %}
-    <link rel="stylesheet" href="{% static "rest_framework_docs/css/style.css" %}">
+    <link rel="stylesheet" href="{% webpack_static "rest_framework_docs/css/style.css" %}">
     {% endblock %}
   </head>
 
@@ -76,6 +76,6 @@
     </div>
 
     <!-- Dist.js - Inlcuded Live API, jQuery, Bootstrap -->
-    <script type="text/javascript" src="{% static "rest_framework_docs/js/dist.min.js" %}"></script>
+    <script type="text/javascript" src="{% webpack_static "rest_framework_docs/js/dist.min.js" %}"></script>
   </body>
 </html>

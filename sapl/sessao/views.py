@@ -515,7 +515,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         form_class = OrdemDiaForm
 
         def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
+            initial = super().get_initial()
             initial['tipo_materia'] = self.object.materia.tipo.id
             initial['numero_materia'] = self.object.materia.numero
             initial['ano_materia'] = self.object.materia.ano
@@ -576,7 +576,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         form_class = ExpedienteMateriaForm
 
         def get_initial(self):
-            initial = super(CreateView, self).get_initial()
+            initial = super().get_initial()
             initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = ExpedienteMateria.objects.filter(
@@ -594,7 +594,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         form_class = ExpedienteMateriaForm
 
         def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
+            initial = super().get_initial()
             initial['tipo_materia'] = self.object.materia.tipo.id
             initial['numero_materia'] = self.object.materia.numero
             initial['ano_materia'] = self.object.materia.ano
@@ -614,6 +614,15 @@ class OradorCrud(MasterDetailCrud):
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem', 'parlamentar']
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
     class CreateView(MasterDetailCrud.CreateView):
 
         form_class = OradorForm
@@ -625,16 +634,85 @@ class OradorCrud(MasterDetailCrud):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
 
+class UpdateView(MasterDetailCrud.UpdateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            initial = super().get_initial()
+            initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero': self.object.numero_ordem})
+
+            return initial
+
+
+class OradorExpedienteCrud(OradorCrud):
+    model = OradorExpediente
+
+    class CreateView(MasterDetailCrud.CreateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            return {'id_sessao': self.kwargs['pk']}
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:orador_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+
     class UpdateView(MasterDetailCrud.UpdateView):
 
         form_class = OradorForm
 
         def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
+            initial = super().get_initial()
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
-            initial.update({'numero': self.object.numero_ordem})
+            initial.update({'numero':self.object.numero_ordem})
 
             return initial
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+        
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
 
 
 class OradorExpedienteCrud(OradorCrud):
@@ -647,6 +725,17 @@ class OradorExpedienteCrud(OradorCrud):
         def get_initial(self):
             return {'id_sessao': self.kwargs['pk']}
 
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+        
+
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
                            kwargs={'pk': self.kwargs['pk']})
@@ -658,6 +747,40 @@ class OradorExpedienteCrud(OradorCrud):
             return {'id_sessao': self.object.sessao_plenaria.id,
                     'numero': self.object.numero_ordem}
 
+
+    class ListView(MasterDetailCrud.ListView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
 
 class OradorOrdemDiaCrud(OradorCrud):
     model = OradorOrdemDia
@@ -676,7 +799,7 @@ class OradorOrdemDiaCrud(OradorCrud):
         form_class = OradorOrdemDiaForm
 
         def get_initial(self):
-            initial = super(UpdateView, self).get_initial()
+            initial = super().get_initial()
 
             initial.update({'id_sessao': self.object.sessao_plenaria.id})
             initial.update({'numero': self.object.numero_ordem})
@@ -735,6 +858,16 @@ def sessao_legislativa_legislatura_ajax(request):
     return JsonResponse({'sessao_legislativa': lista_sessoes})
 
 
+def recuperar_nome_tipo_sessao(request):
+    try:
+        tipo = TipoSessaoPlenaria.objects.get(pk=request.GET['tipo'])
+        tipo_nome = tipo.nome
+    except ObjectDoesNotExist:
+        tipo_nome = ''
+
+    return JsonResponse({'nome_tipo': tipo_nome})
+
+
 class SessaoCrud(Crud):
     model = SessaoPlenaria
     help_topic = 'sessao_legislativa'
@@ -764,6 +897,18 @@ class SessaoCrud(Crud):
 
         form_class = SessaoPlenariaForm
 
+        @property
+        def layout_key(self):
+            return 'SessaoSolene'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao = context['object']
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
         def get_initial(self):
             return {'sessao_legislativa': self.object.sessao_legislativa}
 
@@ -771,6 +916,10 @@ class SessaoCrud(Crud):
 
         form_class = SessaoPlenariaForm
         logger = logging.getLogger(__name__)
+
+        @property
+        def layout_key(self):
+            return 'SessaoSolene'
 
         @property
         def cancel_url(self):
@@ -803,6 +952,26 @@ class SessaoCrud(Crud):
         def get_success_url(self):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'sessaoplenaria_list'))
+
+    class DetailView(Crud.DetailView):
+
+        @property
+        def layout_key(self):
+            sessao = self.object
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                return 'SessaoSolene'
+            return 'SessaoPlenaria'
+
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao = context['object']
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                # self.layout_key = 'SessaoSolene'
+            return context
 
 
 class SessaoPermissionMixin(PermissionRequiredForAppCrudMixin,
@@ -837,6 +1006,10 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
         context = FormMixin.get_context_data(self, **kwargs)
         context['title'] = '%s <small>(%s)</small>' % (
             _('Presença'), self.object)
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     @method_decorator(permission_required(
@@ -921,16 +1094,22 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             cronometro_ordem = cronometro_ordem.seconds
             cronometro_consideracoes = cronometro_consideracoes.seconds
 
+        sessao_pk = kwargs['pk']
+        sessao = SessaoPlenaria.objects.get(pk=sessao_pk)
         context = TemplateView.get_context_data(self, **kwargs)
         context.update({
             'head_title': str(_('Painel Plenário')),
-            'sessao_id': kwargs['pk'],
-            'root_pk': kwargs['pk'],
-            'sessaoplenaria': SessaoPlenaria.objects.get(pk=kwargs['pk']),
+            'sessao_id': sessao_pk,
+            'root_pk': sessao_pk,
+            'sessaoplenaria': sessao,
             'cronometro_discurso': cronometro_discurso,
             'cronometro_aparte': cronometro_aparte,
             'cronometro_ordem': cronometro_ordem,
             'cronometro_consideracoes': cronometro_consideracoes})
+
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
 
         return context
 
@@ -1154,8 +1333,12 @@ class MesaView(FormMixin, DetailView):
         context = FormMixin.get_context_data(self, **kwargs)
         context['title'] = '%s <small>(%s)</small>' % (
             _('Mesa Diretora'), self.object)
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
-
+        
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:mesa', kwargs={'pk': pk})
@@ -1363,14 +1546,18 @@ def get_identificação_basica(sessao_plenaria):
     abertura = data_inicio.strftime('%d/%m/%Y') if data_inicio else ''
     data_fim = sessao_plenaria.data_fim
     encerramento = data_fim.strftime('%d/%m/%Y') + ' -' if data_fim else ''
-    return({'basica': [
+    tema_solene = sessao_plenaria.tema_solene
+    context = {'basica': [
         _('Tipo de Sessão: %(tipo)s') % {'tipo': sessao_plenaria.tipo},
         _('Abertura: %(abertura)s - %(hora_inicio)s') % {
             'abertura': abertura, 'hora_inicio': sessao_plenaria.hora_inicio},
         _('Encerramento: %(encerramento)s %(hora_fim)s') % {
-            'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim}
-    ],
-        'sessaoplenaria': sessao_plenaria})
+            'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim},
+        ],
+        'sessaoplenaria': sessao_plenaria}
+    if sessao_plenaria.tipo.nome == "Solene" and tema_solene:
+        context.update({'tema_solene': 'Tema da Sessão Solene: %s' % tema_solene})
+    return context
 
 
 def get_conteudo_multimidia(sessao_plenaria):
@@ -1531,10 +1718,11 @@ def get_assinaturas(sessao_plenaria):
         context.update(
             {'texto_assinatura': 'Assinatura da Mesa Diretora da Sessão'})
         context.update({'assinatura_mesa': mesa_dia})
-    elif config_assinatura_ata == 'P' and presidente_dia:
+    elif config_assinatura_ata == 'P' and presidente_dia and presidente_dia[0]:
         context.update(
             {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
-        context.update({'assinatura_mesa': presidente_dia})
+        assinatura_presidente = [{'parlamentar': presidente_dia[0], 'cargo': "Presidente"}]
+        context.update({'assinatura_mesa': assinatura_presidente})
 
     return context
 
@@ -1824,6 +2012,11 @@ class ResumoView(DetailView):
                 'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
                 'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html'
             })
+
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     def get(self, request, *args, **kwargs):
@@ -1848,6 +2041,10 @@ class ExpedienteView(FormMixin, DetailView):
         context = FormMixin.get_context_data(self, **kwargs)
         context['title'] = '%s <small>(%s)</small>' % (
             _('Expediente Diversos'), self.object)
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     @method_decorator(permission_required('sessao.add_expedientesessao'))
@@ -1937,6 +2134,10 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
         context = FormMixin.get_context_data(self, **kwargs)
         context['title'] = 'Ocorrências da Sessão <small>(%s)</small>' % (
             self.object)
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     def delete(self):
@@ -2662,8 +2863,7 @@ class VotacaoNominalTransparenciaDetailView(TemplateView):
     template_name = 'sessao/votacao/nominal_transparencia.html'
 
     def get_context_data(self, **kwargs):
-        context = super(VotacaoNominalTransparenciaDetailView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         materia_votacao = self.request.GET.get('materia', None)
 
@@ -2747,8 +2947,7 @@ class VotacaoSimbolicaTransparenciaDetailView(TemplateView):
     template_name = 'sessao/votacao/simbolica_transparencia.html'
 
     def get_context_data(self, **kwargs):
-        context = super(VotacaoSimbolicaTransparenciaDetailView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         materia_votacao = self.request.GET.get('materia', None)
 
@@ -3015,7 +3214,7 @@ class SessaoListView(ListView):
         return SessaoPlenaria.objects.all().order_by('-data_inicio')
 
     def get_context_data(self, **kwargs):
-        context = super(SessaoListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         paginator = context['paginator']
         page_obj = context['page_obj']
@@ -3179,8 +3378,7 @@ class PesquisarSessaoPlenariaView(FilterView):
     logger = logging.getLogger(__name__)
 
     def get_filterset_kwargs(self, filterset_class):
-        super(PesquisarSessaoPlenariaView,
-              self).get_filterset_kwargs(filterset_class)
+        super().get_filterset_kwargs(filterset_class)
 
         kwargs = {'data': self.request.GET or None}
 
@@ -3196,8 +3394,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(PesquisarSessaoPlenariaView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         context['title'] = _('Pesquisar Sessão Plenária')
         paginator = context['paginator']
@@ -3209,7 +3406,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         return context
 
     def get(self, request, *args, **kwargs):
-        super(PesquisarSessaoPlenariaView, self).get(request)
+        super().get(request)
 
         # Se a pesquisa estiver quebrando com a paginação
         # Olhe esta função abaixo
@@ -3247,8 +3444,7 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     logger.debug('Pesquisa de PautaSessao.')
 
     def get_context_data(self, **kwargs):
-        context = super(PesquisarPautaSessaoView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = _('Pesquisar Pauta de Sessão')
         return context
 
@@ -3269,8 +3465,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
     logger = logging.getLogger(__name__)
 
     def get_filterset_kwargs(self, filterset_class):
-        super(AdicionarVariasMateriasExpediente,
-              self).get_filterset_kwargs(filterset_class)
+        super().get_filterset_kwargs(filterset_class)
 
         kwargs = {'data': self.request.GET or None}
 
@@ -3294,8 +3489,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(MateriaLegislativaPesquisaView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         context['title'] = _('Pesquisar Matéria Legislativa')
         context['root_pk'] = self.kwargs['pk']
@@ -3362,8 +3556,7 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
     logger = logging.getLogger(__name__)
 
     def get_filterset_kwargs(self, filterset_class):
-        super(AdicionarVariasMateriasExpediente,
-              self).get_filterset_kwargs(filterset_class)
+        super().get_filterset_kwargs(filterset_class)
 
         kwargs = {'data': self.request.GET or None}
 
@@ -3581,8 +3774,7 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
                                                 retiradapauta=None)
 
     def get_context_data(self, **kwargs):
-        context = super(VotacaoEmBlocoExpediente,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['pk'] = self.kwargs['pk']
         context['root_pk'] = self.kwargs['pk']
         if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
