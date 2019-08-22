@@ -605,7 +605,7 @@ class AutorForm(ModelForm):
                 self.logger.error(
                     'Já existe um Autor para este usuário ({}).'.format(cd['username']))
                 raise ValidationError(
-                    _('Já existe um Autor para este usuário.'))
+                    _('Já existe um usuário vinculado a esse autor'))
 
         """
         'if' não é necessário por ser campo obrigatório e o framework já
