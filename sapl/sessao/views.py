@@ -40,7 +40,7 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
 from sapl.utils import (show_results_filter_set, remover_acentos, get_client_ip, filiacao_data,
-                        verifica_ausencia_parlamentar)
+                        verifica_afastamento_parlamentar)
 
 from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
@@ -464,7 +464,7 @@ def get_presencas_generic(model, sessao, legislatura):
 
     for m in mandato:
         parlamentar = m.parlamentar
-        p_afastado = verifica_ausencia_parlamentar(parlamentar, sessao.data_inicio, sessao.data_fim)
+        p_afastado = verifica_afastamento_parlamentar(parlamentar, sessao.data_inicio, sessao.data_fim)
         if parlamentar in presentes:
             yield (parlamentar, True, p_afastado)
         else:
@@ -1292,7 +1292,7 @@ class MesaView(FormMixin, DetailView):
             key=lambda x: remover_acentos(x.nome_parlamentar))
         org_parlamentares_vagos = [
             p for p in org_parlamentares_vagos if (p.ativo and 
-                                                   not verifica_ausencia_parlamentar(p, sessao.data_inicio, sessao.data_fim)
+                                                   not verifica_afastamento_parlamentar(p, sessao.data_inicio, sessao.data_fim)
                                                    )]
         # Se todos os cargos estiverem ocupados, a listagem de parlamentares
         # deve ser renderizada vazia

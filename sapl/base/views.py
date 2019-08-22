@@ -42,11 +42,12 @@ from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexad
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao,
                                  DocumentoAcessorio, TipoDocumento)
 from sapl.norma.models import (NormaJuridica, TipoNormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa, Bancada
+from sapl.parlamentares.models import (Parlamentar, Legislatura, Mandato, Filiacao, 
+                                       SessaoLegislativa, Bancada, AfastamentoParlamentar)
 from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
                                       StatusTramitacaoAdministrativo, 
                                       DocumentoAdministrativo, Anexado)
-from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
+from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria, OrdemDia,
                                 SessaoPlenariaPresenca, TipoSessaoPlenaria)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
@@ -494,16 +495,35 @@ class RelatorioPresencaSessaoView(FilterView):
         for i, p in enumerate(parlamentares_qs):
             m = p.mandato_set.filter(Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__gte=_range[1]) |
                                      Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__isnull=True) |
-                                     Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]) |
-                                     # mandato suplente
                                      Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]))
 
+            afastamentos = AfastamentoParlamentar.objects.filter(Q(parlamentar=p) & (Q(data_inicio__range=_range) |
+                                     Q(data_inicio__gte=_range[0], data_fim__isnull=True)))
+            
+            afast_parl_sessao = 0
+            afast_parl_ordem = 0
+            for afastamento in afastamentos:
+                if afastamento.data_fim:
+                    afast_parl_sessao += SessaoPlenaria.objects.filter(data_inicio__range=[afastamento.data_inicio, 
+                                                                    afastamento.data_fim]).count()
+                    afast_parl_ordem += OrdemDia.objects.filter(sessao_plenaria__data_inicio__range=[afastamento.data_inicio, 
+                                                                afastamento.data_fim]).order_by('sessao_plenaria__id').\
+                                                                distinct('sessao_plenaria__id').count()
+                else:
+                    afast_parl_sessao += SessaoPlenaria.objects.filter(data_inicio__gte=afastamento.data_inicio).count()
+                    afast_parl_ordem += OrdemDia.objects.filter(sessao_plenaria__data_inicio__gte=afastamento.data_inicio).\
+                                                                order_by('sessao_plenaria__id').\
+                                                                distinct('sessao_plenaria__id').count()
+
+            
             m = m.last()
             parlamentares_presencas.append({
                 'parlamentar': p,
                 'titular': m.titular if m else False,
                 'sessao_porc': 0,
-                'ordemdia_porc': 0
+                'ordemdia_porc': 0,
+                'sessao_afast': afast_parl_sessao,
+                'ordem_afast': afast_parl_ordem
             })
             try:
                 self.logger.debug(
@@ -529,13 +549,15 @@ class RelatorioPresencaSessaoView(FilterView):
             })
 
             if total_sessao != 0:
+                porc = round(
+                        sessao_count * 100 / (total_sessao-afast_parl_sessao), 2)
                 parlamentares_presencas[i].update(
-                    {'sessao_porc': round(
-                        sessao_count * 100 / total_sessao, 2)})
+                    {'sessao_porc': porc if porc <=100 else 100})
             if total_ordemdia != 0:
+                porc = round(
+                        ordemdia_count * 100 / (total_ordemdia-afast_parl_ordem), 2)
                 parlamentares_presencas[i].update(
-                    {'ordemdia_porc': round(
-                        ordemdia_count * 100 / total_ordemdia, 2)})
+                    {'ordemdia_porc': porc if porc <=100.0 else 100.0})
 
         context['date_range'] = _range
         context['total_ordemdia'] = total_ordemdia

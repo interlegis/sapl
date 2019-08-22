@@ -10,6 +10,7 @@ from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
                                        TipoDependente, TipoAfastamento,
                                        AfastamentoParlamentar)
+from sapl.utils import verifica_afastamento_parlamentar
 
 
 @pytest.mark.django_db(transaction=False)
@@ -517,3 +518,40 @@ def test_afastamentos_form_campos_invalidos():
     assert form.errors['data_inicio'] == ["Este campo é obrigatório."]
     assert form.errors['mandato'] == ["Este campo é obrigatório."]
     assert form.errors['parlamentar'] == ["Este campo é obrigatório."]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_parlamentar_esta_afastado():
+    parlamentar = mommy.make(Parlamentar)
+    mandato = mommy.make(Mandato,
+                         parlamentar = parlamentar,
+                         data_inicio_mandato='2017-01-01',
+                         data_fim_mandato='2021-12-31')
+    afastamento = AfastamentoParlamentar.objects.create(mandato=mandato, 
+                                                        parlamentar=parlamentar,
+                                                        data_inicio='2017-12-05',
+                                                        data_fim='2017-12-12')
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-13')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-04')
+
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06', '2017-12-11')
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06', '2017-12-06')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-03', '2017-12-04')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-13', '2017-12-15')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-15', '2017-12-15')
+
+    afastamento = AfastamentoParlamentar.objects.create(mandato=mandato, 
+                                                        parlamentar=parlamentar,
+                                                        data_inicio='2017-12-05')
+
+    assert AfastamentoParlamentar.objects.all().count() == 2
+
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-13')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-04')
+
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06', '2017-12-11')
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06', '2017-12-06')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-03', '2017-12-04')
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-13', '2017-12-15')

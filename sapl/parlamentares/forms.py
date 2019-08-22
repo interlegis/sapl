@@ -815,7 +815,9 @@ class AfastamentoParlamentarForm(ModelForm):
                 raise ValidationError(_("Data fim do afastamento posterior ao fim"
                                " do mandato informado."))
 
-        if AfastamentoParlamentar.objects.last() and not AfastamentoParlamentar.objects.last().data_fim:
+        ultimo_afastamento = AfastamentoParlamentar.objects.last()
+        if ultimo_afastamento and not ultimo_afastamento.data_fim \
+           and ultimo_afastamento != self.instance:
             self.logger.error("Existe Afastamento sem Data Fim.")
             raise ValidationError(_("Existe Afastamento sem Data Fim.")) 
 

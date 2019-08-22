@@ -25,20 +25,26 @@
     <b>Tipo Sessão Plenária: {{tipo}}<br /> </b>
     <b>TOTAIS NO PERÍODO - SESSÕES: {{total_sessao}} - ORDENS DO DIA: {{total_ordemdia}}</b><br />
     <b>Exibir presença das Ordens do Dia: {% if exibir_ordem %} Sim {% else %} Não {% endif %}</b><br />
+    <br>
+    <h4><b>Atenção!</b> Este relatório leva em conta os afastamentos cadastrados em Parlamentar -> Afastamentos.
+    A porcentagem de presença exclui períodos em que o parlamentar estava afastado.</h4>
+    <br>
     <table class="table table-bordered table-hover presenca_table">
       <thead class="thead-default" align="center">
         <tr class="active">
           <th rowspan="2">Nome Parlamentar / Partido</th>
           <th rowspan="2">Titular?</th>
           <th rowspan="2">Ativo?</th>
-          <th colspan="2">Sessão</th>
-          {% if exibir_ordem %} <th colspan="2">Ordem do Dia</th> {% endif %}
+          <th colspan="3">Sessão</th>
+          {% if exibir_ordem %} <th colspan="3">Ordem do Dia</th> {% endif %}
         </tr>
         <tr class="active">
-          <th>(Qtd)</th>
-          <th>( % )</th>
+          <th>(Qtd Presente)</th>
+          <th>(Qtde Afastado)</th>
+          <th>( % )</th> 
           {% if exibir_ordem %}
-            <th>(Qtd)</th>
+            <th>(Qtd Presente)</th>
+            <th>(Qtde Afastado)</th>
             <th>( % )</th>
           {% endif %}
         </tr>
@@ -50,9 +56,11 @@
             <td>{% if p.titular %} Sim {% else %} Não {% endif %}</td>
             <td>{% if p.parlamentar.ativo %} Sim {% else %} Não {% endif %}</td>
             <td>{{p.sessao_count}}</td>
+            <td>{{p.sessao_afast}}</td>
             <td>{{p.sessao_porc}}</td>
             {% if exibir_ordem %} 
               <td>{{p.ordemdia_count}}</td>
+              <td>{{p.ordem_afast}}</td>
               <td>{{p.ordemdia_porc}}</td>
             {% endif %}
           </tr>
