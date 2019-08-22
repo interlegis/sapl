@@ -15,12 +15,12 @@
           </tr>
         </thead>
         <tbody>
-          {% for quantidade, parlamentar in parlamentares_duplicados %}
+          {% for parlamentar in parlamentares_duplicados %}
             <tr>
               <td>
-                <a href="{% url 'sapl.parlamentares:pesquisar_parlamentar' %}?nome_parlamentar={{ parlamentar }}">{{ parlamentar }}</a>
+                <a href="{% url 'sapl.parlamentares:pesquisar_parlamentar' %}?nome_parlamentar={{ parlamentar.nome_parlamentar }}">{{ parlamentar.nome_parlamentar }}</a>
               </td>
-              <td>{{ quantidade }}</td>
+              <td>{{ parlamentar.count }}</td>
             </tr>
           {% endfor %}
         </tbody>
