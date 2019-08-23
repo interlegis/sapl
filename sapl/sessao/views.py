@@ -34,7 +34,7 @@ from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
-from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
+from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, ExpedienteLeitura
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
@@ -276,6 +276,13 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
+                    elif obj.tipo_votacao == 4:
+                        url = reverse('sapl.sessao:leituraexp',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+
                 else:
                     if obj.tipo_votacao == 1:
                         url = reverse('sapl.sessao:votacaosimbolica',
@@ -295,13 +302,22 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
+
                 if has_permission:
-                    btn_registrar = '''
-                                    <form action="%s">
-                                     <input type="submit" class="btn btn-primary"
-                                      value="Registrar Votação" />
-                                 </form>''' % (
-                        url)
+                    if not obj.tipo_votacao == 4:
+                        btn_registrar = '''
+                                        <form action="%s">
+                                        <input type="submit" class="btn btn-primary"
+                                        value="Registrar Votação" />
+                                    </form>''' % (
+                            url)
+                    else:
+                        btn_registrar = '''
+                                        <form action="%s">
+                                        <input type="submit" class="btn btn-primary"
+                                        value="Registrar Leitura" />
+                                    </form>''' % (
+                            url)
 
                     resultado = btn_registrar
                 else:
@@ -319,12 +335,20 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     }) + '?tipo_materia=ordem'
 
                 if has_permission:
-                    btn_abrir = '''
-                                        Matéria não votada<br />
-                                        <a href="%s"
-                                           class="btn btn-primary"
-                                           role="button">Abrir Votação</a>''' % (url)
-                    resultado = btn_abrir
+                    if not obj.tipo_votacao == 4:
+                        btn_abrir = '''
+                                            Matéria não votada<br />
+                                            <a href="%s"
+                                            class="btn btn-primary"
+                                            role="button">Abrir Votação</a>''' % (url)
+                        resultado = btn_abrir
+                    else:
+                        btn_abrir = '''
+                                            Matéria não lida<br />
+                                            <a href="%s"
+                                            class="btn btn-primary"
+                                            role="button">Abrir para Leitura</a>''' % (url)
+                        resultado = btn_abrir
                 else:
                     resultado = '''Não há resultado'''
 
@@ -4319,3 +4343,28 @@ class RetiradaPautaCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
+
+
+class ExpedienteLeituraView(FormView):
+    template_name = 'sessao/votacao/leitura_form.html'
+    form_class = ExpedienteLeitura
+    success_url = '/'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        sessao = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+        expediente = ExpedienteMateria.objects.get(id=self.kwargs['oid'])
+        materia = MateriaLegislativa.objects.get(id=self.kwargs['mid'])
+        return {'materia': materia, 'materia__ementa':materia.ementa}
+
+    def form_valid(self, form):
+        expediente = ExpedienteMateria.objects.get(id=self.kwargs['oid'])
+        expediente.resultado = "Matéria lida"
+        expediente.votacao_aberta = False
+        expediente.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sapl.sessao:expedientemateria_list',
+                       kwargs={'pk': pk})

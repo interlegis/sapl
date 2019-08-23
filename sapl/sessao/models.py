@@ -303,6 +303,7 @@ class AbstractOrdemDia(models.Model):
         (1, 'simbolica', 'Simbólica'),
         (2, 'nominal', 'Nominal'),
         (3, 'secreta', 'Secreta'),
+        (4, 'leitura', 'Leitura')
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,

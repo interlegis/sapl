@@ -34,7 +34,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                sessao_legislativa_legislatura_ajax,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
                                VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
-                               recuperar_nome_tipo_sessao)
+                               recuperar_nome_tipo_sessao,
+                               ExpedienteLeituraView)
 
 from .apps import AppConfig
 
@@ -192,4 +193,8 @@ urlpatterns = [
     url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
         name='mudar_ordem_materia_sessao'),
+
+    url(r'^sessao/(?P<pk>\d+)/matexp/leitura/(?P<oid>\d+)/(?P<mid>\d+)$',
+        ExpedienteLeituraView.as_view(), name='leituraexp'),
+    
 ]

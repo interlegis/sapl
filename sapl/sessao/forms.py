@@ -358,6 +358,8 @@ class ExpedienteMateriaForm(ModelForm):
         initial=datetime.strftime(timezone.now(), '%d/%m/%Y'),
         widget=forms.TextInput(attrs={'readonly': 'readonly'}))
 
+    apenas_leitura = forms.BooleanField(label='Apenas Leitura', required=False)
+
     class Meta:
         model = ExpedienteMateria
         fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
@@ -493,7 +495,7 @@ class VotacaoForm(forms.Form):
     resultado_votacao = forms.CharField(label='Resultado da Votação')
 
     def clean(self):
-        cleaned_data = super(VotacaoForm, self).clean()
+        cleaned_data = super().clean()
         if not self.is_valid():
             return cleaned_data
 
@@ -598,7 +600,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                   ]
 
     def __init__(self, *args, **kwargs):
-        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
@@ -1023,3 +1025,34 @@ class JustificativaAusenciaForm(ModelForm):
             justificativa.materias_do_expediente.clear()
             justificativa.materias_da_ordem_do_dia.clear()
         return justificativa
+
+
+class ExpedienteLeitura(forms.Form):
+    materia = forms.CharField(
+        label='Matéria',
+        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+
+    materia__ementa = forms.CharField(
+        label='Ementa',
+        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+
+    observacao = forms.CharField(required=False, label='Observação', widget=forms.Textarea,)
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        
+        row1 = to_row(
+            [('materia', 12)])
+        row2 = to_row(
+            [('materia__ementa', 12)])
+        row3 = to_row(
+            [('observacao', 12)])    
+
+        self.helper = SaplFormHelper()
+        self.helper.form_method = 'POST'
+        self.helper.layout = Layout(
+            Fieldset(_('Leitura de Matéria'),
+                     row1, row2, row3,
+                     form_actions(label='Salvar'))
+        )

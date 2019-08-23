@@ -32,11 +32,26 @@
         });
     }
   }
-  var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"]
+  var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"];
   for (i = 0; i < fields.length; i++) {
     $(fields[i]).change(recuperar_materia);
   }
-  recuperar_materia()
+  recuperar_materia();
+
+  $(document).ready(function(){
+    $("select[name='tipo_votacao']").children("option[value='4']").remove();
+    $('#id_apenas_leitura').change(function(event){
+      $('#div_id_tipo_votacao').toggle();
+      if($('#id_apenas_leitura').prop('checked')){
+        $("select[name='tipo_votacao']").append(new Option('Leitura', '4'));
+        $("select[name='tipo_votacao']").val('4');
+      }
+      else{
+        $("select[name='tipo_votacao']").children("option[value='4']").remove();
+        $("select[name='tipo_votacao']").val('1');
+      }
+    })
+  });
 </script>
 
 {% endblock %}
