@@ -438,7 +438,7 @@ class PautaReuniao(models.Model):
                  ' - Matéria: %(materia)s') % {
                      'reuniao': self.reuniao,
                      'materia': self.materia
-                 }
+        }
 
 
 @reversion.register()
@@ -487,7 +487,8 @@ class AssuntoMateria(models.Model):
 @reversion.register()
 class DespachoInicial(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
-    comissao = models.ForeignKey(Comissao, on_delete=models.CASCADE, verbose_name="Comissão")
+    comissao = models.ForeignKey(
+        Comissao, on_delete=models.CASCADE, verbose_name="Comissão")
 
     class Meta:
         verbose_name = _('Despacho Inicial')
@@ -712,11 +713,11 @@ class Relatoria(models.Model):
             return _('%(materia)s - %(tipo)s - %(data)s') % {
                 'materia': self.materia,
                 'tipo': self.tipo_fim_relatoria,
-                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}  
+                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
         else:
             return _('%(materia)s - %(data)s') % {
-            'materia': self.materia,
-            'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
+                'materia': self.materia,
+                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
 
 
 @reversion.register()
