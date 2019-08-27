@@ -1,10 +1,10 @@
 
-from sapl.comissoes.models import Comissao, Composicao
+from sapl.comissoes.models import Comissao, Composicao, Reuniao
 from sapl.materia.models import DespachoInicial, Relatoria, UnidadeTramitacao
 
 from difflib import SequenceMatcher
 
-models_dependentes = [Composicao, DespachoInicial, Relatoria, UnidadeTramitacao]
+models_dependentes = [Composicao, DespachoInicial, Relatoria, UnidadeTramitacao, Reuniao]
 
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
@@ -24,14 +24,23 @@ def detecta_duplicados():
             lst_duplicados.append(c_1_lst)
     return lst_duplicados
 
+
+def muda_autor(principal, secundaria):
+    for autor in secundaria.autor.all():
+        autor.delete()    
+
+def muda_models_dependentes(principal,secundaria):
+    for model in models_dependentes:
+        for obj in model.objects.filter(comissao=secundaria):
+            obj.comissao = principal
+            obj.save()
+
 def junta_dulpicados(duplicados):
     principal = duplicados[-1]
-    for c in duplicados[:-1]:
-        for m in models_dependentes:
-            for obj in m.objects.filter(comissao=c):
-                obj.comissao = principal
-                obj.save()
-        c.delete()       
+    for secundaria in duplicados[:-1]:
+        muda_models_dependentes(principal,secundaria)
+        muda_autor(principal, secundaria)
+        secundaria.delete()       
 
 
 def main():
