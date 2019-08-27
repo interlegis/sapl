@@ -13,7 +13,8 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, Validat
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
-from django.db.models import Count, Q, ProtectedError
+from django.db.models import Count, Q, ProtectedError, Max
+from django.shortcuts import render
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
@@ -37,7 +38,7 @@ from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexada,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao,
-                                 DocumentoAcessorio, TipoDocumento)
+                                 DocumentoAcessorio, TipoDocumento, Tramitacao)
 from sapl.norma.models import (NormaJuridica, TipoNormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa
 from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
@@ -67,9 +68,9 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
 from .models import AppConfig, CasaLegislativa
 
 
-def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
+def filtra_url_materias_em_tramitacao(data, qs, campo_url, local_ou_status):
     id_materias = []
-    filtro_url = qr[campo_url]
+    filtro_url = data[campo_url]
     if local_ou_status == 'local':
         id_materias = [item.id for item in qs if item.tramitacao_set.order_by(
             '-id').first().unidade_tramitacao_destino_id == int(filtro_url)]
@@ -707,6 +708,50 @@ class RelatorioMateriasTramitacaoView(FilterView):
     filterset_class = RelatorioMateriasTramitacaoilterSet
     template_name = 'base/RelatorioMateriasPorTramitacao_filter.html'
 
+    paginate_by = 100
+
+    qs2 = None
+
+    def get_filterset_kwargs(self, filterset_class):
+        data = super().get_filterset_kwargs(filterset_class)
+
+        # import ipdb; ipdb.set_trace()
+
+        if data['data']:
+            qs = data['queryset']
+
+            qs.exclude(tramitacao__status__indicador='F')
+
+            # import ipdb; ipdb.set_trace()
+
+            if 'tramitacao__unidade_tramitacao_destino' in data:
+                qs = filtra_url_materias_em_tramitacao(
+                    data, qs, 'tramitacao__unidade_tramitacao_destino', 'local')
+
+            if 'tramitacao__status' in data:
+                qs = filtra_url_materias_em_tramitacao(
+                    data, qs, 'tramitacao__status', 'status')
+
+            ultimas_tramitacoes = Tramitacao.objects.filter(
+                materia__ano=data['data']['ano']).values(
+                'materia__ano', 'materia__numero').annotate(id=Max('id'))
+
+            ultimas_tramitacoes_ids = [i['id'] for i in ultimas_tramitacoes]
+
+            qs = qs.filter(tramitacao__id__in=ultimas_tramitacoes_ids)
+            data['queryset'] = qs
+
+            # import ipdb; ipdb.set_trace()
+
+            self.qs2 = qs
+
+        return data
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related('tipo').filter(em_tramitacao=True).order_by('-ano', '-numero')
+        return qs
+
     def get_context_data(self, **kwargs):
         context = super(RelatorioMateriasTramitacaoView,
                         self).get_context_data(**kwargs)
@@ -716,23 +761,25 @@ class RelatorioMateriasTramitacaoView(FilterView):
             return context
 
         qr = self.request.GET.copy()
-        qs = context['object_list']
-        qs = qs.filter(em_tramitacao=True)
 
-        if qr.get('tramitacao__unidade_tramitacao_destino'):
-            qs = filtra_url_materias_em_tramitacao(
-                qr, qs, 'tramitacao__unidade_tramitacao_destino', 'local')
-        if qr.get('tramitacao__status'):
-            qs = filtra_url_materias_em_tramitacao(
-                qr, qs, 'tramitacao__status', 'status')
 
-        li = [li1 for li1 in qs if li1.tramitacao_set.last() and li1.tramitacao_set.last().status.indicador != 'F']
-        context['object_list'] = li
+        # qs = context['object_list']
+        # import ipdb; ipdb.set_trace()
+        #
+        # if qr.get('tramitacao__unidade_tramitacao_destino'):
+        #     qs = filtra_url_materias_em_tramitacao(
+        #         qr, qs, 'tramitacao__unidade_tramitacao_destino', 'local')
+        # if qr.get('tramitacao__status'):
+        #     qs = filtra_url_materias_em_tramitacao(
+        #         qr, qs, 'tramitacao__status', 'status')
+        #
+        # li = [li1 for li1 in qs if li1.tramitacao_set.last() and li1.tramitacao_set.last().status.indicador != 'F']
+        # context['object_list'] = li
 
         qtdes = {}
         for tipo in TipoMateriaLegislativa.objects.all():
             li = context['object_list']
-            qtde = sum(1 for i in li if i.tipo_id==tipo.id)
+            qtde = sum(1 for i in self.qs2 if i.tipo_id==tipo.id)
             if qtde > 0:
                 qtdes[tipo] = qtde
         context['qtdes'] = qtdes
@@ -757,6 +804,14 @@ class RelatorioMateriasTramitacaoView(FilterView):
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages
+        )
+        context['NO_ENTRIES_MSG'] = 'Nenhum encontrado.'
 
         return context
 
