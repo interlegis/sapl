@@ -35,7 +35,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
                                VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
                                recuperar_nome_tipo_sessao,
-                               ExpedienteLeituraView)
+                               ExpedienteLeituraView,
+                               OrdemDiaLeituraView)
 
 from .apps import AppConfig
 
@@ -151,13 +152,11 @@ urlpatterns = [
         PesquisarSessaoPlenariaView.as_view(), name='pesquisar_sessao'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votnom/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalView.as_view(), name='votacaonominal'),
-    url(r'^sessao/(?P<pk>\d+)/matordemdia/votnom'
-        '/edit/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/votnom/edit/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalEditView.as_view(), name='votacaonominaledit'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsec/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoView.as_view(), name='votacaosecreta'),
-    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsec'
-        '/view/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoEditView.as_view(), name='votacaosecretaedit'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoView.as_view(), name='votacaosimbolica'),
@@ -165,8 +164,7 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimbbloco/$',
         VotacaoView.as_view(), name='votacaosimbolicabloco'),
 
-    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb'
-        '/view/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoEditView.as_view(), name='votacaosimbolicaedit'),
     url(r'^sessao/(?P<pk>\d+)/matexp/votnom/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalExpedienteView.as_view(), name='votacaonominalexp'),
@@ -196,5 +194,7 @@ urlpatterns = [
 
     url(r'^sessao/(?P<pk>\d+)/matexp/leitura/(?P<oid>\d+)/(?P<mid>\d+)$',
         ExpedienteLeituraView.as_view(), name='leituraexp'),
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/leitura/(?P<oid>\d+)/(?P<mid>\d+)$',
+        OrdemDiaLeituraView.as_view(), name='leituraod'),
     
 ]

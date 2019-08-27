@@ -28,7 +28,7 @@ from .models import (Bancada, ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoResultadoVotacao,
                      OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta, OradorOrdemDia, ORDENACAO_RESUMO,
-                     ResumoOrdenacao)
+                     ResumoOrdenacao, RegistroLeitura)
 
 
 MES_CHOICES = RANGE_MESES
@@ -1027,32 +1027,45 @@ class JustificativaAusenciaForm(ModelForm):
         return justificativa
 
 
-class ExpedienteLeitura(forms.Form):
-    materia = forms.CharField(
-        label='Matéria',
-        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
-
-    materia__ementa = forms.CharField(
-        label='Ementa',
-        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+class OrdemExpedienteLeituraForm(forms.ModelForm):
 
     observacao = forms.CharField(required=False, label='Observação', widget=forms.Textarea,)
+
+    class Meta:
+        model = RegistroLeitura
+        fields = ['materia',
+                  'ordem',
+                  'expediente',
+                  'observacao']
+        widgets = {'materia': forms.HiddenInput(),
+                   'ordem': forms.HiddenInput(),
+                   'expediente': forms.HiddenInput(),
+                   }
 
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         
+        instance = self.initial['instance']
+        if instance:
+            self.instance = instance.first()
+            self.fields['observacao'].initial = self.instance.observacao
+
         row1 = to_row(
-            [('materia', 12)])
-        row2 = to_row(
-            [('materia__ementa', 12)])
-        row3 = to_row(
-            [('observacao', 12)])    
+            [('observacao', 12)])   
+
+        actions = [HTML('<a href="{{ view.cancel_url }}"'
+                        ' class="btn btn-dark">Cancelar</a>')]
 
         self.helper = SaplFormHelper()
         self.helper.form_method = 'POST'
         self.helper.layout = Layout(
             Fieldset(_('Leitura de Matéria'),
-                     row1, row2, row3,
-                     form_actions(label='Salvar'))
+                    HTML('''
+                        <b>Matéria:</b> {{materia}}<br>
+                        <b>Ementa:</b> {{materia.ementa}} <br>
+                    '''),
+                     row1,
+                     form_actions(more=actions),
+                    )
         )
