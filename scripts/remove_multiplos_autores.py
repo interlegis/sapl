@@ -45,7 +45,7 @@ def pega_parlamentares_autores():
     return parlamentares_autores
 
 
-def transfere_valeres(autores):
+def transfere_valores(autores):
     for autor in autores:
         for clone in autor[1:]:
             for autoria in clone.autoria_set.all():
@@ -77,7 +77,7 @@ def main():
 
     autores.append(parlamentares_autores)
 
-    transfere_valeres(autores)
+    transfere_valores(autores)
 
 
 if __name__ == '__main__':
