@@ -560,7 +560,7 @@ class DocumentoAcessorio(models.Model):
         return _('%(tipo)s - %(nome)s de %(data)s por %(autor)s') % {
             'tipo': self.tipo,
             'nome': self.nome,
-            'data': self.data,
+            'data': formats.date_format(self.data, "SHORT_DATE_FORMAT"),
             'autor': self.autor}
 
     def delete(self, using=None, keep_parents=False):
