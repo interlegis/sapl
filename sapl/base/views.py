@@ -35,7 +35,7 @@ from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_ma
                                    relatorio_atas, relatorio_audiencia, relatorio_normas_mes,
                                    relatorio_normas_vigencia, relatorio_historico_tramitacao_adm,
                                    relatorio_reuniao, relatorio_estatisticas_acesso_normas,
-                                   relatorio_normas_por_autor)
+                                   relatorio_normas_por_autor, relatorio_documento_acessorio)
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
@@ -313,10 +313,24 @@ class RelatoriosListView(TemplateView):
         return context
 
 
-class RelatorioDocumentosAcessoriosView(FilterView):
+class RelatorioMixin:
+    def get(self, request, *args, **kwargs):
+        super(RelatorioMixin, self).get(request)
+
+        is_relatorio = request.GET.get('relatorio', None)
+        context = self.get_context_data(filter=self.filterset)
+
+        if is_relatorio:
+            return self.relatorio(request, context)
+        else:
+            return self.render_to_response(context)
+
+
+class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
     model = DocumentoAcessorio
     filterset_class = RelatorioDocumentosAcessoriosFilterSet
     template_name = 'base/RelatorioDocumentosAcessorios_filter.html'
+    relatorio = relatorio_documento_acessorio
 
     def get_context_data(self, **kwargs):
         context = super(
@@ -354,18 +368,6 @@ class RelatorioDocumentosAcessoriosView(FilterView):
         )
 
         return context
-
-class RelatorioMixin:
-    def get(self, request, *args, **kwargs):
-        super(RelatorioMixin, self).get(request)
-
-        is_relatorio = request.GET.get('relatorio', None)
-        context = self.get_context_data(filter=self.filterset)
-
-        if is_relatorio:
-            return self.relatorio(request, context)
-        else:
-            return self.render_to_response(context)
 
 
 class RelatorioAtasView(RelatorioMixin, FilterView):
@@ -1070,7 +1072,7 @@ class EstatisticasAcessoNormas(TemplateView):
             self.request.GET.copy())
 
         if is_relatorio:
-            return relatorio_estatisticas_acesso_normas(request, context)
+            return relatorio_estatisticas_acesso_normas(self, request, context)
         else:
             return self.render_to_response(context)
 

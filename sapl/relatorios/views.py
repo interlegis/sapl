@@ -1408,6 +1408,9 @@ def relatorio_historico_tramitacao_adm(obj, request, context):
 def relatorio_estatisticas_acesso_normas(obj, request, context):
     return cria_relatorio(request, context, 'relatorios/relatorio_estatisticas_acesso_normas.html')
 
+def relatorio_documento_acessorio(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_documento_acessorio.html')
+
 def relatorio_normas_por_autor(obj, request, context):
     return cria_relatorio(request, context, 'relatorios/relatorio_normas_por_autor.html')
 
