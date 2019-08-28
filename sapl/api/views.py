@@ -15,6 +15,7 @@ from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
 from rest_framework import serializers as rest_serializers
 from rest_framework.decorators import action
+from rest_framework.fields import SerializerMethodField
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -94,9 +95,14 @@ class SaplApiViewSetConstrutor():
                 # Define uma classe padrão para serializer caso não tenha sido
                 # criada a classe sapl.api.serializers.{model}Serializer
                 class SaplSerializer(rest_serializers.ModelSerializer):
+                    __str__ = SerializerMethodField()
+
                     class Meta:
                         model = _model
                         fields = '__all__'
+
+                    def get___str__(self, obj):
+                        return str(obj)
 
                 # Define uma classe padrão para filtro caso não tenha sido
                 # criada a classe sapl.api.forms.{model}FilterSet
