@@ -43,47 +43,39 @@
 </head>
 
 <body>
-  <h2>Normas por vigência</h2>
+  <h2>Histórico de Tramitações de Documento Administrativo</h2>
 
     <b>PARÂMETROS DE PESQUISA:<br /></b>
-    &emsp;Ano: {{ ano }} <br />
-    &emsp;Vigência: {{ vigencia }} <br />
+    &emsp;Período: {{ data_tramitacao }} <br />
+    &emsp;Tipo de documento: {{ tipo }}<br />
+    &emsp;Status atual: {{ tramitacaoadministrativo__status }}<br />
+    &emsp;Local de origem: {{ tramitacaoadministrativo__unidade_tramitacao_local }}<br />
+    &emsp;Local de destino: {{ tramitacaoadministrativo__unidade_tramitacao_destino }}<br /><br /><br />
     {% if object_list %}
-      <br/>
-      {% if  object_list|length > 1 %}
-        <h3>Foram encontradas {{object_list|length}} normas.</h3>
+      {% if object_list|length == 1 %}
+        <tr><td><h3 style="text-align: left;">Foi encontrado 1 documento com esses parâmetros.</h3></td></tr><br><br>
       {% else %}
-        <h3>Foi encontrada 1 norma.</h3>
+        <tr><td><h3 style="text-align: left;">Foram encontrados {{object_list|length}} documentos com esses parâmetros.</h3></td></tr><br><br>
       {% endif %}
-      <br/>
-      <table class="table table-bordered table-hover" style="width:100%">
+      <table class="table table-bordered table-hover">
         <thead class="thead-default" >
           <tr class="active">
-            <th>Norma</th>
+            <th>Documento</th>
             <th>Ementa</th>
           </tr>
         </thead>
         <tbody>
-          {% for norma in object_list %}
+          {% for documento in object_list %}
             <tr>
               <td>
-                {{norma.tipo.descricao}} - {{norma.tipo.sigla}} {{norma.numero}}/{{norma.ano}}
+                {{documento.tipo.descricao}} - {{documento.tipo.sigla}} {{documento.numero}}/{{documento.ano}}
               </td>
-              <td>{{norma.ementa}}<br>{{norma.observacao}}</td>
+              <td>{{documento.ementa}}<br>{{documento.observacao}}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     {% else %}
-      <table class="table table-bordered table-hover" style="margin-top:30px;">
-        <thead class="thead-default" >
-          <tr class="active">
-            <th> Não foi encontrada nenhuma norma com os parâmetros buscados.</th>
-          </tr>
-        </thead>
-      </table>
+    <tr><td><h3 style="text-align: left;">Nenhum documento encontrado com esses parâmetros.</h3></td></tr><br><br>
     {% endif %}
-    <br>
-    <h3>Estatísticas das normas do ano:</h3><br>
-    <h3>{{quant_vigente}} vigente(s) / {{quant_nao_vigente}} não vigente(s)</h3>
 </body>
