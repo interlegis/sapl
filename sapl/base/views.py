@@ -34,7 +34,8 @@ from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_ma
                                    relatorio_historico_tramitacao, relatorio_fim_prazo_tramitacao,
                                    relatorio_atas, relatorio_audiencia, relatorio_normas_mes,
                                    relatorio_normas_vigencia, relatorio_historico_tramitacao_adm,
-                                   relatorio_reuniao, relatorio_estatisticas_acesso_normas)
+                                   relatorio_reuniao, relatorio_estatisticas_acesso_normas,
+                                   relatorio_normas_por_autor)
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
@@ -2120,10 +2121,11 @@ class RelatorioHistoricoTramitacaoAdmView(RelatorioMixin, FilterView):
 
         return context
 
-class RelatorioNormasPorAutorView(FilterView):
+class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasPorAutorFilterSet
     template_name = 'base/RelatorioNormasPorAutor_filter.html'
+    relatorio = relatorio_normas_por_autor
 
     def get_filterset_kwargs(self, filterset_class):
         super().get_filterset_kwargs(filterset_class)
@@ -2139,7 +2141,7 @@ class RelatorioNormasPorAutorView(FilterView):
 
         qtdes = {}
         for tipo in TipoNormaJuridica.objects.all():
-            qs = kwargs['object_list']
+            qs = context['object_list']
             qtde = len(qs.filter(tipo_id=tipo.id))
             if qtde > 0:
                 qtdes[tipo] = qtde
@@ -2166,13 +2168,3 @@ class RelatorioNormasPorAutorView(FilterView):
             ' - ' + self.request.GET['data_1'])
 
         return context
-
-    def get(self, request, *args, **kwargs):
-        super(RelatorioHistoricoTramitacaoAdmView, self).get(request)
-        is_relatorio = request.GET.get('relatorio', None)
-        context = self.get_context_data(filter=self.filterset)
-
-        if is_relatorio:
-            return relatorio_historico_tramitacao_adm(request, context)
-        else:
-            return self.render_to_response(context)

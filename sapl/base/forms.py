@@ -1759,6 +1759,20 @@ class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
              (Button('limpar',
                      'Limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                                    <div class="form-check">
+                                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                                    </div>
+                                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
@@ -1768,5 +1782,5 @@ class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
                      HTML(autor_label),
                      HTML(autor_modal),
                      row3,
-                     form_actions(label='Pesquisar'))
+                     buttons)
         )
