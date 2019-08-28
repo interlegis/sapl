@@ -823,8 +823,6 @@ def ultimo_ano_com_norma():
 
 class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
-    o = AnoNumeroOrderingFilter(help_text='')
-
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
                                       choices=choice_anos_com_normas,
@@ -873,8 +871,6 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
 class EstatisticasAcessoNormasForm(Form):
 
-    o = AnoNumeroOrderingFilter(help_text='')
-
     ano = forms.ChoiceField(required=True,
                             label='Ano de acesso',
                             choices=RANGE_ANOS,
@@ -918,8 +914,6 @@ class EstatisticasAcessoNormasForm(Form):
 
 
 class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
-
-    o = AnoNumeroOrderingFilter(help_text='')
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
@@ -1183,8 +1177,6 @@ class RelatorioReuniaoFilterSet(django_filters.FilterSet):
 
 
 class RelatorioAudienciaFilterSet(django_filters.FilterSet):
-
-    o = AnoNumeroOrderingFilter(help_text='')
 
     @property
     def qs(self):
@@ -1681,8 +1673,6 @@ class PartidoForm(FileFieldCheckMixin, ModelForm):
 
 
 class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
-
-    o = AnoNumeroOrderingFilter(help_text='')
 
     @property
     def qs(self):
