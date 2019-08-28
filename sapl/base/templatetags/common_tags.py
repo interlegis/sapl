@@ -249,8 +249,10 @@ def facebook_url(value):
 def youtube_id(value):
     from urllib.parse import urlparse, parse_qs
     u_pars = urlparse(value)
-    quer_v = parse_qs(u_pars.query).get('v')[0]
-    return quer_v
+    quer_v = parse_qs(u_pars.query).get('v')
+    if quer_v:
+        return quer_v[0]
+    return ''
 
 
 @register.filter
