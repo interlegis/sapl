@@ -544,7 +544,7 @@ class RegistroVotacao(models.Model):
                           default='')
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
-        auto_now_add=True,
+        auto_now=True,
         blank=True,
         null=True)
 
@@ -595,7 +595,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
                           default='')
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
-        auto_now_add=True,
+        auto_now=True,
         blank=True,
         null=True)
 
@@ -886,7 +886,7 @@ class RegistroLeitura(models.Model):
                           default='')
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
-        auto_now_add=True,
+        auto_now=True,
         blank=True,
         null=True)
 
@@ -906,6 +906,6 @@ class RegistroLeitura(models.Model):
         # forem reestruturados e os campos ordem e expediente forem unificados
         if not xor(bool(self.ordem), bool(self.expediente)):
             raise ValidationError(
-                'RegistroVotacao deve ter exatamente um dos campos '
+                'RegistroLeitura deve ter exatamente um dos campos '
                 'ordem ou expediente preenchido. Ambos estão preenchidos: '
                 '{}, {}'. format(self.ordem, self.expediente))
