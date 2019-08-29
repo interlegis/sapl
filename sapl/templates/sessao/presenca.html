@@ -5,71 +5,72 @@
 {% block actions %}{% endblock %}
 
 {% block detail_content %}
-{% if perms|get_add_perm:view %}
-<form method="POST">
-  {% csrf_token %}
-  <div class="controls">
-    <div class="checkbox">
-      <label for="id_check_all">
-        <input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todos
-      </label>
+  {% if perms|get_add_perm:view %}
+    <form method="POST">
+      {% csrf_token %}
+      <div class="controls">
+        <div class="checkbox">
+          <label for="id_check_all">
+            <input type="checkbox" id="id_check_all" onchange="checkAll(event)" /> Marcar/Desmarcar Todos
+          </label>
+          </div>
       </div>
-  </div>
-  <br />
-  <div class="controls">
-    <div class="checkbox">
-      <label for="id_ativos">
-        <input type="checkbox" name="ativos" id="id_ativos" onchange="escondeInativos()" checked /> Exibir somente
-        parlamentares ativos
-      </label>
+      <br />
+      <div class="controls">
+        <div class="checkbox">
+          <label for="id_ativos">
+            <input type="checkbox" name="ativos" id="id_ativos" onchange="escondeInativos()" checked /> Exibir somente
+            parlamentares ativos
+          </label>
+          </div>
       </div>
-  </div>
-  <br />
-  <div class="controls ">
-    {% for parlamentar, check in view.get_presencas %}
-    {% if parlamentar.ativo %}
-      <div class="checkbox">
-        <label for="id_presenca_{{forloop.counter}}">
-          <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}"
-          {% if check %} checked {% endif %}>
-          {{ parlamentar.nome_parlamentar }}  / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
-        </label>
+      <br />
+      <div class="controls ">
+        {% for parlamentar, check, afastado in view.get_presencas %}
+          {% if parlamentar.ativo and not afastado %}
+            <div class="checkbox">
+              <label for="id_presenca_{{forloop.counter}}">
+                <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_ativos" value="{{ parlamentar.id }}"
+                {% if check %} checked {% endif %}>
+                {{ parlamentar.nome_parlamentar }}  / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+              </label>
+            </div>
+          {% else %}
+            <div class="checkbox inativos" style="display:none;">
+              <label for="id_presenca_{{forloop.counter}}" class="inativos" style="display:none;">
+                <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_inativos" value="{{ parlamentar.id }}"
+                  {% if check %} checked {% endif %}>
+                {{ parlamentar.nome_parlamentar }}  / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+                {% if afastado %} (Afastado) {% endif %}
+              </label>
+            </div>
+          {% endif %}
+        {% endfor %}
       </div>
-    {% else %}
-    <div class="checkbox inativos" style="display:none;">
-      <label for="id_presenca_{{forloop.counter}}" class="inativos" style="display:none;">
-        <input type="checkbox" id="id_presenca_{{forloop.counter}}" name="presenca_inativos" value="{{ parlamentar.id }}"
-          {% if check %} checked {% endif %}>
-        {{ parlamentar.nome_parlamentar }}  / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
-      </label>
+      <br />
+      <input type="submit" value="Salvar" class="btn btn-primary" />
+    </form>
+
+  {% else %}
+
+    <div class="row">
+      <div class="col-md-6">
+        <h2>Parlamentares presentes
+      </div>
     </div>
-    {% endif %}
+    <br />
+
+    {% for parlamentar, check, afastado in view.get_presencas %}
+      {% if check %}
+      <div class="row">
+        <div class="col-md-6">
+          <label for="parlamentar"> - {{ parlamentar.nome_parlamentar }} / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+          </label>
+        </div>
+      </div>
+      {% endif %}
     {% endfor %}
-  </div>
-  <br />
-  <input type="submit" value="Salvar" class="btn btn-primary" />
-</form>
-
-{% else %}
-
-<div class="row">
-  <div class="col-md-6">
-    <h2>Parlamentares presentes
-  </div>
-</div>
-<br />
-
-{% for parlamentar, check in view.get_presencas %}
-{% if check %}
-<div class="row">
-  <div class="col-md-6">
-    <label for="parlamentar"> - {{ parlamentar.nome_parlamentar }} / {% if parlamentar|filiacao_data_filter:object.data_inicio %} {{ parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
-    </label>
-  </div>
-</div>
-{% endif %}
-{% endfor %}
-{% endif %}
+  {% endif %}
 {% endblock detail_content %}
 
 {% block extra_js %}

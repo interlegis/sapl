@@ -998,3 +998,20 @@ class OverwriteStorage(FileSystemStorage):
         if self.exists(name):
             os.remove(os.path.join(settings.MEDIA_ROOT, name))
         return name
+
+        
+def verifica_afastamento_parlamentar(parlamentar, data_inicio, data_fim=None):
+    from sapl.parlamentares.models import AfastamentoParlamentar
+    if data_fim:
+        existe_afastamento = AfastamentoParlamentar.objects.filter(Q(parlamentar=parlamentar) &
+                                                            ( (Q(data_inicio__lte=data_inicio) &
+                                                               Q(data_fim__gte=data_fim)) | 
+                                                               ( Q(data_inicio__lte=data_inicio) &
+                                                                 Q(data_fim__isnull=True)) 
+                                                            ) ).exists()
+    else:
+        existe_afastamento = AfastamentoParlamentar.objects.filter(parlamentar=parlamentar, 
+                                                            data_inicio__lte=data_inicio,
+                                                            data_fim__gte=data_inicio).exists()
+
+    return existe_afastamento

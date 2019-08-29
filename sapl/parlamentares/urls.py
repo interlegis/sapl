@@ -12,6 +12,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       RelatoriaParlamentarCrud,
                                       SessaoLegislativaCrud,
                                       TipoAfastamentoCrud, TipoDependenteCrud,
+                                      AfastamentoParlamentarCrud,
                                       TipoMilitarCrud, VotanteView,
                                       altera_field_mesa,
                                       altera_field_mesa_public_view,
@@ -42,7 +43,7 @@ urlpatterns = [
         ParticipacaoParlamentarCrud.get_urls() +
         ProposicaoParlamentarCrud.get_urls() +
         RelatoriaParlamentarCrud.get_urls() + FrenteList.get_urls() +
-        VotanteView.get_urls()
+        VotanteView.get_urls() + AfastamentoParlamentarCrud.get_urls()
     )),
 
     url(r'^parlamentar/lista$', lista_parlamentares, name='lista_parlamentares'),
