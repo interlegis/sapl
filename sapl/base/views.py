@@ -1430,7 +1430,7 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
 
 
 def parlamentares_duplicados():
-    return [parlamentar.values() for parlamentar in Parlamentar.objects.values(
+    return [parlamentar for parlamentar in Parlamentar.objects.values(
         'nome_parlamentar').order_by('nome_parlamentar').annotate(count=Count(
             'nome_parlamentar')).filter(count__gt=1)]
 
