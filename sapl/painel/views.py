@@ -336,11 +336,41 @@ def votante_view(request):
 
 @user_passes_test(check_permission)
 def painel_view(request, pk):
+    exibicao = {
+        'parlamentares': True,
+        'oradores': True,
+        'cronometros': True,
+        'resultado': True,
+        'materia': True
+    }
     context = {'head_title': str(_('Painel Plenário')), 
                'sessao_id': pk, 
                'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao'),
                'painel_config': PainelConfig.objects.first(),
-               'casa': CasaLegislativa.objects.last()
+               'casa': CasaLegislativa.objects.last(),
+               'exibicao': exibicao
+               }
+    return render(request, 'painel/index.html', context)
+
+def bit_is_set(number, bit):
+    return (number & (1 << bit)) != 0
+
+@user_passes_test(check_permission)
+def painel_parcial_view(request, pk, opcoes):
+    opcoes = int(opcoes)
+    exibicao = {
+        'parlamentares': bit_is_set(opcoes,0),
+        'oradores': bit_is_set(opcoes,1),
+        'cronometros': bit_is_set(opcoes, 2),
+        'resultado': bit_is_set(opcoes, 3),
+        'materia': bit_is_set(opcoes, 4)
+    }
+    context = {'head_title': str(_('Painel Plenário')), 
+               'sessao_id': pk, 
+               'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao'),
+               'painel_config': PainelConfig.objects.first(),
+               'casa': CasaLegislativa.objects.last(),
+               'exibicao': exibicao
                }
     return render(request, 'painel/index.html', context)
 
