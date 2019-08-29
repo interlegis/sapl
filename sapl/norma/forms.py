@@ -94,10 +94,10 @@ class NormaFilterSet(django_filters.FilterSet):
     
     def filter_vigencia(self, queryset, name, value):
         data_atual = timezone.now()
-        if value:
-            queryset = queryset.filter(Q(data_vigencia__lt=data_atual) | Q(data_vigencia__isnull=True))
+        if value: # É vigente
+            queryset = queryset.filter((Q(data_vigencia__gt=data_atual) or Q(data_vigencia__isnull=True)) and Q(data__lte=data_atual))
         else:
-            queryset = queryset.filter(data_vigencia__gt=data_atual)           
+            queryset = queryset.filter(Q(data_vigencia__lte=data_atual) or Q(data__gt=data_atual))           
                 
         return queryset
     
