@@ -193,13 +193,13 @@ def test_lista_parlamentares_duplicados():
                 sexo='M'
         )
 
-        lista_dict_values_parlamentares_duplicados = parlamentares_duplicados()
+        lista_dict_parlamentares_duplicados = parlamentares_duplicados()
         parlamentar_duplicado = list(
-                lista_dict_values_parlamentares_duplicados[0]
+                lista_dict_parlamentares_duplicados[0].values()
         )
         parlamentar_duplicado.sort(key=str)
 
-        assert len(lista_dict_values_parlamentares_duplicados) == 1
+        assert len(lista_dict_parlamentares_duplicados) == 1
         assert parlamentar_duplicado == [2, "Nome_Parlamentar_Teste"]
 
 
