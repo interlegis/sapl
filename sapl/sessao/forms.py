@@ -1055,7 +1055,7 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
             [('observacao', 12)])   
 
         actions = [HTML('<a href="{{ view.cancel_url }}"'
-                        ' class="btn btn-dark">Cancelar</a>')]
+                        ' class="btn btn-warning">Cancelar Leitura</a>')]
 
         self.helper = SaplFormHelper()
         self.helper.form_method = 'POST'
