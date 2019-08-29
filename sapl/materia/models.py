@@ -1087,8 +1087,8 @@ class Tramitacao(models.Model):
 
 
 class MateriaEmTramitacao(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa)
-    tramitacao = models.ForeignKey(Tramitacao)
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.DO_NOTHING)
+    tramitacao = models.ForeignKey(Tramitacao, on_delete=models.DO_NOTHING)
 
     class Meta:
         managed = False
