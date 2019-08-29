@@ -54,15 +54,15 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
-        $(function() {
-                var divNova = document.createElement("div"); 
+        $(function() { 
+                var divNova = $('<div></div>')
                 divNova.innerText = "";
-                $(divNova).addClass('alert alert-success')
-                $(divNova).attr("style", "margin-left:190px;margin-right:190px")
-                divNova.style.visibility = "hidden"
+                divNova.addClass('alert alert-success')
+                divNova.attr("style", "margin-left:190px;margin-right:190px")
+                divNova[0].style.visibility = "hidden"
                 
-                var list = document.getElementById("content");
-                list.insertBefore(divNova, list.childNodes[0]);
+                var list = $("#content");
+                list[0].insertBefore(divNova[0], list[0].childNodes[0]);
                 
                 $( "#sortable" ).sortable({
                     beforeStop: function( event, ui ) {
@@ -86,8 +86,8 @@
                             $( "#sortable tr td spam b" ).each(function(index,obj) {
                               $(obj).text(index+1);
                             });
-                            divNova.style.visibility = "visible"
-                            divNova.innerText = data['msg'];
+                            divNova[0].style.visibility = "visible"
+                            divNova[0].innerText = data['msg'];
                           },
 	                      });
                     }
