@@ -195,8 +195,13 @@ class IntegracaoTaView(TemplateView):
             return redirect(to=reverse_lazy('sapl.compilacao:ta_text_edit',
                                             kwargs={'ta_id': ta.pk}))
         else:
-            return redirect(to=reverse_lazy('sapl.compilacao:ta_text',
-                                            kwargs={'ta_id': ta.pk}))
+            return redirect(
+                to='%s?%s' % (
+                    reverse_lazy('sapl.compilacao:ta_text',
+                                 kwargs={'ta_id': ta.pk}),
+                    request.META['QUERY_STRING']
+                )
+            )
 
     class Meta:
         abstract = True
