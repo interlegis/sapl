@@ -700,6 +700,13 @@ class ComprovanteProtocoloView(PermissionRequiredMixin, TemplateView):
             autenticacao = str(protocolo.tipo_processo) + \
                 data + str(protocolo.numero).zfill(6)
 
+        if protocolo.tipo_materia:
+            materia = MateriaLegislativa.objects.filter(
+                numero_protocolo=protocolo.numero,
+                ano=protocolo.ano).first()
+            if materia:
+                context['materia'] = materia.numero
+
         context.update({"protocolo": protocolo,
                         "barcode": barcode,
                         "autenticacao": autenticacao})
