@@ -373,13 +373,13 @@ class DocumentoAdministrativoCrud(Crud):
                 return redirect('/')
             return super(Crud.DetailView, self).get(args, kwargs)
 
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            self.layout_display[0]['rows'][-1][0]['text'] = (
-                '<a href="%s"></a>' % reverse(
+        def urlize(self, obj, fieldname):
+            a = '<a href="%s">%s</a>' % (
+                reverse(
                     'sapl.protocoloadm:doc_texto_integral',
-                    kwargs={'pk': self.object.pk}))
-            return context
+                    kwargs={'pk': obj.pk}),
+                obj.texto_integral.name.split('/')[-1])
+            return obj.texto_integral.field.verbose_name, a
 
     class DeleteView(Crud.DeleteView):
 
