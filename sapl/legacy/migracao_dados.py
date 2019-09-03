@@ -990,7 +990,7 @@ def criar_configuracao_inicial():
 
     # Ajusta sequencia numérica de protocolo e cria base.AppConfig
     if (
-        TipoNumeracaoProtocolo._meta.db_table in TABELAS_LEGADO
+        existe_tabela_no_legado(TipoNumeracaoProtocolo._meta.db_table)
         and TipoNumeracaoProtocolo.objects.exists()
     ):
         # se este banco legado tem a a configuração de numeração de protocolo
@@ -1166,8 +1166,8 @@ def move_para_depois_de(lista, movido, referencias):
     return lista
 
 
-TABELAS_LEGADO = [t for (t,) in exec_legado("show tables")]
-EXISTE_REUNIAO_NO_LEGADO = "reuniao_comissao" in TABELAS_LEGADO
+def existe_reuniao_no_legado():
+    return existe_tabela_no_legado("reuniao_comissao")
 
 
 def get_models_a_migrar():
@@ -1179,7 +1179,7 @@ def get_models_a_migrar():
     ]
     # retira reuniões quando não existe na base legada
     # (só existe no sapl 3.0)
-    if not EXISTE_REUNIAO_NO_LEGADO:
+    if not existe_reuniao_no_legado():
         models.remove(Reuniao)
     # Devido à referência TipoProposicao.tipo_conteudo_related
     # a migração de TipoProposicao precisa ser feita

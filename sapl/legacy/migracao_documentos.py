@@ -10,7 +10,7 @@ from image_cropping.fields import ImageCropField
 
 from sapl.base.models import CasaLegislativa
 from sapl.comissoes.models import Reuniao
-from sapl.legacy.migracao_dados import EXISTE_REUNIAO_NO_LEGADO, exec_legado
+from sapl.legacy.migracao_dados import exec_legado, existe_reuniao_no_legado
 from sapl.materia.models import (DocumentoAcessorio, MateriaLegislativa,
                                  Proposicao)
 from sapl.norma.models import NormaJuridica
@@ -37,7 +37,7 @@ DOCS = {
 }
 
 # acrescenta reuniões (que só existem no sapl 3.0)
-if EXISTE_REUNIAO_NO_LEGADO:
+if existe_reuniao_no_legado():
     DOCS[Reuniao] = [('upload_pauta', 'reuniao_comissao/{}_pauta'),
                      ('upload_ata', 'reuniao_comissao/{}_ata')]
 
