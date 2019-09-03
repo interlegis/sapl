@@ -186,6 +186,7 @@ rules_group_sessao = {
         (sessao.VotoParlamentar, __base__, __perms_publicas__),
         (sessao.JustificativaAusencia, __base__, __perms_publicas__),
         (sessao.RetiradaPauta, __base__, __perms_publicas__),
+        (sessao.RegistroLeitura, __base__, __perms_publicas__),
     ]
 }
 
