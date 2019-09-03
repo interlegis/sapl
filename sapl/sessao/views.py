@@ -4425,16 +4425,12 @@ class AbstractLeituraView(FormView):
         return url
 
     def cancel_url(self):
-        if self.expediente:
-            ordem_expediente = ExpedienteMateria.objects.get(id=self.kwargs['oid'])
-            RegistroLeitura.objects.filter(materia=ordem_expediente.materia, expediente=ordem_expediente).delete()
-        else:
-            ordem_expediente = OrdemDia.objects.get(id=self.kwargs['oid'])
-            RegistroLeitura.objects.filter(materia=ordem_expediente.materia, ordem=ordem_expediente).delete()
-        ordem_expediente.resultado = ""
-        ordem_expediente.votacao_aberta = False
-        ordem_expediente.save()
-        return self.get_success_url()
+        url = reverse('sapl.sessao:retirar_leitura',
+                       kwargs={
+                        'pk': self.kwargs['pk'],
+                       'iso': 1 if not self.expediente else 0,
+                       'oid': self.kwargs['oid']})
+        return url
 
 
 class ExpedienteLeituraView(AbstractLeituraView):
@@ -4443,3 +4439,24 @@ class ExpedienteLeituraView(AbstractLeituraView):
 
 class OrdemDiaLeituraView(AbstractLeituraView):
     expediente = False
+
+
+@permission_required('sessao.change_expedientemateria',
+                     'sessao.change_ordemdia')
+def retirar_leitura(request, pk, iso, oid):
+    is_ordem = bool(int(iso))
+    if not is_ordem:
+        ordem_expediente = ExpedienteMateria.objects.get(id=oid)
+        RegistroLeitura.objects.filter(materia=ordem_expediente.materia, expediente=ordem_expediente).delete()
+        succ_url = reverse('sapl.sessao:expedientemateria_list',
+                       kwargs={'pk': pk})
+    else:
+        ordem_expediente = OrdemDia.objects.get(id=oid)
+        RegistroLeitura.objects.filter(materia=ordem_expediente.materia, ordem=ordem_expediente).delete()
+        succ_url = reverse('sapl.sessao:ordemdia_list',
+                       kwargs={'pk': pk})
+    ordem_expediente.resultado = ""
+    ordem_expediente.votacao_aberta = False
+    ordem_expediente.save()
+
+    return HttpResponseRedirect(succ_url)

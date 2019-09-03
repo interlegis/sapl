@@ -36,7 +36,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
                                recuperar_nome_tipo_sessao,
                                ExpedienteLeituraView,
-                               OrdemDiaLeituraView)
+                               OrdemDiaLeituraView,
+                               retirar_leitura)
 
 from .apps import AppConfig
 
@@ -196,5 +197,8 @@ urlpatterns = [
         ExpedienteLeituraView.as_view(), name='leituraexp'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/leitura/(?P<oid>\d+)/(?P<mid>\d+)$',
         OrdemDiaLeituraView.as_view(), name='leituraod'),
+
+    url(r'^sessao/(?P<pk>\d+)/(?P<iso>\d+)/(?P<oid>\d+)/retirar-leitura$',
+        retirar_leitura, name='retirar_leitura'),
     
 ]
