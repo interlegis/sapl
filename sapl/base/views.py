@@ -32,23 +32,26 @@ from haystack.query import SearchQuerySet
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
-from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import Reuniao, Comissao
+from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
+from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination
-from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexada,
-                                 TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao,
-                                 DocumentoAcessorio, TipoDocumento, Tramitacao)
-from sapl.norma.models import (NormaJuridica, TipoNormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa
-from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
-                                      StatusTramitacaoAdministrativo, 
-                                      DocumentoAdministrativo, Anexado)
-from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, Bancada, TipoSessaoPlenaria)
-from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
-                        show_results_filter_set, mail_service_configured,
-                        intervalos_tem_intersecao, remover_acentos)
+from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio,
+                                 MateriaEmTramitacao, MateriaLegislativa, Proposicao,
+                                 StatusTramitacao, TipoDocumento,
+                                 TipoMateriaLegislativa,  UnidadeTramitacao, Tramitacao)
+from sapl.norma.models import NormaJuridica, TipoNormaJuridica
+from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato, Parlamentar, 
+                                      SessaoLegislativa)
+from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocolo,
+                                      StatusTramitacaoAdministrativo,
+                                      TipoDocumentoAdministrativo)
+from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria,
+                                SessaoPlenariaPresenca, TipoSessaoPlenaria)
+from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, 
+                        mail_service_configured, parlamentares_ativos,
+                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set)
+
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet,
@@ -66,26 +69,6 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioDocumentosAcessoriosFilterSet,
                     RelatorioNormasPorAutorFilterSet)
 from .models import AppConfig, CasaLegislativa
-
-
-def filtra_url_materias_em_tramitacao(data, qs, campo_url, local_ou_status):
-    id_materias = []
-    filtro_url = data[campo_url]
-
-    if local_ou_status == 'local':
-        for item in qs:
-            f = item.tramitacao_set.order_by('-id').first()
-            if f:
-                if f.unidade_tramitacao_destino_id == int(filtro_url):
-                    id_materias.append(item.id)
-    elif local_ou_status == 'status':
-        for item in qs:
-            f = item.tramitacao_set.order_by('-id').first()
-            if f:
-                if f.status_id == int(filtro_url):
-                    id_materias.append(item.id)
-
-    return qs.filter(em_tramitacao=True, id__in=id_materias)
 
 
 def get_casalegislativa():
@@ -711,7 +694,7 @@ class RelatorioAudienciaView(FilterView):
 
 
 class RelatorioMateriasTramitacaoView(FilterView):
-    model = MateriaLegislativa
+    model = MateriaEmTramitacao
     filterset_class = RelatorioMateriasTramitacaoFilterSet
     template_name = 'base/RelatorioMateriasPorTramitacao_filter.html'
 
@@ -725,35 +708,68 @@ class RelatorioMateriasTramitacaoView(FilterView):
         if data['data']:
             qs = data['queryset']
 
-            if data['data']['tramitacao__unidade_tramitacao_destino']:
-                qs = filtra_url_materias_em_tramitacao(
-                    data['data'], qs, 'tramitacao__unidade_tramitacao_destino', 'local')
+            ano_materia = data['data']['materia__ano']
+            tipo_materia = data['data']['materia__tipo']
+            unidade_tramitacao_destino = data['data']['tramitacao__unidade_tramitacao_destino']
+            status_tramitacao = data['data']['tramitacao__status']
 
-            if data['data']['tramitacao__status']:
-                qs = filtra_url_materias_em_tramitacao(
-                    data['data'], qs, 'tramitacao__status', 'status')
-
-            if data['data']['tipo']:
-                ultimas_tramitacoes = Tramitacao.objects.filter(
-                    materia__ano=data['data']['ano'],
-                    materia__tipo=data['data']['tipo']
-                ).values(
-                    'materia__ano', 'materia__numero'
-                ).annotate(id=Max('id'))
+            if tipo_materia:
+                if unidade_tramitacao_destino:
+                    if status_tramitacao:
+                        qs = qs.filter(
+                            materia__ano=ano_materia,
+                            materia__tipo=tipo_materia,
+                            tramitacao__unidade_tramitacao_destino=unidade_tramitacao_destino,
+                            tramitacao__status=status_tramitacao
+                        )
+                    else:
+                        qs = qs.filter(
+                            materia__ano=ano_materia,
+                            materia__tipo=tipo_materia,
+                            tramitacao__unidade_tramitacao_destino=unidade_tramitacao_destino
+                        )
+                else:
+                    if status_tramitacao:
+                        qs = qs.filter(
+                            materia__ano=ano_materia,
+                            materia__tipo=tipo_materia,
+                            tramitacao__status=status_tramitacao
+                        )
+                    else:
+                        qs = qs.filter(
+                            materia__ano=ano_materia,
+                            materia__tipo=tipo_materia
+                        )
             else:
-                ultimas_tramitacoes = Tramitacao.objects.filter(
-                    materia__ano=data['data']['ano']
-                ).values(
-                    'materia__ano', 'materia__numero'
-                ).annotate(id=Max('id'))
-            ultimas_tramitacoes_ids = [i['id'] for i in ultimas_tramitacoes]
-            qs = qs.filter(tramitacao__id__in=ultimas_tramitacoes_ids)
+                if unidade_tramitacao_destino:
+                    if status_tramitacao:
+                        qs = qs.filter(
+                            materia__ano=ano_materia,
+                            tramitacao__unidade_tramitacao_destino=unidade_tramitacao_destino,
+                            tramitacao__status=status_tramitacao
+                        )
+                    else:
+                        qs = qs.filter(
+                            materia__ano=ano_materia,
+                            tramitacao__unidade_tramitacao_destino=unidade_tramitacao_destino,
+                        )
+                else:
+                    if status_tramitacao:
+                        qs = qs.filter(
+                            materia__ano=ano_materia,
+                            tramitacao__status=status_tramitacao
+                        )
+                    else:
+                        qs = qs.filter(
+                            materia__ano=ano_materia,
+                        )
 
             data['queryset'] = qs
             
-            qtdes = { tipo:0 for tipo in TipoMateriaLegislativa.objects.all()}
+            qtdes = { tipo:0 for tipo in TipoMateriaLegislativa.objects.all() }
             for i in qs:
-                qtdes[i.tipo] += 1
+                qtdes[i.materia.tipo] += 1
+
             # remove as entradas de valor igual a zero
             qtdes = {k:v for k,v in qtdes.items() if v > 0}
             self.total_resultados_tipos = qtdes
@@ -762,27 +778,30 @@ class RelatorioMateriasTramitacaoView(FilterView):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        qs = qs.select_related('tipo').filter(
-            em_tramitacao=True).exclude(
+        qs = qs.select_related('materia__tipo').filter(
+                materia__em_tramitacao=True
+            ).exclude(
                 tramitacao__status__indicador='F'
-                ).order_by('-ano', '-numero')
+            ).order_by('-materia__ano', '-materia__numero')
         return qs
 
     def get_context_data(self, **kwargs):
-        context = super(RelatorioMateriasTramitacaoView,
-                        self).get_context_data(**kwargs)
+        context = super(
+            RelatorioMateriasTramitacaoView, self
+        ).get_context_data(**kwargs)
 
         context['title'] = _('Matérias em Tramitação')
+        
         if not self.filterset.form.is_valid():
             return context
 
         qr = self.request.GET.copy()
 
         context['qtdes'] = self.total_resultados_tipos
-        context['ano'] = (self.request.GET['ano'])
+        context['ano'] = (self.request.GET['materia__ano'])
 
-        if self.request.GET['tipo']:
-            tipo = self.request.GET['tipo']
+        if self.request.GET['materia__tipo']:
+            tipo = self.request.GET['materia__tipo']
             context['tipo'] = (
                 str(TipoMateriaLegislativa.objects.get(id=tipo))
             )
