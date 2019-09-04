@@ -4387,7 +4387,6 @@ class AbstractLeituraView(FormView):
 
     def get_initial(self):
         initial = super().get_initial()
-        sessao = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
         materia = MateriaLegislativa.objects.get(id=self.kwargs['mid'])
         initial['materia'] = materia
         initial['materia__ementa'] = materia.ementa
@@ -4400,6 +4399,8 @@ class AbstractLeituraView(FormView):
             instance = RegistroLeitura.objects.filter(materia=materia, ordem=ordem)
             initial['ordem'] = ordem
         initial['instance'] = instance
+        initial['user'] = self.request.user
+        initial['ip'] = get_client_ip(self.request)
         return initial
 
     def form_valid(self, form):

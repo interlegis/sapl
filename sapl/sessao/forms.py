@@ -1036,10 +1036,14 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
         fields = ['materia',
                   'ordem',
                   'expediente',
-                  'observacao']
+                  'observacao',
+                  'user', 
+                  'ip']
         widgets = {'materia': forms.HiddenInput(),
                    'ordem': forms.HiddenInput(),
                    'expediente': forms.HiddenInput(),
+                   'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()
                    }
 
     def __init__(self, *args, **kwargs):
