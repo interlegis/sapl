@@ -1,5 +1,5 @@
 
-from sapl.comissoes.models import Comissao, Composicao, Reuniao
+from sapl.comissoes.models import Comissao, Composicao, Reuniao, Participacao
 from sapl.materia.models import DespachoInicial, Relatoria, UnidadeTramitacao
 from sapl.utils import intervalos_tem_intersecao
 
@@ -51,37 +51,43 @@ def realoca_autor(principal, secundaria):
             protocolo.save()
 
             clone.delete()
-
-def redireciona_apaga(principal,secundaria,apaga):
-    if(apaga):
-        secundaria.delete()
-    else:
-        secundaria.comissao = principal
-        secundaria.save()
-
+    
 
 def muda_models_dependentes(principal,secundaria):
     for model in models_dependentes:
         for obj_secundario in model.objects.filter(comissao=secundaria):
+            repetido = False
             for obj_principal in model.objects.filter(comissao=principal):
-                apaga = False
 
-                if model == Composicao:
-                    apaga = intervalos_tem_intersecao(obj_principal.periodo.data_inicio, 
+                if model == Composicao and intervalos_tem_intersecao(obj_principal.periodo.data_inicio, 
                                          obj_principal.periodo.data_fim,
                                          obj_secundario.periodo.data_inicio,
-                                         obj_secundario.periodo.data_fim)
-                
-                elif model == DespachoInicial:
-                    apaga = obj_principal.materia == obj_secundario.materia
-                
-                elif model == Reuniao:
-                    apaga = obj_principal.numero == obj_secundario.numero
-                
-                else:
-                    apaga = False
+                                         obj_secundario.periodo.data_fim):
+                    
+                    prim_participacoes = Participacao.objects.filter(composicao=obj_principal)
+                    sec_participacoes = Participacao.objects.filter(composicao=obj_secundario)
+                    for p in sec_participacoes:
+                        if p in prim_participacoes:
+                            p.delete()
+                        else:
+                            p.composicao = obj_principal
+                            p.save()
 
-                redireciona_apaga(obj_principal, obj_secundario, apaga)
+                elif model == DespachoInicial and obj_principal.materia == obj_secundario.materia:
+                    repetido =True
+                elif model == Reuniao and obj_principal.numero == obj_secundario.numero:
+                    repetido =True
+                else:
+                    repetido = False
+                
+            if(repetido):
+                obj_secundario.comissao = None
+                obj_secundario.delete()
+    
+            else:
+                obj_secundario.comissao = principal
+                obj_secundario.save()
+
 
 def junta_dulpicados(duplicados):
     principal = duplicados[-1]
