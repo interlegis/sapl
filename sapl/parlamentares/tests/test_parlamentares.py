@@ -5,10 +5,12 @@ from model_mommy import mommy
 from datetime import datetime
 
 from sapl.parlamentares import forms
-from sapl.parlamentares.forms import FrenteForm, LegislaturaForm, MandatoForm
+from sapl.parlamentares.forms import FrenteForm, LegislaturaForm, MandatoForm, AfastamentoParlamentarForm
 from sapl.parlamentares.models import (Dependente, Filiacao, Legislatura,
                                        Mandato, Parlamentar, Partido,
-                                       TipoDependente)
+                                       TipoDependente, TipoAfastamento,
+                                       AfastamentoParlamentar)
+from sapl.utils import verifica_afastamento_parlamentar
 
 
 @pytest.mark.django_db(transaction=False)
@@ -408,3 +410,148 @@ def test_bancada_form_datas_invalidas():
                                    'descricao': 'teste'
                                    })
     assert not form.is_valid()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_afastamentos_form_datas_invalidas():
+    parlamentar = mommy.make(Parlamentar)
+    mandato = mommy.make(Mandato,
+                         parlamentar = parlamentar,
+                         data_inicio_mandato='2017-01-01',
+                         data_fim_mandato='2021-12-31')
+    tipo_afastamento = mommy.make(TipoAfastamento, 
+                                  indicador= 'A', 
+                                  pk=1)
+
+    form = AfastamentoParlamentarForm(data={
+        'parlamentar': parlamentar.pk,
+        'mandato': mandato.pk,
+        'data_inicio': '2016-12-12',
+        'data_fim': '2019-10-09',
+        'tipo_afastamento': tipo_afastamento.pk
+    }, initial={'parlamentar': parlamentar.pk})
+
+    assert not form.is_valid()
+    assert form.errors['__all__'] == \
+        ["Data início do afastamento anterior ao início do mandato informado."]
+
+    form = AfastamentoParlamentarForm(data={
+        'parlamentar': parlamentar.pk,
+        'mandato': mandato.pk,
+        'data_inicio': '2017-02-02',
+        'data_fim': '2022-10-09',
+        'tipo_afastamento': tipo_afastamento.pk
+    }, initial={'parlamentar': parlamentar.pk})
+
+    assert not form.is_valid()
+    assert form.errors['__all__'] == \
+        ["Data fim do afastamento posterior ao fim do mandato informado."]
+
+    form = AfastamentoParlamentarForm(data={
+        'parlamentar': parlamentar.pk,
+        'mandato': mandato.pk,
+        'data_inicio': '2017-02-02',
+        'data_fim': '2015-10-09',
+        'tipo_afastamento': tipo_afastamento.pk
+    }, initial={'parlamentar': parlamentar.pk})
+
+    assert not form.is_valid()
+    assert form.errors['__all__'] == \
+        ["Data fim do afastamento anterior à data início do afastamento."]
+
+    form = AfastamentoParlamentarForm(data={
+        'parlamentar': parlamentar.pk,
+        'mandato': mandato.pk,
+        'data_inicio': '2017-02-02',
+        'tipo_afastamento': tipo_afastamento.pk
+    }, initial={'parlamentar': parlamentar.pk})
+
+    assert form.is_valid()
+
+    form.save()
+    assert AfastamentoParlamentar.objects.all().count() == 1
+
+    form = AfastamentoParlamentarForm(data={
+        'parlamentar': parlamentar.pk,
+        'mandato': mandato.pk,
+        'data_inicio': '2018-04-02',
+        'data_fim': '2018-06-09',
+        'tipo_afastamento': tipo_afastamento.pk
+    }, initial={'parlamentar': parlamentar.pk})
+
+    assert not form.is_valid()
+    assert form.errors['__all__'] == \
+        ["Existe Afastamento sem Data Fim."]
+
+    afastamento = AfastamentoParlamentar.objects.first()
+    afastamento.data_fim = '2017-04-02'
+    afastamento.save()
+
+    assert AfastamentoParlamentar.objects.first().data_fim == data('2017-04-02')
+
+    form = AfastamentoParlamentarForm(data={
+        'parlamentar': parlamentar.pk,
+        'mandato': mandato.pk,
+        'data_inicio': '2018-04-02',
+        'data_fim': '2018-06-09',
+        'tipo_afastamento': tipo_afastamento.pk
+    }, initial={'parlamentar': parlamentar.pk})
+
+    assert form.is_valid()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_afastamentos_form_campos_invalidos():
+    parlamentar = mommy.make(Parlamentar)
+    mandato = mommy.make(Mandato,
+                         parlamentar = parlamentar,
+                         data_inicio_mandato='2017-01-01',
+                         data_fim_mandato='2021-12-31')
+    tipo_afastamento = mommy.make(TipoAfastamento, 
+                                  indicador= 'A', 
+                                  pk=1)
+
+    form = AfastamentoParlamentarForm(data={}, initial={'parlamentar': parlamentar.pk})
+
+    assert not form.is_valid()
+
+    assert form.errors['data_inicio'] == ["Este campo é obrigatório."]
+    assert form.errors['mandato'] == ["Este campo é obrigatório."]
+    assert form.errors['parlamentar'] == ["Este campo é obrigatório."]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_parlamentar_esta_afastado():
+    parlamentar = mommy.make(Parlamentar)
+    mandato = mommy.make(Mandato,
+                         parlamentar = parlamentar,
+                         data_inicio_mandato='2017-01-01',
+                         data_fim_mandato='2021-12-31')
+    afastamento = AfastamentoParlamentar.objects.create(mandato=mandato, 
+                                                        parlamentar=parlamentar,
+                                                        data_inicio='2017-12-05',
+                                                        data_fim='2017-12-12')
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-13')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-04')
+
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06', '2017-12-11')
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06', '2017-12-06')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-03', '2017-12-04')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-13', '2017-12-15')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-15', '2017-12-15')
+
+    afastamento = AfastamentoParlamentar.objects.create(mandato=mandato, 
+                                                        parlamentar=parlamentar,
+                                                        data_inicio='2017-12-05')
+
+    assert AfastamentoParlamentar.objects.all().count() == 2
+
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-13')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-04')
+
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06', '2017-12-11')
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-06', '2017-12-06')
+    assert not verifica_afastamento_parlamentar(parlamentar, '2017-12-03', '2017-12-04')
+    assert verifica_afastamento_parlamentar(parlamentar, '2017-12-13', '2017-12-15')

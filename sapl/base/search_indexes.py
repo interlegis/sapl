@@ -1,23 +1,21 @@
-import os.path
 import logging
+import os.path
 
+from celery_haystack.indexes import CelerySearchIndex
 from django.db.models import F, Q, Value
 from django.db.models.fields import TextField
 from django.db.models.functions import Concat
 from django.template import loader
 from haystack import connections
 from haystack.constants import Indexable
-from haystack.fields import CharField
+from haystack.fields import CharField, DateTimeField, IntegerField
 from haystack.utils import get_model_ct_tuple
-
-from celery_haystack.indexes import CelerySearchIndex
 
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PUBLIC, Dispositivo)
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.settings import SOLR_URL
-from sapl.utils import RemoveTag
 
 
 class TextExtractField(CharField):
@@ -120,6 +118,7 @@ class TextExtractField(CharField):
 
 class DocumentoAcessorioIndex(CelerySearchIndex, Indexable):
     model = DocumentoAcessorio
+    data = DateTimeField(model_attr='data', null=True)
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(
@@ -145,6 +144,9 @@ class DocumentoAcessorioIndex(CelerySearchIndex, Indexable):
 
 class NormaJuridicaIndex(DocumentoAcessorioIndex):
     model = NormaJuridica
+    data = DateTimeField(model_attr='data', null=True)
+    tipo = CharField(model_attr='tipo__sigla')
+    ano = IntegerField(model_attr='ano')
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(
@@ -159,6 +161,9 @@ class NormaJuridicaIndex(DocumentoAcessorioIndex):
 
 class MateriaLegislativaIndex(DocumentoAcessorioIndex):
     model = MateriaLegislativa
+    tipo = CharField(model_attr='tipo__sigla')
+    ano = IntegerField(model_attr='ano')
+    data = DateTimeField(model_attr='data_apresentacao')
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(

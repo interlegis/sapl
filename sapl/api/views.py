@@ -15,6 +15,7 @@ from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
 from rest_framework import serializers as rest_serializers
 from rest_framework.decorators import action
+from rest_framework.fields import SerializerMethodField
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -24,11 +25,13 @@ from sapl.api.serializers import ChoiceSerializer
 from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
+from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
+
 
 class BusinessRulesNotImplementedMixin:
     def create(self, request, *args, **kwargs):
@@ -92,9 +95,14 @@ class SaplApiViewSetConstrutor():
                 # Define uma classe padrão para serializer caso não tenha sido
                 # criada a classe sapl.api.serializers.{model}Serializer
                 class SaplSerializer(rest_serializers.ModelSerializer):
+                    __str__ = SerializerMethodField()
+
                     class Meta:
                         model = _model
                         fields = '__all__'
+
+                    def get___str__(self, obj):
+                        return str(obj)
 
                 # Define uma classe padrão para filtro caso não tenha sido
                 # criada a classe sapl.api.forms.{model}FilterSet
@@ -200,6 +208,8 @@ SaplApiViewSetConstrutor.build_class()
 # rest_framework.viewsets.ModelViewSet conforme exemplo para a classe autor
 
 # decorator para recuperar e transformar o default
+
+
 class customize(object):
     def __init__(self, model):
         self.model = model
@@ -521,3 +531,12 @@ class _SessaoPlenariaViewSet:
 
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
+
+
+@customize(NormaJuridica)
+class _NormaJuridicaViewset:
+
+    @action(detail=False, methods=['GET'])
+    def destaques(self, request, *args, **kwargs):
+        self.queryset = self.get_queryset().filter(norma_de_destaque=True)
+        return self.list(request, *args, **kwargs)

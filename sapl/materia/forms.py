@@ -996,11 +996,15 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'autoria__primeiro_autor',
                   'autoria__autor__parlamentar_set__filiacao__partido',
                   'relatoria__parlamentar_id',
-                  'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status',
                   'materiaassunto__assunto',
                   'em_tramitacao',
+                  'tipo_origem_externa',
+                  'numero_origem_externa',
+                  'ano_origem_externa',
+                  'data_origem_externa',
+                  'local_origem_externa',
                   ]
 
     def filter_ementa(self, queryset, name, value):
@@ -1012,7 +1016,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         return queryset.filter(q)
 
     def __init__(self, *args, **kwargs):
-        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters[
@@ -1055,11 +1059,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         ])
         row6 = to_row(
             [('relatoria__parlamentar_id', 6),
-             ('local_origem_externa', 6)])
+             ('em_tramitacao', 6)])
         row7 = to_row(
-            [('tramitacao__unidade_tramitacao_destino', 5),
-             ('tramitacao__status', 5),
-             ('em_tramitacao', 2)
+            [('tramitacao__unidade_tramitacao_destino', 6),
+             ('tramitacao__status', 6),
              ])
         row9 = to_row(
             [('materiaassunto__assunto', 6), ('indexacao', 6)])
@@ -1070,6 +1073,16 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                 ('tipo_listagem', 4)
             ])
 
+        row10 = to_row([
+            ('tipo_origem_externa', 4),
+            ('numero_origem_externa', 4),
+            ('ano_origem_externa', 4),
+        ])
+        row11 = to_row([
+            ('data_origem_externa', 8),
+            ('local_origem_externa', 4)
+        ])
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
@@ -1079,6 +1092,9 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
             Fieldset(_('Como listar os resultados da pesquisa'),
                      row8
                      ),
+            Fieldset(_('Origem externa'),
+                     row10, row11
+                    ),
             Fieldset(_('Pesquisa Avançada'),
                      row3,
                      HTML(autor_label),

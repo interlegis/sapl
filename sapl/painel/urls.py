@@ -4,7 +4,7 @@ from .apps import AppConfig
 from .views import (cronometro_painel, get_dados_painel, painel_mensagem_view,
                     painel_parlamentar_view, painel_view, painel_votacao_view,
                     switch_painel, verifica_painel, votante_view, CronometroPainelCrud,
-                    PainelConfigCrud,ordena_cronometro)
+                    PainelConfigCrud,ordena_cronometro, painel_parcial_view)
 
 app_name = AppConfig.name
 
@@ -28,4 +28,7 @@ urlpatterns = [
 
     url(r'^voto-individual/$', votante_view,
         name='voto_individual'),
+
+    url(r'^painel-parcial/(?P<pk>\d+)/(?P<opcoes>\d+)/$', painel_parcial_view,
+        name="painel_parcial"),
 ]

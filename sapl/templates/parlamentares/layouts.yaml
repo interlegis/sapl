@@ -151,3 +151,9 @@ CargoBloco:
   - nome
   - unico
   - descricao
+
+AfastamentoParlamentar:
+  {% trans 'Afastamento' %}:
+  - data_inicio data_fim
+  - mandato tipo_afastamento
+  - observacao

@@ -48,12 +48,12 @@
             {% if result.object|search_get_model == 'm' %}
               <p>
                 <strong>Matéria Legislativa: </strong> <a href="{% url 'sapl.materia:materialegislativa_detail' result.object.pk %}">{{ result.object }}</a></br>
-                {{result.object.ementa}}<br>
+                {{result.object.ementa|safe}}<br>
 
                 {% if result.object.texto_original %}
                 <strong>Texto Original:</strong> <a href="{{result.object.texto_original.url}}"> Clique aqui </a></br>
                 {% endif %}
-                {% if result.object.texto_articulado %}
+                {% if result.object.texto_articulado.exists %}
                   <strong>Texto Articulado:</strong> <a href="{% url 'sapl.materia:materia_ta' result.object.pk %}"> Clique aqui </a></br>
                 {% endif %}
               </p>
@@ -61,7 +61,7 @@
             {% elif result.object|search_get_model == 'd' %}
               <p>
                 <strong> Documento Acessório: </strong><a href="{% url 'sapl.materia:documentoacessorio_detail' result.object.pk %}">{{ result.object }}</a></br>
-                {{result.object.ementa}}<br>
+                {{result.object.ementa|safe}}<br>
                 {% if result.object.arquivo %}
                 <strong>Texto Original:</strong> <a href="{{result.object.arquivo.url}}"> Clique aqui </a></br>
                 {% endif %}
@@ -70,11 +70,11 @@
             {% elif result.object|search_get_model == 'n' %}
               <p>
                 <strong> Norma Jurídica: </strong><a href="{% url 'sapl.norma:normajuridica_detail' result.object.pk %}">{{ result.object }}</a></br>
-                {{result.object.ementa}}<br>
+                {{ result.object.ementa|safe }}<br>
                 {% if result.object.texto_integral %}
                 <strong>Texto Original:</strong> <a href="{{result.object.texto_integral.url}}"> Clique aqui </a></br>
                 {% endif %}
-                {% if result.object.texto_articulado %}
+                {% if result.object.texto_articulado.exists %}
                   <strong>Texto Articulado:</strong> <a href="{% url 'sapl.norma:norma_ta' result.object.pk %}"> Clique aqui </a></br>
                 {% endif %}
               </p>

@@ -112,6 +112,17 @@ def inf_basicas(inf_basicas_dic):
 
     return tmp
 
+def build_expedientes(expedientes):
+    """
+    """
+    tmp = ""
+    tmp += '\t\t<para style="P1">Expedientes</para>\n'
+    for e in expedientes:
+        tmp += '\t\t\t<para style="P2" spaceAfter="5"><b>{}:</b></para>'.format(e['tipo'])
+        tmp += '\t\t\t  <para style="P2" spaceAfter="5"><p>{}</p></para>'.format(e['conteudo'])
+    
+    return tmp
+
 
 def expediente_materia(lst_expediente_materia):
     """
@@ -168,7 +179,7 @@ def votacao(lst_votacao):
     return tmp
 
 
-def principal(rodape_dic, imagem, inf_basicas_dic, lst_expediente_materia, lst_votacao):
+def principal(rodape_dic, imagem, inf_basicas_dic, lst_expediente_materia, lst_votacao, expedientes):
     """
     """
 
@@ -190,6 +201,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, lst_expediente_materia, lst_v
     tmp += paraStyle()
     tmp += '\t<story>\n'
     tmp += inf_basicas(inf_basicas_dic)
+    tmp += build_expedientes(expedientes)
     tmp += expediente_materia(lst_expediente_materia)
     tmp += votacao(lst_votacao)
     tmp += '\t</story>\n'

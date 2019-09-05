@@ -24,7 +24,7 @@ import django_filters
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
                      Mandato, Parlamentar, Votante, Bloco, Bancada, CargoBloco,
-                     CargoBlocoPartido)
+                     CargoBlocoPartido, AfastamentoParlamentar, TipoAfastamento)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -86,6 +86,12 @@ class MandatoForm(ModelForm):
                   'data_expedicao_diploma', 'titular',
                   'tipo_afastamento', 'observacao', 'parlamentar']
         widgets = {'parlamentar': forms.HiddenInput()}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['tipo_afastamento'].queryset = TipoAfastamento.objects.filter(indicador='F')
+
 
     def clean(self):
         super(MandatoForm, self).clean()
@@ -673,6 +679,8 @@ class BancadaForm(ModelForm):
             nome=bancada.nome
         )
         return bancada
+
+
 class CargoBlocoForm(ModelForm):
     class Meta:
         model = CargoBloco
@@ -736,4 +744,81 @@ class CargoBlocoPartidoForm(ModelForm):
 
         if self.instance.pk and (cleaned_data['parlamentar'].id != self.instance.parlamentar.id):
             raise ValidationError("Não é possivel alterar o parlamentar " + str(self.instance.parlamentar))
+
+
+class AfastamentoParlamentarForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    class Meta:
+        model = AfastamentoParlamentar
+        fields = ['data_inicio', 'data_fim', 'mandato',
+                  'tipo_afastamento', 'observacao', 'parlamentar']
+        widgets = {'parlamentar': forms.HiddenInput()}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         
+        if not (self.instance and self.instance.pk):
+            parlamentar = kwargs['initial']['parlamentar']
+            self.fields['mandato'].queryset = Mandato.objects.filter(parlamentar=parlamentar)
+
+        self.fields['tipo_afastamento'].queryset = TipoAfastamento.objects.filter(indicador='A')
+
+    def clean(self):
+        super(AfastamentoParlamentarForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data = self.cleaned_data
+
+        mandato = data['mandato']
+
+        data_inicio_mandato = mandato.data_inicio_mandato
+        data_fim_mandato = mandato.data_fim_mandato
+        data_inicio_afastamento = data['data_inicio']
+        data_fim_afastamento = data['data_fim']
+
+        if data_inicio_afastamento < data_inicio_mandato:
+            self.logger.error("Data início de afastamento ({}) anterior ao inicio"
+                              " do mandato informado ({})."
+                              .format(data_inicio_afastamento, data_inicio_mandato))
+            raise ValidationError(_("Data início do afastamento anterior ao início"
+                                    " do mandato informado."))
+
+        if data_fim_mandato and data_inicio_afastamento > data_fim_mandato:
+            self.logger.error("Data início de afastamento ({}) posterior ao fim"
+                                " do mandato informado ({} a {})."
+                                .format(data_inicio_afastamento, data_fim_mandato))
+            raise ValidationError(_("Data início do afastamento posterior ao fim"
+                                    " do mandato informado."))
+                                    
+        if data_fim_afastamento:
+            if data_fim_afastamento < data_inicio_afastamento:
+                self.logger.error("Data fim de afastamento ({}) anterior à data início"
+                                  " do afastamento ({})."
+                                  .format(data_fim_afastamento, data_inicio_afastamento))
+                raise ValidationError(_("Data fim do afastamento anterior à data início do"
+                                        " afastamento."))
+
+            if data_fim_afastamento < data_inicio_mandato:
+                self.logger.error("Data fim de afastamento ({}) anterior ao início"
+                                  " do mandato informado ({} a {})."
+                                .format(data_fim_afastamento, data_inicio_mandato))
+                raise ValidationError(_("Data fim do afastamento anterior ao início"
+                               " do mandato informado."))
+
+            if data_fim_mandato and data_fim_afastamento > data_fim_mandato:
+                self.logger.error("Data fim de afastamento ({}) posterior ao fim"
+                                  " do mandato informado ({})."
+                                .format(data_inicio_afastamento, data_fim_mandato))
+                raise ValidationError(_("Data fim do afastamento posterior ao fim"
+                               " do mandato informado."))
+
+        ultimo_afastamento = AfastamentoParlamentar.objects.last()
+        if ultimo_afastamento and not ultimo_afastamento.data_fim \
+           and ultimo_afastamento != self.instance:
+            self.logger.error("Existe Afastamento sem Data Fim.")
+            raise ValidationError(_("Existe Afastamento sem Data Fim.")) 
+
+        return self.cleaned_data

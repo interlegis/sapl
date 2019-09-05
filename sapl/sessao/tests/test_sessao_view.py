@@ -12,12 +12,12 @@ from sapl.sessao.models import (SessaoPlenaria, TipoSessaoPlenaria,
 
 from sapl.parlamentares.models import Parlamentar, CargoMesa, Filiacao
 
-from sapl.sessao.views import (get_identificação_basica, get_conteudo_multimidia,
+from sapl.sessao.views import (get_identificacao_basica, get_conteudo_multimidia,
                                 get_mesa_diretora, get_presenca_sessao, 
                                 get_expedientes, get_materias_expediente,
                                 get_oradores_expediente, get_presenca_ordem_do_dia,
-                                get_materias_ordem_do_dia, get_oradores_explicações_pessoais,
-                                get_ocorrencias_da_sessão
+                                get_materias_ordem_do_dia, get_oradores_explicacoes_pessoais,
+                                get_ocorrencias_da_sessao
                                 )
 
 
@@ -74,8 +74,8 @@ class TestResumoView():
                                                 cargo=self.cargo_mesa)
         self.integrante_mesa.save()
 
-    def test_get_identificação_basica(self):
-        id_basica = get_identificação_basica(self.sessao_plenaria)
+    def test_get_identificacao_basica(self):
+        id_basica = get_identificacao_basica(self.sessao_plenaria)
         info_basica = id_basica['basica']
         assert info_basica[0] == 'Tipo de Sessão: ' + str(self.sessao_plenaria.tipo)
         
@@ -129,12 +129,12 @@ class TestResumoView():
     def test_get_materias_expediente(self):
         pass
 
-    def test_get_oradores_explicações_pessoais(self):
+    def test_get_oradores_explicacoes_pessoais(self):
         parlamentar = mommy.make(Parlamentar)
         partido_sigla = mommy.make(Filiacao, parlamentar=parlamentar)
         orador = mommy.make(Orador,sessao_plenaria=self.sessao_plenaria,parlamentar=parlamentar)
 
-        resultado_get_oradores = get_oradores_explicações_pessoais(self.sessao_plenaria)
+        resultado_get_oradores = get_oradores_explicacoes_pessoais(self.sessao_plenaria)
 
         assert resultado_get_oradores['oradores_explicacoes'] == [{
                 'numero_ordem': orador.numero_ordem,
@@ -142,8 +142,8 @@ class TestResumoView():
                 'sgl_partido': partido_sigla.partido.sigla
         }]
 
-    def test_get_ocorrencias_da_sessão(self):
+    def test_get_ocorrencias_da_sessao(self):
         ocorrencia = mommy.make(OcorrenciaSessao, sessao_plenaria=self.sessao_plenaria)
-        resultado_get_ocorrencia = get_ocorrencias_da_sessão(self.sessao_plenaria)
+        resultado_get_ocorrencia = get_ocorrencias_da_sessao(self.sessao_plenaria)
 
         assert resultado_get_ocorrencia['ocorrencias_da_sessao'][0] == ocorrencia

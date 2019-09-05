@@ -172,7 +172,7 @@ class SessaoPlenaria(models.Model):
 
         if self.tipo.tipo_numeracao == tnc.quizenal:
             base += ' da {}ª Quinzena'.format(
-                1 if self.data_inicio.day > 15 else 2)
+                1 if self.data_inicio.day <= 15 else 2)
 
         if self.tipo.tipo_numeracao <= tnc.mensal:
             base += ' do mês de {}'.format(
@@ -295,11 +295,15 @@ class ExpedienteMateria(AbstractOrdemDia):
 @reversion.register()
 class TipoExpediente(models.Model):
     nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
+    ordenacao = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name=_("Ordenação"))
 
     class Meta:
         verbose_name = _('Tipo de Expediente')
         verbose_name_plural = _('Tipos de Expediente')
-        ordering = ['nome']
+        ordering = ['ordenacao']
 
     def __str__(self):
         return self.nome

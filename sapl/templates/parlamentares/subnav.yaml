@@ -3,6 +3,8 @@
   url: parlamentar_detail
 - title: {% trans 'Mandatos' %}
   url: mandato_list
+- title: {% trans 'Afastamentos' %}
+  url: afastamentoparlamentar_list
 - title: {% trans 'Matérias' %}
   url: parlamentar_materias
 - title: {% trans 'Filiações Partidárias' %}

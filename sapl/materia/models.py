@@ -299,7 +299,7 @@ class MateriaLegislativa(models.Model):
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
         unique_together = (("tipo", "numero", "ano"),)
-
+        ordering = ['-id']
         permissions = (("can_access_impressos", "Can access impressos"),)
 
     def __str__(self):
@@ -438,7 +438,7 @@ class PautaReuniao(models.Model):
                  ' - Matéria: %(materia)s') % {
                      'reuniao': self.reuniao,
                      'materia': self.materia
-                 }
+        }
 
 
 @reversion.register()
@@ -487,7 +487,8 @@ class AssuntoMateria(models.Model):
 @reversion.register()
 class DespachoInicial(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
-    comissao = models.ForeignKey(Comissao, on_delete=models.CASCADE, verbose_name="Comissão")
+    comissao = models.ForeignKey(
+        Comissao, on_delete=models.CASCADE, verbose_name="Comissão")
 
     class Meta:
         verbose_name = _('Despacho Inicial')
@@ -559,7 +560,8 @@ class DocumentoAcessorio(models.Model):
         return _('%(tipo)s - %(nome)s de %(data)s por %(autor)s') % {
             'tipo': self.tipo,
             'nome': self.nome,
-            'data': self.data,
+            'data': formats.date_format(
+                self.data, "SHORT_DATE_FORMAT") if self.data else '',
             'autor': self.autor}
 
     def delete(self, using=None, keep_parents=False):
@@ -712,11 +714,11 @@ class Relatoria(models.Model):
             return _('%(materia)s - %(tipo)s - %(data)s') % {
                 'materia': self.materia,
                 'tipo': self.tipo_fim_relatoria,
-                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}  
+                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
         else:
             return _('%(materia)s - %(data)s') % {
-            'materia': self.materia,
-            'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
+                'materia': self.materia,
+                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
 
 
 @reversion.register()
