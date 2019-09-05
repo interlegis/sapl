@@ -76,7 +76,8 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
                      RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
-                     TipoProposicao, Tramitacao, UnidadeTramitacao)
+                     TipoProposicao, Tramitacao, UnidadeTramitacao, 
+                     TipoTurnoTramitacao)
 
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
@@ -91,6 +92,9 @@ TipoDocumentoCrud = CrudAux.build(
 
 TipoFimRelatoriaCrud = CrudAux.build(
     TipoFimRelatoria, 'fim_relatoria')
+
+TipoTurnoTramitacaoCrud = CrudAux.build(
+    TipoTurnoTramitacao, 'tipo_turno_tramitacao')
 
 
 def autores_ja_adicionados(materia_pk):

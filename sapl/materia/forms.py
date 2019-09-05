@@ -456,7 +456,7 @@ class TramitacaoForm(ModelForm):
         fields = ['data_tramitacao',
                   'unidade_tramitacao_local',
                   'status',
-                  'turno',
+                  'tipo_turno',
                   'urgente',
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
@@ -574,7 +574,7 @@ class TramitacaoForm(ModelForm):
                         data_encaminhamento=tramitacao.data_encaminhamento,
                         unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
                         urgente=tramitacao.urgente,
-                        turno=tramitacao.turno,
+                        tipo_turno=tramitacao.tipo_turno,
                         texto=tramitacao.texto,
                         data_fim_prazo=tramitacao.data_fim_prazo,
                         user=tramitacao.user,
@@ -613,7 +613,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
         fields = ['data_tramitacao',
                   'unidade_tramitacao_local',
                   'status',
-                  'turno',
+                  'tipo_turno',
                   'urgente',
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
@@ -685,7 +685,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
                     tram_anexada.data_encaminhamento = nova_tram_principal.data_encaminhamento
                     tram_anexada.unidade_tramitacao_destino = nova_tram_principal.unidade_tramitacao_destino
                     tram_anexada.urgente = nova_tram_principal.urgente
-                    tram_anexada.turno = nova_tram_principal.turno
+                    tram_anexada.tipo_turno = nova_tram_principal.tipo_turno
                     tram_anexada.texto = nova_tram_principal.texto
                     tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
                     tram_anexada.user = nova_tram_principal.user
@@ -1608,7 +1608,7 @@ class TramitacaoEmLoteForm(ModelForm):
                   'unidade_tramitacao_local',
                   'status',
                   'urgente',
-                  'turno',
+                  'tipo_turno',
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
                   'data_fim_prazo',
@@ -1643,7 +1643,7 @@ class TramitacaoEmLoteForm(ModelForm):
         row3 = to_row([
             ('status', 4),
             ('urgente', 4),
-            ('turno', 4)
+            ('tipo_turno', 4)
         ])
         row4 = to_row([
             ('texto', 12)
@@ -1751,7 +1751,7 @@ class TramitacaoEmLoteForm(ModelForm):
                 unidade_tramitacao_destino=cd['unidade_tramitacao_destino'],
                 data_encaminhamento=cd['data_encaminhamento'],
                 urgente=cd['urgente'],
-                turno=cd['turno'],
+                tipo_turno=cd['tipo_turno'],
                 texto=cd['texto'],
                 data_fim_prazo=cd['data_fim_prazo'],
                 user=user,
@@ -1777,7 +1777,7 @@ class TramitacaoEmLoteForm(ModelForm):
                                                 data_encaminhamento=tramitacao.data_encaminhamento,
                                                 unidade_tramitacao_destino=tramitacao.unidade_tramitacao_destino,
                                                 urgente=tramitacao.urgente,
-                                                turno=tramitacao.turno,
+                                                tipo_turno=tramitacao.tipo_turno,
                                                 texto=tramitacao.texto,
                                                 data_fim_prazo=tramitacao.data_fim_prazo,
                                                 user=tramitacao.user,

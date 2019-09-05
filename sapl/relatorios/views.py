@@ -891,11 +891,8 @@ def get_turno(materia):
     tramitacao = materia.tramitacao_set.last()
 
     if tramitacao:
-        if tramitacao.turno:
-            for t in Tramitacao.TURNO_CHOICES:
-                if t[0] == tramitacao.turno:
-                    descricao_turno = str(t[1])
-                    break
+        if tramitacao.tipo_turno:
+            descricao_turno = tramitacao.tipo_turno.nome
         descricao_tramitacao = tramitacao.status.descricao if tramitacao.status else 'Não informada'
     return descricao_turno, descricao_tramitacao
 

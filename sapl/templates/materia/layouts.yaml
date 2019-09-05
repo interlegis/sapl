@@ -19,6 +19,10 @@ TipoDocumento:
   {% trans 'Regime Tramitação' %}:
   - descricao
 
+TipoTurnoTramitacao:
+  {% trans 'Tipo de Turno de Tramitacao' %}:
+  - nome
+
 TipoFimRelatoria:
   {% trans 'Tipo Fim de Relatoria' %}:
   - descricao
@@ -118,13 +122,13 @@ Tramitacao:
   {% trans 'Tramitação' %}:
   - data_tramitacao unidade_tramitacao_local
   - unidade_tramitacao_destino data_encaminhamento data_fim_prazo
-  - status  turno  urgente
+  - status tipo_turno urgente
   - texto
 
 TramitacaoUpdate:
   {% trans 'Tramitação' %}:
   - unidade_tramitacao_destino data_encaminhamento data_fim_prazo
-  - status  turno  urgente
+  - status tipo_turno urgente
   - texto
 
 DespachoInicial:
