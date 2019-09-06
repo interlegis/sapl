@@ -4,13 +4,14 @@ from braces.views import FormMessagesMixin
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.layout import Field, Layout
 from django import forms
+from django.conf import settings
 from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.fields.related import ForeignKey
+from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
@@ -27,8 +28,10 @@ from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
-from sapl.settings import BASE_DIR
 from sapl.utils import normalize
+
+
+logger = logging.getLogger(settings.BASE_DIR.name)
 
 
 ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
@@ -122,7 +125,6 @@ class SearchMixin(models.Model):
                     except Exception as e:
                         username = self.request.user.username
                         self.logger.error("user=" + username + ". " + str(e))
-                        pass
                 else:
                     _self = self
                     for field in fields:
@@ -206,6 +208,7 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
 
                 if not self.model.objects.filter(**params).exists():
                     raise Http404()
+
         elif self.container_field:
             container = self.container_field.split('__')
 
@@ -230,14 +233,14 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
         return super(PermissionRequiredMixin, self).dispatch(
             request, *args, **kwargs)
 
-    @cached_property
+    @property
     def container_field(self):
         if hasattr(self, 'crud') and not hasattr(self.crud, 'container_field'):
             self.crud.container_field = ''
         if hasattr(self, 'crud'):
             return self.crud.container_field
 
-    @cached_property
+    @property
     def container_field_set(self):
         if hasattr(self, 'crud') and\
                 not hasattr(self.crud, 'container_field_set'):
@@ -245,7 +248,7 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
         if hasattr(self, 'crud'):
             return self.crud.container_field_set
 
-    @cached_property
+    @property
     def is_contained(self):
         return self.container_field_set or self.container_field
 
@@ -600,7 +603,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
 
                     # print(ordering)
                 except Exception as e:
-                    print(string_concat(_(
+                    logger.error(string_concat(_(
                         'ERRO: construção da tupla de ordenação.'), str(e)))
 
         # print(queryset.query)
@@ -1108,12 +1111,14 @@ class MasterDetailCrud(Crud):
         permission_required = RP_LIST,
         logger = logging.getLogger(__name__)
 
+        def get(self, request, *args, **kwargs):
+            return Crud.ListView.get(self, request, *args, **kwargs)
+
         @classmethod
         def get_url_regex(cls):
             return r'^(?P<pk>\d+)/%s$' % cls.model._meta.model_name
 
         def get_context_data(self, **kwargs):
-
             obj = self.crud if hasattr(self, 'crud') else self
             context = CrudListView.get_context_data(self, **kwargs)
 
@@ -1133,7 +1138,12 @@ class MasterDetailCrud(Crud):
 
             else:
                 parent_model = getattr(
-                    self.model, obj.parent_field).field.related_model
+                    self.model, obj.parent_field)
+                if isinstance(parent_model.field, (
+                        ForeignKey, ManyToManyField)):
+                    parent_model = parent_model.field.related_model
+                else:
+                    parent_model = parent_model.rel.related_model
 
             params = {'pk': kwargs['root_pk']}
 
@@ -1164,6 +1174,9 @@ class MasterDetailCrud(Crud):
                 kwargs[self.container_field] = self.request.user.pk"""
 
             return qs.filter(**kwargs)
+
+        def dispatch(self, request, *args, **kwargs):
+            return PermissionRequiredMixin.dispatch(self, request, *args, **kwargs)
 
     class CreateView(Crud.CreateView):
         permission_required = RP_ADD,
@@ -1229,8 +1242,12 @@ class MasterDetailCrud(Crud):
                             parent_object = getattr(parent_object, field)
 
                 else:
-                    parent_model = getattr(
-                        parent_model, obj.parent_field).field.related_model
+                    parent_model = getattr(self.model, obj.parent_field)
+                    if isinstance(parent_model.field, ForeignKey):
+                        parent_model = parent_model.field.related_model
+                    else:
+                        parent_model = parent_model.rel.related_model
+
                     parent_object = parent_model.objects.get(**params)
 
                 context['root_pk'] = parent_object.pk
