@@ -1074,9 +1074,6 @@ class Tramitacao(models.Model):
     urgente = models.BooleanField(verbose_name=_('Urgente ?'),
                                   choices=YES_NO_CHOICES,
                                   default=False)
-    turno = models.CharField(
-        max_length=1, blank=True, verbose_name=_('Turno'),
-        choices=TURNO_CHOICES)
     tipo_turno = models.ForeignKey(
         TipoTurnoTramitacao,
         on_delete=models.PROTECT,
