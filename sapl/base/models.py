@@ -229,7 +229,7 @@ class Autor(models.Model):
     nome = models.CharField(
         max_length=120, blank=True, verbose_name=_('Nome do Autor'))
 
-    cargo = models.CharField(max_length=50, blank=True)
+    cargo = models.CharField(max_length=50, blank=True, verbose_name=_('Cargo'))
 
     class Meta:
         verbose_name = _('Autor')
@@ -249,3 +249,26 @@ class Autor(models.Model):
         if self.user:
             return str(self.user.username)
         return '?'
+
+
+@reversion.register()
+class AutorUser(models.Model):
+    autor = models.ForeignKey(
+        Autor, 
+        verbose_name=_('Autor'),
+        on_delete=models.PROTECT
+    )
+    user = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário'),
+        on_delete=models.PROTECT
+    )
+
+    class Meta:
+        verbose_name = _('Autor - Usuário')
+        verbose_name_plural = _('Autores - Usuários')
+        unique_together = (('autor', 'user'), )
+        ordering = ('autor__nome',)
+
+    def __str__(self):
+        return str(self.autor) + ' - ' + str(self.user)

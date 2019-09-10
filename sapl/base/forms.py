@@ -10,10 +10,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
                                        SetPasswordForm)
 from django.contrib.auth.models import Group, User
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import Q
-from django.forms import Form, ModelForm
+from django.forms import Form, ModelForm, widgets
 from django.utils import timezone
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
@@ -38,7 +38,7 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         ImageThumbnailFileInput, models_with_gr_for_model,
                         qs_override_django_filter, RangeWidgetOverride,
                         RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter)
-from .models import AppConfig, CasaLegislativa
+from .models import AppConfig, CasaLegislativa, AutorUser
 from operator import xor
 
 
@@ -1883,3 +1883,62 @@ class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
                      row3,
                      form_actions(label='Pesquisar'))
         )
+
+
+class AutorUserForm(ModelForm):
+
+    username = forms.CharField(label=get_user_model()._meta.get_field(
+        get_user_model().USERNAME_FIELD).verbose_name.capitalize(),
+        required=True,
+        max_length=50)
+
+    nome_autor = forms.CharField(
+        label='Autor', 
+        widget=widgets.TextInput(attrs={'readonly': 'readonly'})
+    )
+    
+    class Meta:
+        model = AutorUser
+        exclude = ['user']
+        widgets = {
+            'autor': forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('nome_autor', 6),('username', 6),])
+        row2 = to_row(
+            [('autor', 6)]
+        )
+
+        actions = [HTML('<a href="{{ view.cancel_url }}"'
+                        ' class="btn btn-dark">Cancelar</a>')]
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Vincular Usuário ao Autor'),
+                     row1, row2,
+                     HTML("&nbsp;"),
+                     form_actions(more=actions)
+                     )
+        )
+
+    def clean(self):
+        cd = super().clean()
+        
+        if not self.is_valid():
+            return cd
+
+        username = cd['username']
+        try:
+            user = User.objects.get(username=username)
+        except ObjectDoesNotExist as e:
+            raise ValidationError("Este usuário não existe.")
+        
+        if AutorUser.objects.filter(user=user).exists():
+            raise ValidationError("Este usuário ({}) já está vinculado a um Autor ({}).".format(
+                username, AutorUser.objects.get(user=user).autor))
+
+            

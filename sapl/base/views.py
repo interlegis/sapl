@@ -76,8 +76,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     EstatisticasAcessoNormasForm, UsuarioFilterSet,
                     RelatorioHistoricoTramitacaoAdmFilterSet,
                     RelatorioDocumentosAcessoriosFilterSet,
-                    RelatorioNormasPorAutorFilterSet)
-from .models import AppConfig, CasaLegislativa
+                    RelatorioNormasPorAutorFilterSet, AutorUserForm)
+from .models import AppConfig, CasaLegislativa, AutorUser
 
 
 def chanel_index(request):
@@ -114,6 +114,9 @@ def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+AutorUserCrud = CrudAux.build(AutorUser, 'autor_user')
 
 
 class ConfirmarEmailView(TemplateView):
@@ -325,6 +328,13 @@ class AutorCrud(CrudAux):
 
             return url_reverse
 
+
+    class DetailView(CrudAux.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['autor_user'] = AutorUser.objects.filter(autor=context['object'])
+            return context
 
 class RelatoriosListView(TemplateView):
     template_name = 'base/relatorios_list.html'
@@ -2266,3 +2276,25 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
             ' - ' + self.request.GET['data_1'])
 
         return context
+
+
+class AutorUserFormView(FormView):
+    form_class = AutorUserForm
+    template_name = 'base/autoruser_form.html'
+    success_url = '/'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        autor_pk = self.kwargs['autor_pk']
+        autor = Autor.objects.get(id=autor_pk)
+        initial['nome_autor'] = autor.nome
+        initial['autor'] = autor
+        return initial
+    
+    def form_valid(self, form):
+        super().form_valid(form)
+
+    @property
+    def cancel_url(self):
+        return reverse('sapl.base:autor_detail',
+                       kwargs={'pk': self.kwargs['autor_pk']})

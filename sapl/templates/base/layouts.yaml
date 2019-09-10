@@ -43,9 +43,12 @@ TipoAutor:
 
 Autor:
   {% trans 'Autor' %}:
-  - tipo:3  nome
-  - cargo
+  - tipo:4 nome:4 cargo:4
 
 AutorCreate:
   {% trans 'Cadastro de Usuários Autores' %}:
   - tipo:3 search_autor
+
+AutorUser:
+  {% trans 'Autor - Usuário' %}:
+  - autor:6 user:6

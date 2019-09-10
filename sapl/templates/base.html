@@ -63,7 +63,7 @@
                       <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img height="30" width="30" src="{% webpack_static 'img/authenticated.png' %}"><span class="caret"></span></a>
                     </a>
                     <ul class="dropdown-menu">
-                      <li class="dropdown-item"><a>{{user.username}}</a></li>
+                      <li class="dropdown-item"><a>{{user.username}} {% if user.autor %} ({{user.autor}}) {% endif %}</a></li>
                       {% if 'parlamentares.can_vote' in request.user.get_all_permissions %}
                         <li class="dropdown-item"><a href="" onclick="window.open('{% url 'sapl.painel:voto_individual' %}','Voto Individual','width=1000, height=800, scrollbars=yes')";>
                           Votar Matéria
