@@ -22,6 +22,7 @@ from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+from django.contrib.admin.views.decorators import staff_member_required
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
@@ -33,11 +34,14 @@ from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
-from sapl.protocoloadm.models import Protocolo
+from sapl.protocoloadm.models import Protocolo, AuditoriaProtocolo, DocumentoAdministrativo
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured)
+
+from django.shortcuts import render
+
 
 from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
@@ -1607,3 +1611,41 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
             status=status,
             unidade_tramitacao_destino=destino).distinct().values_list(
                 'documento_id', flat=True)
+
+
+def apaga_protocolos(user, ano):
+    all_protocolos = Protocolo.objects.filter(ano__in=ano)
+
+    for doc in DocumentoAdministrativo.objects.filter(protocolo__in=all_protocolos):
+        doc.protocolo = None
+        doc.save()
+
+    for ml in MateriaLegislativa.objects.filter(ano__in=ano):
+        ml.numero_protocolo = None
+        ml.save()
+
+    info = [str(p.numero)+'/'+str(p.ano) for p in all_protocolos]
+
+    auditoria = AuditoriaProtocolo(usuario=user,info=info)
+    auditoria.save()
+    all_protocolos.delete()
+
+@staff_member_required
+def apaga_protocolos_view(request):
+    if request.method == "GET":
+        if Protocolo.objects.exists():
+            ano_minimo = Protocolo.objects.all().order_by('ano').first().ano
+            intervalo_data = range(ano_minimo, datetime.now().year)
+        else:
+            intervalo_data  =None
+        return render(request,"protocoloadm/deleta_todos_protocolos.html",{'intervalo_data':intervalo_data})
+    
+    elif request.method == "POST":
+        password = request.POST.get('senha')
+        ano = list(map(int,request.POST.getlist('ano')))
+        valid = request.user.check_password(password)        
+        if valid:
+            apaga_protocolos(request.user, ano)
+            return JsonResponse({'type':'success','msg':''})
+        else:
+            return JsonResponse({'type':'error','msg':'Senha Incorreta'})

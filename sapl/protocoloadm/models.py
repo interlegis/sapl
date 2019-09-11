@@ -1,7 +1,9 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.models import User
 from model_utils import Choices
+from django.contrib.postgres.fields import ArrayField
 import reversion
 
 from sapl.base.models import Autor
@@ -408,3 +410,10 @@ class AcompanhamentoDocumento(models.Model):
                 'email': self.email,
                 'data': str(self.data_cadastro.strftime('%d/%m/%Y'))
             }
+
+class AuditoriaProtocolo(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    data = models.DateTimeField(default=timezone.now)
+    info = ArrayField(
+            models.CharField(max_length=12)
+    )
