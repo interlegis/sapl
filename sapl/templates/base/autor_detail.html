@@ -22,6 +22,11 @@
                 {% for au in autor_user %}
                     <tr>
                         <td><a href="{% url 'sapl.base:user_edit' au.user.pk %}">{{au.user}}</a></td>
+                        <td>
+                            <button type="button" class="btn btn-danger float-right" onclick='desvincular("{{au.pk}}")'>
+                                Desvincular
+                            </button>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -33,8 +38,16 @@
 
 <script type="text/javascript">
 
-    $(document).ready(function(){
-    });
+    function desvincular(pk){
+        $.get("{% url 'sapl.base:deleta_autorser' %}",
+        { 
+            pk: pk
+        }, function(data, status) {
+            if(status == "success")
+                console.log("Usuário desvinculado.");
+        });
+        location.reload();
+    }
 
 </script>
 

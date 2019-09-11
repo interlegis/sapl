@@ -184,7 +184,7 @@ class AutorCrud(CrudAux):
     help_topic = 'autor'
 
     class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ['tipo', 'nome', 'user']
+        list_field_names = ['tipo', 'nome']
 
     class DeleteView(CrudAux.DeleteView):
 
@@ -1641,6 +1641,12 @@ def get_estatistica(request):
     return JsonResponse(json_dict)
 
 
+def deleta_autoruser(request):
+    pk = int(request.GET['pk'])
+    AutorUser.objects.get(pk=pk).delete()
+    return JsonResponse({})
+
+
 class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
     model = get_user_model()
     template_name = 'base/mandato_sem_data_inicio.html'
@@ -2281,7 +2287,6 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
 class AutorUserFormView(FormView):
     form_class = AutorUserForm
     template_name = 'base/autoruser_form.html'
-    success_url = '/'
 
     def get_initial(self):
         initial = super().get_initial()
@@ -2292,9 +2297,14 @@ class AutorUserFormView(FormView):
         return initial
     
     def form_valid(self, form):
-        super().form_valid(form)
+        form.save()
+        return super().form_valid(form)
 
     @property
     def cancel_url(self):
+        return reverse('sapl.base:autor_detail',
+                       kwargs={'pk': self.kwargs['autor_pk']})
+
+    def get_success_url(self):
         return reverse('sapl.base:autor_detail',
                        kwargs={'pk': self.kwargs['autor_pk']})

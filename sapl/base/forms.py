@@ -1941,4 +1941,10 @@ class AutorUserForm(ModelForm):
             raise ValidationError("Este usuário ({}) já está vinculado a um Autor ({}).".format(
                 username, AutorUser.objects.get(user=user).autor))
 
-            
+    
+    def save(self):
+        cd = self.cleaned_data
+        user = User.objects.get(username=cd['username'])
+        autor = cd['autor']
+        autor_user = AutorUser.objects.create(autor=autor, user=user)
+        return autor_user
