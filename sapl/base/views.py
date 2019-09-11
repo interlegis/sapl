@@ -1641,12 +1641,6 @@ def get_estatistica(request):
     return JsonResponse(json_dict)
 
 
-def deleta_autoruser(request):
-    pk = int(request.GET['pk'])
-    AutorUser.objects.get(pk=pk).delete()
-    return JsonResponse({})
-
-
 class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
     model = get_user_model()
     template_name = 'base/mandato_sem_data_inicio.html'
@@ -2282,6 +2276,19 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
             ' - ' + self.request.GET['data_1'])
 
         return context
+
+
+def deleta_autoruser(request):
+    pk = int(request.GET['pk'])
+    autor_user = AutorUser.objects.get(pk=pk)
+
+    # FIXME melhorar captura de grupo de Autor, levando em conta,
+    # no mínimo, a tradução.
+    grupo = Group.objects.filter(name='Autor')[0]
+    autor_user.user.groups.remove(grupo)
+    
+    autor_user.delete()
+    return JsonResponse({})
 
 
 class AutorUserFormView(FormView):

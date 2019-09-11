@@ -383,7 +383,7 @@ class _ProposicaoViewSet():
 
         q = Q(data_recebimento__isnull=False, object_id__isnull=False)
         if not self.request.user.is_anonymous():
-            q |= Q(autor__user=self.request.user)
+            q |= Q(autor__autoruser__user=self.request.user)
 
         qs = qs.filter(q)
         return qs

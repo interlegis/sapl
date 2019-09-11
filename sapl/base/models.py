@@ -212,10 +212,6 @@ class TipoAutor(models.Model):
 @reversion.register()
 class Autor(models.Model):
 
-    user = models.OneToOneField(get_settings_auth_user_model(),
-                                on_delete=models.SET_NULL,
-                                null=True)
-
     tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo do Autor'),
                              on_delete=models.PROTECT)
 
@@ -246,8 +242,6 @@ class Autor(models.Model):
                     return '{} - {}'.format(self.nome, self.cargo)
                 else:
                     return str(self.nome)
-        if self.user:
-            return str(self.user.username)
         return '?'
 
 

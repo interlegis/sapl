@@ -1947,4 +1947,25 @@ class AutorUserForm(ModelForm):
         user = User.objects.get(username=cd['username'])
         autor = cd['autor']
         autor_user = AutorUser.objects.create(autor=autor, user=user)
+
+
+        ####################################
+        # TODO: Isto é necessário?
+        # if not autor.tipo.content_type:
+        #     autor.content_type = None
+        #     autor.object_id = None
+        #     autor.autor_related = None
+        # else:
+        #     autor.autor_related = autor.tipo.content_type.model_class(
+        #     ).objects.get(pk=self.cleaned_data['autor_related'])
+        #     autor.nome = str(autor.autor_related)
+
+        # autor.save()
+        ####################################
+
+        # FIXME melhorar captura de grupo de Autor, levando em conta,
+        # no mínimo, a tradução.
+        grupo = Group.objects.filter(name='Autor')[0]
+        user.groups.add(grupo)
+
         return autor_user
