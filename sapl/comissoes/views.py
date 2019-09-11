@@ -166,13 +166,12 @@ class ComissaoCrud(Crud):
             return super(Crud.UpdateView, self).form_valid(form)
 
 
+# Essa função retorna objetos MateriaEmTramitacao
 def lista_materias_comissao(comissao_pk):
-    materias = list(
-        MateriaEmTramitacao.objects.filter(
-            tramitacao__unidade_tramitacao_destino__comissao=comissao_pk
-        ).order_by('materia__tipo', '-materia__ano', '-materia__numero')
-    )
-
+    materias = MateriaEmTramitacao.objects.filter(
+        tramitacao__unidade_tramitacao_destino__comissao=comissao_pk
+    ).order_by('materia__tipo', '-materia__ano', '-materia__numero')
+ 
     return materias
 
 
@@ -181,7 +180,7 @@ class MateriasTramitacaoListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return lista_materias_comissao(self.kwargs['pk'])
+        return list(lista_materias_comissao(self.kwargs['pk']))
 
     def get_context_data(self, **kwargs):
         context = super(
