@@ -1314,18 +1314,28 @@ class TramitacaoCrud(MasterDetailCrud):
         layout_key = 'TramitacaoUpdate'
 
         def form_valid(self, form):
-            dict_objeto_antigo = Tramitacao.objects.get(
-                pk=self.kwargs['pk']).__dict__
+            tram = Tramitacao.objects.get(
+                pk=self.kwargs['pk'])
+            dict_objeto_antigo = tram.__dict__
+            tipo_turno_antigo = tram.tipo_turno
 
             self.object = form.save()
             dict_objeto_novo = self.object.__dict__
+            tipo_turno_novo = self.object.tipo_turno
 
             user = self.request.user
 
             atributos = [
-                'data_tramitacao', 'unidade_tramitacao_destino_id', 'status_id', 'texto',
-                'data_encaminhamento', 'data_fim_prazo', 'urgente', 'turno'
+                'data_tramitacao', 'unidade_tramitacao_destino_id', 'status_id', 
+                'texto', 'data_encaminhamento', 'data_fim_prazo', 'urgente'
             ]
+            
+            # TipoTurno foi colocado separado pois não aparece no __dict__
+            if tipo_turno_antigo != tipo_turno_novo:
+                self.object.user = user
+                self.object.ip = get_client_ip(self.request)
+                self.object.save()
+                atributos = [] # ignora os demais atributos
 
             # Se não houve qualquer alteração em um dos dados, mantém o usuário
             # e ip
