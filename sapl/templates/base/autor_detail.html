@@ -49,6 +49,14 @@
         location.reload();
     }
 
+    $(document).ready(function(){
+        // Esconde cargo se o mesmo for vazio
+        if(!$('.form-control-static').last().text())
+            $('#div_id_cargo').hide();
+        else
+            $('#div_id_cargo').show();
+    })
+
 </script>
 
 {% endblock %}
