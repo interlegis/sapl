@@ -252,16 +252,16 @@ class AutorUser(models.Model):
         verbose_name=_('Autor'),
         on_delete=models.PROTECT
     )
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         get_settings_auth_user_model(),
         verbose_name=_('Usuário'),
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        unique=True
     )
 
     class Meta:
         verbose_name = _('Autor - Usuário')
         verbose_name_plural = _('Autores - Usuários')
-        unique_together = (('autor', 'user'), )
         ordering = ('autor__nome',)
 
     def __str__(self):
