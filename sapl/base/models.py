@@ -256,7 +256,6 @@ class AutorUser(models.Model):
         get_settings_auth_user_model(),
         verbose_name=_('Usuário'),
         on_delete=models.PROTECT,
-        unique=True
     )
 
     class Meta:

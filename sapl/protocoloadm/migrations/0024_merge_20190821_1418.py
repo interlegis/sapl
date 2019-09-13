@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('protocoloadm', '0023_auto_20190711_1755'),
-        ('protocoloadm', '0023_merge_20190802_1112'),
+        ('protocoloadm', '0023_merge_20190802_1117'),
     ]
 
     operations = [
