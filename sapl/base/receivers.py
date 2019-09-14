@@ -2,6 +2,7 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
 from sapl.base.signals import tramitacao_signal
+from sapl.materia.models import Tramitacao
 from sapl.protocoloadm.models import TramitacaoAdministrativo
 from sapl.utils import get_base_url
 
@@ -28,7 +29,7 @@ def handle_tramitacao_signal(sender, **kwargs):
 
 @receiver(post_delete)
 def status_tramitacao_materia(sender, instance, **kwargs):
-    if isinstance(sender, TramitacaoAdministrativo):
+    if isinstance(sender, Tramitacao):
         if instance.status.indicador == 'F':
             materia = instance.materia
             materia.em_tramitacao = True
