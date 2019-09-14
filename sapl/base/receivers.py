@@ -29,12 +29,12 @@ def handle_tramitacao_signal(sender, **kwargs):
 
 @receiver(post_delete)
 def status_tramitacao_materia(sender, instance, **kwargs):
-    if isinstance(sender, Tramitacao):
+    if sender == Tramitacao:
         if instance.status.indicador == 'F':
             materia = instance.materia
             materia.em_tramitacao = True
             materia.save()
-    elif isinstance(sender, TramitacaoAdministrativo):
+    elif sender == TramitacaoAdministrativo:
         if instance.status.indicador == 'F':
             documento = instance.documento
             documento.tramitacao = True
