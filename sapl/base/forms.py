@@ -1085,7 +1085,7 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
         )
 
 
-class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
+class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Matéria',
@@ -1101,7 +1101,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 
     @property
     def qs(self):
-        parent = super(RelatorioMateriasTramitacaoilterSet, self).qs
+        parent = super(RelatorioMateriasTramitacaoFilterSet, self).qs
         return parent.distinct().order_by('-ano', 'tipo', '-numero')
 
     class Meta:
@@ -1110,7 +1110,7 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
                   'tramitacao__status']
 
     def __init__(self, *args, **kwargs):
-        super(RelatorioMateriasTramitacaoilterSet, self).__init__(
+        super(RelatorioMateriasTramitacaoFilterSet, self).__init__(
             *args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
