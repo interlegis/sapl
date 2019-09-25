@@ -18,28 +18,25 @@ from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
-from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
-from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
+from sapl.audiencia.models import AudienciaPublica
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Reuniao, Comissao
-from sapl.comissoes.models import Reuniao, Comissao
 from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
-                                      to_row)
-from sapl.crispy_layout_mixin import SaplFormHelper
+                                      to_row, SaplFormHelper)
 from sapl.materia.models import (MateriaLegislativa, UnidadeTramitacao, StatusTramitacao,
-                                 DocumentoAcessorio, TipoMateriaLegislativa)
+                                 DocumentoAcessorio, TipoMateriaLegislativa, MateriaEmTramitacao)
 from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
 from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.parlamentares.models import SessaoLegislativa, Partido, HistoricoPartido
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
-from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
-                        ChoiceWithoutValidationField, ImageThumbnailFileInput,
-                        RangeWidgetOverride, autor_label, autor_modal,
-                        models_with_gr_for_model, qs_override_django_filter,
+from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         choice_anos_com_normas, choice_anos_com_materias,
                         FilterOverridesMetaMixin, FileFieldCheckMixin,
-                        intervalos_tem_intersecao)
+                        intervalos_tem_intersecao,
+                        ImageThumbnailFileInput, models_with_gr_for_model,
+                        qs_override_django_filter, RangeWidgetOverride,
+                        RANGE_ANOS, YES_NO_CHOICES)
 from .models import AppConfig, CasaLegislativa
 from operator import xor
 
@@ -1090,9 +1087,9 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
         )
 
 
-class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
+class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
 
-    ano = django_filters.ChoiceFilter(required=True,
+    materia__ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Matéria',
                                       choices=choice_anos_com_materias)
 
@@ -1106,22 +1103,25 @@ class RelatorioMateriasTramitacaoilterSet(django_filters.FilterSet):
 
     @property
     def qs(self):
-        parent = super(RelatorioMateriasTramitacaoilterSet, self).qs
-        return parent.distinct().order_by('-ano', 'tipo', '-numero')
+        parent = super(RelatorioMateriasTramitacaoFilterSet, self).qs
+        return parent.distinct().order_by(
+            '-materia__ano', 'materia__tipo', '-materia__numero'
+        )
 
     class Meta:
-        model = MateriaLegislativa
-        fields = ['ano', 'tipo', 'tramitacao__unidade_tramitacao_destino',
+        model = MateriaEmTramitacao
+        fields = ['materia__ano', 'materia__tipo',
+                  'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status']
 
     def __init__(self, *args, **kwargs):
-        super(RelatorioMateriasTramitacaoilterSet, self).__init__(
+        super(RelatorioMateriasTramitacaoFilterSet, self).__init__(
             *args, **kwargs)
 
-        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['materia__tipo'].label = 'Tipo de Matéria'
 
-        row1 = to_row([('ano', 12)])
-        row2 = to_row([('tipo', 12)])
+        row1 = to_row([('materia__ano', 12)])
+        row2 = to_row([('materia__tipo', 12)])
         row3 = to_row([('tramitacao__unidade_tramitacao_destino', 12)])
         row4 = to_row([('tramitacao__status', 12)])
 

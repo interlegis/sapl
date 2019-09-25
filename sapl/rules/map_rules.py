@@ -127,6 +127,7 @@ rules_group_materia = {
          ['can_access_impressos'], __perms_publicas__),
         (materia.Numeracao, __base__, __perms_publicas__),
         (materia.Tramitacao, __base__, __perms_publicas__),
+        (materia.MateriaEmTramitacao, __base__, __perms_publicas__),
         (norma.LegislacaoCitada, __base__, __perms_publicas__),
         (norma.AutoriaNorma, __base__, __perms_publicas__),
         (compilacao.Dispositivo, __base__ + [

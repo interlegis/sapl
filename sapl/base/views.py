@@ -14,7 +14,7 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, Validat
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
-from django.db.models import Count, Q, ProtectedError
+from django.db.models import Count, Q, ProtectedError, Max
 from django.shortcuts import render
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.template import TemplateDoesNotExist
@@ -34,20 +34,21 @@ from haystack.query import SearchQuerySet
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
-from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import Reuniao, Comissao
+from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
+from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexada,
                                  TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao,
-                                 DocumentoAcessorio, TipoDocumento)
+                                 DocumentoAcessorio, TipoDocumento, MateriaEmTramitacao,
+                                 Tramitacao)
 from sapl.norma.models import (NormaJuridica, TipoNormaJuridica, NormaEstatisticas)
 from sapl.parlamentares.models import (Parlamentar, Legislatura, Mandato, Filiacao, 
                                        SessaoLegislativa, Bancada, AfastamentoParlamentar)
 from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
                                       StatusTramitacaoAdministrativo, 
                                       DocumentoAdministrativo, Anexado)
-from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria, OrdemDia,
+from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria, OrdemDia,
                                 SessaoPlenariaPresenca, TipoSessaoPlenaria)
 from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, mail_service_configured,
@@ -59,7 +60,7 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
-                    RelatorioMateriasTramitacaoilterSet,
+                    RelatorioMateriasTramitacaoFilterSet,
                     RelatorioPresencaSessaoFilterSet,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
@@ -747,60 +748,107 @@ class RelatorioAudienciaView(FilterView):
 
 
 class RelatorioMateriasTramitacaoView(FilterView):
-    model = MateriaLegislativa
-    filterset_class = RelatorioMateriasTramitacaoilterSet
+    model = MateriaEmTramitacao
+    filterset_class = RelatorioMateriasTramitacaoFilterSet
     template_name = 'base/RelatorioMateriasPorTramitacao_filter.html'
 
+    paginate_by = 100
+
+    total_resultados_tipos = {}
+
+    def get_filterset_kwargs(self, filterset_class):
+        data = super().get_filterset_kwargs(filterset_class)
+
+        if data['data']:
+            qs = data['queryset']
+
+            ano_materia = data['data']['materia__ano']
+            tipo_materia = data['data']['materia__tipo']
+            unidade_tramitacao_destino = data['data']['tramitacao__unidade_tramitacao_destino']
+            status_tramitacao = data['data']['tramitacao__status']
+
+            kwargs = {}
+            if ano_materia:
+                kwargs['materia__ano'] = ano_materia
+            if tipo_materia:
+                kwargs['materia__tipo'] = tipo_materia
+            if unidade_tramitacao_destino:
+                kwargs['tramitacao__unidade_tramitacao_destino'] = unidade_tramitacao_destino
+            if status_tramitacao:
+                kwargs['tramitacao__status'] = status_tramitacao
+            qs = qs.filter(**kwargs)
+
+            data['queryset'] = qs
+            
+            qtdes = { tipo:0 for tipo in TipoMateriaLegislativa.objects.all() }
+            for i in qs:
+                qtdes[i.materia.tipo] += 1
+
+            # remove as entradas de valor igual a zero
+            qtdes = {k:v for k,v in qtdes.items() if v > 0}
+            self.total_resultados_tipos = qtdes
+
+        return data
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related('materia__tipo').filter(
+                materia__em_tramitacao=True
+            ).exclude(
+                tramitacao__status__indicador='F'
+            ).order_by('-materia__ano', '-materia__numero')
+        return qs
+
     def get_context_data(self, **kwargs):
-        context = super(RelatorioMateriasTramitacaoView,
-                        self).get_context_data(**kwargs)
+        context = super(
+            RelatorioMateriasTramitacaoView, self
+        ).get_context_data(**kwargs)
 
         context['title'] = _('Matérias em Tramitação')
+        
         if not self.filterset.form.is_valid():
             return context
 
         qr = self.request.GET.copy()
-        qs = context['object_list']
-        qs = qs.filter(em_tramitacao=True)
 
-        if qr.get('tramitacao__unidade_tramitacao_destino'):
-            qs = filtra_url_materias_em_tramitacao(
-                qr, qs, 'tramitacao__unidade_tramitacao_destino', 'local')
-        if qr.get('tramitacao__status'):
-            qs = filtra_url_materias_em_tramitacao(
-                qr, qs, 'tramitacao__status', 'status')
+        context['qtdes'] = self.total_resultados_tipos
+        context['ano'] = (self.request.GET['materia__ano'])
 
-        li = [li1 for li1 in qs if li1.tramitacao_set.last() and li1.tramitacao_set.last().status.indicador != 'F']
-        context['object_list'] = li
-
-        qtdes = {}
-        for tipo in TipoMateriaLegislativa.objects.all():
-            li = context['object_list']
-            qtde = sum(1 for i in li if i.tipo_id==tipo.id)
-            if qtde > 0:
-                qtdes[tipo] = qtde
-        context['qtdes'] = qtdes
-        context['ano'] = (self.request.GET['ano'])
-        if self.request.GET['tipo']:
-            tipo = self.request.GET['tipo']
+        if self.request.GET['materia__tipo']:
+            tipo = self.request.GET['materia__tipo']
             context['tipo'] = (
-                str(TipoMateriaLegislativa.objects.get(id=tipo)))
+                str(TipoMateriaLegislativa.objects.get(id=tipo))
+            )
         else:
             context['tipo'] = ''
+        
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
             context['tramitacao__status'] = (
-                str(StatusTramitacao.objects.get(id=tramitacao_status)))
+                str(StatusTramitacao.objects.get(id=tramitacao_status))
+            )
         else:
             context['tramitacao__status'] = ''
+        
         if self.request.GET['tramitacao__unidade_tramitacao_destino']:
-            context['tramitacao__unidade_tramitacao_destino'] = (str(UnidadeTramitacao.objects.get(
-                id=self.request.GET['tramitacao__unidade_tramitacao_destino'])))
+            context['tramitacao__unidade_tramitacao_destino'] = (
+                str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacao__unidade_tramitacao_destino']
+                ))
+            )
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
+        
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
-
         context['show_results'] = show_results_filter_set(qr)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages
+        )
+        context['NO_ENTRIES_MSG'] = 'Nenhum encontrado.'
 
         return context
 
