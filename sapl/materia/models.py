@@ -1084,3 +1084,15 @@ class Tramitacao(models.Model):
             'materia': self.materia,
             'status': self.status,
             'data': self.data_tramitacao.strftime("%d/%m/%Y")}
+
+
+class MateriaEmTramitacao(models.Model):
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.DO_NOTHING)
+    tramitacao = models.ForeignKey(Tramitacao, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = "materia_materiaemtramitacao"
+
+    def __str__(self):
+        return '{}/{}'.format(self.materia, self.tramitacao)
