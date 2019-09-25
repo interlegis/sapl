@@ -713,56 +713,16 @@ class RelatorioMateriasTramitacaoView(FilterView):
             unidade_tramitacao_destino = data['data']['tramitacao__unidade_tramitacao_destino']
             status_tramitacao = data['data']['tramitacao__status']
 
+            kwargs = {}
+            if ano_materia:
+                kwargs['materia__ano'] = ano_materia
             if tipo_materia:
-                if unidade_tramitacao_destino:
-                    if status_tramitacao:
-                        qs = qs.filter(
-                            materia__ano=ano_materia,
-                            materia__tipo=tipo_materia,
-                            tramitacao__unidade_tramitacao_destino=unidade_tramitacao_destino,
-                            tramitacao__status=status_tramitacao
-                        )
-                    else:
-                        qs = qs.filter(
-                            materia__ano=ano_materia,
-                            materia__tipo=tipo_materia,
-                            tramitacao__unidade_tramitacao_destino=unidade_tramitacao_destino
-                        )
-                else:
-                    if status_tramitacao:
-                        qs = qs.filter(
-                            materia__ano=ano_materia,
-                            materia__tipo=tipo_materia,
-                            tramitacao__status=status_tramitacao
-                        )
-                    else:
-                        qs = qs.filter(
-                            materia__ano=ano_materia,
-                            materia__tipo=tipo_materia
-                        )
-            else:
-                if unidade_tramitacao_destino:
-                    if status_tramitacao:
-                        qs = qs.filter(
-                            materia__ano=ano_materia,
-                            tramitacao__unidade_tramitacao_destino=unidade_tramitacao_destino,
-                            tramitacao__status=status_tramitacao
-                        )
-                    else:
-                        qs = qs.filter(
-                            materia__ano=ano_materia,
-                            tramitacao__unidade_tramitacao_destino=unidade_tramitacao_destino,
-                        )
-                else:
-                    if status_tramitacao:
-                        qs = qs.filter(
-                            materia__ano=ano_materia,
-                            tramitacao__status=status_tramitacao
-                        )
-                    else:
-                        qs = qs.filter(
-                            materia__ano=ano_materia,
-                        )
+                kwargs['materia__tipo'] = tipo_materia
+            if unidade_tramitacao_destino:
+                kwargs['tramitacao__unidade_tramitacao_destino'] = unidade_tramitacao_destino
+            if status_tramitacao:
+                kwargs['tramitacao__status'] = status_tramitacao
+            qs = qs.filter(**kwargs)
 
             data['queryset'] = qs
             
