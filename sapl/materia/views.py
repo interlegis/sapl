@@ -772,7 +772,7 @@ class ProposicaoCrud(Crud):
 
             context['title'] = '%s <small>(%s)</small>' % (
                 self.object, self.object.autor)
-
+            
             context['user'] = self.request.user
             context['proposicao'] = Proposicao.objects.get(
                 pk=self.kwargs['pk']
@@ -782,7 +782,8 @@ class ProposicaoCrud(Crud):
         def get(self, request, *args, **kwargs):
 
             action = request.GET.get('action', '')
-            username = request.user.username
+            user = request.user
+            username = user.username
 
             if not action:
                 return Crud.DetailView.get(self, request, *args, **kwargs)
@@ -790,7 +791,7 @@ class ProposicaoCrud(Crud):
             p = Proposicao.objects.get(id=kwargs['pk'])
 
             msg_error = ''
-            if p:
+            if p and p.autor.user == user:
                 if action == 'send':
                     if p.data_envio and p.data_recebimento:
                         msg_error = _('Proposição já foi enviada e recebida.')
