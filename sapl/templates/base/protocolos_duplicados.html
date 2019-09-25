@@ -15,12 +15,14 @@
           </tr>
         </thead>
         <tbody>
-          {% for protocolo, quantidade in protocolos_duplicados %}
+          {% for protocolo in protocolos_duplicados %}
             <tr>
               <td>
-                <a href="{% url 'sapl.protocoloadm:protocolo' %}?numero={{ protocolo.numero }}&ano={{ protocolo.ano }}">{{ protocolo }}</a>
+                <a href="{% url 'sapl.protocoloadm:protocolo' %}?numero={{ protocolo.numero }}&ano={{ protocolo.ano }}">
+                  {{ protocolo.numero }}/{{ protocolo.ano }}
+                </a>
               </td>
-              <td>{{ quantidade }}</td>
+              <td>{{ protocolo.total }}</td>
             </tr>
           {% endfor %}
         </tbody>

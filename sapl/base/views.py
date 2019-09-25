@@ -1714,14 +1714,10 @@ class ListarProtocolosComMateriasView(PermissionRequiredMixin, ListView):
 
 
 def protocolos_duplicados():
-    protocolos = {}
-    for p in Protocolo.objects.order_by('-ano', 'numero'):
-        key = "{}/{}".format(p.numero, p.ano)
-        val = protocolos.get(key, list())
-        val.append(p)
-        protocolos[key] = val
-
-    return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
+    return [
+        protocolo for protocolo in Protocolo.objects.values(
+            'numero', 'ano').order_by('-ano', 'numero').annotate(total=Count('numero')).filter(total__gt=1)
+    ]
 
 
 class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):

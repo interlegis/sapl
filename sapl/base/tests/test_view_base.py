@@ -24,32 +24,6 @@ from sapl.base.views import (protocolos_duplicados, protocolos_com_materias,
 
 
 @pytest.mark.django_db(transaction=False)
-def test_lista_protocolos_duplicados():
-        mommy.make(
-                Protocolo,
-                numero=15,
-                ano=2031
-        )
-        mommy.make(
-                Protocolo,
-                numero=15,
-                ano=2031
-        )
-        mommy.make(
-                Protocolo,
-                numero=33,
-                ano=2033
-        )
-
-        lista_protocolos_duplicados = protocolos_duplicados()
-
-        assert len(lista_protocolos_duplicados) == 1
-        assert lista_protocolos_duplicados[0][1] == 2
-        assert lista_protocolos_duplicados[0][0].numero == 15
-        assert lista_protocolos_duplicados[0][0].ano == 2031
-
-
-@pytest.mark.django_db(transaction=False)
 def test_lista_protocolos_com_materias():
         mommy.make(
                 Protocolo,
