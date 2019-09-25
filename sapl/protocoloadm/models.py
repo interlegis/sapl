@@ -120,6 +120,7 @@ class Protocolo(models.Model):
         permissions = (
             ('action_anular_protocolo', _('Permissão para Anular Protocolo')),
         )
+        unique_together = ('numero', 'ano',)
 
     def __str__(self):
         return _('%(numero)s/%(ano)s') % {
