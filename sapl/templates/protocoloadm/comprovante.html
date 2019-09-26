@@ -18,6 +18,9 @@
     		.hide-print {
         		display :  none;
     		}
+			.downsize {
+				font-size: 12px;
+			}
 		}
     	@page {
         	size:  auto;   /* auto is the initial value */
@@ -74,7 +77,7 @@
 		{% if protocolo.tipo_processo == 1 %}
 			<tr>
 				<th>Ementa</th>
-				<td>{{ protocolo.assunto_ementa }}</td>
+				<td class="downsize">{{ protocolo.assunto_ementa }}</td>
 			</tr>
 			<tr>
 				<th>Autor</th>
@@ -102,10 +105,16 @@
 		</tr>
 		<tr>
 			<th>Número Páginas</th>
-			<td>{{ protocolo.numero_paginas }}</td>
+			<td>{{ protocolo.numero_paginas|default_if_none:"0" }}</td>
 		</tr>
+		{% if materia %}
 		<tr>
-			<th>Comprovante emitido por</th>
+			<th>Número da Matéria</th>
+			<td>{{ materia }}</td>
+		</tr>
+		{% endif %}
+		<tr>
+			<th>Emitido por</th>
 			<td>{{ request.user.username }}</td>
 		</tr>
 	</table>

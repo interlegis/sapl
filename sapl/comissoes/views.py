@@ -167,7 +167,7 @@ class ComissaoCrud(Crud):
 
 def lista_materias_comissao(comissao_pk):
     ts = Tramitacao.objects.order_by(
-        'materia', '-data_tramitacao', '-id').annotate(
+        'materia_id', '-data_tramitacao', '-id').annotate(
         comissao=F('unidade_tramitacao_destino__comissao')).distinct(
             'materia').values_list('materia', 'comissao')
 
