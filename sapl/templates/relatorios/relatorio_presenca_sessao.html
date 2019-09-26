@@ -1,0 +1,60 @@
+{% load i18n %}
+{% load common_tags %}
+{% load static %}
+
+
+<head>
+    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
+</head>
+
+<body>
+  <h2>Presença dos parlamentares nas sessões</h2>
+
+    <b>PARÂMETROS DE PESQUISA:<br /></b>
+
+
+  {% if show_results %}
+    <style type="text/css">
+      .presenca_table td, th{
+        text-align: center;
+      }
+    </style>
+
+    <br />
+    PERÍODO: {{periodo}}<br />
+    Legislatura: {{legislatura}}<br />
+    Sessão Legislativa: {{sessao_legislativa}}<br />
+    TOTAIS NO PERÍODO - SESSÕES: {{total_sessao}} - ORDENS DO DIA: {{total_ordemdia}}</b>
+    <br /><br />
+    <table class="table table-bordered table-hover presenca_table">
+      <thead class="thead-default" align="center">
+        <tr class="active">
+          <th rowspan="2">Nome Parlamentar / Partido</th>
+          <th rowspan="2">Titular?</th>
+          <th rowspan="2">Ativo?</th>
+          <th colspan="2">Sessão</th>
+          <th colspan="2">Ordem do Dia</th>
+        </tr>
+        <tr class="active">
+          <th>(Qtd)</th>
+          <th>( % )</th>
+          <th>(Qtd)</th>
+          <th>( % )</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in parlamentares %}
+          <tr>
+            <td><b>{{p.parlamentar}}</b> / {{p.parlamentar|filiacao_intervalo_filter:date_range|default:"Sem Partido"}}</td>
+            <td>{% if p.titular %} Sim {% else %} Não {% endif %}</td>
+            <td>{% if p.parlamentar.ativo %} Sim {% else %} Não {% endif %}</td>
+            <td>{{p.sessao_count}}</td>
+            <td>{{p.sessao_porc}}</td>
+            <td>{{p.ordemdia_count}}</td>
+            <td>{{p.ordemdia_porc}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</body>

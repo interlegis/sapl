@@ -1,8 +1,9 @@
 import logging
 import os
 
-from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton
-from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row
+
+from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
+from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -36,7 +37,7 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         intervalos_tem_intersecao,
                         ImageThumbnailFileInput, models_with_gr_for_model,
                         qs_override_django_filter, RangeWidgetOverride,
-                        RANGE_ANOS, YES_NO_CHOICES)
+                        RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter)
 from .models import AppConfig, CasaLegislativa
 from operator import xor
 
@@ -761,12 +762,27 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
     
         row1 = to_row([('data', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                   <div class="form-check">
+                                                       <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                       <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                   </div>
+                                               ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa'),
             row0, row1,
-            form_actions(label='Pesquisar'))
+            buttons)
         )
 
 
@@ -791,11 +807,26 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('data_inicio', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                            <div class="form-check">
+                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                            </div>
+                                        ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Atas das Sessões Plenárias'),
-                     row1, form_actions(label='Pesquisar'))
+                     row1, buttons, )
         )
 
 
@@ -827,11 +858,26 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
         row1 = to_row([('ano', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                            <div class="form-check">
+                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                            </div>
+                                        ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Normas por mês do ano.'),
-                     row1, form_actions(label='Pesquisar'))
+                     row1, buttons, )
         )
 
     @property
@@ -856,11 +902,26 @@ class EstatisticasAcessoNormasForm(Form):
 
         row1 = to_row([('ano', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                    <div class="form-check">
+                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                    </div>
+                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.helper = SaplFormHelper()
         self.helper.form_method = 'GET'
         self.helper.layout = Layout(
             Fieldset(_('Normas por acessos nos meses do ano.'),
-                     row1, form_actions(label='Pesquisar'))
+                     row1, buttons)
         )
 
     def clean(self):
@@ -894,12 +955,27 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         row1 = to_row([('ano', 12)])
         row2 = to_row([('vigencia', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                    <div class="form-check">
+                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                    </div>
+                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Normas por vigência.'),
                      row1, row2,
-                     form_actions(label='Pesquisar'))
+                     buttons, )
         )
 
     @property
@@ -936,11 +1012,26 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
                        ('tipo', 4)])
         row3 = to_row([('exibir_ordem_dia', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                    <div class="form-check">
+                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                    </div>
+                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Presença dos parlamentares nas sessões plenárias'),
-                     row1, row2, row3, form_actions(label='Pesquisar'))
+                     row1, row2, row3, buttons, )
         )
 
     @property
@@ -978,12 +1069,27 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
             [('tipo', 6),
              ('tramitacao__status', 6)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                            <div class="form-check">
+                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                            </div>
+                                        ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3,
-                     form_actions(label='Pesquisar'))
+                     buttons, )
         )
 
 
@@ -1017,12 +1123,27 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             [('tipo', 6),
              ('tramitacao__status', 6)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                    <div class="form-check">
+                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                    </div>
+                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitações'),
                      row1, row2, row3,
-                     form_actions(label='Pesquisar'))
+                     buttons, )
         )
 
 
@@ -1048,12 +1169,27 @@ class RelatorioReuniaoFilterSet(django_filters.FilterSet):
              ('nome', 4),
              ('tema', 4)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                                    <div class="form-check">
+                                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                                    </div>
+                                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Reunião de Comissão'),
                      row1, row2,
-                     form_actions(label='Pesquisar'))
+                     buttons, )
         )
 
 
@@ -1078,12 +1214,27 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
             [('tipo', 4),
              ('nome', 4)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                    <div class="form-check">
+                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                    </div>
+                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Audiência Pública'),
                      row1, row2,
-                     form_actions(label='Pesquisar'))
+                     buttons, )
         )
 
 
@@ -1125,12 +1276,27 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         row3 = to_row([('tramitacao__unidade_tramitacao_destino', 12)])
         row4 = to_row([('tramitacao__status', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                            <div class="form-check">
+                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                            </div>
+                        ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
                      row1, row2, row3, row4,
-                     form_actions(label='Pesquisar'))
+                     buttons,)
         )
 
 
@@ -1151,13 +1317,29 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
         row1 = to_row(
             [('ano', 12)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                    <div class="form-check">
+                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                    </div>
+                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisar'),
+            Fieldset(_('Pesquisa de Matéria por Ano Autor Tipo'),
                      row1,
-                     form_actions(label='Pesquisar'))
+                     buttons, )
         )
+
 
 
 class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
@@ -1192,15 +1374,30 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
                      'limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                            <div class="form-check">
+                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                            </div>
+                                        ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisar'),
+            Fieldset(_('Pesquisa de Matéria por Autor'),
                      row1, row2,
                      HTML(autor_label),
                      HTML(autor_modal),
                      row3,
-                     form_actions(label='Pesquisar'))
+                     buttons, )
         )
 
 
@@ -1606,12 +1803,27 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
             [('tipo', 6),
              ('tramitacaoadministrativo__status', 6)])
 
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                            <div class="form-check">
+                                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                            </div>
+                                                        ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3,
-                     form_actions(label='Pesquisar'))
+                     buttons, )
         )
 
 
@@ -1646,6 +1858,20 @@ class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
              (Button('limpar',
                      'Limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
+        buttons = FormActions(
+            *[
+                HTML('''
+                                                                    <div class="form-check">
+                                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                                                    </div>
+                                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between'
+            ,
+        )
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'

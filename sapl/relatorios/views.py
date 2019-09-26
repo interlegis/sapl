@@ -1344,8 +1344,7 @@ def resumo_ata_pdf(request,pk):
 
     return response
 
-
-def relatorio_doc_administrativos(request, context):
+def cria_relatorio(request, context, html_string):
     base_url = request.build_absolute_uri()
     casa = CasaLegislativa.objects.first()
     rodape = ' '.join(get_rodape(casa))
@@ -1353,19 +1352,67 @@ def relatorio_doc_administrativos(request, context):
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape': rodape})
 
-    header_context = {"casa": casa, 'logotipo':casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+    header_context = {"casa": casa, 'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
 
-    html_template = render_to_string('relatorios/relatorio_doc_administrativos.html', context)
+    html_template = render_to_string(html_string, context)
     html_header = render_to_string('relatorios/header_ata.html', header_context)
 
-    pdf_file = make_pdf(base_url=base_url,main_template=html_template,header_template=html_header)
-    
+    pdf_file = make_pdf(base_url=base_url, main_template=html_template, header_template=html_header)
+
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
     response['Content-Transfer-Encoding'] = 'binary'
     response.write(pdf_file)
 
     return response
+
+def relatorio_doc_administrativos(request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_doc_administrativos.html')
+
+def relatorio_materia_em_tramitacao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_materias_em_tramitacao.html')
+
+def relatorio_materia_por_autor(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_materias_por_autor.html')
+
+def relatorio_materia_por_ano_autor(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_materias_por_ano_autor.html')
+
+def relatorio_presenca_sessao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_presenca_sessao.html')
+
+def relatorio_atas(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_atas.html')
+
+def relatorio_historico_tramitacao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_historico_tramitacao.html')
+
+def relatorio_fim_prazo_tramitacao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_fim_prazo_tramitacao.html')
+
+def relatorio_reuniao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_reuniao.html')
+
+def relatorio_audiencia(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_audiencia.html')
+
+def relatorio_normas_mes(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_normas_mes.html')
+
+def relatorio_normas_vigencia(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_normas_vigencia.html')
+
+def relatorio_historico_tramitacao_adm(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_historico_tramitacao_adm.html')
+
+def relatorio_estatisticas_acesso_normas(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_estatisticas_acesso_normas.html')
+
+def relatorio_documento_acessorio(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_documento_acessorio.html')
+
+def relatorio_normas_por_autor(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_normas_por_autor.html')
 
 def relatorio_sessao_plenaria_pdf(request, pk):  
     base_url=request.build_absolute_uri()
