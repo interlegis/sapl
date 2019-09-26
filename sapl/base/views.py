@@ -317,7 +317,7 @@ class RelatorioMixin:
     def get(self, request, *args, **kwargs):
         super(RelatorioMixin, self).get(request)
 
-        is_relatorio = request.GET.get('relatorio', None)
+        is_relatorio = request.GET.get('relatorio')
         context = self.get_context_data(filter=self.filterset)
 
         if is_relatorio:
@@ -1066,7 +1066,7 @@ class EstatisticasAcessoNormas(TemplateView):
         
         context['normas_mes'] = normas_mes
 
-        is_relatorio = request.GET.get('relatorio', None)
+        is_relatorio = request.GET.get('relatorio')
 
         context['show_results'] = show_results_filter_set(
             self.request.GET.copy())

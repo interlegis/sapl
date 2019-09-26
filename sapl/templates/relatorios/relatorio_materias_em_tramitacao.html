@@ -4,41 +4,6 @@
 
 
 <head>
-    <style>
-        @page{
-            margin-top: 4.5cm;
-            size: A4 portrait;
-
-            @bottom-right {
-                content: "Página" counter(page);
-                height: 3cm;
-                font-size: 8pt;
-            }
-        
-            @bottom-center {
-                border-top: 1px solid black;
-                font-size: 8pt;
-                height: 1cm;
-                content: "{{rodape|safe}}";
-                font-style:italic;
-            }
-            @bottom-left {
-                content: "{{data}}";
-                height: 3cm;
-                font-size: 8pt;
-            }
-              
-            @top-center {
-                content:  string(title);
-            }
-            header {
-                width: 0;
-                height: 0;
-                visibility: hidden;
-                string-set: title content();
-            }
-        }
-    </style>
     <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}"> 
 </head>
 
