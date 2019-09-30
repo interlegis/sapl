@@ -321,6 +321,27 @@ class ProposicaoTaView(IntegracaoTaView):
 
 
 @permission_required('materia.detail_materialegislativa')
+def recuperar_proposicao(request):
+    hash_code = request.GET['codigo']
+
+    # nao pode estar recebida, nem incorporada. a pesquisa deve ser sobre o começo do codigo
+
+    proposicoes = Proposicao.objects.filter(
+            hash_code__startswith=hash_code.capitalize(),
+            data_envio__isnull=False,
+            data_recebimento__isnull=True,
+            data_devolucao__isnull=True
+            )
+
+    json = {}
+    for proposicao in proposicoes:
+        json.update({proposicao.id: proposicao.hash_code})
+
+    response = JsonResponse(json)
+
+    return response
+
+@permission_required('materia.detail_materialegislativa')
 def recuperar_materia(request):
     logger = logging.getLogger(__name__)
     username = request.user.username
