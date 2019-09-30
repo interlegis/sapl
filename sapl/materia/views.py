@@ -337,7 +337,6 @@ def recuperar_proposicao(request):
         hash_codes.append(hash_code)
 
     response = JsonResponse({'hash_codes': hash_codes})
-
     return response
 
 @permission_required('materia.detail_materialegislativa')
