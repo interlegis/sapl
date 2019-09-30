@@ -206,13 +206,12 @@ def test_valida_campos_obrigatorios_tramitacao_form():
     errors = form.errors
 
     assert errors['unidade_tramitacao_local'] == [_('Este campo é obrigatório.')]
-    assert errors['texto'] == [_('Este campo é obrigatório.')]
     assert errors['status'] == [_('Este campo é obrigatório.')]
     assert errors['data_tramitacao'] == [_('Este campo é obrigatório.')]
     assert errors['unidade_tramitacao_destino'] == [_('Este campo é obrigatório.')]
     assert errors['urgente'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 6
+    assert len(errors) == 5
 
 
 @pytest.mark.django_db(transaction=False)
@@ -224,13 +223,12 @@ def test_valida_campos_obrigatorios_tramitacao_update_form():
     errors = form.errors
 
     assert errors['unidade_tramitacao_local'] == [_('Este campo é obrigatório.')]
-    assert errors['texto'] == [_('Este campo é obrigatório.')]
     assert errors['status'] == [_('Este campo é obrigatório.')]
     assert errors['data_tramitacao'] == [_('Este campo é obrigatório.')]
     assert errors['unidade_tramitacao_destino'] == [_('Este campo é obrigatório.')]
     assert errors['urgente'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 6
+    assert len(errors) == 5
 
 
 @pytest.mark.django_db(transaction=False)
