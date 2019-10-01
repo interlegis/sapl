@@ -1020,12 +1020,13 @@ class Tramitacao(models.Model):
         ('U', 'unico', _('Único')),
         ('L', 'suplementar', _('Suplementar')),
         ('F', 'final', _('Final')),
-        ('A', 'votacao_unica', _('Votação única em Regime de Urgência')),
+        ('A', 'votacao_unica', _('Votação Única em Regime de Urgência')),
         ('B', 'primeira_votacao', _('1ª Votação')),
-        ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
+        ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votações')),
         ('D', 'deliberacao', _('Deliberação')),
+        ('G', 'primeria_segunda_votacoes', _('1ª e 2ª Votações')),
         ('E', 'primeira_segunda_votacao_urgencia', _(
-            '1ª e 2ª votações em regime de urgência'))
+            '1ª e 2ª Votações em Regime de Urgência')),
 
     )
 
