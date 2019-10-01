@@ -257,6 +257,7 @@ class MateriaLegislativa(models.Model):
             'materia_principal',
             'materia_anexada'))
     texto_original = models.FileField(
+        max_length=200,
         blank=True,
         null=True,
         upload_to=materia_upload_path,
@@ -802,6 +803,7 @@ class Proposicao(models.Model):
                                        ('I', 'Incorporada')),
                               verbose_name=_('Status Proposição'))
     texto_original = models.FileField(
+        max_length=200,
         upload_to=materia_upload_path,
         blank=True,
         null=True,

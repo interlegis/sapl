@@ -182,6 +182,7 @@ class SessaoPlenaria(models.Model):
         max_length=150, blank=True,
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
+        max_length=200,
         blank=True,
         null=True,
         upload_to=pauta_upload_path,
@@ -189,6 +190,7 @@ class SessaoPlenaria(models.Model):
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
+        max_length=200,
         blank=True,
         null=True,
         upload_to=ata_upload_path,
@@ -196,6 +198,7 @@ class SessaoPlenaria(models.Model):
         verbose_name=_('Ata da Sessão'),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_anexo = models.FileField(
+        max_length=200,
         blank=True,
         null=True,
         storage=OverwriteStorage(),
@@ -427,6 +430,7 @@ class AbstractOrador(models.Model):  # Oradores
     observacao = models.CharField(
         max_length=150, blank=True, verbose_name=_('Observação'))
     upload_anexo = models.FileField(
+        max_length=200,
         blank=True,
         null=True,
         storage=OverwriteStorage(),
@@ -770,6 +774,7 @@ class JustificativaAusencia(models.Model):
         OrdemDia, blank=True, verbose_name=_('Matérias do Ordem do Dia'))
 
     upload_anexo = models.FileField(
+        max_length=200,
         blank=True,
         null=True,
         storage=OverwriteStorage(),
