@@ -526,7 +526,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
 
     o = MateriaPesquisaOrderingFilter()
     tramitacao__status = django_filters.ModelChoiceFilter(
-        required=True,
+        required=False,
         queryset=StatusTramitacao.objects.all(),
         label=_('Status da Matéria'))
 
