@@ -79,6 +79,7 @@ class NormaJuridica(models.Model):
     )
 
     texto_integral = models.FileField(
+        max_length=200,
         blank=True,
         null=True,
         upload_to=norma_upload_path,
@@ -361,6 +362,7 @@ class AnexoNormaJuridica(models.Model):
         max_length=250
     )
     anexo_arquivo = models.FileField(
+        max_length=200,
         blank=True,
         null=True,
         upload_to=norma_upload_path,
