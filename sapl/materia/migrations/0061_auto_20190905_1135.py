@@ -37,7 +37,7 @@ def migra_tipos_turnos_tramitacao(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('materia', '0058_auto_20190905_1134'),
+        ('materia', '0060_auto_20190905_1134'),
     ]
 
     operations = [
