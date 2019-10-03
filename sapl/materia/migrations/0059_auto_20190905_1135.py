@@ -16,11 +16,12 @@ def migra_tipos_turnos_tramitacao(apps, schema_editor):
         'U': _('Único'),
         'L': _('Suplementar'),
         'F': _('Final'),
-        'A': _('Votação única em Regime de Urgência'),
+        'A': _('Votação Única em Regime de Urgência'),
         'B': _('1ª Votação'),
-        'C': _('2ª e 3ª Votação'),
+        'C': _('2ª e 3ª Votações'),
         'D': _('Deliberação'),
-        'E': _('1ª e 2ª votações em regime de urgência')
+        'G': _('1ª e 2ª Votações'),
+        'E': _('1ª e 2ª Votações em Regime de Urgência'),
     }
     
     for value in TURNO_CHOICES.values():
