@@ -322,22 +322,21 @@ class ProposicaoTaView(IntegracaoTaView):
 
 @permission_required('materia.detail_materialegislativa')
 def recuperar_proposicao(request):
-    hash_code = request.GET['codigo']
-
-    # nao pode estar recebida, nem incorporada. a pesquisa deve ser sobre o começo do codigo
+    data = request.GET['data']
 
     proposicoes = Proposicao.objects.filter(
-            hash_code__startswith=hash_code.capitalize(),
+            data_envio__date=datetime.strptime(data, '%Y-%m-%d').date(),
             data_envio__isnull=False,
             data_recebimento__isnull=True,
             data_devolucao__isnull=True
             )
 
-    json = {}
+    hash_codes = []
     for proposicao in proposicoes:
-        json.update({proposicao.id: proposicao.hash_code})
+        hash_code = gerar_hash_arquivo(proposicao.texto_original.path, str(proposicao.pk))
+        hash_codes.append(hash_code)
 
-    response = JsonResponse(json)
+    response = JsonResponse({'hash_codes': hash_codes})
 
     return response
 
