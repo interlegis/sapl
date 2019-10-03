@@ -10,6 +10,7 @@ import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
+from sapl.painel.models import Cronometro
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
@@ -810,3 +811,50 @@ class RetiradaPauta(models.Model):
                 'ReritadaPauta deve ter exatamente um dos campos '
                 'ordem ou expediente preenchido. Ambos estão preenchidos: '
                 '{}, {}'. format(self.ordem, self.expediente))
+
+
+@reversion.register()
+class TipoListaDiscurso(models.Model):
+    nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
+
+    class Meta:
+        verbose_name = _('Tipo de Lista de Discurso')
+        verbose_name_plural = _('Tipos de Lista de Discurso')
+        ordering = ['nome']
+
+    def __str__(self):
+        return self.nome
+
+
+@reversion.register()
+class ListaDiscurso(models.Model):
+    tipo = models.ForeignKey(TipoListaDiscurso, 
+                             on_delete=models.PROTECT,
+                             verbose_name=_('Tipo de Lista de Discurso'))
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria, 
+                                        on_delete=models.PROTECT,
+                                        verbose_name=_('Sessão Plenária'))
+    orador_atual = models.ForeignKey(Parlamentar, 
+                               on_delete=models.PROTECT,
+                               blank=True,
+                               null=True)
+
+    class Meta:
+        verbose_name = _('Lista de Discurso')
+        verbose_name_plural = _('Listas de Discurso')
+        ordering = ['tipo', 'sessao_plenaria']
+        unique_together = (('tipo', 'sessao_plenaria'),)
+
+    def __str__(self):
+        return str(self.tipo) + ' - ' + str(self.sessao_plenaria)
+
+@reversion.register()
+class CronometroLista(models.Model):
+    cronometro = models.ForeignKey(Cronometro, on_delete=models.PROTECT)
+    lista = models.ForeignKey(ListaDiscurso, on_delete=models.PROTECT)
+
+
+@reversion.register()
+class ParlamentarLista(models.Model):
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+    lista = models.ForeignKey(ListaDiscurso, on_delete=models.PROTECT)

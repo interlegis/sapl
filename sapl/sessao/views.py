@@ -53,7 +53,8 @@ from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao, OcorrenciaS
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
-                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia, ORDENACAO_RESUMO)
+                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia, ORDENACAO_RESUMO,
+                     TipoListaDiscurso, ListaDiscurso)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
@@ -61,7 +62,8 @@ TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
 TipoResultadoVotacaoCrud = CrudAux.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
-
+TipoListaDiscursoCrud = CrudAux.build(TipoListaDiscurso, 'tipo_lista_discurso')
+ListaDiscursoCrud = CrudAux.build(ListaDiscurso, 'lista_discurso')
 
 def reordernar_materias_expediente(request, pk):
     expedientes = ExpedienteMateria.objects.filter(
@@ -4377,3 +4379,23 @@ def voto_nominal_parlamentar(request):
                 voto.save()
 
     return JsonResponse({})
+
+
+class ListaDiscursoView(TemplateView):
+    template_name = 'sessao/lista_presenca.html'
+
+    def get(self, request, *args, **kwargs):
+        # import ipdb; ipdb.set_trace()
+        return TemplateView.get(self, request, *args, **kwargs)
+
+
+    def get_context_data(self, **kwargs):
+        context = TemplateView.get_context_data(self, **kwargs)
+        sessao_pk = kwargs['pk']
+        sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+        context.update({
+            'root_pk': sessao_pk,
+            'subnav_template_name': 'sessao/subnav.yaml',
+            'sessaoplenaria': sessao,
+        })
+        return context

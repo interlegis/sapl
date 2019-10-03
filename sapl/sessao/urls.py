@@ -35,7 +35,10 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
                                resumo_ordenacao,
                                recuperar_nome_tipo_sessao,
-                               voto_nominal_parlamentar)
+                               voto_nominal_parlamentar,
+                               ListaDiscursoView,
+                               TipoListaDiscursoCrud,
+                               ListaDiscursoCrud)
 
 from .apps import AppConfig
 
@@ -99,6 +102,11 @@ urlpatterns = [
         include(TipoJustificativaCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-retirada-pauta/',
         include(TipoRetiradaPautaCrud.get_urls())),
+    url(r'^sistema/sessao-plenaria/tipo-lista-discurso/',
+        include(TipoListaDiscursoCrud.get_urls())),
+    url(r'^sistema/sessao-plenaria/lista-discurso/',
+        include(ListaDiscursoCrud.get_urls())),
+
     url(r'^sistema/resumo-ordenacao/',
         resumo_ordenacao,
         name='resumo_ordenacao'),
@@ -194,4 +202,9 @@ urlpatterns = [
         voto_nominal_parlamentar,
         name='votacao_nominal_parlamentar'
         ),
+
+    url(r'^sessao/(?P<pk>\d+)/lista-presenca/', 
+        ListaDiscursoView.as_view(),
+        name='lista_presenca')
+    
 ]
