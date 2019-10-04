@@ -265,6 +265,7 @@ EMAIL_RUNNING = None
 
 MAX_DOC_UPLOAD_SIZE = 80 * 1024 * 1024  # 80MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
+DATA_UPLOAD_MAX_MEMORY_SIZE= 10 * 1024 * 1024 # 10MB
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
