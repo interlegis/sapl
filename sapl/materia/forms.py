@@ -40,11 +40,10 @@ from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
 from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
                                       Protocolo)
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import (autor_label, autor_modal,
-                        ChoiceWithoutValidationField,
-                        choice_anos_com_materias, FileFieldCheckMixin,
-                        FilterOverridesMetaMixin, gerar_hash_arquivo,
+from sapl.utils import (ChoiceWithoutValidationField, choice_anos_com_materias,
+                        FileFieldCheckMixin, FilterOverridesMetaMixin,
                         lista_anexados, MateriaPesquisaOrderingFilter,
+                        autor_label, autor_modal, gerar_hash_arquivo, proposicao_modal,
                         models_with_gr_for_model, qs_override_django_filter,
                         RangeWidgetOverride, SEPARADOR_HASH_PROPOSICAO,
                         YES_NO_CHOICES)
@@ -115,10 +114,16 @@ class ReceberProposicaoForm(Form):
 
     def __init__(self, *args, **kwargs):
         row1 = to_row([('cod_hash', 12)])
+        row2 = to_row(
+            [(Button('pesquisar-cod-proposicao',
+                     'Pesquisar Código de Proposicoes',
+                     css_class='btn btn-primary btn-sm'), 4)
+             ])
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(
-                _('Incorporar Proposição'), row1,
+                _('Incorporar Proposição'), row1, row2,
+                HTML(proposicao_modal),
                 form_actions(label='Buscar Proposição')
             )
         )
