@@ -116,9 +116,6 @@ def get_casalegislativa():
     return CasaLegislativa.objects.first()
 
 
-AutorUserCrud = CrudAux.build(AutorUser, 'autor_user')
-
-
 class ConfirmarEmailView(TemplateView):
     template_name = "email/confirma.html"
 

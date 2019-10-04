@@ -39,7 +39,7 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarLegislaturaInfindavelView, ListarAnexadasCiclicasView,
                     ListarAnexadosCiclicosView, pesquisa_textual,
                     RelatorioHistoricoTramitacaoAdmView, RelatorioDocumentosAcessoriosView,
-                    RelatorioNormasPorAutorView, AutorUserCrud, AutorUserFormView,
+                    RelatorioNormasPorAutorView, AutorUserFormView,
                     deleta_autoruser)
 
 
