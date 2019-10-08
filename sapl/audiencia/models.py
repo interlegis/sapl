@@ -184,10 +184,13 @@ class AnexoAudienciaPublica(models.Model):
         return self.assunto
 
     def delete(self, using=None, keep_parents=False):
-        if self.arquivo:
-            self.arquivo.delete()
+        arquivo = self.arquivo
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(self, using=using, keep_parents=keep_parents)
+        if arquivo:
+            arquivo.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if not self.pk and self.arquivo:
