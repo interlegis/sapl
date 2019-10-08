@@ -262,17 +262,22 @@ class SessaoPlenaria(models.Model):
         """
 
     def delete(self, using=None, keep_parents=False):
-        if self.upload_pauta:
-            self.upload_pauta.delete()
+        upload_pauta = self.upload_pauta
+        upload_ata = self.upload_ata
+        upload_anexo = self.upload_anexo
+        
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        if self.upload_ata:
-            self.upload_ata.delete()
+        if upload_pauta:
+            upload_pauta.delete(save=False)
 
-        if self.upload_anexo:
-            self.upload_anexo.delete()
+        if upload_ata:
+            upload_ata.delete(save=False)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if upload_anexo:
+            upload_anexo.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
