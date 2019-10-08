@@ -450,6 +450,14 @@ class AbstractOrador(models.Model):  # Oradores
             'nome': self.parlamentar,
             'numero': self.numero_ordem}
 
+    def delete(self, using=None, keep_parents=False):
+        upload_anexo = self.upload_anexo
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if upload_anexo:
+            upload_anexo.delete(save=False)
+
+        return result
 
 @reversion.register()
 class Orador(AbstractOrador):  # Oradores
