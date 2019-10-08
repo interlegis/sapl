@@ -391,3 +391,12 @@ class AnexoNormaJuridica(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
+    def delete(self, using=None, keep_parents=False):
+        anexo_arquivo = self.anexo_arquivo
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if anexo_arquivo:
+            anexo_arquivo.delete(save=False)
+
+        return result
