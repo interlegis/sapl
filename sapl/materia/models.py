@@ -914,11 +914,13 @@ class Proposicao(models.Model):
             )}
 
     def delete(self, using=None, keep_parents=False):
-        if self.texto_original:
-            self.texto_original.delete()
+        texto_original = self.texto_original
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if texto_original:
+            texto_original.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
