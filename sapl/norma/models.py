@@ -190,11 +190,13 @@ class NormaJuridica(models.Model):
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
 
     def delete(self, using=None, keep_parents=False):
-        if self.texto_integral:
-            self.texto_integral.delete()
+        texto_integral = self.texto_integral
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if texto_integral:
+            texto_integral.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
