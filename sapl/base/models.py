@@ -264,4 +264,4 @@ class AutorUser(models.Model):
         ordering = ('autor__nome',)
 
     def __str__(self):
-        return str(self.autor) + ' - ' + str(self.user)
+        return "%s - %s" % (self.autor, self.user)
