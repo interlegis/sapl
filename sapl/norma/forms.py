@@ -30,8 +30,7 @@ def get_esferas():
             ('M', 'Municipal')]
 
 
-YES_NO_CHOICES = [('', '---------'),
-                  (True, _('Sim')),
+YES_NO_CHOICES = [(True, _('Sim')),
                   (False, _('Não'))]
 
 ORDENACAO_CHOICES = [('', '---------'),
@@ -58,7 +57,7 @@ class NormaFilterSet(django_filters.FilterSet):
     assuntos = django_filters.ModelChoiceFilter(
         queryset=AssuntoNorma.objects.all())
 
-    vigencia = django_filters.BooleanFilter(label='Vigência',method='filter_vigencia')
+    vigencia = django_filters.ChoiceFilter(label='Vigência',method='filter_vigencia',choices=YES_NO_CHOICES)
 
     o = NormaPesquisaOrderingFilter(help_text='')
 
@@ -94,9 +93,9 @@ class NormaFilterSet(django_filters.FilterSet):
     
     def filter_vigencia(self, queryset, name, data_fim_vigencia):
         data_atual = timezone.now()
-        if data_fim_vigencia: # É vigente
+        if data_fim_vigencia == "True": # É vigente
             queryset = queryset.filter((Q(data_vigencia__gt=data_atual) | Q(data_vigencia__isnull=True)) & Q(data__lte=data_atual))
-        elif data_fim_vigencia == False:
+        elif data_fim_vigencia == "False":
             queryset = queryset.filter(Q(data_vigencia__lte=data_atual) | Q(data__gt=data_atual))           
 
         return queryset
