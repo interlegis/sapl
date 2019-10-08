@@ -1065,7 +1065,7 @@ class Tramitacao(models.Model):
     turno = models.CharField(
         max_length=1, blank=True, verbose_name=_('Turno'),
         choices=TURNO_CHOICES)
-    texto = models.TextField(verbose_name=_('Texto da Ação'))
+    texto = models.TextField(verbose_name=_('Texto da Ação'), blank=True)
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
     user = models.ForeignKey(get_settings_auth_user_model(),
