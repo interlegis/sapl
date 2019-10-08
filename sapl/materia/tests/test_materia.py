@@ -521,9 +521,7 @@ def test_form_errors_tramitacao(admin_client):
             ['Este campo é obrigatório.'])
     assert (response.context_data['form'].errors[
             'unidade_tramitacao_destino'] == ['Este campo é obrigatório.'])
-    assert (response.context_data['form'].errors['texto'] ==
-            ['Este campo é obrigatório.'])
-
+            
 
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_relatoria(admin_client):
