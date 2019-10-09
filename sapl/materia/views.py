@@ -112,7 +112,7 @@ def proposicao_texto(request, pk):
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
-                proposicao.autor.user_id != request.user.id):
+            not proposicao.autor.autoruser_set.filter(user=request.user).exists()):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
             messages.error(request, _(
@@ -318,7 +318,7 @@ class ProposicaoTaView(IntegracaoTaView):
             proposicao = get_object_or_404(self.model, pk=kwargs['pk'])
 
             if not proposicao.data_envio and\
-                    request.user != proposicao.autor.user:
+                proposicao.autor.autoruser_set.filter(user=request.user).exists():
                 raise Http404()
 
             return IntegracaoTaView.get(self, request, *args, **kwargs)
@@ -590,7 +590,7 @@ class RetornarProposicao(UpdateView):
                 "user=" + username + ". Objeto Proposicao com id={} não encontrado.".format(kwargs['pk']))
             raise Http404()
 
-        if p.autor.user != request.user:
+        if not p.autor.autoruser_set.filter(user=request.user).exists():
             self.logger.error(
                 "user=" + username + ". Usuário ({}) sem acesso a esta opção.".format(request.user))
             messages.error(
@@ -732,7 +732,7 @@ class UnidadeTramitacaoCrud(CrudAux):
 class ProposicaoCrud(Crud):
     model = Proposicao
     help_topic = 'proposicao'
-    container_field = 'autor__user'
+    container_field = 'autor__autoruser__user'
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['data_envio', 'data_recebimento', 'descricao',
@@ -896,7 +896,7 @@ class ProposicaoCrud(Crud):
             if not self.has_permission():
                 return self.handle_no_permission()
 
-            if p.autor.user != request.user:
+            if not p.autor.autoruser_set.filter(user=request.user).exists():
                 if not p.data_envio and not p.data_devolucao:
                     raise Http404()
 
@@ -1111,9 +1111,9 @@ class ReciboProposicaoView(TemplateView):
         if not self.request.user.has_perms(perms):
             return False
 
-        return (Proposicao.objects.filter(
-            id=self.kwargs['pk'],
-            autor__user_id=self.request.user.id).exists())
+        prop = Proposicao.objects.get(
+            id=self.kwargs['pk'])
+        return prop.autor.autoruser_set.filter(user=self.request.user).exists()
 
     def get_context_data(self, **kwargs):
         context = super(ReciboProposicaoView, self).get_context_data(

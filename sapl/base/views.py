@@ -76,8 +76,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     EstatisticasAcessoNormasForm, UsuarioFilterSet,
                     RelatorioHistoricoTramitacaoAdmFilterSet,
                     RelatorioDocumentosAcessoriosFilterSet,
-                    RelatorioNormasPorAutorFilterSet)
-from .models import AppConfig, CasaLegislativa
+                    RelatorioNormasPorAutorFilterSet, AutorUserForm)
+from .models import AppConfig, CasaLegislativa, AutorUser
 
 
 def chanel_index(request):
@@ -181,7 +181,7 @@ class AutorCrud(CrudAux):
     help_topic = 'autor'
 
     class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ['tipo', 'nome', 'user']
+        list_field_names = ['tipo', 'nome']
 
     class DeleteView(CrudAux.DeleteView):
 
@@ -325,6 +325,13 @@ class AutorCrud(CrudAux):
 
             return url_reverse
 
+
+    class DetailView(CrudAux.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['autor_user'] = AutorUser.objects.filter(autor=context['object'])
+            return context
 
 class RelatoriosListView(TemplateView):
     template_name = 'base/relatorios_list.html'
@@ -2266,3 +2273,42 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
             ' - ' + self.request.GET['data_1'])
 
         return context
+
+
+def deleta_autoruser(request):
+    pk = int(request.GET['pk'])
+    autor_user = AutorUser.objects.get(pk=pk)
+
+    # FIXME melhorar captura de grupo de Autor, levando em conta,
+    # no mínimo, a tradução.
+    grupo = Group.objects.filter(name='Autor')[0]
+    autor_user.user.groups.remove(grupo)
+    
+    autor_user.delete()
+    return JsonResponse({})
+
+
+class AutorUserFormView(FormView):
+    form_class = AutorUserForm
+    template_name = 'base/autoruser_form.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        autor_pk = self.kwargs['autor_pk']
+        autor = Autor.objects.get(id=autor_pk)
+        initial['nome_autor'] = autor.nome
+        initial['autor'] = autor
+        return initial
+    
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+    @property
+    def cancel_url(self):
+        return reverse('sapl.base:autor_detail',
+                       kwargs={'pk': self.kwargs['autor_pk']})
+
+    def get_success_url(self):
+        return reverse('sapl.base:autor_detail',
+                       kwargs={'pk': self.kwargs['autor_pk']})

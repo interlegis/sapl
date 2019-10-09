@@ -39,7 +39,8 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     ListarLegislaturaInfindavelView, ListarAnexadasCiclicasView,
                     ListarAnexadosCiclicosView, pesquisa_textual,
                     RelatorioHistoricoTramitacaoAdmView, RelatorioDocumentosAcessoriosView,
-                    RelatorioNormasPorAutorView)
+                    RelatorioNormasPorAutorView, AutorUserFormView,
+                    deleta_autoruser)
 
 
 app_name = AppConfig.name
@@ -232,6 +233,12 @@ urlpatterns = [
     # url do logotipo usada em documentos migrados do sapl 2.5
     url(r'^(sapl/)?sapl_documentos/props_sapl/logo_casa',
         LogotipoView.as_view(), name='logotipo'),
+
+    url(r'^sistema/autor/(?P<autor_pk>\d+)/vincular-usuario/create$', 
+        AutorUserFormView.as_view(), name='vincular-usuario-autor'),
+
+    url(r'^sistema/deleta-autoruser/$', 
+        deleta_autoruser, name='deleta_autorser'),
 
 
 ] + recuperar_senha + alterar_senha + admin_user + channels_url

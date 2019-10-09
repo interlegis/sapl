@@ -212,10 +212,6 @@ class TipoAutor(models.Model):
 @reversion.register()
 class Autor(models.Model):
 
-    user = models.OneToOneField(get_settings_auth_user_model(),
-                                on_delete=models.SET_NULL,
-                                null=True)
-
     tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo do Autor'),
                              on_delete=models.PROTECT)
 
@@ -229,7 +225,7 @@ class Autor(models.Model):
     nome = models.CharField(
         max_length=120, blank=True, verbose_name=_('Nome do Autor'))
 
-    cargo = models.CharField(max_length=50, blank=True)
+    cargo = models.CharField(max_length=50, blank=True, verbose_name=_('Cargo'))
 
     class Meta:
         verbose_name = _('Autor')
@@ -246,6 +242,26 @@ class Autor(models.Model):
                     return '{} - {}'.format(self.nome, self.cargo)
                 else:
                     return str(self.nome)
-        if self.user:
-            return str(self.user.username)
         return '?'
+
+
+@reversion.register()
+class AutorUser(models.Model):
+    autor = models.ForeignKey(
+        Autor, 
+        verbose_name=_('Autor'),
+        on_delete=models.PROTECT
+    )
+    user = models.OneToOneField(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário'),
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        verbose_name = _('Autor - Usuário')
+        verbose_name_plural = _('Autores - Usuários')
+        ordering = ('autor__nome',)
+
+    def __str__(self):
+        return "%s - %s" % (self.autor, self.user)

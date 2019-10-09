@@ -1,0 +1,62 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block sub_actions %}
+    {{block.super}}
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.base:vincular-usuario-autor' object.pk %}" class="btn btn-outline-primary">Vincular Usuário</a>
+    </div>
+{% endblock sub_actions %}
+
+{% block detail_content %}
+    {{block.super}}
+    {% if autor_user %}
+        <h2 class="legend">Usuários vinculados</h2>
+        <table class="table table-striped table-hover table-link-ordering">
+            <thead>
+                <tr>
+                    <th>Usuário</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for au in autor_user %}
+                    <tr>
+                        <td><a href="{% url 'sapl.base:user_edit' au.user.pk %}">{{au.user}}</a></td>
+                        <td>
+                            <button type="button" class="btn btn-danger float-right" onclick='desvincular("{{au.pk}}")'>
+                                Desvincular
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+
+<script type="text/javascript">
+
+    function desvincular(pk){
+        $.get("{% url 'sapl.base:deleta_autorser' %}",
+        { 
+            pk: pk
+        }, function(data, status) {
+            if(status == "success")
+                console.log("Usuário desvinculado.");
+        });
+        location.reload();
+    }
+
+    $(document).ready(function(){
+        // Esconde cargo se o mesmo for vazio
+        if(!$('.form-control-static').last().text())
+            $('#div_id_cargo').hide();
+        else
+            $('#div_id_cargo').show();
+    })
+
+</script>
+
+{% endblock %}

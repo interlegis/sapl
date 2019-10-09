@@ -7,7 +7,7 @@ from django.db.models import Max
 from model_mommy import mommy
 import pytest
 
-from sapl.base.models import Autor, TipoAutor, AppConfig
+from sapl.base.models import Autor, TipoAutor, AppConfig, AutorUser
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, Autoria, DespachoInicial,
                                  DocumentoAcessorio, MateriaLegislativa,
@@ -548,9 +548,13 @@ def test_proposicao_submit(admin_client):
 
     autor = mommy.make(
         Autor,
-        user=user,
         tipo=tipo_autor,
         nome='Autor Teste')
+
+    autor_user = mommy.make(
+        AutorUser,
+        user=user,
+        autor=autor)
 
     file_content = 'file_content'
     texto = SimpleUploadedFile("file.txt", file_content.encode('UTF-8'))
@@ -594,9 +598,13 @@ def test_form_errors_proposicao(admin_client):
 
     autor = mommy.make(
         Autor,
-        user=user,
         tipo=tipo_autor,
         nome='Autor Teste')
+
+    autor_user = mommy.make(
+        AutorUser,
+        user=user,
+        autor=autor)
 
     file_content = 'file_content'
     texto = SimpleUploadedFile("file.txt", file_content.encode('UTF-8'))
