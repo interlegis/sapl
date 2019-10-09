@@ -27,7 +27,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 proposicao_texto, recuperar_materia,
                                 ExcluirTramitacaoEmLoteView, RetornarProposicao,
                                 MateriaPesquisaSimplesView,
-                                DespachoInicialMultiCreateView)
+                                DespachoInicialMultiCreateView,
+                                TipoTurnoTramitacaoCrud)
 from sapl.norma.views import NormaPesquisaSimplesView
 from sapl.protocoloadm.views import (
     FichaPesquisaAdmView, FichaSelecionaAdmView)
@@ -160,6 +161,8 @@ urlpatterns_sistema = [
         include(RegimeTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/tipo-documento/',
         include(TipoDocumentoCrud.get_urls())),
+    url(r'^sistema/materia/tipo-turno/',
+        include(TipoTurnoTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/tipo-fim-relatoria/',
         include(TipoFimRelatoriaCrud.get_urls())),
     url(r'^sistema/materia/unidade-tramitacao/',

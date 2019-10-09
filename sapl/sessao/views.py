@@ -221,9 +221,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         data_inicio_sessao = SessaoPlenaria.objects.get(id=pk).data_inicio
 
         tramitacao = Tramitacao.objects.filter(materia=materia,
-                                               turno__isnull=False,
+                                               tipo_turno__isnull=False,
                                                data_tramitacao__lte=data_inicio_sessao
-                                               ).exclude(turno__exact=''
+                                               ).exclude(tipo_turno__nome__exact=''
                                                          ).select_related(
             'materia',
             'status',
@@ -231,11 +231,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
             '-data_tramitacao'
         ).first()
         turno = '  '
-        if tramitacao:
-            for t in Tramitacao.TURNO_CHOICES:
-                if t[0] == tramitacao.turno:
-                    turno = t[1]
-                    break
+        if tramitacao and tramitacao.tipo_turno:
+            turno = tramitacao.tipo_turno.nome
 
         title_materia = '''<a href=%s>%s</a> </br>
                            <b>Processo:</b> %s </br>
@@ -1521,14 +1518,6 @@ def resumo_ordenacao(request):
                     'sapl.sessao:resumo_ordenacao'))
 
 
-def get_turno(turno):
-    for i in Tramitacao.TURNO_CHOICES:
-        if i[0] == turno:
-            return str(i[1])
-    else:
-        return ''
-
-
 def get_identificacao_basica(sessao_plenaria):
     # =====================================================================
     # Identificação Básica
@@ -1614,13 +1603,13 @@ def get_materias_expediente(sessao_plenaria):
         tramitacoes = Tramitacao.objects.filter(
             materia=m.materia).order_by('-pk')
         for aux_tramitacao in tramitacoes:
-            if aux_tramitacao.turno:
+            if aux_tramitacao.tipo_turno:
                 tramitacao = aux_tramitacao
                 break
 
-        turno = None
-        if tramitacao:
-            turno = get_turno(tramitacao.turno)
+        turno = ''
+        if tramitacao and tramitacao.tipo_turno:
+            turno = tramitacao.tipo_turno.nome
 
         rv = m.registrovotacao_set.first()
         rp = m.retiradapauta_set.filter(materia=m.materia).first()
@@ -1730,13 +1719,13 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         tramitacoes = Tramitacao.objects.filter(
             materia=o.materia).order_by('-pk')
         for aux_tramitacao in tramitacoes:
-            if aux_tramitacao.turno:
+            if aux_tramitacao.tipo_turno:
                 tramitacao = aux_tramitacao
                 break
 
         turno = None
-        if tramitacao:
-            turno = get_turno(tramitacao.turno)
+        if tramitacao and tramitacao.tipo_turno:
+            turno = tramitacao.tipo_turno.nome
 
         # Verificar resultado
         rv = o.registrovotacao_set.filter(materia=o.materia).first()

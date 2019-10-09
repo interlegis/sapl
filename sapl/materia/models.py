@@ -1015,6 +1015,18 @@ class UnidadeTramitacao(models.Model):
 
 
 @reversion.register()
+class TipoTurnoTramitacao(models.Model):
+    nome = models.CharField(max_length=100, verbose_name=_('Nome do Turno'))
+
+    class Meta:
+        verbose_name = _('Tipo de Turno de Tramitação')
+        verbose_name_plural = _('Tipos de Turno de Tramitação')
+
+    def __str__(self):
+        return self.nome
+
+
+@reversion.register()
 class Tramitacao(models.Model):
     TURNO_CHOICES = Choices(
         ('P', 'primeiro', _('Primeiro')),
@@ -1029,7 +1041,6 @@ class Tramitacao(models.Model):
         ('G', 'primeria_segunda_votacoes', _('1ª e 2ª Votações')),
         ('E', 'primeira_segunda_votacao_urgencia', _(
             '1ª e 2ª Votações em Regime de Urgência')),
-
     )
 
     status = models.ForeignKey(StatusTramitacao, on_delete=models.PROTECT,
@@ -1062,9 +1073,11 @@ class Tramitacao(models.Model):
     urgente = models.BooleanField(verbose_name=_('Urgente ?'),
                                   choices=YES_NO_CHOICES,
                                   default=False)
-    turno = models.CharField(
-        max_length=1, blank=True, verbose_name=_('Turno'),
-        choices=TURNO_CHOICES)
+    tipo_turno = models.ForeignKey(
+        TipoTurnoTramitacao,
+        on_delete=models.PROTECT,
+        blank=True, null=True,
+        verbose_name=_('Turno'))
     texto = models.TextField(verbose_name=_('Texto da Ação'))
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))

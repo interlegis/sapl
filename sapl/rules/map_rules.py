@@ -258,6 +258,7 @@ rules_group_geral = {
         (materia.Parecer, __base__, __perms_publicas__),
         (materia.StatusTramitacao, __base__, __perms_publicas__),
         (materia.UnidadeTramitacao, __base__, __perms_publicas__),
+        (materia.TipoTurnoTramitacao, __base__, __perms_publicas__),
         
 
         (norma.AssuntoNorma, __base__, __perms_publicas__),

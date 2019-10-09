@@ -119,6 +119,9 @@
   - title: {% trans 'Assunto Matéria' %}
     url: sapl.materia:assuntomateria_list
     css_class: btn btn-link
+  - title: {% trans 'Tipo de Turnos de Tramitação' %}
+    url: sapl.materia:tipoturnotramitacao_list
+    css_class: btn btn-link
 - title: {% trans 'Módulo Normas Jurídicas' %}
   css_class: head_title
   children:
