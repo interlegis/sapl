@@ -1341,7 +1341,7 @@ def resumo_ata_pdf(request,pk):
 
     return response
 
-def cria_relatorio(request, context, html_string):
+def cria_relatorio(request, context, html_string, header_info=""):
     base_url = request.build_absolute_uri()
     casa = CasaLegislativa.objects.first()
     rodape = ' '.join(get_rodape(casa))
@@ -1349,7 +1349,7 @@ def cria_relatorio(request, context, html_string):
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape': rodape})
 
-    header_context = {"casa": casa, 'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+    header_context = {"casa": casa, 'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL, 'info': header_info}
 
     html_template = render_to_string(html_string, context)
     html_header = render_to_string('relatorios/header_ata.html', header_context)
@@ -1410,6 +1410,12 @@ def relatorio_documento_acessorio(obj, request, context):
 
 def relatorio_normas_por_autor(obj, request, context):
     return cria_relatorio(request, context, 'relatorios/relatorio_normas_por_autor.html')
+
+def relatorio_pauta_sessao_weasy(obj, request, context):
+    sessao = context['object']
+    info = "Pauta da {} ({} - {}) Legislatura".format(sessao,sessao.legislatura.data_inicio.year,sessao.legislatura.data_fim.year)
+    return cria_relatorio(request, context, 'relatorios/relatorio_pauta_sessao.html',info)
+
 
 def relatorio_sessao_plenaria_pdf(request, pk):  
     base_url=request.build_absolute_uri()
