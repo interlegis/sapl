@@ -1,0 +1,99 @@
+{% extends "crud/list_tabaux.html" %}
+{% load i18n %}
+{% load i18n common_tags crispy_forms_tags%}
+
+{% block container_table_list %}
+
+  {% if not rows %}
+    <p>{{ NO_ENTRIES_MSG }}</p>
+  {% else %}
+    <div class="container-table">
+      <div class="result-count">{% blocktrans with verbose_name_plural=view.verbose_name_plural %}Total de {{ verbose_name_plural }}: <strong>{{count}}</strong>{% endblocktrans %}</div>
+      <table class="table table-striped table-hover table-link-ordering">
+        <thead>
+          <tr>
+            {% for name in headers %}
+              <th>
+                    {{ name }}
+              </th>
+            {% endfor %}
+            <th></th>
+          </tr>
+        </thead>
+      <tbody id="sortable">
+        {% for o in object_list %}
+        <tr data-value='{{o.id}}'>
+
+          <td>
+            <a href='/sistema/cronometro/{{o.id}}'>{{o}}</a>
+          </td>
+          <td>
+            {{o.duracao_cronometro}}
+          </td>
+          <td>
+            {% if o.ativo %}Sim{% else %}Não{% endif %}
+          </td>
+          <td>
+            <spam><b>{{o.ordenacao}}</b></spam>
+          </td>
+          <td>
+            <spam class="ui-icon ui-icon-arrowthick-2-n-s"></spam>
+          </td>
+        </tr>
+        {% endfor %}
+      
+      </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+{% endblock container_table_list %}
+
+
+{% block extra_js %}
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        $(function() { 
+                var divNova = $('<div></div>')
+                divNova.innerText = "";
+                divNova.addClass('alert alert-success')
+                divNova.attr("style", "margin-left:190px;margin-right:190px")
+                divNova[0].style.visibility = "hidden"
+                
+                var list = $("#content");
+                list[0].insertBefore(divNova[0], list[0].childNodes[0]);
+                
+                $( "#sortable" ).sortable({
+                    beforeStop: function( event, ui ) {
+                      var order = []
+                      $("#sortable tr").each((index,obj) => {
+                        if($(obj).data('value')){
+                          order.push($(obj).data('value'))
+                        }
+                      })
+
+                      $.ajax({
+	                        data: {ordem:order},
+	                        type: 'POST',
+	                        url: "{% url 'sapl.painel:ordena_cronometro' %}",
+                          traditional: true,
+	                        headers: {
+                                'X-CSRFToken': getCookie('csrftoken')
+                          },
+                          success: function(data){
+          						      var msg = data;
+                            $( "#sortable tr td spam b" ).each(function(index,obj) {
+                              $(obj).text(index+1);
+                            });
+                            divNova[0].style.visibility = "visible"
+                            divNova[0].innerText = data['msg'];
+                          },
+	                      });
+                    }
+                });
+
+                $( "#sortable" ).disableSelection();
+        }); 
+    </script>
+{% endblock %}
