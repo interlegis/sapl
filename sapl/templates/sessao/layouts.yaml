@@ -59,6 +59,7 @@ ExpedienteMateria:
   - data_ordem numero_ordem
   - tipo_materia numero_materia ano_materia
   - tipo_votacao
+  - apenas_leitura
   - observacao
 
 OrdemDia:
@@ -66,6 +67,7 @@ OrdemDia:
   - data_ordem numero_ordem
   - tipo_materia numero_materia ano_materia
   - tipo_votacao
+  - apenas_leitura
   - observacao
 
 ExpedienteMateriaDetail:

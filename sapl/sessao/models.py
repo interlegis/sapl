@@ -311,6 +311,7 @@ class AbstractOrdemDia(models.Model):
         (1, 'simbolica', 'Simbólica'),
         (2, 'nominal', 'Nominal'),
         (3, 'secreta', 'Secreta'),
+        (4, 'leitura', 'Leitura')
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
@@ -560,7 +561,7 @@ class RegistroVotacao(models.Model):
                           default='')
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
-        auto_now_add=True,
+        auto_now=True,
         blank=True,
         null=True)
 
@@ -611,7 +612,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
                           default='')
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
-        auto_now_add=True,
+        auto_now=True,
         blank=True,
         null=True)
 
@@ -878,5 +879,53 @@ class RetiradaPauta(models.Model):
         if not xor(bool(self.ordem), bool(self.expediente)):
             raise ValidationError(
                 'ReritadaPauta deve ter exatamente um dos campos '
+                'ordem ou expediente preenchido. Ambos estão preenchidos: '
+                '{}, {}'. format(self.ordem, self.expediente))
+
+
+@reversion.register()
+class RegistroLeitura(models.Model):
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
+    ordem = models.ForeignKey(OrdemDia,
+                              blank=True,
+                              null=True,
+                              on_delete=models.CASCADE)
+    expediente = models.ForeignKey(ExpedienteMateria,
+                                   blank=True,
+                                   null=True,
+                                   on_delete=models.CASCADE)
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observações'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          blank=True,
+                          default='')
+    data_hora = models.DateTimeField(
+        verbose_name=_('Data/Hora'),
+        auto_now=True,
+        blank=True,
+        null=True)
+
+    class Meta:
+        verbose_name = _('Leitura')
+        verbose_name_plural = _('Leituras')
+
+    def __str__(self):
+        return _('Leitura - '
+                 'Matéria: %(materia)s') % {
+                    'materia': self.materia}
+
+    def clean(self):
+        """Exatamente um dos campos ordem ou expediente deve estar preenchido.
+        """
+        # TODO remover esse método quando OrdemDia e ExpedienteMateria
+        # forem reestruturados e os campos ordem e expediente forem unificados
+        if not xor(bool(self.ordem), bool(self.expediente)):
+            raise ValidationError(
+                'RegistroLeitura deve ter exatamente um dos campos '
                 'ordem ou expediente preenchido. Ambos estão preenchidos: '
                 '{}, {}'. format(self.ordem, self.expediente))

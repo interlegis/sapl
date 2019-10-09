@@ -99,6 +99,7 @@
             <div class="col-md-6 text-center painel" id="obs_materia_div">      
               <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
               <span id="materia_legislativa_texto" class="text-value"></span>
+              <br>
               <span id="observacao_materia" class="text-value"></span>
             </div>
 
@@ -421,23 +422,40 @@
               else{
                 $("#observacao_materia").text('');
               }
-
               if (data['tipo_resultado'] && data['status_painel'] == true){
+                if(data['tipo_votacao'] != 'Leitura'){
+                  $("#resultado_votacao").css("color", "#45919D");
+                  $("#mat_em_votacao").text("Matéria em Votação");
+                  $("#resultado_votacao_div").show();
+                }
+                else{
+                  $("#resultado_votacao_div").hide();
+                  $("#mat_em_votacao").text("Matéria em Leitura");
+                }
+                console.log(data["tipo_resultado"], data['tipo_votacao']);
                 $("#resultado_votacao").text(data["tipo_resultado"]);
-                $("#resultado_votacao").css("color", "#45919D");
+
                 var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
+                console.log(resultado_votacao_upper, data['tipo_resultado']);
                 if (resultado_votacao_upper.search("APROV") != -1){
                   $("#resultado_votacao").css("color", "green");
                   $("#mat_em_votacao").text("Matéria Votada");
                 }
-                if (resultado_votacao_upper.search("REJEIT") != -1){
+                else if (resultado_votacao_upper.search("REJEIT") != -1){
                   $("#resultado_votacao").css("color", "red");
                   $("#mat_em_votacao").text("Matéria Votada");
+                }
+                else if (resultado_votacao_upper.search("LIDA") != -1){
+                  $("#mat_em_votacao").text("Matéria Lida");
                 }
               }
               else{
                 $("#resultado_votacao").text('');
-                $("#mat_em_votacao").text("Matéria em Votação");
+                if(data['tipo_votacao'] != 'Leitura')
+                  $("#mat_em_votacao").text("Matéria em Votação");
+                else{
+                  $("#mat_em_votacao").text("Matéria em Leitura");
+                }
               }
            },
            error: function(err) {
