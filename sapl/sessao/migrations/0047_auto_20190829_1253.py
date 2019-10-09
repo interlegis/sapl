@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('sessao', '0046_auto_20190827_1228'),
+        ('sessao', '0046_auto_20191001_1115'),
     ]
 
     operations = [
