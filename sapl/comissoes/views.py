@@ -18,11 +18,12 @@ from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
                                   DocumentoAcessorioCreateForm,
                                   DocumentoAcessorioEditForm,
                                   ParticipacaoCreateForm, ParticipacaoEditForm,
-                                  PeriodoForm, ReuniaoForm, PautaReuniaoForm)
+                                  PautaReuniaoForm, PeriodoForm, ReuniaoForm)
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin)
-from sapl.materia.models import MateriaLegislativa, Tramitacao, PautaReuniao
+from sapl.materia.models import (MateriaLegislativa, Tramitacao, PautaReuniao,
+                                 MateriaEmTramitacao)
 
 from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
                      Participacao, Periodo, Reuniao, TipoComissao)
@@ -165,17 +166,12 @@ class ComissaoCrud(Crud):
             return super(Crud.UpdateView, self).form_valid(form)
 
 
+# Essa função retorna objetos MateriaEmTramitacao
 def lista_materias_comissao(comissao_pk):
-    ts = Tramitacao.objects.order_by(
-        'materia_id', '-data_tramitacao', '-id').annotate(
-        comissao=F('unidade_tramitacao_destino__comissao')).distinct(
-            'materia').values_list('materia', 'comissao')
-
-    ts = [m for (m,c) in ts if c == int(comissao_pk)]
-
-    materias = MateriaLegislativa.objects.filter(
-        pk__in=ts).order_by('tipo', '-ano', '-numero')
-
+    materias = MateriaEmTramitacao.objects.filter(
+        tramitacao__unidade_tramitacao_destino__comissao=comissao_pk
+    ).order_by('materia__tipo', '-materia__ano', '-materia__numero')
+ 
     return materias
 
 
@@ -184,13 +180,13 @@ class MateriasTramitacaoListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return lista_materias_comissao(self.kwargs['pk'])
+        return list(lista_materias_comissao(self.kwargs['pk']))
 
     def get_context_data(self, **kwargs):
         context = super(
             MateriasTramitacaoListView, self).get_context_data(**kwargs)
         context['object'] = Comissao.objects.get(id=self.kwargs['pk'])
-        context['qtde'] = self.object_list.count()
+        context['qtde'] = len(self.object_list)
         return context
 
 
