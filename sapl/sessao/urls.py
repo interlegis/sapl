@@ -117,7 +117,7 @@ urlpatterns = [
         PautaSessaoView.as_view(), name='pauta_sessao'),
     url(r'^sessao/pauta-sessao/pesquisar-pauta$',
         PesquisarPautaSessaoView.as_view(), name='pesquisar_pauta'),
-    url(r'^sessao/pauta-sessao/(?P<pk>\d+)$',
+    url(r'^sessao/pauta-sessao/(?P<pk>\d+)/(?:pdf)?$',
         PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
 
     # Subnav sessão

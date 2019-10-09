@@ -3230,6 +3230,8 @@ class PautaSessaoDetailView(DetailView):
     model = SessaoPlenaria
 
     def get(self, request, *args, **kwargs):
+        from sapl.relatorios.views import relatorio_pauta_sessao_weasy # Evitar import ciclico
+        
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
@@ -3352,7 +3354,12 @@ class PautaSessaoDetailView(DetailView):
         context.update({'materias_ordem': materias_ordem})
         context.update({'subnav_template_name': 'sessao/pauta_subnav.yaml'})
 
-        return self.render_to_response(context)
+        is_pdf = True if request.build_absolute_uri().split('/')[-1] == 'pdf' else False
+
+        if is_pdf:
+            return relatorio_pauta_sessao_weasy(self,request,context)
+        else:
+            return self.render_to_response(context)
 
 
 class PesquisarSessaoPlenariaView(FilterView):
