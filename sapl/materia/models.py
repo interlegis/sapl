@@ -338,16 +338,18 @@ class MateriaLegislativa(models.Model):
             return ''
 
     def delete(self, using=None, keep_parents=False):
-        if self.texto_original:
-            self.texto_original.delete()
+        texto_original = self.texto_original
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if texto_original:
+            texto_original.delete(save=False)
 
         for p in self.proposicao.all():
             p.conteudo_gerado_related = None
             p.cancelado = True
             p.save()
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -566,15 +568,17 @@ class DocumentoAcessorio(models.Model):
             'autor': self.autor}
 
     def delete(self, using=None, keep_parents=False):
-        if self.arquivo:
-            self.arquivo.delete()
+        arquivo = self.arquivo
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if arquivo:
+            arquivo.delete(save=False)
 
         for p in self.proposicao.all():
             p.conteudo_gerado_related = None
             p.save()
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -910,11 +914,13 @@ class Proposicao(models.Model):
             )}
 
     def delete(self, using=None, keep_parents=False):
-        if self.texto_original:
-            self.texto_original.delete()
+        texto_original = self.texto_original
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if texto_original:
+            texto_original.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
