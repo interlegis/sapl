@@ -21,7 +21,7 @@ from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
 from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 PresencaOrdemDia, RegistroVotacao,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
-                                VotoParlamentar)
+                                VotoParlamentar, RegistroLeitura)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
 from .forms import CronometroForm, ConfiguracoesPainelForm
@@ -475,7 +475,7 @@ def get_presentes(pk, response, materia):
     else:
         presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=pk)
-
+    
     sessao = SessaoPlenaria.objects.get(id=pk)
     num_presentes = len(presentes)
     data_sessao = sessao.data_inicio
@@ -522,6 +522,8 @@ def get_presentes(pk, response, materia):
             tipo_votacao = 'Nominal'
         elif materia.tipo_votacao == 3:
             tipo_votacao = 'Secreta'
+        elif materia.tipo_votacao == 4:
+            tipo_votacao = 'Leitura'
 
         response.update({
             'tipo_resultado': materia.resultado,
@@ -556,15 +558,27 @@ def response_nenhuma_materia(response):
 def get_votos(response, materia):
     logger = logging.getLogger(__name__)
     if type(materia) == OrdemDia:
-        registro = RegistroVotacao.objects.filter(
-            ordem=materia, materia=materia.materia).last()
+        if materia.tipo_votacao != 4:
+            registro = RegistroVotacao.objects.filter(
+                ordem=materia, materia=materia.materia).order_by('data_hora').last()
+            leitura = None
+        else:
+            leitura = RegistroLeitura.objects.filter(
+                ordem=materia, materia=materia.materia).order_by('data_hora').last()
+            registro = None
         tipo = 'ordem'
     elif type(materia) == ExpedienteMateria:
-        registro = RegistroVotacao.objects.filter(
-            expediente=materia, materia=materia.materia).last()
+        if materia.tipo_votacao != 4:
+            registro = RegistroVotacao.objects.filter(
+                expediente=materia, materia=materia.materia).order_by('data_hora').last()
+            leitura = None
+        else:
+            leitura = RegistroLeitura.objects.filter(
+                expediente=materia, materia=materia.materia).order_by('data_hora').last()
+            registro = None
         tipo = 'expediente'
 
-    if not registro:
+    if not registro and not leitura:
         response.update({
             'numero_votos_sim': 0,
             'numero_votos_nao': 0,
@@ -603,7 +617,15 @@ def get_votos(response, materia):
                     logger.error("Votos do parlamentar (id={}) não encontrados. Retornado vazio."
                                  .format(p['parlamentar_id']))
                     response['presentes'][i]['voto'] = ''
-
+    elif leitura:
+        response.update({
+            'numero_votos_sim': 0,
+            'numero_votos_nao': 0,
+            'numero_abstencoes': 0,
+            'registro': True,
+            'total_votos': 0,
+            'tipo_resultado': 'Matéria lida.',
+        })
     else:
         total = (registro.numero_votos_sim +
                  registro.numero_votos_nao +
@@ -695,33 +717,33 @@ def get_dados_painel(request, pk):
     # Caso não tenha nenhuma aberta,
     # a matéria a ser mostrada no Painel deve ser a última votada
     last_ordem_voto = RegistroVotacao.objects.filter(
-        ordem__sessao_plenaria=sessao).last()
+        ordem__sessao_plenaria=sessao).order_by('data_hora').last()
     last_expediente_voto = RegistroVotacao.objects.filter(
-        expediente__sessao_plenaria=sessao).last()
+        expediente__sessao_plenaria=sessao).order_by('data_hora').last()
 
+    last_ordem_leitura = RegistroLeitura.objects.filter(
+        ordem__sessao_plenaria=sessao).order_by('data_hora').last()
+    last_expediente_leitura = RegistroLeitura.objects.filter(
+        expediente__sessao_plenaria=sessao).order_by('data_hora').last()
+
+    # Obtém última matéria que foi votada, através do timestamp mais recente
     if last_ordem_voto:
-        ultima_ordem_votada = last_ordem_voto.ordem
-    if last_expediente_voto:
-        ultimo_expediente_votado = last_expediente_voto.expediente
+        ordem_expediente = last_ordem_voto.ordem
+        ultimo_timestamp = last_ordem_voto.data_hora
+    if last_expediente_voto and last_expediente_voto.data_hora > ultimo_timestamp:
+        ordem_expediente = last_expediente_voto.expediente
+        ultimo_timestamp = last_expediente_voto.data_hora
+    if last_ordem_leitura and last_ordem_leitura.data_hora > ultimo_timestamp:
+        ordem_expediente = last_ordem_leitura.ordem
+        ultimo_timestamp = last_ordem_leitura.data_hora
+    if last_expediente_leitura and last_expediente_leitura.data_hora > ultimo_timestamp:
+        ordem_expediente = last_expediente_leitura.expediente
+        ultimo_timestamp = last_expediente_leitura.data_hora
 
-    if last_ordem_voto or last_expediente_voto:
-        # Se alguma ordem E algum expediente já tiver sido votado...
-        if last_ordem_voto and last_expediente_voto:
-            materia = ultima_ordem_votada\
-                if last_ordem_voto.pk >= last_expediente_voto.pk\
-                else ultimo_expediente_votado
-
-        # Caso somente um deles tenha resultado, prioriza a Ordem do Dia
-        elif last_ordem_voto:
-            materia = ultima_ordem_votada
-
-        # Caso a Ordem do dia não tenha resultado, mostra o último expediente
-        elif last_expediente_voto:
-            materia = ultimo_expediente_votado
-
+    if ordem_expediente:
         return JsonResponse(get_votos(
-                            get_presentes(pk, response, materia),
-                            materia))
+                            get_presentes(pk, response, ordem_expediente),
+                            ordem_expediente))
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(get_presentes(pk, response, None))

@@ -28,7 +28,7 @@ from .models import (ExpedienteMateria, JustificativaAusencia,
                      Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                      SessaoPlenariaPresenca, TipoResultadoVotacao,
                      OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta, OradorOrdemDia, ORDENACAO_RESUMO,
-                     ResumoOrdenacao)
+                     ResumoOrdenacao, RegistroLeitura)
 
 
 MES_CHOICES = RANGE_MESES
@@ -305,6 +305,8 @@ class ExpedienteMateriaForm(ModelForm):
         initial=datetime.strftime(timezone.now(), '%d/%m/%Y'),
         widget=forms.TextInput(attrs={'readonly': 'readonly'}))
 
+    apenas_leitura = forms.BooleanField(label='Apenas Leitura', required=False)
+
     class Meta:
         model = ExpedienteMateria
         fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
@@ -440,7 +442,7 @@ class VotacaoForm(forms.Form):
     resultado_votacao = forms.CharField(label='Resultado da Votação')
 
     def clean(self):
-        cleaned_data = super(VotacaoForm, self).clean()
+        cleaned_data = super().clean()
         if not self.is_valid():
             return cleaned_data
 
@@ -545,7 +547,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                   ]
 
     def __init__(self, *args, **kwargs):
-        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
@@ -840,3 +842,51 @@ class JustificativaAusenciaForm(ModelForm):
             justificativa.materias_do_expediente.clear()
             justificativa.materias_da_ordem_do_dia.clear()
         return justificativa
+
+
+class OrdemExpedienteLeituraForm(forms.ModelForm):
+
+    observacao = forms.CharField(required=False, label='Observação', widget=forms.Textarea,)
+
+    class Meta:
+        model = RegistroLeitura
+        fields = ['materia',
+                  'ordem',
+                  'expediente',
+                  'observacao',
+                  'user', 
+                  'ip']
+        widgets = {'materia': forms.HiddenInput(),
+                   'ordem': forms.HiddenInput(),
+                   'expediente': forms.HiddenInput(),
+                   'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput()
+                   }
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        
+        instance = self.initial['instance']
+        if instance:
+            self.instance = instance.first()
+            self.fields['observacao'].initial = self.instance.observacao
+
+        row1 = to_row(
+            [('observacao', 12)])   
+
+        actions = [HTML('<a href="{{ view.cancel_url }}"'
+                        ' class="btn btn-warning">Cancelar Leitura</a>')]
+
+        self.helper = SaplFormHelper()
+        self.helper.form_method = 'POST'
+        self.helper.layout = Layout(
+            Fieldset(_('Leitura de Matéria'),
+                    HTML('''
+                        <b>Matéria:</b> {{materia}}<br>
+                        <b>Ementa:</b> {{materia.ementa}} <br>
+                    '''),
+                     row1,
+                     form_actions(more=actions),
+                    )
+        )
