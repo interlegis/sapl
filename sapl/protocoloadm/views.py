@@ -1624,7 +1624,7 @@ def apaga_protocolos(user, ano):
         ml.numero_protocolo = None
         ml.save()
 
-    info = [str(p.numero)+'/'+str(p.ano) for p in all_protocolos]
+    info = ["%s/%s" % (p.numero, p.ano) for p in all_protocolos]
 
     auditoria = AuditoriaProtocolo(usuario=user,info=info)
     auditoria.save()
@@ -1637,15 +1637,15 @@ def apaga_protocolos_view(request):
             ano_minimo = Protocolo.objects.all().order_by('ano').first().ano
             intervalo_data = range(ano_minimo, datetime.now().year)
         else:
-            intervalo_data  =None
+            intervalo_data = None
         return render(request,"protocoloadm/deleta_todos_protocolos.html",{'intervalo_data':intervalo_data})
     
     elif request.method == "POST":
         password = request.POST.get('senha')
-        ano = list(map(int,request.POST.getlist('ano')))
         valid = request.user.check_password(password)        
         if valid:
-            apaga_protocolos(request.user, ano)
+            anos = [int(i) for i in request.POST.getlist('ano')]
+            apaga_protocolos(request.user, anos)
             return JsonResponse({'type':'success','msg':''})
         else:
             return JsonResponse({'type':'error','msg':'Senha Incorreta'})
