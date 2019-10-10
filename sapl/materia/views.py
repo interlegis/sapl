@@ -319,10 +319,9 @@ class ProposicaoTaView(IntegracaoTaView):
         else:
             return self.get_redirect_deactivated()
 
-
-@permission_required('materia.detail_materialegislativa')
+@permission_required('materia.detail_proposicao')
 def recuperar_proposicao(request):
-    data = request.GET['data']
+    data = request.GET.get('data')
 
     proposicoes = Proposicao.objects.filter(
             data_envio__date=datetime.strptime(data, '%Y-%m-%d').date(),
