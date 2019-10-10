@@ -1,6 +1,7 @@
-
+import django_filters
 import logging
 import os
+import sapl
 
 from crispy_forms.bootstrap import Alert, InlineRadios
 from crispy_forms.layout import (HTML, Button, Field, Fieldset,
@@ -11,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
-from django.db.models import Max, Q, F
+from django.db.models import F, Max, Q
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.forms.forms import Form
 from django.forms.models import ModelMultipleChoiceField
@@ -21,36 +22,37 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
-import sapl
 from sapl.base.models import AppConfig, Autor, TipoAutor
-from sapl.comissoes.models import Comissao, Participacao, Composicao
+from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
-from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
-                                      to_row)
-from sapl.crispy_layout_mixin import SaplFormHelper
+from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions,
+                                      to_column, to_row, SaplFormHelper)
 from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
-                                 MateriaLegislativa, Orgao, RegimeTramitacao,
-                                 TipoDocumento, TipoProposicao, StatusTramitacao,
+                                 MateriaLegislativa, Orgao,
+                                 RegimeTramitacao, StatusTramitacao,
+                                 TipoDocumento, TipoProposicao,
                                  UnidadeTramitacao)
-from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
+from sapl.norma.models import (LegislacaoCitada, NormaJuridica, 
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
-from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo, Anexado
+from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
+                                      Protocolo)
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
+from sapl.utils import (autor_label, autor_modal,
                         ChoiceWithoutValidationField,
-                        MateriaPesquisaOrderingFilter, RangeWidgetOverride,
-                        autor_label, autor_modal, gerar_hash_arquivo,
+                        choice_anos_com_materias, FileFieldCheckMixin,
+                        FilterOverridesMetaMixin, gerar_hash_arquivo,
+                        lista_anexados, MateriaPesquisaOrderingFilter,
                         models_with_gr_for_model, qs_override_django_filter,
-                        choice_anos_com_materias, FilterOverridesMetaMixin, FileFieldCheckMixin,
-                        lista_anexados)
+                        RangeWidgetOverride, SEPARADOR_HASH_PROPOSICAO,
+                        YES_NO_CHOICES)
 
-from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
-                     DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
-                     TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
+from .models import (AcompanhamentoMateria, Anexada, Autoria,
+                     DespachoInicial, DocumentoAcessorio, Numeracao,
+                     Proposicao, Relatoria, TipoMateriaLegislativa,
+                     Tramitacao, UnidadeTramitacao)
 
 
 def CHOICE_TRAMITACAO():

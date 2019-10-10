@@ -1,13 +1,17 @@
-from datetime import datetime
+
 import itertools
 import logging
 import os
-from random import choice
+import sapl
 import shutil
-from string import ascii_letters, digits
 import tempfile
+import weasyprint
 
 from crispy_forms.layout import HTML
+from datetime import datetime
+from random import choice
+from string import ascii_letters, digits
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -18,57 +22,48 @@ from django.db.models import Max, Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.template import RequestContext, loader
+from django.template import loader, RequestContext
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView, TemplateView, CreateView, UpdateView
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
-from django_filters.views import FilterView
-import weasyprint
-import weasyprint
 
-import sapl
+from django_filters.views import FilterView
+
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
 from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao, Participacao, Composicao
-from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_RESTRICT,
-                                    STATUS_TA_PRIVATE)
+from sapl.compilacao.models import STATUS_TA_IMMUTABLE_RESTRICT, STATUS_TA_PRIVATE
 from sapl.compilacao.views import IntegracaoTaView
-from sapl.crispy_layout_mixin import SaplFormHelper
-from sapl.crispy_layout_mixin import SaplFormLayout, form_actions
-from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
-                            MasterDetailCrud,
-                            PermissionRequiredForAppCrudMixin, make_pagination)
-from sapl.materia.forms import (AnexadaForm, AutoriaForm,
-                                AutoriaMultiCreateForm,
-                                ConfirmarProposicaoForm,
-                                DevolverProposicaoForm, LegislacaoCitadaForm,
-                                OrgaoForm, ProposicaoForm, TipoProposicaoForm,
-                                TramitacaoForm, TramitacaoUpdateForm, MateriaPesquisaSimplesForm,
-                                DespachoInicialCreateForm)
+from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, SaplFormLayout
+from sapl.crud.base import (Crud, CrudAux, make_pagination, MasterDetailCrud,
+                            PermissionRequiredForAppCrudMixin, RP_DETAIL, RP_LIST)
+from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm,
+                                ConfirmarProposicaoForm, DevolverProposicaoForm,
+                                DespachoInicialCreateForm, LegislacaoCitadaForm,
+                                MateriaPesquisaSimplesForm, OrgaoForm, ProposicaoForm,
+                                TipoProposicaoForm, TramitacaoForm, TramitacaoUpdateForm)
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
-from sapl.settings import MEDIA_ROOT, MAX_DOC_UPLOAD_SIZE
-from sapl.utils import (YES_NO_CHOICES, autor_label, autor_modal, SEPARADOR_HASH_PROPOSICAO,
-                        gerar_hash_arquivo, get_base_url, get_client_ip,
-                        get_mime_type_from_file_extension, montar_row_autor,
-                        show_results_filter_set, mail_service_configured, lista_anexados)
+from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT
+from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_url,
+                        get_client_ip, get_mime_type_from_file_extension, lista_anexados,
+                        mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
+                        show_results_filter_set, YES_NO_CHOICES)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
-                    AnexadaEmLoteFilterSet,
-                    AdicionarVariasAutoriasFilterSet, DespachoInicialForm,
-                    DocumentoAcessorioForm, EtiquetaPesquisaForm,
-                    FichaPesquisaForm, FichaSelecionaForm, MateriaAssuntoForm,
-                    MateriaLegislativaFilterSet, MateriaLegislativaForm,
+                    AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
+                    compara_tramitacoes_mat, DespachoInicialForm, DocumentoAcessorioForm,
+                    EtiquetaPesquisaForm, ExcluirTramitacaoEmLote, FichaPesquisaForm,
+                    FichaSelecionaForm, filtra_tramitacao_destino,
+                    filtra_tramitacao_destino_and_status, filtra_tramitacao_status,
+                    MateriaAssuntoForm, MateriaLegislativaFilterSet, MateriaLegislativaForm,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
                     ReceberProposicaoForm, RelatoriaForm,
                     TramitacaoEmLoteFilterSet, UnidadeTramitacaoForm,
-                    filtra_tramitacao_destino,
-                    filtra_tramitacao_destino_and_status,
-                    filtra_tramitacao_status,
                     ExcluirTramitacaoEmLote, compara_tramitacoes_mat,
                     TramitacaoEmLoteForm)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
@@ -78,7 +73,6 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
                      TipoProposicao, Tramitacao, UnidadeTramitacao, 
                      TipoTurnoTramitacao)
-
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
 
