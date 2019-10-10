@@ -1,7 +1,9 @@
+import django_filters
 import logging
 
+from crispy_forms.layout import Fieldset, Layout
+
 from django import forms
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -11,10 +13,12 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
-                                   Participacao, Reuniao, Periodo)
-from sapl.materia.models import PautaReuniao
+                                   Participacao, Periodo, Reuniao)
+from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
+from sapl.materia.models import MateriaEmTramitacao, PautaReuniao
 from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
-from sapl.utils import FileFieldCheckMixin
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
+from sapl.utils import FileFieldCheckMixin, FilterOverridesMetaMixin
 
 
 class ComposicaoForm(forms.ModelForm):
@@ -414,6 +418,32 @@ class ReuniaoForm(ModelForm):
                 .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
 
         return self.cleaned_data
+
+
+class PautaReuniaoFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = MateriaEmTramitacao
+        fields = ['materia__tipo', 'materia__ano', 'materia__numero', 'materia__data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super(PautaReuniaoFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['materia__tipo'].label = "Tipo da Matéria"
+        self.filters['materia__ano'].label = "Ano da Matéria"
+        self.filters['materia__data_apresentacao'].label = "Data (Inicial - Final)"
+
+        row1 = to_row([('materia__numero', 4), ('materia__tipo', 4), ('materia__ano', 4)])
+        row2 = to_row([('materia__data_apresentacao', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = "GET"
+        self.form.helper.layout = Layout(
+            Fieldset(
+                _("Pesquisa de Matérias"), row1, row2, 
+                form_actions(label="Pesquisar")
+            )
+        )
 
 
 class PautaReuniaoForm(forms.ModelForm):
