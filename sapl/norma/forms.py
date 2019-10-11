@@ -283,14 +283,17 @@ class AutoriaNormaForm(ModelForm):
 
 
 class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
+    
+    logger = logging.getLogger(__name__)
+    
+    anexo_arquivo = forms.FileField(required=True)
+
     class Meta:
         model = AnexoNormaJuridica
         fields = ['norma', 'anexo_arquivo', 'assunto_anexo']
         widgets = {
             'norma': forms.HiddenInput(),
         }
-
-    logger = logging.getLogger(__name__)
 
     def clean(self):
         cleaned_data = super(AnexoNormaJuridicaForm, self).clean()
