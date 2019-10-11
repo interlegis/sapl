@@ -30,8 +30,7 @@ def get_esferas():
             ('M', 'Municipal')]
 
 
-YES_NO_CHOICES = [('', '---------'),
-                  (True, _('Sim')),
+YES_NO_CHOICES = [(True, _('Sim')),
                   (False, _('Não'))]
 
 ORDENACAO_CHOICES = [('', '---------'),
@@ -58,6 +57,8 @@ class NormaFilterSet(django_filters.FilterSet):
     assuntos = django_filters.ModelChoiceFilter(
         queryset=AssuntoNorma.objects.all())
 
+    vigencia = django_filters.ChoiceFilter(label='Vigência',method='filter_vigencia',choices=YES_NO_CHOICES)
+
     o = NormaPesquisaOrderingFilter(help_text='')
 
     class Meta(FilterOverridesMetaMixin):
@@ -71,7 +72,7 @@ class NormaFilterSet(django_filters.FilterSet):
         row1 = to_row([('tipo', 4), ('numero', 4), ('ano', 4)])
         row2 = to_row([('ementa', 6), ('assuntos', 6)])
         row3 = to_row([('data', 6), ('data_publicacao', 6)])
-        row4 = to_row([('data_vigencia', 12)])
+        row4 = to_row([('data_vigencia', 10),('vigencia',2)])
         row5 = to_row([('o', 4), ('indexacao', 4), ('apelido', 4)])
 
         self.form.helper = SaplFormHelper()
@@ -89,6 +90,16 @@ class NormaFilterSet(django_filters.FilterSet):
             q &= Q(ementa__icontains=t)
 
         return queryset.filter(q)
+    
+    def filter_vigencia(self, queryset, name, is_vigencia):
+        data_atual = timezone.now()
+        if is_vigencia == "True": # É vigente
+            queryset = queryset.filter((Q(data_vigencia__isnull=False) & Q(data_vigencia__gt=data_atual) | Q(data_vigencia__isnull=True)) & Q(data__lte=data_atual))
+        elif is_vigencia == "False":
+            queryset = queryset.filter(Q(data_vigencia__isnull=False) & Q(data_vigencia__lte=data_atual) | Q(data__gt=data_atual))           
+
+        return queryset
+    
 
 
 class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
