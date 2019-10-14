@@ -33,13 +33,13 @@ from django_filters.views import FilterView
 
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
-from sapl.base.signals import tramitacao_signal
+from sapl.base.signals import tramitacao_signal, post_delete_signal, post_save_signal
 from sapl.comissoes.models import Comissao, Participacao, Composicao
 from sapl.compilacao.models import STATUS_TA_IMMUTABLE_RESTRICT, STATUS_TA_PRIVATE
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, SaplFormLayout
 from sapl.crud.base import (Crud, CrudAux, make_pagination, MasterDetailCrud,
-                            PermissionRequiredForAppCrudMixin, RP_DETAIL, RP_LIST)
+                            PermissionRequiredForAppCrudMixin, RP_DETAIL, RP_LIST,)
 from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm,
                                 ConfirmarProposicaoForm, DevolverProposicaoForm,
                                 DespachoInicialCreateForm, LegislacaoCitadaForm,
@@ -1374,7 +1374,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacoes_deletar = [tramitacao.id]
+                tramitacoes_deletar = [tramitacao]
                 if materia.tramitacao_set.count() == 0:
                     materia.em_tramitacao = False
                     materia.save()
@@ -1385,11 +1385,18 @@ class TramitacaoCrud(MasterDetailCrud):
                     for ma in mat_anexadas:
                         tram_anexada = ma.tramitacao_set.last()
                         if compara_tramitacoes_mat(tram_anexada, tramitacao):
-                            tramitacoes_deletar.append(tram_anexada.id)
+                            tramitacoes_deletar.append(tram_anexada)
                             if ma.tramitacao_set.count() == 0:
                                 ma.em_tramitacao = False
                                 ma.save()
-                Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
+                Tramitacao.objects.filter(id__in=[t.id for t in tramitacoes_deletar]).delete()
+
+                # TODO: otimizar para passar a lista de matérias
+                for tramitacao in tramitacoes_deletar:
+                    post_delete_signal.send(sender=None,
+                                            instance=tramitacao,
+                                            operation='C',
+                                            request=self.request)
 
                 return HttpResponseRedirect(url)
 
