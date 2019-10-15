@@ -851,18 +851,9 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
         if numeracao is None:
             numero['numero__max'] = 0
-
-        if not protocolo.numero:
-            protocolo.numero = (
-                numero['numero__max'] + 1) if numero['numero__max'] else 1
-        if numero['numero__max']:
-            if protocolo.numero < (numero['numero__max'] + 1):
-                self.logger.error("user=" + username + ". Número de protocolo ({}) é menor que {}"
-                                  .format(protocolo.numero, numero['numero__max']))
-                msg = _('Número de protocolo deve ser maior que {}'.format(
-                    numero['numero__max']))
-                messages.add_message(self.request, messages.ERROR, msg)
-                return self.render_to_response(self.get_context_data())
+            
+        protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+        
         protocolo.ano = timezone.now().year
 
         protocolo.tipo_protocolo = 0

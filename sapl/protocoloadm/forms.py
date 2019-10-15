@@ -494,9 +494,6 @@ class ProtocoloMateriaForm(ModelForm):
     assunto_ementa = forms.CharField(required=True,
                                      widget=forms.Textarea, label=_('Ementa'))
 
-    numero = forms.IntegerField(
-        required=False, label=_('Número de Protocolo (opcional)'))
-
     data_hora_manual = forms.ChoiceField(
         label=_('Informar data e hora manualmente?'),
         widget=forms.RadioSelect(),
@@ -514,7 +511,6 @@ class ProtocoloMateriaForm(ModelForm):
                   'numero_materia',
                   'ano_materia',
                   'vincular_materia',
-                  'numero',
                   'data',
                   'hora',
                   ]
@@ -607,8 +603,6 @@ class ProtocoloMateriaForm(ModelForm):
             [('assunto_ementa', 12)])
         row5 = to_row(
             [('observacao', 12)])
-        row6 = to_row(
-            [('numero', 12)])
 
         fieldset = Fieldset(_('Protocolo com data e hora informados manualmente'),
                             row3,
@@ -628,10 +622,7 @@ class ProtocoloMateriaForm(ModelForm):
             row4,
             row5,
             HTML("&nbsp;"),
-            Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece'
-                       ' a partir do número a ser informado)'),
-                     row6,
-                     HTML("&nbsp;"),
+            Fieldset(HTML("&nbsp;"),
                      form_actions(label=_('Protocolar Matéria')))
         )
 
