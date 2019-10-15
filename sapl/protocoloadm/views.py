@@ -26,7 +26,7 @@ from django_filters.views import FilterView
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig
-from sapl.base.signals import tramitacao_signal
+from sapl.base.signals import tramitacao_signal, post_delete_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
@@ -1268,7 +1268,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacoes_deletar = [tramitacao.id]
+                tramitacoes_deletar = [tramitacao]
                 if documento.tramitacaoadministrativo_set.count() == 0:
                     documento.tramitacao = False
                     documento.save()
@@ -1278,12 +1278,19 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     for da in docs_anexados:
                         tram_anexada = da.tramitacaoadministrativo_set.last()
                         if compara_tramitacoes_doc(tram_anexada, tramitacao):
-                            tramitacoes_deletar.append(tram_anexada.id)
+                            tramitacoes_deletar.append(tram_anexada)
                             if da.tramitacaoadministrativo_set.count() == 0:
                                 da.tramitacao = False
                                 da.save()
                 TramitacaoAdministrativo.objects.filter(
-                    id__in=tramitacoes_deletar).delete()
+                    id__in=[t.id for t in tramitacoes_deletar]).delete()
+
+                # TODO: otimizar para passar a lista de matérias
+                for tramitacao in tramitacoes_deletar:
+                    post_delete_signal.send(sender=None,
+                                            instance=tramitacao,
+                                            operation='C',
+                                            request=self.request)
 
                 return HttpResponseRedirect(url)
 

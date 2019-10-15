@@ -16,7 +16,6 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.functional import cached_property
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
@@ -24,6 +23,7 @@ from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
 from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
 
+from sapl.base.signals import post_delete_signal, post_save_signal
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
@@ -618,8 +618,37 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
         return queryset
 
 
+class AuditLogMixin(object):
+
+    def delete(self, request, *args, **kwargs):
+        # Classe deve implementar um get_object(), i.e., deve ser uma View
+        deleted_object = self.get_object()
+        try:
+           return super(AuditLogMixin, self).delete(request, args, kwargs)
+        finally:
+            post_delete_signal.send(sender=None,
+                                    instance=deleted_object,
+                                    operation='D',
+                                    request=self.request)
+
+    # SAVE/UPDATE method
+    def form_valid(self, form):
+        try:
+            if not form.instance.pk:
+                operation = 'C'
+            else:
+                operation = 'U'
+            return super(AuditLogMixin, self).form_valid(form)
+        finally:
+            post_save_signal.send(sender=None,
+                                  instance=form.instance,
+                                  operation=operation,
+                                  request=self.request
+                                  )
+
+
 class CrudCreateView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, CreateView):
+                     FormMessagesMixin, AuditLogMixin, CreateView):
     permission_required = (RP_ADD, )
     logger = logging.getLogger(__name__)
 
@@ -837,7 +866,7 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
 
 
 class CrudUpdateView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, UpdateView):
+                     FormMessagesMixin, AuditLogMixin, UpdateView):
     permission_required = (RP_CHANGE, )
     logger = logging.getLogger(__name__)
 
@@ -868,7 +897,7 @@ class CrudUpdateView(PermissionRequiredContainerCrudMixin,
 
 
 class CrudDeleteView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, DeleteView):
+                     FormMessagesMixin, AuditLogMixin, DeleteView):
     permission_required = (RP_DELETE, )
     logger = logging.getLogger(__name__)
 

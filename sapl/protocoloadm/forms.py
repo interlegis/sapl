@@ -2,6 +2,8 @@
 import logging
 
 from crispy_forms.bootstrap import InlineRadios, Alert, FormActions
+
+from sapl.base.signals import post_save_signal
 from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div, Submit
 from django import forms
@@ -1563,7 +1565,6 @@ class TramitacaoEmLoteAdmForm(ModelForm):
             )
         )
 
-
     def clean(self):
         cleaned_data = super(TramitacaoEmLoteAdmForm, self).clean()
 
@@ -1655,7 +1656,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                                                 user=tramitacao.user,
                                                 ip=tramitacao.ip
                                                 ))
-                TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
+                TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
 

@@ -236,6 +236,7 @@ rules_group_geral = {
         (base.TipoAutor, __base__, __perms_publicas__),
         (base.Autor, __base__, __perms_publicas__),
         (base.AutorUser, __base__, __perms_publicas__),
+        (base.AuditLog, __base__, set()),
 
         (protocoloadm.StatusTramitacaoAdministrativo, __base__, set()),
         (protocoloadm.TipoDocumentoAdministrativo, __base__, set()),
