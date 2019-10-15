@@ -2041,6 +2041,46 @@ class AppConfigCrud(CrudAux):
                         kwargs={'pk': app_config.pk}))
 
 
+    class UpdateView(CrudAux.UpdateView):
+        
+        form_class = ConfiguracoesAppForm
+
+        def form_valid(self, form):
+            numeracao = AppConfig.objects.last().sequencia_numeracao_protocolo
+            numeracao_antiga = AppConfig.objects.last().inicio_numeracao_protocolo
+
+            self.object = form.save()
+            numeracao_nova = self.object.inicio_numeracao_protocolo
+            
+            if numeracao_nova != numeracao_antiga:
+                if numeracao == 'A':
+                    numeros = Protocolo.objects.filter(
+                        ano=timezone.now().year
+                    ) 
+                elif numeracao == 'L':
+                    legislatura = Legislatura.objects.filter(
+                        data_inicio__year__lte=timezone.now().year,
+                        data_fim__year__gte=timezone.now().year
+                    ).first()
+                    
+                    data_inicio = legislatura.data_inicio
+                    data_fim = legislatura.data_fim
+                    
+                    numeros = Protocolo.objects.filter(
+                        data__gte=data_inicio,
+                        data_lte=data_fim
+                    )
+                elif numeracao == 'U':
+                    numeros = Protocolo.objects.all()
+
+                if numeros:
+                    msg = "O novo início da numeração de protocolo entrará em vigor na " \
+                          "próxima sequência, pois já existem protocolos cadastrados na " \
+                          "atual."
+                    messages.warning(self.request, msg)
+
+            return super().form_valid(form)
+
     class ListView(CrudAux.ListView):
 
         def get(self, request, *args, **kwargs):

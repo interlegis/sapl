@@ -13,7 +13,7 @@ from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProtocoloAdmForm,
                                      DocumentoAdministrativoForm,
-                                     MateriaLegislativa, ProtocoloDocumentForm,
+                                     MateriaLegislativa, ProtocoloDocumentoForm,
                                      ProtocoloMateriaForm, TramitacaoAdmForm,
                                      TramitacaoAdmEditForm,
                                      compara_tramitacoes_doc,
@@ -415,7 +415,7 @@ def test_protocolo_documento_form_invalido():
 
     config = mommy.make(AppConfig)
 
-    form = ProtocoloDocumentForm(
+    form = ProtocoloDocumentoForm(
         data={},
         initial={
             'user_data_hora_manual': '',

@@ -44,23 +44,19 @@ from sapl.utils import (create_barcode, get_base_url, get_client_ip,
 from django.shortcuts import render
 
 
-from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
-                    DocumentoAcessorioAdministrativoForm,
-                    DocumentoAdministrativoFilterSet,
-                    DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm, ProtocoloDocumentForm,
-                    ProtocoloFilterSet, ProtocoloMateriaForm,
-                    TramitacaoAdmEditForm, TramitacaoAdmForm,
+from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
+                    AnularProtocoloAdmForm, compara_tramitacoes_doc,
                     DesvincularDocumentoForm, DesvincularMateriaForm,
-                    filtra_tramitacao_adm_destino_and_status,
-                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status,
-                    AnexadoForm, AnexadoEmLoteFilterSet,
-                    PrimeiraTramitacaoEmLoteAdmFilterSet,
-                    TramitacaoEmLoteAdmForm,
-                    TramitacaoEmLoteAdmFilterSet,
-                    compara_tramitacoes_doc)
-from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
+                    DocumentoAcessorioAdministrativoForm, DocumentoAdministrativoFilterSet,
+                    DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm,
+                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_destino_and_status,
+                    filtra_tramitacao_adm_status,  PrimeiraTramitacaoEmLoteAdmFilterSet,
+                    ProtocoloDocumentoForm, ProtocoloFilterSet, ProtocoloMateriaForm,
+                    TramitacaoAdmEditForm, TramitacaoAdmForm, TramitacaoEmLoteAdmForm,
+                    TramitacaoEmLoteAdmFilterSet)
+from .models import (Anexado, AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo, Anexado)
+                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
@@ -582,7 +578,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
     logger = logging.getLogger(__name__)
 
     template_name = "protocoloadm/protocolar_documento.html"
-    form_class = ProtocoloDocumentForm
+    form_class = ProtocoloDocumentoForm
     form_valid_message = _('Protocolo cadastrado com sucesso!')
     permission_required = ('protocoloadm.add_protocolo', )
 
@@ -647,7 +643,10 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
 
-        protocolo.numero = ( numero['numero__max'] + 1 ) if numero['numero__max'] else 1
+        inicio_numeracao = AppConfig.objects.all()[0].inicio_numeracao_protocolo
+        protocolo.numero = (
+            (numero['numero__max'] + 1 ) if numero['numero__max'] else inicio_numeracao
+        )
 
         protocolo.ano = timezone.now().year
         protocolo.assunto_ementa = self.request.POST['assunto']
@@ -849,10 +848,10 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
-        if numeracao is None:
-            numero['numero__max'] = 0
-            
-        protocolo.numero = (numero['numero__max'] + 1) if numero['numero__max'] else 1
+        inicio_numeracao = AppConfig.objects.all()[0].inicio_numeracao_protocolo
+        protocolo.numero = (
+            (numero['numero__max'] + 1 ) if numero['numero__max'] else inicio_numeracao
+        )
         
         protocolo.ano = timezone.now().year
 

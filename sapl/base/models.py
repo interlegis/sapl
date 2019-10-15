@@ -107,6 +107,11 @@ class AppConfig(models.Model):
         max_length=1,
         verbose_name=_('Sequência de numeração de protocolos'),
         choices=SEQUENCIA_NUMERACAO_PROTOCOLO, default='A')
+    
+    inicio_numeracao_protocolo = models.PositiveIntegerField(
+        verbose_name=_('Início da numeração de protocolo'),
+        default=1
+    )
 
     esfera_federacao = models.CharField(
         max_length=1,
