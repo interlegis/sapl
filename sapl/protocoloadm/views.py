@@ -646,16 +646,9 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
-        if not protocolo.numero:
-            protocolo.numero = (
-                numero['numero__max'] + 1) if numero['numero__max'] else 1
-        elif protocolo.numero < (numero['numero__max'] + 1) if numero['numero__max'] else 0:
-            msg = _('Número de protocolo deve ser maior que {}'.format(
-                numero['numero__max']))
-            self.logger.error(
-                "user=" + username + ". Número de protocolo deve ser maior que {}.".format(numero['numero__max']))
-            messages.add_message(self.request, messages.ERROR, msg)
-            return self.render_to_response(self.get_context_data())
+
+        protocolo.numero = ( numero['numero__max'] + 1 ) if numero['numero__max'] else 1
+
         protocolo.ano = timezone.now().year
         protocolo.assunto_ementa = self.request.POST['assunto']
 
