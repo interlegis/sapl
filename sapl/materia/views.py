@@ -2651,9 +2651,9 @@ class MateriaPesquisaSimplesView(PermissionRequiredMixin, FormView):
             kwargs.update({'tipo': form.cleaned_data['tipo_materia']})
 
         if form.cleaned_data.get('data_inicial'):
-            kwargs.update({'data__gte': form.cleaned_data['data_inicial'],
-                           'data__lte': form.cleaned_data['data_final']})
-
+            kwargs.update({'data_apresentacao__gte': form.cleaned_data['data_inicial'],
+                           'data_apresentacao__lte': form.cleaned_data['data_final']})
+        
         materias = MateriaLegislativa.objects.filter(
             **kwargs).order_by('-numero', 'ano')
 
