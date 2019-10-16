@@ -324,7 +324,7 @@ def recuperar_proposicao(request):
     data = request.GET.get('data')
 
     proposicoes = Proposicao.objects.filter(
-            data_envio__date=datetime.strptime(data, '%Y-%m-%d').date(),
+            data_envio__date=datetime.strptime(data, '%d/%m/%Y').date(),
             data_envio__isnull=False,
             data_recebimento__isnull=True,
             data_devolucao__isnull=True
