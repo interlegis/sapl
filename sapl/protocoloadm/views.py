@@ -34,7 +34,7 @@ from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
-from sapl.protocoloadm.models import Protocolo, AuditoriaProtocolo, DocumentoAdministrativo
+from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
@@ -1613,7 +1613,7 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
                 'documento_id', flat=True)
 
 
-def apaga_protocolos(user, ano):
+def apaga_protocolos(request, ano):
     all_protocolos = Protocolo.objects.filter(ano__in=ano)
 
     for doc in DocumentoAdministrativo.objects.filter(protocolo__in=all_protocolos):
@@ -1624,18 +1624,20 @@ def apaga_protocolos(user, ano):
         ml.numero_protocolo = None
         ml.save()
 
-    info = ["%s/%s" % (p.numero, p.ano) for p in all_protocolos]
+    for deleted_object in all_protocolos:
+        post_delete_signal.send(sender=None,
+                                instance=deleted_object,
+                                operation='D',
+                                request=request
+                             )
 
-    auditoria = AuditoriaProtocolo(usuario=user,info=info)
-    auditoria.save()
     all_protocolos.delete()
 
 @staff_member_required
 def apaga_protocolos_view(request):
     if request.method == "GET":
         if Protocolo.objects.exists():
-            ano_minimo = Protocolo.objects.all().order_by('ano').first().ano
-            intervalo_data = range(ano_minimo, datetime.now().year)
+            intervalo_data = Protocolo.objects.all().distinct('ano').values_list('ano', flat=True).order_by('-ano')
         else:
             intervalo_data = None
         return render(request,"protocoloadm/deleta_todos_protocolos.html",{'intervalo_data':intervalo_data})
@@ -1645,7 +1647,7 @@ def apaga_protocolos_view(request):
         valid = request.user.check_password(password)        
         if valid:
             anos = [int(i) for i in request.POST.getlist('ano')]
-            apaga_protocolos(request.user, anos)
+            apaga_protocolos(request, anos)
             return JsonResponse({'type':'success','msg':''})
         else:
             return JsonResponse({'type':'error','msg':'Senha Incorreta'})

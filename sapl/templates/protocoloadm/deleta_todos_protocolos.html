@@ -47,6 +47,9 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
             <button id="apagar-protocolos" type="button" class="btn btn-danger">Apagar protocolos</button>
+            <div id="spinner-id" style="margin-left:20px" class="spinner-border text-danger" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
           </div>
           </div>
       </div>
@@ -75,7 +78,9 @@
 
 <script>
   $('#content-block-2').hide();
+  $('#spinner-id').hide();
   $('#apagar-protocolos').click( () => {
+    $('#spinner-id').show();
     $.ajax({
       data: {senha:$('#password').val(),ano:$("#id_ano").val()},
       type: 'POST',
@@ -94,6 +99,7 @@
           });
           $('#content-block-2').show("slow");
         }
+        $('#spinner-id').hide();
       },
     });
   })

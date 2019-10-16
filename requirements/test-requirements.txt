@@ -3,7 +3,7 @@ coverage==4.1
 django-webtest==1.7.8
 flake8==2.6.2
 isort==4.2.5
-model-mommy==1.6.0
+model-mommy==1.2.6
 pep8==1.7.0
 pytest==2.9.2
 pytest-cov==2.3.0
