@@ -605,7 +605,25 @@ class Frente(models.Model):
 
     def __str__(self):
         return self.nome
+    
+@reversion.register()
+class ParlamentarFrente(models.Model):
+    frente = models.ForeignKey(Frente, verbose_name=_('Frente'))
+    parlamentar = models.ForeignKey(Parlamentar,
+                                    verbose_name=_('Parlamentar'))
 
+    data_entrada = models.DateField(verbose_name=_('Data Entrada'))
+
+    data_saida = models.DateField(blank=True,
+                                  null=True,
+                                  verbose_name=_('Data Saída'))
+
+    class Meta:
+        verbose_name = _('Parlamentar')
+        verbose_name_plural = _('Parlamentares')
+
+    def __str__(self):
+        return "%s - %s" % (self.frente, self.parlamentar)
 
 class Votante(models.Model):
     parlamentar = models.ForeignKey(
