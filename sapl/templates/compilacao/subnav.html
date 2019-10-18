@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load compilacao_filters %}
 {% load common_tags %}
-  <ul class="nav nav-pills justify-content-end">
+  <ul class="nav nav-tabs justify-content-end">
     {%if object %}
       <li class="nav-item">
         {% if request.GET.back_type == 'history' and object.content_object %}
@@ -19,7 +19,7 @@
         <li class="nav-item"><a class="nav-link" href="{% url 'sapl.compilacao:ta_text_notificacoes' object.pk %}">{% trans 'Notificações' %}</a></li>
       {% endif %}
       {% block extra_sections_nav %}
-        <li class="nav-item"><a class="nav-link" href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto Compilado' %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto Articulado' %}</a></li>
       {% endblock %}
     {% endif %}
   </ul>

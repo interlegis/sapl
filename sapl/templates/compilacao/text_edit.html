@@ -9,17 +9,20 @@
 
 {% block actions %}
   {% if perms.compilacao.change_textoarticulado %}
-    <div class="clearfix">
-      <div class="actions btn-toolbar float-right" role="toolbar">
-        <div class="actions btn-group" role="group">
-          {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
-                <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn {% if object.editing_locked %}btn-outline-danger{%else%}btn-outline-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
-          {% endif %}
+    <div class="container-actions mt-4 mb-4 justify-content-between d-flex">
 
-          <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Metadados do Texto Articulado' %}</a>
-          {% include 'compilacao/textoarticulado_menu_config.html' %}
-        </div>
+      
+
+
+      <div class="actions btn-group" role="group">
+        {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
+              <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn {% if object.editing_locked %}btn-outline-danger{%else%}btn-outline-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
+        {% endif %}
+
+        <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+        {% include 'compilacao/textoarticulado_menu_config.html' %}
       </div>
+
     </div>
   {% endif %}
 {% endblock actions %}
