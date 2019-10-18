@@ -13,6 +13,7 @@ from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
+from model_utils.choices import Choices
 
 from sapl import utils
 from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
@@ -115,7 +116,7 @@ class TaForm(ModelForm):
         queryset=TipoTextoArticulado.objects.all(),
         required=True,
         empty_label=None)
-    numero = forms.IntegerField(
+    numero = forms.CharField(
         label=TextoArticulado._meta.get_field(
             'numero').verbose_name,
         required=True)
@@ -744,6 +745,12 @@ class DispositivoEdicaoBasicaForm(ModelForm):
 
 class DispositivoSearchModalForm(Form):
 
+    TIPO_RESULTADO_CHOICES = Choices(
+        ('C', 'coincidentes', _('Apenas Coincidentes')),
+        ('I', 'internos', _('Incluir Internos')),
+        ('S', 'coin_sequentes', _('Coincidentes e seus sequentes')),
+    )
+
     tipo_ta = forms.ModelChoiceField(
         label=_('Tipo do Texto Articulado'),
         queryset=TipoTextoArticulado.objects.all(),
@@ -758,9 +765,9 @@ class DispositivoSearchModalForm(Form):
     ano_ta = forms.IntegerField(
         label=_('Ano do Documento'), required=False)
 
-    dispositivos_internos = forms.ChoiceField(
-        label=_('Dispositivos Internos?'),
-        choices=utils.YES_NO_CHOICES,
+    tipo_resultado = forms.ChoiceField(
+        label=_('Tipo do Resultado?'),
+        choices=TIPO_RESULTADO_CHOICES,
         widget=forms.RadioSelect(),
         required=False)
 
@@ -769,7 +776,7 @@ class DispositivoSearchModalForm(Form):
         choices=[(10, _('Dez Dispositivos')),
                  (30, _('Trinta Dispositivos')),
                  (50, _('Cinquenta Dispositivos')),
-                 (0, _('Tudo que atender aos Critérios da Busca'))],
+                 (100, _('Cem Dispositivos'))],
         widget=forms.Select(),
         required=False)
 
@@ -789,22 +796,33 @@ class DispositivoSearchModalForm(Form):
                 to_column(('num_ta', 4)),
                 to_column(('ano_ta', 4)),
                 to_column(('max_results', 4))),
+
             Row(
-                to_column(('tipo_ta', 6)),
-                to_column(('tipo_model', 6))),
-            Row(to_column((InlineRadios('dispositivos_internos'), 3)),
-                to_column(('rotulo_dispositivo', 2)),
-                to_column((FieldWithButtons(
-                    Field(
-                        'texto_dispositivo',
-                        placeholder=_('Digite palavras, letras, '
-                                      'números ou algo'
-                                      ' que estejam no texto.')),
-                    StrictButton(
-                        _('Buscar'),
-                        css_class='btn-busca btn-primary')), 7))
+                to_column(('tipo_resultado', 3)),
+                to_column(
+                    (
+                        Div(
+                            Row(
+                                to_column(('tipo_ta', 6)),
+                                to_column(('tipo_model', 6))),
+                            Row(
+                                to_column(('rotulo_dispositivo', 4)),
+                                to_column(
+                                    (
+                                        FieldWithButtons(
+                                            Field(
+                                                'texto_dispositivo',
+                                                placeholder=_('Digite palavras, letras, '
+                                                              'números ou algo'
+                                                              ' que estejam no texto.')),
+                                            StrictButton(
+                                                _('Buscar'),
+                                                css_class='btn-busca btn-primary')), 8))
+                            )
+                        ), 9
+                    )
                 )
-        )
+            ))
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
@@ -821,7 +839,7 @@ class DispositivoSearchModalForm(Form):
                 choice = ch(kwargs['instance'].ta.tipo_ta_id)
                 self.base_fields['tipo_model'].choices = choice
 
-        kwargs['initial'].update({'dispositivos_internos': False})
+        kwargs['initial'].update({'tipo_resultado': 'C'})
         super(DispositivoSearchModalForm, self).__init__(*args, **kwargs)
 
 

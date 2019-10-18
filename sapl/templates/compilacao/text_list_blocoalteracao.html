@@ -3,7 +3,7 @@
 {% for ch in dpt.pk|get_bloco_atualizador %}
   {% spaceless %}
     {% if ch.visibilidade %}
-        <div class="dpt" id="d{{ch.id}}" nivel="{{ch.nivel}}">
+        <div class="dpt {% if ch.dispositivo_subsequente %}desativado{% endif %}" id="d{{ch.id}}" nivel="{{ch.nivel}}">
           <div class="{{ ch.tipo_dispositivo.class_css }}" id="id{{ch.id}}" nivel="{{ch.nivel}}">
             {% if ch.auto_inserido %}
               {{ ch.dispositivo_pai.tipo_dispositivo.rotulo_prefixo_html|safe }}
@@ -32,6 +32,6 @@
             {% endif %}
           </div>
         </div>
-    {%endif%}
+    {% endif %}
   {% endspaceless %}
 {% endfor %}

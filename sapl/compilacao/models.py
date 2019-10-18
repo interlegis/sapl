@@ -221,12 +221,12 @@ class TextoArticulado(TimestampedMixin):
     editable_only_by_owners = models.BooleanField(
         choices=YES_NO_CHOICES,
         default=True,
-        verbose_name=_('Editável apenas pelos donos do Texto Articulado'))
+        verbose_name=_('Editável apenas pelos donos do Texto Articulado?'))
 
     editing_locked = models.BooleanField(
         choices=YES_NO_CHOICES,
         default=True,
-        verbose_name=_('Texto Articulado em Edição'))
+        verbose_name=_('Texto Articulado em Edição?'))
 
     privacidade = models.IntegerField(
         _('Privacidade'),
@@ -416,8 +416,8 @@ class TextoArticulado(TimestampedMixin):
 
     def clone_for(self, obj):
         # O clone gera um texto válido original dada a base self,
-        # mesmo sendo esta base um texto compilado.
-        # Os dispositivos a clonar será com base no texto compilado
+        # mesmo sendo esta base um Texto Articulado.
+        # Os dispositivos a clonar será com base no Texto Articulado
 
         assert self.tipo_ta and self.tipo_ta.content_type, _(
             'Não é permitido chamar o método clone_for '
@@ -1072,6 +1072,10 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 'Permissão alteração global do dispositivo de vigência')),
         )
 
+    def ws_sync(self):
+        return self.ta and self.ta.privacidade in (
+            STATUS_TA_IMMUTABLE_PUBLIC, STATUS_TA_PUBLIC)
+
     def clean(self):
         """
         Check for instances with null values in unique_together fields.
@@ -1113,14 +1117,15 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
         self.contagem_continua = self.tipo_dispositivo.contagem_continua
 
-        try:
+        """try:
             if self.texto:
+                self.texto = self.texto.replace('\xa0', '')
                 self.texto = str(BeautifulSoup(self.texto, "html.parser"))
             if self.texto_atualizador:
                 self.texto_atualizador = str(BeautifulSoup(
                     self.texto_atualizador,  "html.parser"))
         except:
-            pass
+            pass"""
 
         return super().save(
             force_insert=force_insert, force_update=force_update, using=using,
@@ -1624,7 +1629,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
             yield ultimo
 
     @staticmethod
-    def new_instance_based_on(dispositivo_base, tipo_base):
+    def new_instance_based_on(dispositivo_base, tipo_base, base_alteracao=None):
         dp = Dispositivo()
 
         dp.tipo_dispositivo = tipo_base
@@ -1638,6 +1643,16 @@ class Dispositivo(BaseModel, TimestampedMixin):
         dp.ta = dispositivo_base.ta
         dp.dispositivo_pai = dispositivo_base.dispositivo_pai
         dp.publicacao = dispositivo_base.publicacao
+
+        b = base_alteracao if base_alteracao else dispositivo_base
+
+        # teste de criação inversa de itens alterados por mesmo bloco
+        dp.ta_publicado = b.ta_publicado
+        dp.dispositivo_atualizador = b.dispositivo_atualizador
+
+        if dp.ta_publicado:
+            dp.ordem_bloco_atualizador = b.ordem_bloco_atualizador + \
+                Dispositivo.INTERVALO_ORDEM
 
         dp.dispositivo_vigencia = dispositivo_base.dispositivo_vigencia
         if dp.dispositivo_vigencia:
