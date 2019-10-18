@@ -986,6 +986,21 @@ def lista_anexados(principal, isMateriaLegislativa=True):
     return anexados_total
 
 
+def from_date_to_datetime_utc(data):
+    """
+
+    :param data: datetime.date
+    :return: datetime.timestamp com UTC
+    """
+    import pytz
+    from datetime import datetime
+
+    # from date to datetime
+    dt_unware = datetime.combine(data, datetime.min.time())
+    dt_utc = pytz.utc.localize(dt_unware)
+    return dt_utc
+
+
 class OverwriteStorage(FileSystemStorage):
     '''
     Solução derivada do gist: https://gist.github.com/fabiomontefuscolo/1584462
