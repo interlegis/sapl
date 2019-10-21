@@ -30,7 +30,7 @@ script:
   #- docker-compose up -d
   #- docker logs sapl
   #- docker-compose rm -f -s -v
-  - docker-compose -f docker-compose.test.yml run --workdir="/var/interlegis/sapl" sapl bash -c "cp docker/config/env_test .env && py.test --create-db"
+  - docker-compose -f docker-compose.yml run --workdir="/var/interlegis/sapl" sapl bash -c "cp docker/config/env_test .env && py.test --create-db"
 
 after_script:
   # Cleanup docker containers, images, and volumes
