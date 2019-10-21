@@ -27,30 +27,29 @@ def detecta_duplicados():
 
 
 def realoca_autor(principal, secundaria):
-        autor_principal = principal.autor.first() 
-        clone = secundaria.autor.first()
+    autor_principal = principal.autor.first() 
+    autor_secundario = secundaria.autor.first()
+    for autoria in autor_secundario.autoria_set.all():
+        autoria.autor_id = autor_principal
+        autoria.save()
+    
+    for proposicao in autor_secundario.proposicao_set.all():
+        proposicao.autor_id = autor_principal
+        proposicao.save()
+    
+    for autorianorma in autor_secundario.autorianorma_set.all():
+        autorianorma.autor_id = autor_principal
+        autorianorma.save()
+    
+    for documentoadministrativo in autor_secundario.documentoadministrativo_set.all():
+        documentoadministrativo.autor_id = autor_principal
+        documentoadministrativo.save()
+    
+    for protocolo in autor_secundario.protocolo_set.all():
+        protocolo.autor_id = autor_principal
+        protocolo.save()
 
-        for autoria in clone.autoria_set.all():
-            autoria.autor_id = autor_principal
-            autoria.save()
-        
-        for proposicao in clone.proposicao_set.all():
-            proposicao.autor_id = autor_principal
-            proposicao.save()
-        
-        for autorianorma in clone.autorianorma_set.all():
-            autorianorma.autor_id = autor_principal
-            autorianorma.save()
-        
-        for documentoadministrativo in clone.documentoadministrativo_set.all():
-            documentoadministrativo.autor_id = autor[0]
-            documentoadministrativo.save()
-        
-        for protocolo in clone.protocolo_set.all():
-            protocolo.autor_id = autor_principal
-            protocolo.save()
-
-            clone.delete()
+    autor_secundario.delete()
     
 
 def muda_models_dependentes(principal,secundaria):
