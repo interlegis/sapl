@@ -1630,8 +1630,8 @@ def apaga_protocolos(request, ano):
                                 operation='D',
                                 request=request
                              )
-
     all_protocolos.delete()
+
 
 @staff_member_required
 def apaga_protocolos_view(request):
@@ -1646,7 +1646,7 @@ def apaga_protocolos_view(request):
         password = request.POST.get('senha')
         valid = request.user.check_password(password)        
         if valid:
-            anos = [int(i) for i in request.POST.getlist('ano')]
+            anos = request.POST.getlist('ano')
             apaga_protocolos(request, anos)
             return JsonResponse({'type':'success','msg':''})
         else:
