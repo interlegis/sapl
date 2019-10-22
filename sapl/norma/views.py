@@ -71,7 +71,7 @@ class NormaRelacionadaCrud(MasterDetailCrud):
 class NormaPesquisaView(FilterView):
     model = NormaJuridica
     filterset_class = NormaFilterSet
-    paginate_by = 10
+    paginate_by = 50
 
     def get_queryset(self):
         qs = super().get_queryset()
