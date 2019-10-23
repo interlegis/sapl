@@ -405,17 +405,45 @@ class ReuniaoForm(ModelForm):
         upload_ata = self.cleaned_data.get('upload_ata', False)
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
-        if upload_pauta and upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Pauta da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024))
+        if upload_pauta:
+            if len(upload_pauta.name) > 200:
+                raise ValidationError(
+                    "Certifique-se de que o nome do arquivo no campo 'Pauta da Reunião' tenha no máximo 200" \
+                    " caracteres (ele possui {})".format(len(upload_pauta.name))
+                )
+            if upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError(
+                    "O arquivo Pauta da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse " \
+                    "arquivo é {1:.1f} mb".format(
+                        (MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024
+                    )
+                )
         
-        if upload_ata and upload_ata.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Ata da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024))
+        if upload_ata:
+            if len(upload_ata.name) > 200:
+                raise ValidationError(
+                    "Certifique-se de que o nome do arquivo no campo 'Ata da Reunião' tenha no máximo 200" \
+                    " caracteres (ele possui {})".format(len(upload_ata.name))
+                )
+            if upload_ata.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError(
+                    "O arquivo Ata da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo " \
+                    "é {1:.1f} mb".format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024)
+                )
         
-        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Anexo da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+        if upload_anexo:
+            if len(upload_anexo.name) > 200:
+                raise ValidationError(
+                    "Certifique-se de que o nome do arquivo no campo 'Anexo da Reunião' tenha no máximo 200" \
+                    " caracteres (ele possui {})".format(len(upload_anexo.name))
+                )
+            if upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError(
+                    "O arquivo Anexo da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse " \
+                    "arquivo é {1:.1f} mb".format(
+                        (MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024
+                    )
+                )
 
         return self.cleaned_data
 
