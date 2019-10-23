@@ -167,7 +167,7 @@ class AnexoAudienciaPublica(models.Model):
     audiencia = models.ForeignKey(AudienciaPublica,
                                   on_delete=models.PROTECT)
     arquivo = models.FileField(
-        max_length=200,
+        max_length=300,
         upload_to=texto_upload_path,
         storage=OverwriteStorage(),
         verbose_name=_('Arquivo'))
