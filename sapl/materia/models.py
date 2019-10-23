@@ -257,7 +257,7 @@ class MateriaLegislativa(models.Model):
             'materia_principal',
             'materia_anexada'))
     texto_original = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         upload_to=materia_upload_path,

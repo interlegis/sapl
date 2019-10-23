@@ -254,9 +254,19 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         texto_original = self.cleaned_data.get('texto_original', False)
 
-        if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb"
-                                  .format((MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (texto_original.size / 1024) / 1024))
+        if texto_original:
+            if len(texto_original.name) > 200:
+                raise ValidationError(
+                    "Certifique-se de que o nome do arquivo no campo 'Texto Original' tenha no " \
+                    "máximo 200 caracteres (ele possui {}).".format(len(texto_original.name))
+                )
+            if texto_original.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError(
+                    "O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse" \
+                    " arquivo é {1:.1f} mb".format(
+                        (MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (texto_original.size / 1024) / 1024
+                    )
+                )
 
         return cleaned_data
 
