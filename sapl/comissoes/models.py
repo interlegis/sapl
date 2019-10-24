@@ -321,7 +321,7 @@ class DocumentoAcessorio(models.Model):
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         upload_to=anexo_upload_path,
