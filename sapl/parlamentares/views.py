@@ -38,13 +38,14 @@ from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
                     ParlamentarFilterSet, VincularParlamentarForm,
                     BlocoForm, CargoBlocoForm, CargoBlocoPartidoForm,
-                    BancadaForm, AfastamentoParlamentarForm)
+                    BancadaForm, AfastamentoParlamentarForm, ParlamentarFrenteForm)
                     
 from .models import (Bancada, CargoBancada, CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco, CargoBlocoPartido, HistoricoPartido, CargoBloco, AfastamentoParlamentar)
+                     Bloco, CargoBlocoPartido, HistoricoPartido, CargoBloco,
+                     ParlamentarFrente, AfastamentoParlamentar)
 
 
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
@@ -412,6 +413,37 @@ class FrenteCrud(Crud):
         form_class = FrenteForm
 
 
+
+class ParlamentarFrenteCrud(MasterDetailCrud):
+    model = ParlamentarFrente
+    parent_field = 'frente'
+    help_topic = 'parlamentar_frente'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['parlamentar',
+                            'frente',
+                            'data_entrada',
+                            'data_saida']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ParlamentarFrenteForm
+
+        def get_initial(self):
+            self.initial['frente'] = Frente.objects.get(pk=self.kwargs['pk'])
+            return self.initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ParlamentarFrenteForm
+
+        def form_valid(self, form):
+            return super(Crud.UpdateView, self).form_valid(form)
+
+
+    class ListView(MasterDetailCrud.ListView):
+        layout_key = 'ParlamentarFrenteList'
+
+
 class MandatoCrud(MasterDetailCrud):
     model = Mandato
     parent_field = 'parlamentar'
@@ -526,6 +558,8 @@ class FiliacaoCrud(MasterDetailCrud):
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = FiliacaoForm
+
+
 
 
 class ParlamentarCrud(Crud):

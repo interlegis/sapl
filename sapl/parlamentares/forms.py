@@ -24,7 +24,8 @@ import django_filters
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
                      Mandato, Parlamentar, Votante, Bloco, Bancada, CargoBloco,
-                     CargoBlocoPartido, AfastamentoParlamentar, TipoAfastamento)
+                     CargoBlocoPartido, AfastamentoParlamentar, TipoAfastamento,
+                     ParlamentarFrente)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -418,6 +419,28 @@ class ComposicaoColigacaoForm(ModelForm):
             raise ValidationError(msg)
 
         return self.cleaned_data
+
+class ParlamentarFrenteForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super(ParlamentarFrenteForm, self).__init__(*args, **kwargs)
+        self.fields['frente'].widget = forms.HiddenInput()
+
+
+    class Meta:
+        model = ParlamentarFrente
+        fields = '__all__'
+
+    def clean(self):
+        super(ParlamentarFrenteForm, self).clean()
+        cd = self.cleaned_data
+        if not self.is_valid():
+            return self.cleaned_data
+
+
+        return cd
+
 
 
 class FrenteForm(ModelForm):

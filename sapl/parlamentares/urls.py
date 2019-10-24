@@ -29,7 +29,8 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       edita_vinculo_parlamentar_bloco,
                                       deleta_vinculo_parlamentar_bloco,
                                       vincula_parlamentar_ao_bloco,
-                                      get_sessoes_legislatura)
+                                      get_sessoes_legislatura,
+                                      ParlamentarFrenteCrud)
 
 
 from .apps import AppConfig
@@ -88,6 +89,7 @@ urlpatterns = [
     url(r'^sistema/frente/parlamentares-frente-selected',
         parlamentares_frente_selected,
         name='parlamentares_frente_selected'),
+    url(r'^sistema/frente/', include(ParlamentarFrenteCrud.get_urls())),
 
     url(r'^sistema/parlamentar/legislatura/',
         include(LegislaturaCrud.get_urls())),

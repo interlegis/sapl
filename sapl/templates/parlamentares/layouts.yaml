@@ -157,3 +157,16 @@ AfastamentoParlamentar:
   - data_inicio data_fim
   - mandato tipo_afastamento
   - observacao
+
+ParlamentarFrente:
+  {% trans 'Parlamentar Frente'%}:
+  - frente
+  - parlamentar
+  - data_entrada
+  - data_saida
+
+ParlamentarFrenteList:
+  {% trans 'Parlamentar Frente'%}:
+  - parlamentar
+  - data_entrada
+  - data_saida

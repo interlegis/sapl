@@ -1,0 +1,9 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+{% block actions %}
+    {{ block.super }}
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.parlamentares:parlamentarfrente_list' object.pk %}" class="btn btn-outline-primary">Listar Parlamentares Filiados</a>
+    </div>
+{% endblock actions %}
