@@ -357,7 +357,7 @@ class AnexoNormaJuridica(models.Model):
         max_length=250
     )
     anexo_arquivo = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         upload_to=norma_upload_path,

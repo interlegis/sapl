@@ -278,7 +278,10 @@ class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
     
     logger = logging.getLogger(__name__)
     
-    anexo_arquivo = forms.FileField(required=True)
+    anexo_arquivo = forms.FileField(
+        required=True,
+        label="Arquivo Anexo"
+    )
 
     class Meta:
         model = AnexoNormaJuridica
@@ -295,9 +298,24 @@ class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
         
         anexo_arquivo = self.cleaned_data.get('anexo_arquivo', False)
 
-        if anexo_arquivo and anexo_arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O Arquivo Anexo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (anexo_arquivo.size/1024)/1024))
+        if anexo_arquivo:
+            if len(anexo_arquivo.name) > 200:
+                raise ValidationError(
+                    "Certifique-se de que o nome do arquivo no " \
+                    "campo 'Arquivo Anexo' tenha no máximo 200 " \
+                    "caracteres (ele possui {})".format(
+                        len(anexo_arquivo.name)
+                    )
+                )
+            if anexo_arquivo.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError(
+                    "O Arquivo Anexo deve ser menor que " \
+                    "{0:.1f} mb, o tamanho atual desse arquivo é " \
+                    "{1:.1f} mb".format(
+                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
+                        (anexo_arquivo.size/1024)/1024
+                    )
+                )
 
         return cleaned_data
 
