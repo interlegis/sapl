@@ -232,7 +232,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
         verbose_name=_('Tipo'))
     nome = models.CharField(max_length=30, verbose_name=_('Nome'))
     arquivo = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         upload_to=texto_upload_path,

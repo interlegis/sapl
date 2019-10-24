@@ -666,9 +666,17 @@ class DocumentoAcessorioAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
         arquivo = self.cleaned_data.get('arquivo', False)
 
-        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+        if arquivo:
+            if len(arquivo.name) > 200:
+                raise ValidationError(
+                    "Certifique-se de que o nome do arquivo no campo 'Arquivo' tenha no máximo 200 " \
+                    "caracteres (ele possui {})".format(len(arquivo.name))
+                )
+            if arquivo.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError(
+                    "O arquivo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
+                    .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024)
+                )
 
         return self.cleaned_data
 
