@@ -541,7 +541,7 @@ class DocumentoAcessorio(models.Model):
     arquivo = models.FileField(
         blank=True,
         null=True,
-        max_length=255,
+        max_length=300,
         upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
         storage=OverwriteStorage(),
