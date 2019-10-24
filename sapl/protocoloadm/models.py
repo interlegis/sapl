@@ -164,7 +164,7 @@ class DocumentoAdministrativo(models.Model):
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
     texto_integral = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         storage=OverwriteStorage(),

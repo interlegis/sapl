@@ -1159,9 +1159,20 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
         texto_integral = self.cleaned_data.get('texto_integral', False)
 
-        if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_integral.size/1024)/1024))
+        if texto_integral:
+            if len(texto_integral.name) > 200:
+                raise ValidationError(
+                    "Certifique-se de que o nome do arquivo no campo 'Texto Integral' tenha no máximo" \
+                    " 200 caracteres (ele possui {})".format(len(texto_integral.name))
+                )
+            if texto_integral.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError(
+                    "O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse " \
+                    "arquivo é {1:.1f} mb".format(
+                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
+                        (texto_integral.size/1024)/1024
+                    )
+                )
 
         return self.cleaned_data
 
