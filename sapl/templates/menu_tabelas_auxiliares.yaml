@@ -77,6 +77,9 @@
   - title: {% trans 'Frente Parlamentar' %}
     url: sapl.parlamentares:frente_list
     css_class: btn btn-link
+  - title: {% trans 'Cargo de Frente Parlamentar' %}
+    url: sapl.parlamentares:cargofrente_list
+    css_class: btn btn-link
   - title: {% trans 'Bloco Parlamentar' %}
     url: sapl.parlamentares:bloco_list
     css_class: btn btn-link

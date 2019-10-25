@@ -152,6 +152,11 @@ CargoBloco:
   - unico
   - descricao
 
+CargoFrente:
+  {% trans 'Cargo' %}:
+  - nome_cargo
+  - cargo_unico
+
 AfastamentoParlamentar:
   {% trans 'Afastamento' %}:
   - data_inicio data_fim
@@ -162,11 +167,14 @@ ParlamentarFrente:
   {% trans 'Parlamentar Frente'%}:
   - frente
   - parlamentar
+  - cargo
   - data_entrada
   - data_saida
 
 ParlamentarFrenteList:
   {% trans 'Parlamentar Frente'%}:
+  - id
   - parlamentar
+  - cargo
   - data_entrada
   - data_saida

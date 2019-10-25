@@ -45,10 +45,11 @@ from .models import (Bancada, CargoBancada, CargoMesa, Coligacao, ComposicaoColi
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
                      Bloco, CargoBlocoPartido, HistoricoPartido, CargoBloco,
-                     ParlamentarFrente, AfastamentoParlamentar)
+                     ParlamentarFrente, AfastamentoParlamentar, CargoFrente)
 
 
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
+CargoFrenteCrud = CrudAux.build(CargoFrente, '')
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
@@ -420,14 +421,17 @@ class ParlamentarFrenteCrud(MasterDetailCrud):
     help_topic = 'parlamentar_frente'
     public = [RP_LIST, RP_DETAIL]
 
-    class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['parlamentar',
-                            'frente',
-                            'data_entrada',
-                            'data_saida']
+
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ParlamentarFrenteForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            context['subnav_template_name'] = ''
+
+            return context
 
         def get_initial(self):
             self.initial['frente'] = Frente.objects.get(pk=self.kwargs['pk'])
@@ -436,12 +440,41 @@ class ParlamentarFrenteCrud(MasterDetailCrud):
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = ParlamentarFrenteForm
 
-        def form_valid(self, form):
-            return super(Crud.UpdateView, self).form_valid(form)
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            context['subnav_template_name'] = ''
+
+            return context
+
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+
+            return context
 
 
     class ListView(MasterDetailCrud.ListView):
         layout_key = 'ParlamentarFrenteList'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            context['subnav_template_name'] = ''
+
+            rows = context['rows']
+            new_rows = []
+            for row in rows:
+                parlamentar = Parlamentar.objects.get(nome_parlamentar=row[1][0])
+                new_row = row
+                new_row[1] = (row[1][0], '/parlamentar/'+str(parlamentar.id))
+                new_rows.append(new_row)
+            context['rows'] = new_rows
+            return context
+
 
 
 class MandatoCrud(MasterDetailCrud):

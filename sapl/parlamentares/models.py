@@ -605,12 +605,38 @@ class Frente(models.Model):
 
     def __str__(self):
         return self.nome
-    
+
+
+class CargoFrente(models.Model):
+    nome_cargo = models.CharField(max_length=80,
+                                  verbose_name=_('Cargo de Frente Parlamentar'))
+
+    cargo_unico = models.BooleanField(default=False,
+                                      choices=YES_NO_CHOICES,
+                                      verbose_name=_('Cargo Único ?'))
+
+    class Meta:
+        verbose_name = _('Cargo de Frente Parlamentar')
+        verbose_name_plural = _('Cargos de Frente Parlamentar')
+        ordering = ('nome_cargo',)
+
+    def __str__(self):
+        return self.nome_cargo
+
+
 @reversion.register()
 class ParlamentarFrente(models.Model):
-    frente = models.ForeignKey(Frente, verbose_name=_('Frente'))
+    frente = models.ForeignKey(Frente,
+                               verbose_name=_('Frente'),
+                               on_delete=models.PROTECT)
+
     parlamentar = models.ForeignKey(Parlamentar,
-                                    verbose_name=_('Parlamentar'))
+                                    verbose_name=_('Parlamentar'),
+                                    on_delete=models.PROTECT)
+
+    cargo = models.ForeignKey(CargoFrente,
+                                    verbose_name=_('Cargo'),
+                                    on_delete=models.PROTECT)
 
     data_entrada = models.DateField(verbose_name=_('Data Entrada'))
 
@@ -621,9 +647,11 @@ class ParlamentarFrente(models.Model):
     class Meta:
         verbose_name = _('Parlamentar')
         verbose_name_plural = _('Parlamentares')
+        ordering = ('cargo',)
 
     def __str__(self):
         return "%s - %s" % (self.frente, self.parlamentar)
+
 
 class Votante(models.Model):
     parlamentar = models.ForeignKey(

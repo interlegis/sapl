@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 
 from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       ComposicaoColigacaoCrud, DependenteCrud,
-                                      BancadaCrud, CargoBancadaCrud,
+                                      BancadaCrud, CargoBancadaCrud, CargoFrenteCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
                                       LegislaturaCrud, MandatoCrud,
                                       MesaDiretoraView, NivelInstrucaoCrud,
@@ -69,6 +69,8 @@ urlpatterns = [
         include(BancadaCrud.get_urls())),
     url(r'^sistema/cargo-bancada/',
         include(CargoBancadaCrud.get_urls())),
+    url(r'^sistema/cargo-frente/',
+        include(CargoFrenteCrud.get_urls())),
 
     url(r'^sistema/bloco/',
         include(BlocoCrud.get_urls())),
