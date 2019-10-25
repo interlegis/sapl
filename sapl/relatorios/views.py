@@ -1055,17 +1055,7 @@ def relatorio_protocolo(request):
 
     return response
 
-
-def relatorio_etiqueta_protocolo(request, nro, ano):
-    '''
-        pdf_etiqueta_protocolo_gerar.py
-    '''
-
-    response = HttpResponse(content_type='application/pdf')
-    response[
-        'Content-Disposition'] = (
-            'inline; filename="relatorio_etiqueta_protocolo.pdf"')
-
+def gera_etiqueta_protocolo(nro, ano):
     casa = CasaLegislativa.objects.first()
 
     cabecalho = get_cabecalho(casa)
@@ -1080,6 +1070,20 @@ def relatorio_etiqueta_protocolo(request, nro, ano):
                                                  protocolo_data,
                                                  cabecalho,
                                                  rodape)
+                                                 
+    return pdf
+
+def relatorio_etiqueta_protocolo(request, nro, ano):
+    '''
+        pdf_etiqueta_protocolo_gerar.py
+    '''
+
+    response = HttpResponse(content_type='application/pdf')
+    response[
+        'Content-Disposition'] = (
+            'inline; filename="relatorio_etiqueta_protocolo.pdf"')
+
+    pdf = gera_etiqueta_protocolo(nro,ano)
 
     response.write(pdf)
 

@@ -53,6 +53,12 @@ from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, Numeracao,
                      Proposicao, Relatoria, TipoMateriaLegislativa,
                      Tramitacao, UnidadeTramitacao)
+from shutil import move
+import fitz
+from pdf2image import convert_from_bytes
+from io import BytesIO
+import tempfile
+from PIL.Image import FLIP_TOP_BOTTOM 
 
 
 def CHOICE_TRAMITACAO():
@@ -260,6 +266,8 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
         return cleaned_data
 
     def save(self, commit=False):
+        from sapl.relatorios.views import gera_etiqueta_protocolo
+
         if not self.instance.pk:
             primeiro_autor = True
         else:
@@ -267,6 +275,28 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         materia = super(MateriaLegislativaForm, self).save(commit)
         materia.save()
+
+        if self.instance.numero_protocolo and self.instance.texto_original:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                input_file = self.instance.texto_original.path[:-4]+"_original.pdf"
+                output_file = "{}/{}.pdf".format(tmp_dir, self.instance.id) 
+                move(self.instance.texto_original.path, input_file)
+
+                etiqueta = gera_etiqueta_protocolo(self.instance.numero_protocolo, self.instance.ano)
+
+                img = convert_from_bytes(etiqueta)
+
+                aux_binary = BytesIO()
+                barcode_file = img[0].transpose(FLIP_TOP_BOTTOM).save(aux_binary,format="JPEG")
+
+                image_rectangle = fitz.Rect(500,600,800,900)
+                file_handle = fitz.open(input_file)
+                first_page = file_handle[0]
+                first_page.insertImage(image_rectangle, stream=aux_binary.getvalue(),rotate=270,keep_proportion=False)
+
+                file_handle.save(output_file)
+                move(output_file, self.instance.texto_original.path)
+
 
         if self.cleaned_data['autor']:
             autoria = Autoria()
