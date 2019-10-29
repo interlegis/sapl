@@ -436,7 +436,7 @@ class AbstractOrador(models.Model):  # Oradores
     observacao = models.CharField(
         max_length=150, blank=True, verbose_name=_('Observação'))
     upload_anexo = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         storage=OverwriteStorage(),
