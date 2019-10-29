@@ -3120,6 +3120,8 @@ class DispositivoSearchFragmentFormView(ListView):
             elif rotulo:
                 AND_TEXTO_ROTULO = "AND d.rotulo ~* '{BUSCA_ROTULO}'".format(
                     BUSCA_ROTULO=rotulo)
+            else: 
+                AND_TEXTO_ROTULO = ''
 
             jtms = ''  # JOIN_TYPE_MODEL_SELECTED
             atms = ''  # AND_TYPE_MODEL_SELECTED
