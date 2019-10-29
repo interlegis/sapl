@@ -1079,9 +1079,21 @@ class JustificativaAusenciaForm(ModelForm):
 
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
-        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Anexo de Justificativa deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+        if upload_anexo:
+            if len(upload_anexo.name) > 200:
+                raise ValidationError(
+                    "Certifique-se de que o nome do arquivo no campo " \
+                    "'Anexo de Justificativa' tenha no máximo 200 caracteres " \
+                    "(ele possui {})".format(len(upload_anexo.name))
+                )
+            if upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
+                raise ValidationError(
+                    "O arquivo Anexo de Justificativa deve ser menor que {0:.1f} mb, o " \
+                    "tamanho atual desse arquivo é {1:.1f} mb".format(
+                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
+                        (upload_anexo.size/1024)/1024
+                    )
+                )
 
         if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
             raise ValidationError(

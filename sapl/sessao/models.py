@@ -788,7 +788,7 @@ class JustificativaAusencia(models.Model):
         OrdemDia, blank=True, verbose_name=_('Matérias do Ordem do Dia'))
 
     upload_anexo = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         storage=OverwriteStorage(),
