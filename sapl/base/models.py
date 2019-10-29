@@ -305,9 +305,3 @@ class AuditLog(models.Model):
                                      self.model_name,
                                      self.username,
                                      )
-
-
-def cria_models_tipo_autor(app_config=None, verbosity=2, interactive=True,
-                           using=DEFAULT_DB_ALIAS, **kwargs):
-
-    models = models_with_gr_for_model(Autor)
