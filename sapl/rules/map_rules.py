@@ -286,6 +286,8 @@ rules_group_geral = {
         (parlamentares.CargoMesa, __base__, __perms_publicas__),
         (parlamentares.ComposicaoMesa, __base__, __perms_publicas__),
         (parlamentares.Frente, __base__, __perms_publicas__),
+        (parlamentares.ParlamentarFrente, __base__, __perms_publicas__),
+        (parlamentares.CargoFrente, __base__, __perms_publicas__),
         (parlamentares.Votante, __base__, __perms_publicas__),
         (parlamentares.Bancada, __base__, __perms_publicas__),
         (parlamentares.CargoBancada, __base__, __perms_publicas__),
