@@ -607,6 +607,7 @@ class Frente(models.Model):
         return self.nome
 
 
+@reversion.register()
 class CargoFrente(models.Model):
     nome_cargo = models.CharField(max_length=80,
                                   verbose_name=_('Cargo de Frente Parlamentar'))
