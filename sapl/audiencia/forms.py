@@ -1,17 +1,16 @@
 import logging
 
 from django import forms
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
-from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica, AnexoAudienciaPublica
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout
 
-from sapl.crispy_layout_mixin import SaplFormHelper
-from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
+from crispy_forms.layout import Button, Column, Fieldset, HTML, Layout
+
+from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica, AnexoAudienciaPublica
+from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, SaplFormLayout, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.utils import timezone, FileFieldCheckMixin
+from sapl.utils import timezone, FileFieldCheckMixin, validar_arquivo
 
 class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
     logger = logging.getLogger(__name__)
@@ -120,40 +119,13 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
         if upload_pauta:
-            if len(upload_pauta.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Pauta da Audiência Pública' tenha no máximo 200 " \
-                    "caracteres (ele possui {})".format(len(upload_pauta.name))
-                )
-            if upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Pauta da Audiência Pública deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é " \
-                    "{1:.1f} mb".format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024)
-                )
+            validar_arquivo(upload_pauta, "Pauta da Audiência Pública")
         
         if upload_ata:
-            if len(upload_ata.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Ata da Audiência Pública' tenha no máximo 200 " \
-                    "caracteres (ele possui {})".format(len(upload_ata.name))
-                )
-            if upload_ata.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Ata da Audiência Pública deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é " \
-                    "{1:.1f} mb".format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024)
-                )
+            validar_arquivo(upload_ata, "Ata da Audiência Pública")
         
         if upload_anexo:
-            if len(upload_anexo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Anexo da Audiência Pública' tenha no máximo 200 " \
-                    "caracteres (ele possui {})".format(len(upload_anexo.name))
-                )
-            if upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Anexo da Audiência Pública deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é " \
-                    "{1:.1f} mb".format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024)
-                )
+            validar_arquivo(upload_anexo, "Anexo da Audiência Pública")
 
         return cleaned_data
 
@@ -189,15 +161,6 @@ class AnexoAudienciaPublicaForm(forms.ModelForm):
         arquivo = self.cleaned_data.get('arquivo', False)
 
         if arquivo:
-            if len(arquivo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Arquivo' tenha no máximo 200 " \
-                    "caracteres (ele possui {})".format(len(arquivo.name))
-                )
-            if arquivo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é " \
-                    "{1:.1f} mb".format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024)
-                )
+            validar_arquivo(arquivo, "Arquivo")
 
         return self.cleaned_data
