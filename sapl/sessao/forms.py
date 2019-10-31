@@ -547,7 +547,11 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                   ]
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        # Colocar super().__init__(*args, **kwargs) quebra a tela
+        # de adicionar várias matérias em expediente e ordem dia.
+        # pois herda da classe AdicionarVariasMateriasFilterSet em
+        # vez de MateriaLegislativaFilterSet
+        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
