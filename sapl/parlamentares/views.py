@@ -514,8 +514,7 @@ class ParlamentarCrud(Crud):
         list_field_names = [
             'nome_parlamentar',
             'filiacao_atual',
-            'ativo',
-            'mandato_titular']
+            'ativo']
 
     class DetailView(Crud.DetailView):
 
@@ -591,8 +590,7 @@ class ParlamentarCrud(Crud):
             username = self.request.user.username
             if legislatura_id >= 0:
                 return queryset.filter(
-                    mandato__legislatura_id=legislatura_id).annotate(
-                        mandato_titular=F('mandato__titular')).distinct()
+                    mandato__legislatura_id=legislatura_id).distinct()
             else:
                 try:
                     self.logger.debug(
@@ -608,8 +606,7 @@ class ParlamentarCrud(Crud):
                                      ". Objeto encontrado com sucesso.")
                     if l is None:
                         return Legislatura.objects.all()
-                    return queryset.filter(mandato__legislatura_id=l).annotate(
-                        mandato_titular=F('mandato__titular'))
+                    return queryset.filter(mandato__legislatura_id=l)
 
         def get_headers(self):
             return [_('Parlamentar'), _('Partido'),
@@ -624,18 +621,37 @@ class ParlamentarCrud(Crud):
             context['legislaturas'] = legislaturas
             context['legislatura_id'] = self.take_legislatura_id()
 
+            # Pega a Legislatura
+            legislatura = Legislatura.objects.get(
+                id=context['legislatura_id'])
+
             for row in context['rows']:
 
                 # Pega o Parlamentar por meio da pk
                 parlamentar = Parlamentar.objects.get(
                     id=(row[0][1].split('/')[-1]))
 
+                # Conserta a issue do github https://github.com/interlegis/sapl/issues/3028
+                # Inicialmente a titularidade era conseguida através do código
+                # queryset.filter(mandato__legislatura_id=legislatura_id).annotate(
+                #                 mandato_titular=F('mandato__titular')).distinct()
+                # em get_queryset(), MAS não funciona se o parlamentar tem vários
+                # mandatos na mesma legislatura, sendo ao menos um titular e outro não,
+                # pois isso gera entradas repetidas. Este código corrige essa situação.
+                mandato = Mandato.objects.filter(
+                    parlamentar=parlamentar,
+                    data_inicio_mandato__gte=legislatura.data_inicio,
+                    data_fim_mandato__lte=legislatura.data_fim
+                ).order_by('-data_inicio_mandato').first()
+
+                if mandato:
+                    titular = 'Sim' if mandato.titular else 'Não'
+                    row.append((titular, None))
+                else:
+                    row.append(('-', None))
+
                 for index, value in enumerate(row):
                     row[index] += (None if index else parlamentar,)
-
-                # Pega a Legislatura
-                legislatura = Legislatura.objects.get(
-                    id=context['legislatura_id'])
 
                 # Coloca a filiação atual ao invés da última
                 # As condições para mostrar a filiação são:
