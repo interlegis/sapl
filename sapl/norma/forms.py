@@ -16,7 +16,6 @@ from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
 from sapl.materia.forms import choice_anos_com_materias
 from sapl.materia.models import (MateriaLegislativa,
                                  TipoMateriaLegislativa)
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (ANO_CHOICES,  choice_anos_com_normas,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
                         NormaPesquisaOrderingFilter, RangeWidgetOverride,
