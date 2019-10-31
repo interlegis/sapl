@@ -12,13 +12,16 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
-                                   Participacao, Periodo, Reuniao)
-from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
+from sapl.comissoes.models import (Comissao, Composicao,
+                                   DocumentoAcessorio, Participacao,
+                                   Periodo, Reuniao)
+from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper, 
+                                      to_row)
 from sapl.materia.models import MateriaEmTramitacao, PautaReuniao
-from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import FileFieldCheckMixin, FilterOverridesMetaMixin
+from sapl.parlamentares.models import (Legislatura, Mandato,
+                                       Parlamentar)
+from sapl.utils import (FileFieldCheckMixin, FilterOverridesMetaMixin,
+                        validar_arquivo)
 
 
 class ComposicaoForm(forms.ModelForm):
@@ -406,44 +409,13 @@ class ReuniaoForm(ModelForm):
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
         if upload_pauta:
-            if len(upload_pauta.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Pauta da Reunião' tenha no máximo 200" \
-                    " caracteres (ele possui {})".format(len(upload_pauta.name))
-                )
-            if upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Pauta da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse " \
-                    "arquivo é {1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024
-                    )
-                )
+            validar_arquivo(upload_pauta, "Pauta da Reunião")
         
         if upload_ata:
-            if len(upload_ata.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Ata da Reunião' tenha no máximo 200" \
-                    " caracteres (ele possui {})".format(len(upload_ata.name))
-                )
-            if upload_ata.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Ata da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo " \
-                    "é {1:.1f} mb".format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024)
-                )
+            validar_arquivo(upload_ata, "Ata da Reunião")
         
         if upload_anexo:
-            if len(upload_anexo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Anexo da Reunião' tenha no máximo 200" \
-                    " caracteres (ele possui {})".format(len(upload_anexo.name))
-                )
-            if upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Anexo da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse " \
-                    "arquivo é {1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024
-                    )
-                )
+            validar_arquivo(upload_anexo, "Anexo da Reunião")
 
         return self.cleaned_data
 
@@ -511,21 +483,7 @@ class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
         arquivo = self.cleaned_data.get('arquivo', False)
 
         if arquivo:
-            if len(arquivo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo " \
-                    "'Texto Integral' tenha no máximo 200 caracteres " \
-                    "(ele possui {})".format(len(arquivo.name))
-                )
-            if arquivo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Texto Integral deve ser menor que " \
-                    "{0:.1f} mb, o tamanho atual desse arquivo é " \
-                    "{1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                        (arquivo.size/1024)/1024
-                        )
-                )
+            validar_arquivo(arquivo, "Texto Integral")
 
         return self.cleaned_data
 
@@ -551,20 +509,6 @@ class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
         arquivo = self.cleaned_data.get('arquivo', False)
 
         if arquivo:
-            if len(arquivo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo " \
-                    "'Texto Integral' tenha no máximo 200 caracteres " \
-                    "(ele possui {})".format(len(arquivo.name))
-                )
-            if arquivo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Texto Integral deve ser menor que " \
-                    "{0:.1f} mb, o tamanho atual desse arquivo é " \
-                    "{1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                        (arquivo.size/1024)/1024
-                    )
-                )
+            validar_arquivo(arquivo, "Texto Integral")
 
         return self.cleaned_data
