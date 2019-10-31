@@ -1,12 +1,20 @@
-from functools import wraps
+import django_filters
 import hashlib
-from operator import itemgetter
+import logging
+import magic
 import os
 import re
-from unicodedata import normalize as unicodedata_normalize
 import unicodedata
-import logging
-from crispy_forms.layout import HTML, Button
+
+from crispy_forms.layout import  Button, HTML
+from easy_thumbnails import source_generators
+from floppyforms import ClearableFileInput
+from functools import wraps
+from operator import itemgetter
+from reversion_compare.admin import CompareVersionAdmin
+from unicodedata import normalize as unicodedata_normalize
+from unipath.path import Path
+
 from django import forms
 from django.apps import apps
 from django.conf import settings
@@ -14,6 +22,7 @@ from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
+from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import UploadedFile
 from django.core.mail import get_connection
 from django.db import models
@@ -23,21 +32,33 @@ from django.forms.widgets import SplitDateTimeWidget
 from django.utils import six, timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django.core.files.storage import FileSystemStorage
-import django_filters
-from easy_thumbnails import source_generators
-from floppyforms import ClearableFileInput
-import magic
-from reversion_compare.admin import CompareVersionAdmin
-from unipath.path import Path
 
-from sapl.crispy_layout_mixin import SaplFormHelper
-from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
+from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
+                                      SaplFormLayout, to_row)
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
+
 
 # (26/10/2018): O separador foi mudador de '/' para 'K'
 # por conta dos leitores de códigos de barra, que trocavam
 # a '/' por '&' ou ';'
 SEPARADOR_HASH_PROPOSICAO = 'K'
+
+
+def validar_arquivo(arquivo, nome_campo):
+    if len(arquivo.name) > 200:
+        raise ValidationError(
+            "Certifique-se de que o nome do arquivo no " \
+            "campo " + nome_campo + " tenha no máximo 200 caracteres " \
+            "(ele possui {})".format(len(arquivo.name))
+        )
+    if arquivo.size > MAX_DOC_UPLOAD_SIZE:
+        raise ValidationError(
+            "O arquivo " + nome_campo + " deve ser menor que " \
+            "{0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb".format(
+                (MAX_DOC_UPLOAD_SIZE/1024)/1024,
+                (arquivo.size/1024)/1024
+            )
+        )
 
 
 def pil_image(source, exif_orientation=False, **options):
