@@ -30,9 +30,7 @@ from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
 from sapl.utils import normalize
 
-
 logger = logging.getLogger(settings.BASE_DIR.name)
-
 
 ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
     'list', 'create', 'detail', 'update', 'delete'
@@ -81,7 +79,6 @@ def make_pagination(index, num_pages):
                         None, num_pages - 1, num_pages]
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
-
 
 """
 variáveis do crud:
@@ -386,12 +383,13 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
 
 
 class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
-    permission_required = (RP_LIST, )
+    permission_required = (RP_LIST,)
     logger = logging.getLogger(__name__)
 
     @classmethod
     def get_url_regex(cls):
         return r'^$'
+
     paginate_by = 10
     no_entries_msg = _('Nenhum registro encontrado.')
 
@@ -423,7 +421,13 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     if hasattr(f, 'related_model') and f.related_model:
                         m = f.related_model
                 if f:
-                    s.append(force_text(f.verbose_name))
+                    hook = 'hook_header_{}'.format(''.join(fn))
+                    if hasattr(self, hook):
+                        header = getattr(self, hook)()
+                        s.append(header)
+                    else:
+                        s.append(force_text(f.verbose_name))
+
             s = ' / '.join(s)
             r.append(s)
         return r
@@ -598,7 +602,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                             model_ordering = (model_ordering,)
                         for mo in model_ordering:
                             if mo not in ordering:
-                                ordering = ordering + (mo, )
+                                ordering = ordering + (mo,)
                     queryset = queryset.order_by(*ordering)
 
                     # print(ordering)
@@ -649,7 +653,7 @@ class AuditLogMixin(object):
 
 class CrudCreateView(PermissionRequiredContainerCrudMixin,
                      FormMessagesMixin, AuditLogMixin, CreateView):
-    permission_required = (RP_ADD, )
+    permission_required = (RP_ADD,)
     logger = logging.getLogger(__name__)
 
     @classmethod
@@ -721,7 +725,7 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
 class CrudDetailView(PermissionRequiredContainerCrudMixin,
                      DetailView, MultipleObjectMixin):
 
-    permission_required = (RP_DETAIL, )
+    permission_required = (RP_DETAIL,)
     no_entries_msg = _('Nenhum registro Associado.')
     paginate_by = 10
     logger = logging.getLogger(__name__)
@@ -867,7 +871,7 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
 
 class CrudUpdateView(PermissionRequiredContainerCrudMixin,
                      FormMessagesMixin, AuditLogMixin, UpdateView):
-    permission_required = (RP_CHANGE, )
+    permission_required = (RP_CHANGE,)
     logger = logging.getLogger(__name__)
 
     def form_valid(self, form):
@@ -898,7 +902,7 @@ class CrudUpdateView(PermissionRequiredContainerCrudMixin,
 
 class CrudDeleteView(PermissionRequiredContainerCrudMixin,
                      FormMessagesMixin, AuditLogMixin, DeleteView):
-    permission_required = (RP_DELETE, )
+    permission_required = (RP_DELETE,)
     logger = logging.getLogger(__name__)
 
     @classmethod
@@ -958,10 +962,12 @@ class Crud:
 
         def _add_base(view):
             if view:
+
                 class CrudViewWithBase(cls.BaseMixin, view):
                     model = cls.model
                     help_topic = cls.help_topic
                     crud = cls
+
                 CrudViewWithBase.__name__ = view.__name__
                 return CrudViewWithBase
 
@@ -995,11 +1001,13 @@ class Crud:
     def build(cls, _model, _help_topic, _model_set=None, list_field_names=[]):
 
         def create_class(_list_field_names):
+
             class ModelCrud(cls):
                 model = _model
                 model_set = _model_set
                 help_topic = _help_topic
                 list_field_names = _list_field_names
+
             return ModelCrud
 
         ModelCrud = create_class(list_field_names)
