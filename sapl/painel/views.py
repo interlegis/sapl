@@ -588,6 +588,8 @@ def get_dados_painel(request, pk):
         expediente__sessao_plenaria=sessao).order_by('data_hora').last()
 
     # Obtém última matéria que foi votada, através do timestamp mais recente
+    ordem_expediente = None
+    ultimo_timestamp = None
     if last_ordem_voto:
         ordem_expediente = last_ordem_voto.ordem
         ultimo_timestamp = last_ordem_voto.data_hora
