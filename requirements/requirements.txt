@@ -20,7 +20,7 @@ easy-thumbnails==2.5
 python-decouple==3.1
 psycopg2-binary==2.7.6.1
 pyyaml==4.2b1
-pytz==2018.9
+pytz==2019.3
 rtyaml==0.0.5
 python-magic==0.4.15
 unipath==1.1
