@@ -21,6 +21,7 @@ from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
 from django_filters.views import FilterView
 from image_cropping.utils import get_backend
+from django.core import serializers
 
 
 from sapl.base.forms import SessaoLegislativaForm, PartidoForm
@@ -1204,3 +1205,7 @@ def get_sessoes_legislatura(request):
         json_response['sessoes_legislativas'].append( (s.id, str(s)) )
 
     return JsonResponse(json_response)
+
+def get_all_legislaturas_json(request):
+    all_legislaturas = [(str(e),e.id) for e in Legislatura.objects.all()]
+    return JsonResponse({'legislaturas':all_legislaturas})

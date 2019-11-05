@@ -20,7 +20,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       remove_parlamentar_composicao,
                                       parlamentares_filiados, BlocoCrud,
                                       PesquisarParlamentarView, VincularParlamentarView,
-                                      get_sessoes_legislatura)
+                                      get_sessoes_legislatura, get_all_legislaturas_json)
 
 from .apps import AppConfig
 
@@ -95,4 +95,6 @@ urlpatterns = [
     url(r'^parlamentar/get-sessoes-legislatura/$', 
         get_sessoes_legislatura, name='get_sessoes_legislatura'),
     
+    url(r'^parlamentar/get-all-legislaturas_json/$', 
+        get_all_legislaturas_json, name='get-all-legislaturas_json'),
 ]

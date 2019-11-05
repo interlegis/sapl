@@ -1,7 +1,13 @@
-{% extends "crud/list.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% load crispy_forms_tags cropping%}
-{% block actions %}
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
+{% block base_content %}
+
+
   <div class="actions btn-group float-right btn-group-sm" role="group">
     <a href="{% url 'sapl.parlamentares:pesquisar_parlamentar' %}" class="btn btn-outline-primary">Pesquisar Parlamentar</a>
     {% if not request.user.is_anonymous  %}
@@ -9,12 +15,21 @@
     {% endif %}
   {% block more_buttons %}{% endblock more_buttons %}
   </div>
-{% endblock actions %}
-{% block extra_content %}
+  
+
   <fieldset class="form-group">
     <legend>Selecione o Período</legend>
     <form method="GET">
-      <select name="pk" class="form-control" onChange="form.submit();">
+      
+      <div id="app2">
+        <select class="form-control" v-model="legislatura_selecionada">
+          <option v-for="option in legislaturas" v-bind:value="option[1]">
+            [[ option[0] ]]
+          </option>
+        </select>
+      </div>
+
+      <select  name="pk" class="form-control" onChange="form.submit();">
         {% for l in legislaturas %}
           <option value="{{l.id}}" {% if l.id == legislatura_id %} selected {% endif %}>
             {{l}}
@@ -24,9 +39,7 @@
     </form>
   </fieldset>
   <br/>
-{% endblock %}
 
-{% block container_table_list %}
   {% if not rows %}
     <p>{{ NO_ENTRIES_MSG }}</p>
   {% else %}
@@ -73,4 +86,17 @@
       </table>
     </div>
   {% endif %}
+
+{% endblock base_content %}
+
+
+{% block webpack_loader_css %}
+    {{ block.super }}
+    {% render_bundle 'parlamentar' 'css' %}
+{% endblock %}
+
+{% block webpack_loader_js %}    
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}  
+    {% render_bundle 'parlamentar' 'js' %}
 {% endblock %}
