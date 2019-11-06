@@ -1,13 +1,10 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load static %}
 
 
-<head>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}"> 
-</head>
-
-<body>
+{% block content %}
   <h2>Matérias em Tramitação</h2>
 
     <b>PARÂMETROS DE PESQUISA:<br /></b>
@@ -75,4 +72,4 @@
             {% else  %}
               <h3>Nenhum documento encontrado com essas especificações</h3>
             {% endif %}
-</body>
+{% endblock content %} 

@@ -1,14 +1,10 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load static %}
 
-
-<head>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
-</head>
-
-<body>
-  <h2>Histórico de Tramitações de Documento Administrativo</h2>
+{% block content %}
+<h2>Histórico de Tramitações de Documento Administrativo</h2>
 
     <b>PARÂMETROS DE PESQUISA:<br /></b>
     &emsp;Período: {{ data_tramitacao }} <br />
@@ -43,4 +39,4 @@
     {% else %}
     <tr><td><h3 style="text-align: left;">Nenhum documento encontrado com esses parâmetros.</h3></td></tr><br><br>
     {% endif %}
-</body>
+{% endblock content %} 
