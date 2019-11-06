@@ -21,7 +21,7 @@ from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
                                   DocumentoAcessorioEditForm,
                                   ParticipacaoCreateForm, ParticipacaoEditForm,
                                   PautaReuniaoForm, PeriodoForm, ReuniaoForm,
-                                  PautaReuniaoFilterSet)
+                                  PautaReuniaoFilterSet, PresencaForm)
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin)
@@ -29,8 +29,10 @@ from sapl.materia.models import (MateriaLegislativa, Tramitacao, PautaReuniao,
                                  MateriaEmTramitacao)
 from sapl.utils import show_results_filter_set
 
+from sapl.parlamentares.models import Parlamentar
+
 from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
-                     Participacao, Periodo, Reuniao, TipoComissao)
+                     Participacao, Periodo, Reuniao, TipoComissao, PresencaReuniao)
 
 
 def pegar_url_composicao(pk):
@@ -216,6 +218,11 @@ class ReuniaoCrud(MasterDetailCrud):
             context['docs'] = docs
             context['num_docs'] = len(docs)
 
+            presenca = []
+            presenca_reuniao = PresencaReuniao.objects.filter(reuniao=self.kwargs['pk'])
+            presenca.extend(presenca_reuniao)
+            context['presenca'] = presenca
+
             mats = []
             materias_pauta = PautaReuniao.objects.filter(reuniao=self.kwargs['pk'])
             materias_pk = [materia_pauta.materia.pk for materia_pauta in materias_pauta]
@@ -276,6 +283,76 @@ class ReuniaoCrud(MasterDetailCrud):
             comissao = Comissao.objects.get(id=self.kwargs['pk'])
 
             return {'comissao': comissao}
+
+
+class PresencaView(FormMixin, DetailView):
+    template_name = 'comissoes/presenca.html'
+    form_class = PresencaForm
+    model = Reuniao
+    logger = logging.getLogger(__name__)
+
+    def get_presencas(self):
+
+        pk = self.kwargs['pk']
+
+        presencas = PresencaReuniao.objects.filter(reuniao=pk)
+        presentes = [p.parlamentar for p in presencas]
+
+        periodo = Reuniao.objects.get(pk=pk).periodo
+        participacao = Reuniao.objects.get(pk=pk).comissao.composicao_set.get(periodo=periodo).participacao_set.all()
+
+        for p in participacao:
+            parlamentar = p.parlamentar
+            if parlamentar in presentes:
+                yield (parlamentar, True)
+            else:
+                yield (parlamentar, False)
+
+
+    def get_context_data(self, **kwargs):
+        context = FormMixin.get_context_data(self, **kwargs)
+        context['title'] = '%s <small>(%s)</small>' % (
+            _('Presença'), self.object)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+
+        if form.is_valid():
+            # Pegar os presentes salvos no banco
+            presentes_banco = PresencaReuniao.objects.filter(
+                reuniao_id=self.object.id).values_list(
+                'parlamentar_id', flat=True).distinct()
+
+            # Id dos parlamentares presentes
+            marcados = request.POST.getlist('presenca_ativos') \
+                + request.POST.getlist('presenca_inativos')
+
+            # Deletar os que foram desmarcados
+            deletar = set(presentes_banco) - set(marcados)
+            PresencaReuniao.objects.filter(
+                parlamentar_id__in=deletar,
+                reuniao_id=self.object.id).delete()
+
+            for p in marcados:
+                presenca_reuniao = PresencaReuniao()
+                presenca_reuniao.reuniao = Reuniao.objects.get(pk=self.kwargs['pk'])
+                presenca_reuniao.parlamentar = Parlamentar.objects.get(id=p)
+                presenca_reuniao.save()
+                username = request.user.username
+                self.logger.info(
+                    "user=" + username + ". PresencaReuniao salva com sucesso (parlamentar_id={})!".format(p))
+            msg = _('Presença em Reuniao de Comissão salva com sucesso!')
+            messages.add_message(request, messages.SUCCESS, msg)
+
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sapl.comissoes:reuniao_detail', kwargs={'pk': pk})
 
 
 class RemovePautaView(PermissionRequiredMixin, CreateView):

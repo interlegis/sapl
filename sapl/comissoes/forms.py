@@ -514,3 +514,7 @@ class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
                 .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
 
         return self.cleaned_data
+
+class PresencaForm(forms.Form):
+    presenca = forms.CharField(required=False, initial=False)
+    parlamentar = forms.CharField(required=False, max_length=20)

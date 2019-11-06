@@ -308,6 +308,18 @@ class Reuniao(models.Model):
 
 
 @reversion.register()
+class PresencaReuniao(models.Model):
+    reuniao = models.ForeignKey(Reuniao,
+                                related_name='presencareuniao_set',
+                                on_delete=models.CASCADE)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = _('Presença em Reunião de Comissão')
+        verbose_name_plural = _('Presenças em Reuniões de Comissão')
+
+
+@reversion.register()
 class DocumentoAcessorio(models.Model):
     reuniao = models.ForeignKey(Reuniao,
                                 related_name='documentoacessorio_set',
