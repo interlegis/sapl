@@ -312,7 +312,7 @@ class PresencaView(FormMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = FormMixin.get_context_data(self, **kwargs)
         context['title'] = '%s <small>(%s)</small>' % (
-            _('Presença'), self.object)
+            _('Presença em Reunião de Comissão'), self.object)
         return context
 
     def post(self, request, *args, **kwargs):
