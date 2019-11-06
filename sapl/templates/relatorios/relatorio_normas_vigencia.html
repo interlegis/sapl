@@ -1,13 +1,9 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load static %}
 
-
-<head>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
-</head>
-
-<body>
+{% block content %}
   <h2>Normas por vigência</h2>
 
     <b>PARÂMETROS DE PESQUISA:<br /></b>
@@ -51,4 +47,4 @@
     <br>
     <h3>Estatísticas das normas do ano:</h3><br>
     <h3>{{quant_vigente}} vigente(s) / {{quant_nao_vigente}} não vigente(s)</h3>
-</body>
+{% endblock content %} 

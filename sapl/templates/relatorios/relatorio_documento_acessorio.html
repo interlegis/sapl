@@ -1,11 +1,9 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load static %}
 
-
-<head>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
-</head>
+{% block content %}
 
   <h2>Documento Acessorio</h2>
 
@@ -38,4 +36,4 @@
         {% else %}
             <tr><td><h3 style="text-align: left;">Nenhuma documento encontrado com esses parâmetros.</h3></td></tr><br><br>
         {% endif %}
-</body>
+{% endblock content %} 

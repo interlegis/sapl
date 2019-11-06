@@ -1,12 +1,9 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load crispy_forms_tags staticfiles %}
 
-<head>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
-</head>	
-
-<body>
+{% block content %}
   <h2>Documentos Administrativos</h2>
             {% if documentoadministrativo_list|length %}
               <h3>Número de documentos: {{numero_res}}</h3>
@@ -46,4 +43,4 @@
             {% else  %}
               <h3>Nenhum documento encontrado com essas especificações</h3>
             {% endif %}
-</body>
+{% endblock content %} 

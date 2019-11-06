@@ -1,13 +1,10 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load static %}
 
 
-<head>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
-</head>
-
-<body>
+{% block content %}
   <h2>Normas por mês</h2>
 
     <b>PARÂMETROS DE PESQUISA:<br /></b>
@@ -61,4 +58,4 @@
         </table>
       </div>
     {% endfor %}
-</body>
+{% endblock content %} 

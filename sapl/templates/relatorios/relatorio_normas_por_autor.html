@@ -1,11 +1,9 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load static %}
 
-
-<head>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
-</head>
+{% block content %}
 
   <h2>Norma por Autor</h2>
 
@@ -68,4 +66,4 @@
     <h3>Não foram encontradas normas com os parâmetros pesquisados.</h3>
     {% endif %}
 
-</body>
+{% endblock content %} 
