@@ -385,7 +385,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                 resultado = obj.registrovotacao_set.filter(
                     materia_id=obj.materia_id).last()
                 resultado_descricao = obj.resultado
-                resultado_observacao = obj.observacao
+                resultado_observacao = resultado.observacao
 
             if has_permission:
                 url = ''
