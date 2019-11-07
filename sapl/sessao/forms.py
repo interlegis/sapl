@@ -19,7 +19,6 @@ from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
 from sapl.parlamentares.models import Mandato, Parlamentar
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (autor_label, autor_modal,
                         choice_anos_com_sessaoplenaria,
                         FileFieldCheckMixin,

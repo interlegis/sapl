@@ -22,7 +22,6 @@ from sapl.materia.models import (MateriaLegislativa,
                                  TipoMateriaLegislativa,
                                  UnidadeTramitacao)
 from sapl.protocoloadm.models import Protocolo
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_documentoadministrativo,
                         choice_anos_com_materias,

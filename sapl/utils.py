@@ -48,7 +48,7 @@ def validar_arquivo(arquivo, nome_campo):
     if len(arquivo.name) > 200:
         raise ValidationError(
             "Certifique-se de que o nome do arquivo no " \
-            "campo " + nome_campo + " tenha no máximo 200 caracteres " \
+            "campo '" + nome_campo + "' tenha no máximo 200 caracteres " \
             "(ele possui {})".format(len(arquivo.name))
         )
     if arquivo.size > MAX_DOC_UPLOAD_SIZE:
