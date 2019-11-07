@@ -78,6 +78,8 @@ def validar_datas_legislatura(eleicao, inicio, fim, pk=None):
 class MandatoForm(ModelForm):
     logger = logging.getLogger(__name__)
 
+    data_fim_mandato = forms.DateField(label=_('Fim do Mandato'))
+
     class Meta:
         model = Mandato
         fields = ['legislatura', 'coligacao', 'votos_recebidos',
