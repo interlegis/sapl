@@ -1,6 +1,8 @@
+import django_filters
+
+from crispy_forms.layout import Button, Fieldset, HTML, Layout
 from datetime import datetime
 
-from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -9,26 +11,29 @@ from django.db.models import Q
 from django.forms import ModelForm
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import SaplFormHelper
-from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
+from sapl.crispy_layout_mixin import (form_actions, to_row, 
+                                      SaplFormHelper, SaplFormLayout)
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
-from sapl.parlamentares.models import Parlamentar, Mandato
-from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
-                        MateriaPesquisaOrderingFilter, autor_label,
-                        autor_modal, timezone, choice_anos_com_sessaoplenaria,
-                        FileFieldCheckMixin)
+from sapl.parlamentares.models import Mandato, Parlamentar
+from sapl.settings import MAX_DOC_UPLOAD_SIZE
+from sapl.utils import (autor_label, autor_modal,
+                        choice_anos_com_sessaoplenaria,
+                        FileFieldCheckMixin,
+                        MateriaPesquisaOrderingFilter,
+                        RANGE_DIAS_MES, RANGE_MESES,
+                        timezone, validar_arquivo)
 
-from .models import (Bancada, ExpedienteMateria, JustificativaAusencia,
-                     Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoResultadoVotacao,
-                     OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta, OradorOrdemDia, ORDENACAO_RESUMO,
-                     ResumoOrdenacao, RegistroLeitura)
+from .models import (Bancada, ExpedienteMateria,
+                     JustificativaAusencia, OcorrenciaSessao, Orador,
+                     OradorExpediente, OradorOrdemDia, OrdemDia,
+                     ORDENACAO_RESUMO, PresencaOrdemDia,
+                     RegistroLeitura, ResumoOrdenacao, RetiradaPauta,
+                     SessaoPlenaria, SessaoPlenariaPresenca,
+                     TipoResultadoVotacao, TipoRetiradaPauta)
 
 
 MES_CHOICES = RANGE_MESES
@@ -156,49 +161,13 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
         if upload_pauta:
-            if len(upload_pauta.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Pauta da Sessão' tenha " \
-                    "no máximo 200 caracteres (ele possui {})".format(len(upload_pauta.name))
-                )
-            if upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Pauta da Sessão deve ser menor que {0:.1f} mb, o tamanho atual" \
-                    " desse arquivo é {1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                        (upload_pauta.size/1024)/1024
-                    )
-                )
+            validar_arquivo(upload_pauta, "Pauta da Sessão")
         
         if upload_ata:
-            if len(upload_ata.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Ata da Sessão' tenha no" \
-                    " máximo 200 caracteres (ele possui {})".format(len(upload_ata.name))
-                )
-            if upload_ata.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Ata da Sessão deve ser menor que {0:.1f} mb, o tamanho atual " \
-                    "desse arquivo é {1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                        (upload_ata.size/1024)/1024
-                    )
-                )
+            validar_arquivo(upload_ata, "Ata da Sessão")
 
         if upload_anexo:
-            if len(upload_anexo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo 'Anexo da Sessão' tenha " \
-                    "no máximo 200 caracteres (ele possui {})".format(len(upload_anexo.name))
-                )
-            if upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Anexo da Sessão deve ser menor que {0:.1f} mb, o tamanho atual " \
-                    "desse arquivo é {1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                        (upload_anexo.size/1024)/1024
-                    )
-                )
+            validar_arquivo(upload_anexo, "Anexo da Sessão")
 
         return self.cleaned_data
 
@@ -716,20 +685,7 @@ class OradorForm(ModelForm):
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
         if upload_anexo:
-            if len(upload_anexo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo " \
-                    "'Anexo do Orador' tenha no máximo 200 caracteres " \
-                    "(ele possui {})".format(len(upload_anexo.name))
-                )
-            if upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Anexo do Orador deve ser menor que {0:.1f} mb," \
-                    " o tamanho atual desse arquivo é {1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                        (upload_anexo.size/1024)/1024
-                    )
-                )
+            validar_arquivo(upload_anexo, "Anexo do Orador")
 
         return self.cleaned_data
 
@@ -769,20 +725,7 @@ class OradorExpedienteForm(ModelForm):
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
         if upload_anexo:
-            if len(upload_anexo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo " \
-                    "'Anexo do Orador' tenha no máximo 200 caracteres " \
-                    "(ele possui {})".format(len(upload_anexo.name))
-                )
-            if upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Anexo do Orador deve ser menor que {0:.1f} mb," \
-                    " o tamanho atual desse arquivo é {1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                        (upload_anexo.size/1024)/1024
-                    )
-                )
+            validar_arquivo(upload_anexo, "Anexo do Orador")
 
         return self.cleaned_data
 
@@ -824,20 +767,7 @@ class OradorOrdemDiaForm(ModelForm):
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
         if upload_anexo:
-            if len(upload_anexo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo " \
-                    "'Anexo do Orador' tenha no máximo 200 caracteres " \
-                    "(ele possui {})".format(len(upload_anexo.name))
-                )
-            if upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Anexo do Orador deve ser menor que {0:.1f} mb," \
-                    " o tamanho atual desse arquivo é {1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                        (upload_anexo.size/1024)/1024
-                    )
-                )
+            validar_arquivo(upload_anexo, "Anexo do Orador")
 
         return self.cleaned_data
 
@@ -1080,20 +1010,7 @@ class JustificativaAusenciaForm(ModelForm):
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
         if upload_anexo:
-            if len(upload_anexo.name) > 200:
-                raise ValidationError(
-                    "Certifique-se de que o nome do arquivo no campo " \
-                    "'Anexo de Justificativa' tenha no máximo 200 caracteres " \
-                    "(ele possui {})".format(len(upload_anexo.name))
-                )
-            if upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-                raise ValidationError(
-                    "O arquivo Anexo de Justificativa deve ser menor que {0:.1f} mb, o " \
-                    "tamanho atual desse arquivo é {1:.1f} mb".format(
-                        (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                        (upload_anexo.size/1024)/1024
-                    )
-                )
+            validar_arquivo(upload_anexo, "Anexo de Justificativa")
 
         if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
             raise ValidationError(
