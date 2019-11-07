@@ -447,6 +447,9 @@ class MandatoCrud(MasterDetailCrud):
             return {'parlamentar': Parlamentar.objects.get(
                     pk=self.kwargs['pk'])}
 
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = MandatoForm
+
 
 class ComposicaoColigacaoCrud(MasterDetailCrud):
     model = ComposicaoColigacao
