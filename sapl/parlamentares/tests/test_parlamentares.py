@@ -115,14 +115,18 @@ def test_mandato_submit(admin_client):
 
     admin_client.post(reverse('sapl.parlamentares:mandato_create',
                               kwargs={'pk': 14}),
-                      {'parlamentar': 14,  # hidden field
-                       'legislatura': 5,
-                       'data_inicio_mandato': \
-                          Legislatura.objects.get(id=5).data_inicio,
-                       'data_expedicao_diploma': '2016-03-22',
-                       'observacao': 'Observação do mandato',
-                       'salvar': 'salvar'},
-                      follow=True)
+                        {
+                        'parlamentar': 14,  # hidden field
+                        'legislatura': 5,
+                        'data_inicio_mandato': \
+                            Legislatura.objects.get(id=5).data_inicio,
+                        'data_fim_mandato': \
+                            Legislatura.objects.get(id=5).data_fim,
+                        'data_expedicao_diploma': '2016-03-22',
+                        'observacao': 'Observação do mandato',
+                        'salvar': 'salvar'
+                        },
+                        follow=True)
 
     mandato = Mandato.objects.first()
     assert str(_('Observação do mandato')) == str(_(mandato.observacao))
@@ -160,13 +164,15 @@ def test_mandato_form_duplicado():
     Mandato.objects.create(parlamentar=parlamentar,
                            legislatura=legislatura,
                            data_expedicao_diploma='2017-07-25',
-                           data_inicio_mandato=legislatura.data_inicio,)
+                           data_inicio_mandato=legislatura.data_inicio,
+                           data_fim_mandato=legislatura.data_fim)
 
     form = MandatoForm(data={
         'parlamentar': str(parlamentar.pk),
         'legislatura': str(legislatura.pk),
         'data_expedicao_diploma': '01/07/2015',
         'data_inicio_mandato': legislatura.data_inicio,
+        'data_fim_mandato': legislatura.data_fim,
         'titular':True,
     })
 
