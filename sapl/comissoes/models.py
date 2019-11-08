@@ -308,9 +308,9 @@ class Reuniao(models.Model):
 
 
 @reversion.register()
-class PresencaReuniao(models.Model):
+class PresencaReuniaoComissao(models.Model):
     reuniao = models.ForeignKey(Reuniao,
-                                related_name='presencareuniao_set',
+                                related_name='presencareuniaocomissao_set',
                                 on_delete=models.CASCADE)
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
 

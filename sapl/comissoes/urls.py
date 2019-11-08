@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 from sapl.comissoes.views import (CargoCrud, ComissaoCrud, ComposicaoCrud,
                                   DocumentoAcessorioCrud, MateriasTramitacaoListView, ParticipacaoCrud,
                                   PeriodoComposicaoCrud, ReuniaoCrud, TipoComissaoCrud, get_participacoes_comissao,
-                                  AdicionaPautaView, RemovePautaView, PresencaView)
+                                  AdicionaPautaView, RemovePautaView, PresencaReuniaoComissaoView)
 
 from .apps import AppConfig
 
@@ -27,5 +27,5 @@ urlpatterns = [
     url(r'^sistema/comissao/tipo/', include(TipoComissaoCrud.get_urls())),
     url(r'^sistema/comissao/recupera-participacoes', get_participacoes_comissao),
     url(r'^comissao/(?P<pk>\d+)/presenca$',
-        PresencaView.as_view(), name='presenca'),
+        PresencaReuniaoComissaoView.as_view(), name='presenca'),
 ]

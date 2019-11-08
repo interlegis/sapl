@@ -21,7 +21,7 @@ from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
                                   DocumentoAcessorioEditForm,
                                   ParticipacaoCreateForm, ParticipacaoEditForm,
                                   PautaReuniaoForm, PeriodoForm, ReuniaoForm,
-                                  PautaReuniaoFilterSet, PresencaForm)
+                                  PautaReuniaoFilterSet, PresencaReuniaoComissaoForm)
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin)
@@ -32,7 +32,7 @@ from sapl.utils import show_results_filter_set
 from sapl.parlamentares.models import Parlamentar
 
 from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
-                     Participacao, Periodo, Reuniao, TipoComissao, PresencaReuniao)
+                     Participacao, Periodo, Reuniao, TipoComissao, PresencaReuniaoComissao)
 
 
 def pegar_url_composicao(pk):
@@ -219,7 +219,7 @@ class ReuniaoCrud(MasterDetailCrud):
             context['num_docs'] = len(docs)
 
             presenca = []
-            presenca_reuniao = PresencaReuniao.objects.filter(reuniao=self.kwargs['pk'])
+            presenca_reuniao = PresencaReuniaoComissao.objects.filter(reuniao=self.kwargs['pk'])
             presenca.extend(presenca_reuniao)
             context['presenca'] = presenca
 
@@ -285,9 +285,9 @@ class ReuniaoCrud(MasterDetailCrud):
             return {'comissao': comissao}
 
 
-class PresencaView(FormMixin, DetailView):
+class PresencaReuniaoComissaoView(FormMixin, DetailView):
     template_name = 'comissoes/presenca.html'
-    form_class = PresencaForm
+    form_class = PresencaReuniaoComissaoForm
     model = Reuniao
     logger = logging.getLogger(__name__)
 
@@ -295,7 +295,7 @@ class PresencaView(FormMixin, DetailView):
 
         pk = self.kwargs['pk']
 
-        presencas = PresencaReuniao.objects.filter(reuniao=pk)
+        presencas = PresencaReuniaoComissao.objects.filter(reuniao=pk)
         presentes = [p.parlamentar for p in presencas]
 
         periodo = Reuniao.objects.get(pk=pk).periodo
@@ -321,7 +321,7 @@ class PresencaView(FormMixin, DetailView):
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
-            presentes_banco = PresencaReuniao.objects.filter(
+            presentes_banco = PresencaReuniaoComissao.objects.filter(
                 reuniao_id=self.object.id).values_list(
                 'parlamentar_id', flat=True).distinct()
 
@@ -331,18 +331,18 @@ class PresencaView(FormMixin, DetailView):
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
-            PresencaReuniao.objects.filter(
+            PresencaReuniaoComissao.objects.filter(
                 parlamentar_id__in=deletar,
                 reuniao_id=self.object.id).delete()
 
             for p in marcados:
-                presenca_reuniao = PresencaReuniao()
+                presenca_reuniao = PresencaReuniaoComissao()
                 presenca_reuniao.reuniao = Reuniao.objects.get(pk=self.kwargs['pk'])
                 presenca_reuniao.parlamentar = Parlamentar.objects.get(id=p)
                 presenca_reuniao.save()
                 username = request.user.username
                 self.logger.info(
-                    "user=" + username + ". PresencaReuniao salva com sucesso (parlamentar_id={})!".format(p))
+                    "user=" + username + ". PresencaReuniaoComissao salva com sucesso (parlamentar_id={})!".format(p))
             msg = _('Presença em Reuniao de Comissão salva com sucesso!')
             messages.add_message(request, messages.SUCCESS, msg)
 

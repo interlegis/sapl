@@ -515,6 +515,6 @@ class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
 
         return self.cleaned_data
 
-class PresencaForm(forms.Form):
+class PresencaReuniaoComissaoForm(forms.Form):
     presenca = forms.CharField(required=False, initial=False)
     parlamentar = forms.CharField(required=False, max_length=20)
