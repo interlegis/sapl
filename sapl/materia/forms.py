@@ -2465,7 +2465,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             # dados básicos
             doc = DocumentoAcessorio()
             doc.materia = proposicao.materia_de_vinculo
-            doc.autor = str(proposicao.autor)
+            doc.autor = str(proposicao.autor)[:200]
             doc.tipo = proposicao.tipo.tipo_conteudo_related
 
             doc.ementa = proposicao.descricao
