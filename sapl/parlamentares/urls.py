@@ -20,7 +20,8 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       remove_parlamentar_composicao,
                                       parlamentares_filiados, BlocoCrud,
                                       PesquisarParlamentarView, VincularParlamentarView,
-                                      get_sessoes_legislatura, get_all_legislaturas_json)
+                                      get_sessoes_legislatura, get_all_legislaturas_json,
+                                      get_parlamentare_by_legislaturas_json, search_parlamentare_json)
 
 from .apps import AppConfig
 
@@ -97,4 +98,11 @@ urlpatterns = [
     
     url(r'^parlamentar/get-all-legislaturas_json/$', 
         get_all_legislaturas_json, name='get-all-legislaturas_json'),
+    
+    url(r'^parlamentar/get_parlamentare_by_legislaturas_json/(?P<id_legislatura>\d+)/$', 
+        get_parlamentare_by_legislaturas_json, name='get_parlamentare_by_legislaturas_json/'),
+
+    url(r'^parlamentar/search_parlamentare_json/$', 
+        search_parlamentare_json, name='search_parlamentare_json'),
 ]
+

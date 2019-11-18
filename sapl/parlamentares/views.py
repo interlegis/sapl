@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import logging
+import os
 
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -32,7 +33,7 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
-from sapl.utils import (parlamentares_ativos, show_results_filter_set)
+from sapl.utils import (parlamentares_ativos, show_results_filter_set,filiacao_data)
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
@@ -1207,5 +1208,44 @@ def get_sessoes_legislatura(request):
     return JsonResponse(json_response)
 
 def get_all_legislaturas_json(request):
-    all_legislaturas = [(str(e),e.id) for e in Legislatura.objects.all()]
+    all_legislaturas = [(e.id,str(e)) for e in Legislatura.objects.all()]
     return JsonResponse({'legislaturas':all_legislaturas})
+
+def get_parlamentare_by_legislaturas_json(request,id_legislatura):
+    id_parlamentares = Mandato.objects.filter(legislatura__id=id_legislatura).values_list('parlamentar__id','titular','data_inicio_mandato','data_fim_mandato').distinct()
+    parlamentares = Parlamentar.objects.filter(id__in=[i[0] for i in id_parlamentares])
+    
+    my_json = []
+
+    for i, p in enumerate(parlamentares): 
+        p_dict = {}     
+        p_dict['parlamentar_id'] = p.id 
+        p_dict['fotografia'] = p.fotografia.url if (p.fotografia and os.path.exists(p.fotografia.path)) else "" 
+        p_dict['nome_parlamentar'] = p.nome_parlamentar
+        p_dict['partido'] = filiacao_data(p,id_parlamentares[i][2],id_parlamentares[i][3]) 
+        p_dict['ativo'] = p.ativo 
+        p_dict['titular'] = id_parlamentares[i][1] 
+        my_json.append(p_dict) 
+    
+    return JsonResponse({'parlamentares':my_json})
+
+def search_parlamentare_json(request):
+    my_json = []
+
+    if request.method == 'GET':
+        pass
+    elif request.method == 'POST':
+        nome = request.POST.get("nome","")
+        parlamentares = Parlamentar.objects.filter(nome_parlamentar__icontains=nome)
+        for p in parlamentares: 
+            p_dict = {}     
+            p_dict['parlamentar_id'] = p.id 
+            p_dict['fotografia'] = p.fotografia.url if (p.fotografia and os.path.exists(p.fotografia.path)) else "" 
+            p_dict['nome_parlamentar'] = p.nome_parlamentar
+            p_dict['partido'] = p.filiacao_atual
+            p_dict['ativo'] = p.ativo 
+            p_dict['titular'] = None 
+            my_json.append(p_dict)
+        
+        
+    return JsonResponse({'parlamentares': my_json})
