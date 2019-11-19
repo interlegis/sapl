@@ -576,9 +576,6 @@ class Frente(models.Model):
     nome = models.CharField(
         max_length=80,
         verbose_name=_('Nome da Frente'))
-    parlamentares = models.ManyToManyField(Parlamentar,
-                                           blank=True,
-                                           verbose_name=_('Parlamentares'))
     data_criacao = models.DateField(verbose_name=_('Data Criação'))
     data_extincao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Dissolução'))

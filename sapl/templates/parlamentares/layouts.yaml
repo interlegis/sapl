@@ -131,7 +131,6 @@ Frente:
   {% trans 'Frente' %}:
   - nome
   - data_criacao data_extincao
-  - parlamentares
   - descricao
 
 Votante:

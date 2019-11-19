@@ -22,24 +22,6 @@
       </div>
     </div>
 
-    <div id="div_parlamentares">
-      <div class="row">
-        <div class="col-md-12" >
-          <div class="checkbox">
-            <label for="id_selecionar_ativos">
-            <input id="id_selecionar_ativos" type="checkbox" name="id_selecionar_ativos"/>
-            <b><h4>Listar somente os parlamentares ativos</h4></b>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-12" >
-          {{ form.parlamentares|as_crispy_field }}
-        </div>
-      </div>
-    </div>
-
     <div class="row">
       <div class="col-md-12" >
         {{ form.descricao|as_crispy_field }}
@@ -51,78 +33,3 @@
 	</form>
 
 {% endblock base_content %}
-
-{% block extra_js %}
-	<script language="JavaScript">
-
-    function selecionar_parlamentares_frente() {
-        // Seleciona automaticamente todos os parlamentares
-        // que já estão presentes naquela frente
-        {% if  object.id  %}
-          var frente_id = {{ object.id }}
-          $.get("/sistema/frente/parlamentares-frente-selected",
-              {frente_id: frente_id},
-              function (data) {
-                id_list = data['id_list'];
-                $("#id_parlamentares").val(id_list);
-              });
-        {% endif %}
-    }
-
-    function atualiza_parlamentares() {
-        // Coloca para selecao os parlamentares no intervalo informado
-        // e somente os ativos, caso seja solicitado
-        // var ativos;
-        var data_criacao = $("#id_data_criacao").val();
-        var data_extincao = $("#id_data_extincao").val();
-
-        if (data_criacao === '') {
-            $('#div_parlamentares').hide();
-        }
-        else{
-            $('#div_parlamentares').show();
-            var ativos = $('#id_selecionar_ativos').prop('checked');
-            // Limpa a listagem para atualizar
-            $("#id_parlamentares").find("option").remove();
-
-            $.get("/sistema/frente/atualiza-lista-parlamentares",
-              {data_criacao: data_criacao,
-               data_extincao: data_extincao,
-               ativos: ativos},
-
-                function(data){
-                  // Caso não venha nenhum dado da requisição, retorna null
-      	          if ($.isEmptyObject(data)){
-      	  	        return null
-      	          }
-      	          lista_parlamentares = data['parlamentares_list'];
-
-      	          // Atualiza a listagem de parlamentares
-                  for (i = 0; i < lista_parlamentares.length; i++) {
-                      $('#id_parlamentares').append(
-                          '<option value="' + lista_parlamentares[i][0] + '">' +
-                          lista_parlamentares[i][1] + '</option>');
-                  }
-
-                }
-            ).done(function(){selecionar_parlamentares_frente();});
-        }
-
-
-    }
-
-    $(document).ready(function(){
-        atualiza_parlamentares();
-    });
-
-    $("#id_data_criacao").change(function () {
-        atualiza_parlamentares();
-    });
-    $("#id_data_extincao").change(function () {
-        atualiza_parlamentares();
-    });
-    $("#id_selecionar_ativos").change(function () {
-        atualiza_parlamentares();
-    });
-	</script>
-{% endblock %}

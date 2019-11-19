@@ -396,7 +396,7 @@ class FrenteCrud(Crud):
     help_topic = 'tipo_situa_militar'
     public = [RP_DETAIL, RP_LIST]
     list_field_names = ['nome', 'data_criacao',
-                        'data_extincao', 'parlamentares']
+                        'data_extincao']
 
     class BaseMixin(Crud.BaseMixin):
         def get_context_data(self, **kwargs):
