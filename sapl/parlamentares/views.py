@@ -864,6 +864,73 @@ class MesaDiretoraView(FormView):
             })
 
 
+def get_mesa_diretora(request):
+    if not Legislatura.objects.exists() or \
+       not SessaoLegislativa.objects.exists():
+        return JsonResponse([])
+
+    leg_atual = True
+    legislaturas = []
+    for leg in Legislatura.objects\
+            .prefetch_related('sessaolegislativa_set')\
+            .all()\
+            .order_by('-numero'):
+
+        sessoes = leg.sessaolegislativa_set.all().order_by('-numero')
+        sessao_list = []
+        sessao_atual = True
+
+        for s in sessoes:
+            mesa = ComposicaoMesa.objects\
+                .select_related('parlamentar', 'cargo')\
+                .filter(sessao_legislativa=s)\
+                .values_list('id',
+                             'parlamentar_id',
+                             'parlamentar__nome_parlamentar',
+                             'cargo_id',
+                             'cargo__descricao',)\
+                .order_by('cargo_id')
+
+            keys = ['mesa_cargo_id',
+                    'parlamentar_id',
+                    'nome_parlamentar',
+                    'cargo_id',
+                    'cargo_descricao']
+
+            mesas = []
+            for m in mesa:
+                mesas.append({k: v for k, v in zip(keys, m)})
+
+            sessao = {
+                "id": s.id,
+                "descricao": str(s),
+                "atual": sessao_atual,
+                "parlamentares_mesa": mesas,
+            }
+            sessao_list.append(sessao)
+            sessao_atual = False
+
+        legislaturas.append({
+            "id": leg.id,
+            "atual": leg_atual,
+            "descricao": str(leg).strip(),
+            "sessoes": sessao_list,
+        })
+
+        leg_atual = False
+
+    data = {
+        "legislaturas": legislaturas,
+        "cargos_mesa": list(CargoMesa.objects.all().values_list('id',
+                                                                'descricao',
+                                                                'unico'
+                                                                ).order_by('id'
+                                                                           ))
+    }
+
+    return JsonResponse(data, safe=False)
+
+
 def altera_field_mesa(request):
     """
         Essa função lida com qualquer alteração nos campos

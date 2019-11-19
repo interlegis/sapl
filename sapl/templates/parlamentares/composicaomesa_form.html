@@ -1,8 +1,64 @@
 {% extends "crud/detail.html" %}
+
+{% load i18n staticfiles menus %}
 {% load i18n %}
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
 {% block actions %} {% endblock %}
 
 {% block detail_content %}
+	<div id="mesa-diretora">
+		<fieldset class="form-group">
+			<legend>Escolha da Legislatura e da Sessão Legislativa</legend>
+			<div class="row">
+	      		<div class="col-md-6">
+	        		<label>Escolha uma Legislatura</label>
+					<select v-if="legislaturas" class="form-control" v-model="legislatura_selecionada">
+						<option v-for="l in legislaturas" v-bind:value="l.id">
+						   [[ l.descricao ]]
+						</option>
+					</select>
+				</div>
+	      		<div class="col-md-6">
+	        		<label>Escolha uma Sessão Legislativa</label>
+					<select v-if="sessoes" class="form-control" v-model="sessao_selecionada">
+						<option v-for="s in sessoes" v-bind:value="s.id">
+						   [[ s.descricao ]]
+						</option>
+					</select>
+				</div>
+			</div>
+		</fieldset>
+		<fieldset class="form-group">
+			<legend>Escolha da Composição da Mesa Diretora</legend>
+			<div class="row">
+				<div class="col-md-4">
+				<label>Composição da Mesa Diretora</label>
+				<select v-if="parlamentares_mesa" multiple size="5" class="form-control" v-model="parlamentares_selecionados">
+					<option v-for="pm in parlamentares_mesa" v-bind:value="{id:pm.mesa_cargo_id, nome:pm.nome_parlamentar}">
+						[[ pm.nome_parlamentar ]] || [[ pm.cargo_descricao ]]
+					</option>
+				</select>
+				</div>
+				<div class="col-md-4" align="center">
+					<br/><br/>
+					{% if perms.parlamentares.add_composicaomesa %}
+						<button v-on:click="excluir" name="excluir" title="Remove parlamentar da mesa" class="btn btn-danger">
+							Excluir
+						</button>
+					{% endif %}
+					<br/>
+					<br/>
+					{% if perms.parlamentares.add_cargomesa %}
+						<input type="submit" style="display: none" name="Incluir" id="id_incluir" Value="Incluir" class="btn btn-primary" />
+					{% endif %}
+				</div>
+			</div>
+		</fieldset>
+	</div>
+
 	{% if sessoes|length == 0 %}
 		<div class="alert alert-danger alert-dismissible" role="alert">
 			<b>{{legislatura_selecionada}}</b> não possui nenhuma Sessão Legislativa cadastrada.<br />
@@ -306,3 +362,8 @@
 </script>
 
 {% endblock %}
+{% block webpack_loader_js %}
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}
+    {% render_bundle  'parlamentares' 'js' %}
+{% endblock webpack_loader_js %}

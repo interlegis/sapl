@@ -20,7 +20,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       remove_parlamentar_composicao,
                                       parlamentares_filiados, BlocoCrud,
                                       PesquisarParlamentarView, VincularParlamentarView,
-                                      get_sessoes_legislatura)
+                                      get_sessoes_legislatura, get_mesa_diretora)
 
 from .apps import AppConfig
 
@@ -79,6 +79,9 @@ urlpatterns = [
 
     url(r'^mesa-diretora/$',
         MesaDiretoraView.as_view(), name='mesa_diretora'),
+
+    url(r'^mesa-diretora/dados/$',
+        get_mesa_diretora, name='dados_mesa'),
 
     url(r'^mesa-diretora/altera-field-mesa/$',
         altera_field_mesa, name='altera_field_mesa'),
