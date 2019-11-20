@@ -3,73 +3,74 @@
 {% load common_tags %}
 {% load static %}
 
-
 {% block content %}
   <h2>Matérias em Tramitação</h2>
-
     <b>PARÂMETROS DE PESQUISA:<br /></b>
     Ano: {{ ano }} <br />
     Tipo de matéria: {{ tipo }}<br />
     Status atual: {{ tramitacao__status }}<br />
     Local atual: {{ tramitacao__unidade_tramitacao_destino }}<br /><br /><br />
-
-            {% if object_list|length %}
-
-            <table class="table table-bordered table-hover">
-      <thead class="thead-default" >
-        <tr class="active"><th colspan="2" class="text-center">QUADRO GERAL</th></tr>
-        <tr class="active">
-          <th>Tipo Matéria</th>
-          <th>Quantidade</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for key, value in qtdes.items %}
-          <tr>
-            <td>{{key.sigla}} - {{key}}</td>
-            <td>{{value}}</td>
+    {% if object_list|length %}
+      <table class="table table-bordered table-hover">
+        <thead class="thead-default" >
+          <tr class="active">
+            <th colspan="2" class="text-center">QUADRO GERAL</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </br>
-  </br>
+          <tr class="active">
+            <th>Tipo Matéria</th>
+            <th>Quantidade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for key, value in qtdes.items %}
+            <tr>
+              <td>{{ key.sigla }} - {{ key }}</td>
+              <td>{{ value }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </br>
+      </br>
+      {% for materia_em_tramitacao in object_list %}
+        <div style="border-top: 1px solid black;margin-bottom:0.3cm">
+          {% if not request.user.is_anonymous %}
+            <strong>Matéria:</strong>
+            {{ materia_em_tramitacao.materia.tipo.descricao }} {{ materia_em_tramitacao.materia.numero }}/{{ materia_em_tramitacao.materia.ano }}
+            </br>
+            <strong>Local Atual:</strong>&nbsp;<a> {{ materia_em_tramitacao.materia.tramitacao_set.last.unidade_tramitacao_destino }} </a>
+            </br>
+            <strong>Status:</strong>&nbsp;<a> {{ materia_em_tramitacao.materia.tramitacao_set.last.status }} </a>
+            </br>
 
-              {% for materia in object_list %}
-                <div style="border-top: 1px solid black;margin-bottom:0.3cm">
-                 {% if not request.user.is_anonymous%}
-                    <strong>Matéria:</strong> {{materia.tipo.descricao}} {{materia.numero}}/{{materia.ano}}
-                      </br>
-                    <strong>Local Atual:</strong>&nbsp;<a> {{materia.tramitacao_set.last.unidade_tramitacao_destino}} </a>
-                      </br>
-                    <strong>Status:</strong>&nbsp;<a> {{materia.tramitacao_set.last.status}} </a>
-                      </br>
-                    {% if d.protocolo %}
-                      <strong>Protocolo:</strong>&nbsp;<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' d.protocolo.id %}">{{ d.protocolo}}</a></br>
-                    {% endif %}
-                      {% define d.tramitacaoadministrativo_set.last as tram %}
-                      {% if tram.unidade_tramitacao_destino %}
-                      <strong>Localização Atual:</strong> &nbsp;{{tram.unidade_tramitacao_destino}}
-                          </br>
-                         <strong>Status:</strong> {{tram.status}}
-                          </br>
-                      {% endif %}
-                      {% define d.documentoacessorioadministrativo_set.all as access %}
-                      {% if access.exists %}
-                              <strong>Documentos Acessórios:</strong>
-                              <a href="{% url 'sapl.protocoloadm:documentoacessorioadministrativo_list' d.id %}">
-                                  {{ access.count }}
-                              </a>
-                              </br>
-                          {% endif %}
-                    {% if d.tramitacao and mail_service_configured %}
-                      <a href="{% url 'sapl.protocoloadm:acompanhar_documento' d.id %}">Acompanhar Documento</a>
-                    {% endif %}
+            <!-- Confirmar Utilidade
+              {% if d.protocolo %}
+                <strong>Protocolo:</strong>&nbsp;<a href="{% url 'sapl.protocoloadm:protocolo_mostrar' d.protocolo.id %}">{{ d.protocolo }}</a></br>
               {% endif %}
-              </div>
+              {% define d.tramitacaoadministrativo_set.last as tram %}
+              {% if tram.unidade_tramitacao_destino %}
+                <strong>Localização Atual:</strong> &nbsp;{{tram.unidade_tramitacao_destino}}
+                </br>
+                <strong>Status:</strong> {{tram.status}}
+                </br>
+              {% endif %}
+              {% define d.documentoacessorioadministrativo_set.all as acess %}
+              {% if d.documentoacessorioadministrativo_set.all.exists %}
+                <strong>Documentos Acessórios:</strong>
+                <a href="{% url 'sapl.protocoloadm:documentoacessorioadministrativo_list' d.id %}">
+                  {{ d.documentoacessorioadministrativo_set.all.count }}
+                </a>
+                </br>
+              {% endif %}
+              {% if d.tramitacao and mail_service_configured %}
+                <a href="{% url 'sapl.protocoloadm:acompanhar_documento' d.id %}">Acompanhar Documento</a>
+              {% endif %}
+              -->
 
-              {% endfor %}
-            {% else  %}
-              <h3>Nenhum documento encontrado com essas especificações</h3>
-            {% endif %}
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <h3>Nenhum documento encontrado com essas especificações</h3>
+    {% endif %}
 {% endblock content %} 
