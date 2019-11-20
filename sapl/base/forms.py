@@ -1001,16 +1001,18 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         self.form.initial['exibir_ordem_dia']  = True
 
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
+
+        self.form.fields['legislatura'].required = True
         
         tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(nome='Ordinária')
         if tipo_sessao_ordinaria:
             self.form.initial['tipo'] = tipo_sessao_ordinaria.first()
 
-        row1 = to_row([('data_inicio', 12)])
-        row2 = to_row([('legislatura', 4),
+        row1 = to_row([('legislatura', 4),
                        ('sessao_legislativa', 4),
                        ('tipo', 4)])
-        row3 = to_row([('exibir_ordem_dia', 12)])
+        row2 = to_row([('exibir_ordem_dia', 12)])
+        row3 = to_row([('data_inicio', 12)])
 
         buttons = FormActions(
             *[
