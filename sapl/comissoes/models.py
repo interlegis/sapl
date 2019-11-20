@@ -236,21 +236,21 @@ class Reuniao(models.Model):
         max_length=150, blank=True,
         verbose_name=_('URL do Arquivo de Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True, null=True,
         upload_to=pauta_upload_path,
         verbose_name=_('Pauta da Reunião'),
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True, null=True,
         upload_to=ata_upload_path,
         verbose_name=_('Ata da Reunião'),
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_anexo = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True, null=True,
         upload_to=anexo_upload_path,
         storage=OverwriteStorage(),
@@ -321,7 +321,7 @@ class DocumentoAcessorio(models.Model):
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         upload_to=anexo_upload_path,
