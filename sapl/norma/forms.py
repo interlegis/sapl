@@ -1,27 +1,28 @@
-
+import django_filters
 import logging
 
-from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
+
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q
-from django.forms import ModelForm, widgets, ModelChoiceField
+from django.forms import ModelChoiceField, ModelForm, widgets
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
 from sapl.materia.forms import choice_anos_com_materias
-from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import NormaPesquisaOrderingFilter, RangeWidgetOverride, \
-    choice_anos_com_normas, FilterOverridesMetaMixin, FileFieldCheckMixin, ANO_CHOICES
+from sapl.materia.models import (MateriaLegislativa,
+                                 TipoMateriaLegislativa)
+from sapl.utils import (ANO_CHOICES,  choice_anos_com_normas,
+                        FileFieldCheckMixin, FilterOverridesMetaMixin,
+                        NormaPesquisaOrderingFilter, RangeWidgetOverride,
+                        validar_arquivo)
 
-from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
-                     TipoNormaJuridica, AutoriaNorma)
+from .models import (AnexoNormaJuridica, AssuntoNorma, AutoriaNorma,
+                     NormaJuridica, NormaRelacionada, TipoNormaJuridica)
 
 
 def get_esferas():
@@ -217,9 +218,8 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
 
         texto_integral = self.cleaned_data.get('texto_integral', False)
 
-        if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_integral.size/1024)/1024))
+        if texto_integral:
+            validar_arquivo(texto_integral, "Texto Integral")
 
         return texto_integral
 
@@ -286,7 +286,10 @@ class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
     
     logger = logging.getLogger(__name__)
     
-    anexo_arquivo = forms.FileField(required=True)
+    anexo_arquivo = forms.FileField(
+        required=True,
+        label="Arquivo Anexo"
+    )
 
     class Meta:
         model = AnexoNormaJuridica
@@ -303,9 +306,8 @@ class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
         
         anexo_arquivo = self.cleaned_data.get('anexo_arquivo', False)
 
-        if anexo_arquivo and anexo_arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O Arquivo Anexo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (anexo_arquivo.size/1024)/1024))
+        if anexo_arquivo:
+            validar_arquivo(anexo_arquivo, "Arquivo Anexo")
 
         return cleaned_data
 

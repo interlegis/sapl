@@ -4,8 +4,8 @@ import os
 import sapl
 
 from crispy_forms.bootstrap import Alert, InlineRadios
-from crispy_forms.layout import (HTML, Button, Field, Fieldset,
-                                 Layout, Row)
+from crispy_forms.layout import (Button, Field, Fieldset, HTML, Layout, Row)
+
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -28,8 +28,8 @@ from sapl.base.signals import post_save_signal
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
-from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions,
-                                      to_column, to_row, SaplFormHelper)
+from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
+                                      SaplFormLayout, to_column, to_row)
 from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  MateriaLegislativa, Orgao,
                                  RegimeTramitacao, StatusTramitacao,
@@ -40,7 +40,6 @@ from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
 from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
 from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
                                       Protocolo)
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.utils import (autor_label, autor_modal,
                         ChoiceWithoutValidationField,
                         choice_anos_com_materias, FileFieldCheckMixin,
@@ -48,7 +47,7 @@ from sapl.utils import (autor_label, autor_modal,
                         lista_anexados, MateriaPesquisaOrderingFilter,
                         models_with_gr_for_model, qs_override_django_filter,
                         RangeWidgetOverride, SEPARADOR_HASH_PROPOSICAO,
-                        YES_NO_CHOICES)
+                        validar_arquivo, YES_NO_CHOICES)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, Numeracao,
@@ -254,9 +253,8 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         texto_original = self.cleaned_data.get('texto_original', False)
 
-        if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb"
-                                  .format((MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (texto_original.size / 1024) / 1024))
+        if texto_original:
+            validar_arquivo(texto_original, "Texto Original")
 
         return cleaned_data
 
@@ -357,9 +355,8 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
 
         arquivo = self.cleaned_data.get('arquivo', False)
 
-        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb"
-                                  .format((MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (arquivo.size / 1024) / 1024))
+        if arquivo:
+            validar_arquivo(arquivo, "Texto Integral")
 
         return self.cleaned_data
 
@@ -1934,9 +1931,8 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)
 
-        if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb"
-                                  .format((MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (texto_original.size / 1024) / 1024))
+        if texto_original:
+            validar_arquivo(texto_original, "Texto Original")
 
         return texto_original
 
