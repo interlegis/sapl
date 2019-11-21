@@ -65,21 +65,27 @@
   - title: {% trans 'Tipo de Comissão' %}
     url: sapl.comissoes:tipocomissao_list
     css_class: btn btn-link
-- title: {% trans 'Módulo Bancadas Parlamentares' %}
+- title: {% trans 'Módulo Frentes' %}
   css_class: head_title
   children:
-  - title: {% trans 'Bancadas Parlamentares' %}
-    url: sapl.parlamentares:bancada_list
-    css_class: btn btn-link
-  - title: {% trans 'Cargo de Bancada Parlamentar' %}
-    url: sapl.parlamentares:cargobancada_list
-    css_class: btn btn-link
   - title: {% trans 'Frente Parlamentar' %}
     url: sapl.parlamentares:frente_list
     css_class: btn btn-link
   - title: {% trans 'Cargo de Frente Parlamentar' %}
     url: sapl.parlamentares:cargofrente_list
     css_class: btn btn-link
+- title: {% trans 'Módulo Bancadas' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Bancada Parlamentar' %}
+    url: sapl.parlamentares:bancada_list
+    css_class: btn btn-link
+  - title: {% trans 'Cargo de Bancada Parlamentar' %}
+    url: sapl.parlamentares:cargobancada_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo Blocos' %}
+  css_class: head_title
+  children:
   - title: {% trans 'Bloco Parlamentar' %}
     url: sapl.parlamentares:bloco_list
     css_class: btn btn-link
