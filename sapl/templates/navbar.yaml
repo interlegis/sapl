@@ -11,6 +11,8 @@
       url: sapl.comissoes:comissao_list
     - title: {% trans 'Frentes' %}
       url: sapl.parlamentares:frente_list
+    - title: {% trans 'Bancadas' %}
+      url: sapl.parlamentares:bancada_list
     - title: {% trans 'Parlamentares' %}
       url: sapl.parlamentares:parlamentar_list
     - title: {% trans 'Audiências Públicas' %}
