@@ -54,11 +54,11 @@
                          <strong>Status:</strong> {{tram.status}}
                           </br>
                       {% endif %}
-                      {% define d.documentoacessorioadministrativo_set.all as acess %}
-                      {% if d.documentoacessorioadministrativo_set.all.exists %}
+                      {% define d.documentoacessorioadministrativo_set.all as access %}
+                      {% if access.exists %}
                               <strong>Documentos Acessórios:</strong>
                               <a href="{% url 'sapl.protocoloadm:documentoacessorioadministrativo_list' d.id %}">
-                                  {{ d.documentoacessorioadministrativo_set.all.count }}
+                                  {{ access.count }}
                               </a>
                               </br>
                           {% endif %}
