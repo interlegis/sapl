@@ -3,74 +3,80 @@
 
 {% block base_content %}    
 
-<div class="card border-danger mb-3" style="">
-    <div class="card-header">Cuidado</div>
-    <div class="container">
-        <div class="row">
-            <div class="col">
-      
-            </div>
-            <div class="col-6 ">
-                <div class="card-body">
-                    <h1 class="card-title">Essa ação apagara todos os protocolos !!</h1>
-                    <p class="card-text">Por questões de auditoria seu login será gravado como realizador dessa ação. Deseja continuar ?</p>
-                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#exampleModalCenter" >Sim, estou ciente e desejo continuar.</button>
-                </div>
-            </div>
-            <div class="col"> 
-            </div>
-        </div>
-    </div>     
+{% if intervalo_data %}
+<h2 class="page-header">Selecione o ano dos registros a serem apagados e confirme com a sua senha.</h2>
+
+<div class="form-row">
+  <label  style="margin-top:20px">Ano</label>
+  <select id="id_ano" class="form-control">
+    {% for ano in intervalo_data %}
+      <option>{{ano}}</option>
+    {% endfor %}
+  </select>
+  <label style="margin-top:20px">A partir do numero: (Opcional)</label>
+  <input type="number" class="form-control" id="numero_protocolo">
+  <label style="margin-top:20px">Senha</label>
+  <input type="password" class="form-control" id="password" placeholder="Senha" required>
+  <div id="feedback" class="invalid-feedback"></div>
+
+</div>
+<div style="margin-top:20px" class="form-group row justify-content-between">
+    <a href="{% url 'sapl.base:sistema' %}" type="button" class="btn btn-secondary float-left" >Cancelar</a>
+   
+    <button type="button" data-toggle="modal" data-target="#exampleModal" class="btn btn-danger float-right">Apagar protocolos</button>
 </div>
 
+
+{% else %}
+  <h1>Não há registros de protocolos.</h1>
+  <a style="margin-top:5%" href="{% url 'sapl.base:sistema' %}" type="button" class="btn btn-secondary" >Voltar para tabelas auxiliares.</a>
+{% endif %}
+
 <!-- Modal -->
-<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLongTitle">Validação</h5>
-      </div>
-    <div id="content-block-1">
-    {% if intervalo_data %}
-      <div class="modal-body">
-        Digite o ano dos registro a serem apagados e a sua senha para confirmar essa operação.
-        <div class="form-row">
-            <label  style="margin-top:20px">Ano</label>
-            <select multiple id="id_ano" class="form-control">
-              {% for ano in intervalo_data %}
-                <option>{{ano}}</option>
-              {% endfor %}
-            </select>
-            <label style="margin-top:20px">Senha</label>
-            <input type="password" class="form-control" id="password" placeholder="Senha" required>
-          <div id="feedback" class="invalid-feedback"></div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-            <button id="apagar-protocolos" type="button" class="btn btn-danger">Apagar protocolos</button>
-            <div id="spinner-id" style="margin-left:20px" class="spinner-border text-danger" role="status">
-              <span class="sr-only">Loading...</span>
-            </div>
-          </div>
-          </div>
-      </div>
-    {% else %}
-      <div class="modal-body">
-        Não há registros de protocolos.
-      </div>
-      <div class="modal-footer">
-        <a href="{% url 'sapl.base:sistema' %}" class="btn btn-secondary">Voltar para tabelas auxiliares.</a>
-      </div>
-    {% endif %}
-    </div>
+      <div id="content-block-1">
+        <div class="modal-header bg-danger ">
+          <h5 class="modal-title" id="exampleModalLabel">Cuidado</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
 
-    <div id="content-block-2">
-      <div class="modal-body">Protocolos apagados com sucesso.</div>
-      <div class="modal-footer">
-        <a href="{% url 'sapl.base:sistema' %}" class="btn btn-secondary">Voltar para tabelas auxiliares.</a>
+        <div class="modal-body">
+          Tem certeza que deseja apagar esses protocolos ? Essa operação é <b>irreversível</b>.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="apagar-protocolos">Apagar</button>
+          <div id="spinner-id" style="margin-left:20px" class="spinner-border text-danger" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
       </div>
+
+      <div id="content-block-2">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Operação realizada com sucesso.</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          </div>
+
+        
+        <div class="modal-body">
+          Os protocolos foram apagados com sucesso. 
+        </div>
+        <div class="modal-footer">
+          <a href="{% url 'sapl.base:sistema' %}" class="btn btn-secondary">Voltar para tabelas auxiliares.</a> 
+        </div>
+      </div>
+    
     </div>
   </div>
 </div>
+
 
 {% endblock base_content %}
 
@@ -82,7 +88,7 @@
   $('#apagar-protocolos').click( () => {
     $('#spinner-id').show();
     $.ajax({
-      data: {senha:$('#password').val(),ano:$("#id_ano").val()},
+      data: {numero_protocolo:$('#numero_protocolo').val(),senha:$('#password').val(),ano:$("#id_ano").val()},
       type: 'POST',
       url: "{% url 'sapl.protocoloadm:apaga_protocolos_view' %}",
       traditional: true,
@@ -92,6 +98,7 @@
       success: function(data){
         if (data['type'] == 'error'){
           $('#password').addClass('is-invalid')
+          $('#exampleModal').modal('hide')
           $('#feedback').text(data['msg'])
         }
         else if(data['type'] == 'success'){

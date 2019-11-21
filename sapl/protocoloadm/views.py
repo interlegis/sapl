@@ -1613,14 +1613,18 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
                 'documento_id', flat=True)
 
 
-def apaga_protocolos(request, ano):
-    all_protocolos = Protocolo.objects.filter(ano__in=ano)
+def apaga_protocolos(request, ano,numero_protocolo=None):
+    kwargs = {'ano__in':ano}
+    if numero_protocolo:
+        kwargs.update({'numero__gte':numero_protocolo})
+
+    all_protocolos = Protocolo.objects.filter(**kwargs)
 
     for doc in DocumentoAdministrativo.objects.filter(protocolo__in=all_protocolos):
         doc.protocolo = None
         doc.save()
 
-    for ml in MateriaLegislativa.objects.filter(ano__in=ano):
+    for ml in MateriaLegislativa.objects.filter(ano__in=ano, numero_protocolo__in=all_protocolos.values_list('numero')):
         ml.numero_protocolo = None
         ml.save()
 
@@ -1629,7 +1633,7 @@ def apaga_protocolos(request, ano):
                                 instance=deleted_object,
                                 operation='D',
                                 request=request
-                             )
+                                )
     all_protocolos.delete()
 
 
@@ -1647,7 +1651,8 @@ def apaga_protocolos_view(request):
         valid = request.user.check_password(password)        
         if valid:
             anos = request.POST.getlist('ano')
-            apaga_protocolos(request, anos)
+            numero_protocolo = request.POST.get('numero_protocolo')    
+            apaga_protocolos(request,anos,numero_protocolo)
             return JsonResponse({'type':'success','msg':''})
         else:
             return JsonResponse({'type':'error','msg':'Senha Incorreta'})
