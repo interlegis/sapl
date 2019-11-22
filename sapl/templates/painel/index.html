@@ -135,37 +135,90 @@
   {% endblock webpack_loader_chunks_js %}
 
   <script type="text/javascript">
-    var d = new Date();
-    var n = d.toLocaleDateString();
-    document.getElementById("date").innerHTML = n;
+      $(document).ready(function() {
 
-    function checkTime(i) {
-      if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
-        return i;
-    }
+         // As constantes decisões sobre a existência ou não do horário de verão,
+         // assim como que data de início e termino do mesmo, fizeram com que fosse necessário
+         // substituir a chamada a Date() por um esquema mais elaborado, onde se
+         // recupera o offset do UTC (-3 GMT, no caso de Brasília) e seta-se
+         // manualmente. Esta informação vem do servidor, desta forma não ficamos
+         // na dependência da atualização de browser, pois tanto o Date() em JS
+         // quanto as libs python (django.utils.timezone, datetime, pytz, etc)
+         // lêem do tzdata, que precisa ser atualizado toda vez que o governo
+         // brasileiro modifica alguma coisa relacionada ao horário de verão.
+         // Recuperando essa informação do servidor só teremos que atualizar as
+         // libs tzdata (Linux) e pytz (Python) uma vez. Além disso, o uso da
+         // biblioteca moment.js é recomendada, pois ela trata data e hora
+         // melhor que o Date() do JS.
 
-    function startTime() {
-      var today=new Date();
-      var h=today.getHours();
-      var m=today.getMinutes();
-      var s=today.getSeconds();
-      m = checkTime(m);
-      s = checkTime(s);
-      $("#relogio").text(h+":"+m+":"+s)
-      var t = setTimeout(function(){
-          startTime()
-      }, 500);
-    }
+         $("#date").append(moment().format("DD/MM/YY"));
 
-    function show_voto(voto) {
-      if (voto == "Sim"){
-          return '<font color="green"> Sim </font>'
-      }
-      else if (voto == "Não"){
-          return '<font color="red"> Não </font>'
-      }
-      return voto
-    }
+         var offset = parseFloat({{ utc_offset }});
+
+         //TODO: replace by a fancy jQuery clock
+         function checkTime(i) {
+             if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
+                return i;
+         }
+
+         function startTime() {
+             var today = moment.utc().utcOffset(offset).format("HH:mm:ss");
+             $("#relogio").text(today)
+             var t = setTimeout(function(){
+                 startTime()
+             }, 500);
+         }
+         startTime();
+
+        function show_voto(voto) {
+            if (voto == "Sim"){
+                return '<font color="green"> Sim </font>'
+            }
+            else if (voto == "Não"){
+                return '<font color="red"> Não </font>'
+            }
+            return voto
+        }
+
+        var audioAlertFinish = document.getElementById("audio");
+
+        $('#cronometro_discurso').runner({
+          autostart: false,
+          countdown: true,
+          startAt: {{ 'discurso'|cronometro_to_seconds }} * 1000,
+          stopAt: 0,
+          milliseconds: false,
+          format: function(value) {
+            let h = Math.floor((value/1000) / 3600);
+            h = checkTime(h);
+            let m = Math.floor((value/1000) % 3600 / 60);
+            m = checkTime(m);
+            let s = Math.floor((value/1000) % 3600 % 60);
+            s = checkTime(s);
+            return h.toString() + ":" + m.toString() + ":" + s.toString();
+          }
+        }).on('runnerFinish', function(eventObject, info){
+          audioAlertFinish.play();
+        });
+
+        $('#cronometro_aparte').runner({
+          autostart: false,
+          countdown: true,
+          startAt:  {{ 'aparte'|cronometro_to_seconds }} * 1000,
+          stopAt: 0,
+          milliseconds: false,
+          format: function(value) {
+            let h = Math.floor((value/1000) / 3600);
+            h = checkTime(h);
+            let m = Math.floor((value/1000) % 3600 / 60);
+            m = checkTime(m);
+            let s = Math.floor((value/1000) % 3600 % 60);
+            s = checkTime(s);
+            return h.toString() + ":" + m.toString() + ":" + s.toString();
+          }
+        }).on('runnerFinish', function(eventObject, info){
+            audioAlertFinish.play();
+        });
 
     function playAudioNumVezes(audio, times, ended) {
       if (times <= 0) {
@@ -431,14 +484,9 @@
               } else{
                 $("#observacao_materia").text('');
               }
-<<<<<<< HEAD
 
-              if (data['tipo_resultado'] && data['status_painel']){
-                if(data['tipo_votacao'] != 'Leitura'){
-=======
               if (data['tipo_resultado'] && data['status_painel'] == true){
                 if(data['tipo_votacao'] != 'Leitura' && !data['sessao_finalizada'] && !data["sessao_solene"]){
->>>>>>> 8b4c0879... HOT-FIX: Corrige comportamento do painel quando a sessão está finalizada
                   $("#resultado_votacao").css("color", "#45919D");
                   $("#mat_em_votacao").text("Matéria em Votação");
                   $("#resultado_votacao_div").show();

@@ -353,12 +353,15 @@ def painel_view(request, pk):
         'resultado': True,
         'materia': True
     }
+    now = timezone.localtime(timezone.now())
+    utc_offset = now.utcoffset().total_seconds() / 60
     context = {'head_title': str(_('Painel Plenário')), 
                'sessao_id': pk, 
                'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao'),
                'painel_config': PainelConfig.objects.first(),
                'casa': CasaLegislativa.objects.last(),
-               'exibicao': exibicao
+               'exibicao': exibicao,
+               'utc_offset': utc_offset,
                }
     return render(request, 'painel/index.html', context)
 
@@ -375,12 +378,15 @@ def painel_parcial_view(request, pk, opcoes):
         'resultado': bit_is_set(opcoes, 3),
         'materia': bit_is_set(opcoes, 4)
     }
+    now = timezone.localtime(timezone.now())
+    utc_offset = now.utcoffset().total_seconds() / 60
     context = {'head_title': str(_('Painel Plenário')), 
                'sessao_id': pk, 
                'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao'),
                'painel_config': PainelConfig.objects.first(),
                'casa': CasaLegislativa.objects.last(),
-               'exibicao': exibicao
+               'exibicao': exibicao,
+               'utc_offset': utc_offset,
                }
     return render(request, 'painel/index.html', context)
 
