@@ -33,7 +33,6 @@
         }
       }
     </style>
-
   </head>
   <body class="painel-principal">
       <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
@@ -110,7 +109,6 @@
           </div>
         </div>
       </div>
-
       </div>
   </body>
 
@@ -124,24 +122,36 @@
   {% endblock webpack_loader_chunks_js %}
 
   <script type="text/javascript">
-    var d = new Date();
-    var n = d.toLocaleDateString();
-    document.getElementById("date").innerHTML = n;
 
       $(document).ready(function() {
+
+         // As constantes decisões sobre a existência ou não do horário de verão,
+         // assim como que data de início e termino do mesmo, fizeram com que fosse necessário
+         // substituir a chamada a Date() por um esquema mais elaborado, onde se
+         // recupera o offset do UTC (-3 GMT, no caso de Brasília) e seta-se
+         // manualmente. Esta informação vem do servidor, desta forma não ficamos
+         // na dependência da atualização de browser, pois tanto o Date() em JS
+         // quanto as libs python (django.utils.timezone, datetime, pytz, etc)
+         // lêem do tzdata, que precisa ser atualizado toda vez que o governo
+         // brasileiro modifica alguma coisa relacionada ao horário de verão.
+         // Recuperando essa informação do servidor só teremos que atualizar as
+         // libs tzdata (Linux) e pytz (Python) uma vez. Além disso, o uso da
+         // biblioteca moment.js é recomendada, pois ela trata data e hora
+         // melhor que o Date() do JS.
+
+         $("#date").append(moment().format("DD/MM/YY"));
+
+         var offset = parseFloat({{ utc_offset }});
+
          //TODO: replace by a fancy jQuery clock
          function checkTime(i) {
              if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
                 return i;
          }
+
          function startTime() {
-             var today=new Date();
-             var h=today.getHours();
-             var m=today.getMinutes();
-             var s=today.getSeconds();
-             m = checkTime(m);
-             s = checkTime(s);
-             $("#relogio").text(h+":"+m+":"+s)
+             var today = moment.utc().utcOffset(offset).format("HH:mm:ss");
+             $("#relogio").text(today)
              var t = setTimeout(function(){
                  startTime()
              }, 500);
