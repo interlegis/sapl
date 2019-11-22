@@ -109,7 +109,6 @@
           </div>
         </div>
       </div>
-      <input type="hidden" id="utc_offset" value="{{utc_offset}}"/>
       </div>
   </body>
 
@@ -127,7 +126,7 @@
       $(document).ready(function() {
 
          // As constantes decisões sobre a existência ou não do horário de verão,
-         // assim como que data começa ou termina, fizeram com que fosse necessário
+         // assim como que data de início e termino do mesmo, fizeram com que fosse necessário
          // substituir a chamada a Date() por um esquema mais elaborado, onde se
          // recupera o offset do UTC (-3 GMT, no caso de Brasília) e seta-se
          // manualmente. Esta informação vem do servidor, desta forma não ficamos
@@ -142,11 +141,7 @@
 
          $("#date").append(moment().format("DD/MM/YY"));
 
-         var utc_offset = $("#utc_offset").val()
-
-         if (utc_offset !== undefined && utc_offset !== '') {
-            utc_offset = parseFloat(utc_offset);
-         }
+         var offset = parseFloat({{ utc_offset }});
 
          //TODO: replace by a fancy jQuery clock
          function checkTime(i) {
@@ -155,7 +150,7 @@
          }
 
          function startTime() {
-             var today = moment.utc().utcOffset(utc_offset).format("HH:mm:ss");
+             var today = moment.utc().utcOffset(offset).format("HH:mm:ss");
              $("#relogio").text(today)
              var t = setTimeout(function(){
                  startTime()
