@@ -290,7 +290,10 @@ def votante_view(request):
 
 @user_passes_test(check_permission)
 def painel_view(request, pk):
-    context = {'head_title': str(_('Painel Plenário')), 'sessao_id': pk}
+    now = timezone.localtime(timezone.now())
+    utc_offset = now.utcoffset().total_seconds() / 60
+
+    context = {'head_title': str(_('Painel Plenário')), 'sessao_id': pk, 'utc_offset': utc_offset }
     return render(request, 'painel/index.html', context)
 
 
