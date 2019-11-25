@@ -11,7 +11,8 @@
   
   {% block actions %}
     <div class="context-actions justify-content-between mb-4">
-      <div class="actions btn-group" role="group">
+      <div class="actions btn-group" role="group">        
+        <a class="btn btn-success" href="{% url 'sapl.compilacao:ta_text' object.pk %}">PreView</a>
         {% if perms.compilacao.change_textoarticulado and object|can_use_dynamic_editing:user %}
           <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Metadados do Texto Articulado' %}</a>
         {% endif %}

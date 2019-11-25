@@ -274,7 +274,8 @@ class NormaCrud(Crud):
                 pk=self.kwargs['pk']
             )
 
-            # Feito desta forma para que sejam materializados os assuntos antigos
+            # Feito desta forma para que sejam materializados os assuntos
+            # antigos
             assuntos_antigos = set(norma_antiga.assuntos.all())
 
             dict_objeto_antigo = norma_antiga.__dict__
@@ -282,11 +283,11 @@ class NormaCrud(Crud):
             dict_objeto_novo = self.object.__dict__
 
             atributos = ['tipo_id', 'numero', 'ano', 'data', 'esfera_federacao',
-                        'complemento', 'materia_id', 'numero',
-                        'data_publicacao', 'data_vigencia',
-                        'veiculo_publicacao', 'pagina_inicio_publicacao',
-                        'pagina_fim_publicacao', 'ementa', 'indexacao',
-                        'observacao', 'texto_integral']
+                         'complemento', 'materia_id', 'numero',
+                         'data_publicacao', 'data_vigencia',
+                         'veiculo_publicacao', 'pagina_inicio_publicacao',
+                         'pagina_fim_publicacao', 'ementa', 'indexacao',
+                         'observacao', 'texto_integral']
 
             for atributo in atributos:
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
@@ -294,8 +295,9 @@ class NormaCrud(Crud):
                     self.object.ip = get_client_ip(self.request)
                     self.object.save()
                     break
-            
-            # Campo Assuntos não veio no __dict__, então é comparado separadamente
+
+            # Campo Assuntos não veio no __dict__, então é comparado
+            # separadamente
             assuntos_novos = set(self.object.assuntos.all())
             if assuntos_antigos != assuntos_novos:
                 self.object.user = self.request.user
@@ -391,7 +393,8 @@ class ImpressosView(PermissionRequiredMixin, TemplateView):
 def gerar_pdf_impressos(request, context, template_name):
     template = loader.get_template(template_name)
     html = template.render(context, request)
-    pdf = weasyprint.HTML(string=html, base_url=request.build_absolute_uri()).write_pdf()
+    pdf = weasyprint.HTML(
+        string=html, base_url=request.build_absolute_uri()).write_pdf()
 
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'inline; filename="relatorio_impressos.pdf"'
@@ -418,7 +421,8 @@ class NormaPesquisaSimplesView(PermissionRequiredMixin, FormView):
             kwargs.update({'data__gte': form.cleaned_data['data_inicial'],
                            'data__lte': form.cleaned_data['data_final']})
 
-        normas = NormaJuridica.objects.filter(**kwargs).order_by('-numero', 'ano')
+        normas = NormaJuridica.objects.filter(
+            **kwargs).order_by('-numero', 'ano')
 
         quantidade_normas = normas.count()
         normas = normas[:2000] if quantidade_normas > 2000 else normas

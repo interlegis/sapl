@@ -19,7 +19,6 @@
         <li class="nav-item"><a class="nav-link" href="{% url 'sapl.compilacao:ta_text_notificacoes' object.pk %}">{% trans 'Notificações' %}</a></li>
       {% endif %}
       {% block extra_sections_nav %}
-        <li class="nav-item"><a class="nav-link" href="{% url 'sapl.compilacao:ta_text' object.pk %}">{% trans 'Texto Articulado' %}</a></li>
       {% endblock %}
     {% endif %}
   </ul>
