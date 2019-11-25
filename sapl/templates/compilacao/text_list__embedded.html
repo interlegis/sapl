@@ -4,12 +4,14 @@
 
 <div class="cp">
   {% if object_list %}
-    <div class="clearfix">
+      <div class="actions btn-group" role="group">
+        <a href="{{base_url}}?print" class="btn btn-outline-primary">{% trans 'Preparar para impressão' %}</a>
+      </div>
+      
       <div class="actions btn-group float-right" role="group">
         <a class="btn btn-outline-primary" id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
         <a class="btn btn-outline-primary" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
       </div>
-    </div>
   {% endif %}
 
   {% for key, values in view.get_vigencias.items %}
