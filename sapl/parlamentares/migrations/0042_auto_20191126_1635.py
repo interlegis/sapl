@@ -10,6 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('parlamentares', '0041_remove_frente_parlamentares'),
+        ('sessao', '0048_auto_20190829_1253')
     ]
 
     operations = [
