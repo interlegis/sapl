@@ -785,8 +785,8 @@ class ParlamentarBancada(models.Model):
     )
 
     class Meta:
-        verbose_name=_('Parlamentar')
-        verbose_name_plural=_('Parlamentares')
+        verbose_name = _('Parlamentar')
+        verbose_name_plural = _('Parlamentares')
         ordering=('cargo',)
 
     def __str__(self):
