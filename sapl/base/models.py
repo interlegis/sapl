@@ -136,7 +136,7 @@ class AppConfig(models.Model):
         max_length=1, choices=POLITICA_PROTOCOLO_CHOICES, default='O')
 
     assinatura_ata = models.CharField(
-        verbose_name=_('Quem deve assina a ata'),
+        verbose_name=_('Quem deve assinar a ata'),
         max_length=1, choices=ASSINATURA_ATA_CHOICES, default='T')
 
     mostrar_brasao_painel = models.BooleanField(
