@@ -125,7 +125,24 @@ Bancada:
 
 CargoBancada:
   {% trans 'Cargo de Bancada' %}:
-  - nome_cargo:8 cargo_unico
+  - nome_cargo
+  - cargo_unico
+
+ParlamentarBancada:
+  {% trans 'Parlamentar Bancada' %}:
+  - bancada
+  - parlamentar
+  - cargo
+  - data_entrada
+  - data_saida
+
+ParlamentarBancadaList:
+  {% trans 'Parlamentar Bancada' %}:
+  - id
+  - parlamentar
+  - cargo
+  - data_entrada
+  - data_saida
 
 Frente:
   {% trans 'Frente' %}:
