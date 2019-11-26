@@ -197,6 +197,32 @@ class ParlamentarBancadaCrud(MasterDetailCrud):
             return context
 
 
+class ParlamentarBancadaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
+    model = ParlamentarBancada
+    parent_field = 'parlamentar'
+    help_topic = 'parlamentar_bancada_parlamentar'
+    public = [RP_LIST, RP_DETAIL]
+    namespace = AppConfig.name
+
+    class BaseMixin(CrudBaseForListAndDetailExternalAppView.BaseMixin):
+
+        @classmethod
+        def url_name(cls, suffix):
+            return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
+
+    class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
+        template_name = "parlamentares/parlamentarbancadaparlamentar_list.html"
+
+        def get_context_data(self, **kwargs):
+            context = CrudBaseForListAndDetailExternalAppView\
+                .ListView.get_context_data(self, **kwargs)
+
+            nome_parlamentar = Parlamentar.objects.get(pk=self.kwargs['pk']).nome_parlamentar
+            context['title'] = "Participações em Bancada <small>(" + nome_parlamentar + ")</small>"
+
+            return context
+
+
 class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Relatoria
     parent_field = 'parlamentar'

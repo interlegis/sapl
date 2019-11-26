@@ -8,13 +8,13 @@ from sapl.parlamentares.views import (
     edita_vinculo_parlamentar_bloco, FiliacaoCrud, FrenteCrud,
     get_sessoes_legislatura, insere_parlamentar_composicao, LegislaturaCrud,
     lista_parlamentares, MandatoCrud, MesaDiretoraView, NivelInstrucaoCrud,
-    ParlamentarBancadaCrud, ParlamentarCrud, ParlamentarFrenteCrud,
-    ParlamentarMateriasView, parlamentares_filiados, ParticipacaoParlamentarCrud,
-    PartidoCrud, PesquisarParlamentarView, ProposicaoParlamentarCrud,
-    RelatoriaParlamentarCrud, remove_parlamentar_composicao,
-    SessaoLegislativaCrud, TipoAfastamentoCrud, TipoDependenteCrud,
-    TipoMilitarCrud, VincularParlamentarView, vincula_parlamentar_ao_bloco,
-    VotanteView
+    ParlamentarBancadaCrud, ParlamentarBancadaParlamentarCrud, ParlamentarCrud,
+    ParlamentarFrenteCrud, ParlamentarMateriasView, parlamentares_filiados,
+    ParticipacaoParlamentarCrud, PartidoCrud, PesquisarParlamentarView,
+    ProposicaoParlamentarCrud, RelatoriaParlamentarCrud,
+    remove_parlamentar_composicao, SessaoLegislativaCrud, TipoAfastamentoCrud,
+    TipoDependenteCrud, TipoMilitarCrud, VincularParlamentarView,
+    vincula_parlamentar_ao_bloco, VotanteView
 )
 
 from .apps import AppConfig
@@ -24,12 +24,12 @@ app_name = AppConfig.name
 
 urlpatterns = [
     url(r'^parlamentar/', include(
-        ParlamentarCrud.get_urls() + DependenteCrud.get_urls() +
+        AfastamentoParlamentarCrud.get_urls() + DependenteCrud.get_urls() +
         FiliacaoCrud.get_urls() + MandatoCrud.get_urls() +
-        ParticipacaoParlamentarCrud.get_urls() +
+        ParlamentarBancadaParlamentarCrud.get_urls() +
+        ParlamentarCrud.get_urls() + ParticipacaoParlamentarCrud.get_urls() +
         ProposicaoParlamentarCrud.get_urls() +
-        RelatoriaParlamentarCrud.get_urls() +
-        VotanteView.get_urls() + AfastamentoParlamentarCrud.get_urls()
+        RelatoriaParlamentarCrud.get_urls() + VotanteView.get_urls()
     )),
 
     url(r'^parlamentar/lista$', lista_parlamentares, name='lista_parlamentares'),
