@@ -1495,7 +1495,7 @@ class ConfiguracoesAppForm(ModelForm):
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_consideracoes'].widget.attrs['class'] = 'cronometro'
 
-    def clean_mostrar_brasao_painel(self):
+    def clean(self):
         mostrar_brasao_painel = self.cleaned_data.get(
             'mostrar_brasao_painel', False)
         casa = CasaLegislativa.objects.first()

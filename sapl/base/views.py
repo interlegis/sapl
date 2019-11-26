@@ -1958,19 +1958,6 @@ class AppConfigCrud(CrudAux):
                     self.gerar_hash(prop)
             return super().form_valid(form)
 
-        def form_invalid(self, form):
-            errors_tuple = [(form[e].label, form.errors[e])
-                            for e in form.errors if e in form.fields]
-            error_message = '<ul>'
-            for e in errors_tuple:
-                error_message += '<li><b>%s</b>: %s</li>' % (e[0], e[1][0])
-            for e in form.non_field_errors():
-                error_message += '<li>%s</li>' % e
-            error_message += '</ul>'
-
-            messages.add_message(self.request, messages.ERROR, error_message)
-            return super().form_invalid(form)
-
         def gerar_hash(self, inst):
             inst.save()
             if inst.texto_original:
@@ -1997,8 +1984,6 @@ class AppConfigCrud(CrudAux):
                 reverse('sapl.base:appconfig_update',
                         kwargs={'pk': app_config.pk}))
 
-        def post(self, request, *args, **kwargs):
-            return self.get(request, *args, **kwargs)
 
     class ListView(CrudAux.ListView):
 
