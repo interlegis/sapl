@@ -1,0 +1,9 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load common_tags %}
+
+{% block more_buttons %}
+    <a href="{% url 'sapl.parlamentares:bancada_detail' root_pk %}" class="btn btn-outline-primary">
+        Bancada Parlametar
+    </a>
+{% endblock more_buttons %}

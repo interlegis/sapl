@@ -20,7 +20,9 @@
 - title: {% trans 'Relatorias' %}
   url: relatoria_parlamentar_list
 - title: {% trans 'Frentes' %}
-  url: frente_parlamentar_list
+  url: parlamentarfrente_detail
+- title: {% trans 'Bancadas' %}
+  url: parlamentarbancada_list
 - title: {% trans 'Usuário' %}
   url: votante_list
   check_permission: parlamentares.add_parlamentar
