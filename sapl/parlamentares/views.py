@@ -1,11 +1,15 @@
-from datetime import datetime
 import json
 import logging
+
+from datetime import datetime
+from django_filters.views import FilterView
+from image_cropping.utils import get_backend
 
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.exceptions import (ObjectDoesNotExist,
+                                    MultipleObjectsReturned)
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import F, Q
 from django.db.models.aggregates import Count
@@ -19,33 +23,37 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
-from django_filters.views import FilterView
-from image_cropping.utils import get_backend
 
-
-from sapl.base.forms import SessaoLegislativaForm, PartidoForm, PartidoUpdateForm
+from sapl.base.forms import (PartidoForm, PartidoUpdateForm,
+                             SessaoLegislativaForm)
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
-from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
+from sapl.crud.base import (Crud, CrudAux,
                             CrudBaseForListAndDetailExternalAppView,
-                            MasterDetailCrud, make_pagination)
+                            make_pagination, MasterDetailCrud,
+                            RP_CHANGE, RP_DETAIL, RP_LIST)
 from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
-from sapl.utils import (parlamentares_ativos, show_results_filter_set)
+from sapl.utils import parlamentares_ativos, show_results_filter_set
 
 
-from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
-                    ParlamentarFilterSet, VincularParlamentarForm,
-                    BlocoForm, CargoBlocoForm, CargoBlocoPartidoForm,
-                    BancadaForm, AfastamentoParlamentarForm, ParlamentarFrenteForm)
+from .forms import (AfastamentoParlamentarForm, BancadaForm, BlocoForm,
+                    CargoBlocoForm, CargoBlocoPartidoForm, FiliacaoForm,
+                    FrenteForm, LegislaturaForm, MandatoForm,
+                    ParlamentarBancadaForm, ParlamentarCreateForm,
+                    ParlamentarFilterSet, ParlamentarForm,
+                    ParlamentarFrenteForm, VincularParlamentarForm,
+                    VotanteForm)
                     
-from .models import (Bancada, CargoBancada, CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
-                     Dependente, Filiacao, Frente, Legislatura, Mandato,
-                     NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
-                     SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco, CargoBlocoPartido, HistoricoPartido, CargoBloco,
-                     ParlamentarFrente, AfastamentoParlamentar, CargoFrente)
+from .models import (AfastamentoParlamentar, Bancada, Bloco,
+                     CargoBancada, CargoBloco, CargoBlocoPartido,
+                     CargoFrente, CargoMesa, Coligacao,
+                     ComposicaoColigacao, ComposicaoMesa, Dependente,
+                     Filiacao, Frente, HistoricoPartido, Legislatura,
+                     Mandato, NivelInstrucao, Parlamentar,
+                     ParlamentarBancada, ParlamentarFrente, Partido,
+                     SessaoLegislativa, SituacaoMilitar,
+                     TipoAfastamento, TipoDependente, Votante)
 
 
 CargoBancadaCrud = CrudAux.build(CargoBancada, '')
@@ -114,28 +122,79 @@ class VotanteView(MasterDetailCrud):
                         kwargs={'pk': obj.parlamentar.pk}))
 
 
-class BancadaCrud(CrudAux):
+class BancadaCrud(Crud):
     model = Bancada
+    public = [RP_DETAIL, RP_LIST]
+    list_field_names = ['legislatura','nome', 'partido', 'data_criacao', 'data_extincao']
 
-    class CreateView(CrudAux.CreateView):
+    class BaseMixin(Crud.BaseMixin):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+    
+    class CreateView(Crud.CreateView):
         form_class = BancadaForm
 
-        def get_success_url(self):
-            return reverse('sapl.parlamentares:bancada_list')
+        def form_valid(self, form):
+            return super(Crud.CreateView, self).form_valid(form)
+
+    class UpdateView(Crud.UpdateView):
+        form_class = BancadaForm
 
 
-class FrenteList(MasterDetailCrud):
-    model = Frente
-    is_m2m = True
-    parent_field = 'parlamentares'
-    CreateView, UpdateView, DeleteView = None, None, None
+class ParlamentarBancadaCrud(MasterDetailCrud):
+    model = ParlamentarBancada
+    parent_field = 'bancada'
+    help_topic = 'parlamentar_bancada'
+    public = [RP_LIST, RP_DETAIL]
 
-    class BaseMixin(Crud.PublicMixin, MasterDetailCrud.BaseMixin):
-        list_field_names = ['nome', 'data_criacao', 'data_extincao']
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ParlamentarBancadaForm
 
-        @classmethod
-        def url_name(cls, suffix):
-            return '%s_parlamentar_%s' % (cls.model._meta.model_name, suffix)
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+        def get_initial(self):
+            self.initial['bancada'] = Bancada.objects.get(pk=self.kwargs['pk'])
+            return self.initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ParlamentarBancadaForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+    class ListView(MasterDetailCrud.ListView):
+        layout_key = 'ParlamentarBancadaList'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            context['subnav_template_name'] = ''
+
+            new_rows = []
+            rows = context['rows']
+            for row in rows:
+                parlamentar = Parlamentar.objects.get(nome_parlamentar=row[1][0])
+                new_row = row
+                new_row[1] = (row[1][0], '/parlamentar/'+str(parlamentar.id))
+                new_rows.append(new_row)
+            
+            context['rows'] = new_rows        
+            return context
 
 
 class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
@@ -342,53 +401,6 @@ def json_date_convert(date):
     """
 
     return datetime.strptime(date, "%d/%m/%Y").date()
-
-
-def frente_atualiza_lista_parlamentares(request):
-    """
-    :param request: recebe os parâmetros do GET da chamada Ajax
-    :return: retorna a lista atualizada dos parlamentares
-    """
-    ativos = json.loads(request.GET['ativos'])
-
-    parlamentares = Parlamentar.objects.all()
-
-    if ativos:
-        if 'data_criacao' in request.GET and request.GET['data_criacao']:
-            data_criacao = json_date_convert(request.GET['data_criacao'])
-
-            if 'data_extincao' in request.GET and request.GET['data_extincao']:
-                data_extincao = json_date_convert(request.GET['data_extincao'])
-                parlamentares = parlamentares_ativos(data_criacao,
-                                                     data_extincao)
-            else:
-                parlamentares = parlamentares_ativos(data_criacao)
-
-    parlamentares_list = [(p.id, p.__str__()) for p in parlamentares]
-
-    return JsonResponse({'parlamentares_list': parlamentares_list})
-
-
-def parlamentares_frente_selected(request):
-    """
-    :return: Lista com o id dos parlamentares em uma frente
-    """
-    logger = logging.getLogger(__name__)
-    username = request.user.username
-    try:
-        logger.info("user=" + username +
-                    ". Tentando objet objeto Frente com id={}.".format(request.GET['frente_id']))
-        frente = Frente.objects.get(id=int(request.GET['frente_id']))
-    except ObjectDoesNotExist:
-        logger.error("user=" + username +
-                     ". Frente buscada (id={}) não existe. Retornada lista vazia.".format(request.GET['frente_id']))
-        lista_parlamentar_id = []
-    else:
-        logger.info("user=" + username +
-                    ". Frente (id={}) encontrada com sucesso.".format(request.GET['frente_id']))
-        lista_parlamentar_id = frente.parlamentares.all().values_list(
-            'id', flat=True)
-    return JsonResponse({'id_list': list(lista_parlamentar_id)})
 
 
 class FrenteCrud(Crud):
