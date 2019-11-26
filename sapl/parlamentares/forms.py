@@ -1,8 +1,11 @@
-from datetime import timedelta
+import django_filters
 import logging
 
-from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
+from datetime import timedelta
+from floppyforms.widgets import ClearableFileInput
+from image_cropping.widgets import CropWidget, ImageCropWidget
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User
@@ -13,19 +16,15 @@ from django.db.models import Q
 from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from floppyforms.widgets import ClearableFileInput
-from image_cropping.widgets import CropWidget, ImageCropWidget
-from sapl.utils import FileFieldCheckMixin, filiacao_data, intervalos_tem_intersecao
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import form_actions, to_row
+from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
-import django_filters
+from sapl.utils import FileFieldCheckMixin, filiacao_data, intervalos_tem_intersecao
 
-from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Votante, Bloco, Bancada, CargoBloco,
-                     CargoBlocoPartido, AfastamentoParlamentar, TipoAfastamento,
-                     ParlamentarFrente)
+from .models import (AfastamentoParlamentar, Bancada, Bloco, CargoBloco, CargoBlocoPartido,
+                     ComposicaoColigacao, Filiacao, Frente, Legislatura, Mandato, Parlamentar,
+                     ParlamentarBancada, ParlamentarFrente, TipoAfastamento, Votante) 
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -655,11 +654,14 @@ class BlocoForm(ModelForm):
 
 
 class BancadaForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super(BancadaForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = Bancada
-        fields = ['legislatura', 'nome', 'partido', 'data_criacao',
-                  'data_extincao', 'descricao']
+        fields = '__all__'
 
     def clean(self):
         super(BancadaForm, self).clean()
@@ -673,38 +675,62 @@ class BancadaForm(ModelForm):
 
         data_criacao = data['data_criacao']
         if data_criacao:
-            if (data_criacao < legislatura.data_inicio or
-                    data_criacao > legislatura.data_fim):
-                raise ValidationError(_("Data de criação da bancada fora do intervalo"
-                                        " de legislatura informada"))
+            if (data_criacao < legislatura.data_inicio or data_criacao > legislatura.data_fim):
+                raise ValidationError(_("Data de criação da bancada fora do intervalo de legislatura informada"))
 
         data_extincao = data['data_extincao']
         if data_extincao:
-            if (data_extincao < legislatura.data_inicio or
-                    data_extincao > legislatura.data_fim):
-                raise ValidationError(_("Data fim da bancada fora do intervalo de"
-                                        " legislatura informada"))
+            if (data_extincao < legislatura.data_inicio or data_extincao > legislatura.data_fim):
+                raise ValidationError(_("Data fim da bancada fora do intervalo de legislatura informada"))
 
         if self.cleaned_data['data_extincao']:
-            if (self.cleaned_data['data_extincao'] <
-                    self.cleaned_data['data_criacao']):
+            if (self.cleaned_data['data_extincao'] < self.cleaned_data['data_criacao']):
                 msg = _('Data de extinção não pode ser menor que a de criação')
                 raise ValidationError(msg)
+                
         return self.cleaned_data
 
     @transaction.atomic
     def save(self, commit=True):
         bancada = super(BancadaForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Bancada)
-        object_id = bancada.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=bancada.nome
-        )
+
+        if not self.instance.pk:
+            bancada = super(BancadaForm, self).save(commit)
+            object_id = bancada.pk
+
+            content_type = ContentType.objects.get_for_model(Bancada)
+            tipo = TipoAutor.objects.get(content_type=content_type)
+        
+            Autor.objects.create(
+                content_type=content_type,
+                object_id=object_id,
+                tipo=tipo,
+                nome=bancada.nome
+            )
+
         return bancada
+
+
+class ParlamentarBancadaForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super(ParlamentarBancadaForm, self).__init__(*args, **kwargs)
+        self.fields['bancada'].widget = forms.HiddenInput()
+    
+    class Meta:
+        model = ParlamentarBancada
+        fields = '__all__'
+
+    def clean(self):
+        super(ParlamentarBancadaForm, self).clean()
+
+        cd = self.cleaned_data
+
+        if not self.is_valid():
+            return self.cleaned_data
+        
+        return cd
 
 
 class CargoBlocoForm(ModelForm):
