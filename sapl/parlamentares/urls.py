@@ -1,39 +1,24 @@
 from django.conf.urls import include, url
 
-from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
-                                      ComposicaoColigacaoCrud, DependenteCrud,
-                                      BancadaCrud, CargoBancadaCrud, CargoFrenteCrud,
-                                      FiliacaoCrud, FrenteCrud, FrenteList,
-                                      LegislaturaCrud, MandatoCrud,
-                                      MesaDiretoraView, NivelInstrucaoCrud,
-                                      ParlamentarCrud, ParlamentarMateriasView,
-                                      ParticipacaoParlamentarCrud, PartidoCrud,
-                                      ProposicaoParlamentarCrud,
-                                      RelatoriaParlamentarCrud,
-                                      SessaoLegislativaCrud,
-                                      TipoAfastamentoCrud, TipoDependenteCrud,
-                                      AfastamentoParlamentarCrud,
-                                      TipoMilitarCrud, VotanteView,
-                                      altera_field_mesa,
-                                      altera_field_mesa_public_view,
-                                      frente_atualiza_lista_parlamentares,
-                                      insere_parlamentar_composicao,
-                                      parlamentares_frente_selected,
-                                      remove_parlamentar_composicao,
-                                      lista_parlamentares,
-                                      parlamentares_filiados,
-                                      BlocoCrud, CargoBlocoCrud,
-                                      PesquisarParlamentarView, 
-                                      VincularParlamentarView,
-                                      deleta_historico_partido,
-                                      edita_vinculo_parlamentar_bloco,
-                                      deleta_vinculo_parlamentar_bloco,
-                                      vincula_parlamentar_ao_bloco,
-                                      get_sessoes_legislatura,
-                                      ParlamentarFrenteCrud)
-
+from sapl.parlamentares.views import (
+    AfastamentoParlamentarCrud, altera_field_mesa, altera_field_mesa_public_view,
+    BancadaCrud, BlocoCrud, CargoBancadaCrud, CargoBlocoCrud, CargoFrenteCrud,
+    CargoMesaCrud, ColigacaoCrud, ComposicaoColigacaoCrud,
+    deleta_historico_partido, deleta_vinculo_parlamentar_bloco, DependenteCrud,
+    edita_vinculo_parlamentar_bloco, FiliacaoCrud, FrenteCrud,
+    get_sessoes_legislatura, insere_parlamentar_composicao, LegislaturaCrud,
+    lista_parlamentares, MandatoCrud, MesaDiretoraView, NivelInstrucaoCrud,
+    ParlamentarBancadaCrud, ParlamentarCrud, ParlamentarFrenteCrud,
+    ParlamentarMateriasView, parlamentares_filiados, ParticipacaoParlamentarCrud,
+    PartidoCrud, PesquisarParlamentarView, ProposicaoParlamentarCrud,
+    RelatoriaParlamentarCrud, remove_parlamentar_composicao,
+    SessaoLegislativaCrud, TipoAfastamentoCrud, TipoDependenteCrud,
+    TipoMilitarCrud, VincularParlamentarView, vincula_parlamentar_ao_bloco,
+    VotanteView
+)
 
 from .apps import AppConfig
+
 
 app_name = AppConfig.name
 
@@ -43,7 +28,7 @@ urlpatterns = [
         FiliacaoCrud.get_urls() + MandatoCrud.get_urls() +
         ParticipacaoParlamentarCrud.get_urls() +
         ProposicaoParlamentarCrud.get_urls() +
-        RelatoriaParlamentarCrud.get_urls() + FrenteList.get_urls() +
+        RelatoriaParlamentarCrud.get_urls() +
         VotanteView.get_urls() + AfastamentoParlamentarCrud.get_urls()
     )),
 
@@ -65,13 +50,6 @@ urlpatterns = [
         include(ColigacaoCrud.get_urls() +
                 ComposicaoColigacaoCrud.get_urls())),
 
-    url(r'^sistema/bancada/',
-        include(BancadaCrud.get_urls())),
-    url(r'^sistema/cargo-bancada/',
-        include(CargoBancadaCrud.get_urls())),
-    url(r'^sistema/cargo-frente/',
-        include(CargoFrenteCrud.get_urls())),
-
     url(r'^sistema/bloco/',
         include(BlocoCrud.get_urls())),
     url(r'^sistema/cargo-bloco/',
@@ -84,14 +62,12 @@ urlpatterns = [
         deleta_vinculo_parlamentar_bloco,name='deleta-vinculo-parlamentar-bloco'),
         
     url(r'^sistema/frente/',
-        include(FrenteCrud.get_urls())),
-    url(r'^sistema/frente/atualiza-lista-parlamentares',
-        frente_atualiza_lista_parlamentares,
-        name='atualiza_lista_parlamentares'),
-    url(r'^sistema/frente/parlamentares-frente-selected',
-        parlamentares_frente_selected,
-        name='parlamentares_frente_selected'),
-    url(r'^sistema/frente/', include(ParlamentarFrenteCrud.get_urls())),
+        include(FrenteCrud.get_urls() + ParlamentarFrenteCrud.get_urls())),
+    url(r'^sistema/cargo-frente/', include(CargoFrenteCrud.get_urls())),
+
+    url(r'^sistema/bancada/',
+        include(BancadaCrud.get_urls() + ParlamentarBancadaCrud.get_urls())),
+    url(r'^sistema/cargo-bancada/', include(CargoBancadaCrud.get_urls())),
 
     url(r'^sistema/parlamentar/legislatura/',
         include(LegislaturaCrud.get_urls())),
@@ -128,5 +104,4 @@ urlpatterns = [
 
     url(r'^parlamentar/get-sessoes-legislatura/$',
         get_sessoes_legislatura, name='get_sessoes_legislatura'),
-
 ]
