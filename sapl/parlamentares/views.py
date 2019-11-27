@@ -210,7 +210,18 @@ class ParlamentarBancadaParlamentarCrud(CrudBaseForListAndDetailExternalAppView)
             nome_parlamentar = Parlamentar.objects.get(pk=self.kwargs['pk']).nome_parlamentar
             context['title'] = "Participações em Bancada <small>(" + nome_parlamentar + ")</small>"
 
+            new_rows = []
+            rows = context['rows']
+            for row in rows:
+                url = row[0][1].split('/parlamentar/')
+                link = '/sistema/bancada/' + url[1]
+                new_row = row
+                new_row[0] = (row[0][0], link)
+                new_rows.append(new_row)
+
+            context['rows'] = new_rows
             return context
+
 
 
 class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
