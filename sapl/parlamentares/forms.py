@@ -717,6 +717,29 @@ class ParlamentarBancadaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(ParlamentarBancadaForm, self).__init__(*args, **kwargs)
         self.fields['bancada'].widget = forms.HiddenInput()
+
+        id_parlamentares_titulares_legislatura_partido = []
+        mandatos = Mandato.objects.filter(legislatura=self.initial['bancada'].legislatura, titular=True)
+        
+        if self.initial['bancada'].partido:
+
+            for mandato in mandatos:
+                parlamentar_filiacao_atual = Filiacao.objects.filter(parlamentar__id=mandato.parlamentar.id).order_by('-data').first()
+                
+                if parlamentar_filiacao_atual.partido == self.initial['bancada'].partido:
+                    id_parlamentares_titulares_legislatura_partido.append(mandato.parlamentar.id)
+
+        else:
+            id_parlamentares_titulares_legislatura_partido = [mandato.parlamentar.id for mandato in mandatos]
+
+        parlamentares_adicionados = ParlamentarBancada.objects.filter(bancada=self.initial['bancada'])
+        id_parlamentares_adicionados = [parlamentar_adicionado.parlamentar.id for parlamentar_adicionado in parlamentares_adicionados]
+
+        parlamentares = Parlamentar.objects.filter(id__in=id_parlamentares_titulares_legislatura_partido, ativo=True).exclude(
+            id__in=id_parlamentares_adicionados
+        )
+
+        self.fields['parlamentar'].queryset = parlamentares
     
     class Meta:
         model = ParlamentarBancada
@@ -725,12 +748,18 @@ class ParlamentarBancadaForm(ModelForm):
     def clean(self):
         super(ParlamentarBancadaForm, self).clean()
 
-        cd = self.cleaned_data
-
         if not self.is_valid():
             return self.cleaned_data
+
+        data = self.cleaned_data
+
+        if data['cargo'].cargo_unico:
+            parlamentares_bancada = ParlamentarBancada.objects.filter(bancada=data['bancada'])
+            cargos = [parlamentar_bancada.cargo for parlamentar_bancada in parlamentares_bancada]
+            if data['cargo'] in cargos:
+                raise ValidationError("Este cargo está ocupado e é único para esta Bancada.")
         
-        return cd
+        return data
 
 
 class CargoBlocoForm(ModelForm):
