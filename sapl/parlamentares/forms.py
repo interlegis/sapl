@@ -711,7 +711,7 @@ class BancadaForm(ModelForm):
         return bancada
 
 
-class ParlamentarBancadaForm(ModelForm):
+class ParlamentarBancadaCreateForm(ModelForm):
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
@@ -759,6 +759,34 @@ class ParlamentarBancadaForm(ModelForm):
             if data['cargo'] in cargos:
                 raise ValidationError("Este cargo está ocupado e é único para esta Bancada.")
         
+        return data
+
+
+class ParlamentarBancadaEditForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super(ParlamentarBancadaEditForm, self).__init__(*args, **kwargs)
+        self.fields['bancada'].widget = forms.HiddenInput()
+
+    class Meta:
+        model = ParlamentarBancada
+        fields = '__all__'
+
+    def clean(self):
+        super(ParlamentarBancadaEditForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data = self.cleaned_data
+
+        if data['cargo'].cargo_unico:
+            parlamentares_bancada = ParlamentarBancada.objects.filter(bancada=data['bancada'])
+            cargos = [parlamentar_bancada.cargo for parlamentar_bancada in parlamentares_bancada]
+            if data['cargo'] in cargos:
+                raise ValidationError("Este cargo está ocupado e é unico para esta Bancada.")
+
         return data
 
 

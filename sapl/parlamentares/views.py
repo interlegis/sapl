@@ -40,7 +40,8 @@ from sapl.utils import parlamentares_ativos, show_results_filter_set
 from .forms import (AfastamentoParlamentarForm, BancadaForm, BlocoForm,
                     CargoBlocoForm, CargoBlocoPartidoForm, FiliacaoForm,
                     FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarBancadaForm, ParlamentarCreateForm,
+                    ParlamentarBancadaCreateForm,
+                    ParlamentarBancadaEditForm, ParlamentarCreateForm,
                     ParlamentarFilterSet, ParlamentarForm,
                     ParlamentarFrenteForm, VincularParlamentarForm,
                     VotanteForm)
@@ -151,7 +152,7 @@ class ParlamentarBancadaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
 
     class CreateView(MasterDetailCrud.CreateView):
-        form_class = ParlamentarBancadaForm
+        form_class = ParlamentarBancadaCreateForm
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -163,7 +164,7 @@ class ParlamentarBancadaCrud(MasterDetailCrud):
             return self.initial
 
     class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = ParlamentarBancadaForm
+        form_class = ParlamentarBancadaEditForm
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
