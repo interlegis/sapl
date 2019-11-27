@@ -195,6 +195,8 @@ class ParlamentarBancadaParlamentarCrud(CrudBaseForListAndDetailExternalAppView)
     namespace = AppConfig.name
 
     class BaseMixin(CrudBaseForListAndDetailExternalAppView.BaseMixin):
+        list_field_names = ['bancada', 'bancada__legislatura', 'parlamentar', 'cargo', 'data_entrada', 'data_saida']
+        ordering = '-bancada__legislatura__numero'
 
         @classmethod
         def url_name(cls, suffix):
