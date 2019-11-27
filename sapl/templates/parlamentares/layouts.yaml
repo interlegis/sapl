@@ -138,7 +138,6 @@ ParlamentarBancada:
 
 ParlamentarBancadaList:
   {% trans 'Parlamentar Bancada' %}:
-  - id
   - parlamentar
   - cargo
   - data_entrada

@@ -182,18 +182,7 @@ class ParlamentarBancadaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-
-            context['subnav_template_name'] = ''
-
-            new_rows = []
-            rows = context['rows']
-            for row in rows:
-                parlamentar = Parlamentar.objects.get(nome_parlamentar=row[1][0])
-                new_row = row
-                new_row[1] = (row[1][0], '/parlamentar/'+str(parlamentar.id))
-                new_rows.append(new_row)
-            
-            context['rows'] = new_rows        
+            context['subnav_template_name'] = ''   
             return context
 
 
