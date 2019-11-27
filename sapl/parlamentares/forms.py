@@ -715,7 +715,7 @@ class ParlamentarBancadaCreateForm(ModelForm):
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
-        super(ParlamentarBancadaForm, self).__init__(*args, **kwargs)
+        super(ParlamentarBancadaCreateForm, self).__init__(*args, **kwargs)
         self.fields['bancada'].widget = forms.HiddenInput()
 
         id_parlamentares_titulares_legislatura_partido = []
@@ -746,7 +746,7 @@ class ParlamentarBancadaCreateForm(ModelForm):
         fields = '__all__'
 
     def clean(self):
-        super(ParlamentarBancadaForm, self).clean()
+        super(ParlamentarBancadaCreateForm, self).clean()
 
         if not self.is_valid():
             return self.cleaned_data
