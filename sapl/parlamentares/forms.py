@@ -783,8 +783,8 @@ class ParlamentarBancadaEditForm(ModelForm):
 
         if data['cargo'].cargo_unico:
             parlamentares_bancada = ParlamentarBancada.objects.filter(bancada=data['bancada'])
-            cargos = [parlamentar_bancada.cargo for parlamentar_bancada in parlamentares_bancada]
-            if data['cargo'] in cargos:
+            cargos = [(parlamentar_bancada.parlamentar, parlamentar_bancada.cargo) for parlamentar_bancada in parlamentares_bancada]
+            if data['cargo'] in cargos[:][1] and not (data['parlamentar'], data['cargo']) in cargos:
                 raise ValidationError("Este cargo está ocupado e é unico para esta Bancada.")
 
         return data

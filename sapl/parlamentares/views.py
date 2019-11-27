@@ -225,7 +225,6 @@ class ParlamentarBancadaParlamentarCrud(CrudBaseForListAndDetailExternalAppView)
             return context
 
 
-
 class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Relatoria
     parent_field = 'parlamentar'
