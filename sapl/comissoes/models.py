@@ -121,9 +121,14 @@ class Periodo(models.Model):  # PeriodoCompComissao
 
 @reversion.register()
 class CargoComissao(models.Model):
+    id_ordenacao = models.CharField(
+        max_length=50, verbose_name=_('Id de Ordenacao'),
+        default='Não definido'
+    )
     nome = models.CharField(max_length=50, verbose_name=_('Cargo'))
     unico = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Único'), default=True)
+        choices=YES_NO_CHOICES, verbose_name=_('Único'), default=True
+    )
 
     class Meta:
         verbose_name = _('Cargo de Comissão')
