@@ -59,6 +59,9 @@
   - title: {% trans 'Cargo de Comissão' %}
     url: sapl.comissoes:cargocomissao_list
     css_class: btn btn-link
+  - title: {% trans 'Ordenação dos Cargos' %}
+    url: sapl.comissoes:cargos_comissao_ordenacao
+    css_class: btn btn-link
   - title: {% trans 'Período de Composição' %}
     url: sapl.comissoes:periodo_list
     css_class: btn btn-link
