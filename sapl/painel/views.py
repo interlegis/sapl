@@ -596,16 +596,19 @@ def get_dados_painel(request, pk):
     if last_ordem_voto:
         ordem_expediente = last_ordem_voto.ordem
         ultimo_timestamp = last_ordem_voto.data_hora
-    if last_expediente_voto and last_expediente_voto.data_hora > ultimo_timestamp:
+    if (last_expediente_voto and ultimo_timestamp and last_expediente_voto.data_hora > ultimo_timestamp) or \
+        (not ultimo_timestamp and last_expediente_voto):
         ordem_expediente = last_expediente_voto.expediente
         ultimo_timestamp = last_expediente_voto.data_hora
-    if last_ordem_leitura and last_ordem_leitura.data_hora > ultimo_timestamp:
+    if (last_ordem_leitura and ultimo_timestamp and last_ordem_leitura.data_hora > ultimo_timestamp) or \
+        (not ultimo_timestamp and last_ordem_leitura):
         ordem_expediente = last_ordem_leitura.ordem
         ultimo_timestamp = last_ordem_leitura.data_hora
-    if last_expediente_leitura and last_expediente_leitura.data_hora > ultimo_timestamp:
+    if (last_expediente_leitura and ultimo_timestamp and last_expediente_leitura.data_hora > ultimo_timestamp) or \
+        (not ultimo_timestamp and last_expediente_leitura):
         ordem_expediente = last_expediente_leitura.expediente
         ultimo_timestamp = last_expediente_leitura.data_hora
-
+    
     if ordem_expediente:
         return JsonResponse(get_votos(
                             get_presentes(pk, response, ordem_expediente),
