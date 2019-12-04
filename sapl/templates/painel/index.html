@@ -431,9 +431,14 @@
               } else{
                 $("#observacao_materia").text('');
               }
+<<<<<<< HEAD
 
               if (data['tipo_resultado'] && data['status_painel']){
                 if(data['tipo_votacao'] != 'Leitura'){
+=======
+              if (data['tipo_resultado'] && data['status_painel'] == true){
+                if(data['tipo_votacao'] != 'Leitura' && !data['sessao_finalizada'] && !data["sessao_solene"]){
+>>>>>>> 8b4c0879... HOT-FIX: Corrige comportamento do painel quando a sessão está finalizada
                   $("#resultado_votacao").css("color", "#45919D");
                   $("#mat_em_votacao").text("Matéria em Votação");
                   $("#resultado_votacao_div").show();
