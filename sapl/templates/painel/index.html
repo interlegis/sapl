@@ -433,7 +433,7 @@
                 $("#observacao_materia").text('');
               }
               if (data['tipo_resultado'] && data['status_painel'] == true){
-                if(data['tipo_votacao'] != 'Leitura'){
+                if(data['tipo_votacao'] != 'Leitura' && !data['sessao_finalizada'] && !data["sessao_solene"]){
                   $("#resultado_votacao").css("color", "#45919D");
                   $("#mat_em_votacao").text("Matéria em Votação");
                   $("#resultado_votacao_div").show();
