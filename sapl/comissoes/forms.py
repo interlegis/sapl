@@ -96,11 +96,14 @@ class CargosComissaoOrdenacaoForm(forms.Form):
     )
     posicao = forms.ChoiceField(
         label='Posição',
-        required=True,
-        choices=choices_posicao()
+        required=True
     )
 
     def __init__(self, *args, **kwargs):
+        super(CargosComissaoOrdenacaoForm, self).__init__(**kwargs)
+        
+        self.fields['posicao'].choices = choices_posicao()
+
         row1 = to_row(
             [('cargo', 12)]
         )
@@ -113,8 +116,6 @@ class CargosComissaoOrdenacaoForm(forms.Form):
             Fieldset(_(''), row1, row2,
             form_actions(label="Atualizar"))
         )
-
-        super().__init__(*args, **kwargs)
 
     def clean(self):
         super(CargosComissaoOrdenacaoForm, self).clean
