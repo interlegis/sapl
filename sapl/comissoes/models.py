@@ -133,6 +133,7 @@ class CargoComissao(models.Model):
     class Meta:
         verbose_name = _('Cargo de Comissão')
         verbose_name_plural = _('Cargos de Comissão')
+        ordering = ['id_ordenacao']
 
     def __str__(self):
         return self.nome
@@ -185,6 +186,7 @@ class Participacao(models.Model):  # ComposicaoComissao
     class Meta:
         verbose_name = _('Participação em Comissão')
         verbose_name_plural = _('Participações em Comissão')
+        ordering = ['-titular', 'cargo__id_ordenacao']
 
     def __str__(self):
         return '%s : %s' % (self.cargo, self.parlamentar)

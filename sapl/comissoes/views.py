@@ -115,7 +115,7 @@ class CargosComissaoOrdenacaoView(PermissionRequiredMixin, FormView):
                 cargo = cargos.get(id_ordenacao=posicao)
                 tabela_ordenacao.append((posicao, cargo))
             else:
-                tabela_ordenacao.append((posicao, "-"))
+                tabela_ordenacao.append((posicao, ""))
 
         cargos_desordenados = cargos.filter(id_ordenacao="Não definido")
         for cargo_desordenado in cargos_desordenados:

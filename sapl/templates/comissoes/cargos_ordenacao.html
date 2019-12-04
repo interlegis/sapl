@@ -25,7 +25,13 @@
                     {% for posicao, cargo in cargos %}
                         <tr>
                             <td>{{ posicao }}</td>
-                            <td>{{ cargo }}</td>
+                            {% if cargo %}
+                                <td>
+                                    <a href="{% url 'sapl.comissoes:cargocomissao_detail' cargo.pk %}">{{ cargo }}</a>
+                                </td>
+                            {% else %}
+                                <td>-</td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                 </tbody>
