@@ -783,6 +783,7 @@ class OradorExpedienteCrud(OradorCrud):
 
 
     class ListView(MasterDetailCrud.ListView):
+        ordering = ['numero_ordem']
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
