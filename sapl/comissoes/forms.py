@@ -127,7 +127,20 @@ class CargosComissaoOrdenacaoForm(forms.Form):
         cleaned_data = self.cleaned_data
         
         cargo = cleaned_data['cargo']
-        cargo.id_ordenacao = cleaned_data['posicao']
+        posicao = cleaned_data['posicao']
+
+        if posicao == '0':
+            cargo.id_ordenacao = "Não definido"
+        else:
+            if CargoComissao.objects.filter(id_ordenacao=posicao):
+                outro_cargo = CargoComissao.objects.get(id_ordenacao=posicao)
+                outro_cargo.id_ordenacao = cargo.id_ordenacao
+                outro_cargo.save()
+
+                cargo.id_ordenacao = posicao
+            else:
+                cargo.id_ordenacao = posicao
+
         cargo.save()
 
 

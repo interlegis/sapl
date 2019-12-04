@@ -112,8 +112,8 @@ class CargosComissaoOrdenacaoView(PermissionRequiredMixin, FormView):
         tabela_ordenacao = []
         for posicao in posicoes:
             if cargos.filter(id_ordenacao=posicao):
-                cargo = cargos.filter(id_ordenacao=posicao)
-                tabela_ordenacao.append((posicao, cargo[0]))
+                cargo = cargos.get(id_ordenacao=posicao)
+                tabela_ordenacao.append((posicao, cargo))
             else:
                 tabela_ordenacao.append((posicao, "-"))
 
@@ -178,7 +178,7 @@ class ComposicaoCrud(MasterDetailCrud):
 
             context['participacao_set'] = Participacao.objects.filter(
                 composicao__pk=context['composicao_pk']
-            ).order_by('id')
+            ).order_by('-titular', 'cargo__id_ordenacao', 'id')
             return context
 
 
