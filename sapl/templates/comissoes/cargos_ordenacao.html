@@ -1,0 +1,37 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    <h1 class="page-header">Ordenação dos Cargos</h1>
+{% endblock %}
+
+{% block base_content %}
+    <div class="row">
+        <div class="col-md-6">
+            <br/><h3><b>Atualizar Ordenação</b></h3><br/>
+            {% crispy form %}
+        </div>
+        <div class="col-md-6">
+            <br/>
+            <h3><b>Ordenação Atual</b></h3><br/>
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Posição</th>
+                        <th>Cargo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for posicao, cargo in cargos %}
+                        <tr>
+                            <td>{{ posicao }}</td>
+                            <td>{{ cargo }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <br/>
+        </div>
+    </div>
+{% endblock %}

@@ -1,12 +1,12 @@
 import logging
 
-from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.urlresolvers import reverse
 from django.db.models import F
 from django.http.response import HttpResponseRedirect, JsonResponse
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.generic import ListView, CreateView, DeleteView
+from django.views.generic import CreateView, DeleteView, FormView, ListView
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin, UpdateView
@@ -16,17 +16,18 @@ from django_filters.views import FilterView
 
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.comissoes.apps import AppConfig
-from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
+from sapl.comissoes.forms import (CargosComissaoOrdenacaoForm, ComissaoForm,
+                                  ComposicaoForm,
                                   DocumentoAcessorioCreateForm,
                                   DocumentoAcessorioEditForm,
                                   ParticipacaoCreateForm, ParticipacaoEditForm,
-                                  PautaReuniaoForm, PeriodoForm, ReuniaoForm,
-                                  PautaReuniaoFilterSet)
-from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
-                            MasterDetailCrud,
-                            PermissionRequiredForAppCrudMixin)
-from sapl.materia.models import (MateriaLegislativa, Tramitacao, PautaReuniao,
-                                 MateriaEmTramitacao)
+                                  PautaReuniaoFilterSet, PautaReuniaoForm,
+                                  PeriodoForm, ReuniaoForm)
+from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud,
+                            PermissionRequiredForAppCrudMixin, RP_DETAIL,
+                            RP_LIST)
+from sapl.materia.models import (MateriaEmTramitacao, MateriaLegislativa,
+                                 PautaReuniao, Tramitacao)
 from sapl.utils import show_results_filter_set
 
 from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
@@ -95,6 +96,40 @@ class ParticipacaoCrud(MasterDetailCrud):
             return '{}?pk={}'.format(reverse('sapl.comissoes:composicao_list',
                                              args=[composicao_comissao_pk]),
                                      composicao_pk)
+
+
+class CargosComissaoOrdenacaoView(PermissionRequiredMixin, FormView):
+    template_name = 'comissoes/cargos_ordenacao.html'
+    form_class = CargosComissaoOrdenacaoForm
+    permission_required = ('base.list_appconfig',)
+
+    def get_context_data(self, **kwargs):
+        context = super(CargosComissaoOrdenacaoView, self).get_context_data(**kwargs)
+
+        cargos = CargoComissao.objects.all()
+        posicoes = list(range(1, len(cargos)+1))
+
+        tabela_ordenacao = []
+        for posicao in posicoes:
+            if cargos.filter(id_ordenacao=posicao):
+                cargo = cargos.filter(id_ordenacao=posicao)
+                tabela_ordenacao.append((posicao, cargo[0]))
+            else:
+                tabela_ordenacao.append((posicao, "-"))
+
+        cargos_desordenados = cargos.filter(id_ordenacao="Não definido")
+        for cargo_desordenado in cargos_desordenados:
+            tabela_ordenacao.append(("Não definida", cargo_desordenado))
+            
+        context['cargos'] = tabela_ordenacao
+        return context
+
+    def get_success_url(self):
+        return reverse('sapl.comissoes:cargos_comissao_ordenacao')
+    
+    def form_valid(self, form):
+        form.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class ComposicaoCrud(MasterDetailCrud):

@@ -12,16 +12,16 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import (Comissao, Composicao,
-                                   DocumentoAcessorio, Participacao,
-                                   Periodo, Reuniao)
-from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper, 
+from sapl.comissoes.models import (CargoComissao, Comissao,
+                                   Composicao, DocumentoAcessorio,
+                                   Participacao, Periodo, Reuniao)
+from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       to_row)
 from sapl.materia.models import MateriaEmTramitacao, PautaReuniao
 from sapl.parlamentares.models import (Legislatura, Mandato,
                                        Parlamentar)
-from sapl.utils import (FileFieldCheckMixin, FilterOverridesMetaMixin,
-                        validar_arquivo)
+from sapl.utils import (FileFieldCheckMixin,
+                        FilterOverridesMetaMixin, validar_arquivo)
 
 
 class ComposicaoForm(forms.ModelForm):
@@ -77,6 +77,57 @@ class ComposicaoForm(forms.ModelForm):
                                   'cadastrados para esta comissão')
 
         return cleaned_data
+
+
+def choices_posicao():
+    posicoes = list(range(1, len(CargoComissao.objects.all())+1))
+    choices = [(posicao, str(posicao)+"º") for posicao in posicoes]
+    choices.insert(0, (0, "Não definida"))
+    return choices
+
+
+class CargosComissaoOrdenacaoForm(forms.Form):
+
+    cargo = forms.ModelChoiceField(
+        label='Cargo',
+        required=True,
+        empty_label='Selecione um cargo',
+        queryset=CargoComissao.objects.all().order_by('id_ordenacao')
+    )
+    posicao = forms.ChoiceField(
+        label='Posição',
+        required=True,
+        choices=choices_posicao()
+    )
+
+    def __init__(self, *args, **kwargs):
+        row1 = to_row(
+            [('cargo', 12)]
+        )
+        row2 = to_row(
+            [('posicao', 12)]
+        )
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_(''), row1, row2,
+            form_actions(label="Atualizar"))
+        )
+
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        super(CargosComissaoOrdenacaoForm, self).clean
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+    def save(self):
+        cleaned_data = self.cleaned_data
+        
+        cargo = cleaned_data['cargo']
+        cargo.id_ordenacao = cleaned_data['posicao']
+        cargo.save()
 
 
 class PeriodoForm(forms.ModelForm):
