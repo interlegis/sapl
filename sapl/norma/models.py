@@ -184,10 +184,14 @@ class NormaJuridica(models.Model):
         return anexos
 
     def __str__(self):
-        return _('%(tipo)s nº %(numero)s de %(data)s') % {
+        numero_norma = self.numero
+        if numero_norma.isnumeric():
+            numero_norma = '{0:,}'.format(int(self.numero)).replace(',', '.')
+
+        return _('%(tipo)s nº %(numero)s, de %(data)s') % {
             'tipo': self.tipo,
-            'numero': self.numero,
-            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+            'numero': numero_norma,
+            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
 
     @property
     def epigrafe(self):
@@ -346,8 +350,8 @@ class NormaRelacionada(models.Model):
     def __str__(self):
         return _('Principal: %(norma_principal)s'
                  ' - Relacionada: %(norma_relacionada)s') % {
-            'norma_principal': self.norma_principal,
-            'norma_relacionada': self.norma_relacionada}
+            'norma_principal': str(self.norma_principal),
+            'norma_relacionada': str(self.norma_relacionada)}
 
 
 @reversion.register()
