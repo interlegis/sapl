@@ -378,35 +378,36 @@
                   $('#aparecer_oradores').hide();
                 }
               } else{
-                presentes.append('<span id="parlamentares_list">');
-                $('#parlamentares_list').append(
-                    '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
-                presentes.append('</span>');
+                  presentes.append('<span style="color:white" id="parlamentares_list">');
+                  $('#parlamentares_list').append(
+                      '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
+                  presentes.append('</span>');
 
-                oradores.append('<span id="oradores_list">');
-                $('#oradores_list').append(
-                    '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
-                oradores.append('</span>');
+                  oradores.append('<span style="color:white" id="oradores_list">');
+                  $('#oradores_list').append(
+                      '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
+                  oradores.append('</span>');
 
-                votacao.append('<span id="votacao">');
-                $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
-                votacao.append('</span>');
+                  votacao.append('<span id="votacao">');
+                  $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
+                  votacao.append('</span>');
               }
 
-              if (data['materia_legislativa_texto'] && data["status_painel"]){
+              if(data["status_painel"]){
+                if (data['materia_legislativa_texto']){
+                  var votacao = $("#votacao");
 
-                var votacao = $("#votacao")
+                  votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>");
+                  votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>");
+                  votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>");
+                  votacao.append("<li>Presentes: " + data["num_presentes"] + "</li>");
+                  votacao.append("<li>Total votos: " + data["total_votos"] + "</li>");
+                }
+                else{
+                    $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
+                }
+              }
 
-                var num_presentes = data["num_presentes"];
-
-                votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
-                votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
-                votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
-                votacao.append("<li>Presentes: " + num_presentes + "</li>")
-                votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
-              } else{
-                  $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
-              };
 
               // obtém todos os ids em uma lista e
                // converte os dados do status dos cronômetros de dicionário para uma lista
@@ -470,8 +471,9 @@
                 } else{
                   $("#materia_legislativa_texto").text('A Matéria em votação só aparecerá quando o painel estiver aberto');
                 }
-              } else{
-                $("#materia_legislativa_texto").text('Não há nehuma matéria votada ou para votação');
+              }
+              else{
+                $("#materia_legislativa_texto").text('Não há nenhuma matéria votada ou para votação.');
               }
 
               if (data['observacao_materia'] && data["status_painel"] == true){
