@@ -1328,9 +1328,14 @@ class ConfiguracoesAppForm(ModelForm):
                   'tramitacao_materia',
                   'tramitacao_documento']
 
-    def clean_mostrar_brasao_painel(self):
-        mostrar_brasao_painel = self.cleaned_data.get(
-            'mostrar_brasao_painel', False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
+        mostrar_brasao_painel = self.cleaned_data.get('mostrar_brasao_painel', False)
         casa = CasaLegislativa.objects.first()
 
         if not casa:
@@ -1343,7 +1348,7 @@ class ConfiguracoesAppForm(ModelForm):
             raise ValidationError("Não há logitipo configurado para esta "
                                   "Casa legislativa.")
 
-        return mostrar_brasao_painel
+        return cleaned_data
 
 
 class RecuperarSenhaForm(PasswordResetForm):
