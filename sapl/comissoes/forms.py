@@ -431,9 +431,10 @@ class PautaReuniaoFilterSet(django_filters.FilterSet):
 
         self.filters['materia__tipo'].label = "Tipo da Matéria"
         self.filters['materia__ano'].label = "Ano da Matéria"
+        self.filters['materia__numero'].label = "Número da Matéria"
         self.filters['materia__data_apresentacao'].label = "Data (Inicial - Final)"
 
-        row1 = to_row([('materia__numero', 4), ('materia__tipo', 4), ('materia__ano', 4)])
+        row1 = to_row([('materia__tipo', 4), ('materia__ano', 4), ('materia__numero', 4)])
         row2 = to_row([('materia__data_apresentacao', 12)])
 
         self.form.helper = SaplFormHelper()
