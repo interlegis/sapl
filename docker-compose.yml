@@ -11,8 +11,8 @@ sapldb:
   ports:
     - "5433:5432"
 sapl:
-        #image: interlegis/sapl:3.1.160-RC9
-  build: .
+  image: interlegis/sapl:3.1.160-RC9
+  #build: .
   restart: always
   environment:
     ADMIN_PASSWORD: interlegis
