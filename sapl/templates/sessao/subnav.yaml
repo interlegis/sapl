@@ -41,10 +41,15 @@
       url: votacao_bloco_ordemdia
       check_permission: sessao.add_sessaoplenaria
 
-- title: {% trans 'Painel Eletrônico' %}
-  url: painel
-  {% if not 'painel_aberto'|get_config_attr %}check_permission: painel.list_painel{%endif%}
-  check_permission: painel.list_painel
+- title: {% trans 'Operador' %}
+  children:
+    - title: {% trans 'Painel Eletrônico' %}
+      url: painel
+      {% if not 'painel_aberto'|get_config_attr %}check_permission: painel.list_painel{%endif%}
+      check_permission: painel.list_painel
+    - title: {% trans 'Lista de Discurso' %}
+      url: lista_discurso
+      check_permission: painel.list_painel
 
 - title: {% trans 'Resumo' %}
   children:
