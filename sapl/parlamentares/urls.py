@@ -96,4 +96,3 @@ urlpatterns = [
         get_sessoes_legislatura, name='get_sessoes_legislatura'),
     
 ]
-

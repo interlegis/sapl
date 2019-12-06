@@ -31,6 +31,7 @@ from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
+from sapl.parlamentares.models import Mandato, Parlamentar
 
 
 class BusinessRulesNotImplementedMixin:
@@ -303,6 +304,16 @@ class _AutorViewSet:
 
 @customize(Parlamentar)
 class _ParlamentarViewSet:
+    class ParlamentarPermission(SaplModelPermissions):
+        def has_permission(self, request, view):
+            if request.method == 'GET':
+                return True
+            else:
+                perm = super().has_permission(request, view)
+                return perm
+                
+    permission_classes = (ParlamentarPermission, )
+
     @action(detail=True)
     def proposicoes(self, request, *args, **kwargs):
         """
@@ -339,16 +350,13 @@ class _ParlamentarViewSet:
         """
         Pega lista de parlamentares pelo id da legislatura.
         """
-        from sapl.parlamentares.models import Mandato, Parlamentar
-        mandatos = Mandato.objects.filter(legislatura__id=kwargs['pk']).values_list('parlamentar')
-        parlamentares = Parlamentar.objects.filter(id__in=[m[0] for m in mandatos])
+        parlamentares = Parlamentar.objects.filter(mandato__legislatura=kwargs['pk'])
         serializer_class = ParlamentarResumeSerializer(parlamentares,many=True,context={'legislatura':kwargs['pk']})
-
         return Response(serializer_class.data)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False,methods=['GET'])
     def search_parlamentares(self,request,*args,**kwargs):
-        nome = request.data.get('nome_parlamentar','')
+        nome = request.query_params.get('nome_parlamentar','')
         parlamentares = Parlamentar.objects.filter(nome_parlamentar__icontains=nome)
         serializer_class= ParlamentarResumeSerializer(parlamentares,many=True)
         return Response(serializer_class.data)

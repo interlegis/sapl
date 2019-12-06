@@ -1,7 +1,6 @@
 from datetime import datetime
 import json
 import logging
-import os
 
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -22,7 +21,6 @@ from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
 from django_filters.views import FilterView
 from image_cropping.utils import get_backend
-from django.core import serializers
 
 
 from sapl.base.forms import SessaoLegislativaForm, PartidoForm
@@ -33,7 +31,7 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
-from sapl.utils import (parlamentares_ativos, show_results_filter_set,filiacao_data)
+from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
