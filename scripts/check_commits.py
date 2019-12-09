@@ -18,10 +18,10 @@ commits_master = [commit.replace('\r', '') for commit in commits_master]
 for c, s in commits_3_1_x:
     # retira os \r para evitar bugs
     c = c.replace('\r', '')
-    if c not in commits_master:
+    if (c not in commits_master) and ('Release' not in c):
         print('---------------------------------------------------------------------')
         print('Data: ' + s['data'][:10])
-        print(s['sha'][:7] + '-> ' + c)
+        print(s['sha'][:7] + ' -> ' + c)
 
 print('---------------------------------------------------------------------')
         
