@@ -185,7 +185,8 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
                    'anexadas', 'data_ultima_atualizacao']
         widgets = {
             'user': forms.HiddenInput(),
-            'ip': forms.HiddenInput()
+            'ip': forms.HiddenInput(),
+            'ultima_edicao': forms.HiddenInput()
         }
 
     def __init__(self, *args, **kwargs):
@@ -469,9 +470,12 @@ class TramitacaoForm(ModelForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip']
+                  'ip',
+                  'ultima_edicao']
+                
         widgets = {'user': forms.HiddenInput(),
-                   'ip': forms.HiddenInput()}
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()}
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
@@ -584,7 +588,8 @@ class TramitacaoForm(ModelForm):
                         texto=tramitacao.texto,
                         data_fim_prazo=tramitacao.data_fim_prazo,
                         user=tramitacao.user,
-                        ip=tramitacao.ip
+                        ip=tramitacao.ip,
+                        ultima_edicao=tramitacao.ultima_edicao
                     ))
             Tramitacao.objects.bulk_create(lista_tramitacao)
 
@@ -626,14 +631,16 @@ class TramitacaoUpdateForm(TramitacaoForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip'
+                  'ip',
+                  'ultima_edicao'
                   ]
 
         widgets = {
             'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
             'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
             'user': forms.HiddenInput(),
-            'ip': forms.HiddenInput()
+            'ip': forms.HiddenInput(),
+            'ultima_edicao': forms.HiddenInput()
         }
 
     def clean(self):
@@ -664,6 +671,17 @@ class TramitacaoUpdateForm(TramitacaoForm):
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
+        
+        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
+            cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
+            cd['status'] != obj.status or cd['texto'] != obj.texto or \
+            cd['data_encaminhamento'] != obj.data_encaminhamento or \
+            cd['data_fim_prazo'] != obj.data_fim_prazo or cd['urgente'] != str(obj.urgente) or \
+            cd['turno'] != obj.turno):
+            ### Se não ocorreram alterações, o usuário, ip, data e hora da última edição (real) são mantidos
+            cd['user'] = obj.user
+            cd['ip'] = obj.ip
+            cd['ultima_edicao'] = obj.ultima_edicao
 
         cd['data_tramitacao'] = obj.data_tramitacao
         cd['unidade_tramitacao_local'] = obj.unidade_tramitacao_local
@@ -696,6 +714,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
                     tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
                     tram_anexada.user = nova_tram_principal.user
                     tram_anexada.ip = nova_tram_principal.ip
+                    tram_anexada.ultima_edicao = nova_tram_principal.ultima_edicao
                     tram_anexada.save()
 
                     ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
@@ -1620,9 +1639,13 @@ class TramitacaoEmLoteForm(ModelForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip']
+                  'ip',
+                  'ultima_edicao']
+
         widgets = {'user': forms.HiddenInput(),
-                   'ip': forms.HiddenInput()}
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()}
+            
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoEmLoteForm, self).__init__(*args, **kwargs)
@@ -1743,9 +1766,12 @@ class TramitacaoEmLoteForm(ModelForm):
     @transaction.atomic
     def save(self, commit=True):
         cd = self.cleaned_data
+        
         materias = self.initial['materias']
         user = self.initial['user'] if 'user' in self.initial else None
         ip = self.initial['ip'] if 'ip' in self.initial else ''
+        ultima_edicao = self.initial['ultima_edicao'] if 'ultima_edicao' in self.initial else ''
+
         tramitar_anexadas = AppConfig.attr('tramitacao_materia')
         for mat_id in materias:
             mat = MateriaLegislativa.objects.get(id=mat_id)
@@ -1761,7 +1787,8 @@ class TramitacaoEmLoteForm(ModelForm):
                 texto=cd['texto'],
                 data_fim_prazo=cd['data_fim_prazo'],
                 user=user,
-                ip=ip
+                ip=ip,
+                ultima_edicao=ultima_edicao
             )
             mat.em_tramitacao = False if tramitacao.status.indicador == "F" else True
             mat.save()
@@ -1787,7 +1814,8 @@ class TramitacaoEmLoteForm(ModelForm):
                                                 texto=tramitacao.texto,
                                                 data_fim_prazo=tramitacao.data_fim_prazo,
                                                 user=tramitacao.user,
-                                                ip=tramitacao.ip
+                                                ip=tramitacao.ip,
+                                                ultima_edicao=tramitacao.ultima_edicao
                                                 ))
                 Tramitacao.objects.bulk_create(lista_tramitacao)
 

@@ -295,6 +295,10 @@ class MateriaLegislativa(models.Model):
         blank=True,
         default=''
     )
+    ultima_edicao = models.DateTimeField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
 
     class Meta:
         verbose_name = _('Matéria Legislativa')
@@ -1096,6 +1100,10 @@ class Tramitacao(models.Model):
                           max_length=30,
                           blank=True,
                           default='')
+    ultima_edicao = models.DateTimeField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
 
     class Meta:
         verbose_name = _('Tramitação')

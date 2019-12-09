@@ -350,6 +350,17 @@ class DocumentoAdministrativoCrud(Crud):
         form_class = DocumentoAdministrativoForm
         layout_key = None
 
+        def get_initial(self):
+            initial = super().get_initial()
+
+            initial['user'] = self.request.user
+            initial['ip'] = get_client_ip(self.request)
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
+            return initial
+
         @property
         def cancel_url(self):
             return self.search_url
@@ -357,6 +368,33 @@ class DocumentoAdministrativoCrud(Crud):
     class UpdateView(Crud.UpdateView):
         form_class = DocumentoAdministrativoForm
         layout_key = None
+
+        def form_valid(self, form):
+            dict_objeto_antigo = DocumentoAdministrativo.objects.get(
+                pk=self.kwargs['pk']
+            ).__dict__
+
+            self.object = form.save()
+            dict_objeto_novo = self.object.__dict__
+
+            atributos = [
+                'tipo_id', 'ano', 'numero', 'data', 'protocolo_id', 'assunto',
+                'interessado', 'tramitacao', 'restrito', 'texto_integral','numero_externo',
+                'dias_prazo', 'data_fim_prazo', 'observacao'
+            ]
+
+            for atributo in atributos:
+                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
+                    self.object.user = self.request.user
+                    self.object.ip = get_client_ip(self.request)
+
+                    tz = timezone.get_current_timezone()
+                    self.object.ultima_edicao = tz.localize(datetime.now())
+
+                    self.object.save()
+                    break
+
+            return super().form_valid(form)
 
         def get_initial(self):
             if self.object.protocolo:
@@ -372,7 +410,17 @@ class DocumentoAdministrativoCrud(Crud):
             if documento.restrito and self.request.user.is_anonymous():
                 return redirect('/')
             return super(Crud.DetailView, self).get(args, kwargs)
+        
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            
+            context['user'] = self.request.user
+            context['documentoadministrativo'] = DocumentoAdministrativo.objects.get(
+                pk=self.kwargs['pk']
+            )
 
+            return context
+        
         def urlize(self, obj, fieldname):
             a = '<a href="%s">%s</a>' % (
                 reverse(
@@ -645,6 +693,12 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc['assunto'] = protocolo.assunto_ementa
         doc['interessado'] = protocolo.interessado
         doc['numero'] = numero_max + 1 if numero_max else 1
+        doc['user'] = self.request.user
+        doc['ip'] = get_client_ip(self.request)
+
+        tz = timezone.get_current_timezone()
+        doc['ultima_edicao'] = tz.localize(datetime.now())
+        
         return doc
 
 
@@ -1175,6 +1229,10 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial['data_tramitacao'] = timezone.now().date()
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         def get_context_data(self, **kwargs):
@@ -1238,6 +1296,10 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial = super(UpdateView, self).get_initial()
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         def form_valid(self, form):
@@ -1391,6 +1453,13 @@ class DesvincularDocumentoView(PermissionRequiredMixin, CreateView):
                                                         ano=form.cleaned_data['ano'],
                                                         tipo=form.cleaned_data['tipo'])
         documento.protocolo = None
+
+        documento.user = self.request.user
+        documento.ip = get_client_ip(self.request)
+
+        tz = timezone.get_current_timezone()
+        documento.ultima_edicao = tz.localize(datetime.now())
+
         documento.save()
         return redirect(self.get_success_url())
 
@@ -1565,15 +1634,19 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
         user = request.user
         ip = get_client_ip(request)
 
+        tz = timezone.get_current_timezone()
+        ultima_edicao = tz.localize(datetime.now())
+
         documentos_ids = request.POST.getlist('documentos')
         if not documentos_ids:
             msg = _("Escolha algum Documento para ser tramitado.")
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        form = TramitacaoEmLoteAdmForm(request.POST,
-                                       initial={'documentos': documentos_ids,
-                                                'user': user, 'ip': ip})
+        form = TramitacaoEmLoteAdmForm(request.POST, 
+                                       initial= {'documentos': documentos_ids,
+                                                'user': user, 'ip':ip,
+                                                'ultima_edicao': ultima_edicao})
 
         if form.is_valid():
             form.save()
