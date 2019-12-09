@@ -10,7 +10,7 @@ import sapl.utils
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('materia', '0060_auto_20190905_1134'),
+        ('materia', '0060_auto_20190930_1136'),
     ]
 
     operations = [
