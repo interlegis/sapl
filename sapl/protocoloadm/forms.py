@@ -689,9 +689,12 @@ class TramitacaoAdmForm(ModelForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip']
+                  'ip',
+                  'ultima_edicao']
+
         widgets = {'user': forms.HiddenInput(),
-                   'ip': forms.HiddenInput()}
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()}
             
 
     def __init__(self, *args, **kwargs):
@@ -806,7 +809,8 @@ class TramitacaoAdmForm(ModelForm):
                                             texto=tramitacao.texto,
                                             data_fim_prazo=tramitacao.data_fim_prazo,
                                             user=tramitacao.user,
-                                            ip=tramitacao.ip
+                                            ip=tramitacao.ip,
+                                            ultima_edicao=tramitacao.ultima_edicao
                                             ))
             TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
 
@@ -820,7 +824,7 @@ def compara_tramitacoes_doc(tramitacao1, tramitacao2):
     if not tramitacao1 or not tramitacao2:
         return False
 
-    lst_items = ['id', 'documento_id', 'timestamp']
+    lst_items = ['id', 'documento_id', 'timestamp', 'ultima_edicao']
     values = [(k,v) for k,v in tramitacao1.__dict__.items() if ((k not in lst_items) and (k[0] != '_'))]
     other_values = [(k,v) for k,v in tramitacao2.__dict__.items() if (k not in lst_items and k[0] != '_')]
     return values == other_values
@@ -847,9 +851,12 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip']
+                  'ip',
+                  'ultima_edicao']
+
         widgets = {'user': forms.HiddenInput(),
-                   'ip': forms.HiddenInput()}
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()}
 
     def clean(self):
         super(TramitacaoAdmEditForm, self).clean()
@@ -886,6 +893,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
            cd['data_fim_prazo'] != obj.data_fim_prazo):
             cd['user'] = obj.user
             cd['ip'] = obj.ip
+            cd['ultima_edicao'] = obj.ultima_edicao
 
         cd['data_tramitacao'] = obj.data_tramitacao
         cd['unidade_tramitacao_local'] = obj.unidade_tramitacao_local
@@ -917,6 +925,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
                     tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
                     tram_anexada.user = nova_tram_principal.user
                     tram_anexada.ip = nova_tram_principal.ip
+                    tram_anexada.ultima_edicao = nova_tram_principal.ultima_edicao
                     tram_anexada.save()
 
                     da.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
@@ -1084,10 +1093,17 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                   'observacao',
                   'texto_integral',
                   'protocolo',
-                  'restrito'
+                  'restrito',
+                  'user',
+                  'ip',
+                  'ultima_edicao'
                   ]
 
-        widgets = {'protocolo': forms.HiddenInput()}
+        widgets = {'protocolo': forms.HiddenInput(),
+                   'user': forms.HiddenInput(),
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()
+                    }
 
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
@@ -1489,9 +1505,12 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip']
+                  'ip',
+                  'ultima_edicao']
+
         widgets = {'user': forms.HiddenInput(),
-                   'ip': forms.HiddenInput()}
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()}
             
 
     def __init__(self, *args, **kwargs):
@@ -1612,9 +1631,12 @@ class TramitacaoEmLoteAdmForm(ModelForm):
     @transaction.atomic
     def save(self, commit=True):
         cd = self.cleaned_data
+
         documentos = self.initial['documentos']
         user = self.initial['user'] if 'user' in self.initial else None
         ip = self.initial['ip'] if 'ip' in self.initial else ''
+        ultima_edicao = self.initial['ultima_edicao'] if 'ultima_edicao' in self.initial else ''
+
         tramitar_anexados = AppConfig.attr('tramitacao_documento')
         for doc_id in documentos:
             doc = DocumentoAdministrativo.objects.get(id=doc_id)
@@ -1629,7 +1651,8 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                 texto=cd['texto'],
                 data_fim_prazo=cd['data_fim_prazo'],
                 user=user,
-                ip=ip
+                ip=ip,
+                ultima_edicao=ultima_edicao
             )
             doc.tramitacao = False if tramitacao.status.indicador == "F" else True
             doc.save()
@@ -1654,7 +1677,8 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                                                 texto=tramitacao.texto,
                                                 data_fim_prazo=tramitacao.data_fim_prazo,
                                                 user=tramitacao.user,
-                                                ip=tramitacao.ip
+                                                ip=tramitacao.ip,
+                                                ultima_edicao=tramitacao.ultima_edicao
                                                 ))
                 TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 

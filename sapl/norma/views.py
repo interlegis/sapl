@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 import re
 
@@ -222,6 +223,9 @@ class NormaCrud(Crud):
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
 
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             username = self.request.user.username
             try:
                 self.logger.debug(
@@ -286,6 +290,10 @@ class NormaCrud(Crud):
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
+
+                    tz = timezone.get_current_timezone()
+                    self.object.ultima_edicao = tz.localize(datetime.now())
+
                     self.object.save()
                     break
 
@@ -295,6 +303,10 @@ class NormaCrud(Crud):
             if assuntos_antigos != assuntos_novos:
                 self.object.user = self.request.user
                 self.object.ip = get_client_ip(self.request)
+
+                tz = timezone.get_current_timezone()
+                self.object.ultima_edicao = tz.localize(datetime.now())
+
                 self.object.save()
 
             return super().form_valid(form)

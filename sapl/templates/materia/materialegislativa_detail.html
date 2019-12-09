@@ -1,5 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+
 {% block sub_actions %}
     {{ block.super }}
     {% if object.em_tramitacao and mail_service_configured %}
@@ -8,6 +9,7 @@
        </div>
     {% endif %}
 {% endblock sub_actions %}
+
 {% block detail_content %}
     {{ block.super }}
     {% if object.registrovotacao_set.exists %}
@@ -46,13 +48,15 @@
     {% if user.is_superuser %}
       <div class="row">
         {% if materia.user %}
-          <div class="col-sm-6">
+          <div class="col-sm-4">
             <div id="div_id_user" class="form-group">
               <p class="control-label">Usuário</p>
               <div class="controls">
                 <div class="form-control-static">
                   <div class="dont-break-out">
-                    <a href="{% url 'sapl.base:user_edit' materia.user.pk %}">{{materia.user}}</a>
+                    <a href="{% url 'sapl.base:user_edit' materia.user.pk %}">
+                      {{ materia.user }}
+                    </a>
                   </div>
                 </div>
               </div>
@@ -60,12 +64,28 @@
           </div>
         {% endif %}
         {% if materia.ip %}
-          <div class="col-sm-6">
+          <div class="col-sm-4">
             <div id="div_ip_user" class="form-group">
               <p class="control-label">IP</p>
               <div class="controls">
                 <div class="form-control-static">
-                  <div class="dont-break-out">{{materia.ip}}</div>
+                  <div class="dont-break-out">
+                    {{ materia.ip }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        {% if materia.ultima_edicao %}
+          <div class="col-sm-4">
+            <div id="div_ud_user" class="form-group">
+              <p class="control-label">Data e Hora da Edição</p>
+              <div class="controls">
+                <div class="form-control-static">
+                  <div class="dont-break-out">
+                    {{ materia.ultima_edicao }}
+                  </div>
                 </div>
               </div>
             </div>

@@ -1235,6 +1235,10 @@ class TramitacaoCrud(MasterDetailCrud):
             initial['data_tramitacao'] = timezone.now().date()
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         def get_context_data(self, **kwargs):
@@ -1301,28 +1305,20 @@ class TramitacaoCrud(MasterDetailCrud):
 
         layout_key = 'TramitacaoUpdate'
 
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            
+            initial['ip'] = get_client_ip(self.request)
+            initial['user'] = self.request.user
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
+            return initial
+
         def form_valid(self, form):
-            dict_objeto_antigo = Tramitacao.objects.get(
-                pk=self.kwargs['pk']).__dict__
-
             self.object = form.save()
-            dict_objeto_novo = self.object.__dict__
-
             user = self.request.user
-
-            atributos = [
-                'data_tramitacao', 'unidade_tramitacao_destino_id', 'status_id', 'texto',
-                'data_encaminhamento', 'data_fim_prazo', 'urgente', 'turno'
-            ]
-
-            # Se não houve qualquer alteração em um dos dados, mantém o usuário
-            # e ip
-            for atributo in atributos:
-                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
-                    self.object.user = user
-                    self.object.ip = get_client_ip(self.request)
-                    self.object.save()
-                    break
 
             try:
                 self.logger.debug("user=" + user.username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
@@ -1718,6 +1714,9 @@ class MateriaLegislativaCrud(Crud):
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
 
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         @property
@@ -1749,6 +1748,10 @@ class MateriaLegislativaCrud(Crud):
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
+                    
+                    tz = timezone.get_current_timezone()
+                    self.object.ultima_edicao = tz.localize(datetime.now())
+                    
                     self.object.save()
                     break
 
@@ -2398,6 +2401,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     def post(self, request, *args, **kwargs):
         user = request.user
         ip = get_client_ip(request)
+        
+        tz = timezone.get_current_timezone()
+        ultima_edicao = tz.localize(datetime.now()) 
 
         materias_ids = request.POST.getlist('materias')
         if not materias_ids:
@@ -2407,7 +2413,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
         form = TramitacaoEmLoteForm(request.POST, 
                                        initial= {'materias': materias_ids,
-                                                'user': user, 'ip':ip})
+                                                'user': user, 'ip':ip,
+                                                'ultima_edicao': ultima_edicao})
 
         if form.is_valid():
             form.save()
