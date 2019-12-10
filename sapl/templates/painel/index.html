@@ -291,11 +291,7 @@
                           + '</td></tr>')
                     }
                     else{
-                      $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
-                          parlamentar.nome +
-                          '</td> <td style="padding-right:20px">' +
-                          parlamentar.partido + '</td> <td style="padding-right:20px">'
-                          + show_voto(parlamentar.voto) + '</td></tr>')
+                      $('#parlamentares_list').append(show_voto(parlamentar))
                     }
 
                   });
@@ -476,15 +472,21 @@
       })();
       });
 
-     function show_voto(voto) {
-      if (voto == "Sim"){
-          return '<font color="green"> Sim </font>'
+     function show_voto(parlamentar) {
+      color = 'white'
+      if (parlamentar.voto == "Sim"){
+          color = 'green'
       }
-      else if (voto == "Não"){
-          return '<font color="red"> Não </font>'
+      else if (parlamentar.voto == "Não"){
+          color = 'red'
       }
-      return voto
+
+      return ('<tr> <td style="padding-right:20px">' +
+                '<font color="'+color+'">' + parlamentar.nome + '</font> </td> <td style="padding-right:20px">' +
+                '<font color="'+color+'">' + parlamentar.partido + '</font> </td> <td style="padding-right:20px">' +
+                '<font color="'+color+'">' + parlamentar.voto + '</font> </td></tr>')
      }
+     
   </script>
 </html>
 
