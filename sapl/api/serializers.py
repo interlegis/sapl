@@ -79,4 +79,4 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Parlamentar
-        fields = ['nome_parlamentar','fotografia','ativo','partido','titular']
+        fields = ['id', 'nome_parlamentar', 'fotografia', 'ativo', 'partido', 'titular']
