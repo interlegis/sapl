@@ -7,12 +7,19 @@ def deduplica_protocolos(apps, schema_editor):
     from sapl.base.views import protocolos_duplicados
 
     Protocolo = apps.get_model('protocoloadm', 'Protocolo')
+    DocumentoAdministrativo = apps.get_model('protocoloadm', 'DocumentoAdministrativo')
 
     protocolos = protocolos_duplicados()
-    for protocolo in protocolos:
-        protocolo_principal = Protocolo.objects.filter(numero=protocolo['numero'], ano=protocolo['ano']).order_by('-id')[0]
-        Protocolo.objects.filter(numero=protocolo['numero'], ano=protocolo['ano']).exclude(id=protocolo_principal.id).delete()
+    for p in protocolos:
+        principal = Protocolo.objects.filter(numero=p['numero'], ano=p['ano']).order_by('-id').first()
+        replicas = Protocolo.objects.filter(numero=p['numero'], ano=p['ano']).exclude(id=principal.id)
 
+        for r in replicas:
+            documentos = DocumentoAdministrativo.objects.filter(protocolo_id=r.id)
+            for d in documentos:
+                d.protocolo = principal
+                d.save()
+        replicas.delete()
 
 class Migration(migrations.Migration):
 
