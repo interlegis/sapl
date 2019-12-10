@@ -1,0 +1,289 @@
+{% load i18n %}
+{% load common_tags %}
+
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
+<!DOCTYPE HTML>
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html lang="en">
+<!--<![endif]-->
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- TODO: does it need this head_title here? -->
+    <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+    
+    {% block webpack_loader_css %}
+      {% render_chunk_vendors 'css' %}
+      {% render_bundle  'global' 'css' %}
+      {% render_bundle  'painel' 'css' %}
+    {% endblock webpack_loader_css %}
+
+  </head>
+  <body class="painel-principal">
+    <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
+
+    {% if painel_config.exibir_nome_casa %}
+      <div class="d-flex justify-content-center">
+        <h1 id="casa_legislativa" class="title text-title" style="color:red">{{casa.nome}}</h1>
+      </div>
+    {% endif %}
+    <div class="d-flex justify-content-center">
+      <h1 id="sessao_plenaria" class="title text-title"></h1>
+    </div>
+    <div class="row ">
+      <div class="col text-center">
+        <span id="sessao_plenaria_data" class="text-value"></span>
+      </div> 
+      <div class="col text-center">
+        <span id="sessao_plenaria_hora_inicio" class="text-value"></span>
+      </div>
+    </div>    
+
+    <div class="row justify-content-center">
+      <div class="col-1">
+        <img src="" id="logo-painel" class="logo-painel" alt=""/>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <h2 class="text-danger"><span id="message"></span></h2>
+      <h2 class="text-danger">{{lista.tipo}}</h2>
+    </div>
+
+    <div class="row">
+      <div class="col text-center"><span class="text-value data-hora" id="date"></span></div>
+      <div class="col text-center"><span class="text-value data-hora" id="relogio"></span></div>
+    </div>
+
+    <div class="d-flex justify-content-start">
+      
+      <div class="col-md-4">
+        <div class="text-center painel">   
+          <h2 class="text-subtitle">Parlamentares</h2>   
+          <span id="oradores" class="text-value text-center"></span>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div id="orador-div" class="text-center painel">   
+          <h2 class="text-subtitle">Orador(a)</h2>   
+          <span id="orador" class="text-value text-center"></span>
+          <br><br>
+          <div id="foto-div"></div>
+        </div>
+      </div>
+
+      <div class="col-md-4 text-center painel">  
+        <h2 class="text-subtitle">{% if cronometros|length == 1 %}Cronômetro{% elif cronometros|length > 1%}Cronômetros{% endif %}</h2>
+        <div class="text-value">
+          {% for cronometro in cronometros %}
+            {{cronometro}}: <span id="cronometro_{{cronometro.id}}"></span><br>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </body>
+
+  {% block webpack_loader_js %}
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}  
+    {% render_bundle  'painel' 'js' %}      
+  {% endblock webpack_loader_js %}
+
+  {% block webpack_loader_chunks_js %}
+  {% endblock webpack_loader_chunks_js %}
+
+  <script type="text/javascript">
+    var d = new Date();
+    var n = d.toLocaleDateString();
+    document.getElementById("date").innerHTML = n;
+
+    function checkTime(i) {
+      if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
+        return i;
+    }
+
+    function startTime() {
+      var today=new Date();
+      var h=today.getHours();
+      var m=today.getMinutes();
+      var s=today.getSeconds();
+      m = checkTime(m);
+      s = checkTime(s);
+      $("#relogio").text(h+":"+m+":"+s)
+      var t = setTimeout(function(){
+          startTime()
+      }, 500);
+    }
+
+    function playAudioNumVezes(audio, times, ended) {
+      if (times <= 0) {
+          return;
+      }
+      let played = 0;
+      audio.addEventListener("ended", function() {
+          played++;
+          if (played < times) {            
+              audio.play();
+          } else if (ended) {
+              ended();
+          }
+      });
+      audio.play();
+    }
+
+    function convertValueToDuration(value){
+      let h = Math.floor((value/1000) / 3600);
+      h = checkTime(h);
+      let m = Math.floor((value/1000) % 3600 / 60);
+      m = checkTime(m);
+      let s = Math.floor((value/1000) % 3600 % 60);
+      s = checkTime(s);
+      return h.toString() + ":" + m.toString() + ":" + s.toString();
+    }
+
+    $(document).ready(function() {
+      //TODO: replace by a fancy jQuery clock
+      startTime();
+
+      var audioAlertFinish = document.getElementById("audio");
+
+      // Obtém duração do disparo ao término do tempo e converte para segundos
+      var duracao_disparo = "{{ painel_config.tempo_disparo_termino }}";
+      let tmp = duracao_disparo.split(":");
+      duracao_disparo = parseInt(tmp[0])*3600 + parseInt(tmp[1])*60 + parseInt(tmp[2]);
+      var num_vezes_toca_audio = Math.round(duracao_disparo/audioAlertFinish.duration);
+
+      var cronometros_previous = [];
+      {% for cron in cronometros %}
+        cronometros_previous.push(0);
+        $('#cronometro_' + "{{cron.id}}").runner({
+          autostart: {% if cron.status == "I"%} true {% else %} false {% endif %},
+          countdown: true,
+          startAt: 
+            {% if cron.status == "R" %}
+                parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000
+            {% elif cron.status == "S" %}
+                {% if cron.last_stop_duration %} 
+                    parseInt("{{cron.last_stop_duration|duration_to_seconds}}") * 1000
+                {% else %}
+                    parseInt("{{cron.duracao_cronometro|duration_to_seconds}}") * 1000
+                {% endif %}
+            {% elif cron.status == "I" %} 
+                parseInt("{{cron.duracao_cronometro|duration_difference:cron.ultima_alteracao_status}}") * 1000
+            {% endif %},
+          stopAt: 0,
+          milliseconds: false,
+          format: convertValueToDuration
+        }).on('runnerFinish', function(eventObject, info){
+            playAudioNumVezes(audioAlertFinish, num_vezes_toca_audio);
+        });
+      {% endfor %}
+
+      var tempo_disparo_antecedencia = "{{ painel_config.tempo_disparo_antecedencia }}"
+      tmp = tempo_disparo_antecedencia.split(":");
+      tempo_disparo_antecedencia = checkTime(parseInt(tmp[0])) + ":" + checkTime(parseInt(tmp[1])) + ":" + checkTime(parseInt(tmp[2]));
+
+      (function poll() {
+        $.ajax({
+          url: "{% url 'sapl.painel:dados_painel_discurso' sessao_id lista.tipo.pk %}",
+          type: "GET",
+          success: function(data) {
+            $("#sessao_plenaria").text(data["sessao_plenaria"])
+            $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
+            $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
+
+            $("#orador").text(data['orador']);
+
+            if (data["brasao"] != null)
+              $("#logo-painel").attr("src", data["brasao"]);
+              $("#foto-div").children().remove();
+              if (data["orador_img"] != null){
+                $("#foto-div").children().remove();
+                $("#foto-div").append('<img style="width:300px; height:300px" src=' + 
+                                            data["orador_img"] + ' id="foto-orador" alt=""/>')
+              }
+                        
+              var oradores = $("#oradores");
+              oradores.children().remove();
+
+              var oradores_list = data["oradores"];
+
+              oradores.append('<table style="margin-left:30%" id="oradores_list">');
+              $.each(oradores_list, function (index, parlamentar) {
+                if(parlamentar != data['orador']){
+                  $('#oradores_list').append('<tr><td class="text-value" style="color:white" >' +
+                    ' ' + (index+1) + '. &nbsp' + parlamentar + '</td></tr>')
+                }
+                else{
+                    $('#oradores_list').append('<tr><td class="text-value" style="color:yellow" >' +
+                    ' ' + (index+1) + '. &nbsp' + parlamentar + '</td></tr>')
+                }
+              });
+
+              // obtém todos os ids em uma lista e
+              // converte os dados do status dos cronômetros de dicionário para uma lista
+              var ids = [];
+              var status_cronometros = [];
+              for (var key in data['cronometros']) {
+                if (data['cronometros'].hasOwnProperty(key)) {           
+                    ids.push(key);
+                    status_cronometros.push(data['cronometros'][key]);
+                }
+              }
+              //console.log(data['cronometros'])
+                    
+              // converte os dados de dicionário para uma lista
+              var duracao_cronometros = [];
+              for (let id of ids) {
+                duracao_cronometros.push(data['duracao_cronometros'][id]);
+              }
+
+              for(let i=0; i<status_cronometros.length; i++){
+                if (!cronometros_previous[i])
+                  cronometros_previous[i] = ''
+
+                // se houve alteração de status
+                if (status_cronometros[i] != cronometros_previous[i]) {
+                  if(status_cronometros[i] == 'reset'){
+                    // é necessário recriar o cronômetro com o valor da duração original devido a limitações da API
+                    $('#cronometro_' + ids[i]).runner({
+                      autostart: false,
+                      countdown: true,
+                      startAt: parseInt(duracao_cronometros[i]) * 1000,
+                      stopAt: 0,
+                      milliseconds: false,
+                      format: convertValueToDuration
+                    }).on('runnerFinish', function(eventObject, info){
+                      playAudioNumVezes(audioAlertFinish, num_vezes_toca_audio);
+                    });
+                  }
+                  // ações de start e stop
+                  else{
+                      $('#cronometro_' + ids[i]).runner(status_cronometros[i]);
+                  }
+                  cronometros_previous[i] = status_cronometros[i];
+                }
+
+                // Dispara aviso prévio se estiver configurado
+                if($('#cronometro_' + ids[i]).runner('info').formattedTime == tempo_disparo_antecedencia 
+                && "{{ painel_config.disparo_cronometro }}" == "True" ){
+                  audioAlertFinish.play();
+                }
+              }
+            },
+            error: function(err) {
+                console.error(err);
+            },
+            dataType: "json",
+            complete: setTimeout(function() {poll()}, 500),
+            timeout: 20000 // TODO: decrease
+            })
+        })();
+    });
+  </script>
+</html>
+
