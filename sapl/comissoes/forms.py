@@ -132,7 +132,7 @@ class CargosComissaoOrdenacaoForm(forms.Form):
         if posicao == '0':
             cargo.id_ordenacao = "Não definido"
         else:
-            if CargoComissao.objects.filter(id_ordenacao=posicao):
+            if CargoComissao.objects.filter(id_ordenacao=posicao).exists():
                 outro_cargo = CargoComissao.objects.get(id_ordenacao=posicao)
                 outro_cargo.id_ordenacao = cargo.id_ordenacao
                 outro_cargo.save()
