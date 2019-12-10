@@ -9,7 +9,7 @@
 
 <div id="app2">
 
-  <div style="margin-bottom:20px" class="actions btn-group float-right btn-group-sm" role="group">
+  <div class="actions btn-group float-right btn-group-sm" role="group">
     <a v-if="is_pesquisa" v-on:click="pesquisaChange" class="btn btn-primary text-white">Listar Parlamentar</a>
     <a v-else v-on:click="pesquisaChange" class="btn btn-outline-primary text-info">Pesquisar Parlamentar</a>
     {% if not request.user.is_anonymous  %}
