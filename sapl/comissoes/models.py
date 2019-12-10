@@ -121,12 +121,8 @@ class Periodo(models.Model):  # PeriodoCompComissao
 
 @reversion.register()
 class CargoComissao(models.Model):
-    # O CharField é utilizado para evitar definir um valor máximo de
-    # cargos que podem ser criados e sempre apresentar os cargos não
-    # ordenados por último.
-    id_ordenacao = models.CharField(
-        max_length=50, verbose_name=_('Id de Ordenacao'),
-        default='Não definido'
+    id_ordenacao = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Id de Ordenacao'),
     )
     nome = models.CharField(max_length=50, verbose_name=_('Cargo'))
     unico = models.BooleanField(

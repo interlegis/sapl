@@ -81,7 +81,7 @@ class ComposicaoForm(forms.ModelForm):
 
 def choices_posicao():
     posicoes = list(range(1, len(CargoComissao.objects.all())+1))
-    choices = [(posicao, f"{posicao}º") for posicao in posicoes]
+    choices = [(posicao, str(posicao)+"º") for posicao in posicoes]
     choices.insert(0, (0, "Não definida"))
     return choices
 
@@ -130,7 +130,7 @@ class CargosComissaoOrdenacaoForm(forms.Form):
         posicao = cleaned_data['posicao']
 
         if posicao == '0':
-            cargo.id_ordenacao = "Não definido"
+            cargo.id_ordenacao = None
         else:
             if CargoComissao.objects.filter(id_ordenacao=posicao).exists():
                 outro_cargo = CargoComissao.objects.get(id_ordenacao=posicao)
