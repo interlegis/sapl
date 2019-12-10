@@ -81,7 +81,7 @@ class ComposicaoForm(forms.ModelForm):
 
 def choices_posicao():
     posicoes = list(range(1, len(CargoComissao.objects.all())+1))
-    choices = [(posicao, str(posicao)+"º") for posicao in posicoes]
+    choices = [(posicao, f"{posicao}º") for posicao in posicoes]
     choices.insert(0, (0, "Não definida"))
     return choices
 
