@@ -138,15 +138,20 @@
       }, 500);
     }
 
-    function show_voto(voto) {
-      if (voto == "Sim"){
-          return '<font color="green"> Sim </font>'
+    function show_voto(parlamentar) {
+      color = 'white'
+      if (parlamentar.voto == "Sim"){
+          color = 'green'
       }
-      else if (voto == "Não"){
-          return '<font color="red"> Não </font>'
+      else if (parlamentar.voto == "Não"){
+          color = 'red'
       }
-      return voto
-    }
+
+      return ('<tr> <td style="padding-right:20px">' +
+                `<font color="`+color+`">${parlamentar.nome}</font> </td> <td style="padding-right:20px">` +
+                `<font color="`+color+`">${parlamentar.partido}</font> </td> <td style="padding-right:20px">` +
+                `<font color="`+color+`">${parlamentar.voto}</font> </td></tr>`)
+     }
 
     function playAudioNumVezes(audio, times, ended) {
       if (times <= 0) {
@@ -279,20 +284,12 @@
                 if (parlamentar.voto){
                   // Se a votação já foi finalizada, mostra todos os votos
                   if (data['tipo_resultado'] && data['tipo_resultado'] != "Ainda não foi votada."){
-                    $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:white" >' +
-                        parlamentar.nome +
-                        '</td> <td style="padding-right:20px; color:white">' +
-                        parlamentar.partido + '</td> <td style="padding-right:20px; color:white">'
-                        + show_voto(parlamentar.voto) + '</td></tr>');
+                    $('#parlamentares_list').append(show_voto(parlamentar))
                   }
                   // Senão verifica a configuração desejada
                   else{
                     {% if painel_config.mostrar_votos_antecedencia %} 
-                      $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
-                          parlamentar.nome +
-                          '</td> <td style="padding-right:20px; color:yellow">' +
-                          parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
-                          + show_voto(parlamentar.voto) + '</td></tr>');
+                      $('#parlamentares_list').append(show_voto(parlamentar))
                     {% else %}
                       $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
                           parlamentar.nome +
@@ -303,11 +300,7 @@
                   }
                 } 
                 else{
-                  $('#parlamentares_list').append('<tr> <td style="padding-right:20px">' +
-                      parlamentar.nome +
-                      '</td> <td style="padding-right:20px">' +
-                      parlamentar.partido + '</td> <td style="padding-right:20px">'
-                      + show_voto(parlamentar.voto) + '</td></tr>')
+                  $('#parlamentares_list').append(show_voto(parlamentar))
                 }
               });
 
@@ -481,6 +474,10 @@
         })
       })();
     });
+      
+
+     
+     
   </script>
 </html>
 
