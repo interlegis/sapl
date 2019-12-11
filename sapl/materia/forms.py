@@ -117,7 +117,7 @@ class ReceberProposicaoForm(Form):
         row1 = to_row([('cod_hash', 12)])
         row2 = to_row(
             [(Button('pesquisar-cod-proposicao',
-                     'Pesquisar Código de Proposicoes',
+                     'Pesquisar Código de Proposições por Data',
                      css_class='btn btn-primary btn-sm'), 4)
              ])
         self.helper = SaplFormHelper()
