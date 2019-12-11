@@ -140,7 +140,7 @@ proposicao_modal = '''
    <div id="modal_proposicao" title="Selecione a data da Proposicao" align="center">
        <form>
            <input id="q" type="text" placeholder="__/__/____" 
-               class="dateinput form-control hasDatepicker" maxlength="10" >
+               class="form-control hasDatepicker" maxlength="10" >
            <input id="pesquisar-proposicao" type="submit" value="Pesquisar"
                class="btn btn-primary btn-sm"/>
        </form>
