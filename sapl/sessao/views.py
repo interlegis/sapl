@@ -3349,7 +3349,7 @@ class PautaSessaoDetailView(DetailView):
         # =====================================================================
         # Expedientes
         expediente = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id)
+            sessao_plenaria_id=self.object.id).order_by('tipo__ordenacao')
 
         expedientes = []
         for e in expediente:
