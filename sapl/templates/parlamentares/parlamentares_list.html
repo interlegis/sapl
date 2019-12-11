@@ -49,15 +49,10 @@
       <table class="table table-striped table-hover table-link-ordering">
         <thead>
           <tr>
-            {% for name in headers %}
-              {% if forloop.first %}
-                <th colspan=2>
-              {% else %}
-                <th>
-              {% endif %}
-                {{ name }}
-              </th>
-            {% endfor %}
+            <th colspan=2 >Parlamentar</th>
+            <th>Parido</th>
+            <th>Ativo?</th>
+            <th v-if="!is_pesquisa" >Titlar?</th>
           </tr>
         </thead>
           <tbody>
@@ -75,7 +70,7 @@
               <p v-if="[[ parlamentar.ativo ]]">Sim</p>
               <p v-else>Não</p>
             </th>
-            <th>
+            <th v-if="!is_pesquisa">
               <p v-if='[[ parlamentar.titular]]'>Sim</p>
               <p v-else>Não</p>
             </th>

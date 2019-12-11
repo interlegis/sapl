@@ -62,11 +62,14 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
     partido = serializers.SerializerMethodField('check_partido')
 
     def check_titular(self,obj):
-        legislatura = self.context.get('legislatura')
-        if not legislatura:
-            legislatura = Legislatura.objects.first().id
-        mandato = Mandato.objects.filter(legislatura__id=legislatura,parlamentar=obj).first()
-        return mandato.titular if mandato else False
+        is_titular = None
+        if Legislatura.objects.exists():
+            legislatura = self.context.get('legislatura')
+            if not legislatura:
+                legislatura = Legislatura.objects.first()
+            mandato = Mandato.objects.filter(legislatura=legislatura,parlamentar=obj).first()
+            is_titular = mandato.titular if mandato else False
+        return is_titular
 
     def check_partido(self,obj):
         legislatura_id = self.context.get('legislatura')
