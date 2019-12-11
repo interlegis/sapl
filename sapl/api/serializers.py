@@ -1,9 +1,9 @@
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.relations import StringRelatedField
-
+from sapl.parlamentares.models import Parlamentar, Mandato, Filiacao, Legislatura
 from sapl.base.models import Autor, CasaLegislativa
-
+from sapl.utils import filiacao_data
 
 class IntRelatedField(StringRelatedField):
     def to_representation(self, value):
@@ -56,3 +56,30 @@ class CasaLegislativaSerializer(serializers.ModelSerializer):
     class Meta:
         model = CasaLegislativa
         fields = '__all__'
+
+class ParlamentarResumeSerializer(serializers.ModelSerializer):
+    titular = serializers.SerializerMethodField('check_titular')
+    partido = serializers.SerializerMethodField('check_partido')
+
+    def check_titular(self,obj):
+        is_titular = None
+        if Legislatura.objects.exists():
+            legislatura = self.context.get('legislatura')
+            if not legislatura:
+                legislatura = Legislatura.objects.first()
+            mandato = Mandato.objects.filter(legislatura=legislatura,parlamentar=obj).first()
+            is_titular = mandato.titular if mandato else False
+        return is_titular
+
+    def check_partido(self,obj):
+        legislatura_id = self.context.get('legislatura')
+        if not legislatura_id:
+            legislatura = Legislatura.objects.first()
+        else:
+            legislatura = Legislatura.objects.get(id=legislatura_id)
+        filiacao = filiacao_data(obj, legislatura.data_inicio, legislatura.data_fim)
+        return filiacao
+
+    class Meta:
+        model = Parlamentar
+        fields = ['id', 'nome_parlamentar', 'fotografia', 'ativo', 'partido', 'titular']
