@@ -15,23 +15,12 @@
     <!-- TODO: does it need this head_title here? -->
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     
-      {% block webpack_loader_css %}
-        {% render_chunk_vendors 'css' %}
-        {% render_bundle  'global' 'css' %}
-        {% render_bundle  'painel' 'css' %}
-      {% endblock webpack_loader_css %}
+    {% block webpack_loader_css %}
+      {% render_chunk_vendors 'css' %}
+      {% render_bundle  'global' 'css' %}
+      {% render_bundle  'painel' 'css' %}
+    {% endblock webpack_loader_css %}
 
-    <style type="text/css">
-        html, body {
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-      @media screen {
-        ul, li {
-          list-style-type: none;
-        }
-      }
-    </style>
   </head>
   <body class="painel-principal">
     <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
@@ -72,12 +61,12 @@
       <div class="d-flex justify-content-start">
       
         {% if exibicao.parlamentares %}
-        <div class="col-md-4">
-          <div class="text-center painel">   
-            <h2 class="text-subtitle">Parlamentares</h2>   
-            <span id="parlamentares" class="text-value text-center"></span>
+          <div class="col-md-4">
+            <div class="text-center painel">   
+              <h2 class="text-subtitle">Parlamentares</h2>   
+              <span id="parlamentares" class="text-value text-center"></span>
+            </div>
           </div>
-        </div>
         {% endif %}
 
         <div class="d-flex col-md-8 painels">
@@ -288,7 +277,6 @@
       tmp = tempo_disparo_antecedencia.split(":");
       tempo_disparo_antecedencia = checkTime(parseInt(tmp[0])) + ":" + checkTime(parseInt(tmp[1])) + ":" + checkTime(parseInt(tmp[2]));
 
-      var counter = 1;
       (function poll() {
         $.ajax({
            url: "{% url 'sapl.painel:dados_painel' sessao_id %}",

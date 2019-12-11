@@ -12,9 +12,13 @@ def user():
 
 
 def test_login_aparece_na_barra_para_usuario_nao_logado(client):
+    import re
     response = client.get('/')
-    assert '<a class="nav-link" href="/login/"><img src="/static/sapl/frontend/img/user.png"></a>' in str(
-        response.content)
+    content = str(response.content)
+    query = '<a class="nav-link" href="/login/"><img src=".*/user.png"></a>'
+
+    result = re.findall(query, content)
+    assert len(result) > 0
 
 
 def test_username_do_usuario_logado_aparece_na_barra(client, user):

@@ -3,7 +3,7 @@
 {% load tz %}
 {% block sub_actions %}
   {{block.super}}
-  {% if user == object.autor.user  %}
+  {% if user.autoruser.autor == object.autor  %}
     <div class="actions btn-group btn-group-sm {%block sub_actions_pull%}{% endblock%}" role="group">
       {% if object.texto_articulado.exists %}
         <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_ta' object.pk%}">{% trans "Texto Eletrônico" %}</a>
@@ -15,7 +15,7 @@
   {% endif %}
 {% endblock sub_actions%}
 {% block editions %}
-  {% if user == object.autor.user  %}
+  {% if user.autoruser.autor == object.autor  %}
     {% if object.data_envio %}
         {% block editions_actions_return %}
           <div class="actions btn-group" role="group">
@@ -39,7 +39,7 @@
   {% endif %}
 {% endblock editions %}
 {% block detail_content %}
-  {% if user == object.autor.user  %}
+  {% if user.autoruser.autor == object.autor  %}
     <h2 class="legend">{% model_verbose_name 'sapl.materia.models.Proposicao' %}</h2>
     <div class="row">
       <div class="col-sm-3">
@@ -89,7 +89,7 @@
     <div class="row">
       <div class="col-sm-12">
         <div id="div_id_descricao" class="form-group">
-          <p class="control-label">{%field_verbose_name object 'descricao'%}</p>
+          <p class="control-label">{% field_verbose_name object 'descricao' %}</p>
           <div class="controls">
             <div class="form-control-static">{{object.descricao}}</div>
           </div>
@@ -100,7 +100,7 @@
       <div class="row">
         <div class="col-sm-12">
           <div id="div_id_obseracao" class="form-group">
-            <p class="control-label">{%field_verbose_name object 'observacao'%}</p>
+            <p class="control-label">{% field_verbose_name object 'observacao' %}</p>
             <div class="controls">
               <div class="form-control-static">{{object.observacao}}</div>
             </div>
@@ -155,7 +155,7 @@
         {% if object.hash_code %}
           <div class="col-sm-12">
             <div id="div_id_hash_code" class="form-group">
-              <p class="control-label">{%field_verbose_name object 'hash_code'%}</p>
+              <p class="control-label">{% field_verbose_name object 'hash_code' %}</p>
               <div class="controls">
                 <div class="form-control-static">{{object.hash_code}}</div>
               </div>

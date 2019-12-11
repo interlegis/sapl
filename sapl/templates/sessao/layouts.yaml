@@ -103,6 +103,15 @@ TipoRetiradaPauta:
   {% trans 'Tipo Retirada Pauta'%}:
   - descricao
 
+TipoListaDiscurso:
+  {% trans 'Tipo de Lista de Discurso' %}:
+  - nome
+
+ListaDiscurso:
+  {% trans 'Lista de Discurso' %}:
+  - tipo 
+  - sessao_plenaria
+
 RetiradaPauta:
   {% trans 'Retirada de Pauta' %}:
   - tipo_de_retirada materia

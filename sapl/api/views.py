@@ -3,6 +3,7 @@ import logging
 from django import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import FieldError
 from django.db.models import Q
 from django.db.models.fields.files import FileField
 from django.utils.decorators import classonlymethod
@@ -26,10 +27,11 @@ from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
 from sapl.norma.models import NormaJuridica
+from sapl.painel.models import Cronometro
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
-from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
+from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao, SessaoPlenariaPresenca
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 
 
@@ -514,7 +516,6 @@ class _SessaoPlenariaViewSet:
     @action(detail=False)
     def years(self, request, *args, **kwargs):
         years = choice_anos_com_sessaoplenaria()
-
         serializer = ChoiceSerializer(years, many=True)
         return Response(serializer.data)
 
@@ -533,6 +534,21 @@ class _SessaoPlenariaViewSet:
         return Response(serializer.data)
 
 
+    @action(detail=True, methods=['GET'])
+    def parlamentares_presentes(self, request, *args, **kwargs):
+        sessao = self.get_object()
+        parlamentares = Parlamentar.objects.filter(sessaoplenariapresenca__sessao_plenaria=sessao)
+
+        page = self.paginate_queryset(parlamentares)
+        if page is not None:
+            serializer = SaplApiViewSetConstrutor.get_class_for_model(
+                Parlamentar).serializer_class(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return Response(serializer.data)
+
+
 @customize(NormaJuridica)
 class _NormaJuridicaViewset:
 
@@ -540,3 +556,17 @@ class _NormaJuridicaViewset:
     def destaques(self, request, *args, **kwargs):
         self.queryset = self.get_queryset().filter(norma_de_destaque=True)
         return self.list(request, *args, **kwargs)
+
+
+@customize(Cronometro)
+class _CronometroViewSet:
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset()
+
+        try:
+            filter_condition = {k:v[0] for (k,v) in self.request.GET.items()}
+            qs = qs.filter(**filter_condition)
+        except FieldError as e:
+            pass
+        return qs

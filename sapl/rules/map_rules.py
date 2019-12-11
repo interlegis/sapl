@@ -188,6 +188,10 @@ rules_group_sessao = {
         (sessao.JustificativaAusencia, __base__, __perms_publicas__),
         (sessao.RetiradaPauta, __base__, __perms_publicas__),
         (sessao.RegistroLeitura, __base__, __perms_publicas__),
+        (sessao.ListaDiscurso, __base__, __perms_publicas__),
+        (sessao.TipoListaDiscurso, __base__, __perms_publicas__),
+        (sessao.CronometroLista, __base__, __perms_publicas__),
+        (sessao.ParlamentarLista, __base__, __perms_publicas__),
     ]
 }
 

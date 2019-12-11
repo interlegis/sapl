@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.forms import ModelForm
+from django.forms import ModelForm, widgets
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 
@@ -18,7 +18,12 @@ from sapl.crispy_layout_mixin import (form_actions, to_row,
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
-
+from sapl.painel.models import Cronometro
+from sapl.parlamentares.models import Parlamentar, Mandato
+from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
+                        MateriaPesquisaOrderingFilter, autor_label,
+                        autor_modal, timezone, choice_anos_com_sessaoplenaria,
+                        FileFieldCheckMixin, verifica_afastamento_parlamentar)
 from sapl.parlamentares.models import Mandato, Parlamentar
 from sapl.utils import (autor_label, autor_modal,
                         choice_anos_com_sessaoplenaria,
@@ -26,14 +31,14 @@ from sapl.utils import (autor_label, autor_modal,
                         MateriaPesquisaOrderingFilter,
                         RANGE_DIAS_MES, RANGE_MESES,
                         timezone, validar_arquivo)
-
 from .models import (ExpedienteMateria,
                      JustificativaAusencia, OcorrenciaSessao, Orador,
                      OradorExpediente, OradorOrdemDia, OrdemDia,
                      ORDENACAO_RESUMO, PresencaOrdemDia,
                      RegistroLeitura, ResumoOrdenacao, RetiradaPauta,
                      SessaoPlenaria, SessaoPlenariaPresenca,
-                     TipoResultadoVotacao, TipoRetiradaPauta)
+                     TipoResultadoVotacao, TipoRetiradaPauta,
+                     CronometroLista)
 
 MES_CHOICES = RANGE_MESES
 DIA_CHOICES = RANGE_DIAS_MES
@@ -890,3 +895,52 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
                      form_actions(more=actions),
                     )
         )
+        
+
+class CronometroListaForm(ModelForm):
+
+    cronometro = forms.ModelChoiceField(
+        queryset=Cronometro.objects.all(), 
+        label="Cronômetro"
+    )
+
+    nome_lista = forms.CharField(
+        label='Lista de Discussão', 
+        widget=widgets.TextInput(attrs={'readonly': 'readonly'})
+    )
+
+    class Meta:
+        model = CronometroLista
+        exclude = []
+        widgets = {
+            'tipo_lista': forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('nome_lista', 6),('cronometro', 6),])
+        row2 = to_row(
+            [('tipo_lista', 6)]
+        )
+
+        actions = [HTML('<a href="{{ view.cancel_url }}"'
+                        ' class="btn btn-dark">Cancelar</a>')]
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Vincular Cronômetro à Lista de Discussão'),
+                     row1, row2,
+                     HTML("&nbsp;"),
+                     form_actions(more=actions)
+                     )
+        )
+
+    def save(self):
+        cd = self.cleaned_data
+        cronometro = cd['cronometro']
+        tipo_lista = cd['tipo_lista']
+        cronometro_lista = CronometroLista.objects.create(cronometro=cronometro, tipo_lista=tipo_lista)
+
+        return cronometro_lista 
