@@ -122,9 +122,9 @@ class Periodo(models.Model):  # PeriodoCompComissao
 @reversion.register()
 class CargoComissao(models.Model):
     id_ordenacao = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Id de Ordenacao'),
+        blank=True, null=True, verbose_name=_('Posição na Ordenação'),
     )
-    nome = models.CharField(max_length=50, verbose_name=_('Cargo'))
+    nome = models.CharField(max_length=50, verbose_name=_('Nome do Cargo'))
     unico = models.BooleanField(
         choices=YES_NO_CHOICES, verbose_name=_('Único'), default=True
     )

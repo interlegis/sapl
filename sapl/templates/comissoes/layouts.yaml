@@ -1,7 +1,8 @@
  {% load i18n %}
+
 CargoComissao:
   {% trans 'Cargo de Comissão' %}:
-  - nome:10  unico
+  - nome:6  unico id_ordenacao
 
 Periodo:
   {% trans 'Período de composição de Comissão' %}:
