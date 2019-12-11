@@ -1,11 +1,11 @@
-
+import django_filters
 import logging
 
 from crispy_forms.bootstrap import InlineRadios, Alert, FormActions
-from sapl.crispy_layout_mixin import SaplFormHelper
-from crispy_forms.layout import HTML, Button, Column, Fieldset, Layout, Div, Submit
+from crispy_forms.layout import (Button, Column, Div, Fieldset, HTML,
+                                 Layout, Submit)
+
 from django import forms
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
 from django.db import models, transaction
@@ -13,24 +13,28 @@ from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.base.models import Autor, TipoAutor, AppConfig
-from sapl.crispy_layout_mixin import SaplFormLayout, form_actions, to_row
-from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
+from sapl.base.signals import post_save_signal
+from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
+                                      SaplFormLayout, to_row)
+from sapl.materia.models import (MateriaLegislativa, 
+                                 TipoMateriaLegislativa,
                                  UnidadeTramitacao)
 from sapl.protocoloadm.models import Protocolo
-from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, AnoNumeroOrderingFilter,
-                        RangeWidgetOverride, autor_label, autor_modal,
-                        choice_anos_com_protocolo, choice_force_optional,
+from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_documentoadministrativo,
-                        FilterOverridesMetaMixin, choice_anos_com_materias,
-                        FileFieldCheckMixin, lista_anexados)
+                        choice_anos_com_materias,
+                        choice_anos_com_protocolo, choice_force_optional,
+                        FileFieldCheckMixin, FilterOverridesMetaMixin,
+                        lista_anexados, RangeWidgetOverride, RANGE_ANOS,
+                        validar_arquivo, YES_NO_CHOICES)
 
-from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
-                     DocumentoAdministrativo,
-                     Protocolo, TipoDocumentoAdministrativo,
-                     TramitacaoAdministrativo, Anexado)
+from .models import (Anexado, AcompanhamentoDocumento,
+                     DocumentoAcessorioAdministrativo,
+                     DocumentoAdministrativo, Protocolo,
+                     TipoDocumentoAdministrativo,
+                     TramitacaoAdministrativo)
 
 
 TIPOS_PROTOCOLO = [('0', 'Recebido'), ('1', 'Enviado'),
@@ -664,9 +668,8 @@ class DocumentoAcessorioAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
         arquivo = self.cleaned_data.get('arquivo', False)
 
-        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+        if arquivo:
+            validar_arquivo(arquivo, "Arquivo")
 
         return self.cleaned_data
 
@@ -1157,9 +1160,8 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
         texto_integral = self.cleaned_data.get('texto_integral', False)
 
-        if texto_integral and texto_integral.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_integral.size/1024)/1024))
+        if texto_integral:
+            validar_arquivo(texto_integral, "Texto Integral")
 
         return self.cleaned_data
 
@@ -1563,7 +1565,6 @@ class TramitacaoEmLoteAdmForm(ModelForm):
             )
         )
 
-
     def clean(self):
         cleaned_data = super(TramitacaoEmLoteAdmForm, self).clean()
 
@@ -1655,7 +1656,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                                                 user=tramitacao.user,
                                                 ip=tramitacao.ip
                                                 ))
-                TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
+                TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
 

@@ -15,23 +15,12 @@
     <!-- TODO: does it need this head_title here? -->
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
     
-      {% block webpack_loader_css %}
-        {% render_chunk_vendors 'css' %}
-        {% render_bundle  'global' 'css' %}
-        {% render_bundle  'painel' 'css' %}
-      {% endblock webpack_loader_css %}
+    {% block webpack_loader_css %}
+      {% render_chunk_vendors 'css' %}
+      {% render_bundle  'global' 'css' %}
+      {% render_bundle  'painel' 'css' %}
+    {% endblock webpack_loader_css %}
 
-    <style type="text/css">
-        html, body {
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-      @media screen {
-        ul, li {
-          list-style-type: none;
-        }
-      }
-    </style>
   </head>
   <body class="painel-principal">
     <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
@@ -72,12 +61,12 @@
       <div class="d-flex justify-content-start">
       
         {% if exibicao.parlamentares %}
-        <div class="col-md-4">
-          <div class="text-center painel">   
-            <h2 class="text-subtitle">Parlamentares</h2>   
-            <span id="parlamentares" class="text-value text-center"></span>
+          <div class="col-md-4">
+            <div class="text-center painel">   
+              <h2 class="text-subtitle">Parlamentares</h2>   
+              <span id="parlamentares" class="text-value text-center"></span>
+            </div>
           </div>
-        </div>
         {% endif %}
 
         <div class="d-flex col-md-8 painels">
@@ -135,37 +124,90 @@
   {% endblock webpack_loader_chunks_js %}
 
   <script type="text/javascript">
-    var d = new Date();
-    var n = d.toLocaleDateString();
-    document.getElementById("date").innerHTML = n;
+      $(document).ready(function() {
 
-    function checkTime(i) {
-      if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
-        return i;
-    }
+         // As constantes decisões sobre a existência ou não do horário de verão,
+         // assim como que data de início e termino do mesmo, fizeram com que fosse necessário
+         // substituir a chamada a Date() por um esquema mais elaborado, onde se
+         // recupera o offset do UTC (-3 GMT, no caso de Brasília) e seta-se
+         // manualmente. Esta informação vem do servidor, desta forma não ficamos
+         // na dependência da atualização de browser, pois tanto o Date() em JS
+         // quanto as libs python (django.utils.timezone, datetime, pytz, etc)
+         // lêem do tzdata, que precisa ser atualizado toda vez que o governo
+         // brasileiro modifica alguma coisa relacionada ao horário de verão.
+         // Recuperando essa informação do servidor só teremos que atualizar as
+         // libs tzdata (Linux) e pytz (Python) uma vez. Além disso, o uso da
+         // biblioteca moment.js é recomendada, pois ela trata data e hora
+         // melhor que o Date() do JS.
 
-    function startTime() {
-      var today=new Date();
-      var h=today.getHours();
-      var m=today.getMinutes();
-      var s=today.getSeconds();
-      m = checkTime(m);
-      s = checkTime(s);
-      $("#relogio").text(h+":"+m+":"+s)
-      var t = setTimeout(function(){
-          startTime()
-      }, 500);
-    }
+         $("#date").append(moment().format("DD/MM/YY"));
 
-    function show_voto(voto) {
-      if (voto == "Sim"){
-          return '<font color="green"> Sim </font>'
-      }
-      else if (voto == "Não"){
-          return '<font color="red"> Não </font>'
-      }
-      return voto
-    }
+         var offset = parseFloat({{ utc_offset }});
+
+         //TODO: replace by a fancy jQuery clock
+         function checkTime(i) {
+             if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
+                return i;
+         }
+
+         function startTime() {
+             var today = moment.utc().utcOffset(offset).format("HH:mm:ss");
+             $("#relogio").text(today)
+             var t = setTimeout(function(){
+                 startTime()
+             }, 500);
+         }
+         startTime();
+
+        function show_voto(voto) {
+            if (voto == "Sim"){
+                return '<font color="green"> Sim </font>'
+            }
+            else if (voto == "Não"){
+                return '<font color="red"> Não </font>'
+            }
+            return voto
+        }
+
+        var audioAlertFinish = document.getElementById("audio");
+
+        $('#cronometro_discurso').runner({
+          autostart: false,
+          countdown: true,
+          startAt: {{ 'discurso'|cronometro_to_seconds }} * 1000,
+          stopAt: 0,
+          milliseconds: false,
+          format: function(value) {
+            let h = Math.floor((value/1000) / 3600);
+            h = checkTime(h);
+            let m = Math.floor((value/1000) % 3600 / 60);
+            m = checkTime(m);
+            let s = Math.floor((value/1000) % 3600 % 60);
+            s = checkTime(s);
+            return h.toString() + ":" + m.toString() + ":" + s.toString();
+          }
+        }).on('runnerFinish', function(eventObject, info){
+          audioAlertFinish.play();
+        });
+
+        $('#cronometro_aparte').runner({
+          autostart: false,
+          countdown: true,
+          startAt:  {{ 'aparte'|cronometro_to_seconds }} * 1000,
+          stopAt: 0,
+          milliseconds: false,
+          format: function(value) {
+            let h = Math.floor((value/1000) / 3600);
+            h = checkTime(h);
+            let m = Math.floor((value/1000) % 3600 / 60);
+            m = checkTime(m);
+            let s = Math.floor((value/1000) % 3600 % 60);
+            s = checkTime(s);
+            return h.toString() + ":" + m.toString() + ":" + s.toString();
+          }
+        }).on('runnerFinish', function(eventObject, info){
+            audioAlertFinish.play();
+        });
 
     function playAudioNumVezes(audio, times, ended) {
       if (times <= 0) {
@@ -235,7 +277,6 @@
       tmp = tempo_disparo_antecedencia.split(":");
       tempo_disparo_antecedencia = checkTime(parseInt(tmp[0])) + ":" + checkTime(parseInt(tmp[1])) + ":" + checkTime(parseInt(tmp[2]));
 
-      var counter = 1;
       (function poll() {
         $.ajax({
            url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
@@ -325,35 +366,36 @@
                   $('#aparecer_oradores').hide();
                 }
               } else{
-                presentes.append('<span id="parlamentares_list">');
-                $('#parlamentares_list').append(
-                    '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
-                presentes.append('</span>');
+                  presentes.append('<span style="color:white" id="parlamentares_list">');
+                  $('#parlamentares_list').append(
+                      '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
+                  presentes.append('</span>');
 
-                oradores.append('<span id="oradores_list">');
-                $('#oradores_list').append(
-                    '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
-                oradores.append('</span>');
+                  oradores.append('<span style="color:white" id="oradores_list">');
+                  $('#oradores_list').append(
+                      '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
+                  oradores.append('</span>');
 
-                votacao.append('<span id="votacao">');
-                $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
-                votacao.append('</span>');
+                  votacao.append('<span id="votacao">');
+                  $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
+                  votacao.append('</span>');
               }
 
-              if (data['materia_legislativa_texto'] && data["status_painel"]){
+              if(data["status_painel"]){
+                if (data['materia_legislativa_texto']){
+                  var votacao = $("#votacao");
 
-                var votacao = $("#votacao")
+                  votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>");
+                  votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>");
+                  votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>");
+                  votacao.append("<li>Presentes: " + data["num_presentes"] + "</li>");
+                  votacao.append("<li>Total votos: " + data["total_votos"] + "</li>");
+                }
+                else{
+                    $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
+                }
+              }
 
-                var num_presentes = data["num_presentes"];
-
-                votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>")
-                votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>")
-                votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>")
-                votacao.append("<li>Presentes: " + num_presentes + "</li>")
-                votacao.append("<li>Total votos: " + data["total_votos"] + "</li>")
-              } else{
-                  $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
-              };
 
               // obtém todos os ids em uma lista e
                // converte os dados do status dos cronômetros de dicionário para uma lista
@@ -417,8 +459,9 @@
                 } else{
                   $("#materia_legislativa_texto").text('A Matéria em votação só aparecerá quando o painel estiver aberto');
                 }
-              } else{
-                $("#materia_legislativa_texto").text('Não há nehuma matéria votada ou para votação');
+              }
+              else{
+                $("#materia_legislativa_texto").text('Não há nenhuma matéria votada ou para votação.');
               }
 
               if (data['observacao_materia'] && data["status_painel"] == true){
@@ -432,8 +475,8 @@
                 $("#observacao_materia").text('');
               }
 
-              if (data['tipo_resultado'] && data['status_painel']){
-                if(data['tipo_votacao'] != 'Leitura'){
+              if (data['tipo_resultado'] && data['status_painel'] == true){
+                if(data['tipo_votacao'] != 'Leitura' && !data['sessao_finalizada'] && !data["sessao_solene"]){
                   $("#resultado_votacao").css("color", "#45919D");
                   $("#mat_em_votacao").text("Matéria em Votação");
                   $("#resultado_votacao_div").show();

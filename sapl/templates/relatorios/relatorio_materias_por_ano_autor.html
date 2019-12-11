@@ -1,12 +1,9 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load static %}
 
-
-<head>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}"> 
-</head>	
-
+{% block content %}
   <h2>Matérias por Ano Autor Tipo</h2>
 
 
@@ -94,4 +91,4 @@
       <h3>Nenhum documento encontrado com essas especificações</h3>
     {% endif %}
 
-</body>
+{% endblock content %} 

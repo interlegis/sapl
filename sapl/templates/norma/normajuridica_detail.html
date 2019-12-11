@@ -147,9 +147,10 @@
       $.get("{% url 'sapl.compilacao:ta_text' object.texto_articulado.first.id %}?embedded",
       function(data, status) {
         $('#textomultivigente').html(data)
-        $('cp a[data-toggle="dropdown"]').dropdown()
+        //$('cp a[data-toggle="dropdown"]').dropdown()
         $('.dne').remove()
         $('.dnli ul').remove()
+        InitViewTAs()
       });
     }
   </script>

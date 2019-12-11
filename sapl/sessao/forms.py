@@ -1,35 +1,44 @@
+import django_filters
+
+from crispy_forms.layout import Button, Fieldset, HTML, Layout
 from datetime import datetime
 
-from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.forms import ModelForm
+from django.forms import ModelForm, widgets
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import SaplFormHelper
-from sapl.crispy_layout_mixin import form_actions, to_row, SaplFormLayout
+from sapl.crispy_layout_mixin import (form_actions, to_row, 
+                                      SaplFormHelper, SaplFormLayout)
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
+from sapl.painel.models import Cronometro
 from sapl.parlamentares.models import Parlamentar, Mandato
 from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, timezone, choice_anos_com_sessaoplenaria,
                         FileFieldCheckMixin, verifica_afastamento_parlamentar)
-
-from .models import (ExpedienteMateria, JustificativaAusencia,
-                     Orador, OradorExpediente, OrdemDia, PresencaOrdemDia, SessaoPlenaria,
-                     SessaoPlenariaPresenca, TipoResultadoVotacao,
-                     OcorrenciaSessao, RetiradaPauta, TipoRetiradaPauta, OradorOrdemDia, ORDENACAO_RESUMO,
-                     ResumoOrdenacao, RegistroLeitura)
-
+from sapl.parlamentares.models import Mandato, Parlamentar
+from sapl.utils import (autor_label, autor_modal,
+                        choice_anos_com_sessaoplenaria,
+                        FileFieldCheckMixin,
+                        MateriaPesquisaOrderingFilter,
+                        RANGE_DIAS_MES, RANGE_MESES,
+                        timezone, validar_arquivo)
+from .models import (ExpedienteMateria,
+                     JustificativaAusencia, OcorrenciaSessao, Orador,
+                     OradorExpediente, OradorOrdemDia, OrdemDia,
+                     ORDENACAO_RESUMO, PresencaOrdemDia,
+                     RegistroLeitura, ResumoOrdenacao, RetiradaPauta,
+                     SessaoPlenaria, SessaoPlenariaPresenca,
+                     TipoResultadoVotacao, TipoRetiradaPauta,
+                     CronometroLista)
 
 MES_CHOICES = RANGE_MESES
 DIA_CHOICES = RANGE_DIAS_MES
@@ -155,18 +164,14 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
         upload_ata = self.cleaned_data.get('upload_ata', False)
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
-        if upload_pauta and upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Pauta da Sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024))
+        if upload_pauta:
+            validar_arquivo(upload_pauta, "Pauta da Sessão")
         
-        if upload_ata and upload_ata.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Ata da Sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024))
-        
-        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Anexo da Sessão deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
-        
+        if upload_ata:
+            validar_arquivo(upload_ata, "Ata da Sessão")
+
+        if upload_anexo:
+            validar_arquivo(upload_anexo, "Anexo da Sessão")
 
         return self.cleaned_data
 
@@ -526,7 +531,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
 
     o = MateriaPesquisaOrderingFilter()
     tramitacao__status = django_filters.ModelChoiceFilter(
-        required=True,
+        required=False,
         queryset=StatusTramitacao.objects.all(),
         label=_('Status da Matéria'))
 
@@ -547,7 +552,11 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                   ]
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        # Colocar super().__init__(*args, **kwargs) quebra a tela
+        # de adicionar várias matérias em expediente e ordem dia.
+        # pois herda da classe AdicionarVariasMateriasFilterSet em
+        # vez de MateriaLegislativaFilterSet
+        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
 
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['autoria__autor__tipo'].label = 'Tipo de Autor'
@@ -632,9 +641,8 @@ class OradorForm(ModelForm):
 
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
-        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Anexo do Orador deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+        if upload_anexo:
+            validar_arquivo(upload_anexo, "Anexo do Orador")
 
         return self.cleaned_data
 
@@ -677,9 +685,8 @@ class OradorExpedienteForm(ModelForm):
 
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
-        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Anexo do Orador deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+        if upload_anexo:
+            validar_arquivo(upload_anexo, "Anexo do Orador")
 
         return self.cleaned_data
 
@@ -720,9 +727,8 @@ class OradorOrdemDiaForm(ModelForm):
 
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
-        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Anexo do Orador deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+        if upload_anexo:
+            validar_arquivo(upload_anexo, "Anexo do Orador")
 
         return self.cleaned_data
 
@@ -824,9 +830,8 @@ class JustificativaAusenciaForm(ModelForm):
 
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
-        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Anexo de Justificativa deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+        if upload_anexo:
+            validar_arquivo(upload_anexo, "Anexo de Justificativa")
 
         if not sessao_plenaria.finalizada or sessao_plenaria.finalizada is None:
             raise ValidationError(
@@ -890,3 +895,52 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
                      form_actions(more=actions),
                     )
         )
+        
+
+class CronometroListaForm(ModelForm):
+
+    cronometro = forms.ModelChoiceField(
+        queryset=Cronometro.objects.all(), 
+        label="Cronômetro"
+    )
+
+    nome_lista = forms.CharField(
+        label='Lista de Discussão', 
+        widget=widgets.TextInput(attrs={'readonly': 'readonly'})
+    )
+
+    class Meta:
+        model = CronometroLista
+        exclude = []
+        widgets = {
+            'tipo_lista': forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row1 = to_row(
+            [('nome_lista', 6),('cronometro', 6),])
+        row2 = to_row(
+            [('tipo_lista', 6)]
+        )
+
+        actions = [HTML('<a href="{{ view.cancel_url }}"'
+                        ' class="btn btn-dark">Cancelar</a>')]
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_('Vincular Cronômetro à Lista de Discussão'),
+                     row1, row2,
+                     HTML("&nbsp;"),
+                     form_actions(more=actions)
+                     )
+        )
+
+    def save(self):
+        cd = self.cleaned_data
+        cronometro = cd['cronometro']
+        tipo_lista = cd['tipo_lista']
+        cronometro_lista = CronometroLista.objects.create(cronometro=cronometro, tipo_lista=tipo_lista)
+
+        return cronometro_lista 

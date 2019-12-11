@@ -16,7 +16,6 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.functional import cached_property
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
@@ -24,15 +23,14 @@ from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
 from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
 
+from sapl.base.signals import post_delete_signal, post_save_signal
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
 from sapl.utils import normalize
 
-
 logger = logging.getLogger(settings.BASE_DIR.name)
-
 
 ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
     'list', 'create', 'detail', 'update', 'delete'
@@ -81,7 +79,6 @@ def make_pagination(index, num_pages):
                         None, num_pages - 1, num_pages]
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
-
 
 """
 variáveis do crud:
@@ -386,12 +383,13 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
 
 
 class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
-    permission_required = (RP_LIST, )
+    permission_required = (RP_LIST,)
     logger = logging.getLogger(__name__)
 
     @classmethod
     def get_url_regex(cls):
         return r'^$'
+
     paginate_by = 10
     no_entries_msg = _('Nenhum registro encontrado.')
 
@@ -423,7 +421,13 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     if hasattr(f, 'related_model') and f.related_model:
                         m = f.related_model
                 if f:
-                    s.append(force_text(f.verbose_name))
+                    hook = 'hook_header_{}'.format(''.join(fn))
+                    if hasattr(self, hook):
+                        header = getattr(self, hook)()
+                        s.append(header)
+                    else:
+                        s.append(force_text(f.verbose_name))
+
             s = ' / '.join(s)
             r.append(s)
         return r
@@ -598,7 +602,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                             model_ordering = (model_ordering,)
                         for mo in model_ordering:
                             if mo not in ordering:
-                                ordering = ordering + (mo, )
+                                ordering = ordering + (mo,)
                     queryset = queryset.order_by(*ordering)
 
                     # print(ordering)
@@ -618,9 +622,38 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
         return queryset
 
 
+class AuditLogMixin(object):
+
+    def delete(self, request, *args, **kwargs):
+        # Classe deve implementar um get_object(), i.e., deve ser uma View
+        deleted_object = self.get_object()
+        try:
+           return super(AuditLogMixin, self).delete(request, args, kwargs)
+        finally:
+            post_delete_signal.send(sender=None,
+                                    instance=deleted_object,
+                                    operation='D',
+                                    request=self.request)
+
+    # SAVE/UPDATE method
+    def form_valid(self, form):
+        try:
+            if not form.instance.pk:
+                operation = 'C'
+            else:
+                operation = 'U'
+            return super(AuditLogMixin, self).form_valid(form)
+        finally:
+            post_save_signal.send(sender=None,
+                                  instance=form.instance,
+                                  operation=operation,
+                                  request=self.request
+                                  )
+
+
 class CrudCreateView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, CreateView):
-    permission_required = (RP_ADD, )
+                     FormMessagesMixin, AuditLogMixin, CreateView):
+    permission_required = (RP_ADD,)
     logger = logging.getLogger(__name__)
 
     @classmethod
@@ -692,7 +725,7 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
 class CrudDetailView(PermissionRequiredContainerCrudMixin,
                      DetailView, MultipleObjectMixin):
 
-    permission_required = (RP_DETAIL, )
+    permission_required = (RP_DETAIL,)
     no_entries_msg = _('Nenhum registro Associado.')
     paginate_by = 10
     logger = logging.getLogger(__name__)
@@ -837,8 +870,8 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
 
 
 class CrudUpdateView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, UpdateView):
-    permission_required = (RP_CHANGE, )
+                     FormMessagesMixin, AuditLogMixin, UpdateView):
+    permission_required = (RP_CHANGE,)
     logger = logging.getLogger(__name__)
 
     def form_valid(self, form):
@@ -868,8 +901,8 @@ class CrudUpdateView(PermissionRequiredContainerCrudMixin,
 
 
 class CrudDeleteView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, DeleteView):
-    permission_required = (RP_DELETE, )
+                     FormMessagesMixin, AuditLogMixin, DeleteView):
+    permission_required = (RP_DELETE,)
     logger = logging.getLogger(__name__)
 
     @classmethod
@@ -929,10 +962,12 @@ class Crud:
 
         def _add_base(view):
             if view:
+
                 class CrudViewWithBase(cls.BaseMixin, view):
                     model = cls.model
                     help_topic = cls.help_topic
                     crud = cls
+
                 CrudViewWithBase.__name__ = view.__name__
                 return CrudViewWithBase
 
@@ -966,11 +1001,13 @@ class Crud:
     def build(cls, _model, _help_topic, _model_set=None, list_field_names=[]):
 
         def create_class(_list_field_names):
+
             class ModelCrud(cls):
                 model = _model
                 model_set = _model_set
                 help_topic = _help_topic
                 list_field_names = _list_field_names
+
             return ModelCrud
 
         ModelCrud = create_class(list_field_names)

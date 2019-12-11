@@ -4,12 +4,14 @@
 
 <div class="cp">
   {% if object_list %}
-    <div class="clearfix">
+      <div class="actions btn-group" role="group">
+        <a href="{{base_url}}?print" class="btn btn-outline-primary">{% trans 'Preparar para impressão' %}</a>
+      </div>
+      
       <div class="actions btn-group float-right" role="group">
         <a class="btn btn-outline-primary" id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
         <a class="btn btn-outline-primary" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
       </div>
-    </div>
   {% endif %}
 
   {% for key, values in view.get_vigencias.items %}
@@ -17,14 +19,14 @@
       <ul class="cp-linha-vigencias">
         {% for dispositivo in values %}
           <li class="{% if view.inicio_vigencia == dispositivo.inicio_vigencia %}active{%endif%}">
-            <a class="" href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto Original'%}</a>
+            <a class="" href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto<br>Original'%}</a>
             <span class="circle"> </span>
           </li>
         {% endfor %}
     {% elif forloop.last %}
       {% for dispositivo in values %}
         <li class="{% if not view.inicio_vigencia%}active{% endif %}">
-          <a class="" href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_id %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{% if dispositivo.ta_publicado_id in ta_pub_list %}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Texto Atual'%}</a>
+          <a class="" href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_id %}" title="{% trans 'Compilação atual'%}.&#013;{% trans 'Vigência a partir de'%} {{dispositivo.inicio_vigencia}}&#013;{% if dispositivo.ta_publicado_id in ta_pub_list %}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Texto<br>Atual'%}</a>
           <span class="circle"> </span>
         </li>
         {% if forloop.parentloop.last %}
@@ -39,18 +41,21 @@
               {% blocktrans with inicio_vigencia=dispositivo.inicio_vigencia%}
                 Vigência a partir de <b>{{inicio_vigencia}}</b>.
               {% endblocktrans%}
+              {% if dispositivo.inicio_vigencia != dispositivo.inicio_eficacia %}
+                Efeitos a partir de  <b>{{dispositivo.inicio_eficacia}}</b>.
+              {% endif %}
             {% endif %}
             <br>
             {% if view.ta_vigencia %}
                 <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' view.ta_vigencia %}">{{ta_pub_list|lookup:view.ta_vigencia}}</a></small>
-            {% elif view.ta_vigencia and view.ta_vigencia != 0%}
+            {% elif view.ta_vigencia and view.ta_vigencia != 0 or view.ta_vigencia is None %}
                 <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_publicado.pk %}">{{dispositivo.ta_publicado}}</a></small>
             {% endif %}
           </span>
         {% endif%}
       {% endfor %}
     {% else %}
-      <li class="{% if key == view.inicio_vigencia.year %}active{% endif %}">
+      <li class="{% if key == view.inicio_vigencia.year and view.ta_vigencia %}active{% endif %}">
       <a class="" href="#">{{ key }}</a>
           <span class="circle"> </span>
         <ul class="">
@@ -75,6 +80,7 @@
       <a class="btn btn-primary" onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a>
       <a class="btn btn-primary"  onclick="textoMultiVigente(this, false); textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Textos Alteradores'%}">{% trans 'TVL'%}</a>
       <a class="btn btn-primary"  onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a>
+      <a class="btn btn-primary"  onclick="textoVigenteSemRevogados(this, false);" title="{% trans 'Texto Vigente Sem Dispositivos Revogados'%}">{% trans 'TVR'%}</a>
     </div>
   </div>
 

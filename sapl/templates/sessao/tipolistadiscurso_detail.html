@@ -1,0 +1,57 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block sub_actions %}
+    {{block.super}}
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.sessao:cronometrolista_form' object.pk %}" class="btn btn-outline-primary">Vincular Cronômetro</a>
+    </div>
+{% endblock sub_actions %}
+
+{% block detail_content %}
+    {{block.super}}
+    {% if cronometros_lista %}
+        <h2 class="legend">Cronômetros vinculados</h2>
+        <table class="table table-striped table-hover table-link-ordering">
+            <thead>
+                <tr>
+                    <th>Cronômetros</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cl in cronometros_lista %}
+                    <tr>
+                        <td><a href="{% url 'sapl.painel:cronometro_detail' cl.cronometro.pk %}">{{cl.cronometro}}</a></td>
+                        <td>
+                            <button type="button" class="btn btn-danger float-right" onclick='desvincular("{{cl.pk}}")'>
+                                Desvincular
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+
+    <script type="text/javascript">
+        function desvincular(pk){
+            var csrftoken = '{{ csrf_token }}';
+            $.ajax({
+                url: "/api/sessao/cronometrolista/"+pk,
+                headers: {
+                    'X-CSRFToken':csrftoken,
+                },
+                type: 'delete',
+                contentType: 'application/json',
+                success: function(result){
+                    console.log("Cronômetro desvinculado.");
+                }
+            });
+            location.reload();
+        }
+    </script>
+
+{% endblock %} 

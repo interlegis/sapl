@@ -48,14 +48,15 @@ from .forms import (AdicionarVariasMateriasFilterSet, ExpedienteForm,
                     PresencaForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm, RetiradaPautaForm, OradorOrdemDiaForm,
-                    OrdemExpedienteLeituraForm)
+                    OrdemExpedienteLeituraForm,
+                    CronometroListaForm)
 from .models import (CargoMesa, ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
-                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia, 
-                     ORDENACAO_RESUMO, RegistroLeitura)
+                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia, ORDENACAO_RESUMO,
+                     RegistroLeitura, TipoListaDiscurso, ListaDiscurso, CronometroLista, ParlamentarLista)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
@@ -63,6 +64,19 @@ TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
 TipoResultadoVotacaoCrud = CrudAux.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
+
+
+class TipoListaDiscursoCrud(CrudAux):
+    model = TipoListaDiscurso
+
+    class DetailView(CrudAux.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            tipo_lista = context['object']
+            cronometros_lista = CronometroLista.objects.filter(tipo_lista=tipo_lista)
+            context['cronometros_lista'] = cronometros_lista
+            return context
 
 
 def reordernar_materias_expediente(request, pk):
@@ -386,7 +400,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                 resultado = obj.registrovotacao_set.filter(
                     materia_id=obj.materia_id).last()
                 resultado_descricao = obj.resultado
-                resultado_observacao = obj.observacao
+                resultado_observacao = resultado.observacao
 
             if has_permission:
                 url = ''
@@ -502,18 +516,16 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
 
 def get_presencas_generic(model, sessao, legislatura):
-    presencas = model.objects.filter(
-        sessao_plenaria=sessao)
-
-    presentes = [p.parlamentar for p in presencas]
+    presentes = [p.parlamentar for p in model.objects.filter(sessao_plenaria=sessao)]
     
-    presentes = sorted(
-        presentes, key=lambda x: remover_acentos(x.nome_parlamentar))
+    parlamentares_mandato = Mandato.objects.filter(
+                              legislatura=legislatura,
+                              data_inicio_mandato__lte=sessao.data_inicio,
+                              data_fim_mandato__gte=sessao.data_inicio
+    ).distinct().order_by(
+        'parlamentar__nome_parlamentar')
 
-    mandato = Mandato.objects.filter(
-        legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
-
-    for m in mandato:
+    for m in parlamentares_mandato:
         parlamentar = m.parlamentar
         p_afastado = verifica_afastamento_parlamentar(parlamentar, sessao.data_inicio, sessao.data_fim)
         if parlamentar in presentes:
@@ -788,6 +800,7 @@ class OradorExpedienteCrud(OradorCrud):
 
 
     class ListView(MasterDetailCrud.ListView):
+        ordering = ['numero_ordem']
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -1620,11 +1633,11 @@ def get_presenca_sessao(sessao_plenaria):
 
     parlamentares_sessao = [p.parlamentar for p in SessaoPlenariaPresenca.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar')]
+    ).order_by('parlamentar__nome_parlamentar').distinct()]
 
     ausentes_sessao = JustificativaAusencia.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar')
+    ).distinct().order_by('parlamentar__nome_parlamentar')
 
     return ({'presenca_sessao': parlamentares_sessao,
              'justificativa_ausencia': ausentes_sessao})
@@ -1718,7 +1731,7 @@ def get_oradores_expediente(sessao_plenaria):
 def get_presenca_ordem_do_dia(sessao_plenaria):
     parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar')]
+    ).distinct().order_by('parlamentar__nome_parlamentar')]
 
     return {'presenca_ordem': parlamentares_ordem}
 
@@ -4513,3 +4526,92 @@ def retirar_leitura(request, pk, iso, oid):
     ordem_expediente.save()
 
     return HttpResponseRedirect(succ_url)
+class ListaDiscursoView(TemplateView):
+    template_name = 'sessao/lista_discurso.html'
+
+    def get(self, request, *args, **kwargs):
+        return TemplateView.get(self, request, *args, **kwargs)
+
+
+    def get_context_data(self, **kwargs):
+        context = TemplateView.get_context_data(self, **kwargs)
+        sessao_pk = kwargs['pk']
+        sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+    
+        context.update({
+            'root_pk': sessao_pk,
+            'subnav_template_name': 'sessao/subnav.yaml',
+            'sessaoplenaria': sessao,
+        })
+        return context
+
+
+class CronometroListaFormView(FormView):
+    form_class = CronometroListaForm
+    template_name = 'sessao/cronometrolista_form.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        tipo_lista_pk = self.kwargs['pk']
+        tipo_lista = TipoListaDiscurso.objects.get(id=tipo_lista_pk)
+        initial['tipo_lista'] = tipo_lista
+        initial['nome_lista'] = tipo_lista.nome
+        return initial
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+    @property
+    def cancel_url(self):
+        return reverse('sapl.sessao:tipolistadiscurso_detail',
+                       kwargs={'pk': self.kwargs['pk']})
+
+    def get_success_url(self):
+        return reverse('sapl.sessao:tipolistadiscurso_detail',
+                       kwargs={'pk': self.kwargs['pk']}) 
+                       
+
+def salva_listadiscurso_parlamentares(request):
+    parlamentares_selecionados_ids = request.GET.getlist('parlamentares_selecionados[]')
+    tipo_lista_id = request.GET.get('lista_selecionada')
+    sessao_id = request.GET.get('sessao_pk')
+    
+    if parlamentares_selecionados_ids:
+        lista = ListaDiscurso.objects.get_or_create(tipo_id=tipo_lista_id, sessao_plenaria_id=sessao_id)[0]
+        ParlamentarLista.objects.filter(lista=lista).delete()
+        parlamentares_lista = []
+        for i,parlamentar_id in enumerate(parlamentares_selecionados_ids):
+            parlamentares_lista.append(ParlamentarLista(lista=lista, parlamentar_id=parlamentar_id, ordenacao=i+1))
+        ParlamentarLista.objects.bulk_create(parlamentares_lista)
+    else:
+        ParlamentarLista.objects.filter(lista__tipo_id=tipo_lista_id, lista__sessao_plenaria_id=sessao_id).delete()
+        ListaDiscurso.objects.filter(tipo_id=tipo_lista_id, sessao_plenaria_id=sessao_id).delete()
+    return JsonResponse({})
+
+
+def salva_orador_listadiscurso(request):
+    tipo_id=request.GET.get('tipo_lista_pk')
+    sessao_id=request.GET.get('sessao_pk')
+    lista = ListaDiscurso.objects.get(tipo_id=tipo_id, sessao_plenaria_id=sessao_id)
+    orador_pk = request.GET.get('orador_pk')
+    if orador_pk != '-1':
+        lista.orador_atual = Parlamentar.objects.get(id=orador_pk)
+    else:
+        lista.orador_atual = None
+    lista.save()
+    return JsonResponse({})
+
+def get_orador_listadiscurso(request, spk, tpk):
+    # Não foi utilizado .get para não quebrar caso não exista registro
+    lista = ListaDiscurso.objects.filter(tipo_id=tpk, sessao_plenaria_id=spk).first()
+    parlamentares = []
+    orador_pk = -1
+    orador_nome = ''
+    if lista:
+        if lista.orador_atual:
+            orador_pk = lista.orador_atual.pk 
+            orador_nome = lista.orador_atual.nome_parlamentar
+        parlamentares = ParlamentarLista.objects.filter(lista=lista).order_by('ordenacao').values_list('parlamentar__id', 'parlamentar__nome_parlamentar')
+    return JsonResponse({'orador': (orador_pk, orador_nome),
+                         'parlamentares': list(parlamentares)})

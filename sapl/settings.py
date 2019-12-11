@@ -263,9 +263,9 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
 SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 EMAIL_RUNNING = None
 
-MAX_DOC_UPLOAD_SIZE = 80 * 1024 * 1024  # 80MB
+MAX_DOC_UPLOAD_SIZE = 150 * 1024 * 1024  # 150MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
-DATA_UPLOAD_MAX_MEMORY_SIZE= 10 * 1024 * 1024 # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE= 10 * 1024 * 1024  # 10MB
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

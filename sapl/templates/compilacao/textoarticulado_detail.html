@@ -8,22 +8,24 @@
 {% endblock %}
 
 {% block base_content %}
-
+  
   {% block actions %}
-    <div class="clearfix hidden-print">
-      <div class="actions btn-group float-right" role="group">
+    <div class="context-actions d-flex justify-content-between mb-4">
+      <div class="actions btn-group" role="group">        
+        {% if not object.editing_locked %}
+          <a class="btn btn-success" href="{% url 'sapl.compilacao:ta_text' object.pk %}">PreView</a>
+        {% endif %}
+        {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
+          <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn {% if object.editing_locked %}btn-danger{%else%}btn-outline-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
+        {% endif %}
+      </div>
+      <div class="actions btn-group" role="group">        
         {% if perms.compilacao.change_textoarticulado and object|can_use_dynamic_editing:user %}
           <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Metadados do Texto Articulado' %}</a>
         {% endif %}
         {% if object|can_use_dynamic_editing:user %}
           <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Texto' %}</a>
         {% endif %}
-        {% if perms.compilacao.lock_unlock_textoarticulado and not object.editable_only_by_owners%}
-          <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn {% if object.editing_locked %}btn-outline-danger{%else%}btn-outline-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
-        {% endif %}
-      </div>
-      <div class="actions btn-group float-right" role="group">
-        <a href="{{base_url}}?print" class="btn btn-outline-primary">{% trans 'Preparar para impressão' %}</a>
       </div>
     </div>
   {% endblock actions %}
@@ -39,14 +41,14 @@
             </div>
           </div>
 
-          {% if object.content_object and object.content_object.tipo%}
+          {% if object.content_object and object.content_object.tipo %}
             <div class="col-md-3">
               <div id="div_id_tipo" class="holder">
                 <label>{% field_verbose_name object.content_object 'tipo' %}</label>
                 <p>{{ object.content_object.tipo}}</p>
               </div>
             </div>
-          {%endif%}
+          {% endif %}
 
           <div class="col-md-2">
             <div id="div_id_numero" class="holder">

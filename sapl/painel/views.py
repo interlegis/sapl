@@ -1,6 +1,7 @@
 import html
 import json
 import logging
+import os
 
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
@@ -21,7 +22,8 @@ from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
 from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 PresencaOrdemDia, RegistroVotacao,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
-                                VotoParlamentar, RegistroLeitura)
+                                VotoParlamentar, CronometroLista, ListaDiscurso,
+                                ParlamentarLista, RegistroLeitura)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
 from .forms import CronometroForm, ConfiguracoesPainelForm
@@ -353,12 +355,15 @@ def painel_view(request, pk):
         'resultado': True,
         'materia': True
     }
+    now = timezone.localtime(timezone.now())
+    utc_offset = now.utcoffset().total_seconds() / 60
     context = {'head_title': str(_('Painel Plenário')), 
                'sessao_id': pk, 
                'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao'),
                'painel_config': PainelConfig.objects.first(),
                'casa': CasaLegislativa.objects.last(),
-               'exibicao': exibicao
+               'exibicao': exibicao,
+               'utc_offset': utc_offset,
                }
     return render(request, 'painel/index.html', context)
 
@@ -375,12 +380,15 @@ def painel_parcial_view(request, pk, opcoes):
         'resultado': bit_is_set(opcoes, 3),
         'materia': bit_is_set(opcoes, 4)
     }
+    now = timezone.localtime(timezone.now())
+    utc_offset = now.utcoffset().total_seconds() / 60
     context = {'head_title': str(_('Painel Plenário')), 
                'sessao_id': pk, 
                'cronometros': Cronometro.objects.filter(ativo=True).order_by('ordenacao'),
                'painel_config': PainelConfig.objects.first(),
                'casa': CasaLegislativa.objects.last(),
-               'exibicao': exibicao
+               'exibicao': exibicao,
+               'utc_offset': utc_offset,
                }
     return render(request, 'painel/index.html', context)
 
@@ -727,19 +735,24 @@ def get_dados_painel(request, pk):
         expediente__sessao_plenaria=sessao).order_by('data_hora').last()
 
     # Obtém última matéria que foi votada, através do timestamp mais recente
+    ordem_expediente = None
+    ultimo_timestamp = None
     if last_ordem_voto:
         ordem_expediente = last_ordem_voto.ordem
         ultimo_timestamp = last_ordem_voto.data_hora
-    if last_expediente_voto and last_expediente_voto.data_hora > ultimo_timestamp:
+    if (last_expediente_voto and ultimo_timestamp and last_expediente_voto.data_hora > ultimo_timestamp) or \
+        (not ultimo_timestamp and last_expediente_voto):
         ordem_expediente = last_expediente_voto.expediente
         ultimo_timestamp = last_expediente_voto.data_hora
-    if last_ordem_leitura and last_ordem_leitura.data_hora > ultimo_timestamp:
+    if (last_ordem_leitura and ultimo_timestamp and last_ordem_leitura.data_hora > ultimo_timestamp) or \
+        (not ultimo_timestamp and last_ordem_leitura):
         ordem_expediente = last_ordem_leitura.ordem
         ultimo_timestamp = last_ordem_leitura.data_hora
-    if last_expediente_leitura and last_expediente_leitura.data_hora > ultimo_timestamp:
+    if (last_expediente_leitura and ultimo_timestamp and last_expediente_leitura.data_hora > ultimo_timestamp) or \
+        (not ultimo_timestamp and last_expediente_leitura):
         ordem_expediente = last_expediente_leitura.expediente
         ultimo_timestamp = last_expediente_leitura.data_hora
-
+    
     if ordem_expediente:
         return JsonResponse(get_votos(
                             get_presentes(pk, response, ordem_expediente),
@@ -748,3 +761,71 @@ def get_dados_painel(request, pk):
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(get_presentes(pk, response, None))
 
+
+@user_passes_test(check_permission)
+def painel_discurso_view(request, sessao_pk, lista_pk):
+    cronometros_ids = CronometroLista.objects.filter(tipo_lista_id=lista_pk).values_list('cronometro', flat=True)
+    cronometros = Cronometro.objects.filter(id__in=cronometros_ids)
+    lista = ListaDiscurso.objects.get(tipo_id=lista_pk, sessao_plenaria_id=sessao_pk)
+    
+    context = {
+                'head_title': str(_('Painel de Discurso')), 
+                'sessao_id': sessao_pk, 
+                'lista': lista,
+                'cronometros': cronometros,
+                'casa': CasaLegislativa.objects.last(),
+                'painel_config': PainelConfig.objects.first(),
+            }
+    return render(request, 'painel/painel_discurso.html', context)
+
+
+@user_passes_test(check_permission)
+def get_dados_painel_discurso(request, pk, lista_pk):
+    sessao = SessaoPlenaria.objects.get(id=pk)
+
+    casa = CasaLegislativa.objects.first()
+
+    app_config = ConfiguracoesAplicacao.objects.first()
+
+    brasao = None
+    if casa and app_config and (bool(casa.logotipo)):
+        brasao = casa.logotipo.url \
+            if app_config.mostrar_brasao_painel else None
+    
+    CRONOMETRO_STATUS = {
+        'I': 'start',
+        'R': 'reset',
+        'S': 'stop',
+        'C': 'increment'
+    }
+
+    cronometros = Cronometro.objects.filter(cronometrolista__tipo_lista_id=lista_pk)
+
+    dict_status_cronometros = dict(cronometros.order_by('ordenacao').values_list('id', 'status'))
+
+    for key, value in dict_status_cronometros.items():
+        dict_status_cronometros[key] = CRONOMETRO_STATUS[dict_status_cronometros[key]]
+    
+    dict_duracao_cronometros = dict(cronometros.values_list('id', 'duracao_cronometro'))
+    
+    for key, value in dict_duracao_cronometros.items():
+        dict_duracao_cronometros[key] = value.seconds
+
+    lista = ListaDiscurso.objects.get(tipo_id=lista_pk, sessao_plenaria_id=pk)
+    orador = lista.orador_atual
+    oradores = ParlamentarLista.objects.filter(lista=lista).order_by('ordenacao').values_list('parlamentar__nome_parlamentar', flat=True)
+    
+    response = {
+        'sessao_plenaria': str(sessao),
+        'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
+        'sessao_plenaria_hora_inicio': sessao.hora_inicio,
+        'cronometros': dict_status_cronometros,
+        'duracao_cronometros': dict_duracao_cronometros,
+        'sessao_finalizada': sessao.finalizada,
+        'brasao': brasao,
+        'orador': orador.nome_parlamentar if orador else '',
+        'orador_img': orador.fotografia.url if orador and os.path.isfile(orador.fotografia.path) else None,
+        'oradores': list(oradores)
+    }
+
+    return JsonResponse(response)

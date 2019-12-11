@@ -26,7 +26,7 @@ from django_filters.views import FilterView
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig
-from sapl.base.signals import tramitacao_signal
+from sapl.base.signals import tramitacao_signal, post_delete_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
@@ -37,7 +37,7 @@ from sapl.protocoloadm.models import Protocolo
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
-                        show_results_filter_set, mail_service_configured)
+                        show_results_filter_set, mail_service_configured, from_date_to_datetime_utc)
 
 from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
@@ -564,12 +564,24 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
                 data_fim__year__gte=timezone.now().year).first()
+
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
+
+            data_inicio_utc = from_date_to_datetime_utc(data_inicio)
+            data_fim_utc = from_date_to_datetime_utc(data_fim)
+
             numero = Protocolo.objects.filter(
-                data__gte=data_inicio,
-                data__lte=data_fim).aggregate(
-                Max('numero'))
+                Q(data__isnull=False,
+                  data__gte=data_inicio,
+                  data__lte=data_fim) |
+                Q(timestamp__isnull=False,
+                  timestamp__gte=data_inicio_utc,
+                  timestamp__lte=data_fim_utc) |
+                Q(timestamp_data_hora_manual__isnull=False,
+                  timestamp_data_hora_manual__gte=data_inicio_utc,
+                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
+                aggregate(Max('numero'))
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
@@ -760,10 +772,22 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
                 data_fim__year__gte=timezone.now().year).first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
+
+            data_inicio_utc = from_date_to_datetime_utc(data_inicio)
+            data_fim_utc = from_date_to_datetime_utc(data_fim)
+
             numero = Protocolo.objects.filter(
-                data__gte=data_inicio,
-                data__lte=data_fim).aggregate(
-                Max('numero'))
+                Q(data__isnull=False,
+                  data__gte=data_inicio,
+                  data__lte=data_fim) |
+                Q(timestamp__isnull=False,
+                  timestamp__gte=data_inicio_utc,
+                  timestamp__lte=data_fim_utc) |
+                Q(timestamp_data_hora_manual__isnull=False,
+                  timestamp_data_hora_manual__gte=data_inicio_utc,
+                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
+                aggregate(Max('numero'))
+
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
@@ -1268,7 +1292,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacoes_deletar = [tramitacao.id]
+                tramitacoes_deletar = [tramitacao]
                 if documento.tramitacaoadministrativo_set.count() == 0:
                     documento.tramitacao = False
                     documento.save()
@@ -1278,12 +1302,19 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     for da in docs_anexados:
                         tram_anexada = da.tramitacaoadministrativo_set.last()
                         if compara_tramitacoes_doc(tram_anexada, tramitacao):
-                            tramitacoes_deletar.append(tram_anexada.id)
+                            tramitacoes_deletar.append(tram_anexada)
                             if da.tramitacaoadministrativo_set.count() == 0:
                                 da.tramitacao = False
                                 da.save()
                 TramitacaoAdministrativo.objects.filter(
-                    id__in=tramitacoes_deletar).delete()
+                    id__in=[t.id for t in tramitacoes_deletar]).delete()
+
+                # TODO: otimizar para passar a lista de matérias
+                for tramitacao in tramitacoes_deletar:
+                    post_delete_signal.send(sender=None,
+                                            instance=tramitacao,
+                                            operation='C',
+                                            request=self.request)
 
                 return HttpResponseRedirect(url)
 

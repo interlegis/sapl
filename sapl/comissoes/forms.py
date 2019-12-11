@@ -12,13 +12,16 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
-                                   Participacao, Periodo, Reuniao)
-from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
+from sapl.comissoes.models import (Comissao, Composicao,
+                                   DocumentoAcessorio, Participacao,
+                                   Periodo, Reuniao)
+from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper, 
+                                      to_row)
 from sapl.materia.models import MateriaEmTramitacao, PautaReuniao
-from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import FileFieldCheckMixin, FilterOverridesMetaMixin
+from sapl.parlamentares.models import (Legislatura, Mandato,
+                                       Parlamentar)
+from sapl.utils import (FileFieldCheckMixin, FilterOverridesMetaMixin,
+                        validar_arquivo)
 
 
 class ComposicaoForm(forms.ModelForm):
@@ -405,17 +408,14 @@ class ReuniaoForm(ModelForm):
         upload_ata = self.cleaned_data.get('upload_ata', False)
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
-        if upload_pauta and upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Pauta da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024))
+        if upload_pauta:
+            validar_arquivo(upload_pauta, "Pauta da Reunião")
         
-        if upload_ata and upload_ata.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Ata da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024))
+        if upload_ata:
+            validar_arquivo(upload_ata, "Ata da Reunião")
         
-        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Anexo da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+        if upload_anexo:
+            validar_arquivo(upload_anexo, "Anexo da Reunião")
 
         return self.cleaned_data
 
@@ -431,9 +431,10 @@ class PautaReuniaoFilterSet(django_filters.FilterSet):
 
         self.filters['materia__tipo'].label = "Tipo da Matéria"
         self.filters['materia__ano'].label = "Ano da Matéria"
+        self.filters['materia__numero'].label = "Número da Matéria"
         self.filters['materia__data_apresentacao'].label = "Data (Inicial - Final)"
 
-        row1 = to_row([('materia__numero', 4), ('materia__tipo', 4), ('materia__ano', 4)])
+        row1 = to_row([('materia__tipo', 4), ('materia__ano', 4), ('materia__numero', 4)])
         row2 = to_row([('materia__data_apresentacao', 12)])
 
         self.form.helper = SaplFormHelper()
@@ -482,9 +483,8 @@ class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
 
         arquivo = self.cleaned_data.get('arquivo', False)
 
-        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+        if arquivo:
+            validar_arquivo(arquivo, "Texto Integral")
 
         return self.cleaned_data
 
@@ -509,8 +509,7 @@ class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
 
         arquivo = self.cleaned_data.get('arquivo', False)
 
-        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+        if arquivo:
+            validar_arquivo(arquivo, "Texto Integral")
 
         return self.cleaned_data

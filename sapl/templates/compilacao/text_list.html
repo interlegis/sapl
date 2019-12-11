@@ -3,10 +3,6 @@
 {% load compilacao_filters %}
 {% load common_tags %}
 
-{% block title %}
-  <h2 class="page-header">{% if object.content_object.title_type %}{{object.content_object.title_type}}{%else%}{{object}}{% endif %}{% comment %}<small><i>{% trans 'Texto Multivigente em Edição' %}</i></small>{% endcomment %}</h2>
-{% endblock %}
-
 {% block base_content %}
 
   {% block actions %}
@@ -16,6 +12,7 @@
   {% block detail_content %}
     {{block.super}}
   {% endblock %}
+  
   {% include 'compilacao/text_list__embedded.html'%}
 
   {{object.tipo_ta.rodape_global|dont_break_out}}

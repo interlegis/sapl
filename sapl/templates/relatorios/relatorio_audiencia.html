@@ -1,14 +1,10 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load static %}
 
-
-<head>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
-</head>
-
-<body>
-  <h2>Audiência Pública</h2>
+{% block content %}
+<h2>Audiência Pública</h2>
 
     {% if object_list|length > 0 %}
     <table class="table table-bordered table-hover">
@@ -32,4 +28,4 @@
     {% else %}
       <font size="5"><p align="center">Nenhuma Audiência Pública foi encontrada!</p></font>
     {% endif %}
-</body>
+{% endblock content %} 

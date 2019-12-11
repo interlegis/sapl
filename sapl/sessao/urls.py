@@ -38,7 +38,13 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                voto_nominal_parlamentar,
                                ExpedienteLeituraView,
                                OrdemDiaLeituraView,
-                               retirar_leitura)
+                               retirar_leitura,
+                               ListaDiscursoView,
+                               TipoListaDiscursoCrud,
+                               CronometroListaFormView,
+                               salva_listadiscurso_parlamentares,
+                               salva_orador_listadiscurso,
+                               get_orador_listadiscurso)
 
 from .apps import AppConfig
 
@@ -102,6 +108,10 @@ urlpatterns = [
         include(TipoJustificativaCrud.get_urls())),
     url(r'^sistema/sessao-plenaria/tipo-retirada-pauta/',
         include(TipoRetiradaPautaCrud.get_urls())),
+    url(r'^sistema/sessao-plenaria/tipo-lista-discurso/',
+        include(TipoListaDiscursoCrud.get_urls())),
+    
+        
     url(r'^sistema/resumo-ordenacao/',
         resumo_ordenacao,
         name='resumo_ordenacao'),
@@ -202,4 +212,20 @@ urlpatterns = [
 
     url(r'^sessao/(?P<pk>\d+)/(?P<iso>\d+)/(?P<oid>\d+)/retirar-leitura$',
         retirar_leitura, name='retirar_leitura'),
+
+    # Lista de Discurso
+    url(r'^sessao/(?P<pk>\d+)/lista-discurso/', 
+        ListaDiscursoView.as_view(),
+        name='lista_discurso'),
+    
+    url(r'^sistema/sessao-plenaria/lista-discurso/(?P<pk>\d+)/cronometro/create',
+        CronometroListaFormView.as_view(), name='cronometrolista_form'),
+
+    url(r'^sistema/salva-listadiscurso-parlamentares/$', 
+        salva_listadiscurso_parlamentares, name='salva_listadiscurso_parlamentares'),
+    url(r'^sistema/salva-orador-listadiscurso/$', 
+        salva_orador_listadiscurso, name='salva_orador_listadiscurso'),
+    
+    url(r'^sistema/get-orador-lista/(?P<spk>\d+)/(?P<tpk>\d+)/$', 
+        get_orador_listadiscurso, name='get_orador_listadiscurso'),    
 ]

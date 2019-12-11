@@ -164,7 +164,7 @@ class DocumentoAdministrativo(models.Model):
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
     texto_integral = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         storage=OverwriteStorage(),
@@ -232,7 +232,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
         verbose_name=_('Tipo'))
     nome = models.CharField(max_length=30, verbose_name=_('Nome'))
     arquivo = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         upload_to=texto_upload_path,
@@ -240,7 +240,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
         verbose_name=_('Arquivo'))
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     autor = models.CharField(
-        max_length=50, blank=True, verbose_name=_('Autor'))
+        max_length=200, blank=True, verbose_name=_('Autor'))
     assunto = models.TextField(
         blank=True, verbose_name=_('Assunto'))
     indexacao = models.TextField(blank=True)

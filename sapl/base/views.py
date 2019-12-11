@@ -2053,8 +2053,6 @@ class AppConfigCrud(CrudAux):
                 reverse('sapl.base:appconfig_update',
                         kwargs={'pk': app_config.pk}))
 
-        def post(self, request, *args, **kwargs):
-            return self.get(request, *args, **kwargs)
 
     class ListView(CrudAux.ListView):
 

@@ -843,16 +843,18 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         self.form.initial['exibir_ordem_dia']  = True
 
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
+
+        self.form.fields['legislatura'].required = True
         
         tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(nome='Ordinária')
         if tipo_sessao_ordinaria:
             self.form.initial['tipo'] = tipo_sessao_ordinaria.first()
 
-        row1 = to_row([('data_inicio', 12)])
-        row2 = to_row([('legislatura', 4),
+        row1 = to_row([('legislatura', 4),
                        ('sessao_legislativa', 4),
                        ('tipo', 4)])
-        row3 = to_row([('exibir_ordem_dia', 12)])
+        row2 = to_row([('exibir_ordem_dia', 12)])
+        row3 = to_row([('data_inicio', 12)])
 
         buttons = FormActions(
             *[
@@ -1326,9 +1328,14 @@ class ConfiguracoesAppForm(ModelForm):
                   'tramitacao_materia',
                   'tramitacao_documento']
 
-    def clean_mostrar_brasao_painel(self):
-        mostrar_brasao_painel = self.cleaned_data.get(
-            'mostrar_brasao_painel', False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
+        mostrar_brasao_painel = self.cleaned_data.get('mostrar_brasao_painel', False)
         casa = CasaLegislativa.objects.first()
 
         if not casa:
@@ -1341,7 +1348,7 @@ class ConfiguracoesAppForm(ModelForm):
             raise ValidationError("Não há logitipo configurado para esta "
                                   "Casa legislativa.")
 
-        return mostrar_brasao_painel
+        return cleaned_data
 
 
 class RecuperarSenhaForm(PasswordResetForm):

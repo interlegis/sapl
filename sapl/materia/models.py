@@ -257,7 +257,7 @@ class MateriaLegislativa(models.Model):
             'materia_principal',
             'materia_anexada'))
     texto_original = models.FileField(
-        max_length=200,
+        max_length=300,
         blank=True,
         null=True,
         upload_to=materia_upload_path,
@@ -535,13 +535,13 @@ class DocumentoAcessorio(models.Model):
     data = models.DateField(blank=True, null=True,
                             default=None, verbose_name=_('Data'))
     autor = models.CharField(
-        max_length=50, blank=True, verbose_name=_('Autor'))
+        max_length=200, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(
         blank=True,
         null=True,
-        max_length=255,
+        max_length=300,
         upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
         storage=OverwriteStorage(),
@@ -807,7 +807,7 @@ class Proposicao(models.Model):
                                        ('I', 'Incorporada')),
                               verbose_name=_('Status Proposição'))
     texto_original = models.FileField(
-        max_length=200,
+        max_length=300,
         upload_to=materia_upload_path,
         blank=True,
         null=True,

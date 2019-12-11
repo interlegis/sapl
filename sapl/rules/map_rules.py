@@ -188,6 +188,10 @@ rules_group_sessao = {
         (sessao.JustificativaAusencia, __base__, __perms_publicas__),
         (sessao.RetiradaPauta, __base__, __perms_publicas__),
         (sessao.RegistroLeitura, __base__, __perms_publicas__),
+        (sessao.ListaDiscurso, __base__, __perms_publicas__),
+        (sessao.TipoListaDiscurso, __base__, __perms_publicas__),
+        (sessao.CronometroLista, __base__, __perms_publicas__),
+        (sessao.ParlamentarLista, __base__, __perms_publicas__),
     ]
 }
 
@@ -236,6 +240,7 @@ rules_group_geral = {
         (base.TipoAutor, __base__, __perms_publicas__),
         (base.Autor, __base__, __perms_publicas__),
         (base.AutorUser, __base__, __perms_publicas__),
+        (base.AuditLog, __base__, set()),
 
         (protocoloadm.StatusTramitacaoAdministrativo, __base__, set()),
         (protocoloadm.TipoDocumentoAdministrativo, __base__, set()),

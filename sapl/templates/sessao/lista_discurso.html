@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load i18n staticfiles menus %}
+
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
+{% block webpack_loader_css %}
+    {{block.super}}
+    {% render_bundle  'sessao' 'css' %}
+{% endblock webpack_loader_css %}
+
+{% block title %}
+	<h1 class="page-header">
+		Lista de Discurso <small>({{sessaoplenaria}})</small>
+	</h1>
+{% endblock %}
+
+{% block base_content %}
+    {{block.super}}
+    <div id="lista-discurso">
+		<br>
+        
+        <div v-if="tipo_listas.length > 0">
+            <h3>Selecione um Tipo de Lista de Discurso</h3>
+            <select class="form-control" v-model="lista_selecionada">
+                <option v-for="l in tipo_listas" v-bind:value="{id:l.id, nome:l.nome}">
+                    [[ l.nome ]]
+                </option>
+            </select>
+        </div>
+        
+        <h3 v-else>
+            Não há <a href="{% url 'sapl.sessao:tipolistadiscurso_create' %}">
+            <b>Tipos de Lista de Discurso</b></a> criadas. Para criar, vá em 
+            <b>Sistema -> Tabelas Auxiliares -> Tipo de Lista de Discurso.</b>
+        </h3>
+        <br>
+
+        <div v-if="lista_selecionada" class="form-group row">
+            <div class="col-md-6">
+                <button @click="selecionado_add = !selecionado_add; selecionado_painel = false;" :class="{btSelecionado:selecionado_add,}" class="btn btn-secondary btn-lg form-control" type="button">
+                    Adicionar Parlamentar à Lista de Discurso
+                </button>
+            </div>
+            <div class="col-md-6">
+                <button @click="selecionado_add = false; selecionado_painel = !selecionado_painel;" :class="{btSelecionado:selecionado_painel,}" class="btn btn-secondary btn-lg form-control" type="button">
+                    Painel da Lista de Discurso
+                </button>
+            </div>
+        </div>
+        
+        <br>
+        <br>
+
+        <div v-if="selecionado_add" id="collapseAddParlamentar">
+            <div v-if="lista_selecionada" class="row">
+                <div class="col-md-6">
+                    <h3>Parlamentares</h3>
+                    <h6>Aperte CTRL para selecionar mais de um</h6>
+                    <br>
+                    <select v-if="parlamentares" v-model="parlamentares_selecionados" multiple size="15" class="form-control">
+                        <option v-for="p in parlamentares" v-bind:value="{nome:p.nome, id:p.id}">
+                            [[ p.nome ]]
+                        </option>
+                    </select> 
+                    
+                </div>
+                <div v-if="parlamentares_selecionados.length > 0" class="col-md-6">
+                    <h3>Lista de Discurso<h3>
+                    <h6>Arraste para ordenar</h6>
+                    <br>
+
+                    <draggable v-model="parlamentares_selecionados" class="list-group" ghost-class="ghost">
+                        <div class="list-group-item" v-for="(element,index) in parlamentares_selecionados" :key="element.id">
+                            [[index+1]]. [[element.nome]]
+                        </div>
+                    </draggable>
+                </div>
+
+            </div>
+            <br><br>
+
+            <div v-if="lista_selecionada" class="row">
+                <div style="align:center" class="col-md-12 text-center">
+                    <button v-on:click="saveParlamentarLista" type="button" class="btn btn-primary">Salvar Lista</button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="selecionado_painel" id="collapsePainelLista">
+            <div v-if="lista_selecionada" class="row">
+                <div v-if="parlamentares_selecionados.length > 0" class="col-md-6">
+                    <h3>Lista de Discurso<h3>
+                    <h6>Clique uma vez para escolher o orador e uma segunda vez para desmarcar o orador.</h6>
+                    <br>
+                    <b-list-group v-for="(element,index) in parlamentares_selecionados" :key="element.id">
+                        <b-list-group-item button @click='setOrador(index)' :class="{current:parlamentares_selecionados[index].id == orador}">
+                            [[index+1]]. [[element.nome]]
+                        </b-list-group-item>
+                    </b-list-group>
+                </div>
+                <div class="col-md-6">
+                    <h3>Cronômetros<h3>
+                    <br><br>
+                    <div v-for="(cron,index) in cronometros_lista">
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-2"><h3><a :href="'/sistema/cronometro/'+ cron.id">[[cron.tipo]]</a></h3></div>
+                        </div>
+
+                        <countdown ref="countdown" :time="cron.duracao_cronometro._atual" :auto-start="counting[index]" :transform="transform" @end="handleCountdownEnd(index)">
+                            <template slot-scope="props">
+                                <input size="6" :id='"cronometro_"+cron.id' :value="props.hours+':'+props.minutes+':'+props.seconds" readyonly="true" class="form-control">
+                            </template>
+                        </countdown>
+                        <br>
+
+                        <div class="row">
+                            <div v-if="!counting[index]" class="col-md-6">
+                                <button type="button" :id='"cronometro_" + cron.id + "_Start"' class="btn btn-success" @click="startCountdown(index)">Iniciar</button>
+                            </div>
+                            <div v-else class="col-md-6">
+                                <button type="button" :id='"cronometro_" + cron.id + "_Stop"' class="btn btn-danger" @click="stopCountdown(index)">Parar</button>
+                            </div>
+                            <div v-if="!counting[index]" class="col-md-6">
+                                <button type="button" :id='"cronometro_" + cron.id + "_Reset"' class="btn btn-success" @click="resetCountdown(index)">Reiniciar</button>
+                            </div>
+                        </div>
+
+                        <br><br>
+                    </div>
+                </div>
+            </div>
+            <br><br>
+            <div v-if="lista_selecionada" class="row" >
+                <div style="text-align: center" class="col-md-12">
+                    <div class="col-md-12">
+                        <a @click="abrir_painel" 
+                           class="btn btn-primary active">
+                            Abrir Painel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}	
+
+{% block webpack_loader_js %}
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}  
+    {% render_bundle  'sessao' 'js' %}      
+{% endblock webpack_loader_js %}
