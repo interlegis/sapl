@@ -43,7 +43,6 @@ services:
       volumes:
         - sapl_data:/var/interlegis/sapl/data
         - sapl_media:/var/interlegis/sapl/media
-        - sapl_root:/var/interlegis/sapl
       volumes_from:
         - saplsolr
       depends_on:
@@ -55,6 +54,5 @@ volumes:
   sapldb_data:
   sapl_data:
   sapl_media:
-  sapl_root:
   solr_data:
   solr_configsets:
