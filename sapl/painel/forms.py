@@ -23,7 +23,8 @@ class ConfiguracoesPainelForm(forms.ModelForm):
                   'tempo_disparo_antecedencia',
                   'tempo_disparo_termino',
                   'exibir_nome_casa',
-                  'mostrar_votos_antecedencia']
+                  'mostrar_votos_antecedencia',
+                  'mostrar_ementa']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesPainelForm, self).__init__(*args, **kwargs)

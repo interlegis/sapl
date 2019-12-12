@@ -104,6 +104,11 @@ class PainelConfig(models.Model):
         choices=YES_NO_CHOICES,
         verbose_name=_('Mostrar votos informados antes do fim da votação?'))
 
+    mostrar_ementa = models.BooleanField(
+        default=False, 
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Mostrar ementa da matéria?'))
+
     class Meta:
         verbose_name = _('Configurações do Painel')
         verbose_name_plural = _('Configurações do Painel')
