@@ -168,47 +168,6 @@
             }
             return voto
         }
-
-        var audioAlertFinish = document.getElementById("audio");
-
-        $('#cronometro_discurso').runner({
-          autostart: false,
-          countdown: true,
-          startAt: {{ 'discurso'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-          audioAlertFinish.play();
-        });
-
-        $('#cronometro_aparte').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'aparte'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-            audioAlertFinish.play();
-        });
-
     function playAudioNumVezes(audio, times, ended) {
       if (times <= 0) {
           return;
