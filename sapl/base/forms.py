@@ -1043,6 +1043,8 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
 class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
+    autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
+
     @property
     def qs(self):
         parent = super(RelatorioHistoricoTramitacaoFilterSet, self).qs
@@ -1071,6 +1073,16 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
             [('tipo', 6),
              ('tramitacao__status', 6)])
 
+        row4 = to_row([
+            ('autoria__autor', 0),
+            (Button('pesquisar',
+                    'Pesquisar Autor',
+                    css_class='btn btn-primary btn-sm'), 2),
+            (Button('limpar',
+                    'limpar Autor',
+                    css_class='btn btn-primary btn-sm'), 2)
+        ])
+
         buttons = FormActions(
             *[
                 HTML('''
@@ -1089,8 +1101,10 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_(''),
-                     row1, row2, row3,
+            Fieldset(_('Pesquisar'),
+                     row1, row2, row3, row4,
+                     HTML(autor_label),
+                     HTML(autor_modal),
                      buttons, )
         )
 
