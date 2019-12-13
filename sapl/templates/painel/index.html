@@ -134,7 +134,7 @@
       var today = moment.utc().utcOffset(offset).format("HH:mm:ss");
       $("#relogio").text(today)
       var t = setTimeout(function(){
-          startTime()
+          startTime(offset)
       }, 500);
     }
 
@@ -193,6 +193,8 @@
       $("#date").append(moment().format("DD/MM/YY"));
 
       var offset = parseFloat({{ utc_offset }});
+
+      console.log(moment.utc().utcOffset(offset).format("HH:mm:ss"));
 
       startTime(offset);
 
