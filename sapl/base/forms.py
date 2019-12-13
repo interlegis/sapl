@@ -802,19 +802,19 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
         super(RelatorioAtasFilterSet, self).__init__(
             *args, **kwargs)
 
-        self.filters['data_inicio'].label = 'Período (Inicial - Final)'
-        self.form.fields['data_inicio'].required = True
+        self.filters['data_inicio'].label = 'Período de Abertura (Inicial - Final)'
+        self.form.fields['data_inicio'].required = False
 
         row1 = to_row([('data_inicio', 12)])
 
         buttons = FormActions(
             *[
                 HTML('''
-                                            <div class="form-check">
-                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
-                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
-                                            </div>
-                                        ''')
+                        <div class="form-check">
+                            <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                            <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                        </div>
+                    ''')
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
@@ -828,7 +828,6 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
             Fieldset(_('Atas das Sessões Plenárias'),
                      row1, buttons, )
         )
-
 
 def ultimo_ano_com_norma():
     anos_normas = choice_anos_com_normas()

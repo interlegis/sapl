@@ -368,8 +368,7 @@ class RelatorioAtasView(RelatorioMixin, FilterView):
     relatorio = relatorio_atas
 
     def get_context_data(self, **kwargs):
-        context = super(RelatorioAtasView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = _('Atas das Sessões Plenárias')
 
         # Verifica se os campos foram preenchidos
