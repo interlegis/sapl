@@ -223,7 +223,16 @@ class CriarProtocoloMateriaView(CreateView):
         return context
 
     def form_valid(self, form):
-        materia = form.save()
+        materia = form.save() 
+
+        materia.user = self.request.user
+        materia.ip = get_client_ip(self.request)
+        
+        tz = timezone.get_current_timezone()
+        materia.ultima_edicao = tz.localize(datetime.now())
+        
+        materia.save()
+        
         username = self.request.user.username
 
         try:
