@@ -251,10 +251,14 @@ class TextoArticulado(TimestampedMixin):
                 'property "epigrafe"')
             return str(self.content_object.epigrafe)
         else:
-            return _('%(tipo)s nº %(numero)s de %(data)s') % {
+            numero = self.numero
+            if numero.isnumeric():
+                numero = '{0:,}'.format(int(self.numero)).replace(',', '.')
+
+            return _('%(tipo)s nº %(numero)s, de %(data)s') % {
                 'tipo': self.tipo_ta,
-                'numero': self.numero,
-                'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+                'numero': numero,
+                'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
 
     def hash(self):
         from django.core import serializers
