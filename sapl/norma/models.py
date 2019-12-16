@@ -195,10 +195,7 @@ class NormaJuridica(models.Model):
 
     @property
     def epigrafe(self):
-        return _('%(tipo)s nº %(numero)s de %(data)s') % {
-            'tipo': self.tipo,
-            'numero': self.numero,
-            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+        return self.__str__()
 
     def delete(self, using=None, keep_parents=False):
         texto_integral = self.texto_integral
