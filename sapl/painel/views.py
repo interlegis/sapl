@@ -532,10 +532,13 @@ def get_presentes(pk, response, materia):
             tipo_votacao = 'Secreta'
         elif materia.tipo_votacao == 4:
             tipo_votacao = 'Leitura'
+        
+        ementa = materia.ementa if len(materia.ementa) < 320 else materia.ementa[:320] + '...'
 
         response.update({
             'tipo_resultado': materia.resultado,
             'observacao_materia': html.unescape(materia.observacao),
+            'materia_ementa' : ementa,
             'tipo_votacao': tipo_votacao,
             'materia_legislativa_texto': str(materia.materia)
         })

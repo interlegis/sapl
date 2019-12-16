@@ -101,6 +101,10 @@
             <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
             <span id="materia_legislativa_texto" class="text-value"></span>
             <span id="observacao_materia" class="text-value"></span>
+            {% if painel_config.mostrar_ementa %}
+              <h2 class="text-subtitle">Ementa da Matéria</h2>   
+              <span id="materia_ementa" class="text-value"><span>
+            {% endif %}
           </div>
           {% endif %}
 
@@ -108,6 +112,7 @@
             <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
               <span id="sessao_solene_tema" class="text-value"></span>
           </div>
+          
           
         </div>
       </div>
@@ -457,6 +462,10 @@
             }
             else{
               $("#materia_legislativa_texto").text('Não há nenhuma matéria votada ou para votação.');
+            }
+
+            if(data['materia_ementa']){
+              $('#materia_ementa').text(data['materia_ementa'])
             }
 
             if (data['observacao_materia'] && data["status_painel"] == true){
