@@ -136,6 +136,19 @@ autor_modal = '''
    </div>
 '''
 
+proposicao_modal = '''
+   <div id="modal_proposicao" title="Selecione a data da Proposicao" align="center">
+       <form>
+           <input id="q" type="date" placeholder="__/__/____" 
+               class="form-control hasDatepicker" maxlength="10" >
+           <input id="pesquisar-proposicao" type="submit" value="Pesquisar"
+               class="btn btn-primary btn-sm"/>
+       </form>
+       <div id="div-resultado"></div>
+       <input type="submit" id="selecionar" value="Selecionar"
+              hidden="true" />
+   </div>
+'''
 
 def montar_row_autor(name):
     autor_row = to_row(

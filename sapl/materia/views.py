@@ -319,6 +319,24 @@ class ProposicaoTaView(IntegracaoTaView):
         else:
             return self.get_redirect_deactivated()
 
+@permission_required('materia.detail_proposicao')
+def recuperar_proposicao(request):
+    data = request.GET.get('data')
+
+    proposicoes = Proposicao.objects.filter(
+            data_envio__date=datetime.strptime(data, '%Y-%m-%d').date(),
+            data_envio__isnull=False,
+            data_recebimento__isnull=True,
+            data_devolucao__isnull=True
+            )
+
+    hash_codes = []
+    for proposicao in proposicoes:
+        hash_code = gerar_hash_arquivo(proposicao.texto_original.path, str(proposicao.pk))
+        hash_codes.append(hash_code)
+
+    response = JsonResponse({'hash_codes': hash_codes})
+    return response
 
 @permission_required('materia.detail_materialegislativa')
 def recuperar_materia(request):

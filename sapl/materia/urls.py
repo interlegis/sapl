@@ -24,7 +24,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoFimRelatoriaCrud, TipoMateriaCrud,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
-                                proposicao_texto, recuperar_materia,
+                                proposicao_texto, recuperar_materia, recuperar_proposicao,
                                 ExcluirTramitacaoEmLoteView, RetornarProposicao,
                                 MateriaPesquisaSimplesView,
                                 DespachoInicialMultiCreateView,
@@ -91,6 +91,8 @@ urlpatterns_materia = [
     url(r'^materia/(?P<pk>[0-9]+)/ta$',
         MateriaTaView.as_view(), name='materia_ta'),
 
+    url(r'^materia/recuperar-proposicao',
+        recuperar_proposicao, name='recuperar_proposicao'),
 
     url(r'^materia/pesquisar-materia$',
         MateriaLegislativaPesquisaView.as_view(), name='pesquisar_materia'),
