@@ -18,7 +18,7 @@
 	{% if protocolo.tipo_processo == 0 %}
 		<strong>Interessado:</strong> {{ protocolo.interessado|default_if_none:"Não informado" }}</br>
 	{% elif protocolo.tipo_processo == 1 %}
-		<strong>Autor:</strong>{{ protocolo.autor.nome|default_if_none:"Não informado" }}</br>
+		<strong>Autor:</strong> {{ protocolo.autor.nome|default_if_none:"Não informado" }}</br>
 	{% endif %}	<!-- TODO: convert if-else to custom tag -->
 
 	<strong>Natureza do Processo: </strong>{% if protocolo.tipo_processo == 0 %} Administrativo {% elif protocolo.tipo_processo == 1 %} Legislativo {% endif %}</br>
