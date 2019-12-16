@@ -30,8 +30,12 @@ def migra_tipos_turnos_tramitacao(apps, schema_editor):
     for t in Tramitacao.objects.all():
         turno_antigo = t.turno
         if turno_antigo:
-            t.tipo_turno = TipoTurnoTramitacao.objects.get(nome=TURNO_CHOICES[turno_antigo])
-            t.save()
+            try:
+                t.tipo_turno = TipoTurnoTramitacao.objects.get(nome=TURNO_CHOICES[turno_antigo])
+            except Exception:
+                continue
+            else:
+                t.save()
 
 
 class Migration(migrations.Migration):
