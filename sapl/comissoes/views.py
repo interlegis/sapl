@@ -1,12 +1,12 @@
 import logging
 
-from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.urlresolvers import reverse
 from django.db.models import F
 from django.http.response import HttpResponseRedirect, JsonResponse
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.generic import ListView, CreateView, DeleteView
+from django.views.generic import CreateView, DeleteView, FormView, ListView
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin, UpdateView
@@ -19,14 +19,15 @@ from sapl.comissoes.apps import AppConfig
 from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
                                   DocumentoAcessorioCreateForm,
                                   DocumentoAcessorioEditForm,
-                                  ParticipacaoCreateForm, ParticipacaoEditForm,
-                                  PautaReuniaoForm, PeriodoForm, ReuniaoForm,
-                                  PautaReuniaoFilterSet)
-from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
-                            MasterDetailCrud,
-                            PermissionRequiredForAppCrudMixin)
-from sapl.materia.models import (MateriaLegislativa, Tramitacao, PautaReuniao,
-                                 MateriaEmTramitacao)
+                                  ParticipacaoCreateForm, 
+                                  ParticipacaoEditForm,
+                                  PautaReuniaoFilterSet, PautaReuniaoForm,
+                                  PeriodoForm, ReuniaoForm)
+from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud,
+                            PermissionRequiredForAppCrudMixin, RP_DETAIL,
+                            RP_LIST)
+from sapl.materia.models import (MateriaEmTramitacao, MateriaLegislativa,
+                                 PautaReuniao, Tramitacao)
 from sapl.utils import show_results_filter_set
 
 from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
@@ -46,7 +47,10 @@ def pegar_url_reuniao(pk):
     url = reverse('sapl.comissoes:reuniao_detail', kwargs={'pk': r_pk})
     return url
 
-CargoCrud = CrudAux.build(CargoComissao, 'cargo_comissao')
+CargoComissaoCrud = CrudAux.build(
+    CargoComissao, 'cargo_comissao',
+    list_field_names=['nome', 'id_ordenacao', 'unico']
+)
 
 TipoComissaoCrud = CrudAux.build(
     TipoComissao, 'tipo_comissao', list_field_names=[
@@ -143,7 +147,7 @@ class ComposicaoCrud(MasterDetailCrud):
 
             context['participacao_set'] = Participacao.objects.filter(
                 composicao__pk=context['composicao_pk']
-            ).order_by('id')
+            ).order_by('-titular', 'cargo__id_ordenacao', 'id')
             return context
 
 

@@ -15,13 +15,13 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import (Comissao, Composicao,
                                    DocumentoAcessorio, Participacao,
                                    Periodo, Reuniao)
-from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper, 
+from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       to_row)
 from sapl.materia.models import MateriaEmTramitacao, PautaReuniao
 from sapl.parlamentares.models import (Legislatura, Mandato,
                                        Parlamentar)
-from sapl.utils import (FileFieldCheckMixin, FilterOverridesMetaMixin,
-                        validar_arquivo)
+from sapl.utils import (FileFieldCheckMixin,
+                        FilterOverridesMetaMixin, validar_arquivo)
 
 
 class ComposicaoForm(forms.ModelForm):
