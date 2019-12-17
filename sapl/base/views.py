@@ -599,6 +599,13 @@ class RelatorioHistoricoTramitacaoView(RelatorioMixin, FilterView):
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
 
+        if self.request.GET['autoria__autor']:
+            context['autoria__autor'] = \
+                (str(Autor.objects.get(
+                    id=self.request.GET['autoria__autor'])))
+        else:
+            context['autoria__autor'] = ''
+
         return context
 
 
