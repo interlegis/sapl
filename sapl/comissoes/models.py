@@ -121,13 +121,18 @@ class Periodo(models.Model):  # PeriodoCompComissao
 
 @reversion.register()
 class CargoComissao(models.Model):
-    nome = models.CharField(max_length=50, verbose_name=_('Cargo'))
+    id_ordenacao = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Posição na Ordenação'),
+    )
+    nome = models.CharField(max_length=50, verbose_name=_('Nome do Cargo'))
     unico = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Único'), default=True)
+        choices=YES_NO_CHOICES, verbose_name=_('Único'), default=True
+    )
 
     class Meta:
         verbose_name = _('Cargo de Comissão')
         verbose_name_plural = _('Cargos de Comissão')
+        ordering = ['id_ordenacao']
 
     def __str__(self):
         return self.nome
@@ -180,6 +185,7 @@ class Participacao(models.Model):  # ComposicaoComissao
     class Meta:
         verbose_name = _('Participação em Comissão')
         verbose_name_plural = _('Participações em Comissão')
+        ordering = ['-titular', 'cargo__id_ordenacao']
 
     def __str__(self):
         return '%s : %s' % (self.cargo, self.parlamentar)

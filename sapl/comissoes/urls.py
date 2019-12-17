@@ -1,8 +1,9 @@
 from django.conf.urls import include, url
-from sapl.comissoes.views import (CargoCrud, ComissaoCrud, ComposicaoCrud,
-                                  DocumentoAcessorioCrud, MateriasTramitacaoListView, ParticipacaoCrud,
-                                  PeriodoComposicaoCrud, ReuniaoCrud, TipoComissaoCrud, get_participacoes_comissao,
-                                  AdicionaPautaView, RemovePautaView)
+from sapl.comissoes.views import (AdicionaPautaView, CargoComissaoCrud, ComissaoCrud,
+                                  ComposicaoCrud, DocumentoAcessorioCrud,
+                                  MateriasTramitacaoListView, ParticipacaoCrud,
+                                  get_participacoes_comissao, PeriodoComposicaoCrud,
+                                  RemovePautaView, ReuniaoCrud, TipoComissaoCrud)
 
 from .apps import AppConfig
 
@@ -21,7 +22,7 @@ urlpatterns = [
     url(r'^comissao/(?P<pk>\d+)/pauta/add', AdicionaPautaView.as_view(), name='pauta_add'),
     url(r'^comissao/(?P<pk>\d+)/pauta/remove', RemovePautaView.as_view(), name='pauta_remove'),
 
-    url(r'^sistema/comissao/cargo/', include(CargoCrud.get_urls())),
+    url(r'^sistema/comissao/cargo/', include(CargoComissaoCrud.get_urls())),
     url(r'^sistema/comissao/periodo-composicao/',
         include(PeriodoComposicaoCrud.get_urls())),
     url(r'^sistema/comissao/tipo/', include(TipoComissaoCrud.get_urls())),
