@@ -677,7 +677,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
             cd['status'] != obj.status or cd['texto'] != obj.texto or \
             cd['data_encaminhamento'] != obj.data_encaminhamento or \
             cd['data_fim_prazo'] != obj.data_fim_prazo or cd['urgente'] != str(obj.urgente) or \
-            cd['turno'] != obj.turno):
+            cd['tipo_turno'] != obj.tipo_turno):
             ### Se não ocorreram alterações, o usuário, ip, data e hora da última edição (real) são mantidos
             cd['user'] = obj.user
             cd['ip'] = obj.ip
