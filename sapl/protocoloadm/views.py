@@ -829,12 +829,22 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             protocolo.user_data_hora_manual = ''
             protocolo.ip_data_hora_manual = ''
         protocolo.save()
+
         data = form.cleaned_data
         if data['vincular_materia'] == 'True':
-            materia = MateriaLegislativa.objects.get(ano=data['ano_materia'],
-                                                     numero=data['numero_materia'],
-                                                     tipo=data['tipo_materia'])
+            materia = MateriaLegislativa.objects.get(
+                ano=data['ano_materia'],
+                numero=data['numero_materia'],
+                tipo=data['tipo_materia']
+            )
+            
             materia.numero_protocolo = protocolo.numero
+            materia.user = self.request.user
+            materia.ip = get_client_ip(self.request)
+
+            tz = timezone.get_current_timezone()
+            materia.ultima_edicao = tz.localize(datetime.now())
+            
             materia.save()
 
         return redirect(self.get_success_url(protocolo))
@@ -1395,10 +1405,20 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
         return reverse('sapl.protocoloadm:protocolo')
 
     def form_valid(self, form):
-        materia = MateriaLegislativa.objects.get(numero=form.cleaned_data['numero'],
-                                                 ano=form.cleaned_data['ano'],
-                                                 tipo=form.cleaned_data['tipo'])
+        materia = MateriaLegislativa.objects.get(
+            numero=form.cleaned_data['numero'],
+            ano=form.cleaned_data['ano'],
+            tipo=form.cleaned_data['tipo']
+        )
+
         materia.numero_protocolo = None
+        
+        materia.user = self.request.user
+        materia.ip = get_client_ip(self.request)
+
+        tz = timezone.get_current_timezone()
+        materia.ultima_edicao = tz.localize(datetime.now())
+        
         materia.save()
         return redirect(self.get_success_url())
 
