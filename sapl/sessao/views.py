@@ -3295,11 +3295,14 @@ class PautaSessaoDetailView(DetailView):
         else:
             encerramento = ""
 
+        hora_inicio = self.object.hora_inicio
+        hora_fim = self.object.hora_fim
+
         context.update({'basica': [
             _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
-            _('Abertura: %(abertura)s') % {'abertura': abertura},
-            _('Encerramento: %(encerramento)s') % {
-                'encerramento': encerramento},
+            _('Abertura: %(abertura)s - %(hora_inicio)s') % {'abertura': abertura, 'hora_inicio':hora_inicio},
+            _('Encerramento: %(encerramento)s - %(hora_fim)s') % {
+                'encerramento': encerramento, 'hora_fim': hora_fim},
         ]})
         # =====================================================================
         # Matérias Expediente
