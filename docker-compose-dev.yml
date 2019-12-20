@@ -1,0 +1,42 @@
+version: '3.5'
+
+services:
+  sapldb-dev:
+    container_name: sapldb-dev
+    image: postgres:10.5-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: sapl
+      POSTGRES_USER: sapl
+      POSTGRES_DB: sapl
+    ports:
+      - "5433:5432"
+    networks:
+      - sapl-net-dev
+
+  sapl-dev:
+    container_name: sapl-dev
+    restart: always
+    image: sapl:dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: python3 manage.py runserver 0:8000
+    volumes:
+      - .:/sapl-dev
+    ports:
+      - "8000:8000"
+    environment:
+      SECRET_KEY: '$dkhxm-$zvxdox$g2-&w^1i!_z1juq0xwox6e3#gy6w_88!3t^'
+      DEBUG: 'True'
+      DATABASE_URL: postgresql://sapl:sapl@sapldb-dev:5432/sapl
+      TZ: America/Sao_Paulo
+    depends_on:
+      - sapldb-dev
+    networks:
+      - sapl-net-dev
+
+networks:
+  sapl-net-dev:
+    name: sapl-net-dev
+    driver: bridge
