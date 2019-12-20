@@ -433,6 +433,7 @@ class PautaReuniao(models.Model):
     )
     materia = models.ForeignKey(
         MateriaLegislativa, related_name='materia_set',
+        on_delete=models.PROTECT,
         verbose_name=_('Matéria')
     )
 
