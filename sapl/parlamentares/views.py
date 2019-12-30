@@ -625,8 +625,11 @@ class ParlamentarCrud(Crud):
             context['legislatura_id'] = self.take_legislatura_id()
 
             # Pega a Legislatura
-            legislatura = Legislatura.objects.get(
-                id=context['legislatura_id'])
+            try:
+                legislatura = Legislatura.objects.get(id=context['legislatura_id'])
+            except ObjectDoesNotExist:
+                self.logger.error("user={}. Não há nenhuma legislação cadastrada.".format(username))
+                return context
 
             for row in context['rows']:
 
