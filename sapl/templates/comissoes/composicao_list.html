@@ -1,5 +1,24 @@
-{% extends "crud/list.html" %}
-{% load i18n common_tags crispy_forms_tags%}
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping%}
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
+{% block base_content %}
+
+<div id="app3">
+
+  <fieldset class="form-group">
+    <legend>Selecione o Período</legend>
+    <form method="GET">
+        <select @change="getParlamentares" class="form-control" v-model="composicao_id">
+          <option v-for="option in periodo_list" v-bind:value="option.id">
+            [[ option.__str__ ]]
+          </option>
+        </select>
+    </form>
+  </fieldset>
 
 {% block actions %}
   {% if user.is_authenticated and perms.comissoes.add_composicao %}
@@ -54,20 +73,40 @@
         </tr>
       </thead>
       <tbody>
-      {% for p in participacao_set %}
-      <tr>
+      <tr v-for="p in parlamentares">
+
         <td>
-          <a href="{% url 'sapl.comissoes:participacao_detail' p.pk %}">{{ p.parlamentar }}</a>
+         <a v-bind:href="'/comissao/participacao/' + p.id">[[ p.nome ]]</a>
         </td>
-        <td>{{p.cargo}}</td>
-        <td>{{p.titular|yesno:"Sim,Não"}}</td>
-        <td>{{p.data_designacao}}</td>
-        <td>{{p.data_desligamento|default:""}}</td>
-        <td>{{p.motivo_desligamento}}</td>
-        <td>{{p.observacao}}</td>
+        <td>[[p.cargo]]</td>
+        <td>[[p.titular]]</td>
+        <td>[[p.data_designacao]]</td>
+        <td>[[p.data_desligamento]]</td>
+        <td>[[p.motivo_desligamento]]</td>
+        <td>[[p.observacao]]</td>
       </tr>
-      {% endfor %}
     </tbody>
     </table>
   </div>
+{% endblock %}
+
+
+
+
+
+</div>
+
+
+{% endblock base_content %}
+
+
+{% block webpack_loader_css %}
+    {{ block.super }}
+    {% render_bundle 'comissoes' 'css' %}
+{% endblock %}
+
+{% block webpack_loader_js %}
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}
+    {% render_bundle 'comissoes' 'js' %}
 {% endblock %}
