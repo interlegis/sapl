@@ -7,7 +7,7 @@
 
 {% block base_content %}
 
-<div id="app3">
+<div id="composicao_list">
 
   <fieldset class="form-group">
     <legend>Selecione o Período</legend>
@@ -33,21 +33,6 @@
   {% endif %}
 {% endblock actions %}
 
-{% block extra_content %}
-  <form method="GET">
-    <fieldset class="form-group">
-      <legend>Selecione o Período</legend>
-        <select name="pk" class="form-control" onChange="form.submit();">
-          {% for c in composicao_list %}
-            <option value="{{c.id}}" {% if composicao_pk == c.id %} selected {% endif %}>
-              {{c}}
-            </option>
-          {% endfor %}
-        </select>
-	  </fieldset>
-  </form>
-	<br/>
-{% endblock %}
 
 {% block container_table_list %}
   {% if user.is_authenticated and perms.comissoes.add_participacao and composicao_list %}
