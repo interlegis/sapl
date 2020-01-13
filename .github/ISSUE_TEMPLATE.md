@@ -26,7 +26,7 @@
 
 ## Imagens do Ocorrido
 <!--- Representação visual em vídeo ou imagem do ocorrido -->
-<!--- Se está descrevendo um bug poste imagens ou vídeos na repordução do bug citado, caso se aplique -->
+<!--- Se está descrevendo um bug poste imagens ou vídeos na reprodução do bug citado, caso se aplique -->
 
 ## Seu Ambiente
 <!--- Inclua detalhes relevantes sobre o ambiente em que você presenciou/experienciou o bug. -->
