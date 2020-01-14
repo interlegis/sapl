@@ -20,15 +20,13 @@
     </form>
   </fieldset>
 
+
 {% block actions %}
   {% if user.is_authenticated and perms.comissoes.add_composicao %}
     <div class="actions btn-group float-right btn-group-lg" role="group">
-      {% if view.create_url %}
-      <a href="{{ view.create_url }}" class="btn btn-outline-primary">
-        {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+      <a href="composicao/create" class="btn btn-outline-primary">
+        Adicionar Composição de Comissão
       </a>
-      {% endif %}
-      {% block more_buttons %}{% endblock more_buttons %}
     </div>
   {% endif %}
 {% endblock actions %}
@@ -38,7 +36,7 @@
   {% if user.is_authenticated and perms.comissoes.add_participacao and composicao_list %}
     <div class="context-actions clearfix">
       <div class="actions btn-group mb-2" role="group">
-        <a href="{% url 'sapl.comissoes:participacao_create' composicao_pk %}" class="btn btn-outline-primary">
+        <a  v-bind:href="'/comissao/'+composicao_id+'/participacao/create'" class="btn btn-outline-primary">
           Adicionar Participação em Comissão
         </a>
       </div>
@@ -75,12 +73,7 @@
   </div>
 {% endblock %}
 
-
-
-
-
 </div>
-
 
 {% endblock base_content %}
 
