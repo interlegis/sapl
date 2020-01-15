@@ -2399,12 +2399,13 @@ class VotacaoView(SessaoPermissionMixin):
                           int(request.POST['votos_nao']) +
                           int(request.POST['abstencoes']))
 
-            if (int(request.POST['voto_presidente']) == 0):
+            if int(request.POST['voto_presidente']) == 0:
                 qtde_ativos -= 1
 
             if qtde_votos != qtde_ativos:
                 msg = _(
-                    'O total de votos não corresponde com a quantidade de votantes!')
+                    'O total de votos não corresponde com a quantidade de votantes <strong>ativos</strong>!<br/>'
+                    'Verifique se os parlamentares correspondentes estão ativos!')
                 messages.add_message(request, messages.ERROR, msg)
                 return self.render_to_response(context)
             else:
