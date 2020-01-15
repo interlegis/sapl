@@ -180,6 +180,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         model = DocumentoAdministrativo
         fields = ['tipo',
                   'numero',
+                  'caractere_identificador',
                   'protocolo__numero',
                   'numero_externo',
                   'data',
@@ -200,17 +201,21 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
              ('o', 4), ])
 
         row2 = to_row(
-            [('numero', 2),
-             ('ano', 2),
-             ('protocolo__numero', 2),
-             ('numero_externo', 2),
-             ('data', 4)])
+            [('numero', 4),
+             ('caractere_identificador',4),
+             ('ano', 4)])
 
         row3 = to_row(
+            [('protocolo__numero', 4),
+             ('numero_externo', 4),
+             ('data', 4)
+            ])
+
+        row4 = to_row(
             [('interessado', 6),
              ('assunto', 6)])
 
-        row4 = to_row(
+        row5 = to_row(
             [
                 ('tramitacao', 2),
                 ('tramitacaoadministrativo__status', 4),
@@ -239,7 +244,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
             Fieldset(_('Pesquisar Documento'),
                     row1, row2,
                     row3, row4,
-                    buttons,)
+                    row5, buttons,)
         )
 
 
@@ -1080,6 +1085,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
         model = DocumentoAdministrativo
         fields = ['tipo',
                   'numero',
+                  'caractere_identificador',
                   'ano',
                   'data',
                   'numero_protocolo',
@@ -1115,6 +1121,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
+        caractere_identificador = self.data['caractere_identificador']
         numero_documento = int(self.cleaned_data['numero'])
         tipo_documento = int(self.data['tipo'])
         ano_documento = int(self.data['ano'])
@@ -1128,7 +1135,10 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
         if not self.instance.pk or mudanca_doc:
             doc_exists = DocumentoAdministrativo.objects.filter(numero=numero_documento,
                                                                 tipo=tipo_documento,
-                                                                ano=ano_documento).exists()
+                                                                ano=ano_documento,
+                                                                caractere_identificador=caractere_identificador).exists()
+
+            import pdb;pdb.set_trace()
             if doc_exists:
                 self.logger.error("DocumentoAdministrativo (numero={}, tipo={} e ano={}) já existe."
                                   .format(numero_documento, tipo_documento, ano_documento))
@@ -1194,7 +1204,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [('tipo', 6), ('numero', 3), ('ano', 3)])
+            [('tipo', 3), ('numero', 3),('caractere_identificador', 3), ('ano', 3)])
 
         row2 = to_row(
             [('data', 4), ('numero_protocolo', 4), ('ano_protocolo', 4)])
