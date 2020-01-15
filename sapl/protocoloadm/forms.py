@@ -1138,7 +1138,6 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                                                                 ano=ano_documento,
                                                                 caractere_identificador=caractere_identificador).exists()
 
-            import pdb;pdb.set_trace()
             if doc_exists:
                 self.logger.error("DocumentoAdministrativo (numero={}, tipo={} e ano={}) já existe."
                                   .format(numero_documento, tipo_documento, ano_documento))
