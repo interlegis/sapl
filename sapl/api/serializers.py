@@ -70,16 +70,21 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
     def check_titular(self,obj):
         is_titular = None
         if Legislatura.objects.exists():
-            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
-            if not legislatura:
+            try:
+                legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+            except ObjectDoesNotExist:
                 legislatura = Legislatura.objects.first()
+
+        
             mandato = Mandato.objects.filter(
                 parlamentar=obj,
                 data_inicio_mandato__gte=legislatura.data_inicio,
                 data_fim_mandato__lte=legislatura.data_fim
             ).order_by('-data_inicio_mandato').first()
-            
-            is_titular = mandato.titular if mandato else False
+            if mandato:
+                is_titular = 'Sim' if mandato.titular else 'Não'
+            else:
+                is_titular = '-'        
         return is_titular
 
     def check_partido(self,obj):
@@ -91,8 +96,9 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
         
         username =  self.context['request'].user.username
         if Legislatura.objects.exists():
-            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
-            if not legislatura:
+            try:
+                legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+            except ObjectDoesNotExist:
                 legislatura = Legislatura.objects.first()
     
         try:
