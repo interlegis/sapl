@@ -31,7 +31,7 @@ from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
-from sapl.parlamentares.models import Mandato, Parlamentar
+from sapl.parlamentares.models import Mandato, Parlamentar, Legislatura
 
 
 class BusinessRulesNotImplementedMixin:
@@ -350,8 +350,17 @@ class _ParlamentarViewSet:
         """
         Pega lista de parlamentares pelo id da legislatura.
         """
-        parlamentares = Parlamentar.objects.filter(mandato__legislatura=kwargs['pk'])
-        serializer_class = ParlamentarResumeSerializer(parlamentares,many=True,context={'legislatura':kwargs['pk']})
+        legislatura = Legislatura.objects.get(pk=kwargs['pk'])
+        mandatos = Mandato.objects.filter(
+                legislatura=legislatura,
+                data_inicio_mandato__gte=legislatura.data_inicio,
+                data_fim_mandato__lte=legislatura.data_fim
+        ).order_by('-data_inicio_mandato')
+        
+        parlamentares = Parlamentar.objects.filter(mandato__in=mandatos).distinct()
+        serializer_class = ParlamentarResumeSerializer(parlamentares,
+                                                        many=True,
+                                                        context={'request':request,'legislatura':kwargs['pk']})
         return Response(serializer_class.data)
 
     @action(detail=False,methods=['GET'])
