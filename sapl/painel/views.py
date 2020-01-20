@@ -358,7 +358,7 @@ def get_materia_aberta(pk):
 
 
 def get_presentes(pk, response, materia):
-    if type(materia) == OrdemDia:
+    if isinstance(materia, OrdemDia):
         presentes = PresencaOrdemDia.objects.filter(
             sessao_plenaria_id=pk)
     else:
@@ -369,13 +369,15 @@ def get_presentes(pk, response, materia):
     num_presentes = len(presentes)
     data_sessao = sessao.data_inicio
     
-    if type(materia) is ExpedienteMateria:
+    if  isinstance(materia, ExpedienteMateria):
         oradores = OradorExpediente.objects.filter(
             sessao_plenaria_id=pk).order_by('numero_ordem')
-    else:
+    elif isinstance(materia, OrdemDia):
         oradores = OradorOrdemDia.objects.filter(
             sessao_plenaria_id=pk).order_by('numero_ordem')
-    
+    else:
+        oradores = []
+
     oradores_list = []
     for o in oradores:
         oradores_list.append(
