@@ -926,17 +926,20 @@ class AnexadaForm(ModelForm):
         anexadas_anexada = Anexada.objects.filter(
             materia_principal=materia_anexada)
 
-        while anexadas_anexada and not ciclico:
+        anexadas_visitadas = [materia_principal]
+        while anexadas_anexada:
             anexadas = []
-
             for anexa in anexadas_anexada:
 
-                if materia_principal == anexa.materia_anexada:
+                if anexa.materia_anexada in anexadas_visitadas:
                     ciclico = True
+                    break
                 else:
+                    anexadas_visitadas.append(anexa.materia_anexada)
                     for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
                         anexadas.append(a)
-
+            if ciclico:
+                break
             anexadas_anexada = anexadas
 
         if ciclico:
