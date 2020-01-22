@@ -69,22 +69,23 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
 
     def check_titular(self,obj):
         is_titular = None
-        if Legislatura.objects.exists():
-            try:
-                legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
-            except ObjectDoesNotExist:
-                legislatura = Legislatura.objects.first()
-
+        if not Legislatura.objects.exists():
+            self.logger.error("Não há legislaturas cadastradas.")
+            return ""
         
-            mandato = Mandato.objects.filter(
-                parlamentar=obj,
-                data_inicio_mandato__gte=legislatura.data_inicio,
-                data_fim_mandato__lte=legislatura.data_fim
-            ).order_by('-data_inicio_mandato').first()
-            if mandato:
-                is_titular = 'Sim' if mandato.titular else 'Não'
-            else:
-                is_titular = '-'        
+        try:
+            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+        except ObjectDoesNotExist:
+            legislatura = Legislatura.objects.first()
+        mandato = Mandato.objects.filter(
+            parlamentar=obj,
+            data_inicio_mandato__gte=legislatura.data_inicio,
+            data_fim_mandato__lte=legislatura.data_fim
+        ).order_by('-data_inicio_mandato').first()
+        if mandato:
+            is_titular = 'Sim' if mandato.titular else 'Não'
+        else:
+            is_titular = '-'        
         return is_titular
 
     def check_partido(self,obj):
@@ -95,11 +96,13 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
         # ou igual a data de fim da legislatura
         
         username =  self.context['request'].user.username
-        if Legislatura.objects.exists():
-            try:
-                legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
-            except ObjectDoesNotExist:
-                legislatura = Legislatura.objects.first()
+        if not Legislatura.objects.exists():
+            self.logger.error("Não há legislaturas cadastradas.")
+            return ""
+        try:
+            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+        except ObjectDoesNotExist:
+            legislatura = Legislatura.objects.first()
     
         try:
             self.logger.debug("user=" + username + ". Tentando obter filiação do parlamentar com (data<={} e data_desfiliacao>={}) "

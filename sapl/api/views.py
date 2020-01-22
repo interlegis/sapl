@@ -14,6 +14,7 @@ from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers as rest_serializers
 from rest_framework.decorators import action
 from rest_framework.fields import SerializerMethodField
@@ -351,22 +352,22 @@ class _ParlamentarViewSet:
         """
         Pega lista de parlamentares pelo id da legislatura.
         """
-        legislatura = Legislatura.objects.get(pk=kwargs['pk'])
+        try:
+            legislatura = Legislatura.objects.get(pk=kwargs['pk'])
+        except ObjectDoesNotExist:
+            return Response("") 
         data_atual = timezone.now().date()
 
+        filter_params = {
+            'legislatura':legislatura,
+            'data_inicio_mandato__gte':legislatura.data_inicio,
+            'data_fim_mandato__gte':legislatura.data_fim,
+        }
+
         if legislatura.data_inicio < data_atual < legislatura.data_fim:
-            mandatos = Mandato.objects.filter(
-                    legislatura=legislatura,
-                    data_inicio_mandato__gte=legislatura.data_inicio,
-                    data_fim_mandato__gte=data_atual,
-            ).order_by('-data_inicio_mandato')
-        else:
-            mandatos = Mandato.objects.filter(
-                    legislatura=legislatura,
-                    data_inicio_mandato__gte=legislatura.data_inicio,
-                    data_fim_mandato__lte=legislatura.data_fim
-            ).order_by('-data_inicio_mandato')
-        
+            filter_params['data_fim_mandato__gte'] = data_atual
+
+        mandatos = Mandato.objects.filter(**filter_params).order_by('-data_inicio_mandato')  
         parlamentares = Parlamentar.objects.filter(mandato__in=mandatos).distinct()
         serializer_class = ParlamentarResumeSerializer(parlamentares,
                                                         many=True,
