@@ -183,7 +183,7 @@
           lista_cargos = data['lista_cargos'];
 
           // Atualiza a listagem dos campos
-          if (lista_sessoes != null) {
+          if (lista_sessoes != undefined) {
 			  for (i = 0; i < lista_sessoes.length; i++) {
 				  $('#id_sessao_legislativa').append('<option value="' + lista_sessoes[i][0] + '">' + lista_sessoes[i][1] + '</option>');
 			  }
