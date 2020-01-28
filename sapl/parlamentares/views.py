@@ -893,7 +893,7 @@ def altera_field_mesa(request):
     else:
         year = timezone.now().year
         logger.debug(
-            "user=" + username + ". Tentando obter id de sessoes com data_inicio.ano={}.".format(year))
+            "user={}. Tentando obter id de sessoes com data_inicio.ano={}.".format(username, year))
         sessao_selecionada = sessoes.filter(data_inicio__year=year).first()
         if not sessao_selecionada:
             logger.error("user=" + username + ". Id de sessoes com data_inicio.ano={} não encontrado. "
