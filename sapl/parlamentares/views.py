@@ -615,6 +615,7 @@ class ParlamentarCrud(Crud):
             return [_('Parlamentar'), _('Partido'),
                     _('Ativo?'), _('Titular?')]
 
+
 class ParlamentarMateriasView(FormView):
     template_name = "parlamentares/materias.html"
     success_url = reverse_lazy('sapl.parlamentares:parlamentar_materia')
@@ -807,14 +808,13 @@ def altera_field_mesa(request):
     # atual deve ser a primeira daquela legislatura
     else:
         year = timezone.now().year
-        try:
-            logger.debug(
-                "user=" + username + ". Tentando obter id de sessoes com data_inicio.ano={}.".format(year))
-            sessao_selecionada = sessoes.get(data_inicio__year=year).id
-        except ObjectDoesNotExist:
+        logger.debug(
+            "user={}. Tentando obter id de sessoes com data_inicio.ano={}.".format(username, year))
+        sessao_selecionada = sessoes.filter(data_inicio__year=year).first()
+        if not sessao_selecionada:
             logger.error("user=" + username + ". Id de sessoes com data_inicio.ano={} não encontrado. "
-                         "Selecionado o ID da primeira sessão.".format(year))
-            sessao_selecionada = sessoes.first().id
+                                              "Selecionado o ID da primeira sessão.".format(year))
+            sessao_selecionada = sessoes.first()
 
     # Atualiza os componentes da view após a mudança
     composicao_mesa = ComposicaoMesa.objects.filter(
@@ -845,7 +845,7 @@ def altera_field_mesa(request):
          'lista_composicao': lista_composicao,
          'lista_parlamentares': lista_parlamentares,
          'lista_cargos': lista_cargos,
-         'sessao_selecionada': sessao_selecionada,
+         'sessao_selecionada': sessao_selecionada.id,
          'msg': ('', 1)})
 
 

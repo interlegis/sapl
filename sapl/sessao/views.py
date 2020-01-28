@@ -60,6 +60,12 @@ TipoResultadoVotacaoCrud = CrudAux.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
 
+# constantes
+SIMBOLICA = 1
+NOMINAL = 2
+SECRETA = 3
+LEITURA = 4
+
 
 def reordernar_materias_expediente(request, pk):
     expedientes = ExpedienteMateria.objects.filter(
@@ -263,25 +269,25 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
             if obj.votacao_aberta:
                 url = ''
                 if is_expediente:
-                    if obj.tipo_votacao == 1:
+                    if obj.tipo_votacao == SIMBOLICA:
                         url = reverse('sapl.sessao:votacaosimbolicaexp',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 2:
+                    elif obj.tipo_votacao == NOMINAL:
                         url = reverse('sapl.sessao:votacaonominalexp',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 3:
+                    elif obj.tipo_votacao == SECRETA:
                         url = reverse('sapl.sessao:votacaosecretaexp',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 4:
+                    elif obj.tipo_votacao == LEITURA:
                         url = reverse('sapl.sessao:leituraexp',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
@@ -289,25 +295,25 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'mid': obj.materia_id})
 
                 else:
-                    if obj.tipo_votacao == 1:
+                    if obj.tipo_votacao == SIMBOLICA:
                         url = reverse('sapl.sessao:votacaosimbolica',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 2:
+                    elif obj.tipo_votacao == NOMINAL:
                         url = reverse('sapl.sessao:votacaonominal',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 3:
+                    elif obj.tipo_votacao == SECRETA:
                         url = reverse('sapl.sessao:votacaosecreta',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 4:
+                    elif obj.tipo_votacao == LEITURA:
                         url = reverse('sapl.sessao:leituraod',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
@@ -315,7 +321,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'mid': obj.materia_id})
 
                 if has_permission:
-                    if obj.tipo_votacao != 4:
+                    if obj.tipo_votacao != LEITURA:
                         btn_registrar = '''
                                         <form action="%s">
                                         <input type="submit" class="btn btn-primary"
@@ -346,7 +352,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     }) + '?tipo_materia=ordem'
 
                 if has_permission:
-                    if not obj.tipo_votacao == 4:
+                    if not obj.tipo_votacao == LEITURA:
                         btn_abrir = '''
                                             Matéria não votada<br />
                                             <a href="%s"
@@ -376,7 +382,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                           retirada_observacao))
 
         else:
-            if obj.tipo_votacao == 4:
+            if obj.tipo_votacao == LEITURA:
                 resultado = obj.registroleitura_set.filter(
                     materia_id=obj.materia_id).last()
                 resultado_descricao = "Matéria lida"
@@ -384,57 +390,57 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
             else:
                 resultado = obj.registrovotacao_set.filter(
                     materia_id=obj.materia_id).last()
-                resultado_descricao = obj.resultado
+                resultado_descricao = resultado.tipo_resultado_votacao.nome
                 resultado_observacao = resultado.observacao
 
             if has_permission:
                 url = ''
                 if is_expediente:
-                    if obj.tipo_votacao == 1:
+                    if obj.tipo_votacao == SIMBOLICA:
                         url = reverse(
                             'sapl.sessao:votacaosimbolicaexpedit',
                             kwargs={
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 2:
+                    elif obj.tipo_votacao == NOMINAL:
                         url = reverse('sapl.sessao:votacaonominalexpedit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 3:
+                    elif obj.tipo_votacao == SECRETA:
                         url = reverse('sapl.sessao:votacaosecretaexpedit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 4:
+                    elif obj.tipo_votacao == LEITURA:
                         url = reverse('sapl.sessao:leituraexp',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
                 else:
-                    if obj.tipo_votacao == 1:
+                    if obj.tipo_votacao == SIMBOLICA:
                         url = reverse('sapl.sessao:votacaosimbolicaedit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 2:
+                    elif obj.tipo_votacao == NOMINAL:
                         url = reverse('sapl.sessao:votacaonominaledit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 3:
+                    elif obj.tipo_votacao == SECRETA:
                         url = reverse('sapl.sessao:votacaosecretaedit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 4:
+                    elif obj.tipo_votacao == LEITURA:
                         url = reverse('sapl.sessao:leituraod',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
@@ -447,7 +453,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                             resultado_observacao))
             else:
 
-                if obj.tipo_votacao == 2:
+                if obj.tipo_votacao == NOMINAL:
                     if is_expediente:
                         url = reverse(
                             'sapl.sessao:votacao_nominal_transparencia',
@@ -470,7 +476,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                   resultado_descricao,
                                   resultado_observacao))
 
-                elif obj.tipo_votacao == 1:
+                elif obj.tipo_votacao == SIMBOLICA:
                     if is_expediente:
                         url = reverse(
                             'sapl.sessao:votacao_simbolica_transparencia',
