@@ -464,10 +464,13 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
 
-                resultado = ('<a href="%s">%s<br/><br/>%s</a>' %
-                             (url,
-                              resultado_descricao,
-                              resultado_observacao))
+                resultado = (
+                    '<a href="%s?page=%s">%s<br/><br/>%s</a>' % (
+                        url,
+                        context['page'] if 'page' in context else 1,
+
+                        resultado_descricao,
+                        resultado_observacao))
             else:
 
                 if obj.tipo_votacao == 2:
@@ -2505,7 +2508,7 @@ class VotacaoView(SessaoPermissionMixin):
 
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:ordemdia_list',
-                       kwargs={'pk': pk}) + page
+                       kwargs={'pk': pk}) + page + "#id{}".format(self.kwargs['mid'])
 
 
 def fechar_votacao_materia(materia):
@@ -2622,6 +2625,10 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
         form = self.get_form()
         username = request.user.username
 
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         if self.ordem:
             ordem_id = kwargs['oid']
             try:
@@ -2653,12 +2660,19 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             if 'cancelar-votacao' in request.POST:
                 fechar_votacao_materia(materia_votacao)
                 if self.ordem:
-                    return HttpResponseRedirect(reverse(
-                        'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
+                    return HttpResponseRedirect(
+                        reverse(
+                            'sapl.sessao:ordemdia_list',
+                            kwargs={'pk': kwargs['pk']}
+                        ) + page + "#id{}".format(self.kwargs['mid'])
+                    )
                 else:
-                    return HttpResponseRedirect(reverse(
-                        'sapl.sessao:expedientemateria_list',
-                        kwargs={'pk': kwargs['pk']}))
+                    return HttpResponseRedirect(
+                        reverse(
+                            'sapl.sessao:expedientemateria_list',
+                            kwargs={'pk': kwargs['pk']}
+                        ) + page + "#id{}".format(self.kwargs['mid'])
+                    )
             else:
                 if form.cleaned_data['resultado_votacao'] == None:
                     form.add_error(None, 'Não é possível finalizar a votação sem '
@@ -2812,11 +2826,15 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
         pk = self.kwargs['pk']
 
         if self.ordem:
-            return reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': pk}) + page
+            return reverse(
+                'sapl.sessao:ordemdia_list',
+                kwargs={'pk': pk}
+            ) + page + "#id{}".format(self.kwargs['mid'])
         elif self.expediente:
-            return reverse('sapl.sessao:expedientemateria_list',
-                           kwargs={'pk': pk}) + page
+            return reverse(
+                'sapl.sessao:expedientemateria_list',
+                kwargs={'pk': pk}
+            ) + page + "#id{}".format(self.kwargs['mid'])
 
 
 class VotacaoNominalEditAbstract(SessaoPermissionMixin):
@@ -2941,11 +2959,15 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
         pk = self.kwargs['pk']
 
         if self.ordem:
-            return reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': pk}) + page
+            return reverse(
+                'sapl.sessao:ordemdia_list',
+                kwargs={'pk': pk}
+            ) + page + "#id{}".format(self.kwargs['mid'])
         elif self.expediente:
-            return reverse('sapl.sessao:expedientemateria_list',
-                           kwargs={'pk': pk}) + page
+            return reverse(
+                'sapl.sessao:expedientemateria_list',
+                kwargs={'pk': pk}
+            ) + page + "#id{}".format(self.kwargs['mid'])
 
 
 class VotacaoNominalView(VotacaoNominalAbstract):
@@ -3243,8 +3265,10 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             page = '?page={}'.format(self.request.GET['page'])
 
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk}) + page
+        return reverse(
+            'sapl.sessao:expedientemateria_list',
+            kwargs={'pk': pk}
+        ) + page + "#id{}".format(self.kwargs['mid'])
 
 
 class VotacaoExpedienteEditView(SessaoPermissionMixin):
@@ -3262,8 +3286,10 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
             page = '?page={}'.format(self.request.GET['page'])
 
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk}) + page
+        return reverse(
+            'sapl.sessao:expedientemateria_list',
+            kwargs={'pk': pk}
+        ) + page + "#id{}".format(self.kwargs['mid'])
 
     def get_tipos_votacao(self):
         for tipo in TipoResultadoVotacao.objects.all():
