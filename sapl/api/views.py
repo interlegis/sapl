@@ -13,6 +13,8 @@ from django_filters.filters import CharFilter
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
+from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers as rest_serializers
 from rest_framework.decorators import action
 from rest_framework.fields import SerializerMethodField
@@ -31,7 +33,7 @@ from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
-from sapl.parlamentares.models import Mandato, Parlamentar
+from sapl.parlamentares.models import Mandato, Parlamentar, Legislatura
 
 
 class BusinessRulesNotImplementedMixin:
@@ -350,15 +352,33 @@ class _ParlamentarViewSet:
         """
         Pega lista de parlamentares pelo id da legislatura.
         """
-        parlamentares = Parlamentar.objects.filter(mandato__legislatura=kwargs['pk'])
-        serializer_class = ParlamentarResumeSerializer(parlamentares,many=True,context={'legislatura':kwargs['pk']})
+        try:
+            legislatura = Legislatura.objects.get(pk=kwargs['pk'])
+        except ObjectDoesNotExist:
+            return Response("") 
+        data_atual = timezone.now().date()
+
+        filter_params = {
+            'legislatura':legislatura,
+            'data_inicio_mandato__gte':legislatura.data_inicio,
+            'data_fim_mandato__gte':legislatura.data_fim,
+        }
+
+        if legislatura.data_inicio < data_atual < legislatura.data_fim:
+            filter_params['data_fim_mandato__gte'] = data_atual
+
+        mandatos = Mandato.objects.filter(**filter_params).order_by('-data_inicio_mandato')  
+        parlamentares = Parlamentar.objects.filter(mandato__in=mandatos).distinct()
+        serializer_class = ParlamentarResumeSerializer(parlamentares,
+                                                        many=True,
+                                                        context={'request':request,'legislatura':kwargs['pk']})
         return Response(serializer_class.data)
 
     @action(detail=False,methods=['GET'])
     def search_parlamentares(self,request,*args,**kwargs):
         nome = request.query_params.get('nome_parlamentar','')
         parlamentares = Parlamentar.objects.filter(nome_parlamentar__icontains=nome)
-        serializer_class= ParlamentarResumeSerializer(parlamentares,many=True)
+        serializer_class= ParlamentarResumeSerializer(parlamentares,many=True,context={'request':request})
         return Response(serializer_class.data)
 
 

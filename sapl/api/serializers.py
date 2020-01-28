@@ -1,9 +1,13 @@
+import logging
 from django.conf import settings
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.db.models import F, Q
 from rest_framework import serializers
 from rest_framework.relations import StringRelatedField
 from sapl.parlamentares.models import Parlamentar, Mandato, Filiacao, Legislatura
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.utils import filiacao_data
+
 
 class IntRelatedField(StringRelatedField):
     def to_representation(self, value):
@@ -60,24 +64,77 @@ class CasaLegislativaSerializer(serializers.ModelSerializer):
 class ParlamentarResumeSerializer(serializers.ModelSerializer):
     titular = serializers.SerializerMethodField('check_titular')
     partido = serializers.SerializerMethodField('check_partido')
+    logger = logging.getLogger(__name__)
+
 
     def check_titular(self,obj):
         is_titular = None
-        if Legislatura.objects.exists():
-            legislatura = self.context.get('legislatura')
-            if not legislatura:
-                legislatura = Legislatura.objects.first()
-            mandato = Mandato.objects.filter(legislatura=legislatura,parlamentar=obj).first()
-            is_titular = mandato.titular if mandato else False
+        if not Legislatura.objects.exists():
+            self.logger.error("Não há legislaturas cadastradas.")
+            return ""
+        
+        try:
+            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+        except ObjectDoesNotExist:
+            legislatura = Legislatura.objects.first()
+        mandato = Mandato.objects.filter(
+            parlamentar=obj,
+            data_inicio_mandato__gte=legislatura.data_inicio,
+            data_fim_mandato__lte=legislatura.data_fim
+        ).order_by('-data_inicio_mandato').first()
+        if mandato:
+            is_titular = 'Sim' if mandato.titular else 'Não'
+        else:
+            is_titular = '-'        
         return is_titular
 
     def check_partido(self,obj):
-        legislatura_id = self.context.get('legislatura')
-        if not legislatura_id:
+        # Coloca a filiação atual ao invés da última
+        # As condições para mostrar a filiação são:
+        # A data de filiacao deve ser menor que a data de fim
+        # da legislatura e data de desfiliação deve nula, ou maior,
+        # ou igual a data de fim da legislatura
+        
+        username =  self.context['request'].user.username
+        if not Legislatura.objects.exists():
+            self.logger.error("Não há legislaturas cadastradas.")
+            return ""
+        try:
+            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+        except ObjectDoesNotExist:
             legislatura = Legislatura.objects.first()
+    
+        try:
+            self.logger.debug("user=" + username + ". Tentando obter filiação do parlamentar com (data<={} e data_desfiliacao>={}) "
+                              "ou (data<={} e data_desfiliacao=Null))."
+                              .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
+            filiacao = obj.filiacao_set.get(Q(
+                data__lte=legislatura.data_fim,
+                data_desfiliacao__gte=legislatura.data_fim) | Q(
+                data__lte=legislatura.data_fim,
+                data_desfiliacao__isnull=True))
+
+        # Caso não exista filiação com essas condições
+        except ObjectDoesNotExist:
+            self.logger.error("user=" + username + ". Parlamentar com (data<={} e data_desfiliacao>={}) "
+                              "ou (data<={} e data_desfiliacao=Null)) não possui filiação."
+                              .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
+            filiacao = 'Não possui filiação'
+
+        # Caso exista mais de uma filiação nesse intervalo
+        # Entretanto, NÃO DEVE OCORRER
+        except MultipleObjectsReturned:
+            self.logger.error("user=" + username + ". O Parlamentar com (data<={} e data_desfiliacao>={}) "
+                              "ou (data<={} e data_desfiliacao=Null)) possui duas filiações conflitantes"
+                              .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
+            filiacao = 'O Parlamentar possui duas filiações conflitantes'
+
+        # Caso encontre UMA filiação nessas condições
         else:
-            legislatura = Legislatura.objects.get(id=legislatura_id)
-        filiacao = filiacao_data(obj, legislatura.data_inicio, legislatura.data_fim)
+            self.logger.debug("user=" + username +
+                              ". Filiação encontrada com sucesso.")
+            filiacao = filiacao.partido.sigla
+        
         return filiacao
 
     class Meta:

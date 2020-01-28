@@ -50,9 +50,9 @@
         <thead>
           <tr>
             <th colspan=2 >Parlamentar</th>
-            <th>Parido</th>
+            <th>Partido</th>
             <th>Ativo?</th>
-            <th v-if="!is_pesquisa" >Titlar?</th>
+            <th v-if="!is_pesquisa" >Titular?</th>
           </tr>
         </thead>
           <tbody>
@@ -71,8 +71,7 @@
               <p v-else>Não</p>
             </th>
             <th v-if="!is_pesquisa">
-              <p v-if='[[ parlamentar.titular]]'>Sim</p>
-              <p v-else>Não</p>
+              <p>[[ parlamentar.titular]]</p>
             </th>
           </tr>
           </tbody>
