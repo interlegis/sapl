@@ -3878,6 +3878,7 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
     template_name = 'sessao/votacao/votacao_bloco.html'
     app_label = AppConfig.label
     expediente = True
+    paginate_by = 500
 
     def get_queryset(self):
         return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
@@ -3903,6 +3904,7 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
 
 class VotacaoEmBlocoOrdemDia(VotacaoEmBlocoExpediente):
     expediente = False
+    paginate_by = 500
 
     def get_queryset(self):
         return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'],

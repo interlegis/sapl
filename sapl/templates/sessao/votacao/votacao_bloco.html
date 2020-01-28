@@ -76,10 +76,12 @@
                     <strong>Ementa:</strong>&nbsp;{{ o.materia.ementa|safe }}</br>
                     <p></p>
                 </td>
-                </tr>         
+                </tr>
+
             {% endif %}
             {% endfor %}
         </table>
+        {% include 'paginacao.html' %}
 
         
         <table class="table table-striped table-bordered" style="display:none" id="nenhuma_mat">
