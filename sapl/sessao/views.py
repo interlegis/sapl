@@ -8,7 +8,6 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
-from django.forms.utils import ErrorList
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.utils import timezone
@@ -17,7 +16,7 @@ from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import FormView, ListView, TemplateView, CreateView, UpdateView
+from django.views.generic import (FormView, ListView, TemplateView)
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
@@ -190,6 +189,8 @@ def abrir_votacao(request, pk, spk):
     if not model:
         raise Http404()
 
+    query_params = "?"
+
     if (verifica_presenca(request, presenca_model, spk) and
         verifica_votacoes_abertas(request) and
             verifica_sessao_iniciada(request, spk)):
@@ -200,8 +201,15 @@ def abrir_votacao(request, pk, spk):
         sessao.save()
         materia_votacao.save()
 
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk}))
+        if 'page' in request.GET:
+            query_params += 'page={}&'.format(request.GET['page'])
+
+        query_params += "#id{}".format(materia_votacao.materia.id)
+
+    success_url = reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk})
+    success_url += query_params
+
+    return HttpResponseRedirect(success_url)
 
 
 def customize_link_materia(context, pk, has_permission, is_expediente):
@@ -235,12 +243,13 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     turno = t[1]
                     break
 
-        title_materia = '''<a href=%s>%s</a> </br>
+        title_materia = """<a id=id%s href=%s>%s</a> </br>
                            <b>Processo:</b> %s </br>
                            <b>Autor:</b> %s </br>
                            <b>Protocolo:</b> %s </br>
                            <b>Turno:</b> %s </br>
-                        ''' % (url_materia,
+                        """ % (obj.materia.id,
+                               url_materia,
                                row[1][0],
                                numeracao if numeracao else '',
                                autor if autor else '',
@@ -314,21 +323,28 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
 
+                page_number = ""
+                if 'page' in context:
+                    #url += "?page={}".format(context['page'])
+                    page_number = "<input type='hidden' name='page' value='%s' />" % context['page']
+
                 if has_permission:
                     if obj.tipo_votacao != 4:
                         btn_registrar = '''
                                         <form action="%s">
                                         <input type="submit" class="btn btn-primary"
                                         value="Registrar Votação" />
+                                        %s
                                     </form>''' % (
-                            url)
+                            url, page_number)
                     else:
                         btn_registrar = '''
                                         <form action="%s">
                                         <input type="submit" class="btn btn-primary"
                                         value="Registrar Leitura" />
+                                        %s
                                     </form>''' % (
-                            url)
+                            url, page_number)
 
                     resultado = btn_registrar
                 else:
@@ -337,13 +353,20 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                 if is_expediente:
                     url = reverse('sapl.sessao:abrir_votacao', kwargs={
                         'pk': obj.pk,
-                        'spk': obj.sessao_plenaria_id
+                        'spk': obj.sessao_plenaria_id,
                     }) + '?tipo_materia=expediente'
+
+                    if 'page' in context:
+                        url += '&page=' + context['page']
+
                 else:
                     url = reverse('sapl.sessao:abrir_votacao', kwargs={
                         'pk': obj.pk,
                         'spk': obj.sessao_plenaria_id
                     }) + '?tipo_materia=ordem'
+
+                    if 'page' in context:
+                        url += '&page=' + context['page']
 
                 if has_permission:
                     if not obj.tipo_votacao == 4:
@@ -580,6 +603,11 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
+            if self.get_queryset().count() > 500:
+                self.paginate_by = 10
+            else:
+                self.paginate_by = None
+
             context = super().get_context_data(**kwargs)
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
@@ -619,7 +647,17 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
+
+            if self.get_queryset().count() > 500:
+                self.paginate_by = 10
+            else:
+                self.paginate_by = None
+
             context = super().get_context_data(**kwargs)
+
+            if self.request.GET.get('page'):
+                context['page'] = self.request.GET.get('page')
+
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, True)
 
@@ -750,7 +788,6 @@ class OradorExpedienteCrud(OradorCrud):
         def get_initial(self):
             return {'id_sessao': self.kwargs['pk']}
 
-
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             pk = context['root_pk']
@@ -759,7 +796,6 @@ class OradorExpedienteCrud(OradorCrud):
             if tipo_sessao.nome == "Solene":
                 context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
-        
 
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
@@ -780,7 +816,6 @@ class OradorExpedienteCrud(OradorCrud):
             if tipo_sessao.nome == "Solene":
                 context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
-
 
     class ListView(MasterDetailCrud.ListView):
         ordering = ['numero_ordem']
@@ -815,6 +850,7 @@ class OradorExpedienteCrud(OradorCrud):
             if tipo_sessao.nome == "Solene":
                 context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
+
 
 class OradorOrdemDiaCrud(OradorCrud):
     model = OradorOrdemDia
@@ -2293,9 +2329,13 @@ class VotacaoEditView(SessaoPermissionMixin):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:ordemdia_list',
-                       kwargs={'pk': pk})
+                       kwargs={'pk': pk}) + page
 
 
 class VotacaoView(SessaoPermissionMixin):
@@ -2441,9 +2481,13 @@ class VotacaoView(SessaoPermissionMixin):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:ordemdia_list',
-                       kwargs={'pk': pk})
+                       kwargs={'pk': pk}) + page
 
 
 def fechar_votacao_materia(materia):
@@ -2743,14 +2787,18 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     yield [parlamentar, voto.voto]
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
 
         if self.ordem:
             return reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': pk})
+                           kwargs={'pk': pk}) + page
         elif self.expediente:
             return reverse('sapl.sessao:expedientemateria_list',
-                           kwargs={'pk': pk})
+                           kwargs={'pk': pk}) + page
 
 
 class VotacaoNominalEditAbstract(SessaoPermissionMixin):
@@ -2868,14 +2916,18 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
 
         if self.ordem:
             return reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': pk})
+                           kwargs={'pk': pk}) + page
         elif self.expediente:
             return reverse('sapl.sessao:expedientemateria_list',
-                           kwargs={'pk': pk})
+                           kwargs={'pk': pk}) + page
 
 
 class VotacaoNominalView(VotacaoNominalAbstract):
@@ -2977,9 +3029,13 @@ class VotacaoNominalExpedienteDetailView(DetailView):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk})
+                       kwargs={'pk': pk}) + page
 
 
 class VotacaoSimbolicaTransparenciaDetailView(TemplateView):
@@ -3164,9 +3220,13 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk})
+                       kwargs={'pk': pk}) + page
 
 
 class VotacaoExpedienteEditView(SessaoPermissionMixin):
@@ -3179,9 +3239,13 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
     form_class = VotacaoEditForm
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk})
+                       kwargs={'pk': pk}) + page
 
     def get_tipos_votacao(self):
         for tipo in TipoResultadoVotacao.objects.all():
@@ -4380,7 +4444,6 @@ class RetiradaPautaCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
-
 
 
 class AbstractLeituraView(FormView):
