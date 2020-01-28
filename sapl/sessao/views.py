@@ -604,7 +604,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             if self.get_queryset().count() > 500:
-                self.paginate_by = 10
+                self.paginate_by = 100
             else:
                 self.paginate_by = None
 
@@ -649,7 +649,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
 
             if self.get_queryset().count() > 500:
-                self.paginate_by = 10
+                self.paginate_by = 100
             else:
                 self.paginate_by = None
 
