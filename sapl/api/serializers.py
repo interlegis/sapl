@@ -7,6 +7,7 @@ from rest_framework.relations import StringRelatedField
 from sapl.parlamentares.models import Parlamentar, Mandato, Filiacao, Legislatura
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.utils import filiacao_data
+from image_cropping.utils import get_backend
 
 
 class IntRelatedField(StringRelatedField):
@@ -64,8 +65,30 @@ class CasaLegislativaSerializer(serializers.ModelSerializer):
 class ParlamentarResumeSerializer(serializers.ModelSerializer):
     titular = serializers.SerializerMethodField('check_titular')
     partido = serializers.SerializerMethodField('check_partido')
+    fotografia_cropped = serializers.SerializerMethodField('crop_fotografia')
     logger = logging.getLogger(__name__)
 
+    def crop_fotografia(self,obj):
+        thumbnail_url = ""
+        try:
+            import os
+            #import pdb;pdb.set_trace()
+            if not obj.fotografia or not os.path.exists(obj.fotografia.path):
+                return thumbnail_url
+            thumbnail_url = get_backend().get_thumbnail_url( 
+                obj.fotografia, 
+                { 
+                    'size': (128, 128), 
+                    'box': obj.cropping, 
+                    'crop': True, 
+                    'detail': True, 
+                } 
+            )
+        except Exception as e:
+            self.logger.error(e)
+            self.logger.error('erro processando arquivo: %s' % obj.fotografia.path)
+        
+        return thumbnail_url
 
     def check_titular(self,obj):
         is_titular = None
@@ -139,4 +162,4 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Parlamentar
-        fields = ['id', 'nome_parlamentar', 'fotografia', 'ativo', 'partido', 'titular']
+        fields = ['id', 'nome_parlamentar', 'fotografia_cropped','fotografia', 'ativo', 'partido', 'titular']
