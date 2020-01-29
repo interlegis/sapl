@@ -58,7 +58,7 @@
           <tbody>
           <tr v-for="parlamentar in parlamentares">
             <th>
-              <img class="img-fluid img-thumbnail" v-bind:src="parlamentar.fotografia" @error="(() => parlamentar.fotografia = '')"/>
+              <img style="max-width:210px; max-height:280px;" class="img-fluid img-thumbnail" v-bind:src="parlamentar.fotografia" @error="(() => parlamentar.fotografia = '')"/>
             </th>
             <th>
                <a v-bind:href="'/parlamentar/'+parlamentar.id">[[ parlamentar.nome_parlamentar]]</a>
@@ -67,7 +67,7 @@
               [[ parlamentar.partido ]]
             </th>
             <th>
-              <p v-if="[[ parlamentar.ativo ]]">Sim</p>
+              <p v-if="parlamentar.ativo">Sim</p>
               <p v-else>Não</p>
             </th>
             <th v-if="!is_pesquisa">
