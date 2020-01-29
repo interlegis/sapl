@@ -467,8 +467,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                 resultado = (
                     '<a href="%s?page=%s">%s<br/><br/>%s</a>' % (
                         url,
-context.get('page', 1)
-
+                        context.get('page', 1),
                         resultado_descricao,
                         resultado_observacao))
             else:
