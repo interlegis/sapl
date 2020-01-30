@@ -1264,7 +1264,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         tabela.append(
             ('anexadas_ciclicas',
              'Matérias Anexadas cíclicas',
-             len(anexados_ciclicos(True))
+             len(materias_anexadas_ciclicas())
              )
         )
         tabela.append(
@@ -1275,6 +1275,39 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         )
         return tabela
 
+def materias_anexadas_ciclicas():
+    ciclos = []
+
+    for a in Anexada.objects.select_related('materia_principal',
+                                            'materia_anexada',
+                                            'materia_principal__tipo',
+                                            'materia_anexada__tipo'):
+        visitados = [a.materia_principal]
+        anexadas = [a.materia_anexada]
+        while len(anexadas) > 0:
+            ma = anexadas.pop()
+            if ma not in visitados:
+                visitados.append(ma)
+                anexadas.extend([a.materia_anexada for a in Anexada.objects.filter(materia_principal=ma)])
+            else:
+                ciclo_list = visitados + [ma]
+                ciclos.append(ciclo_list)
+
+    """
+    Remove ciclos repetidos (ou semanticamente equivalentes).
+    Exemplo: A -> B -> A e B -> A -> B
+    """
+    ciclos_set = []
+    ciclos_unique = [e for e in ciclos if is_ciclo_unique(e, ciclos_set)]
+
+    return ciclos_unique
+
+def is_ciclo_unique(ciclo, ciclos_set):
+         if set(ciclo) not in ciclos_set:
+             ciclos_set.append(set(ciclo))
+             return True
+         else:
+             return False
 
 def anexados_ciclicos(ofMateriaLegislativa):
     ciclicos = []
@@ -1365,7 +1398,7 @@ class ListarAnexadasCiclicasView(PermissionRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return anexados_ciclicos(True)
+        return materias_anexadas_ciclicas()
 
     def get_context_data(self, **kwargs):
         context = super(
