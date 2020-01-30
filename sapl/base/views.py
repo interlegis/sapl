@@ -1232,13 +1232,16 @@ def materias_anexadas_ciclicas():
     Exemplo: A -> B -> A e B -> A -> B
     """
     ciclos_set = []
-    ciclos_unique = []
-    for t in ciclos:
-        if set(t) not in ciclos_set:
-            ciclos_set.append(set(t))
-            ciclos_unique.append(t)
+    ciclos_unique = [e for e in ciclos if is_ciclo_unique(e, ciclos_set)]
 
     return ciclos_unique
+
+def is_ciclo_unique(ciclo, ciclos_set):
+         if set(ciclo) not in ciclos_set:
+             ciclos_set.append(set(ciclo))
+             return True
+         else:
+             return False
 
 def anexados_ciclicos(ofMateriaLegislativa):
     ciclicos = []
