@@ -1210,7 +1210,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         return tabela
 
 def materias_anexadas_ciclicas():
-    todos = []
+    ciclos = []
 
     for a in Anexada.objects.select_related('materia_principal',
                                             'materia_anexada',
@@ -1225,18 +1225,20 @@ def materias_anexadas_ciclicas():
                 anexadas.extend([a.materia_anexada for a in Anexada.objects.filter(materia_principal=ma)])
             else:
                 ciclo_list = visitados + [ma]
-                todos.append(ciclo_list)
+                ciclos.append(ciclo_list)
 
-    todos_set = []
-    todos_pruned = []
-    for t in todos:
-        if set(t) not in todos_set:
-            todos_set.append(set(t))
-            todos_pruned.append(t)
+    """
+    Remove ciclos repetidos (ou semanticamente equivalentes).
+    Exemplo: A -> B -> A e B -> A -> B
+    """
+    ciclos_set = []
+    ciclos_unique = []
+    for t in ciclos:
+        if set(t) not in ciclos_set:
+            ciclos_set.append(set(t))
+            ciclos_unique.append(t)
 
-    ciclicos = todos_pruned
-
-    return ciclicos
+    return ciclos_unique
 
 def anexados_ciclicos(ofMateriaLegislativa):
     ciclicos = []
