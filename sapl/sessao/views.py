@@ -607,7 +607,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             if self.get_queryset().count() > 500:
-                self.paginate_by = 100
+                self.paginate_by = 50
             else:
                 self.paginate_by = None
 
@@ -652,7 +652,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
 
             if self.get_queryset().count() > 500:
-                self.paginate_by = 100
+                self.paginate_by = 50
             else:
                 self.paginate_by = None
 
@@ -3923,7 +3923,7 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
     template_name = 'sessao/votacao/votacao_bloco.html'
     app_label = AppConfig.label
     expediente = True
-    paginate_by = 500
+    paginate_by = 100
 
     def get_queryset(self):
         return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
@@ -3949,7 +3949,7 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
 
 class VotacaoEmBlocoOrdemDia(VotacaoEmBlocoExpediente):
     expediente = False
-    paginate_by = 500
+    paginate_by = 100
 
     def get_queryset(self):
         return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
@@ -4551,17 +4551,16 @@ class AbstractLeituraView(FormView):
         return url
 
     def cancel_url(self):
-        page = 1
+        page = ''
         if 'page' in self.request.GET:
-            page = self.request.GET['page']
+            page = '?page={}'.format(self.request.GET['page'])
         url = reverse('sapl.sessao:retirar_leitura',
                       kwargs={
                           'pk': self.kwargs['pk'],
                           'iso': 1 if not self.expediente else 0,
                           'oid': self.kwargs['oid'],
-                          'page': page
                           },
-                    )
+                    ) + page
         return url
 
 
@@ -4575,10 +4574,10 @@ class OrdemDiaLeituraView(AbstractLeituraView):
 
 @permission_required('sessao.change_expedientemateria',
                      'sessao.change_ordemdia')
-def retirar_leitura(request, pk, iso, oid, page):
-    aux_page = ''
-    if page != '1':
-        aux_page = '?page={}'.format(page)
+def retirar_leitura(request, pk, iso, oid):
+    page = ''
+    if 'page' in request.GET:
+        page = '?page={}'.format(request.GET['page'])
 
     is_ordem = bool(int(iso))
     if not is_ordem:
@@ -4586,13 +4585,13 @@ def retirar_leitura(request, pk, iso, oid, page):
         RegistroLeitura.objects.filter(
             materia=ordem_expediente.materia, expediente=ordem_expediente).delete()
         succ_url = reverse('sapl.sessao:expedientemateria_list',
-                           kwargs={'pk': pk}) + aux_page
+                           kwargs={'pk': pk}) + page
     else:
         ordem_expediente = OrdemDia.objects.get(id=oid)
         RegistroLeitura.objects.filter(
             materia=ordem_expediente.materia, ordem=ordem_expediente).delete()
         succ_url = reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': pk}) + aux_page
+                           kwargs={'pk': pk}) + page
     ordem_expediente.resultado = ""
     ordem_expediente.votacao_aberta = False
     ordem_expediente.save()
