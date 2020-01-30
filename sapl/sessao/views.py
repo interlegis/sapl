@@ -4537,21 +4537,31 @@ class AbstractLeituraView(FormView):
         return super().form_valid(form)
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+        
         pk = self.kwargs['pk']
         if self.expediente:
             url = reverse('sapl.sessao:expedientemateria_list',
-                          kwargs={'pk': pk})
+                          kwargs={'pk': pk}) + page
         else:
             url = reverse('sapl.sessao:ordemdia_list',
-                          kwargs={'pk': pk})
+                          kwargs={'pk': pk}) + page
         return url
 
     def cancel_url(self):
+        page = 1
+        if 'page' in self.request.GET:
+            page = self.request.GET['page']
         url = reverse('sapl.sessao:retirar_leitura',
                       kwargs={
                           'pk': self.kwargs['pk'],
                           'iso': 1 if not self.expediente else 0,
-                          'oid': self.kwargs['oid']})
+                          'oid': self.kwargs['oid'],
+                          'page': page
+                          },
+                    )
         return url
 
 
@@ -4565,22 +4575,25 @@ class OrdemDiaLeituraView(AbstractLeituraView):
 
 @permission_required('sessao.change_expedientemateria',
                      'sessao.change_ordemdia')
-def retirar_leitura(request, pk, iso, oid):
+def retirar_leitura(request, pk, iso, oid, page):
+    aux_page = ''
+    if page != '1':
+        aux_page = '?page={}'.format(page)
+
     is_ordem = bool(int(iso))
     if not is_ordem:
         ordem_expediente = ExpedienteMateria.objects.get(id=oid)
         RegistroLeitura.objects.filter(
             materia=ordem_expediente.materia, expediente=ordem_expediente).delete()
         succ_url = reverse('sapl.sessao:expedientemateria_list',
-                           kwargs={'pk': pk})
+                           kwargs={'pk': pk}) + aux_page
     else:
         ordem_expediente = OrdemDia.objects.get(id=oid)
         RegistroLeitura.objects.filter(
             materia=ordem_expediente.materia, ordem=ordem_expediente).delete()
         succ_url = reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': pk})
+                           kwargs={'pk': pk}) + aux_page
     ordem_expediente.resultado = ""
     ordem_expediente.votacao_aberta = False
     ordem_expediente.save()
-
     return HttpResponseRedirect(succ_url)
