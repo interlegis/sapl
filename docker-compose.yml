@@ -11,7 +11,7 @@ sapldb:
   ports:
     - "5433:5432"
 sapl:
-  image: interlegis/sapl:3.1.160-RC11
+  image: interlegis/sapl:3.1.160-RC12
   #build: .
   restart: always
   environment:
