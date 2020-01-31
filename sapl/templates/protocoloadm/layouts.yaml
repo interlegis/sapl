@@ -6,7 +6,7 @@ TipoDocumentoAdministrativo:
 DocumentoAdministrativo:
   {% trans 'Identificação Básica' %}:
   - tipo 
-  - numero caractere_identificador ano
+  - numero complemento ano
   - data  protocolo 
   - assunto
   - interessado  tramitacao

@@ -180,7 +180,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
         model = DocumentoAdministrativo
         fields = ['tipo',
                   'numero',
-                  'caractere_identificador',
+                  'complemento',
                   'protocolo__numero',
                   'numero_externo',
                   'data',
@@ -202,7 +202,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
         row2 = to_row(
             [('numero', 4),
-             ('caractere_identificador',4),
+             ('complemento',4),
              ('ano', 4)])
 
         row3 = to_row(
@@ -1085,7 +1085,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
         model = DocumentoAdministrativo
         fields = ['tipo',
                   'numero',
-                  'caractere_identificador',
+                  'complemento',
                   'ano',
                   'data',
                   'numero_protocolo',
@@ -1121,7 +1121,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
-        caractere_identificador = self.data['caractere_identificador']
+        complemento = self.data['complemento']
         numero_documento = int(self.cleaned_data['numero'])
         tipo_documento = int(self.data['tipo'])
         ano_documento = int(self.data['ano'])
@@ -1136,7 +1136,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
             doc_exists = DocumentoAdministrativo.objects.filter(numero=numero_documento,
                                                                 tipo=tipo_documento,
                                                                 ano=ano_documento,
-                                                                caractere_identificador=caractere_identificador).exists()
+                                                                complemento=complemento).exists()
 
             if doc_exists:
                 self.logger.error("DocumentoAdministrativo (numero={}, tipo={} e ano={}) já existe."
@@ -1203,7 +1203,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [('tipo', 3), ('numero', 3),('caractere_identificador', 3), ('ano', 3)])
+            [('tipo', 3), ('numero', 3),('complemento', 3), ('ano', 3)])
 
         row2 = to_row(
             [('data', 4), ('numero_protocolo', 4), ('ano_protocolo', 4)])

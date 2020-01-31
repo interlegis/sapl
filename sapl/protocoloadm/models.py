@@ -135,8 +135,8 @@ class DocumentoAdministrativo(models.Model):
         verbose_name=_('Tipo Documento'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
 
-    caractere_identificador = models.CharField(max_length=10, blank=True,
-        verbose_name=_('Caractere Identificador'))
+    complemento = models.CharField(max_length=10, blank=True,
+        verbose_name=_('Complemento'))
 
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)

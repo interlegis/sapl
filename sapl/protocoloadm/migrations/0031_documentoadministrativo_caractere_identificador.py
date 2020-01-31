@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='documentoadministrativo',
-            name='caractere_identificador',
-            field=models.CharField(blank=True, max_length=10, verbose_name='Caractere Identificador'),
+            name='complemento',
+            field=models.CharField(blank=True, max_length=10, verbose_name='Complemento'),
         ),
     ]
