@@ -77,6 +77,14 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
         if encerramento is not None:
             encerramento_entre_leg = leg.data_inicio <= encerramento <= leg.data_fim
             encerramento_entre_sl = sl.data_inicio <= encerramento <= sl.data_fim
+
+        ## Sessões Extraordinárias podem estar fora da sessão legislativa
+        descricao_tipo = tipo.nome.lower()
+        if descricao_tipo == "extraordinária" or descricao_tipo == "especial":
+            # Ignora checagem de limites para Sessão Legislativa
+            abertura_entre_sl = True
+            encerramento_entre_sl = True
+
         # Verificação das datas de abertura e encerramento da Sessão
         # Verificações com a data de encerramento preenchidas
         if encerramento is not None:
