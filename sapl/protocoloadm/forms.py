@@ -1,3 +1,4 @@
+import re
 import django_filters
 import logging
 
@@ -201,9 +202,9 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
              ('o', 4), ])
 
         row2 = to_row(
-            [('numero', 4),
-             ('complemento',4),
-             ('ano', 4)])
+            [('numero', 5),
+             ('complemento',2),
+             ('ano', 5)])
 
         row3 = to_row(
             [('protocolo__numero', 4),
@@ -1121,10 +1122,17 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
-        complemento = self.data['complemento']
+        complemento = re.sub('\s+', '', self.data['complemento']).upper()
         numero_documento = int(self.cleaned_data['numero'])
         tipo_documento = int(self.data['tipo'])
         ano_documento = int(self.data['ano'])
+
+        
+        equal_docs = DocumentoAdministrativo.objects.filter(numero=numero_documento,
+                                                                ano=ano_documento,
+                                                                complemento=complemento)
+        if equal_docs.exists() and equal_docs.first().pk != self.instance.pk:
+            raise ValidationError("Um documento administrativo com esse numero, complemento e ano já existe.")
 
         # não permite atualizar para numero/ano/tipo existente
         if self.instance.pk:
