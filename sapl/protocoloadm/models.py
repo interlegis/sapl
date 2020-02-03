@@ -134,6 +134,10 @@ class DocumentoAdministrativo(models.Model):
         TipoDocumentoAdministrativo, on_delete=models.PROTECT,
         verbose_name=_('Tipo Documento'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
+
+    complemento = models.CharField(max_length=10, blank=True,
+        verbose_name=_('Complemento'))
+
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
     protocolo = models.ForeignKey(
