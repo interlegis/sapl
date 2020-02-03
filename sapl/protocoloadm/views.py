@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+import re
 from random import choice
 from string import ascii_letters, digits
 
@@ -365,6 +366,10 @@ class DocumentoAdministrativoCrud(Crud):
         def cancel_url(self):
             return self.search_url
 
+        def form_valid(self, form):
+            form.instance.complemento = re.sub('\s+', '', form.instance.complemento).upper()
+            return super().form_valid(form)
+
     class UpdateView(Crud.UpdateView):
         form_class = DocumentoAdministrativoForm
         layout_key = None
@@ -376,7 +381,7 @@ class DocumentoAdministrativoCrud(Crud):
 
             self.object = form.save()
             dict_objeto_novo = self.object.__dict__
-
+        
             atributos = [
                 'tipo_id', 'ano', 'numero', 'data', 'protocolo_id', 'assunto',
                 'interessado', 'tramitacao', 'restrito', 'texto_integral','numero_externo',
@@ -393,6 +398,8 @@ class DocumentoAdministrativoCrud(Crud):
 
                     self.object.save()
                     break
+            
+            form.instance.complemento = re.sub('\s+', '', form.instance.complemento).upper()
 
             return super().form_valid(form)
 
