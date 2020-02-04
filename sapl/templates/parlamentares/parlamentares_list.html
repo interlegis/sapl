@@ -58,7 +58,7 @@
           <tbody>
           <tr v-for="parlamentar in parlamentares">
             <th>
-              <img class="img-fluid img-thumbnail" v-bind:src="parlamentar.fotografia_cropped" @error="(() => parlamentar.fotografia = '')"/>
+              <img class="img-fluid img-thumbnail" style="width: 128px; height: 128px;" v-bind:src="parlamentar.fotografia_cropped" @error="(() => parlamentar.fotografia = '')"/>
             </th>
             <th>
                <a v-bind:href="'/parlamentar/'+parlamentar.id">[[ parlamentar.nome_parlamentar]]</a>
