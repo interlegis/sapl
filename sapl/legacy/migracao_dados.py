@@ -34,22 +34,49 @@ from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import Numeracao, TipoNumeracaoProtocolo
-from sapl.legacy_migration_settings import (DIR_DADOS_MIGRACAO, DIR_REPO,
-                                            NOME_BANCO_LEGADO, PYTZ_TIMEZONE,
-                                            SIGLA_CASA)
-from sapl.materia.models import (AcompanhamentoMateria, DocumentoAcessorio,
-                                 MateriaLegislativa, Proposicao,
-                                 StatusTramitacao, TipoDocumento,
-                                 TipoMateriaLegislativa, TipoProposicao,
-                                 Tramitacao)
-from sapl.norma.models import (AssuntoNorma, NormaJuridica, NormaRelacionada,
-                               TipoVinculoNormaJuridica)
-from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
-                                       Partido, TipoAfastamento)
-from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
-                                      StatusTramitacaoAdministrativo)
-from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao, OrdemDia,
-                                RegistroVotacao, TipoResultadoVotacao)
+from sapl.legacy_migration_settings import (
+    DIR_DADOS_MIGRACAO,
+    DIR_REPO,
+    NOME_BANCO_LEGADO,
+    PYTZ_TIMEZONE,
+    SIGLA_CASA,
+)
+from sapl.materia.models import (
+    AcompanhamentoMateria,
+    DocumentoAcessorio,
+    MateriaLegislativa,
+    Proposicao,
+    StatusTramitacao,
+    TipoDocumento,
+    TipoMateriaLegislativa,
+    TipoProposicao,
+    Tramitacao,
+)
+from sapl.norma.models import (
+    AssuntoNorma,
+    NormaJuridica,
+    NormaRelacionada,
+    TipoVinculoNormaJuridica,
+)
+from sapl.parlamentares.models import (
+    Legislatura,
+    Mandato,
+    Parlamentar,
+    Partido,
+    TipoAfastamento,
+)
+from sapl.protocoloadm.models import (
+    DocumentoAdministrativo,
+    Protocolo,
+    StatusTramitacaoAdministrativo,
+)
+from sapl.sessao.models import (
+    ExpedienteMateria,
+    ExpedienteSessao,
+    OrdemDia,
+    RegistroVotacao,
+    TipoResultadoVotacao,
+)
 from sapl.utils import normalize
 
 from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
@@ -77,9 +104,7 @@ one_to_one_constraints = []
 primeira_vez = []
 
 # apps quase não têm interseção
-name_sets = [
-    (ac.label, set(m.__name__ for m in ac.get_models())) for ac in appconfs
-]
+name_sets = [(ac.label, set(m.__name__ for m in ac.get_models())) for ac in appconfs]
 for a1, s1 in name_sets:
     for a2, s2 in name_sets:
         if a1 is not a2:
@@ -144,9 +169,7 @@ for nome_novo, nome_antigo in (
     ("comissao", "cod_comissao"),
     ("periodo", "cod_periodo_comp"),
 ):
-    campos_novos_para_antigos[
-        Composicao._meta.get_field(nome_novo)
-    ] = nome_antigo
+    campos_novos_para_antigos[Composicao._meta.get_field(nome_novo)] = nome_antigo
 
 
 # campos virtuais de Proposicao para funcionar com get_fk_related
@@ -214,9 +237,7 @@ def get_pk_legado(tabela):
         # cod_parlamentar, cod_periodo_comp, cod_cargo
         # mas essa parece sempre ser uma chave candidata
         return "cod_parlamentar", "cod_sessao_leg", "cod_cargo"
-    res = exec_legado(
-        'show index from {} WHERE Key_name = "PRIMARY"'.format(tabela)
-    )
+    res = exec_legado('show index from {} WHERE Key_name = "PRIMARY"'.format(tabela))
     return [r[4] for r in res]
 
 
@@ -243,9 +264,7 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
         self.valor = valor
         self.old = old
 
-    msg = (
-        "FK não encontrada para [{campo} = {valor}] (em {tabela} / pk = {pk})"
-    )  # noqa
+    msg = "FK não encontrada para [{campo} = {valor}] (em {tabela} / pk = {pk})"  # noqa
 
     @property
     def dados(self):
@@ -255,10 +274,7 @@ class ForeignKeyFaltando(ObjectDoesNotExist):
         sql = "select * from {} where {};".format(
             tabela,
             " and ".join(
-                [
-                    "{} = {}".format(k, com_aspas_se_necessario(v))
-                    for k, v in pk.items()
-                ]
+                ["{} = {}".format(k, com_aspas_se_necessario(v)) for k, v in pk.items()]
             ),
         )
         return OrderedDict(
@@ -460,9 +476,7 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
 
     # usamos uma tupla neutra se o conjunto é vazio
     # p q a query seja sintaticamente correta
-    ids_ja_migrados = formatar_lista_para_sql(
-        get_all_ids_from_model(Autor) or [-1000]
-    )
+    ids_ja_migrados = formatar_lista_para_sql(get_all_ids_from_model(Autor) or [-1000])
 
     # enumeramos a repeticoes segundo o campo relevante
     # (p. ex. cod_parlamentar ou cod_comissao)
@@ -533,9 +547,7 @@ def unifica_autores_repetidos_no_legado(campo_agregador):
 
     # Finalmente excluimos os autores redundantes,
     # cujas referências foram todas substituídas a essa altura
-    exec_legado_em_subconjunto(
-        "delete from autor where cod_autor in {}", apagar
-    )
+    exec_legado_em_subconjunto("delete from autor where cod_autor in {}", apagar)
 
 
 def anula_tipos_origem_externa_invalidos():
@@ -599,9 +611,7 @@ def checa_registros_votacao_ambiguos_e_remove_nao_usados():
 
     # exclui registros não usados (zumbis)
     todos = set(
-        primeira_coluna(
-            exec_legado("select cod_votacao from registro_votacao")
-        )
+        primeira_coluna(exec_legado("select cod_votacao from registro_votacao"))
     )
     nao_usados = todos - ordem.union(expediente)
     exec_legado_em_subconjunto(
@@ -802,8 +812,7 @@ def uniformiza_banco(primeira_migracao):
     garante_coluna_no_legado("proposicao", "num_proposicao int(11) NULL")
 
     garante_coluna_no_legado(
-        "tipo_materia_legislativa",
-        "ind_num_automatica BOOLEAN NULL DEFAULT FALSE",
+        "tipo_materia_legislativa", "ind_num_automatica BOOLEAN NULL DEFAULT FALSE",
     )
 
     garante_coluna_no_legado(
@@ -814,9 +823,7 @@ def uniformiza_banco(primeira_migracao):
 
     # Cria campos cod_presenca_sessao (sendo a nova PK da tabela)
     # e dat_sessao em sessao_plenaria_presenca
-    if not existe_coluna_no_legado(
-        "sessao_plenaria_presenca", "cod_presenca_sessao"
-    ):
+    if not existe_coluna_no_legado("sessao_plenaria_presenca", "cod_presenca_sessao"):
         exec_legado(
             """
             ALTER TABLE sessao_plenaria_presenca
@@ -828,9 +835,7 @@ def uniformiza_banco(primeira_migracao):
             "sessao_plenaria_presenca", "cod_presenca_sessao"
         )
 
-    garante_coluna_no_legado(
-        "sessao_plenaria_presenca", "dat_sessao DATE NULL"
-    )
+    garante_coluna_no_legado("sessao_plenaria_presenca", "dat_sessao DATE NULL")
 
     garante_tabela_no_legado(
         """
@@ -936,11 +941,7 @@ def iter_sql_records(tabela):
 def fill_vinculo_norma_juridica():
     lista = [
         ("A", "Altera o(a)", "Alterado(a) pelo(a)"),
-        (
-            "R",
-            "Revoga integralmente o(a)",
-            "Revogado(a) integralmente pelo(a)",
-        ),
+        ("R", "Revoga integralmente o(a)", "Revogado(a) integralmente pelo(a)",),
         ("P", "Revoga parcialmente o(a)", "Revogado(a) parcialmente pelo(a)"),
         (
             "T",
@@ -952,16 +953,8 @@ def fill_vinculo_norma_juridica():
         ("E", "Reedita o(a)", "Reeditada pelo(a)"),
         ("I", "Reedita com alteração o(a)", "Reeditada com alteração pelo(a)"),
         ("G", "Regulamenta o(a)", "Regulamentada pelo(a)"),
-        (
-            "K",
-            "Suspende parcialmente o(a)",
-            "Suspenso(a) parcialmente pelo(a)",
-        ),
-        (
-            "L",
-            "Suspende integralmente o(a)",
-            "Suspenso(a) integralmente pelo(a)",
-        ),
+        ("K", "Suspende parcialmente o(a)", "Suspenso(a) parcialmente pelo(a)",),
+        ("L", "Suspende integralmente o(a)", "Suspenso(a) integralmente pelo(a)",),
         (
             "N",
             "Julga integralmente inconstitucional",
@@ -1077,9 +1070,7 @@ def roda_comando_shell(cmd):
 
 def get_arquivos_ajustes_pre_migracao():
     return [
-        DIR_DADOS_MIGRACAO.child(
-            "ajustes_pre_migracao", f"{SIGLA_CASA}.{sufixo}"
-        )
+        DIR_DADOS_MIGRACAO.child("ajustes_pre_migracao", f"{SIGLA_CASA}.{sufixo}")
         for sufixo in ("sql", "reverter.yaml")
     ]
 
@@ -1110,9 +1101,7 @@ def migrar_dados(primeira_migracao=False, apagar_do_legado=False):
 
         # restaura dump
         arq_dump = Path(
-            DIR_DADOS_MIGRACAO.child(
-                "dumps_mysql", "{}.sql".format(NOME_BANCO_LEGADO)
-            )
+            DIR_DADOS_MIGRACAO.child("dumps_mysql", "{}.sql".format(NOME_BANCO_LEGADO))
         )
         assert arq_dump.exists(), "Dump do mysql faltando: {}".format(arq_dump)
         info("Restaurando dump mysql de [{}]".format(arq_dump))
@@ -1124,9 +1113,7 @@ def migrar_dados(primeira_migracao=False, apagar_do_legado=False):
         exec_legado('SET SESSION sql_mode = "NO_AUTO_VALUE_ON_ZERO";')
 
         # executa ajustes pré-migração, se existirem
-        arq_ajustes_sql, arq_ajustes_reverter = (
-            get_arquivos_ajustes_pre_migracao()
-        )
+        arq_ajustes_sql, arq_ajustes_reverter = get_arquivos_ajustes_pre_migracao()
         if arq_ajustes_sql.exists():
             exec_legado(arq_ajustes_sql.read_file())
         if arq_ajustes_reverter.exists():
@@ -1186,13 +1173,9 @@ def get_models_a_migrar():
     # a migração de TipoProposicao precisa ser feita
     # após TipoMateriaLegislativa e TipoDocumento
     # (porém antes de Proposicao)
-    move_para_depois_de(
-        models, TipoProposicao, [TipoMateriaLegislativa, TipoDocumento]
-    )
+    move_para_depois_de(models, TipoProposicao, [TipoMateriaLegislativa, TipoDocumento])
     assert models.index(TipoProposicao) < models.index(Proposicao)
-    move_para_depois_de(
-        models, Proposicao, [MateriaLegislativa, DocumentoAcessorio]
-    )
+    move_para_depois_de(models, Proposicao, [MateriaLegislativa, DocumentoAcessorio])
 
     return models
 
@@ -1270,12 +1253,9 @@ def migrar_model(model, apagar_do_legado):
         ]
 
         def ja_esta_migrado(old):
-            chave = {
-                campos_velhos_p_novos[c]: getattr(old, c) for c in campos_chave
-            }
+            chave = {campos_velhos_p_novos[c]: getattr(old, c) for c in campos_chave}
             return (
-                chave in apagados_pelo_usuario
-                or model.objects.filter(**chave).exists()
+                chave in apagados_pelo_usuario or model.objects.filter(**chave).exists()
             )
 
         ultima_pk_legado = model_legado.objects.count()
@@ -1423,11 +1403,7 @@ Colocamos então o número de protocolo no campo "número externo".
             warn(
                 "protocolo_faltando",
                 msg,
-                {
-                    "numero": numero,
-                    "cod_documento": old.cod_documento,
-                    "nota": nota,
-                },
+                {"numero": numero, "cod_documento": old.cod_documento, "nota": nota,},
             )
             new.observacao += ("\n\n" if new.observacao else "") + nota
 
@@ -1503,9 +1479,7 @@ def adjust_participacao(new, old):
 
 
 def adjust_normarelacionada(new, old):
-    new.tipo_vinculo = TipoVinculoNormaJuridica.objects.get(
-        sigla=old.tip_vinculo
-    )
+    new.tipo_vinculo = TipoVinculoNormaJuridica.objects.get(sigla=old.tip_vinculo)
 
 
 def adjust_protocolo_antes_salvar(new, old):
@@ -1535,9 +1509,7 @@ def get_como_resolver_registro_votacao_ambiguo():
 
 
 def adjust_registrovotacao_antes_salvar(new, old):
-    ordem_dia = OrdemDia.objects.filter(
-        pk=old.cod_ordem, materia=old.cod_materia
-    )
+    ordem_dia = OrdemDia.objects.filter(pk=old.cod_ordem, materia=old.cod_materia)
     expediente_materia = ExpedienteMateria.objects.filter(
         pk=old.cod_ordem, materia=old.cod_materia
     )
@@ -1696,9 +1668,7 @@ def adjust_autor(new, old):
             with reversion.create_revision():
                 user.save()
                 reversion.set_comment(
-                    "Usuário criado pela migração para o autor {}".format(
-                        old.cod_autor
-                    )
+                    "Usuário criado pela migração para o autor {}".format(old.cod_autor)
                 )
         grupo_autor = Group.objects.get(name="Autor")
         user.groups.add(grupo_autor)
@@ -1890,8 +1860,7 @@ def get_apagados_que_geram_ocorrencias_fk(fks_faltando):
         return tabela_legado
 
     tabela_legado_p_model = {
-        get_tabela_legado_do_model(model): model
-        for model in get_models_a_migrar()
+        get_tabela_legado_do_model(model): model for model in get_models_a_migrar()
     }
 
     apagados = set()
@@ -1909,15 +1878,13 @@ def get_apagados_que_geram_ocorrencias_fk(fks_faltando):
                 ind_mat_ou_doc
             ].related_model
         else:
-            nome_campo_fk = {
-                v: k for k, v in field_renames[model_dependente].items()
-            }[fk["campo"]]
+            nome_campo_fk = {v: k for k, v in field_renames[model_dependente].items()}[
+                fk["campo"]
+            ]
             campo_fk = model_dependente._meta.get_field(nome_campo_fk)
             model_relacionado = campo_fk.related_model
 
-        _, tabela_relacionada, [campo_pk] = get_estrutura_legado(
-            model_relacionado
-        )
+        _, tabela_relacionada, [campo_pk] = get_estrutura_legado(model_relacionado)
         deleted = Version.objects.get_deleted(model_relacionado)
         versions = deleted.filter(object_id=fk["valor"])
         if versions:
@@ -1981,8 +1948,7 @@ def get_conflitos_materias_legado_e_producao():
     )
     materias_legado = {(t, n, a): id for id, t, n, a in res}
     materias_producao = {
-        (m.tipo_id, m.numero, m.ano): m.id
-        for m in MateriaLegislativa.objects.all()
+        (m.tipo_id, m.numero, m.ano): m.id for m in MateriaLegislativa.objects.all()
     }
     comuns = set(materias_legado) & set(materias_producao)
     comuns = {k: (materias_legado[k], materias_producao[k]) for k in comuns}
