@@ -119,7 +119,7 @@ class ReceberProposicaoForm(Form):
         self.helper.layout = Layout(
             Fieldset(
                 _('Incorporar Proposição'), row1,
-                form_actions(label='Buscar Proposição')
+                form_actions(label='Recuperar Proposição')
             )
         )
         super(ReceberProposicaoForm, self).__init__(*args, **kwargs)
