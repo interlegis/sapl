@@ -30,7 +30,8 @@ from reversion.models import Revision, Version
 from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
-from sapl.base.models import Autor, TipoAutor, cria_models_tipo_autor
+from sapl.base.models import Autor, TipoAutor
+from sapl.base.signals import cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import Numeracao, TipoNumeracaoProtocolo
