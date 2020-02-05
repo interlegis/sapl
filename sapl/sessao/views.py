@@ -8,7 +8,6 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
-from django.forms.utils import ErrorList
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.utils import timezone
@@ -17,7 +16,7 @@ from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import FormView, ListView, TemplateView, CreateView, UpdateView
+from django.views.generic import (FormView, ListView, TemplateView)
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
@@ -34,7 +33,7 @@ from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
-from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm
+from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedienteLeituraForm
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
@@ -49,7 +48,8 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
-                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia, ORDENACAO_RESUMO)
+                     RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
+                     ORDENACAO_RESUMO, RegistroLeitura)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
@@ -58,6 +58,12 @@ CargoBancadaCrud = CrudAux.build(CargoBancada, '')
 TipoResultadoVotacaoCrud = CrudAux.build(
     TipoResultadoVotacao, 'tipo_resultado_votacao')
 TipoRetiradaPautaCrud = CrudAux.build(TipoRetiradaPauta, 'tipo_retirada_pauta')
+
+# constantes
+SIMBOLICA = 1
+NOMINAL = 2
+SECRETA = 3
+LEITURA = 4
 
 
 def reordernar_materias_expediente(request, pk):
@@ -142,12 +148,12 @@ def verifica_votacoes_abertas(request):
                         kwargs={'pk': v.id}),
                 v.__str__()))
         username = request.user.username
-        logger.info('user=' + username + '. Já existem votações abertas nas seguintes Sessões: ' +
+        logger.info('user=' + username + '. Já existem votações ou leituras abertas nas seguintes Sessões: ' +
                     ', '.join(msg_abertas) + '. Para abrir '
-                    'outra, termine ou feche as votações abertas.')
-        msg = _('Já existem votações abertas nas seguintes Sessões: ' +
+                    'outra, termine ou feche as votações ou leituras abertas.')
+        msg = _('Já existem votações ou leituras abertas nas seguintes Sessões: ' +
                 ', '.join(msg_abertas) + '. Para abrir '
-                'outra, termine ou feche as votações abertas.')
+                'outra, termine ou feche as votações ou leituras abertas.')
         messages.add_message(request, messages.INFO, msg)
 
         return False
@@ -189,6 +195,8 @@ def abrir_votacao(request, pk, spk):
     if not model:
         raise Http404()
 
+    query_params = "?"
+
     if (verifica_presenca(request, presenca_model, spk) and
         verifica_votacoes_abertas(request) and
             verifica_sessao_iniciada(request, spk)):
@@ -199,8 +207,15 @@ def abrir_votacao(request, pk, spk):
         sessao.save()
         materia_votacao.save()
 
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk}))
+        if 'page' in request.GET:
+            query_params += 'page={}&'.format(request.GET['page'])
+
+        query_params += "#id{}".format(materia_votacao.materia.id)
+
+    success_url = reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk})
+    success_url += query_params
+
+    return HttpResponseRedirect(success_url)
 
 
 def customize_link_materia(context, pk, has_permission, is_expediente):
@@ -234,12 +249,13 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     turno = t[1]
                     break
 
-        title_materia = '''<a href=%s>%s</a> </br>
+        title_materia = """<a id=id%s href=%s>%s</a> </br>
                            <b>Processo:</b> %s </br>
                            <b>Autor:</b> %s </br>
                            <b>Protocolo:</b> %s </br>
                            <b>Turno:</b> %s </br>
-                        ''' % (url_materia,
+                        """ % (obj.materia.id,
+                               url_materia,
                                row[1][0],
                                numeracao if numeracao else '',
                                autor if autor else '',
@@ -254,54 +270,87 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
             materia=obj.materia).exists()
         exist_retirada = obj.retiradapauta_set.filter(
             materia=obj.materia).exists()
-        if not exist_resultado and not exist_retirada:
+        exist_leitura = obj.registroleitura_set.filter(
+            materia=obj.materia).exists()
+
+        if (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or\
+                (obj.tipo_votacao == 4 and not exist_leitura):
             if obj.votacao_aberta:
                 url = ''
                 if is_expediente:
-                    if obj.tipo_votacao == 1:
+                    if obj.tipo_votacao == SIMBOLICA:
                         url = reverse('sapl.sessao:votacaosimbolicaexp',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 2:
+                    elif obj.tipo_votacao == NOMINAL:
                         url = reverse('sapl.sessao:votacaonominalexp',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 3:
+                    elif obj.tipo_votacao == SECRETA:
                         url = reverse('sapl.sessao:votacaosecretaexp',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
+                    elif obj.tipo_votacao == LEITURA:
+                        url = reverse('sapl.sessao:leituraexp',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+
                 else:
-                    if obj.tipo_votacao == 1:
+                    if obj.tipo_votacao == SIMBOLICA:
                         url = reverse('sapl.sessao:votacaosimbolica',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 2:
+                    elif obj.tipo_votacao == NOMINAL:
                         url = reverse('sapl.sessao:votacaonominal',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 3:
+                    elif obj.tipo_votacao == SECRETA:
                         url = reverse('sapl.sessao:votacaosecreta',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
+                    elif obj.tipo_votacao == LEITURA:
+                        url = reverse('sapl.sessao:leituraod',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
+
+                page_number = ""
+                if 'page' in context:
+                    #url += "?page={}".format(context['page'])
+                    page_number = "<input type='hidden' name='page' value='%s' />" % context['page']
+
                 if has_permission:
-                    btn_registrar = '''
-                                    <form action="%s">
-                                     <input type="submit" class="btn btn-primary"
-                                      value="Registrar Votação" />
-                                 </form>''' % (
-                        url)
+                    if obj.tipo_votacao != LEITURA:
+                        btn_registrar = '''
+                                        <form action="%s">
+                                        <input type="submit" class="btn btn-primary"
+                                        value="Registrar Votação" />
+                                        %s
+                                    </form>''' % (
+                            url, page_number)
+                    else:
+                        btn_registrar = '''
+                                        <form action="%s">
+                                        <input type="submit" class="btn btn-primary"
+                                        value="Registrar Leitura" />
+                                        %s
+                                    </form>''' % (
+                            url, page_number)
 
                     resultado = btn_registrar
                 else:
@@ -310,21 +359,36 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                 if is_expediente:
                     url = reverse('sapl.sessao:abrir_votacao', kwargs={
                         'pk': obj.pk,
-                        'spk': obj.sessao_plenaria_id
+                        'spk': obj.sessao_plenaria_id,
                     }) + '?tipo_materia=expediente'
+
+                    if 'page' in context:
+                        url += '&page=' + context['page']
+
                 else:
                     url = reverse('sapl.sessao:abrir_votacao', kwargs={
                         'pk': obj.pk,
                         'spk': obj.sessao_plenaria_id
                     }) + '?tipo_materia=ordem'
 
+                    if 'page' in context:
+                        url += '&page=' + context['page']
+
                 if has_permission:
-                    btn_abrir = '''
-                                        Matéria não votada<br />
-                                        <a href="%s"
-                                           class="btn btn-primary"
-                                           role="button">Abrir Votação</a>''' % (url)
-                    resultado = btn_abrir
+                    if not obj.tipo_votacao == LEITURA:
+                        btn_abrir = '''
+                                            Matéria não votada<br />
+                                            <a href="%s"
+                                            class="btn btn-primary"
+                                            role="button">Abrir Votação</a>''' % (url)
+                        resultado = btn_abrir
+                    else:
+                        btn_abrir = '''
+                                            Matéria não lida<br />
+                                            <a href="%s"
+                                            class="btn btn-primary"
+                                            role="button">Abrir para Leitura</a>''' % (url)
+                        resultado = btn_abrir
                 else:
                     resultado = '''Não há resultado'''
 
@@ -341,60 +405,80 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                           retirada_observacao))
 
         else:
-            resultado = obj.registrovotacao_set.filter(
-                materia_id=obj.materia_id).last()
-            resultado_descricao = resultado.tipo_resultado_votacao.nome
-            resultado_observacao = resultado.observacao
+            if obj.tipo_votacao == LEITURA:
+                resultado = obj.registroleitura_set.filter(
+                    materia_id=obj.materia_id).last()
+                resultado_descricao = "Matéria lida"
+                resultado_observacao = resultado.observacao
+            else:
+                resultado = obj.registrovotacao_set.filter(
+                    materia_id=obj.materia_id).last()
+                resultado_descricao = resultado.tipo_resultado_votacao.nome
+                resultado_observacao = resultado.observacao
 
             if has_permission:
                 url = ''
                 if is_expediente:
-                    if obj.tipo_votacao == 1:
+                    if obj.tipo_votacao == SIMBOLICA:
                         url = reverse(
                             'sapl.sessao:votacaosimbolicaexpedit',
                             kwargs={
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 2:
+                    elif obj.tipo_votacao == NOMINAL:
                         url = reverse('sapl.sessao:votacaonominalexpedit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 3:
+                    elif obj.tipo_votacao == SECRETA:
                         url = reverse('sapl.sessao:votacaosecretaexpedit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
+                    elif obj.tipo_votacao == LEITURA:
+                        url = reverse('sapl.sessao:leituraexp',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
                 else:
-                    if obj.tipo_votacao == 1:
+                    if obj.tipo_votacao == SIMBOLICA:
                         url = reverse('sapl.sessao:votacaosimbolicaedit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 2:
+                    elif obj.tipo_votacao == NOMINAL:
                         url = reverse('sapl.sessao:votacaonominaledit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
-                    elif obj.tipo_votacao == 3:
+                    elif obj.tipo_votacao == SECRETA:
                         url = reverse('sapl.sessao:votacaosecretaedit',
                                       kwargs={
                                           'pk': obj.sessao_plenaria_id,
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
+                    elif obj.tipo_votacao == LEITURA:
+                        url = reverse('sapl.sessao:leituraod',
+                                      kwargs={
+                                          'pk': obj.sessao_plenaria_id,
+                                          'oid': obj.pk,
+                                          'mid': obj.materia_id})
 
-                resultado = ('<a href="%s">%s<br/>%s</a>' %
-                             (url,
-                              resultado_descricao,
-                              resultado_observacao))
+                resultado = (
+                    '<a href="%s?page=%s">%s<br/><br/>%s</a>' % (
+                        url,
+                        context.get('page', 1),
+                        resultado_descricao,
+                        resultado_observacao))
             else:
 
-                if obj.tipo_votacao == 2:
+                if obj.tipo_votacao == NOMINAL:
                     if is_expediente:
                         url = reverse(
                             'sapl.sessao:votacao_nominal_transparencia',
@@ -417,7 +501,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                   resultado_descricao,
                                   resultado_observacao))
 
-                elif obj.tipo_votacao == 1:
+                elif obj.tipo_votacao == SIMBOLICA:
                     if is_expediente:
                         url = reverse(
                             'sapl.sessao:votacao_simbolica_transparencia',
@@ -448,18 +532,17 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
 
 def get_presencas_generic(model, sessao, legislatura):
-    presencas = model.objects.filter(
-        sessao_plenaria=sessao)
+    presentes = [p.parlamentar for p in model.objects.filter(
+        sessao_plenaria=sessao)]
 
-    presentes = [p.parlamentar for p in presencas]
+    parlamentares_mandato = Mandato.objects.filter(
+        legislatura=legislatura,
+        data_inicio_mandato__lte=sessao.data_inicio,
+        data_fim_mandato__gte=sessao.data_inicio
+    ).distinct().order_by(
+        'parlamentar__nome_parlamentar')
 
-    presentes = sorted(
-        presentes, key=lambda x: remover_acentos(x.nome_parlamentar))
-
-    mandato = Mandato.objects.filter(
-        legislatura=legislatura).order_by('parlamentar__nome_parlamentar')
-
-    for m in mandato:
+    for m in parlamentares_mandato:
         if m.parlamentar in presentes:
             yield (m.parlamentar, True)
         else:
@@ -470,14 +553,14 @@ class TipoExpedienteCrud(CrudAux):
     model = TipoExpediente
 
     class DeleteView(CrudAux.DeleteView):
-        
+
         def delete(self, *args, **kwargs):
             self.object = self.get_object()
-            
-            # Se todas as referências a este tipo forem de conteúdo vazio, 
+
+            # Se todas as referências a este tipo forem de conteúdo vazio,
             # significa que pode ser apagado
             if self.object.expedientesessao_set.filter(conteudo='').count() == \
-                self.object.expedientesessao_set.all().count():
+                    self.object.expedientesessao_set.all().count():
                 self.object.expedientesessao_set.all().delete()
 
             return CrudAux.DeleteView.delete(self, *args, **kwargs)
@@ -529,6 +612,11 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
+            if self.get_queryset().count() > 500:
+                self.paginate_by = 50
+            else:
+                self.paginate_by = None
+
             context = super().get_context_data(**kwargs)
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
@@ -568,7 +656,17 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
+
+            if self.get_queryset().count() > 500:
+                self.paginate_by = 50
+            else:
+                self.paginate_by = None
+
             context = super().get_context_data(**kwargs)
+
+            if self.request.GET.get('page'):
+                context['page'] = self.request.GET.get('page')
+
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, True)
 
@@ -605,6 +703,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         layout_key = 'ExpedienteMateriaDetail'
 
 
+# Orador das Explicações Pessoais
 class OradorCrud(MasterDetailCrud):
     model = Orador
     parent_field = 'sessao_plenaria'
@@ -620,34 +719,9 @@ class OradorCrud(MasterDetailCrud):
             sessao = SessaoPlenaria.objects.get(id=sessao_pk)
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
-
-    class CreateView(MasterDetailCrud.CreateView):
-
-        form_class = OradorForm
-
-        def get_initial(self):
-            return {'id_sessao': self.kwargs['pk']}
-
-        def get_success_url(self):
-            return reverse('sapl.sessao:orador_list',
-                           kwargs={'pk': self.kwargs['pk']})
-
-class UpdateView(MasterDetailCrud.UpdateView):
-
-        form_class = OradorForm
-
-        def get_initial(self):
-            initial = super().get_initial()
-            initial.update({'id_sessao': self.object.sessao_plenaria.id})
-            initial.update({'numero': self.object.numero_ordem})
-
-            return initial
-
-
-class OradorExpedienteCrud(OradorCrud):
-    model = OradorExpediente
 
     class CreateView(MasterDetailCrud.CreateView):
 
@@ -662,35 +736,14 @@ class OradorExpedienteCrud(OradorCrud):
             sessao = SessaoPlenaria.objects.get(id=sessao_pk)
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
         def get_success_url(self):
             return reverse('sapl.sessao:orador_list',
                            kwargs={'pk': self.kwargs['pk']})
 
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-
-        form_class = OradorForm
-
-        def get_initial(self):
-            initial = super().get_initial()
-            initial.update({'id_sessao': self.object.sessao_plenaria.id})
-            initial.update({'numero':self.object.numero_ordem})
-
-            return initial
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            sessao_pk = context['root_pk']
-            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
-            tipo_sessao = sessao.tipo
-            if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
-            return context
-
-        
     class DetailView(MasterDetailCrud.DetailView):
 
         def get_context_data(self, **kwargs):
@@ -699,9 +752,29 @@ class OradorExpedienteCrud(OradorCrud):
             sessao = SessaoPlenaria.objects.get(id=sessao_pk)
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
+    class UpdateView(MasterDetailCrud.UpdateView):
+
+        form_class = OradorForm
+
+        def get_initial(self):
+            initial = super().get_initial()
+            initial.update({'id_sessao': self.object.sessao_plenaria.id})
+            initial.update({'numero': self.object.numero_ordem})
+            return initial
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
 
     class DeleteView(MasterDetailCrud.DeleteView):
 
@@ -711,7 +784,8 @@ class OradorExpedienteCrud(OradorCrud):
             sessao = SessaoPlenaria.objects.get(id=sessao_pk)
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
 
@@ -725,16 +799,15 @@ class OradorExpedienteCrud(OradorCrud):
         def get_initial(self):
             return {'id_sessao': self.kwargs['pk']}
 
-
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             pk = context['root_pk']
             sessao = SessaoPlenaria.objects.get(id=pk)
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
-        
 
         def get_success_url(self):
             return reverse('sapl.sessao:oradorexpediente_list',
@@ -747,8 +820,18 @@ class OradorExpedienteCrud(OradorCrud):
             return {'id_sessao': self.object.sessao_plenaria.id,
                     'numero': self.object.numero_ordem}
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=pk)
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
 
     class ListView(MasterDetailCrud.ListView):
+        ordering = ['numero_ordem']
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -756,7 +839,8 @@ class OradorExpedienteCrud(OradorCrud):
             sessao = SessaoPlenaria.objects.get(id=pk)
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
     class DetailView(MasterDetailCrud.DetailView):
@@ -767,20 +851,22 @@ class OradorExpedienteCrud(OradorCrud):
             sessao = SessaoPlenaria.objects.get(id=pk)
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
-
-    class UpdateView(MasterDetailCrud.UpdateView):
+    class DeleteView(MasterDetailCrud.DeleteView):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            pk = context['root_pk']
-            sessao = SessaoPlenaria.objects.get(id=pk)
+            sessao_pk = context['root_pk']
+            sessao = SessaoPlenaria.objects.get(id=sessao_pk)
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
+
 
 class OradorOrdemDiaCrud(OradorCrud):
     model = OradorOrdemDia
@@ -906,7 +992,8 @@ class SessaoCrud(Crud):
             sessao = context['object']
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
         def get_initial(self):
@@ -953,6 +1040,15 @@ class SessaoCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'sessaoplenaria_list'))
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            sessao = context['object']
+            tipo_sessao = sessao.tipo
+            if tipo_sessao.nome == "Solene":
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            return context
+
     class DetailView(Crud.DetailView):
 
         @property
@@ -963,14 +1059,13 @@ class SessaoCrud(Crud):
                 return 'SessaoSolene'
             return 'SessaoPlenaria'
 
-
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             sessao = context['object']
             tipo_sessao = sessao.tipo
             if tipo_sessao.nome == "Solene":
-                context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
-                # self.layout_key = 'SessaoSolene'
+                context.update(
+                    {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
 
@@ -1009,7 +1104,8 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
         sessao = context['object']
         tipo_sessao = sessao.tipo
         if tipo_sessao.nome == "Solene":
-            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            context.update(
+                {'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     @method_decorator(permission_required(
@@ -1109,7 +1205,8 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
 
         tipo_sessao = sessao.tipo
         if tipo_sessao.nome == "Solene":
-            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            context.update(
+                {'subnav_template_name': 'sessao/subnav-solene.yaml'})
 
         return context
 
@@ -1336,9 +1433,10 @@ class MesaView(FormMixin, DetailView):
         sessao = context['object']
         tipo_sessao = sessao.tipo
         if tipo_sessao.nome == "Solene":
-            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            context.update(
+                {'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
-        
+
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:mesa', kwargs={'pk': pk})
@@ -1539,7 +1637,7 @@ def get_turno(turno):
         return ''
 
 
-def get_identificação_basica(sessao_plenaria):
+def get_identificacao_basica(sessao_plenaria):
     # =====================================================================
     # Identificação Básica
     data_inicio = sessao_plenaria.data_inicio
@@ -1553,10 +1651,11 @@ def get_identificação_basica(sessao_plenaria):
             'abertura': abertura, 'hora_inicio': sessao_plenaria.hora_inicio},
         _('Encerramento: %(encerramento)s %(hora_fim)s') % {
             'encerramento': encerramento, 'hora_fim': sessao_plenaria.hora_fim},
-        ],
+    ],
         'sessaoplenaria': sessao_plenaria}
     if sessao_plenaria.tipo.nome == "Solene" and tema_solene:
-        context.update({'tema_solene': 'Tema da Sessão Solene: %s' % tema_solene})
+        context.update(
+            {'tema_solene': 'Tema da Sessão Solene: %s' % tema_solene})
     return context
 
 
@@ -1587,11 +1686,11 @@ def get_presenca_sessao(sessao_plenaria):
 
     parlamentares_sessao = [p.parlamentar for p in SessaoPlenariaPresenca.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar')]
+    ).order_by('parlamentar__nome_parlamentar').distinct()]
 
     ausentes_sessao = JustificativaAusencia.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar')
+    ).distinct().order_by('parlamentar__nome_parlamentar')
 
     return ({'presenca_sessao': parlamentares_sessao,
              'justificativa_ausencia': ausentes_sessao})
@@ -1685,7 +1784,7 @@ def get_oradores_expediente(sessao_plenaria):
 def get_presenca_ordem_do_dia(sessao_plenaria):
     parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar')]
+    ).distinct().order_by('parlamentar__nome_parlamentar')]
 
     return {'presenca_ordem': parlamentares_ordem}
 
@@ -1721,7 +1820,8 @@ def get_assinaturas(sessao_plenaria):
     elif config_assinatura_ata == 'P' and presidente_dia and presidente_dia[0]:
         context.update(
             {'texto_assinatura': 'Assinatura do Presidente da Sessão'})
-        assinatura_presidente = [{'parlamentar': presidente_dia[0], 'cargo': "Presidente"}]
+        assinatura_presidente = [
+            {'parlamentar': presidente_dia[0], 'cargo': "Presidente"}]
         context.update({'assinatura_mesa': assinatura_presidente})
 
     return context
@@ -1834,7 +1934,7 @@ def get_oradores_ordemdia(sessao_plenaria):
     return context
 
 
-def get_oradores_explicações_pessoais(sessao_plenaria):
+def get_oradores_explicacoes_pessoais(sessao_plenaria):
     oradores_explicacoes = []
     for orador in Orador.objects.filter(
             sessao_plenaria_id=sessao_plenaria.id).order_by('numero_ordem'):
@@ -1856,7 +1956,7 @@ def get_oradores_explicações_pessoais(sessao_plenaria):
     return context
 
 
-def get_ocorrencias_da_sessão(sessao_plenaria):
+def get_ocorrencias_da_sessao(sessao_plenaria):
     ocorrencias_sessao = OcorrenciaSessao.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id)
     context = {'ocorrencias_da_sessao': ocorrencias_sessao}
@@ -1897,7 +1997,7 @@ class ResumoView(DetailView):
 
         # =====================================================================
         # Identificação Básica
-        context.update(get_identificação_basica(self.object))
+        context.update(get_identificacao_basica(self.object))
         # =====================================================================
         # Conteúdo Multimídia
         context.update(get_conteudo_multimidia(self.object))
@@ -1952,10 +2052,10 @@ class ResumoView(DetailView):
         context.update(get_oradores_ordemdia(self.object))
         # =====================================================================
         # Oradores nas Explicações Pessoais
-        context.update(get_oradores_explicações_pessoais(self.object))
+        context.update(get_oradores_explicacoes_pessoais(self.object))
         # =====================================================================
         # Ocorrẽncias da Sessão
-        context.update(get_ocorrencias_da_sessão(self.object))
+        context.update(get_ocorrencias_da_sessao(self.object))
         # =====================================================================
         # Indica a ordem com a qual o template será renderizado
         dict_ord_template = {
@@ -2016,7 +2116,8 @@ class ResumoView(DetailView):
         sessao = context['object']
         tipo_sessao = sessao.tipo
         if tipo_sessao.nome == "Solene":
-            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            context.update(
+                {'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     def get(self, request, *args, **kwargs):
@@ -2044,7 +2145,8 @@ class ExpedienteView(FormMixin, DetailView):
         sessao = context['object']
         tipo_sessao = sessao.tipo
         if tipo_sessao.nome == "Solene":
-            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            context.update(
+                {'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     @method_decorator(permission_required('sessao.add_expedientesessao'))
@@ -2092,16 +2194,14 @@ class ExpedienteView(FormMixin, DetailView):
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
-        tipos = TipoExpediente.objects.all().order_by('nome')
+        tipos = TipoExpediente.objects.all().order_by('ordenacao', 'nome')
         expedientes_sessao = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id).order_by('tipo__nome')
+            sessao_plenaria_id=self.object.id).order_by('tipo__ordenacao', 'tipo__nome')
 
-        expedientes_salvos = []
-        for e in expedientes_sessao:
-            expedientes_salvos.append(e.tipo)
+        expedientes_salvos = [e.tipo.id for e in expedientes_sessao]
 
-        tipos_null = list(set(tipos) - set(expedientes_salvos))
-        tipos_null.sort(key=lambda x: x.nome)
+        tipos_null = TipoExpediente.objects.all().exclude(
+            id__in=expedientes_salvos).order_by('ordenacao', 'nome')
 
         expedientes = []
         for e, t in zip(expedientes_sessao, tipos):
@@ -2137,7 +2237,8 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
         sessao = context['object']
         tipo_sessao = sessao.tipo
         if tipo_sessao.nome == "Solene":
-            context.update({'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            context.update(
+                {'subnav_template_name': 'sessao/subnav-solene.yaml'})
         return context
 
     def delete(self):
@@ -2254,9 +2355,13 @@ class VotacaoEditView(SessaoPermissionMixin):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:ordemdia_list',
-                       kwargs={'pk': pk})
+                       kwargs={'pk': pk}) + page
 
 
 class VotacaoView(SessaoPermissionMixin):
@@ -2322,7 +2427,7 @@ class VotacaoView(SessaoPermissionMixin):
 
         ordem_id = kwargs['oid']
         ordem = OrdemDia.objects.get(id=ordem_id)
-        
+
         presentes_id = [
             presente.parlamentar.id for presente in PresencaOrdemDia.objects.filter(
                 sessao_plenaria_id=self.kwargs['pk']
@@ -2402,9 +2507,13 @@ class VotacaoView(SessaoPermissionMixin):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:ordemdia_list',
-                       kwargs={'pk': pk})
+                       kwargs={'pk': pk}) + page + "#id{}".format(self.kwargs['mid'])
 
 
 def fechar_votacao_materia(materia):
@@ -2521,6 +2630,10 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
         form = self.get_form()
         username = request.user.username
 
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         if self.ordem:
             ordem_id = kwargs['oid']
             try:
@@ -2552,12 +2665,19 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             if 'cancelar-votacao' in request.POST:
                 fechar_votacao_materia(materia_votacao)
                 if self.ordem:
-                    return HttpResponseRedirect(reverse(
-                        'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
+                    return HttpResponseRedirect(
+                        reverse(
+                            'sapl.sessao:ordemdia_list',
+                            kwargs={'pk': kwargs['pk']}
+                        ) + page + "#id{}".format(self.kwargs['mid'])
+                    )
                 else:
-                    return HttpResponseRedirect(reverse(
-                        'sapl.sessao:expedientemateria_list',
-                        kwargs={'pk': kwargs['pk']}))
+                    return HttpResponseRedirect(
+                        reverse(
+                            'sapl.sessao:expedientemateria_list',
+                            kwargs={'pk': kwargs['pk']}
+                        ) + page + "#id{}".format(self.kwargs['mid'])
+                    )
             else:
                 if form.cleaned_data['resultado_votacao'] == None:
                     form.add_error(None, 'Não é possível finalizar a votação sem '
@@ -2704,14 +2824,22 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     yield [parlamentar, voto.voto]
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
 
         if self.ordem:
-            return reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': pk})
+            return reverse(
+                'sapl.sessao:ordemdia_list',
+                kwargs={'pk': pk}
+            ) + page + "#id{}".format(self.kwargs['mid'])
         elif self.expediente:
-            return reverse('sapl.sessao:expedientemateria_list',
-                           kwargs={'pk': pk})
+            return reverse(
+                'sapl.sessao:expedientemateria_list',
+                kwargs={'pk': pk}
+            ) + page + "#id{}".format(self.kwargs['mid'])
 
 
 class VotacaoNominalEditAbstract(SessaoPermissionMixin):
@@ -2829,14 +2957,22 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
 
         if self.ordem:
-            return reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': pk})
+            return reverse(
+                'sapl.sessao:ordemdia_list',
+                kwargs={'pk': pk}
+            ) + page + "#id{}".format(self.kwargs['mid'])
         elif self.expediente:
-            return reverse('sapl.sessao:expedientemateria_list',
-                           kwargs={'pk': pk})
+            return reverse(
+                'sapl.sessao:expedientemateria_list',
+                kwargs={'pk': pk}
+            ) + page + "#id{}".format(self.kwargs['mid'])
 
 
 class VotacaoNominalView(VotacaoNominalAbstract):
@@ -2938,9 +3074,13 @@ class VotacaoNominalExpedienteDetailView(DetailView):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk})
+                       kwargs={'pk': pk}) + page
 
 
 class VotacaoSimbolicaTransparenciaDetailView(TemplateView):
@@ -3007,7 +3147,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
 
         expediente_id = kwargs['oid']
         expediente = ExpedienteMateria.objects.get(id=expediente_id)
-        
+
         presentes_id = [
             presente.parlamentar.id for presente in SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=self.kwargs['pk']
@@ -3125,9 +3265,15 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
             yield tipo
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk})
+        return reverse(
+            'sapl.sessao:expedientemateria_list',
+            kwargs={'pk': pk}
+        ) + page + "#id{}".format(self.kwargs['mid'])
 
 
 class VotacaoExpedienteEditView(SessaoPermissionMixin):
@@ -3140,9 +3286,15 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
     form_class = VotacaoEditForm
 
     def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+
         pk = self.kwargs['pk']
-        return reverse('sapl.sessao:expedientemateria_list',
-                       kwargs={'pk': pk})
+        return reverse(
+            'sapl.sessao:expedientemateria_list',
+            kwargs={'pk': pk}
+        ) + page + "#id{}".format(self.kwargs['mid'])
 
     def get_tipos_votacao(self):
         for tipo in TipoResultadoVotacao.objects.all():
@@ -3243,6 +3395,8 @@ class PautaSessaoDetailView(DetailView):
     model = SessaoPlenaria
 
     def get(self, request, *args, **kwargs):
+        from sapl.relatorios.views import relatorio_pauta_sessao_weasy  # Evitar import ciclico
+
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
 
@@ -3254,11 +3408,15 @@ class PautaSessaoDetailView(DetailView):
         else:
             encerramento = ""
 
+        hora_inicio = self.object.hora_inicio
+        hora_fim = self.object.hora_fim
+
         context.update({'basica': [
             _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
-            _('Abertura: %(abertura)s') % {'abertura': abertura},
-            _('Encerramento: %(encerramento)s') % {
-                'encerramento': encerramento},
+            _('Abertura: %(abertura)s - %(hora_inicio)s') % {
+                'abertura': abertura, 'hora_inicio': hora_inicio},
+            _('Encerramento: %(encerramento)s - %(hora_fim)s') % {
+                'encerramento': encerramento, 'hora_fim': hora_fim},
         ]})
         # =====================================================================
         # Matérias Expediente
@@ -3304,15 +3462,13 @@ class PautaSessaoDetailView(DetailView):
         # =====================================================================
         # Expedientes
         expediente = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id)
+            sessao_plenaria_id=self.object.id).order_by('tipo__ordenacao')
 
         expedientes = []
         for e in expediente:
-            tipo = TipoExpediente.objects.get(
-                id=e.tipo_id)
+            tipo = e.tipo
             conteudo = sub(
-                '&nbsp;', ' ', strip_tags(e.conteudo.replace('<br/>', '\n')))
-
+                '&nbsp;', ' ', e.conteudo)
             ex = {'tipo': tipo, 'conteudo': conteudo}
             expedientes.append(ex)
 
@@ -3367,7 +3523,13 @@ class PautaSessaoDetailView(DetailView):
         context.update({'materias_ordem': materias_ordem})
         context.update({'subnav_template_name': 'sessao/pauta_subnav.yaml'})
 
-        return self.render_to_response(context)
+        is_pdf = True if request.build_absolute_uri().split(
+            '/')[-1] == 'pdf' else False
+
+        if is_pdf:
+            return relatorio_pauta_sessao_weasy(self, request, context)
+        else:
+            return self.render_to_response(context)
 
 
 class PesquisarSessaoPlenariaView(FilterView):
@@ -3767,6 +3929,7 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
     template_name = 'sessao/votacao/votacao_bloco.html'
     app_label = AppConfig.label
     expediente = True
+    paginate_by = 100
 
     def get_queryset(self):
         return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
@@ -3792,6 +3955,7 @@ class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
 
 class VotacaoEmBlocoOrdemDia(VotacaoEmBlocoExpediente):
     expediente = False
+    paginate_by = 100
 
     def get_queryset(self):
         return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
@@ -3828,7 +3992,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
             if request.POST['origem'] == 'ordem':
                 ordens = OrdemDia.objects.filter(
                     id__in=request.POST.getlist('marcadas_1'))
-                
+
                 presentes_id = [
                     presente.parlamentar.id for presente in PresencaOrdemDia.objects.filter(
                         sessao_plenaria_id=self.kwargs['pk']
@@ -3847,7 +4011,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
             else:
                 expedientes = ExpedienteMateria.objects.filter(
                     id__in=request.POST.getlist('marcadas_1'))
-                
+
                 presentes_id = [
                     presente.parlamentar.id for presente in SessaoPlenariaPresenca.objects.filter(
                         sessao_plenaria_id=self.kwargs['pk']
@@ -3987,7 +4151,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
         if self.request.POST['origem'] == 'ordem':
             ordens = OrdemDia.objects.filter(
                 id__in=self.request.POST.getlist('ordens'))
-                
+
             presentes_id = [
                 presente.parlamentar.id for presente in PresencaOrdemDia.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk']
@@ -4001,12 +4165,12 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
             qtde_ativos = len(presenca_ativos)
 
             context.update({'ordens': ordens,
-                            'total_presentes': qtde_presentes, 
+                            'total_presentes': qtde_presentes,
                             'total_votantes': qtde_ativos})
         elif self.request.POST['origem'] == 'expediente':
             expedientes = ExpedienteMateria.objects.filter(
                 id__in=self.request.POST.getlist('expedientes'))
-                
+
             presentes_id = [
                 presente.parlamentar.id for presente in SessaoPlenariaPresenca.objects.filter(
                     sessao_plenaria_id=self.kwargs['pk']
@@ -4333,3 +4497,108 @@ class RetiradaPautaCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
+
+
+class AbstractLeituraView(FormView):
+    template_name = 'sessao/votacao/leitura_form.html'
+    success_url = '/'
+    form_class = OrdemExpedienteLeituraForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['materia'] = MateriaLegislativa.objects.get(
+            id=self.kwargs['mid'])
+        return context
+
+    def get_initial(self):
+        initial = super().get_initial()
+        materia = MateriaLegislativa.objects.get(id=self.kwargs['mid'])
+        initial['materia'] = materia
+        initial['materia__ementa'] = materia.ementa
+        if self.expediente:
+            expediente = ExpedienteMateria.objects.get(id=self.kwargs['oid'])
+            instance = RegistroLeitura.objects.filter(
+                materia=materia, expediente=expediente)
+            initial['expediente'] = expediente
+        else:
+            ordem = OrdemDia.objects.get(id=self.kwargs['oid'])
+            instance = RegistroLeitura.objects.filter(
+                materia=materia, ordem=ordem)
+            initial['ordem'] = ordem
+        initial['instance'] = instance
+        initial['user'] = self.request.user
+        initial['ip'] = get_client_ip(self.request)
+        return initial
+
+    def form_valid(self, form):
+        if self.expediente:
+            model = ExpedienteMateria
+        else:
+            model = OrdemDia
+        ordem_expediente = model.objects.get(id=self.kwargs['oid'])
+        ordem_expediente.resultado = "Matéria lida"
+        ordem_expediente.votacao_aberta = False
+        ordem_expediente.save()
+        form.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+        
+        pk = self.kwargs['pk']
+        if self.expediente:
+            url = reverse('sapl.sessao:expedientemateria_list',
+                          kwargs={'pk': pk}) + page
+        else:
+            url = reverse('sapl.sessao:ordemdia_list',
+                          kwargs={'pk': pk}) + page
+        return url
+
+    def cancel_url(self):
+        page = ''
+        if 'page' in self.request.GET:
+            page = '?page={}'.format(self.request.GET['page'])
+        url = reverse('sapl.sessao:retirar_leitura',
+                      kwargs={
+                          'pk': self.kwargs['pk'],
+                          'iso': 1 if not self.expediente else 0,
+                          'oid': self.kwargs['oid'],
+                          },
+                    ) + page
+        return url
+
+
+class ExpedienteLeituraView(AbstractLeituraView):
+    expediente = True
+
+
+class OrdemDiaLeituraView(AbstractLeituraView):
+    expediente = False
+
+
+@permission_required('sessao.change_expedientemateria',
+                     'sessao.change_ordemdia')
+def retirar_leitura(request, pk, iso, oid):
+    page = ''
+    if 'page' in request.GET:
+        page = '?page={}'.format(request.GET['page'])
+
+    is_ordem = bool(int(iso))
+    if not is_ordem:
+        ordem_expediente = ExpedienteMateria.objects.get(id=oid)
+        RegistroLeitura.objects.filter(
+            materia=ordem_expediente.materia, expediente=ordem_expediente).delete()
+        succ_url = reverse('sapl.sessao:expedientemateria_list',
+                           kwargs={'pk': pk}) + page
+    else:
+        ordem_expediente = OrdemDia.objects.get(id=oid)
+        RegistroLeitura.objects.filter(
+            materia=ordem_expediente.materia, ordem=ordem_expediente).delete()
+        succ_url = reverse('sapl.sessao:ordemdia_list',
+                           kwargs={'pk': pk}) + page
+    ordem_expediente.resultado = ""
+    ordem_expediente.votacao_aberta = False
+    ordem_expediente.save()
+    return HttpResponseRedirect(succ_url)

@@ -65,6 +65,8 @@ def get_bloco_atualizador(pk_atualizador):
 
 @register.simple_tag
 def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
+    if dispositivo.dispositivo_de_revogacao:
+        return 'revogado'
     if inicio_vigencia and fim_vigencia:
         if dispositivo.fim_vigencia is None:
             return ''
@@ -291,7 +293,6 @@ def nomenclatura_heranca(d, ignore_ultimo=0, ignore_primeiro=0):
         d = d.dispositivo_pai
 
     return result
-
 
 @register.filter
 def list(obj):

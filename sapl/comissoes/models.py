@@ -6,7 +6,8 @@ from model_utils import Choices
 from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path)
+                        restringe_tipos_de_arquivo_txt, texto_upload_path,
+                        OverwriteStorage)
 
 
 @reversion.register()
@@ -120,13 +121,18 @@ class Periodo(models.Model):  # PeriodoCompComissao
 
 @reversion.register()
 class CargoComissao(models.Model):
-    nome = models.CharField(max_length=50, verbose_name=_('Cargo'))
+    id_ordenacao = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Posição na Ordenação'),
+    )
+    nome = models.CharField(max_length=50, verbose_name=_('Nome do Cargo'))
     unico = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Único'), default=True)
+        choices=YES_NO_CHOICES, verbose_name=_('Único'), default=True
+    )
 
     class Meta:
         verbose_name = _('Cargo de Comissão')
         verbose_name_plural = _('Cargos de Comissão')
+        ordering = ['id_ordenacao']
 
     def __str__(self):
         return self.nome
@@ -179,6 +185,7 @@ class Participacao(models.Model):  # ComposicaoComissao
     class Meta:
         verbose_name = _('Participação em Comissão')
         verbose_name_plural = _('Participações em Comissão')
+        ordering = ['-titular', 'cargo__id_ordenacao']
 
     def __str__(self):
         return '%s : %s' % (self.cargo, self.parlamentar)
@@ -235,18 +242,24 @@ class Reuniao(models.Model):
         max_length=150, blank=True,
         verbose_name=_('URL do Arquivo de Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
+        max_length=300,
         blank=True, null=True,
         upload_to=pauta_upload_path,
         verbose_name=_('Pauta da Reunião'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
+        max_length=300,
         blank=True, null=True,
         upload_to=ata_upload_path,
         verbose_name=_('Ata da Reunião'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_anexo = models.FileField(
+        max_length=300,
         blank=True, null=True,
         upload_to=anexo_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Anexo da Reunião'))
 
     class Meta:
@@ -257,17 +270,22 @@ class Reuniao(models.Model):
         return self.nome
 
     def delete(self, using=None, keep_parents=False):
-        if self.upload_pauta:
-            self.upload_pauta.delete()
+        upload_pauta = self.upload_pauta
+        upload_ata = self.upload_ata
+        upload_anexo = self.upload_anexo
 
-        if self.upload_ata:
-            self.upload_ata.delete()
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        if self.upload_anexo:
-            self.upload_anexo.delete()
+        if upload_pauta:
+            upload_pauta.delete(save=False)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if upload_ata:
+            upload_ata.delete(save=False)
+
+        if upload_anexo:
+            upload_anexo.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -305,14 +323,16 @@ class DocumentoAcessorio(models.Model):
     data = models.DateField(blank=True, null=True,
                             default=None, verbose_name=_('Data'))
     autor = models.CharField(
-        max_length=100,  verbose_name=_('Autor'))
+        max_length=200,  verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
 
     data_ultima_atualizacao = models.DateTimeField(
@@ -330,11 +350,13 @@ class DocumentoAcessorio(models.Model):
             'autor': self.autor}
 
     def delete(self, using=None, keep_parents=False):
-        if self.arquivo:
-            self.arquivo.delete()
+        arquivo = self.arquivo
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if arquivo:
+            arquivo.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):

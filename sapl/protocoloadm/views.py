@@ -26,7 +26,7 @@ from django_filters.views import FilterView
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig
-from sapl.base.signals import tramitacao_signal
+from sapl.base.signals import tramitacao_signal, post_delete_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
@@ -34,10 +34,10 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, Unid
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.models import Protocolo
+from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
-                        show_results_filter_set, mail_service_configured)
-from sapl.relatorios.views import relatorio_doc_administrativos
+                        show_results_filter_set, mail_service_configured, from_date_to_datetime_utc)
 
 from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     DocumentoAcessorioAdministrativoForm,
@@ -290,7 +290,7 @@ class AcompanhamentoDocumentoView(CreateView):
                         de mensagens e clique no link que nós enviamos para \
                         confirmar o acompanhamento deste documento.')
                 messages.add_message(request, messages.SUCCESS, msg)
-            
+
             # Caso esse Acompanhamento já exista
             # avisa ao usuário que esse documento já está sendo acompanhado
             else:
@@ -302,7 +302,7 @@ class AcompanhamentoDocumentoView(CreateView):
                 return self.render_to_response(
                     {'form': form,
                      'documento': documento,
-                    })
+                     })
             return HttpResponseRedirect(self.get_success_url())
         else:
             return self.render_to_response(
@@ -350,6 +350,17 @@ class DocumentoAdministrativoCrud(Crud):
         form_class = DocumentoAdministrativoForm
         layout_key = None
 
+        def get_initial(self):
+            initial = super().get_initial()
+
+            initial['user'] = self.request.user
+            initial['ip'] = get_client_ip(self.request)
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
+            return initial
+
         @property
         def cancel_url(self):
             return self.search_url
@@ -357,6 +368,33 @@ class DocumentoAdministrativoCrud(Crud):
     class UpdateView(Crud.UpdateView):
         form_class = DocumentoAdministrativoForm
         layout_key = None
+
+        def form_valid(self, form):
+            dict_objeto_antigo = DocumentoAdministrativo.objects.get(
+                pk=self.kwargs['pk']
+            ).__dict__
+
+            self.object = form.save()
+            dict_objeto_novo = self.object.__dict__
+
+            atributos = [
+                'tipo_id', 'ano', 'numero', 'data', 'protocolo_id', 'assunto',
+                'interessado', 'tramitacao', 'restrito', 'texto_integral','numero_externo',
+                'dias_prazo', 'data_fim_prazo', 'observacao'
+            ]
+
+            for atributo in atributos:
+                if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
+                    self.object.user = self.request.user
+                    self.object.ip = get_client_ip(self.request)
+
+                    tz = timezone.get_current_timezone()
+                    self.object.ultima_edicao = tz.localize(datetime.now())
+
+                    self.object.save()
+                    break
+
+            return super().form_valid(form)
 
         def get_initial(self):
             if self.object.protocolo:
@@ -372,14 +410,24 @@ class DocumentoAdministrativoCrud(Crud):
             if documento.restrito and self.request.user.is_anonymous():
                 return redirect('/')
             return super(Crud.DetailView, self).get(args, kwargs)
-
+        
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            self.layout_display[0]['rows'][-1][0]['text'] = (
-                '<a href="%s"></a>' % reverse(
-                    'sapl.protocoloadm:doc_texto_integral',
-                    kwargs={'pk': self.object.pk}))
+            
+            context['user'] = self.request.user
+            context['documentoadministrativo'] = DocumentoAdministrativo.objects.get(
+                pk=self.kwargs['pk']
+            )
+
             return context
+        
+        def urlize(self, obj, fieldname):
+            a = '<a href="%s">%s</a>' % (
+                reverse(
+                    'sapl.protocoloadm:doc_texto_integral',
+                    kwargs={'pk': obj.pk}),
+                obj.texto_integral.name.split('/')[-1])
+            return obj.texto_integral.field.verbose_name, a
 
     class DeleteView(Crud.DeleteView):
 
@@ -551,7 +599,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         ).sequencia_numeracao_protocolo
         if not numeracao:
             self.logger.error("user=" + username + ". É preciso definir a sequencia de "
-                              "numeração na tabelas auxiliares! " + str(e))
+                              "numeração na tabelas auxiliares! ")
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')
             messages.add_message(self.request, messages.ERROR, msg)
@@ -564,12 +612,24 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
                 data_fim__year__gte=timezone.now().year).first()
+
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
+
+            data_inicio_utc = from_date_to_datetime_utc(data_inicio)
+            data_fim_utc = from_date_to_datetime_utc(data_fim)
+
             numero = Protocolo.objects.filter(
-                data__gte=data_inicio,
-                data__lte=data_fim).aggregate(
-                Max('numero'))
+                Q(data__isnull=False,
+                  data__gte=data_inicio,
+                  data__lte=data_fim) |
+                Q(timestamp__isnull=False,
+                  timestamp__gte=data_inicio_utc,
+                  timestamp__lte=data_fim_utc) |
+                Q(timestamp_data_hora_manual__isnull=False,
+                  timestamp_data_hora_manual__gte=data_inicio_utc,
+                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
+                aggregate(Max('numero'))
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
@@ -633,6 +693,12 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc['assunto'] = protocolo.assunto_ementa
         doc['interessado'] = protocolo.interessado
         doc['numero'] = numero_max + 1 if numero_max else 1
+        doc['user'] = self.request.user
+        doc['ip'] = get_client_ip(self.request)
+
+        tz = timezone.get_current_timezone()
+        doc['ultima_edicao'] = tz.localize(datetime.now())
+        
         return doc
 
 
@@ -700,6 +766,13 @@ class ComprovanteProtocoloView(PermissionRequiredMixin, TemplateView):
             autenticacao = str(protocolo.tipo_processo) + \
                 data + str(protocolo.numero).zfill(6)
 
+        if protocolo.tipo_materia:
+            materia = MateriaLegislativa.objects.filter(
+                numero_protocolo=protocolo.numero,
+                ano=protocolo.ano).first()
+            if materia:
+                context['materia'] = materia.numero
+
         context.update({"protocolo": protocolo,
                         "barcode": barcode,
                         "autenticacao": autenticacao})
@@ -753,10 +826,22 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
                 data_fim__year__gte=timezone.now().year).first()
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
+
+            data_inicio_utc = from_date_to_datetime_utc(data_inicio)
+            data_fim_utc = from_date_to_datetime_utc(data_fim)
+
             numero = Protocolo.objects.filter(
-                data__gte=data_inicio,
-                data__lte=data_fim).aggregate(
-                Max('numero'))
+                Q(data__isnull=False,
+                  data__gte=data_inicio,
+                  data__lte=data_fim) |
+                Q(timestamp__isnull=False,
+                  timestamp__gte=data_inicio_utc,
+                  timestamp__lte=data_fim_utc) |
+                Q(timestamp_data_hora_manual__isnull=False,
+                  timestamp_data_hora_manual__gte=data_inicio_utc,
+                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
+                aggregate(Max('numero'))
+
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
@@ -798,12 +883,22 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             protocolo.user_data_hora_manual = ''
             protocolo.ip_data_hora_manual = ''
         protocolo.save()
+
         data = form.cleaned_data
         if data['vincular_materia'] == 'True':
-            materia = MateriaLegislativa.objects.get(ano=data['ano_materia'],
-                                                     numero=data['numero_materia'],
-                                                     tipo=data['tipo_materia'])
+            materia = MateriaLegislativa.objects.get(
+                ano=data['ano_materia'],
+                numero=data['numero_materia'],
+                tipo=data['tipo_materia']
+            )
+            
             materia.numero_protocolo = protocolo.numero
+            materia.user = self.request.user
+            materia.ip = get_client_ip(self.request)
+
+            tz = timezone.get_current_timezone()
+            materia.ultima_edicao = tz.localize(datetime.now())
+            
             materia.save()
 
         return redirect(self.get_success_url(protocolo))
@@ -910,7 +1005,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             page_obj = context['page_obj']
             context['page_range'] = make_pagination(
                 page_obj.number, paginator.num_pages)
-                    
+
         return context
 
     def get(self, request, *args, **kwargs):
@@ -935,21 +1030,22 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
             length = self.object_list.filter(restrito=False).count()
         else:
             length = self.object_list.count()
-                
-        is_relatorio = url!='' and request.GET.get('relatorio',None)
-        self.paginate_by = None if is_relatorio else self.paginate_by 
+
+        is_relatorio = url != '' and request.GET.get('relatorio', None)
+        self.paginate_by = None if is_relatorio else self.paginate_by
         context = self.get_context_data(filter=self.filterset,
                                         filter_url=url,
                                         numero_res=length
                                         )
         context['show_results'] = show_results_filter_set(
             self.request.GET.copy())
-        
+
         if is_relatorio:
-            return relatorio_doc_administrativos(request,context)
-        else:    
+            return relatorio_doc_administrativos(request, context)
+        else:
             return self.render_to_response(context)
-        
+
+
 class AnexadoCrud(MasterDetailCrud):
     model = Anexado
     parent_field = 'documento_principal'
@@ -987,7 +1083,7 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
     def get_context_data(self, **kwargs):
         context = super(
             DocumentoAnexadoEmLoteView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
 
         context['root_pk'] = self.kwargs['pk']
 
@@ -997,17 +1093,17 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
         # Verifica se os campos foram preenchidos
         if not self.request.GET.get('tipo', " "):
-            msg =_('Por favor, selecione um tipo de documento.')
+            msg = _('Por favor, selecione um tipo de documento.')
             messages.add_message(self.request, messages.ERROR, msg)
-                
+
             if not self.request.GET.get('data_0', " ") or not self.request.GET.get('data_1', " "):
-                msg =_('Por favor, preencha as datas.')
+                msg = _('Por favor, preencha as datas.')
                 messages.add_message(self.request, messages.ERROR, msg)
 
             return context
 
         if not self.request.GET.get('data_0', " ") or not self.request.GET.get('data_1', " "):
-            msg =_('Por favor, preencha as datas.')
+            msg = _('Por favor, preencha as datas.')
             messages.add_message(self.request, messages.ERROR, msg)
             return context
 
@@ -1019,17 +1115,19 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
         context['object_list'] = []
         for obj in context['temp_object_list']:
             if not obj.pk == int(context['root_pk']):
-                documento_principal = DocumentoAdministrativo.objects.get(id=context['root_pk'])
+                documento_principal = DocumentoAdministrativo.objects.get(
+                    id=context['root_pk'])
                 documento_anexado = obj
                 is_anexado = Anexado.objects.filter(documento_principal=documento_principal,
                                                     documento_anexado=documento_anexado).exists()
                 if not is_anexado:
                     ciclico = False
-                    anexados_anexado = Anexado.objects.filter(documento_principal=documento_anexado)
+                    anexados_anexado = Anexado.objects.filter(
+                        documento_principal=documento_anexado)
 
                     while anexados_anexado and not ciclico:
                         anexados = []
-                        
+
                         for anexo in anexados_anexado:
 
                             if documento_principal == anexo.documento_anexado:
@@ -1042,18 +1140,18 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
                     if not ciclico:
                         context['object_list'].append(obj)
-        
+
         context['numero_res'] = len(context['object_list'])
 
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
-        
+
         context['show_results'] = show_results_filter_set(qr)
 
         return context
 
     def post(self, request, *args, **kwargs):
         marcados = request.POST.getlist('documento_id')
-        
+
         data_anexacao = datetime.strptime(
             request.POST['data_anexacao'], "%d/%m/%Y"
         ).date()
@@ -1068,22 +1166,22 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
             v_data_desanexacao = data_desanexacao
 
         if len(marcados) == 0:
-            msg =_('Nenhum documento foi selecionado')
+            msg = _('Nenhum documento foi selecionado')
             messages.add_message(request, messages.ERROR, msg)
-            
+
             if data_anexacao > v_data_desanexacao:
-                msg=_('Data de anexação posterior à data de desanexação.')
+                msg = _('Data de anexação posterior à data de desanexação.')
                 messages.add_message(request, messages.ERROR, msg)
-            
+
             return self.get(request, self.kwargs)
 
         if data_anexacao > v_data_desanexacao:
-            msg =_('Data de anexação posterior à data de desanexação.')
+            msg = _('Data de anexação posterior à data de desanexação.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, messages.ERROR, msg)
 
-        principal = DocumentoAdministrativo.objects.get(pk = kwargs['pk'])
-        for documento in DocumentoAdministrativo.objects.filter(id__in = marcados):
+        principal = DocumentoAdministrativo.objects.get(pk=kwargs['pk'])
+        for documento in DocumentoAdministrativo.objects.filter(id__in=marcados):
             anexado = Anexado()
             anexado.documento_principal = principal
             anexado.documento_anexado = documento
@@ -1094,7 +1192,8 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
         msg = _('Documento(s) anexado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
 
-        success_url = reverse('sapl.protocoloadm:anexado_list', kwargs={'pk': kwargs['pk']})
+        success_url = reverse('sapl.protocoloadm:anexado_list', kwargs={
+                              'pk': kwargs['pk']})
         return HttpResponseRedirect(success_url)
 
 
@@ -1130,6 +1229,10 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial['data_tramitacao'] = timezone.now().date()
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         def get_context_data(self, **kwargs):
@@ -1142,7 +1245,8 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                 '-timestamp',
                 '-id').first()
 
-            #TODO: Esta checagem foi inserida na issue #2027, mas é mesmo necessária?
+            # TODO: Esta checagem foi inserida na issue #2027, mas é mesmo
+            # necessária?
             if ultima_tramitacao:
                 if ultima_tramitacao.unidade_tramitacao_destino:
                     context['form'].fields[
@@ -1192,6 +1296,10 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial = super(UpdateView, self).get_initial()
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
+
+            tz = timezone.get_current_timezone()
+            initial['ultima_edicao'] = tz.localize(datetime.now())
+
             return initial
 
         def form_valid(self, form):
@@ -1224,12 +1332,11 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                      MasterDetailCrud.DetailView):
 
         template_name = 'protocoloadm/tramitacaoadministrativo_detail.html'
-        
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['user'] = self.request.user
             return context
-
 
     class DeleteView(MasterDetailCrud.DeleteView):
 
@@ -1257,7 +1364,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacoes_deletar = [tramitacao.id]
+                tramitacoes_deletar = [tramitacao]
                 if documento.tramitacaoadministrativo_set.count() == 0:
                     documento.tramitacao = False
                     documento.save()
@@ -1267,11 +1374,19 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     for da in docs_anexados:
                         tram_anexada = da.tramitacaoadministrativo_set.last()
                         if compara_tramitacoes_doc(tram_anexada, tramitacao):
-                            tramitacoes_deletar.append(tram_anexada.id)
+                            tramitacoes_deletar.append(tram_anexada)
                             if da.tramitacaoadministrativo_set.count() == 0:
                                 da.tramitacao = False
                                 da.save()
-                TramitacaoAdministrativo.objects.filter(id__in=tramitacoes_deletar).delete()
+                TramitacaoAdministrativo.objects.filter(
+                    id__in=[t.id for t in tramitacoes_deletar]).delete()
+
+                # TODO: otimizar para passar a lista de matérias
+                for tramitacao in tramitacoes_deletar:
+                    post_delete_signal.send(sender=None,
+                                            instance=tramitacao,
+                                            operation='C',
+                                            request=self.request)
 
                 return HttpResponseRedirect(url)
 
@@ -1338,6 +1453,13 @@ class DesvincularDocumentoView(PermissionRequiredMixin, CreateView):
                                                         ano=form.cleaned_data['ano'],
                                                         tipo=form.cleaned_data['tipo'])
         documento.protocolo = None
+
+        documento.user = self.request.user
+        documento.ip = get_client_ip(self.request)
+
+        tz = timezone.get_current_timezone()
+        documento.ultima_edicao = tz.localize(datetime.now())
+
         documento.save()
         return redirect(self.get_success_url())
 
@@ -1352,10 +1474,20 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
         return reverse('sapl.protocoloadm:protocolo')
 
     def form_valid(self, form):
-        materia = MateriaLegislativa.objects.get(numero=form.cleaned_data['numero'],
-                                                 ano=form.cleaned_data['ano'],
-                                                 tipo=form.cleaned_data['tipo'])
+        materia = MateriaLegislativa.objects.get(
+            numero=form.cleaned_data['numero'],
+            ano=form.cleaned_data['ano'],
+            tipo=form.cleaned_data['tipo']
+        )
+
         materia.numero_protocolo = None
+        
+        materia.user = self.request.user
+        materia.ip = get_client_ip(self.request)
+
+        tz = timezone.get_current_timezone()
+        materia.ultima_edicao = tz.localize(datetime.now())
+        
         materia.save()
         return redirect(self.get_success_url())
 
@@ -1464,7 +1596,6 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
 
     logger = logging.getLogger(__name__)
 
-
     def get_context_data(self, **kwargs):
         context = super(PrimeiraTramitacaoEmLoteAdmView,
                         self).get_context_data(**kwargs)
@@ -1486,8 +1617,8 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
         if self.primeira_tramitacao:
             context['title'] = _('Primeira Tramitação em Lote')
             # Pega somente documentos que não possuem tramitação
-            context['object_list'] = [obj for obj in context['object_list'] 
-                                          if obj.tramitacaoadministrativo_set.all().count() == 0]
+            context['object_list'] = [obj for obj in context['object_list']
+                                      if obj.tramitacaoadministrativo_set.all().count() == 0]
         else:
             context['title'] = _('Tramitação em Lote')
             context['form'].fields['unidade_tramitacao_local'].initial = UnidadeTramitacao.objects.get(
@@ -1503,6 +1634,9 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
         user = request.user
         ip = get_client_ip(request)
 
+        tz = timezone.get_current_timezone()
+        ultima_edicao = tz.localize(datetime.now())
+
         documentos_ids = request.POST.getlist('documentos')
         if not documentos_ids:
             msg = _("Escolha algum Documento para ser tramitado.")
@@ -1511,30 +1645,32 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
 
         form = TramitacaoEmLoteAdmForm(request.POST, 
                                        initial= {'documentos': documentos_ids,
-                                                'user': user, 'ip':ip})
+                                                'user': user, 'ip':ip,
+                                                'ultima_edicao': ultima_edicao})
 
         if form.is_valid():
             form.save()
 
             msg = _('Tramitação completa.')
-            self.logger.info('user=' + user.username + '. Tramitação completa.')
+            self.logger.info('user=' + user.username +
+                             '. Tramitação completa.')
             messages.add_message(request, messages.SUCCESS, msg)
             return self.get_success_url()
 
         return self.form_invalid(form)
 
-    
     def get_success_url(self):
         return HttpResponseRedirect(reverse('sapl.protocoloadm:primeira_tramitacao_em_lote_docadm'))
 
-
     def form_invalid(self, form, *args, **kwargs):
         for key, erros in form.errors.items():
-            if not key=='__all__':
-                [messages.add_message(self.request, messages.ERROR, form.fields[key].label + ": " + e) for e in erros]
+            if not key == '__all__':
+                [messages.add_message(
+                    self.request, messages.ERROR, form.fields[key].label + ": " + e) for e in erros]
             else:
-                [messages.add_message(self.request, messages.ERROR, e) for e in erros]
-        return self.get(self.request, kwargs, {'form':form})
+                [messages.add_message(self.request, messages.ERROR, e)
+                 for e in erros]
+        return self.get(self.request, kwargs, {'form': form})
 
 
 class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
@@ -1562,20 +1698,17 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
 
         return context
 
-
     def pega_ultima_tramitacao(self):
         return TramitacaoAdministrativo.objects.values(
             'documento_id').annotate(data_encaminhamento=Max(
                 'data_encaminhamento'),
             id=Max('id')).values_list('id', flat=True)
 
-    
     def filtra_tramitacao_status(self, status):
         lista = self.pega_ultima_tramitacao()
         return TramitacaoAdministrativo.objects.filter(
             id__in=lista,
             status=status).distinct().values_list('documento_id', flat=True)
-
 
     def filtra_tramitacao_destino(self, destino):
         lista = self.pega_ultima_tramitacao()
@@ -1583,7 +1716,6 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
             id__in=lista,
             unidade_tramitacao_destino=destino).distinct().values_list(
                 'documento_id', flat=True)
-
 
     def filtra_tramitacao_destino_and_status(self, status, destino):
         lista = self.pega_ultima_tramitacao()

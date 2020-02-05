@@ -12,7 +12,8 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         restringe_tipos_de_arquivo_txt, 
                         texto_upload_path,
-                        get_settings_auth_user_model)
+                        get_settings_auth_user_model,
+                        OverwriteStorage)
 
 
 @reversion.register()
@@ -78,10 +79,12 @@ class NormaJuridica(models.Model):
     )
 
     texto_integral = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=norma_upload_path,
         verbose_name=_('Texto Integral'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     tipo = models.ForeignKey(
         TipoNormaJuridica,
@@ -153,6 +156,10 @@ class NormaJuridica(models.Model):
         blank=True,
         default=''
     )
+    ultima_edicao = models.DateTimeField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
 
     class Meta:
         verbose_name = _('Norma Jurídica')
@@ -174,24 +181,27 @@ class NormaJuridica(models.Model):
         return anexos
 
     def __str__(self):
-        return _('%(tipo)s nº %(numero)s de %(data)s') % {
+        numero_norma = self.numero
+        if numero_norma.isnumeric():
+            numero_norma = '{0:,}'.format(int(self.numero)).replace(',', '.')
+
+        return _('%(tipo)s nº %(numero)s, de %(data)s') % {
             'tipo': self.tipo,
-            'numero': self.numero,
-            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+            'numero': numero_norma,
+            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
 
     @property
     def epigrafe(self):
-        return _('%(tipo)s nº %(numero)s de %(data)s') % {
-            'tipo': self.tipo,
-            'numero': self.numero,
-            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y")}
+        return self.__str__()
 
     def delete(self, using=None, keep_parents=False):
-        if self.texto_integral:
-            self.texto_integral.delete()
+        texto_integral = self.texto_integral
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if texto_integral:
+            texto_integral.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -334,8 +344,8 @@ class NormaRelacionada(models.Model):
     def __str__(self):
         return _('Principal: %(norma_principal)s'
                  ' - Relacionada: %(norma_relacionada)s') % {
-            'norma_principal': self.norma_principal,
-            'norma_relacionada': self.norma_relacionada}
+            'norma_principal': str(self.norma_principal),
+            'norma_relacionada': str(self.norma_relacionada)}
 
 
 @reversion.register()
@@ -352,10 +362,12 @@ class AnexoNormaJuridica(models.Model):
         max_length=250
     )
     anexo_arquivo = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=norma_upload_path,
         verbose_name=_('Arquivo Anexo'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
@@ -384,3 +396,12 @@ class AnexoNormaJuridica(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
+    def delete(self, using=None, keep_parents=False):
+        anexo_arquivo = self.anexo_arquivo
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if anexo_arquivo:
+            anexo_arquivo.delete(save=False)
+
+        return result

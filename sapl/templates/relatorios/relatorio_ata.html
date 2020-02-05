@@ -1,43 +1,8 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load common_tags %}
 {% load static %}
-<head>
-    <style>
-        @page{
-            @bottom-right {
-                content: "Página" counter(page);
-                height: 3cm;
-                font-size: 8pt;
-            }
-        
-            @bottom-center {
-                border-top: 1px solid black;
-                font-size: 8pt;
-                height: 1cm;
-                content: "{{rodape|safe}}";
-                font-style:italic;
-            }
-            @bottom-left {
-                content: "{{data}}";
-                height: 3cm;
-                font-size: 8pt;
-            }
-              
-            @top-center {
-                content:  string(title);
-            }
-            header {
-                width: 0;
-                height: 0;
-                visibility: hidden;
-                string-set: title content();
-            }
-        }
-    </style>
-     <link rel="stylesheet" href="{% static 'sapl/css/relatorio.css'%}">
-</head>	
-
-<body>
-    <h3 style="text-align:center;">Extrato Eletrônico da {{sessaoplenaria}}</h3>
+{% block content %}
+    <h3 style="text-align:center;">Ata Eletrônica da {{sessaoplenaria}}</h3>
     {% include 'sessao/blocos_ata/identificacao_basica.html' %}
     {% include 'sessao/blocos_ata/mesa_diretora.html' %}
     {% include 'sessao/blocos_ata/lista_presenca.html' %}
@@ -100,5 +65,6 @@
         </table>
         {% endif%}
     </div>
-</body>
-    
+
+
+{% endblock content %}

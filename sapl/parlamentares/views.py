@@ -427,6 +427,9 @@ class MandatoCrud(MasterDetailCrud):
             return {'parlamentar': Parlamentar.objects.get(
                     pk=self.kwargs['pk'])}
 
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = MandatoForm
+
 
 class ComposicaoColigacaoCrud(MasterDetailCrud):
     model = ComposicaoColigacao
@@ -514,8 +517,7 @@ class ParlamentarCrud(Crud):
         list_field_names = [
             'nome_parlamentar',
             'filiacao_atual',
-            'ativo',
-            'mandato_titular']
+            'ativo']
 
     class DetailView(Crud.DetailView):
 
@@ -591,8 +593,7 @@ class ParlamentarCrud(Crud):
             username = self.request.user.username
             if legislatura_id >= 0:
                 return queryset.filter(
-                    mandato__legislatura_id=legislatura_id).annotate(
-                        mandato_titular=F('mandato__titular')).distinct()
+                    mandato__legislatura_id=legislatura_id).distinct()
             else:
                 try:
                     self.logger.debug(
@@ -608,74 +609,11 @@ class ParlamentarCrud(Crud):
                                      ". Objeto encontrado com sucesso.")
                     if l is None:
                         return Legislatura.objects.all()
-                    return queryset.filter(mandato__legislatura_id=l).annotate(
-                        mandato_titular=F('mandato__titular'))
+                    return queryset.filter(mandato__legislatura_id=l)
 
         def get_headers(self):
             return [_('Parlamentar'), _('Partido'),
                     _('Ativo?'), _('Titular?')]
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            username = self.request.user.username
-
-            # Adiciona legislatura para filtrar parlamentares
-            legislaturas = Legislatura.objects.all().order_by('-numero')
-            context['legislaturas'] = legislaturas
-            context['legislatura_id'] = self.take_legislatura_id()
-
-            for row in context['rows']:
-
-                # Pega o Parlamentar por meio da pk
-                parlamentar = Parlamentar.objects.get(
-                    id=(row[0][1].split('/')[-1]))
-
-                for index, value in enumerate(row):
-                    row[index] += (None if index else parlamentar,)
-
-                # Pega a Legislatura
-                legislatura = Legislatura.objects.get(
-                    id=context['legislatura_id'])
-
-                # Coloca a filiação atual ao invés da última
-                # As condições para mostrar a filiação são:
-                # A data de filiacao deve ser menor que a data de fim
-                # da legislatura e data de desfiliação deve nula, ou maior,
-                # ou igual a data de fim da legislatura
-                try:
-                    self.logger.debug("user=" + username + ". Tentando obter filiação do parlamentar com (data<={} e data_desfiliacao>={}) "
-                                      "ou (data<={} e data_desfiliacao=Null))."
-                                      .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
-                    filiacao = parlamentar.filiacao_set.get(Q(
-                        data__lte=legislatura.data_fim,
-                        data_desfiliacao__gte=legislatura.data_fim) | Q(
-                        data__lte=legislatura.data_fim,
-                        data_desfiliacao__isnull=True))
-
-                # Caso não exista filiação com essas condições
-                except ObjectDoesNotExist:
-                    self.logger.error("user=" + username + ". Parlamentar com (data<={} e data_desfiliacao>={}) "
-                                      "ou (data<={} e data_desfiliacao=Null)) não possui filiação."
-                                      .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
-                    row[1] = ('Não possui filiação', None, None)
-
-                # Caso exista mais de uma filiação nesse intervalo
-                # Entretanto, NÃO DEVE OCORRER
-                except MultipleObjectsReturned:
-                    self.logger.error("user=" + username + ". O Parlamentar com (data<={} e data_desfiliacao>={}) "
-                                      "ou (data<={} e data_desfiliacao=Null)) possui duas filiações conflitantes"
-                                      .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
-                    row[1] = (
-                        'O Parlamentar possui duas filiações conflitantes',
-                        None, None)
-
-                # Caso encontre UMA filiação nessas condições
-                else:
-                    self.logger.debug("user=" + username +
-                                      ". Filiação encontrada com sucesso.")
-                    row[1] = (filiacao.partido.sigla, None, None)
-
-            return context
 
 
 class ParlamentarMateriasView(FormView):
@@ -870,14 +808,13 @@ def altera_field_mesa(request):
     # atual deve ser a primeira daquela legislatura
     else:
         year = timezone.now().year
-        try:
-            logger.debug(
-                "user=" + username + ". Tentando obter id de sessoes com data_inicio.ano={}.".format(year))
-            sessao_selecionada = sessoes.get(data_inicio__year=year).id
-        except ObjectDoesNotExist:
+        logger.debug(
+            "user={}. Tentando obter id de sessoes com data_inicio.ano={}.".format(username, year))
+        sessao_selecionada = sessoes.filter(data_inicio__year=year).first()
+        if not sessao_selecionada:
             logger.error("user=" + username + ". Id de sessoes com data_inicio.ano={} não encontrado. "
-                         "Selecionado o ID da primeira sessão.".format(year))
-            sessao_selecionada = sessoes.first().id
+                                              "Selecionado o ID da primeira sessão.".format(year))
+            sessao_selecionada = sessoes.first()
 
     # Atualiza os componentes da view após a mudança
     composicao_mesa = ComposicaoMesa.objects.filter(
@@ -908,7 +845,7 @@ def altera_field_mesa(request):
          'lista_composicao': lista_composicao,
          'lista_parlamentares': lista_parlamentares,
          'lista_cargos': lista_cargos,
-         'sessao_selecionada': sessao_selecionada,
+         'sessao_selecionada': sessao_selecionada.id,
          'msg': ('', 1)})
 
 

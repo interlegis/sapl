@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block base_content %}
-<div align=right><a href="{% url 'sapl.relatorios:relatorio_pauta_sessao' object.pk %}"> Impressão PDF</a></li></div>
+<div align=right><a href="{% url 'sapl.sessao:pauta_sessao_detail' object.pk %}pdf"> Impressão PDF</a></li></div>
 <fieldset>
 	<legend>Identificação Básica</legend>
 	<table class="table">
@@ -16,12 +16,31 @@
 		</thead>
   </table>
 </fieldset>
+
+<fieldset>
+	<legend>Expedientes</legend>
+	<table class="table">
+	    <thead class="thead-default">
+			{% for e in expedientes %}
+	    	    <tr>
+	    	        <td>
+	    	        	<b>{{e.tipo}}: </b> <br><br>
+	    	            <div style="border:0.5px solid #BAB4B1; border-radius: 10px; background-color: rgba(225, 225, 225, .8);">
+	    	            	<p>{{e.conteudo|safe}}</p>
+	    	            </div>
+	    	        </td>
+	    	    </tr>
+			{% endfor %}
+	    </thead>
+	</table>
+</fieldset>
+
 <fieldset>
 	<legend>Matérias do Expediente</legend>
 	{% if materia_expediente %}
 	<table class="table table-striped">
 		<thead>
-			<tr>
+		<tr>
 	      <th>Matéria</th>
 	      <th>Ementa</th>
 	      <th>Situação</th>

@@ -1,92 +1,79 @@
 {% extends "crud/detail.html" %}
 {% load i18n common_tags %}
 {% load tz %}
-{% block sub_actions %}{{block.super}}
-
-  <div class="actions btn-group btn-group-sm {%block sub_actions_pull%}{% endblock%}" role="group">
-    {% if object.texto_articulado.exists %}
-      <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_ta' object.pk%}">{% trans "Texto Eletrônico" %}</a>
-    {% endif %}
-    {% if object.texto_original %}
-      <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_texto' object.pk %}">{% trans "Texto Original" %}</a>
-    {% endif %}
-  </div>
+{% block sub_actions %}
+  {{block.super}}
+  {% if user == object.autor.user  %}
+    <div class="actions btn-group btn-group-sm {%block sub_actions_pull%}{% endblock%}" role="group">
+      {% if object.texto_articulado.exists %}
+        <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_ta' object.pk%}">{% trans "Texto Eletrônico" %}</a>
+      {% endif %}
+      {% if object.texto_original %}
+        <a class="btn btn-success" href="{% url 'sapl.materia:proposicao_texto' object.pk %}">{% trans "Texto Original" %}</a>
+      {% endif %}
+    </div>
+  {% endif %}
 {% endblock sub_actions%}
-
 {% block editions %}
-
-  {% if object.data_envio %}
-    {% if user == object.autor.user  %}
-      {% block editions_actions_return %}
+  {% if user == object.autor.user  %}
+    {% if object.data_envio %}
+        {% block editions_actions_return %}
+          <div class="actions btn-group" role="group">
+            <a class="btn btn-outline-primary" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
+            {% if not object.data_recebimento %}
+              <a href="{% url 'sapl.materia:retornar-proposicao' object.pk %}" class="btn btn-outline-primary btn-outline-danger">{% trans 'Retornar Proposição Enviada' %}</a>
+            {% endif %}
+          </div>
+      {% endblock %}
+    {% else %}
+      {% block editions_actions_send %}
         <div class="actions btn-group" role="group">
-          <a class="btn btn-outline-primary" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' object.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
-          {% if not object.data_recebimento %}
-            <a href="{% url 'sapl.materia:retornar-proposicao' object.pk %}" class="btn btn-outline-primary btn-outline-danger">{% trans 'Retornar Proposição Enviada' %}</a>
-          {% endif %}
+          <a href="{{ view.detail_url }}?action=send" class="btn btn-primary">{% trans 'Enviar' %}</a>
+        </div>
+        <div class="actions btn-group" role="group">
+          <a href="{{ view.update_url }}" class="btn btn-outline-primary">{% trans 'Editar' %}</a>
+          <a href="{{ view.delete_url }}" class="btn btn-outline-primary btn-outline-danger">{% trans 'Excluir' %}</a>
         </div>
       {% endblock %}
     {% endif %}
-
-  {% else %}
-
-    {% block editions_actions_send %}
-      <div class="actions btn-group" role="group">
-        <a href="{{ view.detail_url }}?action=send" class="btn btn-primary">{% trans 'Enviar' %}</a>
-      </div>
-
-      <div class="actions btn-group" role="group">
-        <a href="{{ view.update_url }}" class="btn btn-outline-primary">{% trans 'Editar' %}</a>
-        <a href="{{ view.delete_url }}" class="btn btn-outline-primary btn-outline-danger">{% trans 'Excluir' %}</a>
-      </div>
-    {% endblock %}
   {% endif %}
-
 {% endblock editions %}
-
-
 {% block detail_content %}
-
-
-  <h2 class="legend">{% model_verbose_name 'sapl.materia.models.Proposicao' %}</h2>
-
-  <div class="row">
-
+  {% if user == object.autor.user  %}
+    <h2 class="legend">{% model_verbose_name 'sapl.materia.models.Proposicao' %}</h2>
+    <div class="row">
       <div class="col-sm-3">
         <div id="div_id_tipo" class="form-group">
           <p class="control-label">{%field_verbose_name object 'tipo'%}</p>
           <div class="controls">
-              <div class="form-control-static">{{object.tipo}}</div>
+            <div class="form-control-static">{{object.tipo}}</div>
           </div>
         </div>
       </div>
       {% if object.data_devolucao %}
-
         <div class="col-sm-9">
           <div class="alert alert-danger alert-dismissible " role="alert">
             <strong>{% trans "Proposição devolvida em:" %} {{ object.data_devolucao}}</strong>
             <div >{% trans "Justificativa:" %} {{object.justificativa_devolucao}}</div>
           </div>
         </div>
-
       {% else %}
-
         {% if object.data_envio %}
           <div class="col-sm-3">
             <div id="div_id_data_envio" class="form-group">
-            <p class="control-label">{%field_verbose_name object 'data_envio' %}</p>
+              <p class="control-label">{%field_verbose_name object 'data_envio' %}</p>
               <div class="controls">
-                  <div class="form-control-static">{{object.data_envio}}</div>
+                <div class="form-control-static">{{object.data_envio}}</div>
               </div>
             </div>
           </div>
         {% endif %}
-
         {% if object.data_recebimento %}
           <div class="col-sm-3">
             <div id="div_id_data_envio" class="form-group">
-            <p class="control-label">{%field_verbose_name object 'data_recebimento'%}</p>
+              <p class="control-label">{%field_verbose_name object 'data_recebimento'%}</p>
               <div class="controls">
-                  <div class="form-control-static">{{object.data_recebimento}}</div>
+                <div class="form-control-static">{{object.data_recebimento}}</div>
               </div>
             </div>
           </div>
@@ -98,89 +85,131 @@
           </div>
         {% endif %}
       {% endif %}
-  </div>
-
-  <div class="row">
+    </div>
+    <div class="row">
       <div class="col-sm-12">
         <div id="div_id_descricao" class="form-group">
           <p class="control-label">{%field_verbose_name object 'descricao'%}</p>
           <div class="controls">
-              <div class="form-control-static">{{object.descricao}}</div>
+            <div class="form-control-static">{{object.descricao}}</div>
           </div>
         </div>
       </div>
-  </div>
-
-
-  {% if object.observacao %}
-    <div class="row">
+    </div>
+    {% if object.observacao %}
+      <div class="row">
         <div class="col-sm-12">
           <div id="div_id_obseracao" class="form-group">
             <p class="control-label">{%field_verbose_name object 'observacao'%}</p>
             <div class="controls">
-                <div class="form-control-static">{{object.observacao}}</div>
+              <div class="form-control-static">{{object.observacao}}</div>
             </div>
           </div>
         </div>
-    </div>
-  {% endif %}
-
-  <div class="row">
-    {% if object.conteudo_gerado_related %}
+      </div>
+    {% endif %}
+    <div class="row">
+      {% if object.conteudo_gerado_related %}
         <div class="col-sm-6">
           <h2 class="legend">{% trans "Conteúdo Gerado" %}</h2>
           <div id="div_id_conteudo_gerado_related" class="form-group">
             <div class="controls">
-                <a href="{% url object|urldetail_content_type:object.conteudo_gerado_related object.conteudo_gerado_related.id%}">
-                  {{object.conteudo_gerado_related}}
-                </a>
+              <a href="{% url object|urldetail_content_type:object.conteudo_gerado_related object.conteudo_gerado_related.id%}">
+                {{object.conteudo_gerado_related}}
+              </a>
             </div>
           </div>
         </div>
-    {% endif %}
-    {% if object.materia_de_vinculo %}
+      {% endif %}
+      {% if object.materia_de_vinculo %}
         <div class="col-sm-6">
           <h2 class="legend">{% trans "Vínculo com a Matéria Legislativa" %}</h2>
           <div id="div_id_materia_de_vinculo" class="form-group">
             <div class="controls">
               Matéria</br>
               &nbsp;&nbsp;&nbsp;&nbsp;
-                <a href="{% url object.materia_de_vinculo|urldetail object.materia_de_vinculo.id%}">
-                  {{object.materia_de_vinculo}}
-                </a>
+              <a href="{% url object.materia_de_vinculo|urldetail object.materia_de_vinculo.id%}">
+                {{object.materia_de_vinculo}}
+              </a>
               </br>
-                {% if object.materia_de_vinculo.autoria_set.all %}
-            		Autores
-            		{% for a in object.materia_de_vinculo.autoria_set.all %}
-              </br>&nbsp;&nbsp;&nbsp;&nbsp;{{a.autor}}
+              {% if object.materia_de_vinculo.autoria_set.all %}
+                Autores
+                {% for a in object.materia_de_vinculo.autoria_set.all %}
+                  </br>&nbsp;&nbsp;&nbsp;&nbsp;{{a.autor}}
                 {% endfor %}
-                {% endif %}
-              </br>
-                Texto Original
-              </br>
-              {% if object.materia_de_vinculo.texto_original %}
-                  <a href="{{object.materia_de_vinculo.texto_original.url}}">
-                    {{object.materia_de_vinculo.texto_original| to_str | split:"/" | get_last_item_from_list:-1}}
-                  </a>
               {% endif %}
               </br>
+              Texto Original
+              </br>
+              {% if object.materia_de_vinculo.texto_original %}
+                <a href="{{object.materia_de_vinculo.texto_original.url}}">
+                  {{object.materia_de_vinculo.texto_original| to_str | split:"/" | get_last_item_from_list:-1}}
+                </a>
+              {% endif %}
+              </br>
+            </div>
           </div>
         </div>
-      </div>
-    {% endif %}
-
-    {% if not AppConfig.receber_recibo_proposicao %}
+      {% endif %}
+      {% if not AppConfig.receber_recibo_proposicao %}
         {% if object.hash_code %}
-
-            <div class="col-sm-12">
+          <div class="col-sm-12">
             <div id="div_id_hash_code" class="form-group">
               <p class="control-label">{%field_verbose_name object 'hash_code'%}</p>
               <div class="controls">
-                  <div class="form-control-static">{{object.hash_code}}</div>
+                <div class="form-control-static">{{object.hash_code}}</div>
               </div>
             </div>
           </div>
         {% endif %}
+      {% endif %}
+    </div>
+    {% if user.is_superuser %}
+      <div class="row">
+        {% if proposicao.user %}
+          <div class="col-sm-4">
+            <div id="div_id_user" class="form-group">
+              <p class="control-label">Usuário</p>
+              <div class="controls">
+                <div class="form-control-static">
+                  <div class="dont-break-out">
+                    <a href="{% url 'sapl.base:user_edit' proposicao.user.pk %}">{{ proposicao.user }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        {% if proposicao.ip %}
+          <div class="col-sm-4">
+            <div id="div_ip_user" class="form-group">
+              <p class="control-label">IP</p>
+              <div class="controls">
+                <div class="form-control-static">
+                  <div class="dont-break-out">{{ proposicao.ip }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        {% if proposicao.ultima_edicao %}
+          <div class="col-sm-4">
+            <div id="div_ud_user" class="form-group">
+              <p class="control-label">Data e Hora da Edição</p>
+              <div class="controls">
+                <div class="form-control-static">
+                  <div class="dont-break-out">{{ proposicao.ultima_edicao }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
     {% endif %}
-  </div>
+  {% else %}
+    <br><br>
+    <div class="alert alert-danger alert-dismissible" role="alert">
+      <h3>Você não tem acesso a essa Proposição porque não é de sua autoria.</h3>
+    </div>
+  {% endif %}
 {% endblock detail_content %}

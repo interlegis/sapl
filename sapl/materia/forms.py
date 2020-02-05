@@ -1,17 +1,18 @@
-
+import django_filters
 import logging
 import os
+import sapl
 
 from crispy_forms.bootstrap import Alert, InlineRadios
-from crispy_forms.layout import (HTML, Button, Field, Fieldset,
-                                 Layout, Row)
+from crispy_forms.layout import (Button, Field, Fieldset, HTML, Layout, Row)
+
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
-from django.db.models import Max, Q, F
+from django.db.models import F, Max, Q
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.forms.forms import Form
 from django.forms.models import ModelMultipleChoiceField
@@ -21,36 +22,37 @@ from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
-import sapl
 from sapl.base.models import AppConfig, Autor, TipoAutor
-from sapl.comissoes.models import Comissao, Participacao, Composicao
+from sapl.base.signals import post_save_signal
+from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
-from sapl.crispy_layout_mixin import (SaplFormLayout, form_actions, to_column,
-                                      to_row)
-from sapl.crispy_layout_mixin import SaplFormHelper
+from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
+                                      SaplFormLayout, to_column, to_row)
 from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
-                                 MateriaLegislativa, Orgao, RegimeTramitacao,
-                                 TipoDocumento, TipoProposicao, StatusTramitacao,
+                                 MateriaLegislativa, Orgao,
+                                 RegimeTramitacao, StatusTramitacao,
+                                 TipoDocumento, TipoProposicao,
                                  UnidadeTramitacao)
-from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
+from sapl.norma.models import (LegislacaoCitada, NormaJuridica, 
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
-from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo, Anexado
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
-from sapl.utils import (YES_NO_CHOICES, SEPARADOR_HASH_PROPOSICAO,
+from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
+                                      Protocolo)
+from sapl.utils import (autor_label, autor_modal,
                         ChoiceWithoutValidationField,
-                        MateriaPesquisaOrderingFilter, RangeWidgetOverride,
-                        autor_label, autor_modal, gerar_hash_arquivo,
+                        choice_anos_com_materias, FileFieldCheckMixin,
+                        FilterOverridesMetaMixin, gerar_hash_arquivo,
+                        lista_anexados, MateriaPesquisaOrderingFilter,
                         models_with_gr_for_model, qs_override_django_filter,
-                        choice_anos_com_materias, FilterOverridesMetaMixin, FileFieldCheckMixin,
-                        lista_anexados)
+                        RangeWidgetOverride, SEPARADOR_HASH_PROPOSICAO,
+                        validar_arquivo, YES_NO_CHOICES)
 
-from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
-                     DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
-                     TipoMateriaLegislativa, Tramitacao, UnidadeTramitacao)
+from .models import (AcompanhamentoMateria, Anexada, Autoria,
+                     DespachoInicial, DocumentoAcessorio, Numeracao,
+                     Proposicao, Relatoria, TipoMateriaLegislativa,
+                     Tramitacao, UnidadeTramitacao)
 
 
 def CHOICE_TRAMITACAO():
@@ -177,7 +179,8 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
                    'anexadas', 'data_ultima_atualizacao']
         widgets = {
             'user': forms.HiddenInput(),
-            'ip': forms.HiddenInput()
+            'ip': forms.HiddenInput(),
+            'ultima_edicao': forms.HiddenInput()
         }
 
     def __init__(self, *args, **kwargs):
@@ -251,9 +254,8 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         texto_original = self.cleaned_data.get('texto_original', False)
 
-        if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_original.size/1024)/1024))
+        if texto_original:
+            validar_arquivo(texto_original, "Texto Original")
 
         return cleaned_data
 
@@ -343,8 +345,9 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = DocumentoAcessorio
-        fields = ['tipo', 'nome', 'data', 'autor', 'ementa', 'arquivo']
-    
+        fields = ['tipo', 'nome', 'data', 'autor',
+                  'ementa', 'indexacao', 'arquivo']
+
     def clean(self):
         super(DocumentoAcessorioForm, self).clean()
 
@@ -353,9 +356,8 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
 
         arquivo = self.cleaned_data.get('arquivo', False)
 
-        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+        if arquivo:
+            validar_arquivo(arquivo, "Texto Integral")
 
         return self.cleaned_data
 
@@ -462,9 +464,12 @@ class TramitacaoForm(ModelForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip']
+                  'ip',
+                  'ultima_edicao']
+                
         widgets = {'user': forms.HiddenInput(),
-                   'ip': forms.HiddenInput()}
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()}
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoForm, self).__init__(*args, **kwargs)
@@ -577,7 +582,8 @@ class TramitacaoForm(ModelForm):
                         texto=tramitacao.texto,
                         data_fim_prazo=tramitacao.data_fim_prazo,
                         user=tramitacao.user,
-                        ip=tramitacao.ip
+                        ip=tramitacao.ip,
+                        ultima_edicao=tramitacao.ultima_edicao
                     ))
             Tramitacao.objects.bulk_create(lista_tramitacao)
 
@@ -619,14 +625,16 @@ class TramitacaoUpdateForm(TramitacaoForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip'
+                  'ip',
+                  'ultima_edicao'
                   ]
 
         widgets = {
             'data_encaminhamento': forms.DateInput(format='%d/%m/%Y'),
             'data_fim_prazo': forms.DateInput(format='%d/%m/%Y'),
             'user': forms.HiddenInput(),
-            'ip': forms.HiddenInput()
+            'ip': forms.HiddenInput(),
+            'ultima_edicao': forms.HiddenInput()
         }
 
     def clean(self):
@@ -657,6 +665,17 @@ class TramitacaoUpdateForm(TramitacaoForm):
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
+        
+        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
+            cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
+            cd['status'] != obj.status or cd['texto'] != obj.texto or \
+            cd['data_encaminhamento'] != obj.data_encaminhamento or \
+            cd['data_fim_prazo'] != obj.data_fim_prazo or cd['urgente'] != str(obj.urgente) or \
+            cd['turno'] != obj.turno):
+            ### Se não ocorreram alterações, o usuário, ip, data e hora da última edição (real) são mantidos
+            cd['user'] = obj.user
+            cd['ip'] = obj.ip
+            cd['ultima_edicao'] = obj.ultima_edicao
 
         cd['data_tramitacao'] = obj.data_tramitacao
         cd['unidade_tramitacao_local'] = obj.unidade_tramitacao_local
@@ -689,6 +708,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
                     tram_anexada.data_fim_prazo = nova_tram_principal.data_fim_prazo
                     tram_anexada.user = nova_tram_principal.user
                     tram_anexada.ip = nova_tram_principal.ip
+                    tram_anexada.ultima_edicao = nova_tram_principal.ultima_edicao
                     tram_anexada.save()
 
                     ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
@@ -906,17 +926,20 @@ class AnexadaForm(ModelForm):
         anexadas_anexada = Anexada.objects.filter(
             materia_principal=materia_anexada)
 
-        while anexadas_anexada and not ciclico:
+        anexadas_visitadas = [materia_principal]
+        while anexadas_anexada:
             anexadas = []
-
             for anexa in anexadas_anexada:
 
-                if materia_principal == anexa.materia_anexada:
+                if anexa.materia_anexada in anexadas_visitadas:
                     ciclico = True
+                    break
                 else:
+                    anexadas_visitadas.append(anexa.materia_anexada)
                     for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
                         anexadas.append(a)
-
+            if ciclico:
+                break
             anexadas_anexada = anexadas
 
         if ciclico:
@@ -995,11 +1018,15 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'autoria__primeiro_autor',
                   'autoria__autor__parlamentar_set__filiacao__partido',
                   'relatoria__parlamentar_id',
-                  'local_origem_externa',
                   'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status',
                   'materiaassunto__assunto',
                   'em_tramitacao',
+                  'tipo_origem_externa',
+                  'numero_origem_externa',
+                  'ano_origem_externa',
+                  'data_origem_externa',
+                  'local_origem_externa',
                   ]
 
     def filter_ementa(self, queryset, name, value):
@@ -1011,7 +1038,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         return queryset.filter(q)
 
     def __init__(self, *args, **kwargs):
-        super(MateriaLegislativaFilterSet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters[
@@ -1054,11 +1081,10 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         ])
         row6 = to_row(
             [('relatoria__parlamentar_id', 6),
-             ('local_origem_externa', 6)])
+             ('em_tramitacao', 6)])
         row7 = to_row(
-            [('tramitacao__unidade_tramitacao_destino', 5),
-             ('tramitacao__status', 5),
-             ('em_tramitacao', 2)
+            [('tramitacao__unidade_tramitacao_destino', 6),
+             ('tramitacao__status', 6),
              ])
         row9 = to_row(
             [('materiaassunto__assunto', 6), ('indexacao', 6)])
@@ -1069,6 +1095,16 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                 ('tipo_listagem', 4)
             ])
 
+        row10 = to_row([
+            ('tipo_origem_externa', 4),
+            ('numero_origem_externa', 4),
+            ('ano_origem_externa', 4),
+        ])
+        row11 = to_row([
+            ('data_origem_externa', 8),
+            ('local_origem_externa', 4)
+        ])
+
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
@@ -1078,6 +1114,9 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
             Fieldset(_('Como listar os resultados da pesquisa'),
                      row8
                      ),
+            Fieldset(_('Origem externa'),
+                     row10, row11
+                    ),
             Fieldset(_('Pesquisa Avançada'),
                      row3,
                      HTML(autor_label),
@@ -1597,9 +1636,12 @@ class TramitacaoEmLoteForm(ModelForm):
                   'data_fim_prazo',
                   'texto',
                   'user',
-                  'ip']
+                  'ip',
+                  'ultima_edicao']
+
         widgets = {'user': forms.HiddenInput(),
-                   'ip': forms.HiddenInput()}
+                   'ip': forms.HiddenInput(),
+                   'ultima_edicao': forms.HiddenInput()}
             
 
     def __init__(self, *args, **kwargs):
@@ -1614,7 +1656,7 @@ class TramitacaoEmLoteForm(ModelForm):
             [(ut.pk, ut) for ut in ust if ut.parlamentar])
         self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
         self.fields['urgente'].label = "Urgente? *"
-    
+
         row1 = to_row([
             ('data_tramitacao', 4),
             ('data_encaminhamento', 4),
@@ -1674,7 +1716,6 @@ class TramitacaoEmLoteForm(ModelForm):
             )
         )
 
-
     def clean(self):
         cleaned_data = super(TramitacaoEmLoteForm, self).clean()
 
@@ -1722,9 +1763,12 @@ class TramitacaoEmLoteForm(ModelForm):
     @transaction.atomic
     def save(self, commit=True):
         cd = self.cleaned_data
+        
         materias = self.initial['materias']
         user = self.initial['user'] if 'user' in self.initial else None
         ip = self.initial['ip'] if 'ip' in self.initial else ''
+        ultima_edicao = self.initial['ultima_edicao'] if 'ultima_edicao' in self.initial else ''
+
         tramitar_anexadas = AppConfig.attr('tramitacao_materia')
         for mat_id in materias:
             mat = MateriaLegislativa.objects.get(id=mat_id)
@@ -1740,7 +1784,8 @@ class TramitacaoEmLoteForm(ModelForm):
                 texto=cd['texto'],
                 data_fim_prazo=cd['data_fim_prazo'],
                 user=user,
-                ip=ip
+                ip=ip,
+                ultima_edicao=ultima_edicao
             )
             mat.em_tramitacao = False if tramitacao.status.indicador == "F" else True
             mat.save()
@@ -1750,8 +1795,8 @@ class TramitacaoEmLoteForm(ModelForm):
                 anexadas = lista_anexados(mat)
                 for ml in anexadas:
                     if not ml.tramitacao_set.all() \
-                        or ml.tramitacao_set.last() \
-                        .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                            or ml.tramitacao_set.last() \
+                            .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
                         ml.em_tramitacao = False if tramitacao.status.indicador == "F" else True
                         ml.save()
                         lista_tramitacao.append(Tramitacao(
@@ -1766,9 +1811,10 @@ class TramitacaoEmLoteForm(ModelForm):
                                                 texto=tramitacao.texto,
                                                 data_fim_prazo=tramitacao.data_fim_prazo,
                                                 user=tramitacao.user,
-                                                ip=tramitacao.ip
+                                                ip=tramitacao.ip,
+                                                ultima_edicao=tramitacao.ultima_edicao
                                                 ))
-                Tramitacao.objects.bulk_create(lista_tramitacao)     
+                Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
 
@@ -1826,12 +1872,19 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
                   'ano_materia',
                   'tipo_texto',
                   'hash_code',
-                  'numero_materia_futuro']
+                  'numero_materia_futuro',
+                  'user',
+                  'ip',
+                  'ultima_edicao']
 
         widgets = {
             'descricao': widgets.Textarea(attrs={'rows': 4}),
             'tipo': TipoProposicaoSelect(),
-            'hash_code': forms.HiddenInput(), }
+            'hash_code': forms.HiddenInput(),
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput(),
+            'ultima_edicao': forms.HiddenInput()
+        }
 
     def __init__(self, *args, **kwargs):
         self.texto_articulado_proposicao = AppConfig.attr(
@@ -1909,9 +1962,8 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
     def clean_texto_original(self):
         texto_original = self.cleaned_data.get('texto_original', False)
 
-        if texto_original and texto_original.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Original deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (texto_original.size/1024)/1024))
+        if texto_original:
+            validar_arquivo(texto_original, "Texto Original")
 
         return texto_original
 
@@ -2440,7 +2492,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             # dados básicos
             doc = DocumentoAcessorio()
             doc.materia = proposicao.materia_de_vinculo
-            doc.autor = str(proposicao.autor)
+            doc.autor = str(proposicao.autor)[:200]
             doc.tipo = proposicao.tipo.tipo_conteudo_related
 
             doc.ementa = proposicao.descricao

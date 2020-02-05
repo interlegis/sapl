@@ -56,8 +56,22 @@
       <div class="dpt-form clearfix"></div>
       <div class="dpt-actions-bottom btn-group"></div>
       {% if node.alts or node.td.dispositivo_de_alteracao and node.td.dispositivo_de_articulacao %}
-        <div class="dpt-alts">{{ alts }}</div>
+        <div class="dpt-alts">{{ alts }}
+        
+        </div>
+          {% if node.td.dispositivo_de_alteracao %}
+            <div class="dpt-actions-fixed bottom">
+              <a class="btn-dpt-edit btn btn-outline-primary btn-sm bottom" pk="{{node.dpt.pk}}" title=""><span class="deactivate">{% trans 'Editar'%} </span><span class="activate">{% trans 'Em Edição'%}: </span>{% if not node.td.rotulo_prefixo_texto %}{{ node.td.nome }} {% endif %}{{ node.dpt.rotulo }}</a>
+            </div>
+          {% endif %}
+
+
+
+
       {% endif %}
+
+
+
       {% if node.filhos %}
         <div class="dpt-block">
           {{ filhos }}

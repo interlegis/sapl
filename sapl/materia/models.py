@@ -18,7 +18,8 @@ from sapl.parlamentares.models import Parlamentar
 #from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
-                        texto_upload_path, get_settings_auth_user_model)
+                        texto_upload_path, get_settings_auth_user_model,
+                        OverwriteStorage)
 
 
 EM_TRAMITACAO = [(1, 'Sim'),
@@ -256,10 +257,12 @@ class MateriaLegislativa(models.Model):
             'materia_principal',
             'materia_anexada'))
     texto_original = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=materia_upload_path,
         verbose_name=_('Texto Original'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
 
     texto_articulado = GenericRelation(
@@ -292,12 +295,16 @@ class MateriaLegislativa(models.Model):
         blank=True,
         default=''
     )
+    ultima_edicao = models.DateTimeField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
 
     class Meta:
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
         unique_together = (("tipo", "numero", "ano"),)
-
+        ordering = ['-id']
         permissions = (("can_access_impressos", "Can access impressos"),)
 
     def __str__(self):
@@ -335,16 +342,18 @@ class MateriaLegislativa(models.Model):
             return ''
 
     def delete(self, using=None, keep_parents=False):
-        if self.texto_original:
-            self.texto_original.delete()
+        texto_original = self.texto_original
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if texto_original:
+            texto_original.delete(save=False)
 
         for p in self.proposicao.all():
             p.conteudo_gerado_related = None
             p.cancelado = True
             p.save()
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -424,6 +433,7 @@ class PautaReuniao(models.Model):
     )
     materia = models.ForeignKey(
         MateriaLegislativa, related_name='materia_set',
+        on_delete=models.PROTECT,
         verbose_name=_('Matéria')
     )
 
@@ -436,7 +446,7 @@ class PautaReuniao(models.Model):
                  ' - Matéria: %(materia)s') % {
                      'reuniao': self.reuniao,
                      'materia': self.materia
-                 }
+        }
 
 
 @reversion.register()
@@ -485,7 +495,8 @@ class AssuntoMateria(models.Model):
 @reversion.register()
 class DespachoInicial(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
-    comissao = models.ForeignKey(Comissao, on_delete=models.CASCADE, verbose_name="Comissão")
+    comissao = models.ForeignKey(
+        Comissao, on_delete=models.CASCADE, verbose_name="Comissão")
 
     class Meta:
         verbose_name = _('Despacho Inicial')
@@ -529,15 +540,16 @@ class DocumentoAcessorio(models.Model):
     data = models.DateField(blank=True, null=True,
                             default=None, verbose_name=_('Data'))
     autor = models.CharField(
-        max_length=50, blank=True, verbose_name=_('Autor'))
+        max_length=200, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(
         blank=True,
         null=True,
-        max_length=255,
+        max_length=300,
         upload_to=anexo_upload_path,
         verbose_name=_('Texto Integral'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
 
     proposicao = GenericRelation(
@@ -556,19 +568,22 @@ class DocumentoAcessorio(models.Model):
         return _('%(tipo)s - %(nome)s de %(data)s por %(autor)s') % {
             'tipo': self.tipo,
             'nome': self.nome,
-            'data': self.data,
+            'data': formats.date_format(
+                self.data, "SHORT_DATE_FORMAT") if self.data else '',
             'autor': self.autor}
 
     def delete(self, using=None, keep_parents=False):
-        if self.arquivo:
-            self.arquivo.delete()
+        arquivo = self.arquivo
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if arquivo:
+            arquivo.delete(save=False)
 
         for p in self.proposicao.all():
             p.conteudo_gerado_related = None
             p.save()
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -709,11 +724,11 @@ class Relatoria(models.Model):
             return _('%(materia)s - %(tipo)s - %(data)s') % {
                 'materia': self.materia,
                 'tipo': self.tipo_fim_relatoria,
-                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}  
+                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
         else:
             return _('%(materia)s - %(data)s') % {
-            'materia': self.materia,
-            'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
+                'materia': self.materia,
+                'data': self.data_designacao_relator.strftime("%d/%m/%Y")}
 
 
 @reversion.register()
@@ -797,10 +812,12 @@ class Proposicao(models.Model):
                                        ('I', 'Incorporada')),
                               verbose_name=_('Status Proposição'))
     texto_original = models.FileField(
+        max_length=300,
         upload_to=materia_upload_path,
         blank=True,
         null=True,
         verbose_name=_('Texto Original'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
 
     texto_articulado = GenericRelation(
@@ -832,6 +849,24 @@ class Proposicao(models.Model):
         related_name=_('materia_gerada'))
     documento_gerado = models.ForeignKey(
         DocumentoAcessorio, blank=True, null=True)"""
+
+    user = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário'),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+    ip = models.CharField(
+        verbose_name=_('IP'),
+        max_length=30,
+        blank=True,
+        default=''
+    )
+    ultima_edicao = models.DateTimeField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
 
     @property
     def perfis(self):
@@ -884,11 +919,13 @@ class Proposicao(models.Model):
             )}
 
     def delete(self, using=None, keep_parents=False):
-        if self.texto_original:
-            self.texto_original.delete()
+        texto_original = self.texto_original
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if texto_original:
+            texto_original.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -996,12 +1033,13 @@ class Tramitacao(models.Model):
         ('U', 'unico', _('Único')),
         ('L', 'suplementar', _('Suplementar')),
         ('F', 'final', _('Final')),
-        ('A', 'votacao_unica', _('Votação única em Regime de Urgência')),
+        ('A', 'votacao_unica', _('Votação Única em Regime de Urgência')),
         ('B', 'primeira_votacao', _('1ª Votação')),
-        ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votação')),
+        ('C', 'segunda_terceira_votacao', _('2ª e 3ª Votações')),
         ('D', 'deliberacao', _('Deliberação')),
+        ('G', 'primeria_segunda_votacoes', _('1ª e 2ª Votações')),
         ('E', 'primeira_segunda_votacao_urgencia', _(
-            '1ª e 2ª votações em regime de urgência'))
+            '1ª e 2ª Votações em Regime de Urgência')),
 
     )
 
@@ -1038,7 +1076,7 @@ class Tramitacao(models.Model):
     turno = models.CharField(
         max_length=1, blank=True, verbose_name=_('Turno'),
         choices=TURNO_CHOICES)
-    texto = models.TextField(verbose_name=_('Texto da Ação'))
+    texto = models.TextField(verbose_name=_('Texto da Ação'), blank=True)
     data_fim_prazo = models.DateField(
         blank=True, null=True, verbose_name=_('Data Fim Prazo'))
     user = models.ForeignKey(get_settings_auth_user_model(),
@@ -1050,6 +1088,10 @@ class Tramitacao(models.Model):
                           max_length=30,
                           blank=True,
                           default='')
+    ultima_edicao = models.DateTimeField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
 
     class Meta:
         verbose_name = _('Tramitação')
@@ -1060,3 +1102,15 @@ class Tramitacao(models.Model):
             'materia': self.materia,
             'status': self.status,
             'data': self.data_tramitacao.strftime("%d/%m/%Y")}
+
+
+class MateriaEmTramitacao(models.Model):
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.DO_NOTHING)
+    tramitacao = models.ForeignKey(Tramitacao, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = "materia_materiaemtramitacao"
+
+    def __str__(self):
+        return '{}/{}'.format(self.materia, self.tramitacao)

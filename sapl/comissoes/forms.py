@@ -1,7 +1,9 @@
+import django_filters
 import logging
 
+from crispy_forms.layout import Fieldset, Layout
+
 from django import forms
-from sapl.settings import MAX_DOC_UPLOAD_SIZE
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -10,11 +12,16 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import (Comissao, Composicao, DocumentoAcessorio,
-                                   Participacao, Reuniao, Periodo)
-from sapl.materia.models import PautaReuniao
-from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
-from sapl.utils import FileFieldCheckMixin
+from sapl.comissoes.models import (Comissao, Composicao,
+                                   DocumentoAcessorio, Participacao,
+                                   Periodo, Reuniao)
+from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
+                                      to_row)
+from sapl.materia.models import MateriaEmTramitacao, PautaReuniao
+from sapl.parlamentares.models import (Legislatura, Mandato,
+                                       Parlamentar)
+from sapl.utils import (FileFieldCheckMixin,
+                        FilterOverridesMetaMixin, validar_arquivo)
 
 
 class ComposicaoForm(forms.ModelForm):
@@ -40,17 +47,31 @@ class ComposicaoForm(forms.ModelForm):
         periodo = cleaned_data['periodo']
         comissao_pk = self.initial['comissao'].id
         cleaned_data['comissao'] = self.initial['comissao']
-        intersecao_periodo = Composicao.objects.filter(
-            Q(periodo__data_inicio__lte=periodo.data_fim,
-                periodo__data_fim__gte=periodo.data_fim) |
-            Q(periodo__data_inicio__gte=periodo.data_inicio,
-                periodo__data_fim__lte=periodo.data_inicio),
-            comissao_id=comissao_pk)
+        
+        if periodo.data_fim:
+            intersecao_periodo = Composicao.objects.filter(
+                Q(periodo__data_inicio__lte=periodo.data_fim,
+                    periodo__data_fim__gte=periodo.data_fim) |
+                Q(periodo__data_inicio__gte=periodo.data_inicio,
+                    periodo__data_fim__lte=periodo.data_inicio),
+                comissao_id=comissao_pk)
+        else:
+            intersecao_periodo = Composicao.objects.filter(
+                Q(periodo__data_inicio__gte=periodo.data_inicio,
+                    periodo__data_fim__lte=periodo.data_inicio),
+                comissao_id=comissao_pk)
 
         if intersecao_periodo:
-            self.logger.error('O período informado ({} a {})'
-                              'choca com períodos já '
-                              'cadastrados para esta comissão'.format(periodo.data_inicio, periodo.data_fim))
+            if periodo.data_fim:
+                self.logger.error('O período informado ({} a {})'
+                                'choca com períodos já '
+                                'cadastrados para esta comissão'
+                                .format(periodo.data_inicio, periodo.data_fim))
+            else:
+                self.logger.error('O período informado ({} - )'
+                                'choca com períodos já '
+                                'cadastrados para esta comissão'
+                                .format(periodo.data_inicio))
             raise ValidationError('O período informado '
                                   'choca com períodos já '
                                   'cadastrados para esta comissão')
@@ -387,19 +408,43 @@ class ReuniaoForm(ModelForm):
         upload_ata = self.cleaned_data.get('upload_ata', False)
         upload_anexo = self.cleaned_data.get('upload_anexo', False)
 
-        if upload_pauta and upload_pauta.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Pauta da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_pauta.size/1024)/1024))
+        if upload_pauta:
+            validar_arquivo(upload_pauta, "Pauta da Reunião")
         
-        if upload_ata and upload_ata.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Ata da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_ata.size/1024)/1024))
+        if upload_ata:
+            validar_arquivo(upload_ata, "Ata da Reunião")
         
-        if upload_anexo and upload_anexo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Anexo da Reunião deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (upload_anexo.size/1024)/1024))
+        if upload_anexo:
+            validar_arquivo(upload_anexo, "Anexo da Reunião")
 
         return self.cleaned_data
+
+
+class PautaReuniaoFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = MateriaEmTramitacao
+        fields = ['materia__tipo', 'materia__ano', 'materia__numero', 'materia__data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super(PautaReuniaoFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['materia__tipo'].label = "Tipo da Matéria"
+        self.filters['materia__ano'].label = "Ano da Matéria"
+        self.filters['materia__numero'].label = "Número da Matéria"
+        self.filters['materia__data_apresentacao'].label = "Data (Inicial - Final)"
+
+        row1 = to_row([('materia__tipo', 4), ('materia__ano', 4), ('materia__numero', 4)])
+        row2 = to_row([('materia__data_apresentacao', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = "GET"
+        self.form.helper.layout = Layout(
+            Fieldset(
+                _("Pesquisa de Matérias"), row1, row2, 
+                form_actions(label="Pesquisar")
+            )
+        )
 
 
 class PautaReuniaoForm(forms.ModelForm):
@@ -438,9 +483,8 @@ class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
 
         arquivo = self.cleaned_data.get('arquivo', False)
 
-        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+        if arquivo:
+            validar_arquivo(arquivo, "Texto Integral")
 
         return self.cleaned_data
 
@@ -465,8 +509,7 @@ class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
 
         arquivo = self.cleaned_data.get('arquivo', False)
 
-        if arquivo and arquivo.size > MAX_DOC_UPLOAD_SIZE:
-            raise ValidationError("O arquivo Texto Integral deve ser menor que {0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (arquivo.size/1024)/1024))
+        if arquivo:
+            validar_arquivo(arquivo, "Texto Integral")
 
         return self.cleaned_data

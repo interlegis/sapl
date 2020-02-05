@@ -7,7 +7,8 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Parlamentar)
 
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path)
+                        restringe_tipos_de_arquivo_txt, texto_upload_path,
+                        OverwriteStorage)
 
 
 def get_audiencia_media_path(instance, subpath, filename):
@@ -86,21 +87,27 @@ class AudienciaPublica(models.Model):
         max_length=150, blank=True,
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=pauta_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Pauta da Audiência Pública'),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=ata_upload_path,
         verbose_name=_('Ata da Audiência Pública'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_anexo = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=anexo_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Anexo da Audiência Pública'))
 
     class Meta:
@@ -112,17 +119,22 @@ class AudienciaPublica(models.Model):
         return self.nome
 
     def delete(self, using=None, keep_parents=False):
-        if self.upload_pauta:
-            self.upload_pauta.delete()
+        upload_pauta = self.upload_pauta
+        upload_ata = self.upload_ata
+        upload_anexo = self.upload_anexo
 
-        if self.upload_ata:
-            self.upload_ata.delete()
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        if self.upload_anexo:
-            self.upload_anexo.delete()
+        if upload_pauta:
+            upload_pauta.delete(save=False)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if upload_ata:
+            upload_ata.delete(save=False)
+
+        if upload_anexo:
+            upload_anexo.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -155,7 +167,9 @@ class AnexoAudienciaPublica(models.Model):
     audiencia = models.ForeignKey(AudienciaPublica,
                                   on_delete=models.PROTECT)
     arquivo = models.FileField(
+        max_length=300,
         upload_to=texto_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Arquivo'))
     data = models.DateField(
         auto_now=timezone.now)
@@ -170,10 +184,13 @@ class AnexoAudienciaPublica(models.Model):
         return self.assunto
 
     def delete(self, using=None, keep_parents=False):
-        if self.arquivo:
-            self.arquivo.delete()
+        arquivo = self.arquivo
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(self, using=using, keep_parents=keep_parents)
+        if arquivo:
+            arquivo.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if not self.pk and self.arquivo:

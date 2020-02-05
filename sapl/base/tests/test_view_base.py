@@ -25,32 +25,6 @@ from sapl.base.views import (protocolos_duplicados, protocolos_com_materias,
 
 
 @pytest.mark.django_db(transaction=False)
-def test_lista_protocolos_duplicados():
-        mommy.make(
-                Protocolo,
-                numero=15,
-                ano=2031
-        )
-        mommy.make(
-                Protocolo,
-                numero=15,
-                ano=2031
-        )
-        mommy.make(
-                Protocolo,
-                numero=33,
-                ano=2033
-        )
-
-        lista_protocolos_duplicados = protocolos_duplicados()
-
-        assert len(lista_protocolos_duplicados) == 1
-        assert lista_protocolos_duplicados[0][1] == 2
-        assert lista_protocolos_duplicados[0][0].numero == 15
-        assert lista_protocolos_duplicados[0][0].ano == 2031
-
-
-@pytest.mark.django_db(transaction=False)
 def test_lista_protocolos_com_materias():
         mommy.make(
                 Protocolo,
@@ -194,13 +168,13 @@ def test_lista_parlamentares_duplicados():
                 sexo='M'
         )
 
-        lista_dict_values_parlamentares_duplicados = parlamentares_duplicados()
+        lista_dict_parlamentares_duplicados = parlamentares_duplicados()
         parlamentar_duplicado = list(
-                lista_dict_values_parlamentares_duplicados[0]
+                lista_dict_parlamentares_duplicados[0].values()
         )
         parlamentar_duplicado.sort(key=str)
 
-        assert len(lista_dict_values_parlamentares_duplicados) == 1
+        assert len(lista_dict_parlamentares_duplicados) == 1
         assert parlamentar_duplicado == [2, "Nome_Parlamentar_Teste"]
 
 

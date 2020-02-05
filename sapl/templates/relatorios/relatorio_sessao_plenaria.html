@@ -1,50 +1,8 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load static %}
-<!DOCTYPE html>
-<meta charset="utf-8">
-</meta>
-<html lang="pt-br">
 
-<head>
-   <style>
-            @page{
-            margin-top: 5cm;
-            size: A4 portrait;
-
-            @bottom-right {
-                content: "Página" counter(page);
-                height: 3cm;
-                font-size: 8pt;
-            }
-        
-            @bottom-center {
-                border-top: 1px solid black;
-                font-size: 8pt;
-                height: 1cm;
-                content: "{{rodape|safe}}";
-                font-style:italic;
-            }
-            @bottom-left {
-                content: "{{data}}";
-                height: 3cm;
-                font-size: 8pt;
-            }
-              
-            @top-center {
-                content:  string(title);
-            }
-            header {
-                width: 0;
-                height: 0;
-                visibility: hidden;
-                string-set: title content();
-            }
-        }
-   </style>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
-</head>
-
-<body>
-    <div style="margin-bottom: 3cm">
+{% block content %}
+<div style="margin-bottom: 3cm">
         <h2 class="gray-title">Informações Básicas</h2>
         <p><b>Tipo da Sessão:</b> {{inf_basicas_dic.nom_sessao}}</p>
         <p><b>Abertura:</b> {{inf_basicas_dic.dat_inicio_sessao}} - {{inf_basicas_dic.hr_inicio_sessao}}</p>
@@ -177,7 +135,5 @@
             {% endfor %}
         </div>
 
-</body>
-
-
-</html> 
+{% endblock content %} 
+    

@@ -14,7 +14,8 @@ from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         get_settings_auth_user_model,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path)
+                        restringe_tipos_de_arquivo_txt, texto_upload_path,
+                        OverwriteStorage)
 
 
 @reversion.register()
@@ -181,20 +182,26 @@ class SessaoPlenaria(models.Model):
         max_length=150, blank=True,
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
     upload_pauta = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=pauta_upload_path,
         verbose_name=_('Pauta da Sessão'),
+        storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_ata = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=ata_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Ata da Sessão'),
         validators=[restringe_tipos_de_arquivo_txt])
     upload_anexo = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
+        storage=OverwriteStorage(),
         upload_to=anexo_upload_path,
         verbose_name=_('Anexo da Sessão'))
     iniciada = models.NullBooleanField(blank=True,
@@ -223,7 +230,7 @@ class SessaoPlenaria(models.Model):
 
         if self.tipo.tipo_numeracao == tnc.quizenal:
             base += ' da {}ª Quinzena'.format(
-                1 if self.data_inicio.day > 15 else 2)
+                1 if self.data_inicio.day <= 15 else 2)
 
         if self.tipo.tipo_numeracao <= tnc.mensal:
             base += ' do mês de {}'.format(
@@ -255,17 +262,22 @@ class SessaoPlenaria(models.Model):
         """
 
     def delete(self, using=None, keep_parents=False):
-        if self.upload_pauta:
-            self.upload_pauta.delete()
+        upload_pauta = self.upload_pauta
+        upload_ata = self.upload_ata
+        upload_anexo = self.upload_anexo
+        
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        if self.upload_ata:
-            self.upload_ata.delete()
+        if upload_pauta:
+            upload_pauta.delete(save=False)
 
-        if self.upload_anexo:
-            self.upload_anexo.delete()
+        if upload_ata:
+            upload_ata.delete(save=False)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if upload_anexo:
+            upload_anexo.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -299,6 +311,7 @@ class AbstractOrdemDia(models.Model):
         (1, 'simbolica', 'Simbólica'),
         (2, 'nominal', 'Nominal'),
         (3, 'secreta', 'Secreta'),
+        (4, 'leitura', 'Leitura')
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
@@ -346,11 +359,15 @@ class ExpedienteMateria(AbstractOrdemDia):
 @reversion.register()
 class TipoExpediente(models.Model):
     nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
+    ordenacao = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name=_("Ordenação"))
 
     class Meta:
         verbose_name = _('Tipo de Expediente')
         verbose_name_plural = _('Tipos de Expediente')
-        ordering = ['nome']
+        ordering = ['ordenacao']
 
     def __str__(self):
         return self.nome
@@ -419,8 +436,10 @@ class AbstractOrador(models.Model):  # Oradores
     observacao = models.CharField(
         max_length=150, blank=True, verbose_name=_('Observação'))
     upload_anexo = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
+        storage=OverwriteStorage(),
         upload_to=anexo_upload_path,
         verbose_name=_('Anexo do Orador'))
 
@@ -432,6 +451,14 @@ class AbstractOrador(models.Model):  # Oradores
             'nome': self.parlamentar,
             'numero': self.numero_ordem}
 
+    def delete(self, using=None, keep_parents=False):
+        upload_anexo = self.upload_anexo
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if upload_anexo:
+            upload_anexo.delete(save=False)
+
+        return result
 
 @reversion.register()
 class Orador(AbstractOrador):  # Oradores
@@ -534,7 +561,7 @@ class RegistroVotacao(models.Model):
                           default='')
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
-        auto_now_add=True,
+        auto_now=True,
         blank=True,
         null=True)
 
@@ -585,7 +612,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
                           default='')
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
-        auto_now_add=True,
+        auto_now=True,
         blank=True,
         null=True)
 
@@ -761,8 +788,10 @@ class JustificativaAusencia(models.Model):
         OrdemDia, blank=True, verbose_name=_('Matérias do Ordem do Dia'))
 
     upload_anexo = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
+        storage=OverwriteStorage(),
         upload_to=anexo_upload_path,
         verbose_name=_('Anexo de Justificativa'))
 
@@ -774,11 +803,13 @@ class JustificativaAusencia(models.Model):
         return 'Justificativa de Ausência'
 
     def delete(self, using=None, keep_parents=False):
-        if self.upload_anexo:
-            self.upload_anexo.delete()
+        upload_anexo = self.upload_anexo
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if upload_anexo:
+            upload_anexo.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -848,5 +879,53 @@ class RetiradaPauta(models.Model):
         if not xor(bool(self.ordem), bool(self.expediente)):
             raise ValidationError(
                 'ReritadaPauta deve ter exatamente um dos campos '
+                'ordem ou expediente preenchido. Ambos estão preenchidos: '
+                '{}, {}'. format(self.ordem, self.expediente))
+
+
+@reversion.register()
+class RegistroLeitura(models.Model):
+    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
+    ordem = models.ForeignKey(OrdemDia,
+                              blank=True,
+                              null=True,
+                              on_delete=models.CASCADE)
+    expediente = models.ForeignKey(ExpedienteMateria,
+                                   blank=True,
+                                   null=True,
+                                   on_delete=models.CASCADE)
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observações'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=30,
+                          blank=True,
+                          default='')
+    data_hora = models.DateTimeField(
+        verbose_name=_('Data/Hora'),
+        auto_now=True,
+        blank=True,
+        null=True)
+
+    class Meta:
+        verbose_name = _('Leitura')
+        verbose_name_plural = _('Leituras')
+
+    def __str__(self):
+        return _('Leitura - '
+                 'Matéria: %(materia)s') % {
+                    'materia': self.materia}
+
+    def clean(self):
+        """Exatamente um dos campos ordem ou expediente deve estar preenchido.
+        """
+        # TODO remover esse método quando OrdemDia e ExpedienteMateria
+        # forem reestruturados e os campos ordem e expediente forem unificados
+        if not xor(bool(self.ordem), bool(self.expediente)):
+            raise ValidationError(
+                'RegistroLeitura deve ter exatamente um dos campos '
                 'ordem ou expediente preenchido. Ambos estão preenchidos: '
                 '{}, {}'. format(self.ordem, self.expediente))

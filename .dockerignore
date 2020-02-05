@@ -1,4 +1,14 @@
 media
 collected_static
 .git
+.gitignore
 whoosh
+bower
+*.log
+~*
+*.pyc
+.cache
+.project
+.travis.yml
+.env
+.idea

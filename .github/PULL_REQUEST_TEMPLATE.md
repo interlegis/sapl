@@ -1,7 +1,7 @@
 <!--- Forneça um resumo geral das suas alterações no título acima -->
 
 ## Descrição
-<!--- Decreva suas alterações detalhadamente -->
+<!--- Descreva suas alterações detalhadamente -->
 
 ## _Issue_ Relacionada
 <!--- Este projeto apenas aceita _pull requests_ relacionadas à _issues_ abertas. -->
@@ -18,7 +18,7 @@
 <!--- para ver como a sua alteração afeta outras áreas do código, etc. -->
 
 ## Capturas de Tela (se apropriado):
-<!--- Insera imagens, se apropriado, da adição e/ou correção que foi feita -->
+<!--- Insira imagens, se apropriado, da adição e/ou correção que foi feita -->
 
 ## Tipos de Mudanças
 <!--- Quais os tipos de alterações introduzidos pelo seu código? Coloque um `x` em todas as caixas que se aplicam: -->
@@ -30,7 +30,7 @@
 <!--- Passe por todos os pontos a seguir e coloque um `x` em todas as caixas que se aplicam. -->
 <!--- Se você não tem certeza sobre nenhum destes, não hesite em perguntar. Nós estamos aqui para ajudar! -->
 - [ ] Eu li o documento de Contribuição (**CONTRIBUTING**).
-- [ ] Meu código segue o estilo de código desse projeto.
+- [ ] Meu código segue o estilo de código deste projeto.
 - [ ] Minha alteração requer uma alteração na documentação.
 - [ ] Eu atualizei a documentação de acordo.
 - [ ] Eu adicionei testes para cobrir minhas mudanças.

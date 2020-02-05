@@ -137,7 +137,7 @@ class AppConfig(models.Model):
         max_length=1, choices=POLITICA_PROTOCOLO_CHOICES, default='O')
 
     assinatura_ata = models.CharField(
-        verbose_name=_('Quem deve assina a ata'),
+        verbose_name=_('Quem deve assinar a ata'),
         max_length=1, choices=ASSINATURA_ATA_CHOICES, default='T')
 
     cronometro_discurso = models.DurationField(
@@ -271,38 +271,42 @@ class Autor(models.Model):
         return '?'
 
 
-def cria_models_tipo_autor(app_config=None, verbosity=2, interactive=True,
-                           using=DEFAULT_DB_ALIAS, **kwargs):
+class AuditLog(models.Model):
 
-    models = models_with_gr_for_model(Autor)
+    operation = ('C', 'D', 'U')
 
-    print("\n\033[93m\033[1m{}\033[0m".format(
-        _('Atualizando registros TipoAutor do SAPL:')))
-    for model in models:
-        content_type = ContentType.objects.get_for_model(model)
-        tipo_autor = TipoAutor.objects.filter(
-            content_type=content_type.id).exists()
+    MAX_DATA_LENGTH = 4096  # 4KB de texto
 
-        if tipo_autor:
-            msg1 = "Carga de {} não efetuada.".format(
-                TipoAutor._meta.verbose_name)
-            msg2 = " Já Existe um {} {} relacionado...".format(
-                TipoAutor._meta.verbose_name,
-                model._meta.verbose_name)
-            msg = "  {}{}".format(msg1, msg2)
-        else:
-            novo_autor = TipoAutor()
-            novo_autor.content_type_id = content_type.id
-            novo_autor.descricao = model._meta.verbose_name
-            novo_autor.save()
-            msg1 = "Carga de {} efetuada.".format(
-                TipoAutor._meta.verbose_name)
-            msg2 = " {} {} criado...".format(
-                TipoAutor._meta.verbose_name, content_type.model)
-            msg = "  {}{}".format(msg1, msg2)
-        print(msg)
-    # Disconecta função para evitar a chamada repetidas vezes.
-    post_migrate.disconnect(receiver=cria_models_tipo_autor)
+    username = models.CharField(max_length=100,
+                                verbose_name=_('username'),
+                                blank=True,
+                                db_index=True)
+    operation = models.CharField(max_length=1,
+                                 verbose_name=_('operation'),
+                                 db_index=True)
+    timestamp = models.DateTimeField(verbose_name=_('timestamp'),
+                                     db_index=True)
+    object = models.CharField(max_length=MAX_DATA_LENGTH,
+                              blank=True,
+                              verbose_name=_('object'))
+    object_id = models.PositiveIntegerField(verbose_name=_('object_id'),
+                                            db_index=True)
+    model_name = models.CharField(max_length=100, verbose_name=_('model'),
+                                  db_index=True)
+    app_name = models.CharField(max_length=100,
+                                verbose_name=_('app'),
+                                db_index=True)
 
+    class Meta:
+        verbose_name = _('AuditLog')
+        verbose_name_plural = _('AuditLogs')
+        ordering = ('-id',)
 
-post_migrate.connect(receiver=cria_models_tipo_autor)
+    def __str__(self):
+        return "[%s] %s %s.%s %s" % (self.timestamp,
+                                     self.operation,
+                                     self.app_name,
+                                     self.model_name,
+                                     self.username,
+                                     )
+

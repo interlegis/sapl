@@ -127,6 +127,7 @@ rules_group_materia = {
          ['can_access_impressos'], __perms_publicas__),
         (materia.Numeracao, __base__, __perms_publicas__),
         (materia.Tramitacao, __base__, __perms_publicas__),
+        (materia.MateriaEmTramitacao, __base__, __perms_publicas__),
         (norma.LegislacaoCitada, __base__, __perms_publicas__),
         (norma.AutoriaNorma, __base__, __perms_publicas__),
         (compilacao.Dispositivo, __base__ + [
@@ -186,6 +187,7 @@ rules_group_sessao = {
         (sessao.VotoParlamentar, __base__, __perms_publicas__),
         (sessao.JustificativaAusencia, __base__, __perms_publicas__),
         (sessao.RetiradaPauta, __base__, __perms_publicas__),
+        (sessao.RegistroLeitura, __base__, __perms_publicas__),
     ]
 }
 
@@ -231,6 +233,7 @@ rules_group_geral = {
          [RP_ADD], __perms_publicas__),
         (base.TipoAutor, __base__, __perms_publicas__),
         (base.Autor, __base__, __perms_publicas__),
+        (base.AuditLog, __base__, set()),
 
         (protocoloadm.StatusTramitacaoAdministrativo, __base__, set()),
         (protocoloadm.TipoDocumentoAdministrativo, __base__, set()),

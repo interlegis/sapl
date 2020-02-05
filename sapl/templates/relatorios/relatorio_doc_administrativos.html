@@ -1,47 +1,9 @@
+{% extends "relatorios/base_relatorio.html" %}
 {% load i18n %}
 {% load common_tags %}
 {% load crispy_forms_tags staticfiles %}
 
-<head>
-    <style>
-        @page{
-            margin-top: 5cm;
-            size: A4 portrait;
-
-            @bottom-right {
-                content: "Página" counter(page);
-                height: 3cm;
-                font-size: 8pt;
-            }
-        
-            @bottom-center {
-                border-top: 1px solid black;
-                font-size: 8pt;
-                height: 1cm;
-                content: "{{rodape|safe}}";
-                font-style:italic;
-            }
-            @bottom-left {
-                content: "{{data}}";
-                height: 3cm;
-                font-size: 8pt;
-            }
-              
-            @top-center {
-                content:  string(title);
-            }
-            header {
-                width: 0;
-                height: 0;
-                visibility: hidden;
-                string-set: title content();
-            }
-        }
-    </style>
-    <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
-</head>	
-
-<body>
+{% block content %}
   <h2>Documentos Administrativos</h2>
             {% if documentoadministrativo_list|length %}
               <h3>Número de documentos: {{numero_res}}</h3>
@@ -63,11 +25,11 @@
                          <strong>Status:</strong> {{tram.status}}
                           </br>
                       {% endif %}
-                      {% define d.documentoacessorioadministrativo_set.all as acess %}
-                      {% if d.documentoacessorioadministrativo_set.all.exists %}
+                      {% define d.documentoacessorioadministrativo_set.all as access %}
+                      {% if access.exists %}
                               <strong>Documentos Acessórios:</strong>
                               <a href="{% url 'sapl.protocoloadm:documentoacessorioadministrativo_list' d.id %}">
-                                  {{ d.documentoacessorioadministrativo_set.all.count }}
+                                  {{ access.count }}
                               </a>
                               </br>
                           {% endif %}
@@ -81,4 +43,4 @@
             {% else  %}
               <h3>Nenhum documento encontrado com essas especificações</h3>
             {% endif %}
-</body>
+{% endblock content %} 

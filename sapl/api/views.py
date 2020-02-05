@@ -13,22 +13,27 @@ from django_filters.filters import CharFilter
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
+from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers as rest_serializers
 from rest_framework.decorators import action
+from rest_framework.fields import SerializerMethodField
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.forms import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
-from sapl.api.serializers import ChoiceSerializer
+from sapl.api.serializers import ChoiceSerializer, ParlamentarResumeSerializer
 from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
+from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
+from sapl.parlamentares.models import Mandato, Parlamentar, Legislatura
 
 
 class BusinessRulesNotImplementedMixin:
@@ -93,9 +98,14 @@ class SaplApiViewSetConstrutor():
                 # Define uma classe padrão para serializer caso não tenha sido
                 # criada a classe sapl.api.serializers.{model}Serializer
                 class SaplSerializer(rest_serializers.ModelSerializer):
+                    __str__ = SerializerMethodField()
+
                     class Meta:
                         model = _model
                         fields = '__all__'
+
+                    def get___str__(self, obj):
+                        return str(obj)
 
                 # Define uma classe padrão para filtro caso não tenha sido
                 # criada a classe sapl.api.forms.{model}FilterSet
@@ -201,6 +211,8 @@ SaplApiViewSetConstrutor.build_class()
 # rest_framework.viewsets.ModelViewSet conforme exemplo para a classe autor
 
 # decorator para recuperar e transformar o default
+
+
 class customize(object):
     def __init__(self, model):
         self.model = model
@@ -294,6 +306,16 @@ class _AutorViewSet:
 
 @customize(Parlamentar)
 class _ParlamentarViewSet:
+    class ParlamentarPermission(SaplModelPermissions):
+        def has_permission(self, request, view):
+            if request.method == 'GET':
+                return True
+            else:
+                perm = super().has_permission(request, view)
+                return perm
+                
+    permission_classes = (ParlamentarPermission, )
+
     @action(detail=True)
     def proposicoes(self, request, *args, **kwargs):
         """
@@ -324,6 +346,40 @@ class _ParlamentarViewSet:
 
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
+    
+    @action(detail=True)
+    def parlamentares_by_legislatura(self,request,*args,**kwargs):
+        """
+        Pega lista de parlamentares pelo id da legislatura.
+        """
+        try:
+            legislatura = Legislatura.objects.get(pk=kwargs['pk'])
+        except ObjectDoesNotExist:
+            return Response("") 
+        data_atual = timezone.now().date()
+
+        filter_params = {
+            'legislatura':legislatura,
+            'data_inicio_mandato__gte':legislatura.data_inicio,
+            'data_fim_mandato__gte':legislatura.data_fim,
+        }
+
+        if legislatura.data_inicio < data_atual < legislatura.data_fim:
+            filter_params['data_fim_mandato__gte'] = data_atual
+
+        mandatos = Mandato.objects.filter(**filter_params).order_by('-data_inicio_mandato')  
+        parlamentares = Parlamentar.objects.filter(mandato__in=mandatos).distinct()
+        serializer_class = ParlamentarResumeSerializer(parlamentares,
+                                                        many=True,
+                                                        context={'request':request,'legislatura':kwargs['pk']})
+        return Response(serializer_class.data)
+
+    @action(detail=False,methods=['GET'])
+    def search_parlamentares(self,request,*args,**kwargs):
+        nome = request.query_params.get('nome_parlamentar','')
+        parlamentares = Parlamentar.objects.filter(nome_parlamentar__icontains=nome)
+        serializer_class= ParlamentarResumeSerializer(parlamentares,many=True,context={'request':request})
+        return Response(serializer_class.data)
 
 
 @customize(Proposicao)
@@ -522,3 +578,12 @@ class _SessaoPlenariaViewSet:
 
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
+
+
+@customize(NormaJuridica)
+class _NormaJuridicaViewset:
+
+    @action(detail=False, methods=['GET'])
+    def destaques(self, request, *args, **kwargs):
+        self.queryset = self.get_queryset().filter(norma_de_destaque=True)
+        return self.list(request, *args, **kwargs)

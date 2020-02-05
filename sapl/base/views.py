@@ -13,7 +13,8 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, Validat
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
-from django.db.models import Count, Q, ProtectedError
+from django.db.models import Count, Q, ProtectedError, Max
+from django.shortcuts import render
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
@@ -29,24 +30,36 @@ from django_filters.views import FilterView
 from haystack.views import SearchView
 from haystack.query import SearchQuerySet
 
+from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_materia_por_autor,
+                                   relatorio_materia_por_ano_autor, relatorio_presenca_sessao,
+                                   relatorio_historico_tramitacao, relatorio_fim_prazo_tramitacao,
+                                   relatorio_atas, relatorio_audiencia, relatorio_normas_mes,
+                                   relatorio_normas_vigencia, relatorio_historico_tramitacao_adm,
+                                   relatorio_reuniao, relatorio_estatisticas_acesso_normas,
+                                   relatorio_normas_por_autor, relatorio_documento_acessorio)
+
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
-from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
 from sapl.base.models import Autor, TipoAutor
-from sapl.comissoes.models import Reuniao, Comissao
+from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
+from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination
-from sapl.materia.models import (Autoria, MateriaLegislativa, Proposicao, Anexada,
-                                 TipoMateriaLegislativa, StatusTramitacao, UnidadeTramitacao)
-from sapl.norma.models import (NormaJuridica, NormaEstatisticas)
-from sapl.parlamentares.models import Parlamentar, Legislatura, Mandato, Filiacao, SessaoLegislativa
-from sapl.protocoloadm.models import (Protocolo, TipoDocumentoAdministrativo, 
-                                      StatusTramitacaoAdministrativo, 
-                                      DocumentoAdministrativo, Anexado)
-from sapl.sessao.models import (PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, Bancada, TipoSessaoPlenaria)
-from sapl.utils import (parlamentares_ativos, gerar_hash_arquivo, SEPARADOR_HASH_PROPOSICAO,
-                        show_results_filter_set, mail_service_configured,
-                        intervalos_tem_intersecao, remover_acentos)
+from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio,
+                                 MateriaEmTramitacao, MateriaLegislativa, Proposicao,
+                                 StatusTramitacao, TipoDocumento,
+                                 TipoMateriaLegislativa,  UnidadeTramitacao, Tramitacao)
+from sapl.norma.models import NormaJuridica, TipoNormaJuridica
+from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato, Parlamentar, 
+                                      SessaoLegislativa)
+from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocolo,
+                                      StatusTramitacaoAdministrativo,
+                                      TipoDocumentoAdministrativo)
+from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria,
+                                SessaoPlenariaPresenca, TipoSessaoPlenaria)
+from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, 
+                        mail_service_configured, parlamentares_ativos,
+                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set)
+
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet,
@@ -54,27 +67,16 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioHistoricoTramitacaoFilterSet,
                     RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet,
-                    RelatorioMateriasTramitacaoilterSet,
+                    RelatorioMateriasTramitacaoFilterSet,
                     RelatorioPresencaSessaoFilterSet,
                     RelatorioReuniaoFilterSet, UsuarioCreateForm,
                     UsuarioEditForm, RelatorioNormasMesFilterSet,
                     RelatorioNormasVigenciaFilterSet,
                     EstatisticasAcessoNormasForm, UsuarioFilterSet,
-                    RelatorioHistoricoTramitacaoAdmFilterSet)
+                    RelatorioHistoricoTramitacaoAdmFilterSet,
+                    RelatorioDocumentosAcessoriosFilterSet,
+                    RelatorioNormasPorAutorFilterSet)
 from .models import AppConfig, CasaLegislativa
-
-
-def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
-    id_materias = []
-    filtro_url = qr[campo_url]
-    if local_ou_status == 'local':
-        id_materias = [item.id for item in qs if item.tramitacao_set.order_by(
-            '-id').first().unidade_tramitacao_destino_id == int(filtro_url)]
-    elif local_ou_status == 'status':
-        id_materias = [item.id for item in qs if item.tramitacao_set.order_by(
-            '-id').first().status_id == int(filtro_url)]
-
-    return qs.filter(em_tramitacao=True, id__in=id_materias)
 
 
 def get_casalegislativa():
@@ -302,14 +304,71 @@ class RelatoriosListView(TemplateView):
         return context
 
 
-class RelatorioAtasView(FilterView):
+class RelatorioMixin:
+    def get(self, request, *args, **kwargs):
+        super(RelatorioMixin, self).get(request)
+
+        is_relatorio = request.GET.get('relatorio')
+        context = self.get_context_data(filter=self.filterset)
+
+        if is_relatorio:
+            return self.relatorio(request, context)
+        else:
+            return self.render_to_response(context)
+
+
+class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
+    model = DocumentoAcessorio
+    filterset_class = RelatorioDocumentosAcessoriosFilterSet
+    template_name = 'base/RelatorioDocumentosAcessorios_filter.html'
+    relatorio = relatorio_documento_acessorio
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            RelatorioDocumentosAcessoriosView, self
+        ).get_context_data(**kwargs)
+
+        context['title'] = _('Documentos Acessórios das Matérias Legislativas')
+
+        if not self.filterset.form.is_valid():
+            return context
+        
+        query_dict = self.request.GET.copy()
+        context['show_results'] = show_results_filter_set(query_dict)
+        
+        context['tipo_documento'] = str(
+            TipoDocumento.objects.get(pk=self.request.GET['tipo'])
+        )
+
+        tipo_materia = self.request.GET['materia__tipo']
+        if tipo_materia:
+            context['tipo_materia'] = str(
+                TipoMateriaLegislativa.objects.get(pk=tipo_materia)
+            )
+        else:
+            context['tipo_materia'] = "Não selecionado"
+
+        data_inicial = self.request.GET['data_0']
+        data_final = self.request.GET['data_1']
+        if not data_inicial:
+            data_inicial = "Data Inicial não definida"
+        if not data_final:
+            data_final = "Data Final não definida"
+        context['periodo'] = (
+            data_inicial + ' - ' + data_final
+        )
+
+        return context
+
+
+class RelatorioAtasView(RelatorioMixin, FilterView):
     model = SessaoPlenaria
     filterset_class = RelatorioAtasFilterSet
     template_name = 'base/RelatorioAtas_filter.html'
+    relatorio = relatorio_atas
 
     def get_context_data(self, **kwargs):
-        context = super(RelatorioAtasView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = _('Atas das Sessões Plenárias')
 
         # Verifica se os campos foram preenchidos
@@ -327,11 +386,12 @@ class RelatorioAtasView(FilterView):
         return context
 
 
-class RelatorioPresencaSessaoView(FilterView):
+class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
     logger = logging.getLogger(__name__)
     model = SessaoPlenaria
     filterset_class = RelatorioPresencaSessaoFilterSet
     template_name = 'base/RelatorioPresencaSessao_filter.html'
+    relatorio = relatorio_presenca_sessao
 
     def get_context_data(self, **kwargs):
 
@@ -493,10 +553,11 @@ class RelatorioPresencaSessaoView(FilterView):
         return context
 
 
-class RelatorioHistoricoTramitacaoView(FilterView):
+class RelatorioHistoricoTramitacaoView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioHistoricoTramitacaoFilterSet
     template_name = 'base/RelatorioHistoricoTramitacao_filter.html'
+    relatorio = relatorio_historico_tramitacao
 
     def get_context_data(self, **kwargs):
         context = super(RelatorioHistoricoTramitacaoView,
@@ -538,13 +599,21 @@ class RelatorioHistoricoTramitacaoView(FilterView):
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
 
+        if self.request.GET['autoria__autor']:
+            context['autoria__autor'] = \
+                (str(Autor.objects.get(
+                    id=self.request.GET['autoria__autor'])))
+        else:
+            context['autoria__autor'] = ''
+
         return context
 
 
-class RelatorioDataFimPrazoTramitacaoView(FilterView):
+class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioDataFimPrazoTramitacaoFilterSet
     template_name = 'base/RelatorioDataFimPrazoTramitacao_filter.html'
+    relatorio = relatorio_fim_prazo_tramitacao
 
     def get_context_data(self, **kwargs):
         context = super(RelatorioDataFimPrazoTramitacaoView,
@@ -590,10 +659,11 @@ class RelatorioDataFimPrazoTramitacaoView(FilterView):
         return context
 
 
-class RelatorioReuniaoView(FilterView):
+class RelatorioReuniaoView(RelatorioMixin, FilterView):
     model = Reuniao
     filterset_class = RelatorioReuniaoFilterSet
     template_name = 'base/RelatorioReuniao_filter.html'
+    relatorio = relatorio_reuniao
 
     def get_filterset_kwargs(self, filterset_class):
         super(RelatorioReuniaoView,
@@ -623,10 +693,11 @@ class RelatorioReuniaoView(FilterView):
         return context
 
 
-class RelatorioAudienciaView(FilterView):
+class RelatorioAudienciaView(RelatorioMixin, FilterView):
     model = AudienciaPublica
     filterset_class = RelatorioAudienciaFilterSet
     template_name = 'base/RelatorioAudiencia_filter.html'
+    relatorio = relatorio_audiencia
 
     def get_filterset_kwargs(self, filterset_class):
         super(RelatorioAudienciaView,
@@ -656,69 +727,118 @@ class RelatorioAudienciaView(FilterView):
         return context
 
 
-class RelatorioMateriasTramitacaoView(FilterView):
-    model = MateriaLegislativa
-    filterset_class = RelatorioMateriasTramitacaoilterSet
+class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
+    model = MateriaEmTramitacao
+    filterset_class = RelatorioMateriasTramitacaoFilterSet
     template_name = 'base/RelatorioMateriasPorTramitacao_filter.html'
+    relatorio = relatorio_materia_em_tramitacao
+
+    paginate_by = 100
+
+    total_resultados_tipos = {}
+
+    def get_filterset_kwargs(self, filterset_class):
+        data = super().get_filterset_kwargs(filterset_class)
+
+        if data['data']:
+            qs = data['queryset']
+
+            ano_materia = data['data']['materia__ano']
+            tipo_materia = data['data']['materia__tipo']
+            unidade_tramitacao_destino = data['data']['tramitacao__unidade_tramitacao_destino']
+            status_tramitacao = data['data']['tramitacao__status']
+
+            kwargs = {}
+            if ano_materia:
+                kwargs['materia__ano'] = ano_materia
+            if tipo_materia:
+                kwargs['materia__tipo'] = tipo_materia
+            if unidade_tramitacao_destino:
+                kwargs['tramitacao__unidade_tramitacao_destino'] = unidade_tramitacao_destino
+            if status_tramitacao:
+                kwargs['tramitacao__status'] = status_tramitacao
+            qs = qs.filter(**kwargs)
+
+            data['queryset'] = qs
+            
+            qtdes = { tipo:0 for tipo in TipoMateriaLegislativa.objects.all() }
+            for i in qs:
+                qtdes[i.materia.tipo] += 1
+
+            # remove as entradas de valor igual a zero
+            qtdes = {k:v for k,v in qtdes.items() if v > 0}
+            self.total_resultados_tipos = qtdes
+
+        return data
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.select_related('materia__tipo').filter(
+                materia__em_tramitacao=True
+            ).exclude(
+                tramitacao__status__indicador='F'
+            ).order_by('-materia__ano', '-materia__numero')
+        return qs
 
     def get_context_data(self, **kwargs):
-        context = super(RelatorioMateriasTramitacaoView,
-                        self).get_context_data(**kwargs)
+        context = super(
+            RelatorioMateriasTramitacaoView, self
+        ).get_context_data(**kwargs)
 
         context['title'] = _('Matérias em Tramitação')
+        
         if not self.filterset.form.is_valid():
             return context
 
         qr = self.request.GET.copy()
-        qs = context['object_list']
-        qs = qs.filter(em_tramitacao=True)
 
-        if qr.get('tramitacao__unidade_tramitacao_destino'):
-            qs = filtra_url_materias_em_tramitacao(
-                qr, qs, 'tramitacao__unidade_tramitacao_destino', 'local')
-        if qr.get('tramitacao__status'):
-            qs = filtra_url_materias_em_tramitacao(
-                qr, qs, 'tramitacao__status', 'status')
+        context['qtdes'] = self.total_resultados_tipos
+        context['ano'] = (self.request.GET['materia__ano'])
 
-        li = [li1 for li1 in qs if li1.tramitacao_set.last() and li1.tramitacao_set.last().status.indicador != 'F']
-        context['object_list'] = li
-
-        qtdes = {}
-        for tipo in TipoMateriaLegislativa.objects.all():
-            li = context['object_list']
-            qtde = sum(1 for i in li if i.tipo_id==tipo.id)
-            if qtde > 0:
-                qtdes[tipo] = qtde
-        context['qtdes'] = qtdes
-        context['ano'] = (self.request.GET['ano'])
-        if self.request.GET['tipo']:
-            tipo = self.request.GET['tipo']
+        if self.request.GET['materia__tipo']:
+            tipo = self.request.GET['materia__tipo']
             context['tipo'] = (
-                str(TipoMateriaLegislativa.objects.get(id=tipo)))
+                str(TipoMateriaLegislativa.objects.get(id=tipo))
+            )
         else:
             context['tipo'] = ''
+        
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
             context['tramitacao__status'] = (
-                str(StatusTramitacao.objects.get(id=tramitacao_status)))
+                str(StatusTramitacao.objects.get(id=tramitacao_status))
+            )
         else:
             context['tramitacao__status'] = ''
+        
         if self.request.GET['tramitacao__unidade_tramitacao_destino']:
-            context['tramitacao__unidade_tramitacao_destino'] = (str(UnidadeTramitacao.objects.get(
-                id=self.request.GET['tramitacao__unidade_tramitacao_destino'])))
+            context['tramitacao__unidade_tramitacao_destino'] = (
+                str(UnidadeTramitacao.objects.get(
+                    id=self.request.GET['tramitacao__unidade_tramitacao_destino']
+                ))
+            )
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
+        
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
-
         context['show_results'] = show_results_filter_set(qr)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages
+        )
+        context['NO_ENTRIES_MSG'] = 'Nenhum encontrado.'
 
         return context
 
 
-class RelatorioMateriasPorAnoAutorTipoView(FilterView):
+class RelatorioMateriasPorAnoAutorTipoView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioMateriasPorAnoAutorTipoFilterSet
     template_name = 'base/RelatorioMateriasPorAnoAutorTipo_filter.html'
+    relatorio = relatorio_materia_por_ano_autor
 
     def get_materias_autor_ano(self, ano, primeiro_autor):
 
@@ -776,7 +896,7 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
             return context
         qtdes = {}
         for tipo in TipoMateriaLegislativa.objects.all():
-            qs = kwargs['object_list']
+            qs = context['object_list']
             qtde = len(qs.filter(tipo_id=tipo.id))
             if qtde > 0:
                 qtdes[tipo] = qtde
@@ -798,21 +918,19 @@ class RelatorioMateriasPorAnoAutorTipoView(FilterView):
         return context
 
 
-class RelatorioMateriasPorAutorView(FilterView):
+class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioMateriasPorAutorFilterSet
     template_name = 'base/RelatorioMateriasPorAutor_filter.html'
+    relatorio = relatorio_materia_por_autor
 
     def get_filterset_kwargs(self, filterset_class):
-        super(RelatorioMateriasPorAutorView,
-              self).get_filterset_kwargs(filterset_class)
-
+        super().get_filterset_kwargs(filterset_class)
         kwargs = {'data': self.request.GET or None}
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(RelatorioMateriasPorAutorView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         context['title'] = _('Matérias por Autor')
         if not self.filterset.form.is_valid():
@@ -820,7 +938,7 @@ class RelatorioMateriasPorAutorView(FilterView):
 
         qtdes = {}
         for tipo in TipoMateriaLegislativa.objects.all():
-            qs = kwargs['object_list']
+            qs = context['object_list']
             qtde = len(qs.filter(tipo_id=tipo.id))
             if qtde > 0:
                 qtdes[tipo] = qtde
@@ -848,10 +966,11 @@ class RelatorioMateriasPorAutorView(FilterView):
         return context
 
 
-class RelatorioNormasPublicadasMesView(FilterView):
+class RelatorioNormasPublicadasMesView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasMesFilterSet
     template_name = 'base/RelatorioNormaMes_filter.html'
+    relatorio = relatorio_normas_mes
 
     def get_context_data(self, **kwargs):
         context = super(RelatorioNormasPublicadasMesView,
@@ -887,10 +1006,11 @@ class RelatorioNormasPublicadasMesView(FilterView):
         return context
 
 
-class RelatorioNormasVigenciaView(FilterView):
+class RelatorioNormasVigenciaView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasVigenciaFilterSet
     template_name = 'base/RelatorioNormasVigencia_filter.html'
+    relatorio = relatorio_normas_vigencia
 
     def get_filterset_kwargs(self, filterset_class):
         super(RelatorioNormasVigenciaView,
@@ -990,7 +1110,15 @@ class EstatisticasAcessoNormas(TemplateView):
         
         context['normas_mes'] = normas_mes
 
-        return self.render_to_response(context)
+        is_relatorio = request.GET.get('relatorio')
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
+
+        if is_relatorio:
+            return relatorio_estatisticas_acesso_normas(self, request, context)
+        else:
+            return self.render_to_response(context)
 
 
 class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
@@ -1070,7 +1198,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         tabela.append(
             ('anexadas_ciclicas',
              'Matérias Anexadas cíclicas',
-             len(anexados_ciclicos(True))
+             len(materias_anexadas_ciclicas())
              )
         )
         tabela.append(
@@ -1081,10 +1209,43 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         )
         return tabela
 
+def materias_anexadas_ciclicas():
+    ciclos = []
+
+    for a in Anexada.objects.select_related('materia_principal',
+                                            'materia_anexada',
+                                            'materia_principal__tipo',
+                                            'materia_anexada__tipo'):
+        visitados = [a.materia_principal]
+        anexadas = [a.materia_anexada]
+        while len(anexadas) > 0:
+            ma = anexadas.pop()
+            if ma not in visitados:
+                visitados.append(ma)
+                anexadas.extend([a.materia_anexada for a in Anexada.objects.filter(materia_principal=ma)])
+            else:
+                ciclo_list = visitados + [ma]
+                ciclos.append(ciclo_list)
+
+    """
+    Remove ciclos repetidos (ou semanticamente equivalentes).
+    Exemplo: A -> B -> A e B -> A -> B
+    """
+    ciclos_set = []
+    ciclos_unique = [e for e in ciclos if is_ciclo_unique(e, ciclos_set)]
+
+    return ciclos_unique
+
+def is_ciclo_unique(ciclo, ciclos_set):
+         if set(ciclo) not in ciclos_set:
+             ciclos_set.append(set(ciclo))
+             return True
+         else:
+             return False
 
 def anexados_ciclicos(ofMateriaLegislativa):
     ciclicos = []
-    
+
     if ofMateriaLegislativa:
         principais = Anexada.objects.values(
             'materia_principal'
@@ -1171,7 +1332,7 @@ class ListarAnexadasCiclicasView(PermissionRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return anexados_ciclicos(True)
+        return materias_anexadas_ciclicas()
 
     def get_context_data(self, **kwargs):
         context = super(
@@ -1387,7 +1548,7 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
 
 
 def parlamentares_duplicados():
-    return [parlamentar.values() for parlamentar in Parlamentar.objects.values(
+    return [parlamentar for parlamentar in Parlamentar.objects.values(
         'nome_parlamentar').order_by('nome_parlamentar').annotate(count=Count(
             'nome_parlamentar')).filter(count__gt=1)]
 
@@ -1572,14 +1733,10 @@ class ListarProtocolosComMateriasView(PermissionRequiredMixin, ListView):
 
 
 def protocolos_duplicados():
-    protocolos = {}
-    for p in Protocolo.objects.order_by('-ano', 'numero'):
-        key = "{}/{}".format(p.numero, p.ano)
-        val = protocolos.get(key, list())
-        val.append(p)
-        protocolos[key] = val
-
-    return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
+    return [
+        protocolo for protocolo in Protocolo.objects.values(
+            'numero', 'ano').order_by('-ano', 'numero').annotate(total=Count('numero')).filter(total__gt=1)
+    ]
 
 
 class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
@@ -1866,8 +2023,6 @@ class AppConfigCrud(CrudAux):
                 reverse('sapl.base:appconfig_update',
                         kwargs={'pk': app_config.pk}))
 
-        def post(self, request, *args, **kwargs):
-            return self.get(request, *args, **kwargs)
 
     class ListView(CrudAux.ListView):
 
@@ -1991,10 +2146,11 @@ def pesquisa_textual(request):
     return JsonResponse(json_dict)
 
 
-class RelatorioHistoricoTramitacaoAdmView(FilterView):
+class RelatorioHistoricoTramitacaoAdmView(RelatorioMixin, FilterView):
     model = DocumentoAdministrativo
     filterset_class = RelatorioHistoricoTramitacaoAdmFilterSet
     template_name = 'base/RelatorioHistoricoTramitacaoAdm_filter.html'
+    relatorio = relatorio_historico_tramitacao_adm
 
     def get_context_data(self, **kwargs):
         context = super(RelatorioHistoricoTramitacaoAdmView,
@@ -2035,5 +2191,53 @@ class RelatorioHistoricoTramitacaoAdmView(FilterView):
                     id=self.request.GET['tramitacaoadministrativo__unidade_tramitacao_destino'])))
         else:
             context['tramitacaoadministrativo__unidade_tramitacao_destino'] = ''
+
+        return context
+
+class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
+    model = NormaJuridica
+    filterset_class = RelatorioNormasPorAutorFilterSet
+    template_name = 'base/RelatorioNormasPorAutor_filter.html'
+    relatorio = relatorio_normas_por_autor
+
+    def get_filterset_kwargs(self, filterset_class):
+        super().get_filterset_kwargs(filterset_class)
+        kwargs = {'data': self.request.GET or None}
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['title'] = _('Normas por Autor')
+        if not self.filterset.form.is_valid():
+            return context
+
+        qtdes = {}
+        for tipo in TipoNormaJuridica.objects.all():
+            qs = context['object_list']
+            qtde = len(qs.filter(tipo_id=tipo.id))
+            if qtde > 0:
+                qtdes[tipo] = qtde
+        context['qtdes'] = qtdes
+
+        qr = self.request.GET.copy()
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+        if self.request.GET['tipo']:
+            tipo = int(self.request.GET['tipo'])
+            context['tipo'] = (
+                str(TipoNormaJuridica.objects.get(id=tipo)))
+        else:
+            context['tipo'] = ''
+        
+        if self.request.GET['autorianorma__autor']:
+            autor = int(self.request.GET['autorianorma__autor'])
+            context['autor'] = (str(Autor.objects.get(id=autor)))
+        else:
+            context['autor'] = ''
+        context['periodo'] = (
+            self.request.GET['data_0'] +
+            ' - ' + self.request.GET['data_1'])
 
         return context

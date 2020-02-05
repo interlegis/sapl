@@ -7,7 +7,8 @@ import reversion
 from sapl.base.models import Autor
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
-                        get_settings_auth_user_model)
+                        get_settings_auth_user_model,
+                        OverwriteStorage)
 
 
 @reversion.register()
@@ -119,6 +120,7 @@ class Protocolo(models.Model):
         permissions = (
             ('action_anular_protocolo', _('Permissão para Anular Protocolo')),
         )
+        unique_together = ('numero', 'ano',)
 
     def __str__(self):
         return _('%(numero)s/%(ano)s') % {
@@ -162,8 +164,10 @@ class DocumentoAdministrativo(models.Model):
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
     texto_integral = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
+        storage=OverwriteStorage(),
         upload_to=texto_upload_path,
         verbose_name=_('Texto Integral'))
     restrito = models.BooleanField(default=False,
@@ -182,6 +186,24 @@ class DocumentoAdministrativo(models.Model):
         )
     )
 
+    user = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário'),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+    ip = models.CharField(
+        verbose_name=_('IP'),
+        max_length=30,
+        blank=True,
+        default=''
+    )
+    ultima_edicao = models.DateTimeField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
+
     class Meta:
         verbose_name = _('Documento Administrativo')
         verbose_name_plural = _('Documentos Administrativos')
@@ -192,11 +214,13 @@ class DocumentoAdministrativo(models.Model):
         }
 
     def delete(self, using=None, keep_parents=False):
-        if self.texto_integral:
-            self.texto_integral.delete()
+        texto_integral = self.texto_integral
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if texto_integral:
+            texto_integral.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -226,13 +250,15 @@ class DocumentoAcessorioAdministrativo(models.Model):
         verbose_name=_('Tipo'))
     nome = models.CharField(max_length=30, verbose_name=_('Nome'))
     arquivo = models.FileField(
+        max_length=300,
         blank=True,
         null=True,
         upload_to=texto_upload_path,
+        storage=OverwriteStorage(),
         verbose_name=_('Arquivo'))
     data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
     autor = models.CharField(
-        max_length=50, blank=True, verbose_name=_('Autor'))
+        max_length=200, blank=True, verbose_name=_('Autor'))
     assunto = models.TextField(
         blank=True, verbose_name=_('Assunto'))
     indexacao = models.TextField(blank=True)
@@ -245,11 +271,13 @@ class DocumentoAcessorioAdministrativo(models.Model):
         return self.nome
 
     def delete(self, using=None, keep_parents=False):
-        if self.arquivo:
-            self.arquivo.delete()
+        arquivo = self.arquivo
+        result = super().delete(using=using, keep_parents=keep_parents)
 
-        return models.Model.delete(
-            self, using=using, keep_parents=keep_parents)
+        if arquivo:
+            arquivo.delete(save=False)
+
+        return result
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -330,6 +358,10 @@ class TramitacaoAdministrativo(models.Model):
                           max_length=30,
                           blank=True,
                           default='')
+    ultima_edicao = models.DateTimeField(
+        verbose_name=_('Data e Hora da Edição'),
+        blank=True, null=True
+    )
 
     class Meta:
         verbose_name = _('Tramitação de Documento Administrativo')

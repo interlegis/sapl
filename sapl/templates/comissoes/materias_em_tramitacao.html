@@ -11,15 +11,22 @@
 
 {% block detail_content %}
 	<fieldset>
-		<legend>{{comissao}}</legend>
-		<b>Há {{qtde}} matéria(s) em tramitação nesta unidade.</b> <br><br>
-		{% for materia in page_obj %}
-			<b><a href="{% url 'sapl.materia:materialegislativa_detail' materia.id %}">
-				{{materia.tipo.sigla}} {{materia.numero}} {{materia.ano}} - {{materia.tipo}}
+		<legend>{{ comissao }}</legend>
+		<b>Há {{ qtde }} matéria(s) em tramitação nesta unidade.</b> <br><br>
+		{% for materia_em_tramitacao in page_obj %}
+			<b><a href="{% url 'sapl.materia:materialegislativa_detail' materia_em_tramitacao.materia.id %}">
+				{{ materia_em_tramitacao.materia.tipo.sigla }} {{ materia_em_tramitacao.materia.numero }}
+				{{ materia_em_tramitacao.materia.ano }} - {{ materia_em_tramitacao.materia.tipo }}
 			</b></a><br>
-			{{materia}}<br>
-			<b>Autor: </b>{{materia.autoria_set.first.autor.nome}}<br>
-			<b>Situação: </b>{{materia.tramitacao_set.last.status.descricao}}<br>
+			{{ materia_em_tramitacao.materia }}<br>
+			<b>Autor: </b>{{ materia_em_tramitacao.materia.autoria_set.first.autor.nome }}<br>
+			<b>Situação: </b>{{ materia_em_tramitacao.tramitacao.status.descricao }}<br>
+			<b>Data Fim Prazo da Última Tramitação: </b>
+			{% if materia_em_tramitacao.tramitacao.data_fim_prazo %}
+				{{ materia_em_tramitacao.tramitacao.data_fim_prazo }}
+			{% else %}
+				Não definida.
+			{% endif %}<br>
 			<br>
 		{% endfor %}
 	</fieldset>

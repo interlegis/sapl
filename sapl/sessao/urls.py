@@ -34,7 +34,10 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                sessao_legislativa_legislatura_ajax,
                                VotacaoEmBlocoOrdemDia, VotacaoEmBlocoExpediente,
                                VotacaoEmBlocoSimbolicaView, VotacaoEmBlocoNominalView,
-                               recuperar_nome_tipo_sessao)
+                               recuperar_nome_tipo_sessao,
+                               ExpedienteLeituraView,
+                               OrdemDiaLeituraView,
+                               retirar_leitura)
 
 from .apps import AppConfig
 
@@ -117,7 +120,7 @@ urlpatterns = [
         PautaSessaoView.as_view(), name='pauta_sessao'),
     url(r'^sessao/pauta-sessao/pesquisar-pauta$',
         PesquisarPautaSessaoView.as_view(), name='pesquisar_pauta'),
-    url(r'^sessao/pauta-sessao/(?P<pk>\d+)$',
+    url(r'^sessao/pauta-sessao/(?P<pk>\d+)/(?:pdf)?$',
         PautaSessaoDetailView.as_view(), name='pauta_sessao_detail'),
 
     # Subnav sessão
@@ -150,13 +153,11 @@ urlpatterns = [
         PesquisarSessaoPlenariaView.as_view(), name='pesquisar_sessao'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votnom/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalView.as_view(), name='votacaonominal'),
-    url(r'^sessao/(?P<pk>\d+)/matordemdia/votnom'
-        '/edit/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/votnom/edit/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalEditView.as_view(), name='votacaonominaledit'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsec/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoView.as_view(), name='votacaosecreta'),
-    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsec'
-        '/view/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsec/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoEditView.as_view(), name='votacaosecretaedit'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoView.as_view(), name='votacaosimbolica'),
@@ -164,8 +165,7 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimbbloco/$',
         VotacaoView.as_view(), name='votacaosimbolicabloco'),
 
-    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb'
-        '/view/(?P<oid>\d+)/(?P<mid>\d+)$',
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/votsimb/view/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoEditView.as_view(), name='votacaosimbolicaedit'),
     url(r'^sessao/(?P<pk>\d+)/matexp/votnom/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalExpedienteView.as_view(), name='votacaonominalexp'),
@@ -192,4 +192,13 @@ urlpatterns = [
     url(r'^sessao/mudar-ordem-materia-sessao/',
         mudar_ordem_materia_sessao,
         name='mudar_ordem_materia_sessao'),
+
+    url(r'^sessao/(?P<pk>\d+)/matexp/leitura/(?P<oid>\d+)/(?P<mid>\d+)$',
+        ExpedienteLeituraView.as_view(), name='leituraexp'),
+    url(r'^sessao/(?P<pk>\d+)/matordemdia/leitura/(?P<oid>\d+)/(?P<mid>\d+)$',
+        OrdemDiaLeituraView.as_view(), name='leituraod'),
+
+    url(r'^sessao/(?P<pk>\d+)/(?P<iso>\d+)/(?P<oid>\d+)/retirar-leitura$',
+        retirar_leitura, name='retirar_leitura'),
+    
 ]

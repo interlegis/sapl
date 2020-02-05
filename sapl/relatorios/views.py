@@ -4,11 +4,13 @@ import logging
 import re
 import tempfile
 
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 from sapl.settings import MEDIA_URL
 from sapl.base.models import Autor, CasaLegislativa
@@ -23,16 +25,16 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
-                                RegistroVotacao, VotoParlamentar, OradorOrdemDia)
+                                RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
-from sapl.sessao.views import (get_identificação_basica, get_mesa_diretora,
+from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_presenca_sessao, get_expedientes,
                                get_materias_expediente, get_oradores_expediente,
                                get_presenca_ordem_do_dia, get_materias_ordem_do_dia,
                                get_oradores_ordemdia,
-                               get_oradores_explicações_pessoais, get_ocorrencias_da_sessão, get_assinaturas)
+                               get_oradores_explicacoes_pessoais, get_ocorrencias_da_sessao, get_assinaturas)
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
@@ -1155,13 +1157,14 @@ def relatorio_pauta_sessao(request, pk):
 
     sessao = SessaoPlenaria.objects.get(id=pk)
 
-    lst_expediente_materia, lst_votacao, inf_basicas_dic = get_pauta_sessao(
+    lst_expediente_materia, lst_votacao, inf_basicas_dic, expedientes = get_pauta_sessao(
         sessao, casa)
     pdf = pdf_pauta_sessao_gerar.principal(rodape,
                                            imagem,
                                            inf_basicas_dic,
                                            lst_expediente_materia,
-                                           lst_votacao)
+                                           lst_votacao,
+                                           expedientes)
 
     response.write(pdf)
 
@@ -1262,9 +1265,20 @@ def get_pauta_sessao(sessao, casa):
 
         lst_votacao.append(dic_votacao)
 
+    expediente = ExpedienteSessao.objects.filter(
+        sessao_plenaria_id=sessao.id)
+    expedientes = []
+    for e in expediente:
+        tipo = e.tipo
+        conteudo = re.sub(
+            '&nbsp;', ' ', strip_tags(e.conteudo.replace('<br/>', '\n')))
+        ex = {'tipo': tipo, 'conteudo': conteudo}
+        expedientes.append(ex)
+
     return (lst_expediente_materia,
             lst_votacao,
-            inf_basicas_dic)
+            inf_basicas_dic,
+            expedientes)
 
 def make_pdf(base_url,main_template,header_template,main_css='',header_css=''):
     html = HTML(base_url=base_url, string=main_template)
@@ -1301,7 +1315,7 @@ def resumo_ata_pdf(request,pk):
     sessao_plenaria = SessaoPlenaria.objects.get(pk=pk)
     
     context = {}
-    context.update(get_identificação_basica(sessao_plenaria))
+    context.update(get_identificacao_basica(sessao_plenaria))
     context.update(get_mesa_diretora(sessao_plenaria))
     context.update(get_presenca_sessao(sessao_plenaria))
     context.update(get_expedientes(sessao_plenaria))
@@ -1310,8 +1324,8 @@ def resumo_ata_pdf(request,pk):
     context.update(get_presenca_ordem_do_dia(sessao_plenaria))
     context.update(get_materias_ordem_do_dia(sessao_plenaria))
     context.update(get_oradores_ordemdia(sessao_plenaria))
-    context.update(get_oradores_explicações_pessoais(sessao_plenaria))
-    context.update(get_ocorrencias_da_sessão(sessao_plenaria))
+    context.update(get_oradores_explicacoes_pessoais(sessao_plenaria))
+    context.update(get_ocorrencias_da_sessao(sessao_plenaria))
     context.update(get_assinaturas(sessao_plenaria))
     context.update({'object': sessao_plenaria})
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
@@ -1330,8 +1344,7 @@ def resumo_ata_pdf(request,pk):
 
     return response
 
-
-def relatorio_doc_administrativos(request, context):
+def cria_relatorio(request, context, html_string, header_info=""):
     base_url = request.build_absolute_uri()
     casa = CasaLegislativa.objects.first()
     rodape = ' '.join(get_rodape(casa))
@@ -1339,19 +1352,73 @@ def relatorio_doc_administrativos(request, context):
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape': rodape})
 
-    header_context = {"casa": casa, 'logotipo':casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+    header_context = {"casa": casa, 'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL, 'info': header_info}
 
-    html_template = render_to_string('relatorios/relatorio_doc_administrativos.html', context)
+    html_template = render_to_string(html_string, context)
     html_header = render_to_string('relatorios/header_ata.html', header_context)
 
-    pdf_file = make_pdf(base_url=base_url,main_template=html_template,header_template=html_header)
-    
+    pdf_file = make_pdf(base_url=base_url, main_template=html_template, header_template=html_header)
+
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
     response['Content-Transfer-Encoding'] = 'binary'
     response.write(pdf_file)
 
     return response
+
+def relatorio_doc_administrativos(request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_doc_administrativos.html')
+
+def relatorio_materia_em_tramitacao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_materias_em_tramitacao.html')
+
+def relatorio_materia_por_autor(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_materias_por_autor.html')
+
+def relatorio_materia_por_ano_autor(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_materias_por_ano_autor.html')
+
+def relatorio_presenca_sessao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_presenca_sessao.html')
+
+def relatorio_atas(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_atas.html')
+
+def relatorio_historico_tramitacao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_historico_tramitacao.html')
+
+def relatorio_fim_prazo_tramitacao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_fim_prazo_tramitacao.html')
+
+def relatorio_reuniao(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_reuniao.html')
+
+def relatorio_audiencia(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_audiencia.html')
+
+def relatorio_normas_mes(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_normas_mes.html')
+
+def relatorio_normas_vigencia(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_normas_vigencia.html')
+
+def relatorio_historico_tramitacao_adm(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_historico_tramitacao_adm.html')
+
+def relatorio_estatisticas_acesso_normas(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_estatisticas_acesso_normas.html')
+
+def relatorio_documento_acessorio(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_documento_acessorio.html')
+
+def relatorio_normas_por_autor(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_normas_por_autor.html')
+
+def relatorio_pauta_sessao_weasy(obj, request, context):
+    sessao = context['object']
+    info = "Pauta da {} ({} - {}) Legislatura".format(sessao,sessao.legislatura.data_inicio.year,sessao.legislatura.data_fim.year)
+    return cria_relatorio(request, context, 'relatorios/relatorio_pauta_sessao.html',info)
+
 
 def relatorio_sessao_plenaria_pdf(request, pk):  
     base_url=request.build_absolute_uri()
@@ -1411,7 +1478,6 @@ def relatorio_sessao_plenaria_pdf(request, pk):
                 Legislatura".format(inf_basicas_dic['num_sessao_plen'],
                                         inf_basicas_dic['nom_sessao'],
                                         inf_basicas_dic['num_sessao_leg'],
-                                        inf_basicas_dic['num_legislatura'],
                                         inf_basicas_dic['num_legislatura']
                                     )
 

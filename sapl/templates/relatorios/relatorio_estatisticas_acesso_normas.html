@@ -1,0 +1,50 @@
+{% extends "relatorios/base_relatorio.html" %}
+{% load i18n %}
+{% load common_tags %}
+{% load static %}
+
+{% block content %}
+  <h2>Estatísticas de acesso de normas</h2>
+
+    <b>PARÂMETROS DE PESQUISA:<br /></b>
+    &emsp;Ano: {{ ano }} <br />
+    <br/>
+    {% if normas_mes|length == 0 %}
+        <br>
+        <h3>{% trans 'Nenhuma norma teve acesso neste ano.'%}</h3>
+    {% else %}
+      {% for mes, normas in normas_mes.items %}
+        <div style="overflow:auto; ">
+          <table class="table table-bordered table-hover" style="margin-bottom: 0px;">
+            <thead class="thead-default">
+              <tr>
+                <th><h3 style="text-align:center;">Mês: {{ mes }}</h3></th>
+              </tr>
+            </thead>
+          </table>
+            <table class="table table-bordered table-hover" style="width:100%; margin-bottom: 30px;">
+              <thead class="thead-default" >
+                <tr class="active">
+                  <th>Norma</th>
+                  <th>Ementa</th>
+                  <th>Acessos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for n in normas %}
+                  {% if n.1 > 0 %}
+                    <tr>
+                      <td>
+                        {{n.0.tipo.descricao}} - {{n.0.tipo.sigla}} {{n.0.numero}}/{{n.0.ano}}
+                      </td>
+                      <td>{{n.0.ementa}}<br>{{n.0.observacao}}</td>
+                      <td>{{n.1}}</td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+      {% endfor %}
+    {% endif %}
+{% endblock content %} 

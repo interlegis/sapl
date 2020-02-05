@@ -25,7 +25,12 @@
       </div>
       <div class="itemlabel dpt">
         {% if choice.1.ta_publicado_id %}
-          <a target="_blank" href="{% url 'sapl.compilacao:ta_text' choice.1.ta.pk%}#{{choice.1.pk}}" class="nomenclatura_heranca">{% trans "Herança:" %} {% nomenclatura_heranca choice.1 1 1 %}</a>
+          <a target="_blank"
+             href="{% url 'sapl.compilacao:ta_text' choice.1.ta.pk%}#{{choice.1.pk}}"
+             class="nomenclatura_heranca">
+              {% trans "Herança:" %}
+              {% nomenclatura_heranca choice.1 1 1 %} 
+          </a>
         {% endif %}
         <div class="{{ choice.1.tipo_dispositivo.class_css }}">
           <div class="dptt {% dispositivo_desativado choice.1 None None %}"  id="dptt{{choice.1.pk}}" >

@@ -697,9 +697,7 @@
       <str name="df">text</str>
       <str name="defType">edismax</str>
       <str name="lowercaseOperators">true</str>
-      <!-- Default search field
-         <str name="df">text</str> 
-        -->
+      <str name="q.op">AND</str>
       <!-- Change from JSON to XML format (the default prior to Solr 7.0)
          <str name="wt">xml</str> 
         -->
@@ -785,7 +783,7 @@
 
   <initParams path="/update/**,/query,/select,/tvrh,/elevate,/spell,/browse">
     <lst name="defaults">
-      <str name="df">_text_</str>
+      <str name="df">text</str>
     </lst>
   </initParams>
 
@@ -800,7 +798,7 @@
     <lst name="defaults">
       <str name="lowernames">true</str>
       <str name="fmap.meta">ignored_</str>
-      <str name="fmap.content">_text_</str>
+      <str name="fmap.content">text</str>
     </lst>
   </requestHandler>
 
@@ -865,7 +863,7 @@
     <!-- a spellchecker built from a field of the main index -->
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">_text_</str>
+      <str name="field">text</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <!-- the spellcheck distance measure used, the default is the internal levenshtein -->
       <str name="distanceMeasure">internal</str>
@@ -1193,8 +1191,8 @@
   </updateProcessor>
 
   <!-- The update.autoCreateFields property can be turned to false to disable schemaless mode -->
-  <updateRequestProcessorChain name="add-unknown-fields-to-the-schema" default="${update.autoCreateFields:true}"
-           processor="uuid,remove-blank,field-name-mutating,parse-boolean,parse-long,parse-double,parse-date,add-schema-fields">
+  <updateRequestProcessorChain name="main-chain" default="true"
+           processor="uuid,remove-blank,field-name-mutating,parse-boolean,parse-long,parse-double,parse-date">
     <processor class="solr.LogUpdateProcessorFactory"/>
     <processor class="solr.DistributedUpdateProcessorFactory"/>
     <processor class="solr.RunUpdateProcessorFactory"/>
@@ -1365,4 +1363,11 @@
       EditorialMarkerFactory will do exactly that:
      <transformer name="qecBooster" class="org.apache.solr.response.transform.EditorialMarkerFactory" />
     -->
+    <!-- Extras noted by users of DJangoHaystack -->
+    <requestHandler name="/analysis/field"
+                  startup="lazy"
+                  class="solr.FieldAnalysisRequestHandler" />
+    <requestHandler name="/analysis/document"
+                  class="solr.DocumentAnalysisRequestHandler"
+                  startup="lazy" />
 </config>

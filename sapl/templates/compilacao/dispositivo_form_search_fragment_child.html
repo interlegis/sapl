@@ -1,0 +1,45 @@
+{% load i18n compilacao_filters %}
+
+<li>
+  <div class="iteminput">
+    {% if df.I %}
+    <div class="flag flag_i" title="Incluído por ser Interno a {{dpt.dispositivo_pai}}">I</div>
+    {% endif %}
+    {% if df.S %}
+    <div class="flag flag_s" title="Incluído por ser uma sequência de um dispositivo selecionado. Mesmo um selecionado pode ser classificado como sequente de outro anteriormente também selecionado.">S</div>
+    {% endif %}
+    
+    <input type="{{request.GET.data_type_selection}}" name="{{request.GET.data_field}}" id="dpt{{df.pk}}" value="{{df.pk}}"/>
+  </div>
+
+  <label class="itemlabel dpt" for="dpt{{df.pk}}">
+    {% if df.nivel > 1 %}
+      <a class="clearfix"
+        target="_blank"
+        href="{% url 'sapl.compilacao:ta_text' df.ta.pk%}#{{df.pk}}"
+        class="nomenclatura_heranca">
+          {% trans "Herança:" %}
+          {% for p in df.get_parents_asc %}
+            {{ p.rotulo }}
+          {% endfor %}
+      </a>
+    {% endif %}
+
+    <div class="{{ df.tipo_dispositivo.class_css }}">
+      <div class="dptt {% dispositivo_desativado df None None %}" id="dptt{{df.pk}}">
+        {{ df.tipo_dispositivo.rotulo_prefixo_html|safe }}
+        <a name="{{df.pk}}" title="{{df.pk}}">{% if df.rotulo or df.nivel == 1%}{{ df.rotulo }}{%else%}[{{ df|nomenclatura}} {% trans "de" %} {{ df.dispositivo_pai.rotulo }}] - {% endif %}</a>
+        {{ df.tipo_dispositivo.rotulo_sufixo_html|safe }}
+        <span class="dtxt" id="d{% if not df.dispositivo_subsequente_id and df.dispositivo_substituido_id %}a{% endif %}{{df.pk}}" pks="{{df.dispositivo_substituido_id|default:''}}" pk="{{df.pk}}">{{ df.tipo_dispositivo.texto_prefixo_html|safe }}{%if df.texto %}{{ df.texto|safe }}{%else%}{%if not df.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
+        {% if df.ta_publicado_id %}
+          <a class="nota-alteracao" href="{% url 'sapl.compilacao:ta_text' df.ta_publicado.pk %}#{{df.dispositivo_atualizador_id}}">
+            {{ df.tipo_dispositivo.nota_automatica_prefixo_html|safe }}
+            {% nota_automatica df ta_pub_list %}
+            {{ df.tipo_dispositivo.nota_automatica_sufixo_html|safe }}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </label>
+</li>
+

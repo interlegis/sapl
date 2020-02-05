@@ -1,0 +1,76 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not show_results %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if show_results %}
+    <div class="actions btn-group float-right" role="group">
+      <a href="{% url 'sapl.base:normas_por_autor' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+    <b>PARÂMETROS DE PESQUISA:<br /></b>
+    &emsp;Autor: {{ autor }}<br />
+    &emsp;Tipo de Norma: {{ tipo }}<br />
+    &emsp;Data: {{periodo}}<br /><br /><br/>
+    {% if object_list %}
+      <table class="table table-bordered table-hover">
+        <thead class="thead-default" >
+          <tr class="active"><th colspan="3" class="text-center">QUADRO GERAL</th></tr>
+          <tr class="active">
+            <th colspan="2">Tipo de Norma</th>
+            <th>Quantidade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for key, value in qtdes.items %}
+            <tr>
+              <td colspan="2">{{key.sigla}} - {{key}}</td>
+              <td>{{value}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+      {% for norma in object_list %}
+          {% ifchanged norma.autorianorma_set.first.autor %}
+
+              <thead class="thead-default" >
+                <tr style="border-left: hidden; border-right: hidden;"><th colspan="3"></th></tr>
+                <tr class="active"><th colspan="3" class="text-center">Autor: {{ norma.autorianorma_set.first.autor }}</th></tr>
+                <tr class="active">
+                  <th width="10%">Norma</th>
+                  <th>Ementa</th>
+                  <th width="20%">Coautor(es)</th>
+                </tr>
+              </thead>
+          {% endifchanged %}
+              <tbody>
+                  <tr>
+                    <td><a href="{% url 'sapl.norma:normajuridica_detail' norma.pk %}">
+                      {{norma.tipo.sigla}} {{norma.numero}}/{{norma.ano}}
+                    </a></td>
+                    <td>{% autoescape off %}{{norma.ementa}}<br>{{norma.observacao}}{% endautoescape %}</td>
+                    <td>
+                        {% if norma.autorianorma_set.first != norma.autorianorma_set.last %}
+                          {% for autor in norma.autorianorma_set.all %}
+                            {% if not autor.primeiro_autor %}
+                              {{ autor.autor }}<br />
+                            {% endif %}
+                          {% endfor %}
+                        {% endif %}
+                    </td>
+                  </tr>
+              </tbody>
+
+      {% endfor %}
+      </table>
+    {% else %}
+    <h3>Não foram encontradas normas com os parâmetros pesquisados.</h3>
+    {% endif %}
+
+  {% endif %}
+
+{% endblock base_content %}

@@ -4,18 +4,18 @@ from braces.views import FormMessagesMixin
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.layout import Field, Layout
 from django import forms
+from django.conf import settings
 from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.fields.related import ForeignKey
+from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.functional import cached_property
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
@@ -23,13 +23,14 @@ from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
 from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
 
+from sapl.base.signals import post_delete_signal, post_save_signal
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
-from sapl.settings import BASE_DIR
 from sapl.utils import normalize
 
+logger = logging.getLogger(settings.BASE_DIR.name)
 
 ACTION_LIST, ACTION_CREATE, ACTION_DETAIL, ACTION_UPDATE, ACTION_DELETE = \
     'list', 'create', 'detail', 'update', 'delete'
@@ -79,7 +80,6 @@ def make_pagination(index, num_pages):
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
 
-
 """
 variáveis do crud:
     help_topic
@@ -122,7 +122,6 @@ class SearchMixin(models.Model):
                     except Exception as e:
                         username = self.request.user.username
                         self.logger.error("user=" + username + ". " + str(e))
-                        pass
                 else:
                     _self = self
                     for field in fields:
@@ -206,6 +205,7 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
 
                 if not self.model.objects.filter(**params).exists():
                     raise Http404()
+
         elif self.container_field:
             container = self.container_field.split('__')
 
@@ -230,14 +230,14 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
         return super(PermissionRequiredMixin, self).dispatch(
             request, *args, **kwargs)
 
-    @cached_property
+    @property
     def container_field(self):
         if hasattr(self, 'crud') and not hasattr(self.crud, 'container_field'):
             self.crud.container_field = ''
         if hasattr(self, 'crud'):
             return self.crud.container_field
 
-    @cached_property
+    @property
     def container_field_set(self):
         if hasattr(self, 'crud') and\
                 not hasattr(self.crud, 'container_field_set'):
@@ -245,7 +245,7 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
         if hasattr(self, 'crud'):
             return self.crud.container_field_set
 
-    @cached_property
+    @property
     def is_contained(self):
         return self.container_field_set or self.container_field
 
@@ -383,12 +383,13 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
 
 
 class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
-    permission_required = (RP_LIST, )
+    permission_required = (RP_LIST,)
     logger = logging.getLogger(__name__)
 
     @classmethod
     def get_url_regex(cls):
         return r'^$'
+
     paginate_by = 10
     no_entries_msg = _('Nenhum registro encontrado.')
 
@@ -420,7 +421,13 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     if hasattr(f, 'related_model') and f.related_model:
                         m = f.related_model
                 if f:
-                    s.append(force_text(f.verbose_name))
+                    hook = 'hook_header_{}'.format(''.join(fn))
+                    if hasattr(self, hook):
+                        header = getattr(self, hook)()
+                        s.append(header)
+                    else:
+                        s.append(force_text(f.verbose_name))
+
             s = ' / '.join(s)
             r.append(s)
         return r
@@ -595,12 +602,12 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                             model_ordering = (model_ordering,)
                         for mo in model_ordering:
                             if mo not in ordering:
-                                ordering = ordering + (mo, )
+                                ordering = ordering + (mo,)
                     queryset = queryset.order_by(*ordering)
 
                     # print(ordering)
                 except Exception as e:
-                    print(string_concat(_(
+                    logger.error(string_concat(_(
                         'ERRO: construção da tupla de ordenação.'), str(e)))
 
         # print(queryset.query)
@@ -615,9 +622,38 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
         return queryset
 
 
+class AuditLogMixin(object):
+
+    def delete(self, request, *args, **kwargs):
+        # Classe deve implementar um get_object(), i.e., deve ser uma View
+        deleted_object = self.get_object()
+        try:
+           return super(AuditLogMixin, self).delete(request, args, kwargs)
+        finally:
+            post_delete_signal.send(sender=None,
+                                    instance=deleted_object,
+                                    operation='D',
+                                    request=self.request)
+
+    # SAVE/UPDATE method
+    def form_valid(self, form):
+        try:
+            if not form.instance.pk:
+                operation = 'C'
+            else:
+                operation = 'U'
+            return super(AuditLogMixin, self).form_valid(form)
+        finally:
+            post_save_signal.send(sender=None,
+                                  instance=form.instance,
+                                  operation=operation,
+                                  request=self.request
+                                  )
+
+
 class CrudCreateView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, CreateView):
-    permission_required = (RP_ADD, )
+                     FormMessagesMixin, AuditLogMixin, CreateView):
+    permission_required = (RP_ADD,)
     logger = logging.getLogger(__name__)
 
     @classmethod
@@ -689,7 +725,7 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
 class CrudDetailView(PermissionRequiredContainerCrudMixin,
                      DetailView, MultipleObjectMixin):
 
-    permission_required = (RP_DETAIL, )
+    permission_required = (RP_DETAIL,)
     no_entries_msg = _('Nenhum registro Associado.')
     paginate_by = 10
     logger = logging.getLogger(__name__)
@@ -834,8 +870,8 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
 
 
 class CrudUpdateView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, UpdateView):
-    permission_required = (RP_CHANGE, )
+                     FormMessagesMixin, AuditLogMixin, UpdateView):
+    permission_required = (RP_CHANGE,)
     logger = logging.getLogger(__name__)
 
     def form_valid(self, form):
@@ -865,8 +901,8 @@ class CrudUpdateView(PermissionRequiredContainerCrudMixin,
 
 
 class CrudDeleteView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, DeleteView):
-    permission_required = (RP_DELETE, )
+                     FormMessagesMixin, AuditLogMixin, DeleteView):
+    permission_required = (RP_DELETE,)
     logger = logging.getLogger(__name__)
 
     @classmethod
@@ -926,10 +962,12 @@ class Crud:
 
         def _add_base(view):
             if view:
+
                 class CrudViewWithBase(cls.BaseMixin, view):
                     model = cls.model
                     help_topic = cls.help_topic
                     crud = cls
+
                 CrudViewWithBase.__name__ = view.__name__
                 return CrudViewWithBase
 
@@ -963,11 +1001,13 @@ class Crud:
     def build(cls, _model, _help_topic, _model_set=None, list_field_names=[]):
 
         def create_class(_list_field_names):
+
             class ModelCrud(cls):
                 model = _model
                 model_set = _model_set
                 help_topic = _help_topic
                 list_field_names = _list_field_names
+
             return ModelCrud
 
         ModelCrud = create_class(list_field_names)
@@ -1108,12 +1148,14 @@ class MasterDetailCrud(Crud):
         permission_required = RP_LIST,
         logger = logging.getLogger(__name__)
 
+        def get(self, request, *args, **kwargs):
+            return Crud.ListView.get(self, request, *args, **kwargs)
+
         @classmethod
         def get_url_regex(cls):
             return r'^(?P<pk>\d+)/%s$' % cls.model._meta.model_name
 
         def get_context_data(self, **kwargs):
-
             obj = self.crud if hasattr(self, 'crud') else self
             context = CrudListView.get_context_data(self, **kwargs)
 
@@ -1133,7 +1175,12 @@ class MasterDetailCrud(Crud):
 
             else:
                 parent_model = getattr(
-                    self.model, obj.parent_field).field.related_model
+                    self.model, obj.parent_field)
+                if isinstance(parent_model.field, (
+                        ForeignKey, ManyToManyField)):
+                    parent_model = parent_model.field.related_model
+                else:
+                    parent_model = parent_model.rel.related_model
 
             params = {'pk': kwargs['root_pk']}
 
@@ -1164,6 +1211,9 @@ class MasterDetailCrud(Crud):
                 kwargs[self.container_field] = self.request.user.pk"""
 
             return qs.filter(**kwargs)
+
+        def dispatch(self, request, *args, **kwargs):
+            return PermissionRequiredMixin.dispatch(self, request, *args, **kwargs)
 
     class CreateView(Crud.CreateView):
         permission_required = RP_ADD,
@@ -1229,8 +1279,12 @@ class MasterDetailCrud(Crud):
                             parent_object = getattr(parent_object, field)
 
                 else:
-                    parent_model = getattr(
-                        parent_model, obj.parent_field).field.related_model
+                    parent_model = getattr(self.model, obj.parent_field)
+                    if isinstance(parent_model.field, ForeignKey):
+                        parent_model = parent_model.field.related_model
+                    else:
+                        parent_model = parent_model.rel.related_model
+
                     parent_object = parent_model.objects.get(**params)
 
                 context['root_pk'] = parent_object.pk
