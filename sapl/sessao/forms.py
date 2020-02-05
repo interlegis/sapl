@@ -77,6 +77,10 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
         if encerramento is not None:
             encerramento_entre_leg = leg.data_inicio <= encerramento <= leg.data_fim
             encerramento_entre_sl = sl.data_inicio <= encerramento <= sl.data_fim
+        else:
+            encerramento_entre_leg = True
+            encerramento_entre_sl = True
+
 
         ## Sessões Extraordinárias podem estar fora da sessão legislativa
         descricao_tipo = tipo.nome.lower()
@@ -85,83 +89,16 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             abertura_entre_sl = True
             encerramento_entre_sl = True
 
-        # Verificação das datas de abertura e encerramento da Sessão
-        # Verificações com a data de encerramento preenchidas
-        if encerramento is not None:
-            # Verifica se a data de encerramento é anterior a data de abertura
-            if encerramento < abertura:
-                raise ValidationError("A data de encerramento não pode ser "
-                                      "anterior a data de abertura.")
-            # Verifica se a data de abertura está entre a data de início e fim
-            # da legislatura
-            if abertura_entre_leg and encerramento_entre_leg:
-                if abertura_entre_sl and encerramento_entre_sl:
-                    pass
-                elif abertura_entre_sl and not encerramento_entre_sl:
-                    raise ValidationError("A data de encerramento deve estar entre "
-                                          "as datas de início e fim da Sessão Legislativa.")
-                elif not abertura_entre_sl and encerramento_entre_sl:
-                    raise ValidationError("A data de abertura deve estar entre as "
-                                          "datas de início e fim da Sessão Legislativa.")
-                elif not abertura_entre_sl and not encerramento_entre_sl:
-                    raise ValidationError("A data de abertura e de encerramento devem estar "
-                                          "entre as datas de início e fim da Sessão Legislativa.")
-            elif abertura_entre_leg and not encerramento_entre_leg:
-                if abertura_entre_sl and encerramento_entre_sl:
-                    raise ValidationError("A data de encerramento deve estar entre "
-                                          "as datas de início e fim da Legislatura.")
-                elif abertura_entre_sl and not encerramento_entre_sl:
-                    raise ValidationError("A data de encerramento deve estar entre "
-                                          "as datas de início e fim tanto da "
-                                          "Legislatura quanto da Sessão Legislativa.")
-                elif not abertura_entre_sl and encerramento_entre_sl:
-                    raise ValidationError("As datas de abertura e encerramento devem "
-                                          "estar entre as "
-                                          "datas de início e fim tanto Legislatura "
-                                          "quanto da Sessão Legislativa.")
-                elif not abertura_entre_sl and not encerramento_entre_sl:
-                    raise ValidationError("As datas de abertura e encerramento devem "
-                                          "estar entre as "
-                                          "datas de início e fim tanto Legislatura "
-                                          "quanto da Sessão Legislativa.")
-            elif not abertura_entre_leg and not encerramento_entre_leg:
-                if abertura_entre_sl and encerramento_entre_sl:
-                    raise ValidationError("As datas de abertura e encerramento devem "
-                                          "estar entre as "
-                                          "datas de início e fim da Legislatura.")
-                elif abertura_entre_sl and not encerramento_entre_sl:
-                    raise ValidationError("As datas de abertura e encerramento devem "
-                                          "estar entre as "
-                                          "datas de início e fim tanto Legislatura "
-                                          "quanto da Sessão Legislativa.")
-                elif not abertura_entre_sl and encerramento_entre_sl:
-                    raise ValidationError("As datas de abertura e encerramento devem "
-                                          "estar entre as "
-                                          "datas de início e fim tanto Legislatura "
-                                          "quanto da Sessão Legislativa.")
-                elif not abertura_entre_sl and not encerramento_entre_sl:
-                    raise ValidationError("As datas de abertura e encerramento devem "
-                                          "estar entre as "
-                                          "datas de início e fim tanto Legislatura "
-                                          "quanto da Sessão Legislativa.")
+        if not (abertura_entre_leg and encerramento_entre_leg):
+            raise ValidationError("A data de abertura e encerramento da Sessão "
+                                  "Plenária deve estar compreendida entre a "
+                                  "data de abertura e encerramento da Legislatura")
 
-        # Verificações com a data de encerramento vazia
-        else:
-            if abertura_entre_leg:
-                if abertura_entre_sl:
-                    pass
-                else:
-                    raise ValidationError("A data de abertura da sessão deve estar "
-                                          "entre a data de início e fim da Sessão Legislativa.")
-            else:
-                if abertura_entre_sl:
-                    raise ValidationError("A data de abertura da sessão deve estar "
-                                          "entre a data de início e fim da Legislatura.")
-                else:
-                    raise ValidationError("A data de abertura da sessão deve estar "
-                                          "entre a data de início e fim tanto da "
-                                          "Legislatura quanto da Sessão Legislativa.")
-
+        if not (abertura_entre_sl and encerramento_entre_sl):
+            raise ValidationError("A data de abertura e encerramento da Sessão "
+                                  "Plenária deve estar compreendida entre a "
+                                  "data de abertura e encerramento da Sessão Legislativa")
+        
 
         upload_pauta = self.cleaned_data.get('upload_pauta', False)
         upload_ata = self.cleaned_data.get('upload_ata', False)
