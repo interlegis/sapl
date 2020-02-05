@@ -349,6 +349,7 @@ def existe_coluna_no_legado(tabela, coluna):
 
 
 def garante_coluna_no_legado(tabela, spec_coluna):
+    spec_coluna = spec_coluna.strip().replace("`", "")
     coluna = spec_coluna.split()[0]
     if not existe_coluna_no_legado(tabela, coluna):
         exec_legado("ALTER TABLE {} ADD COLUMN {}".format(tabela, spec_coluna))
