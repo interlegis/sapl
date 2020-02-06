@@ -24,7 +24,7 @@ pytz==2019.3
 rtyaml==0.0.5
 python-magic==0.4.15
 unipath==1.1
-WeasyPrint==50
+WeasyPrint==51
 Pillow==6.2.0
 gunicorn==19.9.0
 
@@ -32,5 +32,5 @@ pysolr==3.6.0
 
 pyoai==2.5.0
 
-git+git://github.com/interlegis/trml2pdf.git
-git+git://github.com/interlegis/django-admin-bootstrapped
+git+https://github.com/interlegis/trml2pdf
+git+https://github.com/interlegis/django-admin-bootstrapped
