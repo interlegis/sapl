@@ -1439,7 +1439,9 @@ class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
             'uf': forms.Select(attrs={'class': 'selector'}),
             'cep': forms.TextInput(attrs={'class': 'cep'}),
             'telefone': forms.TextInput(attrs={'class': 'telefone'}),
-            'fax': forms.TextInput(attrs={'class': 'telefone'}),
+            # O campo fax foi ocultado porque não é utilizado.
+            'fax': forms.HiddenInput(),
+            # 'fax': forms.TextInput(attrs={'class': 'telefone'}),
             'logotipo':  ImageThumbnailFileInput,
             'informacao_geral': forms.Textarea(
                 attrs={'id': 'texto-rico'})
