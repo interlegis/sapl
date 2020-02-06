@@ -19,7 +19,9 @@ Comissao:
   - tipo    data_criacao  unidade_deliberativa  data_extincao
   {% trans 'Dados Complementares' %}:
   - local_reuniao  agenda_reuniao  telefone_reuniao
-  - endereco_secretaria  telefone_secretaria  fax_secretaria
+  # O campo fax foi ocultado porque não é utilizado.
+  # endereco_secretaria telefone_secretaria fax_secretaria
+  - endereco_secretaria  telefone_secretaria
   - secretario  email
   - finalidade
   {% trans 'Temporária' %}:
