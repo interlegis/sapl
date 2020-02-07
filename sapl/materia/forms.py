@@ -1073,7 +1073,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                     'Pesquisar Autor',
                     css_class='btn btn-primary btn-sm'), 2),
             (Button('limpar',
-                    'limpar Autor',
+                    'Limpar Autor',
                     css_class='btn btn-primary btn-sm'), 2),
             ('autoria__primeiro_autor', 2),
             ('autoria__autor__tipo', 3),

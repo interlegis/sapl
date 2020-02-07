@@ -1078,7 +1078,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
                     'Pesquisar Autor',
                     css_class='btn btn-primary btn-sm'), 2),
             (Button('limpar',
-                    'limpar Autor',
+                    'Limpar Autor',
                     css_class='btn btn-primary btn-sm'), 2)
         ])
 
@@ -1386,7 +1386,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
                      'Pesquisar Autor',
                      css_class='btn btn-primary btn-sm'), 2),
              (Button('limpar',
-                     'limpar Autor',
+                     'Limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
 
         buttons = FormActions(

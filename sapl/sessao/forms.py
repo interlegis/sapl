@@ -573,7 +573,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
                      'Pesquisar Autor',
                      css_class='btn btn-primary btn-sm'), 2),
              (Button('limpar',
-                     'limpar Autor',
+                     'Limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
         row6 = to_row(
             [('autoria__autor__tipo', 6),
