@@ -1740,7 +1740,10 @@ def get_materias_expediente(sessao_plenaria):
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
         else:
-            resultado = _('Matéria não votada')
+            if m.tipo_votacao == 4:
+                resultado = _('Matéria lida')
+            else:
+                resultado = _('Matéria não votada')
             resultado_observacao = _(' ')
 
         autoria = Autoria.objects.filter(materia_id=m.materia_id)
@@ -1854,13 +1857,14 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         if rv:
             resultado = rv.tipo_resultado_votacao.nome
             resultado_observacao = rv.observacao
-
         elif rp:
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
-
         else:
-            resultado = _('Matéria não votada')
+            if o.tipo_votacao == 4:
+                resultado = _('Matéria lida')
+            else:
+                resultado = _('Matéria não votada')
             resultado_observacao = _(' ')
 
         voto_sim = ""
