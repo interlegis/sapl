@@ -312,6 +312,17 @@ class ColigacaoCrud(CrudAux):
             return context
 
 
+def coligacao_legislatura_ajax(request):
+    try:
+        coligacoes = Coligacao.objects.filter(legislatura=request.GET['legislatura']).order_by('nome')
+    except ObjectDoesNotExist:
+        coligacoes = Coligacao.objects.all().order_by('nome')
+
+    lista_coligacoes = [(coligacao.id, coligacao.__str__()) for coligacao in coligacoes]
+
+    return JsonResponse({'coligacoes': lista_coligacoes})
+
+
 def json_date_convert(date):
     """
     :param date: recebe a data de uma chamada ajax no formato de
