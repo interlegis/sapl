@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 
 from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
+                                      coligacao_legislatura_ajax,
                                       ComposicaoColigacaoCrud, DependenteCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
                                       LegislaturaCrud, MandatoCrud,
@@ -44,6 +45,9 @@ urlpatterns = [
 
     url(r'^parlamentar/vincular-parlamentar/$',
         VincularParlamentarView.as_view(), name='vincular_parlamentar'),
+
+    url(r'^parlamentar/coligacao-legislatura-ajax/',
+        coligacao_legislatura_ajax, name="coligacao_legislatura_ajax"),
 
     url(r'^sistema/coligacao/',
         include(ColigacaoCrud.get_urls() +
