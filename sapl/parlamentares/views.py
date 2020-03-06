@@ -313,10 +313,7 @@ class ColigacaoCrud(CrudAux):
 
 
 def coligacao_legislatura_ajax(request):
-    try:
-        coligacoes = Coligacao.objects.filter(legislatura=request.GET['legislatura']).order_by('nome')
-    except ObjectDoesNotExist:
-        coligacoes = Coligacao.objects.all().order_by('nome')
+    coligacoes = Coligacao.objects.filter(legislatura=request.GET['legislatura']).order_by('nome')
 
     lista_coligacoes = [(coligacao.id, coligacao.__str__()) for coligacao in coligacoes]
 
