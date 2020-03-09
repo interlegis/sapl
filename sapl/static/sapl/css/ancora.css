@@ -1,0 +1,15 @@
+.ancora{
+    padding: 10px;
+    border: 1px solid #a2a9b1;
+    background-color: #f8f9fa;
+    width: 180px;
+    height: 130px;
+    margin-left: 15px;
+    font-size: 95%;
+}
+
+.titulo-conteudo{
+    text-align: center;
+    font-weight: bold;
+    padding-bottom: 15px;
+}
