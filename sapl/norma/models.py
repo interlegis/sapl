@@ -106,7 +106,7 @@ class NormaJuridica(models.Model):
     data_publicacao = models.DateField(
         blank=True, null=True, verbose_name=_('Data de Publicação'))
     veiculo_publicacao = models.CharField(
-        max_length=30,
+        max_length=200,
         blank=True,
         verbose_name=_('Veículo de Publicação'))
     pagina_inicio_publicacao = models.PositiveIntegerField(
