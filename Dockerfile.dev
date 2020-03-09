@@ -1,0 +1,8 @@
+FROM python:3.7
+ENV PYTHONUNBUFFERED 1
+WORKDIR /sapl-dev
+COPY requirements ./requirements/
+RUN apt update && \
+    apt -y install graphviz-dev && \
+    pip install -r ./requirements/dev-requirements.txt
+EXPOSE 8000
