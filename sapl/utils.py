@@ -1,3 +1,5 @@
+from itertools import groupby
+
 import django_filters
 import hashlib
 import logging
@@ -6,7 +8,7 @@ import os
 import re
 import unicodedata
 
-from crispy_forms.layout import  Button, HTML
+from crispy_forms.layout import Button, HTML
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 from functools import wraps
@@ -42,6 +44,24 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 # por conta dos leitores de códigos de barra, que trocavam
 # a '/' por '&' ou ';'
 SEPARADOR_HASH_PROPOSICAO = 'K'
+
+
+def num_materias_por_tipo(qs):
+    """
+        :argument um QuerySet em MateriaLegislativa
+        :return um dict com o mapeamento {tipo: <quantidade de materias>},
+                se não existir o matéria para o tipo informado então não
+                haverá entrada no dicionário.
+    """
+    qtdes = {}
+
+    # select_related eh importante por questoes de desempenho, pois caso
+    # contrario ele realizara uma consulta ao banco para cada iteracao,
+    # na key do groupby (uma alternativa é só usar tipo_id, na chave).
+    qs2 = qs.select_related('tipo').order_by('tipo_id')
+    for key, values in groupby(qs2, key=lambda m: m.tipo):
+        qtdes[key] = len(list(values))
+    return qtdes
 
 
 def validar_arquivo(arquivo, nome_campo):

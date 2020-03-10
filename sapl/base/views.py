@@ -56,9 +56,9 @@ from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocol
                                       TipoDocumentoAdministrativo)
 from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, TipoSessaoPlenaria)
-from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, 
+from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao,
                         mail_service_configured, parlamentares_ativos,
-                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set)
+                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
@@ -761,13 +761,7 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
 
             data['queryset'] = qs
             
-            qtdes = { tipo:0 for tipo in TipoMateriaLegislativa.objects.all() }
-            for i in qs:
-                qtdes[i.materia.tipo] += 1
-
-            # remove as entradas de valor igual a zero
-            qtdes = {k:v for k,v in qtdes.items() if v > 0}
-            self.total_resultados_tipos = qtdes
+            self.total_resultados_tipos = num_materias_por_tipo(qs)
 
         return data
 
@@ -894,13 +888,8 @@ class RelatorioMateriasPorAnoAutorTipoView(RelatorioMixin, FilterView):
         context['title'] = _('Matérias por Ano, Autor e Tipo')
         if not self.filterset.form.is_valid():
             return context
-        qtdes = {}
-        for tipo in TipoMateriaLegislativa.objects.all():
-            qs = context['object_list']
-            qtde = len(qs.filter(tipo_id=tipo.id))
-            if qtde > 0:
-                qtdes[tipo] = qtde
-        context['qtdes'] = qtdes
+        qs = context['object_list']
+        context['qtdes'] = num_materias_por_tipo(qs)
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -936,13 +925,8 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
         if not self.filterset.form.is_valid():
             return context
 
-        qtdes = {}
-        for tipo in TipoMateriaLegislativa.objects.all():
-            qs = context['object_list']
-            qtde = len(qs.filter(tipo_id=tipo.id))
-            if qtde > 0:
-                qtdes[tipo] = qtde
-        context['qtdes'] = qtdes
+        qs = context['object_list']
+        context['qtdes'] = num_materias_por_tipo(qs)
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -960,8 +944,8 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
         else:
             context['autor'] = ''
         context['periodo'] = (
-            self.request.GET['data_apresentacao_0'] +
-            ' - ' + self.request.GET['data_apresentacao_1'])
+                self.request.GET['data_apresentacao_0'] +
+                ' - ' + self.request.GET['data_apresentacao_1'])
 
         return context
 
