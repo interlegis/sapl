@@ -185,3 +185,9 @@
   - title: {% trans 'Status de Tramitação' %}
     url: sapl.protocoloadm:statustramitacaoadministrativo_list
     css_class: btn btn-link
+- title: {% trans 'Módulo Protocolo' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Tamanho do Comprovante' %}
+    url: sapl.protocoloadm:protocolo_tamanho_comprovante
+    css_class: btn btn-link

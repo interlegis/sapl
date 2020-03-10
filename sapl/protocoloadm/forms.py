@@ -22,7 +22,7 @@ from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
 from sapl.materia.models import (MateriaLegislativa, 
                                  TipoMateriaLegislativa,
                                  UnidadeTramitacao)
-from sapl.protocoloadm.models import Protocolo
+from sapl.protocoloadm.models import Protocolo, TamanhoComprovanteProtocolo, TAMANHOS_COMPROVANTE
 from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_documentoadministrativo,
                         choice_anos_com_materias,
@@ -1734,3 +1734,38 @@ class TramitacaoEmLoteAdmFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitação em Lote'),
                      row1, row2, form_actions(label=_('Pesquisar'))))
+
+
+class ProtocoloTamanhoComprovanteForm(forms.Form):
+    ETIQUETAS = (
+        ("padrao", "26 mm x 61 mm"),
+    )
+
+    etiqueta = forms.ChoiceField(label="Tamanho Padrão", choices=ETIQUETAS)
+
+    def __init__(self, *args, **kwargs):
+        rows = to_row([
+            ("etiqueta", 4)
+        ])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            Fieldset(_(''), rows, form_actions(label="Atualizar"))
+        )
+
+        super().__init__(*args, **kwargs)
+
+    def save(self):
+        etiqueta_ojb = TamanhoComprovanteProtocolo.objects.get()
+        etiqueta = self.cleaned_data["etiqueta"]
+
+        print(TAMANHOS_COMPROVANTE[etiqueta]["altura"])
+
+        etiqueta_ojb.altura = TAMANHOS_COMPROVANTE[etiqueta]["altura"]
+        etiqueta_ojb.largura = TAMANHOS_COMPROVANTE[etiqueta]["largura"]
+        etiqueta_ojb.p1_tamanho_letra = TAMANHOS_COMPROVANTE[etiqueta]["p1_tamanho_letra"]
+        etiqueta_ojb.p1_espaco_entre_linhas = TAMANHOS_COMPROVANTE[etiqueta]["p1_espaco_entre_linhas"]
+        etiqueta_ojb.p2_tamanho_letra = TAMANHOS_COMPROVANTE[etiqueta]["p2_tamanho_letra"]
+        etiqueta_ojb.p2_espaco_entre_linhas = TAMANHOS_COMPROVANTE[etiqueta]["p2_espaco_entre_linhas"]
+
+        etiqueta_ojb.save()

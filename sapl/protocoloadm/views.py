@@ -34,7 +34,7 @@ from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
-from sapl.protocoloadm.models import Protocolo
+from sapl.protocoloadm.models import Protocolo, TamanhoComprovanteProtocolo
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
@@ -53,7 +53,7 @@ from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
                     PrimeiraTramitacaoEmLoteAdmFilterSet,
                     TramitacaoEmLoteAdmForm,
                     TramitacaoEmLoteAdmFilterSet,
-                    compara_tramitacoes_doc)
+                    compara_tramitacoes_doc, ProtocoloTamanhoComprovanteForm)
 from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo, Anexado)
@@ -1731,3 +1731,20 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
             status=status,
             unidade_tramitacao_destino=destino).distinct().values_list(
                 'documento_id', flat=True)
+
+
+class ProtocoloTamanhoComprovanteView(PermissionRequiredMixin, FormView):
+    template_name = 'protocoloadm/protocolo_tamanho_comprovante.html'
+    form_class = ProtocoloTamanhoComprovanteForm
+    permission_required = ('protocoloadm.add_protocolo',)
+
+    def get_initial(self):
+        initial = {
+            'tamanho': TamanhoComprovanteProtocolo.objects.get_or_create()[0]
+        }
+
+        return initial
+
+    def form_valid(self, form):
+        form.save()
+        return HttpResponseRedirect(reverse('sapl.base:sistema'))

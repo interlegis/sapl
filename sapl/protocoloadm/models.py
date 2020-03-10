@@ -1,3 +1,6 @@
+from decimal import Decimal
+from enum import Enum
+
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -126,6 +129,58 @@ class Protocolo(models.Model):
         return _('%(numero)s/%(ano)s') % {
             'numero': self.numero, 'ano': self.ano
         }
+
+
+TAMANHOS_COMPROVANTE = {
+    "padrao": {
+        "altura": 26,
+        "largura": 61,
+        "p1_tamanho_letra": 5,
+        "p1_espaco_entre_linhas": 6,
+        "p2_tamanho_letra": 8,
+        "p2_espaco_entre_linhas": 7.5,
+    },
+}
+
+
+class TamanhoComprovanteProtocolo(models.Model):
+    altura = models.DecimalField(
+        max_digits=4,
+        decimal_places=1,
+        default=TAMANHOS_COMPROVANTE["padrao"]["altura"],
+    )
+    largura = models.DecimalField(
+        max_digits=4,
+        decimal_places=1,
+        default=TAMANHOS_COMPROVANTE["padrao"]["largura"],
+    )
+    p1_tamanho_letra = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        default=TAMANHOS_COMPROVANTE["padrao"]["p1_tamanho_letra"],
+    )
+    p1_espaco_entre_linhas = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        default=TAMANHOS_COMPROVANTE["padrao"]["p1_espaco_entre_linhas"],
+    )
+    p2_tamanho_letra = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        default=TAMANHOS_COMPROVANTE["padrao"]["p2_tamanho_letra"],
+    )
+    p2_espaco_entre_linhas = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        default=TAMANHOS_COMPROVANTE["padrao"]["p2_espaco_entre_linhas"],
+    )
+
+    class Meta:
+        verbose_name = _('Tamanho do Comprovante do Protocolo')
+        verbose_name_plural = _('Tamanhos dos Comprovantes dos Protocolos')
+
+    def __str__(self):
+        return 'Tamanho do Comprovante de Protocolo: {} mm x {} mm'.format(self.largura, self.altura)
 
 
 @reversion.register()

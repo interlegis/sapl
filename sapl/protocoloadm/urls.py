@@ -24,7 +24,7 @@ from sapl.protocoloadm.views import (AcompanhamentoDocumentoView,
                                      DesvincularMateriaView,
                                      AnexadoCrud, DocumentoAnexadoEmLoteView,
                                      PrimeiraTramitacaoEmLoteAdmView,
-                                     TramitacaoEmLoteAdmView)
+                                     TramitacaoEmLoteAdmView, ProtocoloTamanhoComprovanteView)
 
 from .apps import AppConfig
 
@@ -107,6 +107,7 @@ urlpatterns_protocolo = [
     url(r'^protocoloadm/tramitacao-em-lote', TramitacaoEmLoteAdmView.as_view(),
         name='tramitacao_em_lote_docadm'),
 
+    url(r'^protocoloadm/tamanho-comprovante', ProtocoloTamanhoComprovanteView.as_view(), name='protocolo_tamanho_comprovante'),
 ]
 
 urlpatterns_sistema = [
