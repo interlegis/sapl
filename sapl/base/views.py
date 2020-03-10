@@ -761,7 +761,7 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
 
             data['queryset'] = qs
             
-            self.total_resultados_tipos = num_materias_por_tipo(qs)
+            self.total_resultados_tipos = num_materias_por_tipo(qs, "materia__tipo")
 
         return data
 

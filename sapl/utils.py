@@ -46,7 +46,7 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 SEPARADOR_HASH_PROPOSICAO = 'K'
 
 
-def num_materias_por_tipo(qs):
+def num_materias_por_tipo(qs, attr_tipo='tipo'):
     """
         :argument um QuerySet em MateriaLegislativa
         :return um dict com o mapeamento {tipo: <quantidade de materias>},
@@ -58,9 +58,18 @@ def num_materias_por_tipo(qs):
     # select_related eh importante por questoes de desempenho, pois caso
     # contrario ele realizara uma consulta ao banco para cada iteracao,
     # na key do groupby (uma alternativa é só usar tipo_id, na chave).
-    qs2 = qs.select_related('tipo').order_by('tipo_id')
-    for key, values in groupby(qs2, key=lambda m: m.tipo):
-        qtdes[key] = len(list(values))
+
+    if attr_tipo == 'tipo':
+        sort_function = lambda m: m.tipo
+    else:
+        sort_function = lambda m: m.materia.tipo
+
+    qs2 = qs.select_related(attr_tipo).order_by(attr_tipo+'_id')
+
+    for key, values in groupby(qs2, key=sort_function):
+        # poderia usar qtdes[key] = len(list(values)) aqui, mas
+        # desse modo economiza memória RAM
+        qtdes[key] = sum(1 for x in values)
     return qtdes
 
 
