@@ -177,54 +177,72 @@ class UsuarioEditForm(ModelForm):
     # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
     ROLES = []
 
+    first_name = forms.CharField(
+        required=False,
+        label="Nome",
+        max_length=30)
+    last_name = forms.CharField(
+        required=False,
+        label="Sobrenome",
+        max_length=30)
     password1 = forms.CharField(
-        required=False, widget=forms.PasswordInput, label='Senha')
+        required=False,
+        widget=forms.PasswordInput,
+        label='Senha')
     password2 = forms.CharField(
-        required=False, widget=forms.PasswordInput, label='Confirmar senha')
-    user_active = forms.ChoiceField(choices=YES_NO_CHOICES, required=True,
-                                    label="Usuário ativo?", initial='True')
+        required=False, widget=forms.PasswordInput,
+        label='Confirmar senha')
+    user_active = forms.ChoiceField(
+        choices=YES_NO_CHOICES,
+        required=True,
+        label="Usuário ativo?",
+        initial='True')
     roles = forms.MultipleChoiceField(
-        required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
+        required=True,
+        widget=forms.CheckboxSelectMultiple(),
+        choices=get_roles)
 
     class Meta:
         model = get_user_model()
         fields = [
-            get_user_model().USERNAME_FIELD, 'password1',
-            'password2', 'user_active', 'roles'
-        ] + (['email']
-             if get_user_model().USERNAME_FIELD != 'email' else [])
+            get_user_model().USERNAME_FIELD,
+            "first_name",
+            "last_name",
+            'password1',
+            'password2',
+            'user_active',
+            'roles']
+
+        if get_user_model().USERNAME_FIELD != 'email':
+            fields.extend(['email'])
 
     def __init__(self, *args, **kwargs):
-
         super(UsuarioEditForm, self).__init__(*args, **kwargs)
 
-        row1 = to_row([('username', 12)])
-        row2 = to_row([('email', 6),
-                       ('user_active', 6)])
-        row3 = to_row(
-            [('password1', 6),
-             ('password2', 6)])
-
-        row4 = to_row([(form_actions(label='Salvar Alterações'), 6)])
+        rows = to_row((
+            ('username', 12),
+            ('first_name', 6),
+            ('last_name', 6),
+            ('email', 6),
+            ('user_active', 6),
+            ('password1', 6),
+            ('password2', 6)))
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
-            row1,
-            row2,
-            row3,
+            rows,
             'roles',
             form_actions(label='Salvar Alterações'))
 
     def clean(self):
-        super(UsuarioEditForm, self).clean()
-
+        super().clean()
         if not self.is_valid():
             return self.cleaned_data
 
         data = self.cleaned_data
         if data['password1'] and data['password1'] != data['password2']:
-            self.logger.error('Erro de validação. Senhas informadas ({}, {}) são diferentes.'.format(
-                data['password1'], data['password2']))
+            self.logger.error("Erro de validação. Senhas informadas ({}, {}) são diferentes."
+                              .format(data['password1'], data['password2']))
             raise ValidationError('Senhas informadas são diferentes')
 
         return data
