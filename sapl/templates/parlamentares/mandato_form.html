@@ -13,12 +13,12 @@
 
             if (id_legislatura){
                 $.get(
-                    "{% url 'sapl.parlamentares:coligacao_legislatura_ajax' %}",
+                    "{% url 'sapl.parlamentares:coligacao_legislatura' %}",
                     {legislatura: id_legislatura},
                     function(data){
                         lista_coligacoes = data['coligacoes'];
 
-                        $('#id_coligacao').append('<option value="---------"</option>');
+                        $('#id_coligacao').append('<option value=""</option>');
 
                         for (i=0; i<lista_coligacoes.length; i++){
                             $('#id_coligacao').append('<option value="' + lista_coligacoes[i][0] + '">' + lista_coligacoes[i][1] + '</option>');

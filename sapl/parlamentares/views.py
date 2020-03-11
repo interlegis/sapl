@@ -312,8 +312,11 @@ class ColigacaoCrud(CrudAux):
             return context
 
 
-def coligacao_legislatura_ajax(request):
-    coligacoes = Coligacao.objects.filter(legislatura=request.GET['legislatura']).order_by('nome')
+def coligacao_legislatura(request):
+    try:
+        coligacoes = Coligacao.objects.filter(legislatura=request.GET['legislatura']).order_by('nome')
+    except:
+        coligacoes = []
 
     lista_coligacoes = [(coligacao.id, str(coligacao)) for coligacao in coligacoes]
 
