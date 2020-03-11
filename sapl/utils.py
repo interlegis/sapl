@@ -55,15 +55,14 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
     """
     qtdes = {}
 
-    # select_related eh importante por questoes de desempenho, pois caso
-    # contrario ele realizara uma consulta ao banco para cada iteracao,
-    # na key do groupby (uma alternativa é só usar tipo_id, na chave).
-
     if attr_tipo == 'tipo':
         def sort_function(m): return m.tipo
     else:
         def sort_function(m): return m.materia.tipo
-
+        
+    # select_related eh importante por questoes de desempenho, pois caso
+    # contrario ele realizara uma consulta ao banco para cada iteracao,
+    # na key do groupby (uma alternativa é só usar tipo_id, na chave).
     qs2 = qs.select_related(attr_tipo).order_by(attr_tipo+'_id')
 
     for key, values in groupby(qs2, key=sort_function):
