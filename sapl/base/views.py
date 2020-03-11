@@ -1914,7 +1914,7 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         user = form.save(commit=False)
         data = form.cleaned_data
 
-        if data['first_name'] and data['first_name'] != user.first_name:
+        if 'first_name' in data and data['first_name'] != user.first_name:
             user.first_name = data['first_name']
 
         if data['last_name'] and data['last_name'] != user.last_name:
