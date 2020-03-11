@@ -60,7 +60,7 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
     # na key do groupby (uma alternativa é só usar tipo_id, na chave).
 
     if attr_tipo == 'tipo':
-        sort_function = lambda m: m.tipo
+        def sort_function(m): return m.tipo
     else:
         sort_function = lambda m: m.materia.tipo
 
