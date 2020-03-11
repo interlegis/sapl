@@ -62,7 +62,7 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
     if attr_tipo == 'tipo':
         def sort_function(m): return m.tipo
     else:
-        sort_function = lambda m: m.materia.tipo
+        def sort_function(m): return m.materia.tipo
 
     qs2 = qs.select_related(attr_tipo).order_by(attr_tipo+'_id')
 
