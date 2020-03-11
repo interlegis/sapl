@@ -315,7 +315,7 @@ class ColigacaoCrud(CrudAux):
 def coligacao_legislatura_ajax(request):
     coligacoes = Coligacao.objects.filter(legislatura=request.GET['legislatura']).order_by('nome')
 
-    lista_coligacoes = [(coligacao.id, coligacao.__str__()) for coligacao in coligacoes]
+    lista_coligacoes = [(coligacao.id, str(coligacao)) for coligacao in coligacoes]
 
     return JsonResponse({'coligacoes': lista_coligacoes})
 
