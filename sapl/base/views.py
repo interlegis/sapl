@@ -1917,7 +1917,7 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         if 'first_name' in data and data['first_name'] != user.first_name:
             user.first_name = data['first_name']
 
-        if data['last_name'] and data['last_name'] != user.last_name:
+        if 'last_name' in data and data['last_name'] != user.last_name:
             user.last_name = data['last_name']
 
         if data['password1']:
