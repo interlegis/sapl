@@ -89,7 +89,7 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
         ## Sessões Extraordinárias podem estar fora da sessão legislativa
         descricao_tipo = tipo.nome.lower()
-        if descricao_tipo == "extraordinária" or descricao_tipo == "especial":
+        if "extraordinária" in descricao_tipo or "especial" in descricao_tipo:
             # Ignora checagem de limites para Sessão Legislativa
             abertura_entre_sl = True
             encerramento_entre_sl = True
