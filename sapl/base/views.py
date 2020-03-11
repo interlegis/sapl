@@ -1966,10 +1966,13 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         return reverse('sapl.base:usuario')
 
     def get_initial(self):
-        initial = super(EditUsuarioView, self).get_initial()
+        initial = super().get_initial()
 
         user = get_user_model().objects.get(id=self.kwargs['pk'])
         roles = [str(g.id) for g in user.groups.all()]
+
+        initial['first_name'] = user.first_name
+        initial['last_name'] = user.last_name
         initial['roles'] = roles
         initial['user_active'] = user.is_active
 
@@ -1980,8 +1983,11 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         user = form.save(commit=False)
         data = form.cleaned_data
 
-        # new_user.first_name = data['firstname']
-        # new_user.last_name = data['lastname']
+        if 'first_name' in data and data['first_name'] != user.first_name:
+            user.first_name = data['first_name']
+
+        if 'last_name' in data and data['last_name'] != user.last_name:
+            user.last_name = data['last_name']
 
         if data['password1']:
             user.set_password(data['password1'])
