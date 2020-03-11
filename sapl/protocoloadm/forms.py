@@ -1128,9 +1128,12 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
         ano_documento = int(self.data['ano'])
 
         
-        equal_docs = DocumentoAdministrativo.objects.filter(numero=numero_documento,
-                                                                ano=ano_documento,
-                                                                complemento=complemento)
+        equal_docs = DocumentoAdministrativo.objects.filter(
+            tipo=tipo_documento,
+            numero=numero_documento,
+            ano=ano_documento,
+            complemento=complemento
+        )
         if equal_docs.exists() and equal_docs.first().pk != self.instance.pk:
             raise ValidationError("Um documento administrativo com esse numero, complemento e ano já existe.")
 
