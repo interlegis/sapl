@@ -1127,18 +1127,13 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
         tipo_documento = int(self.data['tipo'])
         ano_documento = int(self.data['ano'])
 
-        
-        equal_docs = DocumentoAdministrativo.objects.filter(numero=numero_documento,
-                                                                ano=ano_documento,
-                                                                complemento=complemento)
-        if equal_docs.exists() and equal_docs.first().pk != self.instance.pk:
-            raise ValidationError("Um documento administrativo com esse numero, complemento e ano já existe.")
 
         # não permite atualizar para numero/ano/tipo existente
         if self.instance.pk:
             mudanca_doc = numero_documento != self.instance.numero \
                 or ano_documento != self.instance.ano \
-                or tipo_documento != self.instance.tipo.pk
+                or tipo_documento != self.instance.tipo.pk \
+                or complemento != self.instance.complemento
 
         if not self.instance.pk or mudanca_doc:
             doc_exists = DocumentoAdministrativo.objects.filter(numero=numero_documento,
@@ -1147,9 +1142,19 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                                                                 complemento=complemento).exists()
 
             if doc_exists:
-                self.logger.error("DocumentoAdministrativo (numero={}, tipo={} e ano={}) já existe."
-                                  .format(numero_documento, tipo_documento, ano_documento))
-                raise ValidationError(_('Documento já existente'))
+                self.logger.error("DocumentoAdministrativo "
+                                  "(numero={}, tipo={}, ano={}, "
+                                  "complemento={}) já existe."
+                                  .format(numero_documento,
+                                          tipo_documento,
+                                          ano_documento,
+                                          complemento))
+                tipo = TipoDocumentoAdministrativo.objects.get(
+                    id=tipo_documento)
+                raise ValidationError(
+                    _('{}/{} ({}) já existente!'.format(numero_documento,
+                                                        ano_documento,
+                                                        tipo)))
 
         # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
