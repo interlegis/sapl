@@ -39,44 +39,35 @@ class ComposicaoForm(forms.ModelForm):
         self.fields['comissao'].widget.attrs['disabled'] = 'disabled'
 
     def clean(self):
-        cleaned_data = super(ComposicaoForm, self).clean()
+        data = super().clean()
+        data['comissao'] = self.initial['comissao']
+        comissao_pk = self.initial['comissao'].id
 
         if not self.is_valid():
-            return cleaned_data
+            return data
 
-        periodo = cleaned_data['periodo']
-        comissao_pk = self.initial['comissao'].id
-        cleaned_data['comissao'] = self.initial['comissao']
-        
+        periodo = data['periodo']
+
         if periodo.data_fim:
             intersecao_periodo = Composicao.objects.filter(
-                Q(periodo__data_inicio__lte=periodo.data_fim,
-                    periodo__data_fim__gte=periodo.data_fim) |
-                Q(periodo__data_inicio__gte=periodo.data_inicio,
-                    periodo__data_fim__lte=periodo.data_inicio),
+                Q(periodo__data_inicio__lte=periodo.data_fim, periodo__data_fim__gte=periodo.data_fim) |
+                Q(periodo__data_inicio__gte=periodo.data_inicio, periodo__data_fim__lte=periodo.data_inicio),
                 comissao_id=comissao_pk)
         else:
             intersecao_periodo = Composicao.objects.filter(
-                Q(periodo__data_inicio__gte=periodo.data_inicio,
-                    periodo__data_fim__lte=periodo.data_inicio),
+                Q(periodo__data_inicio__gte=periodo.data_inicio, periodo__data_fim__lte=periodo.data_inicio),
                 comissao_id=comissao_pk)
 
         if intersecao_periodo:
             if periodo.data_fim:
-                self.logger.error('O período informado ({} a {})'
-                                'choca com períodos já '
-                                'cadastrados para esta comissão'
-                                .format(periodo.data_inicio, periodo.data_fim))
+                self.logger.error('O período informado ({} a {}) choca com períodos já cadastrados para esta comissão'
+                                  .format(periodo.data_inicio, periodo.data_fim))
             else:
-                self.logger.error('O período informado ({} - )'
-                                'choca com períodos já '
-                                'cadastrados para esta comissão'
-                                .format(periodo.data_inicio))
-            raise ValidationError('O período informado '
-                                  'choca com períodos já '
-                                  'cadastrados para esta comissão')
+                self.logger.error('O período informado ({} - ) choca com períodos já cadastrados para esta comissão'
+                                  .format(periodo.data_inicio))
+            raise ValidationError('O período informado choca com períodos já cadastrados para esta comissão')
 
-        return cleaned_data
+        return data
 
 
 class PeriodoForm(forms.ModelForm):
