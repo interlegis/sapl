@@ -1224,8 +1224,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super().qs
-        return parent.distinct().filter(autoria__primeiro_autor=True)\
-            .order_by('autoria__autor', '-autoria__primeiro_autor', 'tipo', '-ano', '-numero')
+        return parent.distinct().order_by('-ano', '-numero', 'tipo', 'autoria__autor', '-autoria__primeiro_autor')
 
     class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
