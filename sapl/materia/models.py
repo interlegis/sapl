@@ -487,6 +487,7 @@ class AssuntoMateria(models.Model):
     class Meta:
         verbose_name = _('Assunto de Matéria')
         verbose_name_plural = _('Assuntos de Matéria')
+        ordering = ('assunto', 'dispositivo')
 
     def __str__(self):
         return self.assunto
@@ -618,6 +619,7 @@ class MateriaAssunto(models.Model):
     class Meta:
         verbose_name = _('Relação Matéria - Assunto')
         verbose_name_plural = _('Relações Matéria - Assunto')
+        ordering = ('assunto__assunto', '-materia')
 
     def __str__(self):
         return _('%(materia)s - %(assunto)s') % {
