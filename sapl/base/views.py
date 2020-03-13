@@ -4,6 +4,7 @@ import datetime
 import logging
 import os
 
+from collections import OrderedDict
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -926,6 +927,7 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
             return context
 
         qs = context['object_list']
+        context['materias_resultado'] = list(OrderedDict.fromkeys(qs))
         context['qtdes'] = num_materias_por_tipo(qs)
 
         qr = self.request.GET.copy()
