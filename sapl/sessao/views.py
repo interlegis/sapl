@@ -125,10 +125,13 @@ def verifica_presenca(request, model, spk, is_leitura=False):
     logger = logging.getLogger(__name__)
     if not model.objects.filter(sessao_plenaria_id=spk).exists():
         username = request.user.username
-        aux_text = 'Leitura' if is_leitura else 'Votação'
-        logger.error("user=" + username +
-                     ". {} não pode ser aberta sem presenças (sessao_plenaria_id={}).".format(aux_text, spk))
-        msg = _('{} não pode ser aberta sem presenças'.format(aux_text))
+        if is_leitura:
+            text = 'Leitura não pode ser feita sem presenças'  
+        else:
+            text = 'Votação não pode ser aberta sem presenças'
+        
+        logger.error("user={}. {} (sessao_plenaria_id={}).".format(username,text, spk))
+        msg = _(text)
         messages.add_message(request, messages.ERROR, msg)
         return False
     return True
