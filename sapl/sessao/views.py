@@ -121,13 +121,17 @@ def renumerar_materias_expediente(request, pk):
         reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
 
 
-def verifica_presenca(request, model, spk):
+def verifica_presenca(request, model, spk, is_leitura=False):
     logger = logging.getLogger(__name__)
     if not model.objects.filter(sessao_plenaria_id=spk).exists():
         username = request.user.username
-        logger.error("user=" + username +
-                     ". Votação não pode ser aberta sem presenças (sessao_plenaria_id={}).".format(spk))
-        msg = _('Votação não pode ser aberta sem presenças')
+        if is_leitura:
+            text = 'Leitura não pode ser feita sem presenças'  
+        else:
+            text = 'Votação não pode ser aberta sem presenças'
+        
+        logger.error("user={}. {} (sessao_plenaria_id={}).".format(username,text, spk))
+        msg = _(text)
         messages.add_message(request, messages.ERROR, msg)
         return False
     return True
@@ -161,17 +165,18 @@ def verifica_votacoes_abertas(request):
     return True
 
 
-def verifica_sessao_iniciada(request, spk):
+def verifica_sessao_iniciada(request, spk, is_leitura=False):
     logger = logging.getLogger(__name__)
     sessao = SessaoPlenaria.objects.get(id=spk)
 
     if not sessao.iniciada or sessao.finalizada:
         username = request.user.username
-        logger.info('user=' + username + '. Não é possível abrir matérias para votação. '
-                    'Esta SessaoPlenaria (id={}) não foi iniciada ou está finalizada.'.format(spk))
-        msg = _('Não é possível abrir matérias para votação. '
+        aux_text = 'leitura' if is_leitura else 'votação'
+        logger.info('user=' + username + '. Não é possível abrir matérias para {}. '
+                    'Esta SessaoPlenaria (id={}) não foi iniciada ou está finalizada.'.format(aux_text, spk))
+        msg = _('Não é possível abrir matérias para {}. '
                 'Esta Sessão Plenária não foi iniciada ou está finalizada.'
-                ' Vá em "Abertura"->"Dados Básicos" e altere os valores dos campos necessários.')
+                ' Vá em "Abertura"->"Dados Básicos" e altere os valores dos campos necessários.'.format(aux_text))
         messages.add_message(request, messages.INFO, msg)
         return False
 
@@ -197,10 +202,11 @@ def abrir_votacao(request, pk, spk):
 
     query_params = "?"
 
-    if (verifica_presenca(request, presenca_model, spk) and
+    materia_votacao = model.objects.get(id=pk)
+    is_leitura = materia_votacao.tipo_votacao == 4
+    if (verifica_presenca(request, presenca_model, spk, is_leitura) and
         verifica_votacoes_abertas(request) and
-            verifica_sessao_iniciada(request, spk)):
-        materia_votacao = model.objects.get(id=pk)
+            verifica_sessao_iniciada(request, spk, is_leitura)):    
         materia_votacao.votacao_aberta = True
         sessao = SessaoPlenaria.objects.get(id=spk)
         sessao.painel_aberto = True
