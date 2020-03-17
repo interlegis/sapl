@@ -1459,7 +1459,9 @@ def relatorio_sessao_plenaria_pdf(request, pk):
     html_template = render_to_string('relatorios/relatorio_sessao_plenaria.html',
     {       
         "inf_basicas_dic":inf_basicas_dic,
+        "cont_mult_dic":cont_mult_dic,
         "lst_mesa":lst_mesa,
+        "lst_expediente_materia_vot_nom":lst_expediente_materia_vot_nom,
         "lst_presenca_sessao":lst_presenca_sessao,
         "lst_ausencia_sessao":lst_ausencia_sessao,
         "lst_expedientes":lst_expedientes,
@@ -1467,6 +1469,8 @@ def relatorio_sessao_plenaria_pdf(request, pk):
         "lst_oradores_expediente":lst_oradores_expediente,
         "lst_presenca_ordem_dia":lst_presenca_ordem_dia,
         "lst_votacao":lst_votacao,
+        "lst_oradores_ordemdia":lst_oradores_ordemdia,
+        "lst_votacao_vot_nom":lst_votacao_vot_nom,
         "lst_oradores":lst_oradores,
         "lst_ocorrencias":lst_ocorrencias,
         "rodape":rodape,

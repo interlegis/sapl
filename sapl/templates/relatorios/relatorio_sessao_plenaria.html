@@ -60,15 +60,15 @@
         <tbody>
             {% for materia in lst_expediente_materia%}
                 <tr>
-                    <td style="width:300px">
+                    <td >
                         <dl>
                             <dt><b>{{materia.num_ordem}} -</b> {{materia.id_materia}}</dt>
                             <dt><b>Turno:</b> {{materia.des_turno}}</dt>
                             <dt><b>{{materia.num_autores}}: </b>{{materia.nom_autor}}</dt>
                         </dl>
                     </td>
-                    <td><div style="margin:10px">{{materia.txt_ementa}}</div></td>
-                    <td style="width:10px"><b>{{materia.nom_resultado}}</b></td>
+                    <td style="width:50%"><div style="margin:10px">{{materia.txt_ementa}}</div></td>
+                    <td><b>{{materia.nom_resultado}}</b></td>
                 </tr>
             {% endfor %}
 
@@ -104,15 +104,15 @@
                 <tbody>
                     {% for materia in lst_votacao%}
                         <tr>
-                            <td style="width:300px">
+                            <td>
                                 <dl>
                                     <dt><b>{{materia.num_ordem}} -</b> {{materia.id_materia}}</dt>
                                     <dt><b>Turno:</b> {{materia.des_turno}}</dt>
                                     <dt><b>{{materia.num_autores}}: </b>{{materia.nom_autor}}</dt>
                                 </dl>
                             </td>
-                            <td><div style="margin:10px">{{materia.txt_ementa}}</div></td>
-                            <td style="width:30px"><b>{{materia.nom_resultado}}</b></td>
+                            <td style="width:50%">{{materia.txt_ementa}}</td>
+                            <td><b>{{materia.nom_resultado}}</b></td>
                         </tr>
                     {% endfor %}
 
@@ -134,6 +134,13 @@
                     <p>{{ocorrencia}}</p>
             {% endfor %}
         </div>
+
+        <h2 class="gray-title">Conteúdo Multimídia</h2>
+            <b>Multimídia Audio:</b> {{cont_mult_dic.multimidia_audio}}
+            <br>
+            <b>Multimídia Video:</b> {{cont_mult_dic.multimidia_video}}
+        </div>
+
 
 {% endblock content %} 
     
