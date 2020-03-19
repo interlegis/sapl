@@ -8,6 +8,11 @@
         <p><b>Abertura:</b> {{inf_basicas_dic.dat_inicio_sessao}} - {{inf_basicas_dic.hr_inicio_sessao}}</p>
         <p><b>Encerramento:</b> {{inf_basicas_dic.dat_fim_sessao}} - {{inf_basicas_dic.hr_fim_sessao}}</p>
 
+        <h2 class="gray-title">Conteúdo Multimídia</h2>
+            <b>Multimídia Audio:</b> {{cont_mult_dic.multimidia_audio}}
+            <br>
+            <b>Multimídia Video:</b> {{cont_mult_dic.multimidia_video}}
+
         <h2 class="gray-title">Mesa Diretora</h2>
         {% for membro in lst_mesa%}
             <p><b>{{membro.des_cargo}}:</b> {{membro.nom_parlamentar}}/{{membro.sgl_partido}}</p>
@@ -133,13 +138,8 @@
             {% for ocorrencia in lst_ocorrencias%}
                     <p>{{ocorrencia}}</p>
             {% endfor %}
-        </div>
-
-        <h2 class="gray-title">Conteúdo Multimídia</h2>
-            <b>Multimídia Audio:</b> {{cont_mult_dic.multimidia_audio}}
-            <br>
-            <b>Multimídia Video:</b> {{cont_mult_dic.multimidia_video}}
-        </div>
+        
+</div>
 
 
 {% endblock content %} 
