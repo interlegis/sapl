@@ -72,12 +72,41 @@
                         </dl>
                     </td>
                     <td style="width:60%"><div style="margin:10px">{{materia.txt_ementa}}</div></td>
-                    <td style="text-align: center">&nbsp;<b>{{materia.nom_resultado}}</b></td>
+                    <td style="text-align: left">&nbsp;<b>{{materia.nom_resultado}}</b></td>
                 </tr>
             {% endfor %}
 
         </tbody>
     </table>
+
+    {% if lst_votacao_vot_nom %}
+    <h2 class="gray-title">Votações Nominais - Matérias do Expediente</h2>
+    <table class="grayTable">
+            <thead>
+                <tr>
+                    <th>Matéria</th>
+                    <th>Votos</th>
+                </tr>
+            </thead>
+            {% for expediente_materia_vot_nom in lst_expediente_materia_vot_nom %}
+            <tr>
+                <td>{{expediente_materia_vot_nom.titulo}}</td>
+                <td>
+                    {% if expediente_materia_vot_nom.votos %}
+                        <dl>
+                            {% for v in expediente_materia_vot_nom.votos %}
+                                <dt style="text-align: left;">&nbsp;<b>{{v.parlamentar}}</b> {{v.voto}}</dt>
+                            {% endfor %}
+                        </dl>
+                    {% else %}
+                        <td><p><b>Matéria não votada</b></p></td>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
 
         <h2 class="gray-title">Oradores do Expediente</h2>
 
@@ -116,12 +145,48 @@
                                 </dl>
                             </td>
                             <td style="width:60%">{{materia.txt_ementa}}</td>
-                            <td style="text-align: center;">&nbsp;<b>{{materia.nom_resultado}}</b></td>
+                            <td style="text-align: left;">&nbsp;<b>{{materia.nom_resultado}}</b></td>
                         </tr>
                     {% endfor %}
 
                 </tbody>
         </table>
+
+    {% if lst_votacao_vot_nom %}
+    <h2 class="gray-title">Votações Nominais - Matérias da Ordem do Dia</h2>
+    <table class="grayTable">
+            <thead>
+                <tr>
+                    <th>Matéria</th>
+                    <th>Votos</th>
+                </tr>
+            </thead>
+            {% for votacao_vot_nom in lst_votacao_vot_nom %}
+            <tr>
+                <td>{{votacao_vot_nom.titulo}}</td>
+                <td>
+                    {% if votacao_vot_nom.votos %}
+                        <dl>
+                            {% for v in votacao_vot_nom.votos %}
+                                <dt style="text-align: left;">&nbsp;<b>{{v.parlamentar}}</b> {{v.voto}}</dt>
+                            {% endfor %}
+                        </dl>
+                    {% else %}
+                        <td><p><b>Matéria não votada</b></p></td>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if lst_oradores_ordemdia %}
+        <h2 class="gray-title">Oradores da Ordem do Dia</h2>
+        {% for orador_ordemdia in lst_oradores_ordemdia %}
+            <p><b>{{orador_ordemdia.num_ordem}}</b> - {{orador_ordemdia.nome_parlamentar}}/{{orador_ordemdia.sigla}}
+                {%if orador_ordemdia.observacao%}- {{orador_ordemdia.observacao}}{%endif%}</p>
+        {% endfor %}
+    {% endif %}
 
         <div>
             <h2 class="gray-title">Oradores das Explicações Pessoais</h2>
