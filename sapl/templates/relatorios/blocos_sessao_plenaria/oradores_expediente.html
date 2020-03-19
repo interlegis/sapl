@@ -1,0 +1,7 @@
+    <h2 class="gray-title">Oradores do Expediente</h2>
+
+    {% for orador in lst_oradores_expediente%}
+        <tr>
+            <p> <b>{{orador.num_ordem}}</b> - {{orador.nom_parlamentar}}/{{orador.sgl_partido}}</p>
+        </tr>
+    {% endfor %}

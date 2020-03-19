@@ -1,0 +1,7 @@
+    {% if lst_oradores_ordemdia %}
+        <h2 class="gray-title">Oradores da Ordem do Dia</h2>
+        {% for orador_ordemdia in lst_oradores_ordemdia %}
+            <p><b>{{orador_ordemdia.num_ordem}}</b> - {{orador_ordemdia.nome_parlamentar}}/{{orador_ordemdia.sigla}}
+                {%if orador_ordemdia.observacao%}- {{orador_ordemdia.observacao}}{%endif%}</p>
+        {% endfor %}
+    {% endif %}

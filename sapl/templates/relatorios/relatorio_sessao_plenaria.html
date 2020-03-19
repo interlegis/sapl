@@ -3,137 +3,37 @@
 
 {% block content %}
 <div style="margin-bottom: 3cm">
-        <h2 class="gray-title">Informações Básicas</h2>
-        <p><b>Tipo da Sessão:</b> {{inf_basicas_dic.nom_sessao}}</p>
-        <p><b>Abertura:</b> {{inf_basicas_dic.dat_inicio_sessao}} - {{inf_basicas_dic.hr_inicio_sessao}}</p>
-        <p><b>Encerramento:</b> {{inf_basicas_dic.dat_fim_sessao}} - {{inf_basicas_dic.hr_fim_sessao}}</p>
 
-        <h2 class="gray-title">Mesa Diretora</h2>
-        {% for membro in lst_mesa%}
-            <p><b>{{membro.des_cargo}}:</b> {{membro.nom_parlamentar}}/{{membro.sgl_partido}}</p>
-        {% endfor%}
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:primeiro_ordenacao %}
 
-        <h2 class="gray-title">Lista de Presença da Sessão</h2>
-        {% for membro in lst_presenca_sessao%}
-            <p>{{membro.nom_parlamentar}}/{{membro.sgl_partido}}</p>
-        {% endfor%}
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:segundo_ordenacao %}
 
-        <h2 class="gray-title">Justificativas de Ausência da Sessão</h2>
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:terceiro_ordenacao %}
 
-        <table class="grayTable">
-            <thead>
-                <tr>
-                    <th>Parlamentar</th>
-                    <th>Justificativa</th>
-                    <th>Ausente em</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ausencia in lst_ausencia_sessao%}
-                    <tr>
-                        <td>{{ausencia.parlamentar}}</td>
-                        <td>{{ausencia.justificativa}}</td>
-                        <td>{{ausencia.tipo}}</td>
-                    </tr>
-                {% endfor %}
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:quarto_ordenacao %}
 
-            </tbody>
-        </table>
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:quinto_ordenacao %}
 
-        <h2 class="gray-title">Expedientes</h2>
-        {% for expediente in lst_expedientes%}
-                <h3>{{expediente.nom_expediente}}</h3>
-                <p style="margin-bottom: 1cm">{{expediente.txt_expediente|safe}}</p>
-        {% endfor%}
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:sexto_ordenacao %}
 
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:setimo_ordenacao %}
 
-    <h2 class="gray-title">Matérias do Expediente</h2>
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:oitavo_ordenacao %}
 
-    <table class="grayTable">
-        <thead>
-            <tr>
-                <th>Matéria</th>
-                <th>Ementa</th>
-                <th>Resultado da Votação</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for materia in lst_expediente_materia%}
-                <tr>
-                    <td style="width:300px">
-                        <dl>
-                            <dt><b>{{materia.num_ordem}} -</b> {{materia.id_materia}}</dt>
-                            <dt><b>Turno:</b> {{materia.des_turno}}</dt>
-                            <dt><b>{{materia.num_autores}}: </b>{{materia.nom_autor}}</dt>
-                        </dl>
-                    </td>
-                    <td><div style="margin:10px">{{materia.txt_ementa}}</div></td>
-                    <td style="width:10px"><b>{{materia.nom_resultado}}</b></td>
-                </tr>
-            {% endfor %}
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:nono_ordenacao %}
 
-        </tbody>
-    </table>
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:decimo_ordenacao %}
 
-        <h2 class="gray-title">Oradores do Expediente</h2>
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:decimo_primeiro_ordenacao %}
 
-        {% for orador in lst_oradores_expediente%}
-            <tr>
-                <p> <b>{{orador.num_ordem}}</b> - {{orador.nom_parlamentar}}/{{orador.sgl_partido}}</p>
-            </tr>
-        {% endfor %}
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:decimo_segundo_ordenacao %}
 
-        <h2 class="gray-title">Lista de Presença da Ordem do Dia</h2>
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:decimo_terceiro_ordenacao %}
 
-        {% for orador in lst_presenca_ordem_dia%}
-            <tr>
-                <p>{{orador.nom_parlamentar}}/{{orador.sgl_partido}}</p>
-            </tr>
-        {% endfor %}
+    {% include 'relatorios/blocos_sessao_plenaria/'|add:decimo_quarto_ordenacao %}
 
-        <h2 class="gray-title">Matérias da Ordem do Dia</h2>
+</div>
 
-        <table class="grayTable" style="height: 145px;" width="443">
-                <thead>
-                    <tr>
-                        <th>Matéria</th>
-                        <th>Ementa</th>
-                        <th>Resultado da Votação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for materia in lst_votacao%}
-                        <tr>
-                            <td style="width:300px">
-                                <dl>
-                                    <dt><b>{{materia.num_ordem}} -</b> {{materia.id_materia}}</dt>
-                                    <dt><b>Turno:</b> {{materia.des_turno}}</dt>
-                                    <dt><b>{{materia.num_autores}}: </b>{{materia.nom_autor}}</dt>
-                                </dl>
-                            </td>
-                            <td><div style="margin:10px">{{materia.txt_ementa}}</div></td>
-                            <td style="width:30px"><b>{{materia.nom_resultado}}</b></td>
-                        </tr>
-                    {% endfor %}
-
-                </tbody>
-        </table>
-
-        <div>
-            <h2 class="gray-title">Oradores das Explicações Pessoais</h2>
-                {% for orador in lst_oradores%}
-                  <tr>
-                    <p style="page-break-after: avoid;">{{orador.num_ordem}} - {{orador.nom_parlamentar}}/{{orador.sgl_partido}}</p>
-                   </tr>
-                {% endfor %}
-            </div>
-
-
-        <h2 class="gray-title">Ocorrências da Sessão</h2>
-            {% for ocorrencia in lst_ocorrencias%}
-                    <p>{{ocorrencia}}</p>
-            {% endfor %}
-        </div>
 
 {% endblock content %} 
     

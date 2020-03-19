@@ -1,0 +1,4 @@
+    <h2 class="gray-title">Mesa Diretora</h2>
+    {% for membro in lst_mesa%}
+        <p><b>{{membro.des_cargo}}:</b> {{membro.nom_parlamentar}}/{{membro.sgl_partido}}</p>
+    {% endfor%}
