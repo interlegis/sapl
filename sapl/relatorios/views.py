@@ -24,7 +24,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
-                                RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente)
+                                RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente, ResumoOrdenacao)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
 
@@ -1465,26 +1465,82 @@ def relatorio_sessao_plenaria_pdf(request, pk):
      lst_oradores,
      lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
 
-    html_template = render_to_string('relatorios/relatorio_sessao_plenaria.html',
-                                     {
-                                         "inf_basicas_dic": inf_basicas_dic,
-                                         "cont_mult_dic": cont_mult_dic,
-                                         "lst_mesa": lst_mesa,
-                                         "lst_expediente_materia_vot_nom": lst_expediente_materia_vot_nom,
-                                         "lst_presenca_sessao": lst_presenca_sessao,
-                                         "lst_ausencia_sessao": lst_ausencia_sessao,
-                                         "lst_expedientes": lst_expedientes,
-                                         "lst_expediente_materia": lst_expediente_materia,
-                                         "lst_oradores_expediente": lst_oradores_expediente,
-                                         "lst_presenca_ordem_dia": lst_presenca_ordem_dia,
-                                         "lst_votacao": lst_votacao,
-                                         "lst_oradores_ordemdia": lst_oradores_ordemdia,
-                                         "lst_votacao_vot_nom": lst_votacao_vot_nom,
-                                         "lst_oradores": lst_oradores,
-                                         "lst_ocorrencias": lst_ocorrencias,
-                                         "rodape": rodape,
-                                         "data": dt.today().strftime('%d/%m/%Y')
-                                     })
+    dict_ord_template = {
+        'cont_mult': 'conteudo_multimidia.html',
+        'exp': 'expedientes.html',
+        'id_basica': 'identificacao_basica.html',
+        'lista_p': 'lista_presenca_sessao.html',
+        'lista_p_o_d': 'lista_presenca_ordemdia.html',
+        'mat_exp': 'materias_expediente.html',
+        'v_n_mat_exp': 'votos_nominais_expediente.html',
+        'mat_o_d': 'materias_ordemdia.html',
+        'v_n_mat_o_d': 'votos_nominais_ordemdia.html',
+        'mesa_d': 'mesa_diretora.html',
+        'oradores_exped': 'oradores_expediente.html',
+        'oradores_o_d': 'oradores_ordemdia.html',
+        'oradores_expli': 'oradores_explicacoes.html',
+        'ocorr_sessao': 'ocorrencias_sessao.html'
+    }
+
+    context = {
+         "inf_basicas_dic": inf_basicas_dic,
+         "cont_mult_dic": cont_mult_dic,
+         "lst_mesa": lst_mesa,
+         "lst_expediente_materia_vot_nom": lst_expediente_materia_vot_nom,
+         "lst_presenca_sessao": lst_presenca_sessao,
+         "lst_ausencia_sessao": lst_ausencia_sessao,
+         "lst_expedientes": lst_expedientes,
+         "lst_expediente_materia": lst_expediente_materia,
+         "lst_oradores_expediente": lst_oradores_expediente,
+         "lst_presenca_ordem_dia": lst_presenca_ordem_dia,
+         "lst_votacao": lst_votacao,
+         "lst_oradores_ordemdia": lst_oradores_ordemdia,
+         "lst_votacao_vot_nom": lst_votacao_vot_nom,
+         "lst_oradores": lst_oradores,
+         "lst_ocorrencias": lst_ocorrencias,
+         "rodape": rodape,
+         "data": dt.today().strftime('%d/%m/%Y')
+     }
+
+    ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
+    try:
+        context.update({
+            'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+            'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+            'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+            'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+            'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+            'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+            'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+            'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+            'nono_ordenacao': dict_ord_template[ordenacao.nono],
+            'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+            'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+            'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+            'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
+            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+        })
+    except KeyError as e:
+        # self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
+        #                                           "configuração de ordenação. Utilizando ordenação padrão.")
+        context.update({
+            'primeiro_ordenacao': 'identificacao_basica.html',
+            'segundo_ordenacao': 'conteudo_multimidia.html',
+            'terceiro_ordenacao': 'mesa_diretora.html',
+            'quarto_ordenacao': 'lista_presenca_sessao.html',
+            'quinto_ordenacao': 'expedientes.html',
+            'sexto_ordenacao': 'materias_expediente.html',
+            'setimo_ordenacao': 'votos_nominais_expediente.html',
+            'oitavo_ordenacao': 'oradores_expediente.html',
+            'nono_ordenacao': 'lista_presenca_ordemdia.html',
+            'decimo_ordenacao': 'materias_ordemdia.html',
+            'decimo_primeiro_ordenacao': 'votos_nominais_ordemdia.html',
+            'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
+            'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
+            'decimo_quarto_ordenacao': 'ocorrencias_sessao.html'
+        })
+
+    html_template = render_to_string('relatorios/relatorio_sessao_plenaria.html', context)
 
     info = "Resumo da {}ª Reunião {} \
                 da {}ª Sessão Legislativa da {} \
