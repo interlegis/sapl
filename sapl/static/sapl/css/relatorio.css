@@ -38,6 +38,7 @@ html body section dl {
 
 html body section dt{
     width: 50px;
+    text-align: left;
 }
 
 html body section dd {

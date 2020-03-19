@@ -1,0 +1,6 @@
+    <h2 class="gray-title">Lista de Presença da Ordem do Dia</h2>
+    {% for orador in lst_presenca_ordem_dia%}
+        <tr>
+            <p>{{orador.nom_parlamentar}}/{{orador.sgl_partido}}</p>
+        </tr>
+    {% endfor %}

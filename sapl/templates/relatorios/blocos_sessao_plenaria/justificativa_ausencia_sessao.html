@@ -1,0 +1,21 @@
+    <h2 class="gray-title">Justificativas de Ausência da Sessão</h2>
+
+    <table class="grayTable">
+        <thead>
+            <tr>
+                <th>Parlamentar</th>
+                <th>Justificativa</th>
+                <th>Ausente em</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ausencia in lst_ausencia_sessao%}
+                <tr>
+                    <td>{{ausencia.parlamentar}}</td>
+                    <td>{{ausencia.justificativa}}</td>
+                    <td>{{ausencia.tipo}}</td>
+                </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
