@@ -560,7 +560,7 @@ class CopiarMateriasExpediente(PermissionRequiredMixin, ListView):
                     data_inicio__gte=sessao_plenaria_atual.data_inicio
                 ).exclude(pk=sessao_plenaria_atual.pk).order_by("-data_inicio")
         except:
-            context['lista_materias_expediente_disponiveis'] = []
+            context['ERROR'] = True
 
         return context
 
@@ -636,7 +636,7 @@ class CopiarMateriasOrdemDia(PermissionRequiredMixin, ListView):
                     data_inicio__gte=sessao_plenaria_atual.data_inicio
                 ).exclude(pk=sessao_plenaria_atual.pk).order_by("-data_inicio")
         except:
-            context['lista_materias'] = []
+            context['ERROR'] = True
 
         return context
 
