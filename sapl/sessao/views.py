@@ -605,7 +605,7 @@ class CopiarMateriasExpediente(PermissionRequiredMixin, ListView):
         return HttpResponseRedirect(success_url)
 
 
-class CopiarMateriasOrdemDia(ListView):
+class CopiarMateriasOrdemDia(PermissionRequiredMixin, ListView):
     model = SessaoPlenaria
     template_name = 'sessao/copiar_materias_ordemdia.html'
     permission_required = ('sessao.change_ordemdia')
