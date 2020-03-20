@@ -34,7 +34,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                recuperar_nome_tipo_sessao,
                                ExpedienteLeituraView,
                                OrdemDiaLeituraView,
-                               retirar_leitura)
+                               retirar_leitura,
+                               CopiarMateriasExpediente, CopiarMateriasOrdemDia)
 
 from .apps import AppConfig
 
@@ -105,6 +106,12 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias-ordem-dia/',
         AdicionarVariasMateriasOrdemDia.as_view(),
         name='adicionar_varias_materias_ordem_dia'),
+    url(r'^sessao/(?P<pk>\d+)/copiar-materias-expediente/',
+        CopiarMateriasExpediente.as_view(),
+        name="copiar_materias_expediente"),
+    url(r'^sessao/(?P<pk>\d+)/copiar-materias-ordemdia/',
+        CopiarMateriasOrdemDia.as_view(),
+        name="copiar_materias_ordemdia"),
 
     # PAUTA SESSÃO
     url(r'^sessao/pauta-sessao$',
