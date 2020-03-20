@@ -2,67 +2,63 @@
 {% load i18n %}
 {% load common_tags %}
 
-
 {% block more_buttons %}
-
-{% if perms|get_add_perm:view %}
+  {% if perms|get_add_perm:view %}
     <a href="{% url 'sapl.sessao:adicionar_varias_materias_ordem_dia' root_pk %}" class="btn btn-outline-primary">
       {% blocktrans with verbose_name=view.verbose_name %} Adicionar Várias Matérias {% endblocktrans %}
     </a>
     <a>
-        <a role="button" href="#" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          {% blocktrans with verbose_name=view.verbose_name %} Reordenar {% endblocktrans %}
-        </a>
-        <div class="dropdown-menu">
-            <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'ordemdia' 1 %}">Por Tipo Sequencia Regimental, Ano e Número crescentes</a>
-            <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'ordemdia' 2 %}">Por Ano e Número crescentes</a>
-            <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'ordemdia' 3 %}">Por Ano decrescente e Número crescente</a>
-            <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'ordemdia' 4 %}">Por Autor, Ano e Número crescentes</a>
-        </div>
+      <a role="button" href="#" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        {% blocktrans with verbose_name=view.verbose_name %} Reordenar {% endblocktrans %}
+      </a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'ordemdia' 1 %}">Por Tipo Sequencia Regimental, Ano e Número crescentes</a>
+        <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'ordemdia' 2 %}">Por Ano e Número crescentes</a>
+        <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'ordemdia' 3 %}">Por Ano decrescente e Número crescente</a>
+        <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'ordemdia' 4 %}">Por Autor, Ano e Número crescentes</a>
+      </div>
     </a>
-{% endif %}
-
+  {% endif %}
 {% endblock more_buttons %}
 
 {% block extra_js %}
+  <script type="text/javascript">
+    var pk_sessao = {{root_pk}};
+    var pk_list = {{ object_list|to_list_pk|safe }};
 
-    <script type="text/javascript">
-        var pk_sessao = {{root_pk}};
-        var pk_list = {{ object_list|to_list_pk|safe }};
+    $(document).on('keyup', (e) => {
+      if (e.keyCode == 86){
+        window.open("{% url 'sapl.painel:voto_individual' %}",'Voto Individual','width=1000, height=800, scrollbars=yes');
+      };
+    });
 
-        $(document).on('keyup', (e) => {
-          if (e.keyCode == 86){
-            window.open("{% url 'sapl.painel:voto_individual' %}",'Voto Individual','width=1000, height=800, scrollbars=yes');
-        };
+    $('tbody').sortable({
+      start: function(event, ui) {
+        ui.item.startPos = ui.item.index();
+      },
+      stop: function(event, ui) {
+        var pos_ini = ui.item.startPos;
+        var pos_fim = ui.item.index();
+
+        $.ajax({
+          data: {
+            pos_ini: pos_ini,
+            pos_fim: pos_fim,
+            pk_sessao: pk_sessao,
+            pk_list,
+            materia: 'ordem'
+          },
+          type: 'POST',
+          url: "{% url 'sapl.sessao:mudar_ordem_materia_sessao' %}",
         });
-        
-        $('tbody').sortable({
 
-        start: function(event, ui) {
-            ui.item.startPos = ui.item.index();
+        setTimeout(function(){ window.location.reload(true) }, 500);
+      }
+    });
 
-        },
-        stop: function(event, ui) {
-            var pos_ini = ui.item.startPos;
-            var pos_fim = ui.item.index();
-
-            $.ajax({
-                data: {pos_ini: pos_ini,
-                       pos_fim: pos_fim,
-                       pk_sessao: pk_sessao,
-                       pk_list,
-                       materia: 'ordem'},
-                type: 'POST',
-                url: "{% url 'sapl.sessao:mudar_ordem_materia_sessao' %}",
-            });
-
-            setTimeout(function(){ window.location.reload(true) }, 500);
-        }
-     });
     $(window).on('beforeunload', function () {
-            $('tbody').sortable('disable');
-            $("input[type=submit], input[type=button]").prop("disabled", "disabled");
-     });
-    </script>
-
+      $('tbody').sortable('disable');
+      $("input[type=submit], input[type=button]").prop("disabled", "disabled");
+    });
+  </script>
 {% endblock %}
