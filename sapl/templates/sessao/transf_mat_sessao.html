@@ -1,0 +1,73 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load common_tags %}
+
+{% block base_content %}
+    {% if lista_disponiveis %}
+        {% if sessoes %}
+            {% if numero_resultados == 1 %}
+                <h3 style="text-align: right;">{% trans 'Existe 1 matéria disponível para cópia.' %}</h3>
+            {% else %}
+                <h3 style="text-align: right;">Existem {{ numero_resultados }} matérias disponíveis para cópia.</h3>
+            {% endif %}
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <fieldset>
+                    <legend><b>Sessão Plenária Destino</b></legend>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Sessão Plenária*</label>
+                                <select id="id_sessao_plenaria" class="select form-control" name="sessao_plenaria" required="True">
+                                    {% for sessao in sessoes %}
+                                        <option value="{{ sessao.pk }}">{{ sessao }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+                    <legend><b>Matérias Não Votadas ou Não Lidas</b></legend>
+                    <table class="table table-striped table-hover">
+                        <div class="controls">
+                            <div class="checkbox">
+                                <label for="id_check_all">
+                                    <input type="checkbox" id="id_check_all" onchange="checkAll(this)"/>Marcar/Desmarcar Todos
+                                </label>
+                            </div>
+                        </div>
+                        <thead><tr><td>Matéria</td></tr></thead>
+                        <tbody>
+                            {% for opcao in lista_disponiveis %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="opcao_id" value="{{ opcao.id }}" {% if check %} checked {% endif %}/> {{ opcao.materia.tipo.sigla }} {{ opcao.materia.numero }}/{{ opcao.materia.ano }} - {{ opcao.materia.tipo.descricao }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </fieldset>
+                <input type="submit" value="Salvar" class="btn btn-primary"S>
+            </form>
+        {% else %}
+            <br/>
+            <tr><td><h3 style="text-align: center;">Nenhuma sessão plenária está apta a receber a(s) cópia(s).</h3></td></tr>
+        {% endif %}
+    {% else %}
+        <br/>
+        <tr><td><h3 style="text-align: center;">Nenhuma máteria está disponível para cópia.</h3></td></tr>
+    {% endif %}
+{% endblock base_content %}
+
+{% block extra_js %}
+    <script language="Javascript">
+        function checkAll(elem){
+            let checkboxes = document.getElementsByName('opcao_id');
+            for(let i=0; i<checkboxes.length; i++){
+                checkboxes[i].checked = elem.checked;
+            }
+        }
+    </script>
+{% endblock %}
+

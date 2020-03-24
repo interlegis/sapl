@@ -28,7 +28,7 @@
   {% if perms|get_add_perm:view %}
     {% if enable_btn %}
       <div>
-        <a href="{% url 'sapl.sessao:copiar_materias_ordemdia' root_pk %}" class="btn btn-info">{% trans 'Copiar Matérias' %}</a>
+        <a href="{% url 'sapl.sessao:transf_mat_ordemdia' root_pk %}" class="btn btn-info">{% trans 'Copiar Matérias' %}</a>
       </div>
     {% endif %}
   {% endif %}
