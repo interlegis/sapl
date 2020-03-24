@@ -619,7 +619,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
     def post(self, request, *args, **kwargs):
         marcadas = request.POST.getlist('opcao_id')
 
-        if len(marcadas) == 0:
+        if not marcadas:
             msg = _('Nenhuma matéria foi selecionada.')
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
