@@ -539,16 +539,9 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             msg = _('A sessão plenária deve estar finalizada.')
             messages.add_message(self.request, messages.ERROR, msg)
             
-            if self.expediente:
-                error_url = reverse(
-                    'sapl.sessao:expedientemateria_list',
-                    kwargs={'pk': sessao_plenaria_atual.id}
-                )
-            elif self.ordem:
-                error_url = reverse(
-                    'sapl.sessao:ordemdia_list',
-                    kwargs={'pk': sessao_plenaria_atual.id}
-                )
+            error_url = reverse(
+                self.listagem_url, kwargs={'pk': sessao_plenaria_atual.id}
+            )
             return HttpResponseRedirect(error_url)
         
         return super().get(*args, **kwargs)
@@ -561,18 +554,18 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
         sessao_plenaria_atual = SessaoPlenaria.objects.get(pk=self.kwargs['pk'])
 
         if self.expediente:
-            context["title"] = _("Cópia de Matérias do Expediente")
+            context["title"] = self.title
             context['lista_disponiveis'] = ExpedienteMateria.objects.filter(
                 sessao_plenaria=sessao_plenaria_atual
             )
 
         elif self.ordem:
-            context["title"] = _("Cópia de Matérias da Ordem do Dia")
+            context["title"] = self.title
             context['lista_disponiveis'] = OrdemDia.objects.filter(
                 sessao_plenaria=sessao_plenaria_atual
             )
 
-        context["numero_resultados"] = len(context["lista_disponiveis"])
+        context["numero_resultados"] = context['lista_disponiveis'].count()
 
         if context['numero_resultados']:
             context['sessoes'] = SessaoPlenaria.objects.filter(
@@ -609,21 +602,24 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
         
         sessao = SessaoPlenaria.objects.get(id=sessao_plenaria_destino_id)
         if self.expediente:
-            numero_ordem = 0
             lista_expediente = []
 
-            if ExpedienteMateria.objects.filter(sessao_plenaria=sessao).exists():
-                numero_ordem = ExpedienteMateria.objects.filter(
-                    sessao_plenaria=sessao
-                ).last().numero_ordem
-            for expediente in ExpedienteMateria.objects.filter(id__in=marcadas):
-                numero_ordem = numero_ordem + 1
+            numero_ordem = ExpedienteMateria.objects.filter(
+                sessao_plenaria=sessao
+            ).last().numero_ordem if ExpedienteMateria.objects.filter(
+                sessao_plenaria=sessao
+            ).exists() else 0
+
+            for num_ordem, expediente in enumerate(
+                ExpedienteMateria.objects.filter(id__in=marcadas),
+                numero_ordem+1
+            ):
                 lista_expediente.append(
                     ExpedienteMateria(
                         sessao_plenaria=sessao, materia=expediente.materia,
                         data_ordem=expediente.data_ordem,
                         observacao=expediente.observacao,
-                        numero_ordem=numero_ordem,
+                        numero_ordem=num_ordem,
                         tipo_votacao=expediente.tipo_votacao,
                         votacao_aberta=False, registro_aberto=False
                     )
@@ -631,21 +627,23 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             ExpedienteMateria.objects.bulk_create(lista_expediente)
         
         elif self.ordem:
-            numero_ordem = 0
             lista_ordemdia = []
-            
-            if OrdemDia.objects.filter(sessao_plenaria=sessao).exists():
-                numero_ordem = OrdemDia.objects.filter(
-                    sessao_plenaria=sessao
-                ).last().numero_ordem
-            for ordemdia in OrdemDia.objects.filter(id__in=marcadas):
-                numero_ordem = numero_ordem + 1
+
+            numero_ordem = OrdemDia.objects.filter(
+                sessao_plenaria=sessao
+            ).last().numero_ordem if OrdemDia.objects.filter(
+                sessao_plenaria=sessao
+            ).exists() else 0
+
+            for num_ordem, ordemdia in enumerate(
+                OrdemDia.objects.filter(id__in=marcadas), numero_ordem+1
+            ):
                 lista_ordemdia.append(
                     OrdemDia(
                         sessao_plenaria=sessao, materia=ordemdia.materia,
                         data_ordem=ordemdia.data_ordem,
                         observacao=ordemdia.observacao,
-                        numero_ordem=numero_ordem,
+                        numero_ordem=num_ordem,
                         tipo_votacao=ordemdia.tipo_votacao,
                         votacao_aberta=False, registro_aberto=False 
                     )
@@ -655,22 +653,17 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
         msg = _('Matéria(s) copiada(s) com sucesso.')
         messages.add_message(request, messages.SUCCESS, msg)
 
-        if self.expediente:
-            success_url = reverse(
-                'sapl.sessao:expedientemateria_list',
-                kwargs={'pk': sessao_plenaria_destino_id}
-            )
-        elif self.ordem:
-            success_url = reverse(
-                'sapl.sessao:ordemdia_list',
-                kwargs={'pk': sessao_plenaria_destino_id}
-            )
+        success_url = reverse(
+            self.listagem_url, kwargs={'pk': sessao_plenaria_destino_id}
+        )
         return HttpResponseRedirect(success_url)
 
 
 class TransferenciaMateriasExpediente(TransferenciaMateriasSessaoAbstract):
     expediente = True
     ordem = False
+    title = "Cópia de Matérias do Expediente"
+    listagem_url = 'sapl.sessao:expedientemateria_list'
 
     model = ExpedienteMateria
     permission_required = ('sessao.change_expedientemateria', )
@@ -679,6 +672,8 @@ class TransferenciaMateriasExpediente(TransferenciaMateriasSessaoAbstract):
 class TransferenciaMateriasOrdemDia(TransferenciaMateriasSessaoAbstract):
     expediente = False
     ordem = True
+    title = "Cópia de Matérias da Ordem do Dia"
+    listagem_url = 'sapl.sessao:ordemdia_list'
 
     model = OrdemDia
     permission_required = ('sessao.change_ordemdia', )
