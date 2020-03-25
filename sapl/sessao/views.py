@@ -560,53 +560,18 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
 
         sessao_plenaria_atual = SessaoPlenaria.objects.get(pk=self.kwargs['pk'])
 
-        ## O CÓDIGO COMENTADO RESTRINGI A CÓPIA DAS MATÉRIAS LIDAS OU VOTADAS
-        # LEITURA = 4
-        # lista_disponiveis = []
-
         if self.expediente:
             context["title"] = _("Cópia de Matérias do Expediente")
-
-            # for expediente in ExpedienteMateria.objects.filter(
-            #     sessao_plenaria=sessao_plenaria_atual
-            # ):
-            #     if expediente.tipo_votacao == LEITURA:
-            #         if not RegistroLeitura.objects.filter(
-            #             expediente=expediente
-            #         ).exists():
-            #             lista_disponiveis.append(expediente)
-            #     else:
-            #         if not RegistroVotacao.objects.filter(
-            #             expediente=expediente
-            #         ).exists():
-            #             lista_disponiveis.append(expediente)
-
             context['lista_disponiveis'] = ExpedienteMateria.objects.filter(
                 sessao_plenaria=sessao_plenaria_atual
             )
 
         elif self.ordem:
             context["title"] = _("Cópia de Matérias da Ordem do Dia")
-            
-            # for ordemdia in OrdemDia.objects.filter(
-            #     sessao_plenaria=sessao_plenaria_atual
-            # ):
-            #     if ordemdia.tipo_votacao == 4:
-            #         if not RegistroLeitura.objects.filter(
-            #             ordem=ordemdia
-            #         ).exists():
-            #             lista_disponiveis.append(ordemdia)
-            #     else:
-            #         if not RegistroVotacao.objects.filter(
-            #             ordem=ordemdia
-            #         ).exists():
-            #             lista_disponiveis.append(ordemdia)
-
             context['lista_disponiveis'] = OrdemDia.objects.filter(
                 sessao_plenaria=sessao_plenaria_atual
             )
 
-        # context["lista_disponiveis"] = lista_disponiveis
         context["numero_resultados"] = len(context["lista_disponiveis"])
 
         if context['numero_resultados']:
@@ -792,17 +757,6 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             if OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk']).exists():
                 context["enable_btn"] = True
 
-            # ordens_dia = OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'])
-            # for ordem_dia in ordens_dia:
-            #     if ordem_dia.tipo_votacao == 4:
-            #         if not RegistroLeitura.objects.filter(ordem=ordem_dia).exists():
-            #             context["enable_btn"] = True
-            #             break
-            #     else:
-            #         if not RegistroVotacao.objects.filter(ordem=ordem_dia).exists():
-            #             context['enable_btn'] = True
-            #             break
-
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
 
@@ -853,23 +807,6 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                 sessao_plenaria_id=self.kwargs['pk']
             ).exists():
                 context["enable_btn"] = True
-
-            # expedientes = ExpedienteMateria.objects.filter(
-            #     sessao_plenaria_id=self.kwargs['pk']
-            # )
-            # for expediente in expedientes:
-            #     if expediente.tipo_votacao == 4:
-            #         if not RegistroLeitura.objects.filter(
-            #             expediente=expediente
-            #         ).exists():
-            #             context["enable_btn"] = True
-            #             break
-            #     else:
-            #         if not RegistroVotacao.objects.filter(
-            #             expediente=expediente
-            #         ).exists():
-            #             context["enable_btn"] = True
-            #             break
 
             if self.request.GET.get('page'):
                 context['page'] = self.request.GET.get('page')
