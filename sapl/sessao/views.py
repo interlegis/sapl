@@ -1,5 +1,6 @@
 
 import logging
+from collections import OrderedDict
 from re import sub
 
 from django.contrib import messages
@@ -66,59 +67,32 @@ SECRETA = 3
 LEITURA = 4
 
 
-def reordernar_materias_expediente(request, pk):
-    expedientes = ExpedienteMateria.objects.filter(
-        sessao_plenaria_id=pk
-    ).order_by(
-        'materia__tipo__sequencia_regimental',
-        'materia__ano',
-        'materia__numero'
-    )
+def reordena_materias(request, pk, tipo, ordenacao):
+    TIPOS_MATERIAS = {
+        "expediente": ExpedienteMateria,
+        "ordemdia": OrdemDia
+    }
 
-    for exp_num, e in enumerate(expedientes, 1):
-        e.numero_ordem = exp_num
-        e.save()
+    TIPOS_ORDENACAO = {
+        "1": ("materia__tipo__sequencia_regimental", "materia__ano", "materia__numero"),
+        "2": ("materia__ano", "materia__numero"),
+        "3": ("-materia__ano", "materia__numero"),
+        "4": ("materia__autores", "materia__ano", "materia__numero")
+    }
 
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
+    TIPOS_URLS_SUCESSO = {
+        "expediente": "sapl.sessao:expedientemateria_list",
+        "ordemdia": "sapl.sessao:ordemdia_list"
+    }
 
+    materias = TIPOS_MATERIAS[tipo].objects.filter(sessao_plenaria_id=pk).order_by(*TIPOS_ORDENACAO[ordenacao])
+    materias = OrderedDict.fromkeys(materias)
 
-def reordernar_materias_ordem(request, pk):
-    ordens = OrdemDia.objects.filter(
-        sessao_plenaria_id=pk
-    ).order_by(
-        'materia__tipo__sequencia_regimental',
-        'materia__ano',
-        'materia__numero'
-    )
-    for ordem_num, o in enumerate(ordens, 1):
-        o.numero_ordem = ordem_num
-        o.save()
+    for numero, materia in enumerate(materias, 1):
+        materia.numero_ordem = numero
+        materia.save()
 
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
-
-
-def renumerar_materias_ordem(request, pk):
-    ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
-
-    for ordem_num, o in enumerate(ordens, 1):
-        o.numero_ordem = ordem_num
-        o.save()
-
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
-
-
-def renumerar_materias_expediente(request, pk):
-    expedientes = ExpedienteMateria.objects.filter(sessao_plenaria_id=pk)
-
-    for exp_num, e in enumerate(expedientes, 1):
-        e.numero_ordem = exp_num
-        e.save()
-
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
+    return HttpResponseRedirect(reverse(TIPOS_URLS_SUCESSO[tipo], kwargs={'pk': pk}))
 
 
 def verifica_presenca(request, model, spk, is_leitura=False):
