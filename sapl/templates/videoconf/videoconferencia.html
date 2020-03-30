@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+    <script src='https://meet.jit.si/external_api.js'></script>
+    <script language="Javascript">
+        api = undefined;
+        $(document).ready(function() {
+            const domain = 'meet.jit.si';
+            const options= {
+                roomName: 'test30392910',
+                width: 700,
+                height: 700,
+                parentNode: document.querySelector('#meet'),
+                interfaceConfigOverwrite: {TOOLBAR_BUTTONS: ['hangup','microphone', 'camera']}
+            };
+            api = new JitsiMeetExternalAPI(domain, options);
+            api.executeCommand('displayName', 'Vereador Teste'); //TODO: remover
+            // api.executeCommand('password', '12345');
+            api.executeCommand('toggleTileView');
+            //api.executeCommand('toggleChat');
+            api.executeCommand('subject', 'Sessão Plenária 18o. de 2020');
+
+            api.on('readyToClose', () => {
+                console.log('opaaaaa');
+            });
+        });
+    </script>
+    <title>Videoconferência</title>
+</head>
+<body>
+    <h2>Vídeoconferência</h2>
+    <div id="meet"></div>
+</body>
+</html>

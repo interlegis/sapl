@@ -34,6 +34,7 @@ import sapl.protocoloadm.urls
 import sapl.redireciona_urls.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
+import sapl.videoconf.urls
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='index.html'),
@@ -63,6 +64,8 @@ urlpatterns = [
         url='/static/sapl/img/favicon.ico', permanent=True)),
 
     url(r'', include(sapl.redireciona_urls.urls)),
+
+    url(r'', include(sapl.videoconf.urls)),
 ]
 
 

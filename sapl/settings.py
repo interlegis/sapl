@@ -23,7 +23,8 @@ from easy_thumbnails.conf import Settings as thumbnail_settings
 from unipath import Path
 
 
-host = socket.gethostbyname_ex(socket.gethostname())[0]
+#host = socket.gethostbyname_ex(socket.gethostname())[0]
+host = "127.0.0.1"
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
@@ -65,6 +66,7 @@ SAPL_APPS = (
     'sapl.redireciona_urls',
     'sapl.compilacao',
     'sapl.api',
+    'sapl.videoconf',
 
     'sapl.rules'
 
