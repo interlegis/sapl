@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 create_env() {
     echo "[ENV FILE] creating .env file..."

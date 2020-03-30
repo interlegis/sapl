@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ##
 ## Versioning info: [major].[minor].[patch][-RC[num]], example: 3.1.159, 3.1.159-RC1

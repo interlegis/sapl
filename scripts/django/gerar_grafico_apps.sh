@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 git_project_root=$(git rev-parse --show-toplevel)
 cd ${git_project_root}

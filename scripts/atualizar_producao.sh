@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 git pull --rebase
 workon sapl
 pip install -r requirements/dev-requirements.txt

@@ -1,4 +1,4 @@
-#/bin/bash
+#!/usr/bin/env bash
 
 KEY=`python gen-key.py`
 echo $KEY

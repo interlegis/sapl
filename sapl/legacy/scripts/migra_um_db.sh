@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # rodar esse script na raiz do projeto
 if [ $# -eq 1 ]; then

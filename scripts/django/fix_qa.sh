@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # QA fix: Use ese script para corrigir automaticamente vários
 #  problemas de estilo e boas práticas no código.

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # All tests under this directory are excluded in default pytest.ini
 # To run them use this script in this directory

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Inicia um shell_plus com as configurações de migração usando um banco específico
 # Uso: ./shell_para_migracao.sh <NOME DO BANCO>
