@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # (Re)cria todos os bancos postgres para migração
 # cria um banco postgres (de mesmo nome) para cada banco mysql cujo nome começa com "sapl_"

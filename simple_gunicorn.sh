@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 DJANGODIR=/var/interlegis/sapl                     # Django project directory (*)
 DJANGO_SETTINGS_MODULE=sapl.settings            # which settings file should Django use (*)
 DJANGO_WSGI_MODULE=sapl.wsgi                    # WSGI module name (*)

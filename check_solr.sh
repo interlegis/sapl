@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Pass the base SOLR URL as parameter, i.e., bash check_solr http://localhost:8983
 

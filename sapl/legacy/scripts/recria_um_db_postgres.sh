@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # (Re)cria um db postgres
 # uso:  recria_um_db_postgres <NOME DO BANCO>
 

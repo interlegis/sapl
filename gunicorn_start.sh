@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # As seen in http://tutos.readthedocs.org/en/latest/source/ndg.html
 

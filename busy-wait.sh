@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 while true; do
     COUNT_PG=`psql $1 -c '\l \q' | grep sapl | wc -l`
