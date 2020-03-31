@@ -617,11 +617,14 @@ class AutorForm(ModelForm):
 
             param_username = {
                 'user__' + get_user_model().USERNAME_FIELD: cd['username']}
-            if qs_autor.filter(**param_username).exists():
-                self.logger.error(
-                    'Já existe um Autor para este usuário ({}).'.format(cd['username']))
-                raise ValidationError(
-                    _('Já existe um usuário vinculado a esse autor'))
+
+            autor_vinculado = qs_autor.filter(**param_username)
+            if autor_vinculado.exists():
+                nome = autor_vinculado[0].nome
+                error_msg = 'Já existe um autor para este ' \
+                            'usuário ({}): {}'.format(cd['username'], nome)
+                self.logger.error(error_msg)
+                raise ValidationError(_(error_msg))
 
         """
         'if' não é necessário por ser campo obrigatório e o framework já
