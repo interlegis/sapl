@@ -132,6 +132,7 @@ def votacao(context,context_vars):
                         'Ordem do Dia/Expediente em votação.'})
     return context, context_vars
 
+
 def sessao_votacao(context,context_vars):
     pk = context_vars['sessao'].pk
     context.update({'sessao_id': pk})
