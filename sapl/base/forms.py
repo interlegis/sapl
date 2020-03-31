@@ -507,6 +507,35 @@ class AutorForm(ModelForm):
 
         if self.instance.pk:
             qs_autor = qs_autor.exclude(pk=self.instance.pk)
+            if self.instance.user:
+                qs_user = qs_user.exclude(pk=self.instance.user.pk)
+
+        if cd['action_user'] == 'A':
+            param_username = {get_user_model().USERNAME_FIELD: cd['username']}
+            if not User.objects.filter(**param_username).exists():
+                self.logger.error(
+                    'Não existe usuário com username "%s". ' % cd['username'])
+                raise ValidationError(
+                    _('Não existe usuário com username "%s". '
+                      'Para utilizar esse username você deve selecionar '
+                      '"Criar novo Usuário".') % cd['username'])
+
+        if cd['action_user'] != 'N':
+
+            if 'username' not in cd or not cd['username']:
+                self.logger.error('Username não informado.')
+                raise ValidationError(_('O username deve ser informado.'))
+
+            param_username = {
+                'user__' + get_user_model().USERNAME_FIELD: cd['username']}
+
+            autor_vinculado = qs_autor.filter(**param_username)
+            if autor_vinculado.exists():
+                nome = autor_vinculado[0].nome
+                error_msg = 'Já existe um autor para este ' \
+                            'usuário ({}): {}'.format(cd['username'], nome)
+                self.logger.error(error_msg)
+                raise ValidationError(_(error_msg))
 
         """
         'if' não é necessário por ser campo obrigatório e o framework já
