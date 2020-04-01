@@ -47,9 +47,9 @@ from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio,
                                  MateriaEmTramitacao, MateriaLegislativa, Proposicao,
-                                 StatusTramitacao, TipoDocumento,
-                                 TipoMateriaLegislativa,  UnidadeTramitacao, Tramitacao)
-from sapl.norma.models import NormaJuridica, TipoNormaJuridica
+                                 StatusTramitacao, TipoDocumento,MateriaProtocolo,
+                                 TipoMateriaLegislativa,  UnidadeTramitacao, Tramitacao,ProtocoloMateria)
+from sapl.norma.models import NormaJuridica, TipoNormaJuridica, NormaEstatisticas
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato, Parlamentar, 
                                       SessaoLegislativa)
 from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocolo,
@@ -59,7 +59,8 @@ from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, TipoSessaoPlenaria)
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao,
                         mail_service_configured, parlamentares_ativos,
-                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo)
+                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo, remover_acentos)
+
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
@@ -1648,14 +1649,11 @@ class ListarFiliacoesSemDataFiliacaoView(PermissionRequiredMixin, ListView):
 
 
 def materias_protocolo_inexistente():
-    materias = []
-    for materia in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero'):
-        exists = Protocolo.objects.filter(
-            ano=materia.ano, numero=materia.numero_protocolo).exists()
-        if not exists:
-            materias.append(
-                (materia, materia.ano, materia.numero_protocolo))
-    return materias
+    return [(m.materia, m.materia.ano, m.materia.numero_protocolo) for m in
+            MateriaProtocolo.objects\
+                .select_related('materia').all()\
+                .order_by('-ano_materia', 'numero_materia')]
+
 
 
 class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
@@ -1684,15 +1682,12 @@ class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
 
 def protocolos_com_materias():
     protocolos = {}
-    
-    for m in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero_protocolo'):
-        if Protocolo.objects.filter(numero=m.numero_protocolo, ano=m.ano).exists():
-            key = "{}/{}".format(m.numero_protocolo, m.ano)
-            val = protocolos.get(key, list())
-            val.append(m)
-            protocolos[key] = val
-    
-    return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
+
+    for p in ProtocoloMateria.objects.filter(total__gt=1):
+        key = "{}/{}".format(p.numero_protocolo, p.ano_protocolo)
+        protocolos[key] = list(MateriaLegislativa.objects.filter(id__in=p.materias))
+
+    return [(v[0], len(v)) for (k, v) in protocolos.items()]
 
 
 class ListarProtocolosComMateriasView(PermissionRequiredMixin, ListView):

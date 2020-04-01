@@ -1004,7 +1004,7 @@ class AnexadoForm(ModelForm):
         ciclico = False
         anexados_anexado = Anexado.objects.filter(documento_principal=documento_anexado)
 
-        while(anexados_anexado and not ciclico):
+        while anexados_anexado and not ciclico:
             anexados = []
 
             for anexo in anexados_anexado:

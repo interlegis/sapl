@@ -1007,20 +1007,23 @@ def mail_service_configured(request=None):
     return settings.EMAIL_RUNNING
 
 
-def lista_anexados(principal, isMateriaLegislativa=True):
-    anexados_total = []
-    if isMateriaLegislativa: #MateriaLegislativa
+def lista_anexados(principal):
+    from sapl.materia.models import MateriaLegislativa
+    is_materia = isinstance(principal, MateriaLegislativa)
+
+    if is_materia: #MateriaLegislativa
         from sapl.materia.models import Anexada
         anexados_iterator = Anexada.objects.filter(materia_principal=principal)
     else: #DocAdm
         from sapl.protocoloadm.models import Anexado
         anexados_iterator = Anexado.objects.filter(documento_principal=principal)
 
+    anexados_total = []
     anexadas_temp = list(anexados_iterator)
 
     while anexadas_temp:
         anx = anexadas_temp.pop()
-        if isMateriaLegislativa:
+        if is_materia:
             if anx.materia_anexada not in anexados_total:
                 anexados_total.append(anx.materia_anexada)
                 anexados_anexado = Anexada.objects.filter(materia_principal=anx.materia_anexada)
