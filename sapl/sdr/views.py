@@ -10,7 +10,7 @@ from sapl.base.models import Autor
 from sapl.crud.base import Crud
 from sapl.parlamentares.models import Parlamentar
 from sapl.rules import RP_LIST, RP_DETAIL
-from sapl.sdr.forms import DeliberacaoRemotaCreateForm
+from sapl.sdr.forms import DeliberacaoRemotaForm
 from sapl.sdr.models import DeliberacaoRemota, gen_session_id
 from sapl.sessao.models import SessaoPlenaria
 
@@ -23,22 +23,35 @@ class DeliberacaoRemotaCrud(Crud):
         ordered_list = False
         list_field_names = [
             'titulo',
-            'chat_id',
-            'finalizada',
-            'sessao_plenaria']
+            'sessao_plenaria',
+            'finalizada'
+        ]
 
-    # class CreateView(Crud.CreateView):
-    #     form_class = DeliberacaoRemotaCreateForm
-    #
-    #     layout_key = 'DeliberacaoRemotaCreate'
-    #
-    #     def get_initial(self):
-    #         import ipdb; ipdb.set_trace()
-    #         initial = super().get_initial()
-    #         initial['created_by'] = self.request.user
-    #         return initial
-    #
-    #     def get_context_data(self):
+    class CreateView(Crud.CreateView):
+        form_class = DeliberacaoRemotaForm
+        layout_key = 'DeliberacaoRemotaCreate'
+    
+        def get_initial(self):
+            initial = super().get_initial()
+            initial['created_by'] = self.request.user
+            return initial
+    
+    class UpdateView(Crud.UpdateView):
+        form_class = DeliberacaoRemotaForm
+        layout_key = 'DeliberacaoRemotaEdit'
+
+    class DetailView(Crud.DetailView):
+        layout_key = 'DeliberacaoRemota'
+        template_name = 'sdr/deliberacaoremota_detail.html'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['user'] = self.request.user
+
+            deliberacao = DeliberacaoRemota.objects.get(pk=self.kwargs['pk'])
+            context['deliberacao'] = deliberacao
+
+            return context
 
 
 class ChatView(PermissionRequiredMixin, TemplateView):

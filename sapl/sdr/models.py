@@ -44,4 +44,4 @@ class DeliberacaoRemota(models.Model):
         ordering = ['chat_id', 'descricao']
 
     def __str__(self):
-        return "".format(self.chat_id)
+        return _('%(titulo)s') % {'titulo': self.titulo}

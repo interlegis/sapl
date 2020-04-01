@@ -2,11 +2,17 @@
 
 DeliberacaoRemota:
   {% trans 'Deliberação Remota' %}:
-  - titulo finalizada
+  - titulo sessao_plenaria
   - descricao
 
 DeliberacaoRemotaCreate:
   {% trans 'Deliberação Remota' %}:
-  - created_by
-  - titulo finalizada
+  - created_by:10
+  - titulo sessao_plenaria
+  - descricao
+
+DeliberacaoRemotaEdit:
+  {% trans 'Deliberação Remota' %}:
+  - created_by:10 finalizada
+  - titulo sessao_plenaria
   - descricao
