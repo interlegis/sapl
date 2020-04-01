@@ -80,6 +80,10 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
         abertura_entre_leg = leg.data_inicio <= abertura <= leg.data_fim
         abertura_entre_sl = sl.data_inicio <= abertura <= sl.data_fim
         if encerramento is not None:
+            # Verifica se a data de encerramento é anterior a data de abertura
+            if encerramento < abertura:
+                raise ValidationError("A data de encerramento não pode ser "
+                                      "anterior a data de abertura.")
             encerramento_entre_leg = leg.data_inicio <= encerramento <= leg.data_fim
             encerramento_entre_sl = sl.data_inicio <= encerramento <= sl.data_fim
         else:
