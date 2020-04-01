@@ -66,7 +66,7 @@ SAPL_APPS = (
     'sapl.redireciona_urls',
     'sapl.compilacao',
     'sapl.api',
-    'sapl.videoconf',
+    'sapl.sdr',
 
     'sapl.rules'
 

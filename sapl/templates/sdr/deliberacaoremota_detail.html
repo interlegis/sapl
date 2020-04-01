@@ -2,8 +2,7 @@
 {% load i18n common_tags %}
 {% load render_bundle from webpack_loader %}
 
-
 {% block detail_content %}
     {{block.super}}
-    <a href="{% url 'sapl.videoconf:chat-session' object.pk %}"><strong>Link da sessão de vídeo</strong></a>
+    <a href="{% url 'sapl.sdr:chat-session' object.pk %}"><strong>Link da sessão de vídeo</strong></a>
 {% endblock detail_content %}

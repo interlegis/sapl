@@ -1,20 +1,39 @@
 import logging
 
+from django import forms
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.videoconf.models import Videoconferencia
+from sapl.sdr.models import DeliberacaoRemota
 
 
-class VideoconferenciaForm(ModelForm):
-
+class DeliberacaoRemotaCreateForm(ModelForm):
     logger = logging.getLogger(__name__)
 
     class Meta:
-        model = Videoconferencia
-        fields = ['chat_id', 'descricao']
+        model = DeliberacaoRemota
+        exclude = []
 
+        widgets = {
+            'created_by': forms.HiddenInput(),
+            'descricao': forms.Textarea(attrs={'id': 'texto-rico'})
+        }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        import ipdb; ipdb.set_trace()
+        if not self.is_valid():
+            return self.cleaned_data
+
+        return cleaned_data
+
+# class DeliberacaoRemotaForm(ModelForm):
+#
+#     logger = logging.getLogger(__name__)
+#
+#     class Meta:
+#         model = DeliberacaoRemota
+#         fields = ['chat_id', 'descricao']
 #     class AutoriaNormaForm(ModelForm):
 #
 #         tipo_autor = ModelChoiceField(label=_('Tipo Autor'),

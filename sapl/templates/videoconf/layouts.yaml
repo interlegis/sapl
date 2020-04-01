@@ -1,6 +1,0 @@
-{% load i18n %}
-
-Videoconferencia:
-  {% trans 'Videoconferência' %}:
-  - titulo finalizada
-  - descricao

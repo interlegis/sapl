@@ -1,0 +1,12 @@
+{% load i18n %}
+
+DeliberacaoRemota:
+  {% trans 'Deliberação Remota' %}:
+  - titulo finalizada
+  - descricao
+
+DeliberacaoRemotaCreate:
+  {% trans 'Deliberação Remota' %}:
+  - created_by
+  - titulo finalizada
+  - descricao

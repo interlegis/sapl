@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import sapl.videoconf.models
+import sapl.sdr.models
 
 
 class Migration(migrations.Migration):
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             name='Videoconferencia',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('chat_id', models.CharField(default=sapl.videoconf.models.gen_session_id, max_length=100, verbose_name='Chat ID')),
+                ('chat_id', models.CharField(default=sapl.sdr.models.gen_session_id, max_length=100, verbose_name='Chat ID')),
                 ('titulo', models.CharField(max_length=100, verbose_name='Título')),
                 ('descricao', models.CharField(blank=True, max_length=256, verbose_name='Descrição')),
                 ('inicio', models.DateTimeField(auto_now=True, verbose_name='Data e Hora de Início')),

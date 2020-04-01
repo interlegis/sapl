@@ -1,0 +1,1 @@
+default_app_config = 'sapl.sdr.apps.AppConfig'

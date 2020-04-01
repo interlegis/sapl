@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from sapl.sessao.models import SessaoPlenaria
 from sapl.utils import get_settings_auth_user_model
 
 
@@ -12,7 +13,7 @@ def gen_session_id():
     return ''.join([str(choice(range(10))) for _ in range(25)])
 
 
-class Videoconferencia(models.Model):
+class DeliberacaoRemota(models.Model):
 
     chat_id = models.CharField(max_length=100,
                                default=gen_session_id,
@@ -20,7 +21,12 @@ class Videoconferencia(models.Model):
     titulo = models.CharField(max_length=100, verbose_name=_('Título'))
     descricao = models.CharField(max_length=256, blank=True,
                                  verbose_name=_('Descrição'))
-    inicio = models.DateTimeField(auto_now=timezone.now, verbose_name=_('Data e Hora de Início'))
+    inicio = models.DateTimeField(auto_now=timezone.now,
+                                  verbose_name=_('Data e Hora de Início'))
+    #TODO: obrigatorio?
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        null=True, blank=True,
+                                        verbose_name=_('Sessão Plenária'))
 
     #TODO: preencher quando usuário selecionar a opção 'finalizada'
     termino = models.DateTimeField(blank=True, null=True,
@@ -33,8 +39,8 @@ class Videoconferencia(models.Model):
                                    verbose_name=_('Criado por'))
 
     class Meta:
-        verbose_name = _('Videoconferência')
-        verbose_name_plural = _('Videoconferências')
+        verbose_name = _('Deliberação Remota')
+        verbose_name_plural = _('Deliberações Remotas')
         ordering = ['chat_id', 'descricao']
 
     def __str__(self):

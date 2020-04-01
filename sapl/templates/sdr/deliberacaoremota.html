@@ -1,0 +1,80 @@
+{% extends "crud/detail.html" %}
+{% load i18n common_tags %}
+{% load render_bundle from webpack_loader %}
+
+{% block title%}
+  <h2 class="page-header">Sistema de Deliberação Remota (SDR)</h2>
+{% endblock %}
+
+{% block base_content %}{{block.super}}
+    <div id="content">
+        <h3>Título: {{ object.titulo }}<br/></h3>
+        <h3>Descrição: {{ object.descricao }}<br/></h3>
+        <h5>ID: {{ object.chat_id }}</h5><br/>
+        {% if is_parlamentar %}
+            <h4>Parlamentar: {{ parlamentar.nome_parlamentar }}</h4>
+        {% else %}
+            <h4>Nome: {{ nome_usuario }}</h4>
+        {% endif %}
+
+    </div>
+    <div class="container">
+        <div id="meet" class="col-md"></div>
+        <div id="painel" class="col-md">
+            <h3>Dados Básicos</h3>
+            Sessão: {{ sessao_plenaria }} <br/>
+            Data Início: {{ sessao_plenaria.data_inicio }} <br/>
+            Hora Início: {{ sessao_plenaria.hora_inicio }} <br/>
+            Iniciada: {{ sessao_plenaria.iniciada|yesno:"Sim,Não" }} <br/>
+            <br/>
+            <br/>
+            <!-- TODO: pegar de REST WS -->
+            <div class="row">
+                <div class="sm-5" style="margin-right:60px">
+                    <h3>Presença Sessão Plenária</h3>
+                    <ul>
+                        {% for p in sessao_plenaria.sessaoplenariapresenca_set.all %}
+                            <li>{{p.parlamentar}}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="sm-5" style="margin-right:60px">
+                    <h3>Presentes Ordem do Dia:</h3>
+                    <ul>
+                        {% for p in sessao_plenaria.presencaordemdia_set.all %}
+                            <li>{{p.parlamentar}}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+    </div>
+{% endblock base_content %}
+
+{% block extra_js %}
+{{block.super}}
+    <script src='https://meet.jit.si/external_api.js'></script>
+    <script language="Javascript">
+        api = undefined;
+        $(document).ready(function() {
+            const domain = 'jitsih.interlegis.leg.br';
+            const options= {
+                roomName: '{{object.chat_id}}',
+                width: 700,
+                height: 700,
+                parentNode: document.querySelector('#meet'),
+                interfaceConfigOverwrite: {TOOLBAR_BUTTONS: ['hangup','microphone', 'camera']}
+            };
+            api = new JitsiMeetExternalAPI(domain, options);
+            api.executeCommand('displayName', '{{nome_usuario}}');
+            api.executeCommand('toggleTileView');
+            api.executeCommand('subject', '{{object.titulo}}');
+            // api.executeCommand('password', '12345');
+            //api.executeCommand('toggleChat');
+
+            api.on('readyToClose', () => {
+                console.log('Closed session');
+                window.location.href = "{% url 'sapl.sdr:deliberacaoremota_list' %}";
+            });
+        });
+    </script>
+{% endblock extra_js %}
