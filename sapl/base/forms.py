@@ -643,12 +643,12 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
         self.filters['tipo'].label = 'Tipo de Documento'
         self.filters['materia__tipo'].label = 'Tipo de Matéria do Documento'
         self.filters['data'].label = 'Período (Data Inicial - Data Final)'
-        
+
         self.form.fields['tipo'].required = True
 
         row0 = to_row([('tipo', 6),
                        ('materia__tipo', 6)])
-    
+
         row1 = to_row([('data', 12)])
 
         buttons = FormActions(
@@ -662,16 +662,15 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa'),
-            row0, row1,
-            buttons)
+                     row0, row1,
+                     buttons)
         )
 
 
@@ -707,8 +706,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -717,6 +715,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
             Fieldset(_('Atas das Sessões Plenárias'),
                      row1, buttons, )
         )
+
 
 def ultimo_ano_com_norma():
     anos_normas = choice_anos_com_normas()
@@ -757,8 +756,7 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -801,8 +799,7 @@ class EstatisticasAcessoNormasForm(Form):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.helper = SaplFormHelper()
@@ -854,8 +851,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -884,15 +880,16 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         super(RelatorioPresencaSessaoFilterSet, self).__init__(
             *args, **kwargs)
 
-        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(required=False, 
+        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(required=False,
                                                                   label='Exibir presença das Ordens do Dia')
-        self.form.initial['exibir_ordem_dia']  = True
+        self.form.initial['exibir_ordem_dia'] = True
 
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
 
         self.form.fields['legislatura'].required = True
-        
-        tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(nome='Ordinária')
+
+        tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(
+            nome='Ordinária')
         if tipo_sessao_ordinaria:
             self.form.initial['tipo'] = tipo_sessao_ordinaria.first()
 
@@ -913,8 +910,7 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -982,8 +978,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1038,8 +1033,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1084,8 +1078,7 @@ class RelatorioReuniaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1129,8 +1122,7 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1145,8 +1137,8 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
 class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
 
     materia__ano = django_filters.ChoiceFilter(required=True,
-                                      label='Ano da Matéria',
-                                      choices=choice_anos_com_materias)
+                                               label='Ano da Matéria',
+                                               choices=choice_anos_com_materias)
 
     tramitacao__unidade_tramitacao_destino = django_filters.ModelChoiceFilter(
         queryset=UnidadeTramitacao.objects.all(),
@@ -1191,8 +1183,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1232,8 +1223,7 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1243,7 +1233,6 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
                      row1,
                      buttons, )
         )
-
 
 
 class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
@@ -1288,8 +1277,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1396,7 +1384,8 @@ class ConfiguracoesAppForm(ModelForm):
         if not self.is_valid():
             return cleaned_data
 
-        mostrar_brasao_painel = self.cleaned_data.get('mostrar_brasao_painel', False)
+        mostrar_brasao_painel = self.cleaned_data.get(
+            'mostrar_brasao_painel', False)
         casa = CasaLegislativa.objects.first()
 
         if not casa:
@@ -1724,8 +1713,7 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1779,8 +1767,7 @@ class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
