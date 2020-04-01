@@ -521,7 +521,7 @@ class AutorForm(ModelForm):
         tipo = cd['tipo']
 
         if 'nome' in cd and \
-                Autor.objects.filter(nome=cd['nome']).exists():
+                qs_autor.filter(nome=cd['nome']).exists():
             raise ValidationError("Autor '%s' já existente!" % cd['nome'])
 
         if not tipo.content_type:
