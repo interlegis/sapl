@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.views.generic import TemplateView
+from django.utils import timezone
 
 from sapl.base.models import Autor
 from sapl.crud.base import Crud
@@ -34,6 +35,7 @@ class DeliberacaoRemotaCrud(Crud):
         def get_initial(self):
             initial = super().get_initial()
             initial['created_by'] = self.request.user
+            initial['inicio'] = timezone.now()
             return initial
     
     class UpdateView(Crud.UpdateView):

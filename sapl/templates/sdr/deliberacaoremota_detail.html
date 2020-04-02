@@ -50,27 +50,27 @@
             </div>
         </div>
     </div>
-    {% if user.is_superuser %}
-            {% if deliberacao.created_by %}
-                <br/>
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div id="div_id_user" class="form-group">
-                            <p class="control-label">Criado por</p>
-                            <div class="controls">
-                                <div class="form-control-static">
-                                    <div class="dont-break-out">
-                                        <a href="{% url 'sapl.base:user_edit' deliberacao.created_by.pk %}">
-                                            {{ deliberacao.created_by }}
-                                          </a>
-                                    </div>
-                                </div>
-                            </div>
+    <br/>
+    <div class="row">
+        <div class="col-sm-12">
+            <div id="div_id_user" class="form-group">
+                <p class="control-label">Criado por</p>
+                <div class="controls">
+                    <div class="form-control-static">
+                        <div class="dont-break-out">
+                            <a href="{% url 'sapl.base:user_edit' deliberacao.created_by.pk %}">
+                                {{ deliberacao.created_by }}
+                            </a>
                         </div>
                     </div>
                 </div>
-            {% endif %}
-    {% endif %}
+            </div>
+        </div>
+    </div>
     <br/>
-    <a href="{% url 'sapl.sdr:chat-session' object.pk %}"><strong>Link da sessão de vídeo</strong></a>
+    {% if not user.is_anonymous %}
+        {% if not deliberacao.finalizada %}
+            <a href="{% url 'sapl.sdr:chat-session' object.pk %}"><strong>Link da sessão de vídeo</strong></a>
+        {% endif %}
+    {% endif %}
 {% endblock detail_content %}
