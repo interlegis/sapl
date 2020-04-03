@@ -6,47 +6,53 @@
   <h2 class="page-header">Sistema de Deliberação Remota (SDR)</h2>
 {% endblock %}
 
-{% block base_content %}{{block.super}}
+{% block base_content %}
+    {{ block.super }}
     <div id="content">
         <h3>Título: {{ object.titulo }}<br/></h3>
         <h3>Descrição: {{ object.descricao }}<br/></h3>
         <h5>ID: {{ object.chat_id }}</h5><br/>
         {% if is_parlamentar %}
-            <h4>Parlamentar: {{ parlamentar.nome_parlamentar }}</h4>
+            <h4>Parlamentar: {{ parlamentar.nome_parlamentar }}</h4><br/>
         {% else %}
-            <h4>Nome: {{ nome_usuario }}</h4>
+            <h4>Usuário: {{ nome_usuario }}</h4><br/>
         {% endif %}
-
     </div>
     <div class="container">
         <div id="meet" class="col-md"></div>
         <div id="painel" class="col-md">
-            <h3>Dados Básicos</h3>
-            Sessão: {{ sessao_plenaria }} <br/>
-            Data Início: {{ sessao_plenaria.data_inicio }} <br/>
-            Hora Início: {{ sessao_plenaria.hora_inicio }} <br/>
-            Iniciada: {{ sessao_plenaria.iniciada|yesno:"Sim,Não" }} <br/>
-            <br/>
-            <br/>
+            <div class="row">
+                <div class="sm-6" style="margin-right:60px">
+                    <br/><h3>Dados Básicos</h3>
+                    Sessão: {{ object.sessao_plenaria }} <br/>
+                    Data Início: {{ object.sessao_plenaria.data_inicio }} <br/>
+                    Hora Início: {{ object.sessao_plenaria.hora_inicio }} <br/>
+                    Iniciada: {{ object.sessao_plenaria.iniciada|yesno:"Sim,Não" }} <br/>
+                    <br/>
+                </div>
+            </div>
             <!-- TODO: pegar de REST WS -->
             <div class="row">
                 <div class="sm-5" style="margin-right:60px">
                     <h3>Presença Sessão Plenária</h3>
                     <ul>
-                        {% for p in sessao_plenaria.sessaoplenariapresenca_set.all %}
-                            <li>{{p.parlamentar}}</li>
+                        {% for p in object.sessao_plenaria.sessaoplenariapresenca_set.all %}
+                            <li>{{ p.parlamentar }}</li>
                         {% endfor %}
+                        <br/>
                     </ul>
                 </div>
                 <div class="sm-5" style="margin-right:60px">
                     <h3>Presentes Ordem do Dia:</h3>
                     <ul>
-                        {% for p in sessao_plenaria.presencaordemdia_set.all %}
-                            <li>{{p.parlamentar}}</li>
+                        {% for p in object.sessao_plenaria.presencaordemdia_set.all %}
+                            <li>{{ p.parlamentar }}</li>
                         {% endfor %}
+                        <br/>
                     </ul>
                 </div>
             </div>
+        </div>
     </div>
 {% endblock base_content %}
 
@@ -56,20 +62,29 @@
     <script language="Javascript">
         api = undefined;
         $(document).ready(function() {
-            const domain = 'jitsih.interlegis.leg.br';
+            const domain = 'meet.jit.si';
             const options= {
-                roomName: '{{object.chat_id}}',
-                width: 700,
+                roomName: '{{ object.chat_id }}',
+                // width: 700,
                 height: 700,
+                configOverwrite: { defaultLanguage: 'ptBR' },
                 parentNode: document.querySelector('#meet'),
-                interfaceConfigOverwrite: {TOOLBAR_BUTTONS: ['hangup','microphone', 'camera']}
+                interfaceConfigOverwrite: {TOOLBAR_BUTTONS: [
+                    'microphone', 'camera', 'hangup', 'chat', 'recording', 'livestreaming', 'raisehand',
+                    'videoquality', 'shortcuts', 'tileview'
+                ]}
             };
+            
             api = new JitsiMeetExternalAPI(domain, options);
-            api.executeCommand('displayName', '{{nome_usuario}}');
+
             api.executeCommand('toggleTileView');
-            api.executeCommand('subject', '{{object.titulo}}');
-            // api.executeCommand('password', '12345');
-            //api.executeCommand('toggleChat');
+            // api.executeCommand('toggleChat');
+            api.executeCommand('subject', '{{ object.titulo }}');
+            api.executeCommand('displayName', '{{ nome_usuario }}');
+
+            // api.addEventListener('videoConferenceJoined', (response) => {
+            //     api.executeCommand('password', {{ password }});
+            // });
 
             api.on('readyToClose', () => {
                 console.log('Closed session');

@@ -55,10 +55,10 @@ class DeliberacaoRemotaCrud(Crud):
 
             return context
 
-
-class ChatView(PermissionRequiredMixin, TemplateView):
+class ChatView(TemplateView):
+# class ChatView(PermissionRequiredMixin, TemplateView):
     template_name = "sdr/deliberacaoremota.html"
-    permission_required = ('sessao.add_sessao', )
+    # permission_required = ('sessao.view_expedientemateria')
     logger = logging.getLogger(__name__)
 
     def get_context_data(self, **kwargs):
@@ -98,9 +98,5 @@ class ChatView(PermissionRequiredMixin, TemplateView):
             }
 
         context.update(user_data)
-
-        # TODO: recuperar sessao_plenaria da vinculacao
-        sessao_plenaria = SessaoPlenaria.objects.last()
-        context.update({'sessao_plenaria': sessao_plenaria})
 
         return context
