@@ -257,6 +257,11 @@ apps_url_patterns_prefixs_and_users = {
         'prefixs': [
             '/relatorios',
         ]},
+    'sdr': {
+        'prefixs': [
+            '/sdr',
+        ]
+    },
     'sessao': {
         'users': {'operador_geral': ['/sistema', 'sessao'],
                   'operador_sessao': ['/sessao']},

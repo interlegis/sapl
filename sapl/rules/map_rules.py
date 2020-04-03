@@ -45,7 +45,7 @@ from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL, RP_LIST,
                         SAPL_GROUP_PROTOCOLO, SAPL_GROUP_SESSAO,
                         SAPL_GROUP_VOTANTE)
 from sapl.sessao import models as sessao
-
+from sapl.sdr import models as sdr
 
 __base__ = [RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE]
 __listdetailchange__ = [RP_LIST, RP_DETAIL, RP_CHANGE]
@@ -318,9 +318,7 @@ rules_group_geral = {
         (audiencia.AudienciaPublica, __base__, __perms_publicas__),
         (audiencia.TipoAudienciaPublica, __base__, __perms_publicas__),
 
-
-
-
+        (sdr.DeliberacaoRemota, __base__, __perms_publicas__)
     ]
 }
 
