@@ -22,26 +22,22 @@
 
 
 {% block actions %}
-  {% if user.is_authenticated and perms.comissoes.add_composicao %}
-    <div class="actions btn-group float-right btn-group-lg" role="group">
-      <a href="composicao/create" class="btn btn-outline-primary">
+  <div class="d-flex flex-column flex-sm-row   mb-3 justify-content-between align-items-center">
+    {% if user.is_authenticated and perms.comissoes.add_participacao and composicao_list %}
+      <a  v-bind:href="'/comissao/'+composicao_id+'/participacao/create'" class="btn btn-outline-primary">
+        Adicionar Participação em Comissão
+      </a>
+    {% endif %}
+    {% if user.is_authenticated and perms.comissoes.add_composicao %}
+      <a href="composicao/create" class="btn btn-outline-primary btn-lg">
         Adicionar Composição de Comissão
       </a>
-    </div>
-  {% endif %}
+    {% endif %}
+  </div>
 {% endblock actions %}
 
 
 {% block container_table_list %}
-  {% if user.is_authenticated and perms.comissoes.add_participacao and composicao_list %}
-    <div class="context-actions clearfix">
-      <div class="actions btn-group mb-2" role="group">
-        <a  v-bind:href="'/comissao/'+composicao_id+'/participacao/create'" class="btn btn-outline-primary">
-          Adicionar Participação em Comissão
-        </a>
-      </div>
-    </div>
-  {% endif %}
   <div class="container-table">
     <table class="table table-striped table-hover table-link-ordering">
       <thead>
