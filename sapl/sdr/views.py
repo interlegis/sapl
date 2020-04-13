@@ -87,10 +87,11 @@ def get_dados_deliberacao_remota(request, pk):
                         )
                     )
                 else:
+                    resultado = "Matéria sendo Lida" if expediente.votacao_aberta else "Matéria Não Lida" 
                     materias_expediente.append(
                         (
                             str(expediente.numero_ordem), expediente.materia.__str__(),
-                            expediente.materia.ementa, "Matéria Não Lida"
+                            expediente.materia.ementa, resultado
                         )
                     )   
             else:
@@ -103,10 +104,11 @@ def get_dados_deliberacao_remota(request, pk):
                         )
                     )
                 else:
+                    resultado = "Matéria em Votação" if expediente.votacao_aberta else "Matéria Não Votada"
                     materias_expediente.append(
                         (
                             str(expediente.numero_ordem), expediente.materia.__str__(),
-                            expediente.materia.ementa, "Matéria Não Votada"
+                            expediente.materia.ementa, resultado
                         )
                     )
 
@@ -127,10 +129,11 @@ def get_dados_deliberacao_remota(request, pk):
                         )
                     )
                 else:
+                    resultado = "Matéria sendo Lida" if ordemdia.votacao_aberta else "Matéria Não Lida" 
                     materias_ordemdia.append(
                         (
                             str(ordemdia.numero_ordem), ordemdia.materia.__str__(),
-                            ordemdia.materia.ementa, "Matéria Não Lida"
+                            ordemdia.materia.ementa, resultado
                         )
                     )   
             else:
@@ -143,10 +146,11 @@ def get_dados_deliberacao_remota(request, pk):
                         )
                     )
                 else:
+                    resultado = "Matéria em Votação" if ordemdia.votacao_aberta else "Matéria Não Votada"
                     materias_ordemdia.append(
                         (
                             str(ordemdia.numero_ordem), ordemdia.materia.__str__(),
-                            ordemdia.materia.ementa, "Matéria Não Votada"
+                            ordemdia.materia.ementa, resultado
                         )
                     )
 

@@ -134,9 +134,16 @@
 
                             let materias_expediente = "";
                             data["materias_expediente"].forEach(materia_expediente => {
-                                expediente_1 = "<tr><td>" + materia_expediente[0] + "</td><td>" + materia_expediente[1] + "</td><td>" + materia_expediente[2] + "</td><td><b>";
-                                expediente_2 = materia_expediente[3] + "</b></td></tr>";
-                                materias_expediente = materias_expediente + expediente_1 + expediente_2;
+                                if (materia_expediente[3] === "Matéria sendo Lida"  || materia_expediente[3] === "Matéria em Votação"){
+                                    expediente_1 = "<tr><td><font color='green'><b>" + materia_expediente[0] + "</b></font></td><td><font color='green'><b>" + materia_expediente[1];
+                                    expediente_2 = "</b></font></td><td><font color='green'><b>" + materia_expediente[2] + "</b></font></td><td><font color='green'><b>";
+                                    expediente_3 = materia_expediente[3] + "</b></font></td></tr>";
+                                    materias_expediente = materias_expediente + expediente_1 + expediente_2 + expediente_3;
+                                } else {
+                                    expediente_1 = "<tr><td>" + materia_expediente[0] + "</td><td>" + materia_expediente[1] + "</td><td>" + materia_expediente[2] + "</td><td><b>";
+                                    expediente_2 = materia_expediente[3] + "</b></td></tr>";
+                                    materias_expediente = materias_expediente + expediente_1 + expediente_2;
+                                }
                             });
                             if (!materias_expediente){
                                 materias_expediente = "Nenhum registro encontrado.";
@@ -181,9 +188,16 @@
 
                             let materias_ordemdia = "";
                             data["materias_ordemdia"].forEach(materia_ordemdia => {
-                                ordemdia_1 = "<tr><td>" + materia_ordemdia[0] + "</td><td>" + materia_ordemdia[1] + "</td><td>" + materia_ordemdia[2] + "</td><td><b>";
-                                ordemdia_2 = materia_ordemdia[3] + "</b></td></tr>";
-                                materias_ordemdia = materias_ordemdia + ordemdia_1 + ordemdia_2;
+                                if (materia_ordemdia[3] === "Matéria sendo Lida" || materia_ordemdia[3] === "Matéria em Votação"){
+                                    ordemdia_1 = "<tr><td><font color='green'><b>" + materia_ordemdia[0] + "</b></font></td><td><font color='green'><b>" + materia_ordemdia[1];
+                                    ordemdia_2 = "</b></font></td><td><font color='green'><b>" + materia_ordemdia[2] + "</b></font></td><td><font color='green'><b>";
+                                    ordemdia_3 = materia_ordemdia[3] + "</b></font></td></tr>";
+                                    materias_ordemdia = materias_ordemdia + ordemdia_1 + ordemdia_2 + ordemdia_3;
+                                } else {
+                                    ordemdia_1 = "<tr><td>" + materia_ordemdia[0] + "</td><td>" + materia_ordemdia[1] + "</td><td>" + materia_ordemdia[2] + "</td><td><b>";
+                                    ordemdia_2 = materia_ordemdia[3] + "</b></td></tr>";
+                                    materias_ordemdia = materias_ordemdia + ordemdia_1 + ordemdia_2;
+                                }
                             });
                             if (!materias_ordemdia){
                                 materias_ordemdia = "Nenhum registro encontrado."
