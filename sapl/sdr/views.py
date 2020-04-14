@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.utils import timezone
@@ -60,7 +61,10 @@ class DeliberacaoRemotaCrud(Crud):
             return context
 
 
-#@user_passes_test(check_permission)
+def check_permission(user):
+    return False if user.is_anonymous else True
+
+@user_passes_test(check_permission)
 def get_dados_deliberacao_remota(request, pk):
     sessao = SessaoPlenaria.objects.get(id=pk)
 
@@ -87,13 +91,13 @@ def get_dados_deliberacao_remota(request, pk):
                         )
                     )
                 else:
-                    resultado = "Matéria sendo Lida" if expediente.votacao_aberta else "Matéria Não Lida" 
+                    resultado = "Matéria sendo Lida" if expediente.votacao_aberta else "Matéria Não Lida"
                     materias_expediente.append(
                         (
                             str(expediente.numero_ordem), expediente.materia.__str__(),
                             expediente.materia.ementa, resultado
                         )
-                    )   
+                    )
             else:
                 if RegistroVotacao.objects.filter(expediente=expediente).exists():
                     registro = RegistroVotacao.objects.get(expediente=expediente)
@@ -129,13 +133,13 @@ def get_dados_deliberacao_remota(request, pk):
                         )
                     )
                 else:
-                    resultado = "Matéria sendo Lida" if ordemdia.votacao_aberta else "Matéria Não Lida" 
+                    resultado = "Matéria sendo Lida" if ordemdia.votacao_aberta else "Matéria Não Lida"
                     materias_ordemdia.append(
                         (
                             str(ordemdia.numero_ordem), ordemdia.materia.__str__(),
                             ordemdia.materia.ementa, resultado
                         )
-                    )   
+                    )
             else:
                 if RegistroVotacao.objects.filter(ordem=ordemdia).exists():
                     registro = RegistroVotacao.objects.get(ordem=ordemdia)
@@ -168,19 +172,19 @@ def get_dados_deliberacao_remota(request, pk):
 
 
 class ChatView(TemplateView):
-# class ChatView(PermissionRequiredMixin, TemplateView):
     template_name = "sdr/deliberacaoremota.html"
-    # permission_required = ('sessao.view_expedientemateria')
     logger = logging.getLogger(__name__)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
+
         try:
             context['object'] = DeliberacaoRemota.objects.get(id=kwargs['pk'])
         except ObjectDoesNotExist:
-            pass #TODO: return error
+            self.logger.error('user=' + user.username + '. Erro ao obter DeliberacaoRemota com pk={}.'.format(kwargs['pk']))  
+            return context
 
-        user = self.request.user
         content_type = ContentType.objects.get_for_model(Parlamentar)
         try:
             autor = user.autor

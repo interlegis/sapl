@@ -8,50 +8,58 @@
 
 {% block base_content %}
     {{ block.super }}
-    <div id="content">
-        <h4><b>Título:</b> {{ object.titulo }}<br/></h4>
-        <h4><b>Descrição:</b> {% if object.descricao %}{{ object.descricao }}{% else %}Sem descrição.{% endif %}<br/></h4>
-        <h5><b>ID:</b> {{ object.chat_id }}</h5><br/>
-        {% if is_parlamentar %}
-            <h4><b>Parlamentar:</b> {{ parlamentar.nome_parlamentar }}</h4><br/>
-        {% else %}
-            <h4><b>Usuário:</b> {{ nome_usuario }}</h4><br/>
-        {% endif %}
-    </div>
-    <div class="container">
-        <div id="meet" class="col-md"></div>
-        <div id="painel" class="col-md">
-            {% if object.sessao_plenaria %}
-                <div class="row"><div id="dados_basicos" class="sm-12" style="margin-right:60px"></div></div>
-                <div class="row"><div id="titulo_expediente" class="sm-12" style="margin-right:60px"></div></div>
-                <div class="row">
-                    <div id="presenca_sessao" class="sm-6" style="margin-top: 6px; margin-right:60px"></div>
-                    <div id="oradores_expediente" class="sm-6" style="margin-top: 6px; margin-right:60px"></div>
-                </div>
-                <div class="row">
-                    <div class="sm-12">
-                        <table class="table table-striped table-hover">
-                            <thead id="thead_tabela_expediente"></thead>
-                            <tbody id="materias_expediente"></tbody>
-                        </table>
+    {% if object %}
+        <div id="content">
+            <h4><b>Título:</b> {{ object.titulo }}<br/></h4>
+            <h4><b>Descrição:</b> {% if object.descricao %}{{ object.descricao }}{% else %}Sem descrição.{% endif %}<br/></h4>
+            <h5><b>ID:</b> {{ object.chat_id }}</h5><br/>
+            {% if is_parlamentar %}
+                <h4><b>Parlamentar:</b> {{ parlamentar.nome_parlamentar }}</h4><br/>
+            {% else %}
+                <h4><b>Usuário:</b> {{ nome_usuario }}</h4><br/>
+            {% endif %}
+        </div>
+        <div class="container">
+            {% if not object.finalizada %}
+                <div id="meet" class="col-md"></div>
+            {% else %}
+                <font size="3"><p align="center"><b>Atenção! Deliberação Remota finalizada.</b></p></font>
+            {% endif %}
+            <div id="painel" class="col-md">
+                {% if object.sessao_plenaria %}
+                    <div class="row"><div id="dados_basicos" class="sm-12" style="margin-right:60px"></div></div>
+                    <div class="row"><div id="titulo_expediente" class="sm-12" style="margin-right:60px"></div></div>
+                    <div class="row">
+                        <div id="presenca_sessao" class="sm-6" style="margin-top: 6px; margin-right:60px"></div>
+                        <div id="oradores_expediente" class="sm-6" style="margin-top: 6px; margin-right:60px"></div>
                     </div>
-                </div>
-                <div class="row"><div id="titulo_ordemdia" class="sm-12" style="margin-right:60px"></div></div>
-                <div class="row">
-                    <div id="presenca_ordemdia" class="sm-6" style="margin-top: 6px; margin-right:60px"></div>
-                    <div id="oradores_ordemdia" class="sm-6" style="margin-top: 6px; margin-right:60px"></div>
-                </div>
-                <div class="row">
-                    <div class="sm-12">
-                        <table class="table table-striped table-hover">
-                            <thead id="thead_tabela_ordemdia"></thead>
-                            <tbody id=materias_ordemdia></tbody>
-                        </table>
+                    <div class="row">
+                        <div class="sm-12">
+                            <table class="table table-striped table-hover">
+                                <thead id="thead_tabela_expediente"></thead>
+                                <tbody id="materias_expediente"></tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>    
+                    <div class="row"><div id="titulo_ordemdia" class="sm-12" style="margin-right:60px"></div></div>
+                    <div class="row">
+                        <div id="presenca_ordemdia" class="sm-6" style="margin-top: 6px; margin-right:60px"></div>
+                        <div id="oradores_ordemdia" class="sm-6" style="margin-top: 6px; margin-right:60px"></div>
+                    </div>
+                    <div class="row">
+                        <div class="sm-12">
+                            <table class="table table-striped table-hover">
+                                <thead id="thead_tabela_ordemdia"></thead>
+                                <tbody id=materias_ordemdia></tbody>
+                            </table>
+                        </div>
+                    </div>    
+                {% endif %}
             </div>
-        {% endif %}
-    </div>
+        </div>
+    {% else %}
+        <font size="5"><p align="center"><b>Erro! Deliberação Remota não encontrada.</b></p></font>
+    {% endif %}
     <br/>
 {% endblock base_content %}
 
@@ -92,7 +100,11 @@
     </script>
 
     <script language="Javascript">
-        $(document).ready(function() { (function poll() { 
+        $(document).ready(function() { (function poll() {
+            "{% if user.is_anonymous %}"
+                window.location.href = "{% url 'sapl.base:login' %}?next=/sdr/chat/{{object.id}}"
+            "{% endif %}"
+
             "{% if object.sessao_plenaria %}"
                 $.ajax({
                     url: "{% url 'sapl.sdr:dados_deliberacao_remota' object.sessao_plenaria.id %}",

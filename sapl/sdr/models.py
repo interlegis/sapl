@@ -23,17 +23,12 @@ class DeliberacaoRemota(models.Model):
                                  verbose_name=_('Descrição'))
     inicio = models.DateTimeField(blank=True, null=True,
                                   verbose_name=_('Data e Hora de Início'))
-    #TODO: obrigatorio?
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         null=True, blank=True,
                                         verbose_name=_('Sessão Plenária'))
-
-    #TODO: preencher quando usuário selecionar a opção 'finalizada'
     termino = models.DateTimeField(blank=True, null=True,
                                    verbose_name=_('Data e Hora de Término'))
     finalizada = models.BooleanField(default=False, verbose_name=_('Finalizada?'))
-
-    #TODO: obrigatório com preenchimento automatico
     created_by = models.ForeignKey(get_settings_auth_user_model(),
                                    blank=True, null=True,
                                    verbose_name=_('Criado por'))
