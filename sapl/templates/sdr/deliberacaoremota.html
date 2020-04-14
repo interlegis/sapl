@@ -72,7 +72,6 @@
             const domain = 'meet.jit.si';
             const options= {
                 roomName: '{{ object.chat_id }}',
-                // width: 700,
                 height: 700,
                 configOverwrite: { defaultLanguage: 'ptBR' },
                 parentNode: document.querySelector('#meet'),
@@ -84,13 +83,8 @@
             api = new JitsiMeetExternalAPI(domain, options);
 
             api.executeCommand('toggleTileView');
-            // api.executeCommand('toggleChat');
             api.executeCommand('subject', '{{ object.titulo }}');
             api.executeCommand('displayName', '{{ nome_usuario }}');
-
-            // api.addEventListener('videoConferenceJoined', (response) => {
-            //     api.executeCommand('password', {{ password }});
-            // });
 
             api.on('readyToClose', () => {
                 console.log('Closed session');
@@ -228,7 +222,7 @@
                 },
                 dataType: "json",
                 complete: setTimeout(function() {poll()}, 500),
-                timeout: 20000 // TODO: decrease
+                timeout: 20000
                 })
             "{% endif %}" 
         } )(); });
