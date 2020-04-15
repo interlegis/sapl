@@ -2725,3 +2725,54 @@ class TipoMateriaCrud(CrudAux):
                 self.object.save()
 
             return fv
+
+
+def create_merged_docacessorio(mat_pk):
+    from PyPDF4 import PdfFileReader, PdfFileMerger
+    # reader1 = PdfFileReader("/tmp/sbm_imprimir_pedido__100047424.pdf")
+    output = "/tmp/merged.pdf"
+    merger = PdfFileMerger(open(output, "wb"))
+    input1 = open("/tmp/sbm_imprimir_pedido__100047424.pdf", "rb")
+
+    merger.append(fileobj=input1)
+    merger.append(fileobj=input1)
+    merger.append(fileobj=input1)
+    merger.write()
+    merger.close()
+
+    pass
+
+
+def create_zip_docacessorios(mat_pk):
+    import os
+    import time
+    import zipfile
+    from datetime import datetime
+    from sapl.settings import MEDIA_ROOT
+
+    materia = MateriaLegislativa.objects.get(id=mat_pk)
+    docs = materia.documentoacessorio_set.\
+        all().values_list('arquivo', flat=True)
+
+    docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs]
+    zipfilename = '/tmp/mat_{}_{}.zip'.format(
+        mat_pk,
+        time.mktime(datetime.now().timetuple()))
+    with zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for f in docs_path:
+            zipf.write(f, f.split(os.sep)[-1])
+
+    external_name = "{}_{}.zip".format(materia.numero, materia.ano)
+    return external_name, zipfilename
+
+
+def get_zip_docacessorios(request, pk):
+    import os
+    external_name, zipfilename = create_zip_docacessorios(pk)
+    with open(os.path.join('/tmp', zipfilename), 'rb') as f:
+        data = f.read()
+    response = HttpResponse(data, content_type='application/zip')
+    response['Content-Disposition'] = ('attachment; filename="%s"'
+                                       % external_name)
+    return response
+
