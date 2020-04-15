@@ -42,5 +42,7 @@ class DeliberacaoRemotaForm(ModelForm):
         else:
             if not cleaned_data['finalizada']:
                 cleaned_data['termino'] = None
+            else: 
+                cleaned_data['termino'] = self.instance.termino
 
         return cleaned_data
