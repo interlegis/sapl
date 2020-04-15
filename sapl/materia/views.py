@@ -2727,22 +2727,6 @@ class TipoMateriaCrud(CrudAux):
             return fv
 
 
-def create_merged_docacessorio(mat_pk):
-    from PyPDF4 import PdfFileReader, PdfFileMerger
-    # reader1 = PdfFileReader("/tmp/sbm_imprimir_pedido__100047424.pdf")
-    output = "/tmp/merged.pdf"
-    merger = PdfFileMerger(open(output, "wb"))
-    input1 = open("/tmp/sbm_imprimir_pedido__100047424.pdf", "rb")
-
-    merger.append(fileobj=input1)
-    merger.append(fileobj=input1)
-    merger.append(fileobj=input1)
-    merger.write()
-    merger.close()
-
-    pass
-
-
 def create_zip_docacessorios(mat_pk):
     import os
     import time
@@ -2772,6 +2756,45 @@ def get_zip_docacessorios(request, pk):
     with open(os.path.join('/tmp', zipfilename), 'rb') as f:
         data = f.read()
     response = HttpResponse(data, content_type='application/zip')
+    response['Content-Disposition'] = ('attachment; filename="%s"'
+                                       % external_name)
+    return response
+
+
+def create_pdf_docacessorios(mat_pk):
+    import os
+    import time
+    from datetime import datetime
+    from sapl.settings import MEDIA_ROOT
+    from PyPDF4 import PdfFileReader, PdfFileMerger
+
+    materia = MateriaLegislativa.objects.get(id=mat_pk)
+    docs = materia.documentoacessorio_set. \
+        all().values_list('arquivo', flat=True)
+
+    # TODO: o for-comprehension abaixo filtra os arquivos não PDF.
+    # TODO: o que fazer com os arquivos não PDF? converter? ignorar?
+    docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs if i.lower().endswith('pdf')]
+    merged_pdf = '/tmp/mat_{}_{}.pdf'.format(
+        mat_pk,
+        time.mktime(datetime.now().timetuple()))
+
+    merger = PdfFileMerger()
+    for f in docs_path:
+        merger.append(fileobj=f)
+    merger.write(fileobj=open(merged_pdf, "wb"))
+    merger.close()
+
+    external_name = "{}_{}.pdf".format(materia.numero, materia.ano)
+    return external_name, merged_pdf
+
+
+def get_pdf_docacessorios(request, pk):
+    import os
+    external_name, pdffilename = create_pdf_docacessorios(pk)
+    with open(os.path.join('/tmp', pdffilename), 'rb') as f:
+        data = f.read()
+    response = HttpResponse(data, content_type='application/pdf')
     response['Content-Disposition'] = ('attachment; filename="%s"'
                                        % external_name)
     return response
