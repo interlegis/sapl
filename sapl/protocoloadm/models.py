@@ -199,7 +199,7 @@ class DocumentoAdministrativo(models.Model):
     )
     ip = models.CharField(
         verbose_name=_('IP'),
-        max_length=30,
+        max_length=60,
         blank=True,
         default=''
     )
@@ -359,7 +359,7 @@ class TramitacaoAdministrativo(models.Model):
                              null=True,
                              blank=True)
     ip = models.CharField(verbose_name=_('IP'),
-                          max_length=30,
+                          max_length=60,
                           blank=True,
                           default='')
     ultima_edicao = models.DateTimeField(
