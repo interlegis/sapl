@@ -6,14 +6,20 @@
 {% block more_buttons %}
 
 {% if perms|get_add_perm:view %}
-    <a href="{% url 'sapl.sessao:reordenar_expediente' root_pk %}" class="btn btn-outline-primary">
-      {% blocktrans with verbose_name=view.verbose_name %} Reordenar pela precedência {% endblocktrans %}
-    </a>
-    <a href="{% url 'sapl.sessao:renumerar_materias_expediente' root_pk %}" class="btn btn-outline-primary">
-      {% blocktrans with verbose_name=view.verbose_name %} Renumerar Expediente {% endblocktrans %}
     </a>
     <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' root_pk %}" class="btn btn-outline-primary">
       {% blocktrans with verbose_name=view.verbose_name %} Adicionar Várias Matérias {% endblocktrans %}
+    </a>
+     <a>
+        <a role="button" href="#" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {% blocktrans with verbose_name=view.verbose_name %} Reordenar {% endblocktrans %}
+        </a>
+        <div class="dropdown-menu">
+            <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'expediente' 1 %}">Por Tipo Sequencia Regimental, Ano e Número crescentes</a>
+            <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'expediente' 2 %}">Por Ano e Número crescentes</a>
+            <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'expediente' 3 %}">Por Ano decrescente e Número crescente</a>
+            <a class="dropdown-item btn-outline-primary" href="{% url 'sapl.sessao:reordena_materias' root_pk 'expediente' 4 %}">Por Autor, Ano e Número crescentes</a>
+        </div>
     </a>
 {% endif %}
 
