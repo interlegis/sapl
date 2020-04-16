@@ -41,7 +41,9 @@
                             {% for opcao in lista_disponiveis %}
                                 <tr>
                                     <td>
-                                        <input type="checkbox" name="opcao_id" value="{{ opcao.id }}" {% if check %} checked {% endif %}/> {{ opcao.materia.tipo.sigla }} {{ opcao.materia.numero }}/{{ opcao.materia.ano }} - {{ opcao.materia.tipo.descricao }}
+                                        <label for="{{ opcao.id }}">
+                                            <input type="checkbox" id="{{ opcao.id }}" name="opcao_id" value="{{ opcao.id }}" {% if check %} checked {% endif %}/> {{ opcao.materia.tipo.sigla }} {{ opcao.materia.numero }}/{{ opcao.materia.ano }} - {{ opcao.materia.tipo.descricao }}
+                                        </label>
                                     </td>
                                 </tr>
                             {% endfor %}
