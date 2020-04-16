@@ -2736,8 +2736,10 @@ def create_zip_docacessorios(mat_pk):
 
     materia = MateriaLegislativa.objects.get(id=mat_pk)
     docs = materia.documentoacessorio_set.\
-        all().values_list('arquivo', flat=True)
-
+        all().values_list('arquivo', flat=True)    
+    if not docs:
+        return None, None
+    
     docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs]
     zipfilename = '/tmp/mat_{}_{}.zip'.format(
         mat_pk,
@@ -2753,6 +2755,12 @@ def create_zip_docacessorios(mat_pk):
 def get_zip_docacessorios(request, pk):
     import os
     external_name, zipfilename = create_zip_docacessorios(pk)
+    if not zipfilename:
+        msg=_('Não há nenhum documento acessório cadastrado.')
+        messages.add_message(request, messages.WARNING, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
     with open(os.path.join('/tmp', zipfilename), 'rb') as f:
         data = f.read()
     response = HttpResponse(data, content_type='application/zip')
@@ -2771,6 +2779,8 @@ def create_pdf_docacessorios(mat_pk):
     materia = MateriaLegislativa.objects.get(id=mat_pk)
     docs = materia.documentoacessorio_set. \
         all().values_list('arquivo', flat=True)
+    if not docs:
+        return None, None
 
     # TODO: o for-comprehension abaixo filtra os arquivos não PDF.
     # TODO: o que fazer com os arquivos não PDF? converter? ignorar?
@@ -2792,6 +2802,12 @@ def create_pdf_docacessorios(mat_pk):
 def get_pdf_docacessorios(request, pk):
     import os
     external_name, pdffilename = create_pdf_docacessorios(pk)
+    if not pdffilename:
+        msg=_('Não há nenhum documento acessório cadastrado.')
+        messages.add_message(request, messages.WARNING, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
     with open(os.path.join('/tmp', pdffilename), 'rb') as f:
         data = f.read()
     response = HttpResponse(data, content_type='application/pdf')
