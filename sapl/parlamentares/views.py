@@ -840,7 +840,8 @@ def altera_field_mesa(request):
     # é alterado o campo de sessão ou feita alguma operação
     # de inclusão/remoção.
     if request.GET['sessao']:
-        sessao_selecionada = request.GET['sessao']
+        sessao_selecionada = SessaoLegislativa.objects.get(id=request.GET['sessao'])
+        
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
