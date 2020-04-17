@@ -532,21 +532,17 @@ def get_sessao_plenaria(sessao, casa):
 
     # Lista da composicao da mesa diretora
     lst_mesa = []
-    for composicao in IntegranteMesa.objects.filter(sessao_plenaria=sessao):
-        for parlamentar in Parlamentar.objects.filter(
-                id=composicao.parlamentar.id):
-            for cargo in CargoMesa.objects.filter(id=composicao.cargo.id):
-                dic_mesa = {}
-                dic_mesa['nom_parlamentar'] = parlamentar.nome_parlamentar
-                partido_sigla = Filiacao.objects.filter(
-                    parlamentar=parlamentar).first()
-                if not partido_sigla:
-                    sigla = ''
-                else:
-                    sigla = partido_sigla.partido.sigla
-                dic_mesa['sgl_partido'] = sigla
-                dic_mesa['des_cargo'] = cargo.descricao
-                lst_mesa.append(dic_mesa)
+    for composicao in IntegranteMesa.objects.select_related('parlamentar', 'cargo')\
+                                            .filter(sessao_plenaria=sessao)\
+                                            .order_by('cargo_id'):
+        partido_sigla = Filiacao.objects.filter(parlamentar=composicao.parlamentar).first()
+        sigla = '' if not partido_sigla else partido_sigla.partido.sigla
+        dic_mesa = {
+            'nom_parlamentar': composicao.parlamentar.nome_parlamentar,
+            'sgl_partido': sigla,
+            'des_cargo': composicao.cargo.descricao
+        }
+        lst_mesa.append(dic_mesa)
 
     # Lista de presença na sessão
     lst_presenca_sessao = []
