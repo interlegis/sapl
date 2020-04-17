@@ -307,8 +307,6 @@ class ExpedienteMateriaForm(ModelForm):
         initial=datetime.strftime(timezone.now(), '%d/%m/%Y'),
         widget=forms.TextInput(attrs={'readonly': 'readonly'}))
 
-    apenas_leitura = forms.BooleanField(label='Apenas Leitura', required=False)
-
     class Meta:
         model = ExpedienteMateria
         fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
