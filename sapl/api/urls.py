@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet,\
     AutoresProvaveisListView, AutoresPossiveisListView, AutorListView,\
     ModelChoiceView
-from sapl.api.views import SaplApiViewSetConstrutor
+from sapl.api.views import SaplApiViewSetConstrutor, AppVersionView
 
 from .apps import AppConfig
 
@@ -70,7 +70,7 @@ urlpatterns = [
     url(r'^api/', include(deprecated_urlpatterns_api)),
     url(r'^api/', include(urlpatterns_api_doc)),
     url(r'^api/', include(urlpatterns_router)),
-
+    url(r'^api/version', AppVersionView.as_view()),
 
     # implementar caminho para autenticação
     # https://www.django-rest-framework.org/tutorial/4-authentication-and-permissions/

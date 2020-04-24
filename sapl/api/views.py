@@ -20,6 +20,9 @@ from rest_framework.decorators import action
 from rest_framework.fields import SerializerMethodField
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
+
+from rest_framework.views import APIView
 
 from sapl.api.forms import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
@@ -587,3 +590,18 @@ class _NormaJuridicaViewset:
     def destaques(self, request, *args, **kwargs):
         self.queryset = self.get_queryset().filter(norma_de_destaque=True)
         return self.list(request, *args, **kwargs)
+
+
+class AppVersionView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        content = {
+            'name': 'SAPL',
+            'description': 'Sistema de Apoio ao Processo Legislativo',
+            'version': settings.SAPL_VERSION,
+            'user': request.user.username,
+            'is_authenticated': request.user.is_authenticated(),
+        }
+        return Response(content)
+
