@@ -79,6 +79,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioNormasPorAutorFilterSet)
 from .models import AppConfig, CasaLegislativa
 
+from rest_framework.authtoken.models import Token
+
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
@@ -1888,6 +1890,7 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         user = get_user_model().objects.get(id=self.kwargs['pk'])
         roles = [str(g.id) for g in user.groups.all()]
 
+        initial['token'] = Token.objects.filter(user=user)[0]
         initial['first_name'] = user.first_name
         initial['last_name'] = user.last_name
         initial['roles'] = roles

@@ -177,6 +177,11 @@ class UsuarioEditForm(ModelForm):
     # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
     ROLES = []
 
+    token = forms.CharField(
+        required=False,
+        label="Token",
+        max_length=40,
+        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
     first_name = forms.CharField(
         required=False,
         label="Nome",
@@ -206,6 +211,7 @@ class UsuarioEditForm(ModelForm):
         model = get_user_model()
         fields = [
             get_user_model().USERNAME_FIELD,
+            "token",
             "first_name",
             "last_name",
             'password1',
@@ -221,6 +227,7 @@ class UsuarioEditForm(ModelForm):
 
         rows = to_row((
             ('username', 12),
+            ('token', 12),
             ('first_name', 6),
             ('last_name', 6),
             ('email', 6),
