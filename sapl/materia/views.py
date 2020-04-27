@@ -2738,7 +2738,8 @@ def create_zip_docacessorios(materia):
         return None, None
     
     docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs]
-    zipfilename = '/tmp/mat_{}_{}_docacessorios.zip'.format(
+    zipfilename = '{}/mat_{}_{}_docacessorios.zip'.format(
+        tempfile.gettempdir(),
         materia.pk,
         time.mktime(datetime.now().timetuple()))
     with zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -2768,7 +2769,7 @@ def get_zip_docacessorios(request, pk):
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
 
-    with open(os.path.join('/tmp', zipfilename), 'rb') as f:
+    with open(os.path.join(tempfile.gettempdir(), zipfilename), 'rb') as f:
         data = f.read()
     response = HttpResponse(data, content_type='application/zip')
     response['Content-Disposition'] = ('attachment; filename="%s"'
@@ -2785,7 +2786,8 @@ def create_pdf_docacessorios(materia):
     # TODO: o for-comprehension abaixo filtra os arquivos não PDF.
     # TODO: o que fazer com os arquivos não PDF? converter? ignorar?
     docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs if i.lower().endswith('pdf')]
-    merged_pdf = '/tmp/mat_{}_{}_docacessorios.pdf'.format(
+    merged_pdf = '{}/mat_{}_{}_docacessorios.pdf'.format(
+        tempfile.gettempdir(),
         materia.pk,
         time.mktime(datetime.now().timetuple()))
 
@@ -2818,7 +2820,7 @@ def get_pdf_docacessorios(request, pk):
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
 
-    with open(os.path.join('/tmp', pdffilename), 'rb') as f:
+    with open(os.path.join(tempfile.gettempdir(), pdffilename), 'rb') as f:
         data = f.read()
     response = HttpResponse(data, content_type='application/pdf')
     response['Content-Disposition'] = ('attachment; filename="%s"'
