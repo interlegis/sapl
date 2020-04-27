@@ -8,6 +8,11 @@ class StandardPagination(pagination.PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 50
 
+    def paginate_queryset(self, queryset, request, view=None):
+        if request.query_params.get('get_all', False) == 'true':
+            return None
+        return super().paginate_queryset(queryset, request, view=view)
+
     def get_paginated_response(self, data):
         try:
             previous_page_number = self.page.previous_page_number()
