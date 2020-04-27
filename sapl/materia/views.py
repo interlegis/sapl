@@ -2736,8 +2736,10 @@ def create_zip_docacessorios(materia):
         all().values_list('arquivo', flat=True)    
     if not docs:
         return None, None
-    
-    docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs]
+
+    docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs if i.lower().endswith('pdf')]
+    if not docs_path:
+        raise FileNotFoundError("Não há arquivos cadastrados em documentos acessorios.")
     zipfilename = '{}/mat_{}_{}_docacessorios.zip'.format(
         tempfile.gettempdir(),
         materia.pk,
@@ -2756,6 +2758,13 @@ def get_zip_docacessorios(request, pk):
     materia = get_object_or_404(MateriaLegislativa, pk=pk)
     try:
         external_name, zipfilename = create_zip_docacessorios(materia)
+        logger.info("user= {}. Gerou o zip compilado de documento acessorios")
+    except FileNotFoundError:
+        logger.warning("user= {}.Não há arquivos cadastrados".format(username))
+        msg=_('Não há arquivos cadastrados nesses documentos acessórios.')
+        messages.add_message(request, messages.WARNING, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
     except Exception as e:
         logger.error("user={}. Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}".format(username,str(e)))
         msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
@@ -2786,6 +2795,8 @@ def create_pdf_docacessorios(materia):
     # TODO: o for-comprehension abaixo filtra os arquivos não PDF.
     # TODO: o que fazer com os arquivos não PDF? converter? ignorar?
     docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs if i.lower().endswith('pdf')]
+    if not docs_path:
+        raise FileNotFoundError("Não há arquivos cadastrados em documentos acessorios.")
     merged_pdf = '{}/mat_{}_{}_docacessorios.pdf'.format(
         tempfile.gettempdir(),
         materia.pk,
@@ -2807,6 +2818,13 @@ def get_pdf_docacessorios(request, pk):
     username = request.user.username
     try:
         external_name, pdffilename = create_pdf_docacessorios(materia)
+        logger.info("user= {}. Gerou o pdf compilado de documento acessorios")
+    except FileNotFoundError:
+        logger.warning("user= {}.Não há arquivos cadastrados".format(username))
+        msg=_('Não há arquivos cadastrados nesses documentos acessórios.')
+        messages.add_message(request, messages.WARNING, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
     except Exception as e:
         logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}".format(username,str(e)))
         msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
