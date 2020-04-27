@@ -2,10 +2,12 @@
 {% load i18n %}
 {% block base_content %}
   {{ block.super }}
-  <div class="actions btn-group float-right" role="group">
-      <a href="{% url 'sapl.materia:merge_docacessorios' root_pk %}" class="btn btn-outline-primary">{% trans 'Baixar documentos como PDF único' %}</a>
-  </div>
-  <div class="actions btn-group float-right" role="group">
-      <a href="{% url 'sapl.materia:compress_docacessorios' root_pk %}" class="btn btn-outline-primary">{% trans 'Baixar documentos compactados' %}</a>
+  <div style="display:flex;padding-left: 600px;padding-top: 10px;">
+    <div class="actions btn-group float-right" role="group">
+        <a href="{% url 'sapl.materia:merge_docacessorios' root_pk %}" class="btn btn-outline-primary">{% trans 'Baixar documentos como PDF único' %}</a>
+    </div>
+    <div class="actions btn-group float-right" role="group">
+        <a href="{% url 'sapl.materia:compress_docacessorios' root_pk %}" class="btn btn-outline-primary">{% trans 'Baixar documentos compactados' %}</a>
+    </div>
   </div>
 {% endblock %}
