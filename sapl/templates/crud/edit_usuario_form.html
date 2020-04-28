@@ -1,0 +1,16 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+
+{% block extra_js %}
+
+<script type="text/javascript">
+  $(() => {
+    $("#renovar-token").click(() => {
+      $.get("{% url 'sapl.api:renova_token' %}", (res) => {
+        $("#id_token").val(res.token);
+      });
+    });
+  });
+</script>
+
+{% endblock %}

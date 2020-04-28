@@ -1878,6 +1878,7 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
 class EditUsuarioView(PermissionRequiredMixin, UpdateView):
     model = get_user_model()
     form_class = UsuarioEditForm
+    template_name = "crud/edit_usuario_form.html"
     success_message = 'Usuário editado com sucesso!'
     permission_required = ('base.change_appconfig',)
 
