@@ -2732,6 +2732,7 @@ class TipoMateriaCrud(CrudAux):
 
 
 def create_zip_docacessorios(materia):
+    logger = logging.getLogger(__name__)
     docs = materia.documentoacessorio_set.\
         all().values_list('arquivo', flat=True)    
     if not docs:
@@ -2741,6 +2742,7 @@ def create_zip_docacessorios(materia):
 
     if not docs_path:
         raise FileNotFoundError("Não há arquivos PDF cadastrados em documentos acessorios.")
+    logger.info("Gerando compilado PDF de documentos acessorios com {} documentos".format(docs_path))
     zipfilename = '{}/mat_{}_{}_docacessorios.zip'.format(
         get_tempfile_dir(),
         materia.pk,
@@ -2767,7 +2769,8 @@ def get_zip_docacessorios(request, pk):
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
     except Exception as e:
-        logger.error("user={}. Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}".format(username,str(e)))
+        logger.error("user={}. Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
+                    .format(username,str(e)))
         msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
@@ -2788,6 +2791,7 @@ def get_zip_docacessorios(request, pk):
 
 
 def create_pdf_docacessorios(materia):
+    logger = logging.getLogger(__name__)
     docs = materia.documentoacessorio_set. \
         all().values_list('arquivo', flat=True)
     if not docs:
@@ -2798,6 +2802,8 @@ def create_pdf_docacessorios(materia):
     docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs if i.lower().endswith('pdf')]
     if not docs_path:
         raise FileNotFoundError("Não há arquivos PDF cadastrados em documentos acessorios.")
+    logger.info("Gerando compilado PDF de documentos acessorios com {} documentos"
+                .format(docs_path))
     merged_pdf = '{}/mat_{}_{}_docacessorios.pdf'.format(
         get_tempfile_dir(),
         materia.pk,
@@ -2827,7 +2833,8 @@ def get_pdf_docacessorios(request, pk):
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
     except Exception as e:
-        logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}".format(username,str(e)))
+        logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
+                    .format(username,str(e)))
         msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
