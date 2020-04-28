@@ -6,11 +6,15 @@ import sapl
 import shutil
 import tempfile
 import weasyprint
+import time
 
 from crispy_forms.layout import HTML
 from datetime import datetime
 from random import choice
 from string import ascii_letters, digits
+from datetime import datetime
+from PyPDF4 import PdfFileReader, PdfFileMerger
+import zipfile
 
 from django.conf import settings
 from django.contrib import messages
@@ -52,7 +56,7 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_url,
                         get_client_ip, get_mime_type_from_file_extension, lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
-                        show_results_filter_set, YES_NO_CHOICES)
+                        show_results_filter_set, YES_NO_CHOICES,get_tempfile_dir)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
@@ -2725,3 +2729,127 @@ class TipoMateriaCrud(CrudAux):
                 self.object.save()
 
             return fv
+
+
+def create_zip_docacessorios(materia):
+    logger = logging.getLogger(__name__)
+    docs = materia.documentoacessorio_set.\
+        all().values_list('arquivo', flat=True)    
+    if not docs:
+        return None, None
+
+    docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs]
+
+    if not docs_path:
+        raise FileNotFoundError("Não há arquivos PDF cadastrados em documentos acessorios.")
+    logger.info("Gerando compilado PDF de documentos acessorios com {} documentos".format(docs_path))
+    zipfilename = '{}/mat_{}_{}_docacessorios.zip'.format(
+        get_tempfile_dir(),
+        materia.pk,
+        time.mktime(datetime.now().timetuple()))
+    with zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for f in docs_path:
+            zipf.write(f, f.split(os.sep)[-1])
+
+    external_name = "mat_{}_{}_docacessorios.zip".format(materia.numero, materia.ano)
+    return external_name, zipfilename
+
+
+def get_zip_docacessorios(request, pk):
+    logger = logging.getLogger(__name__)
+    username = request.user.username
+    materia = get_object_or_404(MateriaLegislativa, pk=pk)
+    try:
+        external_name, zipfilename = create_zip_docacessorios(materia)
+        logger.info("user= {}. Gerou o zip compilado de documento acessorios")
+    except FileNotFoundError:
+        logger.error("user= {}.Não há arquivos cadastrados".format(username))
+        msg=_('Não há arquivos cadastrados nesses documentos acessórios.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+    except Exception as e:
+        logger.error("user={}. Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
+                    .format(username,str(e)))
+        msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
+    if not zipfilename:
+        msg=_('Não há nenhum documento acessório cadastrado.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
+    with open(os.path.join(get_tempfile_dir(), zipfilename), 'rb') as f:
+        data = f.read()
+    response = HttpResponse(data, content_type='application/zip')
+    response['Content-Disposition'] = ('attachment; filename="%s"'
+                                       % external_name)
+    return response
+
+
+def create_pdf_docacessorios(materia):
+    logger = logging.getLogger(__name__)
+    docs = materia.documentoacessorio_set. \
+        all().values_list('arquivo', flat=True)
+    if not docs:
+        return None, None
+
+    # TODO: o for-comprehension abaixo filtra os arquivos não PDF.
+    # TODO: o que fazer com os arquivos não PDF? converter? ignorar?
+    docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs if i.lower().endswith('pdf')]
+    if not docs_path:
+        raise FileNotFoundError("Não há arquivos PDF cadastrados em documentos acessorios.")
+    logger.info("Gerando compilado PDF de documentos acessorios com {} documentos"
+                .format(docs_path))
+    merged_pdf = '{}/mat_{}_{}_docacessorios.pdf'.format(
+        get_tempfile_dir(),
+        materia.pk,
+        time.mktime(datetime.now().timetuple()))
+
+    merger = PdfFileMerger()
+    for f in docs_path:
+        merger.append(fileobj=f)
+    merger.write(fileobj=open(merged_pdf, "wb"))
+    merger.close()
+
+    external_name = "mat_{}_{}_docacessorios.pdf".format(materia.numero, materia.ano)
+    return external_name, merged_pdf
+
+
+def get_pdf_docacessorios(request, pk):
+    materia = get_object_or_404(MateriaLegislativa, pk=pk)
+    logger = logging.getLogger(__name__)
+    username = request.user.username
+    try:
+        external_name, pdffilename = create_pdf_docacessorios(materia)
+        logger.info("user= {}. Gerou o pdf compilado de documento acessorios")
+    except FileNotFoundError:
+        logger.error("user= {}.Não há arquivos cadastrados".format(username))
+        msg=_('Não há arquivos cadastrados nesses documentos acessórios.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+    except Exception as e:
+        logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
+                    .format(username,str(e)))
+        msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
+    if not pdffilename:
+        msg=_('Não há nenhum documento acessório PDF cadastrado.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
+    with open(os.path.join(get_tempfile_dir(), pdffilename), 'rb') as f:
+        data = f.read()
+    response = HttpResponse(data, content_type='application/pdf')
+    response['Content-Disposition'] = ('attachment; filename="%s"'
+                                       % external_name)
+    return response
+

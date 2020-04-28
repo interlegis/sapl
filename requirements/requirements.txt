@@ -29,7 +29,7 @@ Pillow==6.2.2
 gunicorn==19.9.0
 more-itertools==8.2.0
 pysolr==3.6.0
-
+PyPDF4==1.27.0
 pyoai==2.5.0
 
 git+https://github.com/interlegis/trml2pdf

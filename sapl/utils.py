@@ -7,7 +7,8 @@ import magic
 import os
 import re
 import unicodedata
-
+import platform
+import tempfile
 from crispy_forms.layout import Button, HTML
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
@@ -1061,3 +1062,6 @@ class OverwriteStorage(FileSystemStorage):
         if self.exists(name):
             os.remove(os.path.join(settings.MEDIA_ROOT, name))
         return name
+
+def get_tempfile_dir():
+    return '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
