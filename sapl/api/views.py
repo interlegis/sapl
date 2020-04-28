@@ -3,10 +3,12 @@ import logging
 from django import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from django.db.models.fields.files import FileField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.decorators import classonlymethod
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
@@ -46,6 +48,16 @@ from sapl.parlamentares.models import Mandato, Parlamentar, Legislatura
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+
+def renova_token(request):
+    if request.user.is_authenticated:
+        Token.objects.filter(user_id=request.user.id).delete()
+        Token.objects.create(user_id=request.user.id)
+
+        return HttpResponseRedirect(reverse_lazy("sapl.base:user_edit", kwargs={"pk": request.user.id}))
+    else:
+        return HttpResponse('Usuário não autenticado!', status=401)
 
 
 class BusinessRulesNotImplementedMixin:

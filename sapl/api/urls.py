@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet,\
     AutoresProvaveisListView, AutoresPossiveisListView, AutorListView,\
     ModelChoiceView
-from sapl.api.views import SaplApiViewSetConstrutor, AppVersionView
+from sapl.api.views import SaplApiViewSetConstrutor, AppVersionView, renova_token
 
 from .apps import AppConfig
 
@@ -71,6 +71,7 @@ urlpatterns = [
     url(r'^api/', include(urlpatterns_api_doc)),
     url(r'^api/', include(urlpatterns_router)),
     url(r'^api/version', AppVersionView.as_view()),
+    url(r'^api/renovar-token/$', renova_token, name="renova_token"),
 
     # implementar caminho para autenticação
     # https://www.django-rest-framework.org/tutorial/4-authentication-and-permissions/
