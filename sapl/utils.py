@@ -7,7 +7,8 @@ import magic
 import os
 import re
 import unicodedata
-
+import platform
+import tempfile
 from crispy_forms.layout import Button, HTML
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
@@ -1076,7 +1077,7 @@ class OverwriteStorage(FileSystemStorage):
             os.remove(os.path.join(settings.MEDIA_ROOT, name))
         return name
 
-        
+
 def verifica_afastamento_parlamentar(parlamentar, data_inicio, data_fim=None):
     from sapl.parlamentares.models import AfastamentoParlamentar
     if data_fim:
@@ -1092,3 +1093,8 @@ def verifica_afastamento_parlamentar(parlamentar, data_inicio, data_fim=None):
                                                             data_fim__gte=data_inicio).exists()
 
     return existe_afastamento
+
+
+def get_tempfile_dir():
+    return '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
+

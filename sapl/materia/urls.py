@@ -28,7 +28,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 ExcluirTramitacaoEmLoteView, RetornarProposicao,
                                 MateriaPesquisaSimplesView,
                                 DespachoInicialMultiCreateView,
-                                TipoTurnoTramitacaoCrud)
+                                TipoTurnoTramitacaoCrud,
+                                get_zip_docacessorios, get_pdf_docacessorios)
 from sapl.norma.views import NormaPesquisaSimplesView
 from sapl.protocoloadm.views import (
     FichaPesquisaAdmView, FichaSelecionaAdmView)
@@ -121,6 +122,10 @@ urlpatterns_materia = [
         name='tramitacao_em_lote'),
     url(r'^materia/excluir-tramitacao-em-lote', ExcluirTramitacaoEmLoteView.as_view(),
         name='excluir_tramitacao_em_lote'),
+    url(r'^materia/docacessorio/zip/(?P<pk>\d+)$', get_zip_docacessorios,
+        name='compress_docacessorios'),
+    url(r'^materia/docacessorio/pdf/(?P<pk>\d+)$', get_pdf_docacessorios,
+        name='merge_docacessorios')
 ]
 
 

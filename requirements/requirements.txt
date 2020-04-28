@@ -37,7 +37,7 @@ Whoosh==2.7.4
 more-itertools==8.2.0
 
 pysolr==3.6.0
-
+PyPDF4==1.27.0
 pyoai==2.5.0
 
 daphne==2.2.5
