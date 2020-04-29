@@ -876,16 +876,16 @@ def get_sessao_plenaria(sessao, casa):
 def get_turno(materia):
     descricao_turno = ''
     descricao_tramitacao = ''
-    tramitacoes = materia.tramitacao_set.all()
+    tramitacoes = materia.tramitacao_set.all().order_by('-data_tramitacao')
     tramitacoes_turno = tramitacoes.exclude(turno="")
 
     if tramitacoes:
         if tramitacoes_turno:
             for t in Tramitacao.TURNO_CHOICES:
-                if t[0] == tramitacoes_turno.last().turno:
+                if t[0] == tramitacoes_turno.first().turno:
                     descricao_turno = str(t[1])
                     break
-        descricao_tramitacao = tramitacoes.last().status.descricao if tramitacoes.last().status else 'Não informada'
+        descricao_tramitacao = tramitacoes.first().status.descricao if tramitacoes.first().status else 'Não informada'
     return descricao_turno, descricao_tramitacao
 
 
