@@ -1,0 +1,49 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+
+{% block base_content %}
+
+<div style="margin: 80px 0px">
+  <table class="table table-striped">
+    <tbody>
+      <tr>
+        <th scope="row">Usuário</th>
+        <td>{{ user.username }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Token</th>
+        <td>{{ token }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Nome</th>
+        <td>{% firstof user.first_name "-" %}</td>
+      </tr>
+      <tr>
+        <th scope="row">Sobrenome</th>
+        <td>{% firstof user.last_name "-" %}</td>
+      </tr>
+      <tr>
+        <th scope="row">Endereço de e-mail</th>
+        <td>{% firstof user.email "-" %}</td>
+      </tr>
+      <tr>
+        <th scope="row">Usuário ativo?</th>
+        <td>{% if user.is_active %} Sim {% else %} Não {% endif %}</td>
+      </tr>
+      <tr>
+        <th scope="row">Último acesso</th>
+        <td>{{ user.last_login }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Roles</th>
+        <td><ul style="list-style-type:none">
+          {% for r in roles %}
+            <li><input type="checkbox" {{ r.checked }} disabled> {{r.group }}</li>
+          {% endfor %}
+        </ul></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock base_content %}

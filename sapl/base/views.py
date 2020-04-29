@@ -24,8 +24,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (CreateView, DeleteView, FormView, ListView,
-                                  UpdateView)
+from django.views.generic import (CreateView, DetailView, DeleteView, FormView, ListView, UpdateView)
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
@@ -1808,6 +1807,26 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
         return self.render_to_response(context)
 
 
+class DetailUsuarioView(PermissionRequiredMixin, DetailView):
+    model = get_user_model()
+    template_name = "crud/usuario_detail.html"
+    permission_required = ('base.detail_appconfig',)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = get_user_model().objects.get(id=self.kwargs['pk'])
+
+        context["user"] = user
+        context["token"] = Token.objects.filter(user=user)[0]
+        context["roles"] = [
+            {
+                "checked": "checked" if g in user.groups.all() else "unchecked",
+                "group": g.name
+            } for g in Group.objects.all().order_by("name")]
+
+        return context
+
+
 class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     model = get_user_model()
     form_class = UsuarioCreateForm
@@ -1883,7 +1902,7 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
     permission_required = ('base.change_appconfig',)
 
     def get_success_url(self):
-        return reverse('sapl.base:usuario')
+        return reverse('sapl.base:user_detail', kwargs={"pk": self.kwargs['pk']})
 
     def get_initial(self):
         initial = super().get_initial()
