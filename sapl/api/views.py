@@ -8,7 +8,6 @@ from django.db.models import Q
 from django.db.models.fields.files import FileField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import classonlymethod
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
@@ -21,11 +20,11 @@ from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers as rest_serializers
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.fields import SerializerMethodField
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from rest_framework.views import APIView
 
@@ -50,14 +49,13 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
-def renova_token(request):
-    if request.user.is_authenticated:
-        Token.objects.filter(user_id=request.user.id).delete()
-        token = str(Token.objects.create(user_id=request.user.id))
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def recria_token(request):
+    Token.objects.filter(user=request.user).delete()
+    token = Token.objects.create(user=request.user)
 
-        return JsonResponse({"message": "Token atualizado com sucesso!", "token": token})
-    else:
-        return HttpResponse('Usuário não autenticado!', status=401)
+    return Response({"message": "Token recriado com sucesso!", "token": token.key})
 
 
 class BusinessRulesNotImplementedMixin:

@@ -6,7 +6,7 @@
 <script type="text/javascript">
   $(() => {
     $("#renovar-token").click(() => {
-      $.get("{% url 'sapl.api:renova_token' %}", (res) => {
+      $.get("{% url 'sapl.api:recria_token' %}", (res) => {
         $("#id_token").val(res.token);
       });
     });

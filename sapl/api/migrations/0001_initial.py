@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 
 from django.db import migrations
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 
 
-def adiciona_token_nos_usuarios(apps, schema_editor):
-    for user in User.objects.all():
+def adiciona_token_de_usuarios(apps, schema_editor):
+    for user in get_user_model().objects.all():
         Token.objects.get_or_create(user=user)
 
 
@@ -22,5 +22,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(adiciona_token_nos_usuarios)
+        migrations.RunPython(adiciona_token_de_usuarios)
     ]
