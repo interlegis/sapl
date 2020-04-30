@@ -231,14 +231,14 @@ class UsuarioEditForm(ModelForm):
             ('email', 6),
             ('user_active', 6),
             ('password1', 6),
-            ('password2', 6)))
+            ('password2', 6),
+            ('roles', 12)))
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             'username',
             FieldWithButtons('token', StrictButton('Renovar', id="renovar-token", css_class="btn-outline-primary")),
             rows,
-            'roles',
             form_actions(label='Salvar Alterações'))
 
     def clean(self):
