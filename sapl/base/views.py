@@ -1750,7 +1750,7 @@ class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
 
 
 class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
-    model = User
+    model = get_user_model()
     filterset_class = UsuarioFilterSet
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
