@@ -3,6 +3,15 @@
 {% load crispy_forms_tags cropping %}
 
 {% block base_content %}
+<div class="actions btn-group float-right " role="group" style="margin: 0px 0px 20px">
+  <a href="{% url 'sapl.base:usuario' %}" class="btn btn-outline-primary">
+    {% blocktrans with verbose_name=view.verbose_name %} Fazer nova pesquisa {% endblocktrans %}
+  </a>
+  <a href="{% url 'sapl.base:user_edit' user.pk %}" class="btn btn-outline-primary">
+    {% blocktrans with verbose_name=view.verbose_name %} Editar usuário {% endblocktrans %}
+  </a>
+</div>
+
 <div>
   <table class="table table-striped">
     <tbody>
