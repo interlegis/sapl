@@ -45,7 +45,7 @@ app_name = AppConfig.name
 admin_user = [
     url(r'^sistema/usuario/$', PesquisarUsuarioView.as_view(), name='usuario'),
     url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/detail$', DetailUsuarioView.as_view(), name='user_detail'),
+    url(r'^sistema/usuario/(?P<pk>\d+)$', DetailUsuarioView.as_view(), name='user_detail'),
     url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
     url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
 ]
