@@ -1769,18 +1769,16 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(PesquisarUsuarioView,
-                        self).get_context_data(**kwargs)
+        context = super(PesquisarUsuarioView, self).get_context_data(**kwargs)
 
         paginator = context['paginator']
         page_obj = context['page_obj']
 
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-        
-        context['NO_ENTRIES_MSG'] = 'Nenhum usuário encontrado!'
-        
-        context['title'] = _('Usuários')
+        context.update({
+            "page_range": make_pagination(page_obj.number, paginator.num_pages),
+            "NO_ENTRIES_MSG": "Nenhum usuário encontrado!",
+            "title": _("Usuários")
+        })
 
         return context
 
@@ -1816,13 +1814,15 @@ class DetailUsuarioView(PermissionRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         user = get_user_model().objects.get(id=self.kwargs['pk'])
 
-        context["user"] = user
-        context["token"] = Token.objects.filter(user=user)[0]
-        context["roles"] = [
-            {
-                "checked": "checked" if g in user.groups.all() else "unchecked",
-                "group": g.name
-            } for g in Group.objects.all().order_by("name")]
+        context.update({
+            "user": user,
+            "token": Token.objects.filter(user=user)[0],
+            "roles": [
+                {
+                    "checked": "checked" if g in user.groups.all() else "unchecked",
+                    "group": g.name
+                } for g in Group.objects.all().order_by("name")]
+        })
 
         return context
 
@@ -1842,13 +1842,13 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
 
         new_user = get_user_model().objects.create(
             username=data['username'],
-            email=data['email']
+            email=data['email'],
+            first_name=data['firstname'],
+            last_name=data['lastname'],
+            is_superuser=False,
+            is_staff=False
         )
-        new_user.first_name = data['firstname']
-        new_user.last_name = data['lastname']
         new_user.set_password(data['password1'])
-        new_user.is_superuser = False
-        new_user.is_staff = False
         new_user.save()
 
         groups = Group.objects.filter(id__in=data['roles'])
@@ -1910,11 +1910,13 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         user = get_user_model().objects.get(id=self.kwargs['pk'])
         roles = [str(g.id) for g in user.groups.all()]
 
-        initial['token'] = Token.objects.filter(user=user)[0]
-        initial['first_name'] = user.first_name
-        initial['last_name'] = user.last_name
-        initial['roles'] = roles
-        initial['user_active'] = user.is_active
+        initial.update({
+            "token": Token.objects.filter(user=user)[0],
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "roles": roles,
+            "user_active": user.is_active
+        })
 
         return initial
 

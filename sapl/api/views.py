@@ -49,7 +49,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([IsAdminUser])
 def recria_token(request):
     Token.objects.filter(user=request.user).delete()
