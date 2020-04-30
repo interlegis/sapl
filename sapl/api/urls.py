@@ -71,7 +71,7 @@ urlpatterns = [
     url(r'^api/', include(urlpatterns_api_doc)),
     url(r'^api/', include(urlpatterns_router)),
     url(r'^api/version', AppVersionView.as_view()),
-    url(r'^api/recriar-token/$', recria_token, name="recria_token"),
+    url(r'^api/recriar-token/(?P<pk>\d*)$', recria_token, name="recria_token"),
 
     # implementar caminho para autenticação
     # https://www.django-rest-framework.org/tutorial/4-authentication-and-permissions/
