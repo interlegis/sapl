@@ -1834,8 +1834,8 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     fail_message = 'Usuário não criado!'
     permission_required = ('base.add_appconfig',)
 
-    def get_success_url(self):
-        return reverse('sapl.base:usuario')
+    def get_success_url(self, pk):
+        return reverse('sapl.base:user_detail', kwargs={"pk": pk})
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -1856,7 +1856,7 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
             g.user_set.add(new_user)
 
         messages.success(self.request, self.success_message)
-        return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(self.get_success_url(new_user.pk))
 
     def form_invalid(self, form):
         messages.error(self.request, self.fail_message)
