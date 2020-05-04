@@ -1807,7 +1807,7 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
 
 class DetailUsuarioView(PermissionRequiredMixin, DetailView):
     model = get_user_model()
-    template_name = "crud/usuario_detail.html"
+    template_name = "base/usuario_detail.html"
     permission_required = ('base.detail_appconfig',)
 
     def get_context_data(self, **kwargs):
@@ -1897,7 +1897,7 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
 class EditUsuarioView(PermissionRequiredMixin, UpdateView):
     model = get_user_model()
     form_class = UsuarioEditForm
-    template_name = "crud/usuario_edit.html"
+    template_name = "base/usuario_edit.html"
     success_message = 'Usuário editado com sucesso!'
     permission_required = ('base.change_appconfig',)
 
