@@ -32,7 +32,7 @@
     			{% for usuario in page_obj %}
     				<tr>
     					<td>
-								<a href="{% url 'sapl.base:user_edit' usuario.pk %}">{{ usuario.username }}</a>
+								<a href="{% url 'sapl.base:user_detail' usuario.pk %}">{{ usuario.username }}</a>
 							</td>
 							<td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
 							<td>{{ usuario.email }}</td>

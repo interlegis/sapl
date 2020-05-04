@@ -8,7 +8,7 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_done)
 from django.views.generic.base import RedirectView, TemplateView
 
-from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica
+from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica, DetailUsuarioView
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
 from .apps import AppConfig
@@ -45,6 +45,7 @@ app_name = AppConfig.name
 admin_user = [
     url(r'^sistema/usuario/$', PesquisarUsuarioView.as_view(), name='usuario'),
     url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
+    url(r'^sistema/usuario/(?P<pk>\d+)$', DetailUsuarioView.as_view(), name='user_detail'),
     url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
     url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
 ]
