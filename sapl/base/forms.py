@@ -239,7 +239,11 @@ class UsuarioEditForm(ModelForm):
             'username',
             FieldWithButtons('token', StrictButton('Renovar', id="renovar-token", css_class="btn-outline-primary")),
             rows,
-            form_actions(label='Salvar Alterações'))
+            form_actions(
+                more=[
+                    HTML("<a href='{% url 'sapl.base:user_detail' object.pk %}' "
+                         "class='btn btn-dark'>Cancelar</a>")],
+                label='Salvar Alterações'))
 
     def clean(self):
         super().clean()
