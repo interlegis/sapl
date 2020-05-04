@@ -86,6 +86,7 @@ INSTALLED_APPS = (
     'drf_yasg',
     #'rest_framework_swagger',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_filters',
 
     'easy_thumbnails',
@@ -158,14 +159,6 @@ if DEBUG:
 
 SITE_URL = config('SITE_URL', cast=str, default='')
 
-CACHES = {
-    'default': {
-        'BACKEND': 'speedinfo.backends.proxy_cache',
-        'CACHE_BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-    }
-}
-
 REST_FRAMEWORK = {
     "UNICODE_JSON": False,
     "DEFAULT_PARSER_CLASSES": (
@@ -178,6 +171,7 @@ REST_FRAMEWORK = {
         "sapl.api.permissions.SaplModelPermissions",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework.authentication.TokenAuthentication',
         "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
@@ -186,6 +180,14 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
+CACHES = {
+    'default': {
+        'BACKEND': 'speedinfo.backends.proxy_cache',
+        'CACHE_BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+    }
+}
+
 
 
 ROOT_URLCONF = 'sapl.urls'

@@ -1,0 +1,57 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+
+{% block base_content %}
+<div class="actions btn-group float-right " role="group" style="margin: 0px 0px 20px">
+  <a href="{% url 'sapl.base:usuario' %}" class="btn btn-outline-primary">
+    {% blocktrans with verbose_name=view.verbose_name %} Fazer nova pesquisa {% endblocktrans %}
+  </a>
+  <a href="{% url 'sapl.base:user_edit' user.pk %}" class="btn btn-outline-primary">
+    {% blocktrans with verbose_name=view.verbose_name %} Editar usuário {% endblocktrans %}
+  </a>
+</div>
+
+<div>
+  <table class="table table-striped">
+    <tbody>
+      <tr>
+        <th scope="row">Usuário</th>
+        <td>{{ user.username }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Token</th>
+        <td>{{ token }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Nome</th>
+        <td>{% firstof user.first_name "-" %}</td>
+      </tr>
+      <tr>
+        <th scope="row">Sobrenome</th>
+        <td>{% firstof user.last_name "-" %}</td>
+      </tr>
+      <tr>
+        <th scope="row">Endereço de e-mail</th>
+        <td>{% firstof user.email "-" %}</td>
+      </tr>
+      <tr>
+        <th scope="row">Usuário ativo?</th>
+        <td>{% if user.is_active %} Sim {% else %} Não {% endif %}</td>
+      </tr>
+      <tr>
+        <th scope="row">Último acesso</th>
+        <td>{{ user.last_login }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Roles</th>
+        <td><ul style="list-style-type:none">
+          {% for r in roles %}
+            <li><input type="checkbox" {{ r.checked }} disabled> {{r.group }}</li>
+          {% endfor %}
+        </ul></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock base_content %}

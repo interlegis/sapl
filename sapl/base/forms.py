@@ -177,6 +177,11 @@ class UsuarioEditForm(ModelForm):
     # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
     ROLES = []
 
+    token = forms.CharField(
+        required=False,
+        label="Token",
+        max_length=40,
+        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
     first_name = forms.CharField(
         required=False,
         label="Nome",
@@ -206,6 +211,7 @@ class UsuarioEditForm(ModelForm):
         model = get_user_model()
         fields = [
             get_user_model().USERNAME_FIELD,
+            "token",
             "first_name",
             "last_name",
             'password1',
@@ -220,19 +226,24 @@ class UsuarioEditForm(ModelForm):
         super(UsuarioEditForm, self).__init__(*args, **kwargs)
 
         rows = to_row((
-            ('username', 12),
             ('first_name', 6),
             ('last_name', 6),
             ('email', 6),
             ('user_active', 6),
             ('password1', 6),
-            ('password2', 6)))
+            ('password2', 6),
+            ('roles', 12)))
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
+            'username',
+            FieldWithButtons('token', StrictButton('Renovar', id="renovar-token", css_class="btn-outline-primary")),
             rows,
-            'roles',
-            form_actions(label='Salvar Alterações'))
+            form_actions(
+                more=[
+                    HTML("<a href='{% url 'sapl.base:user_detail' object.pk %}' "
+                         "class='btn btn-dark'>Cancelar</a>")],
+                label='Salvar Alterações'))
 
     def clean(self):
         super().clean()

@@ -26,8 +26,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.safestring import mark_safe
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (CreateView, DeleteView, FormView, ListView,
-                                  UpdateView)
+from django.views.generic import (CreateView, DetailView, DeleteView, FormView, ListView, UpdateView)
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
@@ -112,6 +111,8 @@ def filtra_url_materias_em_tramitacao(qr, qs, campo_url, local_ou_status):
             '-id').first().status_id == int(filtro_url)]
 
     return qs.filter(em_tramitacao=True, id__in=id_materias)
+
+from rest_framework.authtoken.models import Token
 
 
 def get_casalegislativa():
@@ -1822,7 +1823,7 @@ class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
 
 
 class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
-    model = User
+    model = get_user_model()
     filterset_class = UsuarioFilterSet
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
@@ -1841,18 +1842,16 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(PesquisarUsuarioView,
-                        self).get_context_data(**kwargs)
+        context = super(PesquisarUsuarioView, self).get_context_data(**kwargs)
 
         paginator = context['paginator']
         page_obj = context['page_obj']
 
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-
-        context['NO_ENTRIES_MSG'] = 'Nenhum usuário encontrado!'
-
-        context['title'] = _('Usuários')
+        context.update({
+            "page_range": make_pagination(page_obj.number, paginator.num_pages),
+            "NO_ENTRIES_MSG": "Nenhum usuário encontrado!",
+            "title": _("Usuários")
+        })
 
         return context
 
@@ -1879,6 +1878,28 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
         return self.render_to_response(context)
 
 
+class DetailUsuarioView(PermissionRequiredMixin, DetailView):
+    model = get_user_model()
+    template_name = "base/usuario_detail.html"
+    permission_required = ('base.detail_appconfig',)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = get_user_model().objects.get(id=self.kwargs['pk'])
+
+        context.update({
+            "user": user,
+            "token": Token.objects.filter(user=user)[0],
+            "roles": [
+                {
+                    "checked": "checked" if g in user.groups.all() else "unchecked",
+                    "group": g.name
+                } for g in Group.objects.all().order_by("name")]
+        })
+
+        return context
+
+
 class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     model = get_user_model()
     form_class = UsuarioCreateForm
@@ -1886,21 +1907,21 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     fail_message = 'Usuário não criado!'
     permission_required = ('base.add_appconfig',)
 
-    def get_success_url(self):
-        return reverse('sapl.base:usuario')
+    def get_success_url(self, pk):
+        return reverse('sapl.base:user_detail', kwargs={"pk": pk})
 
     def form_valid(self, form):
         data = form.cleaned_data
 
         new_user = get_user_model().objects.create(
             username=data['username'],
-            email=data['email']
+            email=data['email'],
+            first_name=data['firstname'],
+            last_name=data['lastname'],
+            is_superuser=False,
+            is_staff=False
         )
-        new_user.first_name = data['firstname']
-        new_user.last_name = data['lastname']
         new_user.set_password(data['password1'])
-        new_user.is_superuser = False
-        new_user.is_staff = False
         new_user.save()
 
         groups = Group.objects.filter(id__in=data['roles'])
@@ -1908,7 +1929,7 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
             g.user_set.add(new_user)
 
         messages.success(self.request, self.success_message)
-        return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(self.get_success_url(new_user.pk))
 
     def form_invalid(self, form):
         messages.error(self.request, self.fail_message)
@@ -1950,11 +1971,12 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
 class EditUsuarioView(PermissionRequiredMixin, UpdateView):
     model = get_user_model()
     form_class = UsuarioEditForm
+    template_name = "base/usuario_edit.html"
     success_message = 'Usuário editado com sucesso!'
     permission_required = ('base.change_appconfig',)
 
     def get_success_url(self):
-        return reverse('sapl.base:usuario')
+        return reverse('sapl.base:user_detail', kwargs={"pk": self.kwargs['pk']})
 
     def get_initial(self):
         initial = super().get_initial()
@@ -1962,10 +1984,13 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         user = get_user_model().objects.get(id=self.kwargs['pk'])
         roles = [str(g.id) for g in user.groups.all()]
 
-        initial['first_name'] = user.first_name
-        initial['last_name'] = user.last_name
-        initial['roles'] = roles
-        initial['user_active'] = user.is_active
+        initial.update({
+            "token": Token.objects.filter(user=user)[0],
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "roles": roles,
+            "user_active": user.is_active
+        })
 
         return initial
 
