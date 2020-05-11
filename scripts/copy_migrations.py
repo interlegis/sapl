@@ -158,6 +158,7 @@ if will_continue == "s" or will_continue == "y":
     subprocess.run("rm -r " + temp_apps_migrations_dir_path, shell=True)
 
     print(output_custom['SUCCESS'] + output_custom['BOLD'] + "SUCCESS" + output_custom['END'])
+    exit(0)
 
 else: 
     print("Saindo.")
