@@ -499,36 +499,26 @@ def remove_html_comments(text):
 
 
 def get_sessao_plenaria(sessao, casa):
-    inf_basicas_dic = {}
-    inf_basicas_dic["num_sessao_plen"] = str(sessao.numero)
-    inf_basicas_dic["nom_sessao"] = sessao.tipo.nome
-    inf_basicas_dic["num_legislatura"] = str(sessao.legislatura)
-    inf_basicas_dic["num_sessao_leg"] = sessao.sessao_legislativa.numero
-    inf_basicas_dic["dat_inicio_sessao"] = sessao.data_inicio.strftime(
-        "%d/%m/%Y")
-    inf_basicas_dic["hr_inicio_sessao"] = sessao.hora_inicio
-    if sessao.data_fim:
-        inf_basicas_dic["dat_fim_sessao"] = \
-            sessao.data_fim.strftime("%d/%m/%Y")
-    else:
-        inf_basicas_dic["dat_fim_sessao"] = ''
-    inf_basicas_dic["hr_fim_sessao"] = sessao.hora_fim
-    inf_basicas_dic["nom_camara"] = casa.nome
+    inf_basicas_dic = {
+        "num_sessao_plen": str(sessao.numero),
+        "nom_sessao": sessao.tipo.nome,
+        "num_legislatura": str(sessao.legislatura),
+        "num_sessao_leg": sessao.sessao_legislativa.numero,
+        "dat_inicio_sessao": sessao.data_inicio.strftime("%d/%m/%Y"),
+        "hr_inicio_sessao": sessao.hora_inicio,
+        "dat_fim_sessao": sessao.data_fim.strftime("%d/%m/%Y") if sessao.data_fim else '',
+        "hr_fim_sessao": sessao.hora_fim,
+        "nom_camara": casa.nome
+    }
 
     if sessao.tipo.nome == 'Solene':
         inf_basicas_dic["tema_solene"] = sessao.tema_solene
 
     # Conteudo multimidia
-    cont_mult_dic = {}
-    if sessao.url_audio:
-        cont_mult_dic['multimidia_audio'] = str(sessao.url_audio)
-    else:
-        cont_mult_dic['multimidia_audio'] = 'Indisponível'
-
-    if sessao.url_video:
-        cont_mult_dic['multimidia_video'] = str(sessao.url_video)
-    else:
-        cont_mult_dic['multimidia_video'] = 'Indisponível'
+    cont_mult_dic = {
+        "multimidia_audio": str(sessao.url_audio) if sessao.url_audio else "Indisponível",
+        "multimidia_video": str(sessao.url_video) if sessao.url_video else "Indisponível"
+    }
 
     # Lista da composicao da mesa diretora
     lst_mesa = []
@@ -537,49 +527,36 @@ def get_sessao_plenaria(sessao, casa):
                                             .order_by('cargo_id'):
         partido_sigla = Filiacao.objects.filter(parlamentar=composicao.parlamentar).first()
         sigla = '' if not partido_sigla else partido_sigla.partido.sigla
-        dic_mesa = {
+        lst_mesa.append({
             'nom_parlamentar': composicao.parlamentar.nome_parlamentar,
             'sgl_partido': sigla,
             'des_cargo': composicao.cargo.descricao
-        }
-        lst_mesa.append(dic_mesa)
+        })
 
     # Lista de presença na sessão
     lst_presenca_sessao = []
-    presenca = SessaoPlenariaPresenca.objects.filter(
-        sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
-
+    presenca = SessaoPlenariaPresenca.objects.filter(sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
     for parlamentar in [p.parlamentar for p in presenca]:
-        dic_presenca = {}
-        dic_presenca["nom_parlamentar"] = parlamentar.nome_parlamentar
-        partido_sigla = filiacao_data(parlamentar, sessao.data_inicio)
-
-        dic_presenca['sgl_partido'] = partido_sigla
-        lst_presenca_sessao.append(dic_presenca)
+        lst_presenca_sessao.append({
+            "nom_parlamentar": parlamentar.nome_parlamentar,
+            "sgl_partido": filiacao_data(parlamentar, sessao.data_inicio)
+        })
 
     # Lista de ausencias na sessão
     lst_ausencia_sessao = []
-    ausencia = JustificativaAusencia.objects.filter(
-        sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
+    ausencia = JustificativaAusencia.objects.filter(sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
     for ausente in ausencia:
-        dic_ausencia = {}
-        dic_ausencia['parlamentar'] = ausente.parlamentar
-        dic_ausencia['justificativa'] = ausente.tipo_ausencia
-        if ausente.ausencia == 1:
-            dic_ausencia['tipo'] = 'Matéria'
-        else:
-            dic_ausencia['tipo'] = 'Sessão'
-
-        lst_ausencia_sessao.append(dic_ausencia)
+        lst_ausencia_sessao.append({
+            "parlamentar": ausente.parlamentar,
+            "justificativa": ausente.tipo_ausencia,
+            "tipo": "Matéria" if ausente.ausencia == 1 else "Sessão"
+        })
 
     # Exibe os Expedientes
     lst_expedientes = []
-    expedientes = ExpedienteSessao.objects.filter(
-        sessao_plenaria=sessao).order_by('tipo__nome')
-
+    expedientes = ExpedienteSessao.objects.filter(sessao_plenaria=sessao).order_by('tipo__nome')
     for e in expedientes:
-        dic_expedientes = {}
-        dic_expedientes["nom_expediente"] = e.tipo.nome
+        dic_expedientes = {"nom_expediente": e.tipo.nome}
         conteudo = e.conteudo
 
         # unescape HTML codes
@@ -605,36 +582,28 @@ def get_sessao_plenaria(sessao, casa):
 
     # Lista das matérias do Expediente, incluindo o resultado das votacoes
     lst_expediente_materia = []
-    for expediente_materia in ExpedienteMateria.objects.filter(
-            sessao_plenaria=sessao):
+    for expediente_materia in ExpedienteMateria.objects.filter(sessao_plenaria=sessao):
         # seleciona os detalhes de uma matéria
         materia = expediente_materia.materia
-        dic_expediente_materia = {}
-        dic_expediente_materia["num_ordem"] = expediente_materia.numero_ordem
-        dic_expediente_materia["id_materia"] = (materia.tipo.sigla + ' ' +
-                                                materia.tipo.descricao + ' ' +
-                                                str(materia.numero) + '/' +
-                                                str(materia.ano))
-        dic_expediente_materia["des_numeracao"] = ' '
+        dic_expediente_materia = {
+            "num_ordem": expediente_materia.numero_ordem,
+            "id_materia": "{} {} {}/{}".format(materia.tipo.sigla, materia.tipo.descricao, str(materia.numero),
+                                               str(materia.ano)),
+            "des_numeracao": ' ',
+            "des_turno": get_turno(materia)[0],
+            "txt_ementa": str(materia.ementa),
+            "ordem_observacao": expediente_materia.observacao,
+            "nom_resultado": '',
+            "nom_autor": '',
+            "votacao_observacao": ' '
+        }
 
-        numeracao = Numeracao.objects.filter(
-            materia=expediente_materia.materia).first()
+        numeracao = Numeracao.objects.filter(materia=expediente_materia.materia).first()
         if numeracao:
-            dic_expediente_materia["des_numeracao"] = (
-                    str(numeracao.numero_materia) + '/' + str(
-                numeracao.ano_materia))
+            dic_expediente_materia["des_numeracao"] = (str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
 
-        turno, _ = get_turno(materia)
-
-        dic_expediente_materia["des_turno"] = turno
-        dic_expediente_materia["txt_ementa"] = str(materia.ementa)
-        dic_expediente_materia["ordem_observacao"] = expediente_materia.observacao
-        dic_expediente_materia["nom_resultado"] = ''
-
-        dic_expediente_materia["nom_autor"] = ''
         autoria = materia.autoria_set.all()
-        dic_expediente_materia['num_autores'] = 'Autores' if len(
-            autoria) > 1 else 'Autor'
+        dic_expediente_materia['num_autores'] = 'Autores' if len(autoria) > 1 else 'Autor'
         if autoria:
             for a in autoria:
                 if a.autor.nome:
@@ -643,25 +612,25 @@ def get_sessao_plenaria(sessao, casa):
         else:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
-        dic_expediente_materia["votacao_observacao"] = ' '
         resultados = expediente_materia.registrovotacao_set.all()
         if resultados:
             for i in resultados:
-                dic_expediente_materia["nom_resultado"] = (
-                    i.tipo_resultado_votacao.nome)
-                dic_expediente_materia["votacao_observacao"] = (
-                    i.observacao)
+                dic_expediente_materia.update({
+                    "nom_resultado": i.tipo_resultado_votacao.nome,
+                    "votacao_observacao": i.observacao
+                })
         else:
-            dic_expediente_materia["nom_resultado"] = 'Matéria não votada'
-            dic_expediente_materia["votacao_observacao"] = ' '
+            dic_expediente_materia.update({
+                "nom_resultado": 'Matéria não votada',
+                "votacao_observacao": ' '
+            })
         lst_expediente_materia.append(dic_expediente_materia)
 
     # Lista dos votos nominais das matérias do Expediente
     lst_expediente_materia_vot_nom = []
 
-    materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(
-        sessao_plenaria=sessao,
-        tipo_votacao=2).order_by('-materia')
+    materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(sessao_plenaria=sessao,tipo_votacao=2)\
+                                                                   .order_by('-materia')
 
     for mevn in materias_expediente_votacao_nominal:
         votos_materia = []
@@ -672,79 +641,61 @@ def get_sessao_plenaria(sessao, casa):
             for vp in VotoParlamentar.objects.filter(votacao=registro).order_by('parlamentar'):
                 votos_materia.append(vp)
 
-        dic_expediente_materia_vot_nom = {
-            'titulo': titulo_materia,
-            'votos': votos_materia
-        }
-        lst_expediente_materia_vot_nom.append(dic_expediente_materia_vot_nom)
+        lst_expediente_materia_vot_nom.append({
+            "titulo": titulo_materia,
+            "votos": votos_materia
+        })
 
     # Lista dos oradores do Expediente
     lst_oradores_expediente = []
-    for orador_expediente in OradorExpediente.objects.filter(
-            sessao_plenaria=sessao).order_by('numero_ordem'):
-        parlamentar = Parlamentar.objects.get(
-            id=orador_expediente.parlamentar.id)
-        dic_oradores_expediente = {}
-        dic_oradores_expediente["num_ordem"] = (
-            orador_expediente.numero_ordem)
-        dic_oradores_expediente["nom_parlamentar"] = (
-            parlamentar.nome_parlamentar)
-        dic_oradores_expediente["observacao"] = (
-            orador_expediente.observacao)
-        partido_sigla = Filiacao.objects.filter(
-            parlamentar=parlamentar).first()
-        if not partido_sigla:
-            sigla = ''
-        else:
-            sigla = partido_sigla.partido.sigla
-        dic_oradores_expediente['sgl_partido'] = sigla
-        lst_oradores_expediente.append(dic_oradores_expediente)
+    for orador_expediente in OradorExpediente.objects.filter(sessao_plenaria=sessao).order_by('numero_ordem'):
+        parlamentar = Parlamentar.objects.get(id=orador_expediente.parlamentar.id)
+        partido_sigla = Filiacao.objects.filter(parlamentar=parlamentar).first()
+        lst_oradores_expediente.append({
+            "num_ordem": orador_expediente.numero_ordem,
+            "nom_parlamentar": parlamentar.nome_parlamentar,
+            "observacao": orador_expediente.observacao,
+            "sgl_partido": "" if not partido_sigla else partido_sigla.partido.sigla
+        })
 
     # Lista presença na ordem do dia
     lst_presenca_ordem_dia = []
-    presenca_ordem_dia = PresencaOrdemDia.objects.filter(
-        sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
+    presenca_ordem_dia = PresencaOrdemDia.objects.filter(sessao_plenaria=sessao)\
+                                                 .order_by('parlamentar__nome_parlamentar')
     for parlamentar in [p.parlamentar for p in presenca_ordem_dia]:
-        dic_presenca_ordem_dia = {}
-        dic_presenca_ordem_dia['nom_parlamentar'] = (
-            parlamentar.nome_parlamentar)
-        sigla = filiacao_data(parlamentar, sessao.data_inicio)
-
-        dic_presenca_ordem_dia['sgl_partido'] = sigla
-        lst_presenca_ordem_dia.append(dic_presenca_ordem_dia)
+        lst_presenca_ordem_dia.append({
+            "nom_parlamentar": parlamentar.nome_parlamentar,
+            "sgl_partido": filiacao_data(parlamentar, sessao.data_inicio)
+        })
 
     # Lista das matérias da Ordem do Dia, incluindo o resultado das votacoes
     lst_votacao = []
-    for votacao in OrdemDia.objects.filter(
-            sessao_plenaria=sessao):
+    for votacao in OrdemDia.objects.filter(sessao_plenaria=sessao):
         # seleciona os detalhes de uma matéria
         materia = votacao.materia
-        dic_votacao = {}
-        dic_votacao["nom_resultado"] = ''
-        dic_votacao["num_ordem"] = votacao.numero_ordem
-        dic_votacao["id_materia"] = (
+        dic_votacao = {
+            "nom_resultado": '',
+            "num_ordem": votacao.numero_ordem,
+            "id_materia": (
                 materia.tipo.sigla + ' ' +
                 materia.tipo.descricao + ' ' +
                 str(materia.numero) + '/' +
-                str(materia.ano))
-        dic_votacao["des_numeracao"] = ' '
+                str(materia.ano)),
+            "des_numeracao": ' '
+        }
 
         numeracao = materia.numeracao_set.first()
         if numeracao:
-            dic_votacao["des_numeracao"] = (
-                    str(numeracao.numero_materia) +
-                    '/' +
-                    str(numeracao.ano_materia))
+            dic_votacao["des_numeracao"] = (str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
 
-        turno, _ = get_turno(materia)
+        dic_votacao.update({
+            "des_turno": get_turno(materia)[0],
+            # https://github.com/interlegis/sapl/issues/1009
+            "txt_ementa": html.unescape(materia.ementa),
+            "ordem_observacao": html.unescape(votacao.observacao),
+            "nom_autor": ''
+        })
 
-        dic_votacao["des_turno"] = turno
-
-        # https://github.com/interlegis/sapl/issues/1009
-        dic_votacao["txt_ementa"] = html.unescape(materia.ementa)
-        dic_votacao["ordem_observacao"] = html.unescape(votacao.observacao)
-
-        dic_votacao["nom_autor"] = ''
         autoria = materia.autoria_set.all()
         dic_votacao['num_autores'] = 'Autores' if len(autoria) > 1 else 'Autor'
         if autoria:
@@ -769,9 +720,8 @@ def get_sessao_plenaria(sessao, casa):
     # Lista dos votos nominais das matérias da Ordem do Dia
     lst_votacao_vot_nom = []
 
-    materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(
-        sessao_plenaria=sessao,
-        tipo_votacao=2).order_by('-materia')
+    materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(sessao_plenaria=sessao, tipo_votacao=2)\
+                                                         .order_by('-materia')
 
     for modvn in materias_ordem_dia_votacao_nominal:
         votos_materia_od = []
@@ -782,63 +732,41 @@ def get_sessao_plenaria(sessao, casa):
             for vp_od in VotoParlamentar.objects.filter(votacao=registro_od).order_by('parlamentar'):
                 votos_materia_od.append(vp_od)
 
-        dic_votacao_vot_nom = {
-            'titulo': t_materia,
-            'votos': votos_materia_od
-        }
-        lst_votacao_vot_nom.append(dic_votacao_vot_nom)
+        lst_votacao_vot_nom.append({
+            "titulo": t_materia,
+            "votos": votos_materia_od
+        })
 
     # Lista dos oradores da Ordem do Dia
     lst_oradores_ordemdia = []
 
-    oradores_ordem_dia = OradorOrdemDia.objects.filter(
-        sessao_plenaria=sessao
-    ).order_by('numero_ordem')
+    oradores_ordem_dia = OradorOrdemDia.objects.filter(sessao_plenaria=sessao).order_by('numero_ordem')
 
     for orador_ordemdia in oradores_ordem_dia:
-        parlamentar_orador = Parlamentar.objects.get(
-            id=orador_ordemdia.parlamentar.id
-        )
+        parlamentar_orador = Parlamentar.objects.get(id=orador_ordemdia.parlamentar.id)
+        sigla_partido = Filiacao.objects.filter(parlamentar=parlamentar_orador).first()
 
-        sigla_partido = Filiacao.objects.filter(
-            parlamentar=parlamentar_orador
-        ).first()
-
-        if not sigla_partido:
-            sigla_p = ""
-        else:
-            sigla_p = sigla_partido.partido.sigla
-
-        dic_oradores_ordemdia = {
-            'num_ordem': orador_ordemdia.numero_ordem,
-            'nome_parlamentar': parlamentar_orador.nome_parlamentar,
-            'observacao': orador_ordemdia.observacao,
-            'sigla': sigla_p
-        }
-        lst_oradores_ordemdia.append(dic_oradores_ordemdia)
+        lst_oradores_ordemdia.append({
+            "num_ordem": orador_ordemdia.numero_ordem,
+            "nome_parlamentar": parlamentar_orador.nome_parlamentar,
+            "observacao": orador_ordemdia.observacao,
+            "sigla": "" if not sigla_partido else sigla_partido.partido.sigla
+        })
 
     # Lista dos oradores nas Explicações Pessoais
     lst_oradores = []
-    for orador in Orador.objects.filter(
-            sessao_plenaria=sessao).order_by('numero_ordem'):
-        for parlamentar in Parlamentar.objects.filter(
-                id=orador.parlamentar.id):
-            dic_oradores = {}
-            dic_oradores["num_ordem"] = orador.numero_ordem
-            dic_oradores["nom_parlamentar"] = parlamentar.nome_parlamentar
-            partido_sigla = Filiacao.objects.filter(
-                parlamentar=parlamentar).first()
-            if not partido_sigla:
-                sigla = ''
-            else:
-                sigla = partido_sigla.partido.sigla
-            dic_oradores['sgl_partido'] = sigla
-            lst_oradores.append(dic_oradores)
+    for orador in Orador.objects.filter(sessao_plenaria=sessao).order_by('numero_ordem'):
+        for parlamentar in Parlamentar.objects.filter(id=orador.parlamentar.id):
+            partido_sigla = Filiacao.objects.filter(parlamentar=parlamentar).first()
+            lst_oradores.append({
+                "num_ordem": orador.numero_ordem,
+                "nom_parlamentar": parlamentar.nome_parlamentar,
+                "sgl_partido": "" if not partido_sigla else partido_sigla.partido.sigla
+            })
 
     # Ocorrências da Sessão
     lst_ocorrencias = []
-    ocorrencias = OcorrenciaSessao.objects.filter(
-        sessao_plenaria=sessao)
+    ocorrencias = OcorrenciaSessao.objects.filter(sessao_plenaria=sessao)
 
     for o in ocorrencias:
         conteudo = o.conteudo
