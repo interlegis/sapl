@@ -48,7 +48,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm
                                 ConfirmarProposicaoForm, DevolverProposicaoForm,
                                 DespachoInicialCreateForm, LegislacaoCitadaForm,
                                 MateriaPesquisaSimplesForm, OrgaoForm, ProposicaoForm,
-                                TipoProposicaoForm, TramitacaoForm, TramitacaoUpdateForm)
+                                TipoProposicaoForm, TramitacaoForm, TramitacaoUpdateForm,ConfigEtiquetaMaetriaLegislativaForms)
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
@@ -72,7 +72,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria, De
                      DocumentoAcessorio, MateriaAssunto, MateriaLegislativa, Numeracao, Orgao,
                      Origem, Proposicao, RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
-                     Tramitacao, UnidadeTramitacao)
+                     Tramitacao, UnidadeTramitacao,ConfigEtiquetaMaetriaLegislativa)
 
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
@@ -2853,3 +2853,8 @@ def get_pdf_docacessorios(request, pk):
                                        % external_name)
     return response
 
+class ConfigEtiquetaMateriaLegislativaCrud(CrudAux):
+    model = ConfigEtiquetaMaetriaLegislativa
+
+    class UpdateView(CrudAux.UpdateView):
+        form_class = ConfigEtiquetaMaetriaLegislativaForms

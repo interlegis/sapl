@@ -1116,3 +1116,19 @@ class MateriaEmTramitacao(models.Model):
 
     def __str__(self):
         return '{}/{}'.format(self.materia, self.tramitacao)
+
+class ConfigEtiquetaMaetriaLegislativa(models.Model):
+    largura = models.FloatField()
+    altura = models.FloatField()
+    
+    mostrar_em_arquivo = models.BooleanField(verbose_name=_('Mostrar em arquivo ?'),
+                                  choices=YES_NO_CHOICES,
+                                  default=False)
+    
+    @classmethod
+    def object(cls):
+        return cls._default_manager.all().first() # Since only one item
+
+    def save(self, *args, **kwargs):
+        self.id = 1
+        return super().save(*args, **kwargs)

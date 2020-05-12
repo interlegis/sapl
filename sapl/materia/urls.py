@@ -27,7 +27,8 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 proposicao_texto, recuperar_materia,
                                 ExcluirTramitacaoEmLoteView, RetornarProposicao,
                                 MateriaPesquisaSimplesView,
-                                DespachoInicialMultiCreateView, get_zip_docacessorios, get_pdf_docacessorios)
+                                DespachoInicialMultiCreateView, get_zip_docacessorios,
+                                get_pdf_docacessorios, ConfigEtiquetaMateriaLegislativaCrud)
 from sapl.norma.views import NormaPesquisaSimplesView
 from sapl.protocoloadm.views import (
     FichaPesquisaAdmView, FichaSelecionaAdmView)
@@ -172,6 +173,9 @@ urlpatterns_sistema = [
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
+    
+    url(r'^sistema/materia/config-etiqueta-materia-legislativas/',
+        include(ConfigEtiquetaMateriaLegislativaCrud.get_urls())),
 ]
 
 urlpatterns = urlpatterns_impressos + urlpatterns_materia + \

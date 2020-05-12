@@ -1065,6 +1065,8 @@ def relatorio_etiqueta_protocolo(request, nro, ano):
 
     protocolo = Protocolo.objects.filter(numero=nro, ano=ano)
 
+    m = MateriaLegislativa.objects.filter(numero_protocolo=nro,ano=ano)
+
     protocolo_data = get_etiqueta_protocolos(protocolo)
 
     pdf = pdf_etiqueta_protocolo_gerar.principal(imagem,
@@ -1553,6 +1555,32 @@ def relatorio_sessao_plenaria_pdf(request, pk):
                                                                   "info": info})
 
     pdf_file = make_pdf(base_url=base_url, main_template=html_template, header_template=html_header)
+
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    response.write(pdf_file)
+
+    return response
+
+
+
+def etiqueta_materia_legislativa(request, pk):
+    base_url = request.build_absolute_uri()
+    materia_legislativa = MateriaLegislativa.objects.get(pk=pk)
+    context = {
+        'tipo': materia_legislativa.tipo,
+        'data_apresentacao':materia_legislativa.data_apresentacao,
+        'autores': materia_legislativa.autores,
+        'ementa':materia_legislativa.ementa,
+    }
+
+    main_template = render_to_string('relatorios/etiqueta_materia_legislativa.html', context)
+
+    html = HTML(base_url=base_url, string=main_template)
+    main_doc = html.render(stylesheets=[CSS(string='@page {size: 4cm 6cm;}')])
+
+    pdf_file = main_doc.write_pdf()
 
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'

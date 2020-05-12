@@ -157,3 +157,9 @@ MateriaLegislativaDetail:
   - ementa
   - indexacao
   - observacao
+
+ConfigEtiquetaMaetriaLegislativa:
+  {% trans 'Configurações de Etiqueta' %}:
+  - largura
+  - altura
+  - mostrar_em_arquivo
