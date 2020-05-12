@@ -502,7 +502,7 @@ class RegistroVotacao(models.Model):
                              null=True,
                              blank=True)
     ip = models.CharField(verbose_name=_('IP'),
-                          max_length=30,
+                          max_length=60,
                           blank=True,
                           default='')
     data_hora = models.DateTimeField(
@@ -553,7 +553,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
                              null=True,
                              blank=True)
     ip = models.CharField(verbose_name=_('IP'),
-                          max_length=30,
+                          max_length=60,
                           blank=True,
                           default='')
     data_hora = models.DateTimeField(
@@ -847,7 +847,7 @@ class RegistroLeitura(models.Model):
                              null=True,
                              blank=True)
     ip = models.CharField(verbose_name=_('IP'),
-                          max_length=30,
+                          max_length=60,
                           blank=True,
                           default='')
     data_hora = models.DateTimeField(
