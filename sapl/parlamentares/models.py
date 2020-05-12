@@ -104,7 +104,7 @@ def logo_upload_path(instance, filename):
 @reversion.register()
 class Partido(models.Model):
     sigla = models.CharField(
-        max_length=9,
+        max_length=20,
         verbose_name=_('Sigla')
     )
     nome = models.CharField(
