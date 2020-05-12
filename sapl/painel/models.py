@@ -46,7 +46,9 @@ class Cronometro(models.Model):
         verbose_name=_("Última duração salva em stop"))
 
     duracao_cronometro = models.DurationField(
-        verbose_name=_('Duração do cronômetro'))
+        default="00:05:00",
+        verbose_name=_('Duração do cronômetro')
+    )
 
     tipo = models.CharField(
         max_length=100, 
