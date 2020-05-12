@@ -556,28 +556,29 @@ def get_sessao_plenaria(sessao, casa):
     lst_expedientes = []
     expedientes = ExpedienteSessao.objects.filter(sessao_plenaria=sessao).order_by('tipo__nome')
     for e in expedientes:
-        dic_expedientes = {"nom_expediente": e.tipo.nome}
         conteudo = e.conteudo
+        if conteudo:
+            # unescape HTML codes
+            # https://github.com/interlegis/sapl/issues/1046
+            conteudo = re.sub('style=".*?"', '', conteudo)
+            conteudo = re.sub('class=".*?"', '', conteudo)
+            conteudo = re.sub('align=".*?"', '', conteudo)  # OSTicket Ticket #796450
+            conteudo = re.sub('<p\s+>', '<p>', conteudo)
+            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)  # OSTicket Ticket #796450
+            conteudo = html.unescape(conteudo)
 
-        # unescape HTML codes
-        # https://github.com/interlegis/sapl/issues/1046
-        conteudo = re.sub('style=".*?"', '', conteudo)
-        conteudo = re.sub('class=".*?"', '', conteudo)
-        conteudo = re.sub('align=".*?"', '', conteudo)  # OSTicket Ticket #796450
-        conteudo = re.sub('<p\s+>', '<p>', conteudo)
-        conteudo = re.sub('<br\s+/>', '<br/>', conteudo)  # OSTicket Ticket #796450
-        conteudo = html.unescape(conteudo)
+            # escape special character '&'
+            #   https://github.com/interlegis/sapl/issues/1009
+            conteudo = conteudo.replace('&', '&amp;')
 
-        # escape special character '&'
-        #   https://github.com/interlegis/sapl/issues/1009
-        conteudo = conteudo.replace('&', '&amp;')
+            # https://github.com/interlegis/sapl/issues/2386
+            conteudo = remove_html_comments(conteudo)
 
-        # https://github.com/interlegis/sapl/issues/2386
-        conteudo = remove_html_comments(conteudo)
+            dic_expedientes = {
+                "nom_expediente": e.tipo.nome,
+                "txt_expediente": conteudo
+            }
 
-        dic_expedientes["txt_expediente"] = conteudo
-
-        if dic_expedientes:
             lst_expedientes.append(dic_expedientes)
 
     # Lista das matérias do Expediente, incluindo o resultado das votacoes
