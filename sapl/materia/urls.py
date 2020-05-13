@@ -173,7 +173,6 @@ urlpatterns_sistema = [
     url(r'^sistema/materia/status-tramitacao/',
         include(StatusTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
-    
     url(r'^sistema/materia/config-etiqueta-materia-legislativas/',
         include(ConfigEtiquetaMateriaLegislativaCrud.get_urls())),
 ]

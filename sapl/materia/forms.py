@@ -34,7 +34,7 @@ from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  MateriaLegislativa, Orgao,
                                  RegimeTramitacao, StatusTramitacao,
                                  TipoDocumento, TipoProposicao,
-                                 UnidadeTramitacao,ConfigEtiquetaMaetriaLegislativa)
+                                 UnidadeTramitacao,ConfigEtiquetaMateriaLegislativa)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica, 
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
@@ -2923,11 +2923,9 @@ class MateriaPesquisaSimplesForm(forms.Form):
 
         return cleaned_data
 
-class ConfigEtiquetaMaetriaLegislativaForms(ModelForm):
-    data = forms.DateField(required=True)
-
+class ConfigEtiquetaMateriaLegislativaForms(ModelForm):
     class Meta:
-        model = ConfigEtiquetaMaetriaLegislativa
+        model = ConfigEtiquetaMateriaLegislativa
         fields = '__all__'
 
     

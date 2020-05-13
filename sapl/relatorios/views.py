@@ -15,7 +15,7 @@ from sapl.settings import MEDIA_URL
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
-                                 Tramitacao, UnidadeTramitacao)
+                                 Tramitacao, UnidadeTramitacao, ConfigEtiquetaMateriaLegislativa)
 from sapl.parlamentares.models import CargoMesa, Filiacao, Parlamentar
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       TramitacaoAdministrativo)
@@ -1568,17 +1568,27 @@ def relatorio_sessao_plenaria_pdf(request, pk):
 def etiqueta_materia_legislativa(request, pk):
     base_url = request.build_absolute_uri()
     materia_legislativa = MateriaLegislativa.objects.get(pk=pk)
+    confg = ConfigEtiquetaMateriaLegislativa.objects.first()
+
+    from sapl.utils import create_barcode
+    base64_data = create_barcode(str(materia_legislativa.numero)+"/"+str(materia_legislativa.ano)+"-"+str(materia_legislativa.tipo), 100, 500)
+    barcode = 'data:image/png;base64,{0}'.format(base64_data)
+
+
     context = {
         'tipo': materia_legislativa.tipo,
         'data_apresentacao':materia_legislativa.data_apresentacao,
         'autores': materia_legislativa.autores,
         'ementa':materia_legislativa.ementa,
+        'largura': confg.largura,
+        'altura':confg.largura,
+        'barcode': barcode
     }
 
     main_template = render_to_string('relatorios/etiqueta_materia_legislativa.html', context)
 
     html = HTML(base_url=base_url, string=main_template)
-    main_doc = html.render(stylesheets=[CSS(string='@page {size: 4cm 6cm;}')])
+    main_doc = html.render(stylesheets=[CSS(string="@page {{size: {}cm {}cm;}}".format(confg.largura,confg.altura))])
 
     pdf_file = main_doc.write_pdf()
 
