@@ -10,7 +10,7 @@ import sapl.utils
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sessao', '0047_auto_20190829_1253')
+        ('sessao', '0047_auto_20190829_1253'),
     ]
 
     operations = [
