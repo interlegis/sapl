@@ -3450,11 +3450,11 @@ class PautaSessaoDetailView(DetailView):
 
         expedientes = []
         for e in expediente:
-            tipo = e.tipo
-            conteudo = sub(
-                '&nbsp;', ' ', e.conteudo)
-            ex = {'tipo': tipo, 'conteudo': conteudo}
-            expedientes.append(ex)
+            if e.conteudo:
+                tipo = e.tipo
+                conteudo = sub('&nbsp;', ' ', e.conteudo)
+                ex = {'tipo': tipo, 'conteudo': conteudo}
+                expedientes.append(ex)
 
         context.update({'expedientes': expedientes})
         # =====================================================================
