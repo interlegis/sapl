@@ -758,7 +758,7 @@ def get_sessao_plenaria(sessao, casa):
     lst_oradores = []
     for orador in Orador.objects.select_related('parlamentar').filter(sessao_plenaria=sessao).order_by('numero_ordem'):
         parlamentar = orador.parlamentar
-        partido_sigla = orador.parlamentar.filiacao_set.first()
+        partido_sigla = orador.parlamentar.filiacao_set.select_related('partido', 'parlamentar').first()
         lst_oradores.append({
             "num_ordem": orador.numero_ordem,
             "nom_parlamentar": parlamentar.nome_parlamentar,
