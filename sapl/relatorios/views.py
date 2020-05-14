@@ -1563,15 +1563,14 @@ def relatorio_sessao_plenaria_pdf(request, pk):
 
     return response
 
-
-
-def etiqueta_materia_legislativa(request, pk):
-    base_url = request.build_absolute_uri()
-    materia_legislativa = MateriaLegislativa.objects.get(pk=pk)
+def gera_etiqueta_ml(materia_legislativa, base_url):
     confg = ConfigEtiquetaMateriaLegislativa.objects.first()
 
     from sapl.utils import create_barcode
-    base64_data = create_barcode(str(materia_legislativa.numero)+"/"+str(materia_legislativa.ano)+"-"+str(materia_legislativa.tipo), 100, 500)
+    import unidecode
+
+    ml_info =  unidecode.unidecode("{}/{}-{}".format(materia_legislativa.numero, materia_legislativa.ano, materia_legislativa.tipo))
+    base64_data = create_barcode(ml_info, 100, 500)
     barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
 
@@ -1591,10 +1590,46 @@ def etiqueta_materia_legislativa(request, pk):
     main_doc = html.render(stylesheets=[CSS(string="@page {{size: {}cm {}cm;}}".format(confg.largura,confg.altura))])
 
     pdf_file = main_doc.write_pdf()
+    return pdf_file
+
+
+def etiqueta_materia_legislativa(request, pk):
+    base_url = request.build_absolute_uri()
+    materia_legislativa = MateriaLegislativa.objects.get(pk=pk)
+    
+    pdf_file = gera_etiqueta_ml(materia_legislativa, base_url)
 
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
     response['Content-Transfer-Encoding'] = 'binary'
     response.write(pdf_file)
+
+    return response
+
+def texto_articulado_com_etiqueta(request,pk):
+    from shutil import move
+    import fitz
+    from pdf2image import convert_from_bytes
+    from io import BytesIO
+    from PIL.Image import FLIP_TOP_BOTTOM
+    base_url = request.build_absolute_uri()
+
+    materia_legislativa = MateriaLegislativa.objects.get(pk=pk)
+   
+    input_file = materia_legislativa.texto_original.path
+
+    etiqueta = gera_etiqueta_ml(materia_legislativa, base_url)
+    img = convert_from_bytes(etiqueta)
+    aux_binary = BytesIO()
+    barcode_file = img[0].save(aux_binary,format="JPEG")
+    image_rectangle = fitz.Rect(500,600,800,900)
+    file_handle = fitz.open(input_file)
+    first_page = file_handle[0]
+    first_page.insertImage(image_rectangle, stream=aux_binary.getvalue(),rotate=270,keep_proportion=False)
+    
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    response.write(file_handle.write())
 
     return response
