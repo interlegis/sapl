@@ -756,14 +756,14 @@ def get_sessao_plenaria(sessao, casa):
 
     # Lista dos oradores nas Explicações Pessoais
     lst_oradores = []
-    for orador in Orador.objects.filter(sessao_plenaria=sessao).order_by('numero_ordem'):
-        for parlamentar in Parlamentar.objects.filter(id=orador.parlamentar.id):
-            partido_sigla = Filiacao.objects.filter(parlamentar=parlamentar).first()
-            lst_oradores.append({
-                "num_ordem": orador.numero_ordem,
-                "nom_parlamentar": parlamentar.nome_parlamentar,
-                "sgl_partido": "" if not partido_sigla else partido_sigla.partido.sigla
-            })
+    for orador in Orador.objects.select_related('parlamentar').filter(sessao_plenaria=sessao).order_by('numero_ordem'):
+        parlamentar = orador.parlamentar
+        partido_sigla = orador.parlamentar.filiacao_set.first()
+        lst_oradores.append({
+            "num_ordem": orador.numero_ordem,
+            "nom_parlamentar": parlamentar.nome_parlamentar,
+            "sgl_partido": "" if not partido_sigla else partido_sigla.partido.sigla
+        })
 
     # Ocorrências da Sessão
     lst_ocorrencias = []
