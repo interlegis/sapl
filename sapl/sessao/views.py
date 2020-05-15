@@ -3450,9 +3450,11 @@ class PautaSessaoDetailView(DetailView):
 
         expedientes = []
         for e in expediente:
-            if e.conteudo:
+            conteudo = e.conteudo
+            from sapl.relatorios.views import is_empty
+            if not is_empty(conteudo):
                 tipo = e.tipo
-                conteudo = sub('&nbsp;', ' ', e.conteudo)
+                conteudo = sub('&nbsp;', ' ', conteudo)
                 ex = {'tipo': tipo, 'conteudo': conteudo}
                 expedientes.append(ex)
 

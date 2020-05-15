@@ -498,6 +498,15 @@ def remove_html_comments(text):
     return clean_text if len(clean_text) > 0 else text
 
 
+def is_empty(value):
+    if not value:
+        return True
+
+    txt = re.sub(r'\s+|<br.*/>|\n|&nbsp;', '', value)
+
+    return True if not txt.strip() else False
+
+
 def get_sessao_plenaria(sessao, casa):
     inf_basicas_dic = {
         "num_sessao_plen": str(sessao.numero),
@@ -557,7 +566,7 @@ def get_sessao_plenaria(sessao, casa):
     expedientes = ExpedienteSessao.objects.filter(sessao_plenaria=sessao).order_by('tipo__nome')
     for e in expedientes:
         conteudo = e.conteudo
-        if conteudo:
+        if not is_empty(conteudo):
             # unescape HTML codes
             # https://github.com/interlegis/sapl/issues/1046
             conteudo = re.sub('style=".*?"', '', conteudo)
