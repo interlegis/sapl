@@ -80,6 +80,19 @@ class AudienciaPublica(models.Model):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Audiência Cancelada?'))
+    parlamentar_autor = models.ForeignKey(
+        Parlamentar,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name=_('Parlamentar Autor'))
+    requerimento = models.ForeignKey(
+        MateriaLegislativa,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        verbose_name=_('Requerimento da Audiência Pública'),
+        related_name=_('requerimento'))
     url_audio = models.URLField(
         max_length=150, blank=True,
         verbose_name=_('URL Arquivo Áudio (Formatos MP3 / AAC)'))
