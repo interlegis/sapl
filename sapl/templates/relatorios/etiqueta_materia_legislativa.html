@@ -10,6 +10,7 @@
         @page{
             margin: 0cm
         }
+        
         div {page-break-inside: avoid;}
         p {
             font-size:3pt;
@@ -23,7 +24,7 @@
         <p><strong>Etiqueta Materia Legislativa</strong></p>
         <p>{{tipo}}</p>
         <p>{{data_apresentacao}}</p>
-        <p>{{autores}}</p>
+        {% for autor in autores %}<p>{{autor}}{% if not forloop.last%}-{% endif %}</p>{% endfor %}
         <p>{{ementa}}</p>
         <img src="{{barcode}}" style="width: 100%; height: 100%;" alt="{{barcode}}">
 

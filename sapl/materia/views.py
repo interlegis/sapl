@@ -32,6 +32,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
+from django.shortcuts import render
+
 
 from django_filters.views import FilterView
 
@@ -2853,8 +2855,15 @@ def get_pdf_docacessorios(request, pk):
                                        % external_name)
     return response
 
-class ConfigEtiquetaMateriaLegislativaCrud(CrudAux):
-    model = ConfigEtiquetaMateriaLegislativa
-
-    class UpdateView(CrudAux.UpdateView):
-        form_class = ConfigEtiquetaMateriaLegislativaForms
+def configEtiquetaMateriaLegislativaCrud(request):
+    config = ConfigEtiquetaMateriaLegislativa.objects.last()
+    if request.method == "POST":
+        form = ConfigEtiquetaMateriaLegislativaForms(request.POST, instance=config)
+        if form.is_valid():
+            config = form.save(commit=False)
+            config.published_date = timezone.now()
+            config.save()
+            return redirect('materia/config_etiqueta_materia.html', {'form': form})
+    else:
+        form = ConfigEtiquetaMateriaLegislativaForms(instance=config)
+    return render(request, 'materia/config_etiqueta_materia.html', {'form': form})

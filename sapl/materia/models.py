@@ -1118,13 +1118,9 @@ class MateriaEmTramitacao(models.Model):
         return '{}/{}'.format(self.materia, self.tramitacao)
 
 class ConfigEtiquetaMateriaLegislativa(models.Model):
-    largura = models.FloatField()
-    altura = models.FloatField()
-    
-    mostrar_em_arquivo = models.BooleanField(verbose_name=_('Mostrar em arquivo ?'),
-                                  choices=YES_NO_CHOICES,
-                                  default=False)
-    
+    largura = models.FloatField(default=5)
+    altura = models.FloatField(default=3)
+        
     def save(self, *args, **kwargs):
         self.id = 1
         return super().save(*args, **kwargs)
