@@ -10,9 +10,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import (PasswordResetView,PasswordResetConfirmView, PasswordResetCompleteView,
+                                       PasswordResetDoneView)
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.db import connection
 from django.db.models import Count, Q, ProtectedError, Max
 from django.shortcuts import render
@@ -22,7 +24,6 @@ from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DetailView, DeleteView, FormView, ListView, UpdateView)
 from django.views.generic.base import RedirectView, TemplateView
@@ -32,49 +33,37 @@ from haystack.query import SearchQuerySet
 
 from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_materia_por_autor,
                                    relatorio_materia_por_ano_autor, relatorio_presenca_sessao,
-                                   relatorio_historico_tramitacao, relatorio_fim_prazo_tramitacao,
-                                   relatorio_atas, relatorio_audiencia, relatorio_normas_mes,
-                                   relatorio_normas_vigencia, relatorio_historico_tramitacao_adm,
-                                   relatorio_reuniao, relatorio_estatisticas_acesso_normas,
-                                   relatorio_normas_por_autor, relatorio_documento_acessorio)
+                                   relatorio_historico_tramitacao, relatorio_fim_prazo_tramitacao, relatorio_atas,
+                                   relatorio_audiencia, relatorio_normas_mes, relatorio_normas_vigencia,
+                                   relatorio_historico_tramitacao_adm, relatorio_reuniao,
+                                   relatorio_estatisticas_acesso_normas, relatorio_normas_por_autor,
+                                   relatorio_documento_acessorio)
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.models import Autor, TipoAutor
-from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm, AutorFilterSet
+from sapl.base.forms import (AutorForm, AutorFormForAdmin, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
+                             NovaSenhaForm)
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination
-from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio,
-                                 MateriaEmTramitacao, MateriaLegislativa, Proposicao,
-                                 StatusTramitacao, TipoDocumento,
-                                 TipoMateriaLegislativa,  UnidadeTramitacao, Tramitacao)
+from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio, MateriaEmTramitacao, MateriaLegislativa,
+                                 Proposicao, StatusTramitacao, TipoDocumento, TipoMateriaLegislativa, UnidadeTramitacao,
+                                 Tramitacao)
 from sapl.norma.models import NormaJuridica, TipoNormaJuridica
-from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato, Parlamentar, 
-                                      SessaoLegislativa)
-from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocolo,
-                                      StatusTramitacaoAdministrativo,
+from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato, Parlamentar, SessaoLegislativa)
+from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocolo, StatusTramitacaoAdministrativo,
                                       TipoDocumentoAdministrativo)
-from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, TipoSessaoPlenaria)
-from sapl.utils import (from_date_to_datetime_utc, gerar_hash_arquivo, intervalos_tem_intersecao,
-                        mail_service_configured, parlamentares_ativos, SEPARADOR_HASH_PROPOSICAO,
-                        show_results_filter_set, num_materias_por_tipo)
-
-from .forms import (AlterarSenhaForm, CasaLegislativaForm,
-                    ConfiguracoesAppForm, RelatorioAtasFilterSet,
-                    RelatorioAudienciaFilterSet,
-                    RelatorioDataFimPrazoTramitacaoFilterSet,
-                    RelatorioHistoricoTramitacaoFilterSet,
-                    RelatorioMateriasPorAnoAutorTipoFilterSet,
-                    RelatorioMateriasPorAutorFilterSet,
-                    RelatorioMateriasTramitacaoFilterSet,
-                    RelatorioPresencaSessaoFilterSet,
-                    RelatorioReuniaoFilterSet, UsuarioCreateForm,
-                    UsuarioEditForm, RelatorioNormasMesFilterSet,
-                    RelatorioNormasVigenciaFilterSet,
-                    EstatisticasAcessoNormasForm, UsuarioFilterSet,
-                    RelatorioHistoricoTramitacaoAdmFilterSet,
-                    RelatorioDocumentosAcessoriosFilterSet,
+from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria, SessaoPlenariaPresenca, TipoSessaoPlenaria)
+from sapl.settings import EMAIL_SEND_USER
+from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured, parlamentares_ativos,
+                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo)
+from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, RelatorioAtasFilterSet,
+                    RelatorioAudienciaFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet,
+                    RelatorioHistoricoTramitacaoFilterSet, RelatorioMateriasPorAnoAutorTipoFilterSet,
+                    RelatorioMateriasPorAutorFilterSet, RelatorioMateriasTramitacaoFilterSet,
+                    RelatorioPresencaSessaoFilterSet, RelatorioReuniaoFilterSet, UsuarioCreateForm, UsuarioEditForm,
+                    RelatorioNormasMesFilterSet, RelatorioNormasVigenciaFilterSet, EstatisticasAcessoNormasForm,
+                    UsuarioFilterSet, RelatorioHistoricoTramitacaoAdmFilterSet, RelatorioDocumentosAcessoriosFilterSet,
                     RelatorioNormasPorAutorFilterSet)
 from .models import AppConfig, CasaLegislativa
 
@@ -97,6 +86,29 @@ class ConfirmarEmailView(TemplateView):
         return self.render_to_response(context)
 
 
+class RecuperarSenhaEmailView(PasswordResetView):
+    success_url = reverse_lazy('sapl.base:recuperar_senha_finalizado')
+    email_template_name = 'base/recuperar_senha_email.html'
+    html_email_template_name = 'base/recuperar_senha_email.html'
+    template_name = 'base/recuperar_senha_email_form.html'
+    from_email = EMAIL_SEND_USER
+    form_class = RecuperarSenhaForm
+
+
+class RecuperarSenhaFinalizadoView(PasswordResetDoneView):
+    template_name = 'base/recupera_senha_email_enviado.html'
+
+
+class RecuperarSenhaConfirmaView(PasswordResetConfirmView):
+    success_url = reverse_lazy('sapl.base:recuperar_senha_completo')
+    template_name = 'base/nova_senha_form.html'
+    form_class = NovaSenhaForm
+
+
+class RecuperarSenhaCompletoView(PasswordResetCompleteView):
+    template_name = 'base/recuperar_senha_completo.html'
+
+
 class TipoAutorCrud(CrudAux):
     model = TipoAutor
     help_topic = 'tipo-autor'
@@ -108,7 +120,7 @@ class TipoAutorCrud(CrudAux):
         @property
         def verbose_name(self):
             vn = super().verbose_name
-            vn = string_concat(vn, ' ', _('Externo ao SAPL'))
+            vn = "{} {}".format(vn, _('Externo ao SAPL'))
             return vn
 
     class ListView(CrudAux.ListView):
@@ -1433,20 +1445,20 @@ def bancada_comissao_autor_externo():
 
     lista_bancada_autor_externo = []
     for bancada in Bancada.objects.all().order_by('nome'):
-        autor_externo = bancada.autor.filter(tipo=tipo_autor_externo)
+        autor_externo = bancada.autor.filter(tipo__in=tipo_autor_externo)
 
         if autor_externo:
-            q_autor_externo = bancada.autor.get(tipo=tipo_autor_externo)
+            q_autor_externo = bancada.autor.get(tipo__in=tipo_autor_externo)
             lista_bancada_autor_externo.append(
                 (q_autor_externo, bancada, 'Bancada', 'sistema/bancada')
             )
 
     lista_comissao_autor_externo = []
     for comissao in Comissao.objects.all().order_by('nome'):
-        autor_externo = comissao.autor.filter(tipo=tipo_autor_externo)
+        autor_externo = comissao.autor.filter(tipo__in=tipo_autor_externo)
 
         if autor_externo:
-            q_autor_externo = comissao.autor.get(tipo=tipo_autor_externo)
+            q_autor_externo = comissao.autor.get(tipo__in=tipo_autor_externo)
             lista_comissao_autor_externo.append(
                 (q_autor_externo, comissao, 'Comissão', 'comissao')
             )
@@ -2104,7 +2116,7 @@ class AppConfigCrud(CrudAux):
 
 
     class UpdateView(CrudAux.UpdateView):
-        
+
         form_class = ConfiguracoesAppForm
 
         def form_valid(self, form):
@@ -2113,7 +2125,7 @@ class AppConfigCrud(CrudAux):
 
             self.object = form.save()
             numeracao_nova = self.object.inicio_numeracao_protocolo
-            
+
             if numeracao_nova != numeracao_antiga:
                 if numeracao == 'A':
                     numero_max = Protocolo.objects.filter(
@@ -2132,7 +2144,7 @@ class AppConfigCrud(CrudAux):
                     data_fim_utc = from_date_to_datetime_utc(data_fim)
 
                     numero_max = Protocolo.objects.filter(
-                        Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) | 
+                        Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) |
                         Q(
                             timestamp__isnull=False, timestamp__gte=data_inicio_utc,
                             timestamp__lte=data_fim_utc

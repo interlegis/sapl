@@ -4,5 +4,6 @@ WORKDIR /sapl-dev
 COPY requirements ./requirements/
 RUN apt update && \
     apt -y install graphviz-dev && \
+    pip install --upgrade pip && \
     pip install -r ./requirements/dev-requirements.txt
 EXPOSE 8000

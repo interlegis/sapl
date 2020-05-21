@@ -191,47 +191,81 @@ PRIVACIDADE_STATUS = (
 
 @reversion.register()
 class TextoArticulado(TimestampedMixin):
-    data = models.DateField(blank=True, null=True, verbose_name=_('Data'))
+    data = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name=_('Data')
+    )
+
     ementa = models.TextField(verbose_name=_('Ementa'))
-    observacao = models.TextField(blank=True, verbose_name=_('Observação'))
+
+    observacao = models.TextField(
+        blank=True,
+        verbose_name=_('Observação')
+    )
+
     numero = models.CharField(
-        max_length=8, verbose_name=_('Número'))
+        max_length=8,
+        verbose_name=_('Número')
+    )
+
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'))
+
     tipo_ta = models.ForeignKey(
         TipoTextoArticulado,
-        blank=True, null=True, default=None,
-        verbose_name=_('Tipo de Texto Articulado'))
-    participacao_social = models.NullBooleanField(
+        blank=True,
+        null=True,
         default=None,
-        blank=True, null=True,
+        verbose_name=_('Tipo de Texto Articulado'),
+        on_delete=models.PROTECT
+    )
+
+    participacao_social = models.BooleanField(
+        blank=True,
+        null=True,
+        default=False,
         choices=PARTICIPACAO_SOCIAL_CHOICES,
-        verbose_name=_('Participação Social'))
+        verbose_name=_('Participação Social')
+    )
 
     content_type = models.ForeignKey(
         ContentType,
-        blank=True, null=True, default=None)
+        blank=True,
+        null=True,
+        default=None,
+        on_delete=models.PROTECT
+    )
+
     object_id = models.PositiveIntegerField(
-        blank=True, null=True, default=None)
+        blank=True,
+        null=True,
+        default=None)
+
     content_object = GenericForeignKey('content_type', 'object_id')
 
     owners = models.ManyToManyField(
         get_settings_auth_user_model(),
-        blank=True, verbose_name=_('Donos do Texto Articulado'))
+        blank=True,
+        verbose_name=_('Donos do Texto Articulado')
+    )
 
     editable_only_by_owners = models.BooleanField(
         choices=YES_NO_CHOICES,
         default=True,
-        verbose_name=_('Editável apenas pelos donos do Texto Articulado?'))
+        verbose_name=_('Editável apenas pelos donos do Texto Articulado?')
+    )
 
     editing_locked = models.BooleanField(
         choices=YES_NO_CHOICES,
         default=True,
-        verbose_name=_('Texto Articulado em Edição?'))
+        verbose_name=_('Texto Articulado em Edição?')
+    )
 
     privacidade = models.IntegerField(
         _('Privacidade'),
         choices=PRIVACIDADE_STATUS,
-        default=STATUS_TA_PRIVATE)
+        default=STATUS_TA_PRIVATE
+    )
 
     class Meta:
         verbose_name = _('Texto Articulado')
@@ -775,23 +809,39 @@ class TipoDispositivo(BaseModel):
 
 @reversion.register()
 class TipoDispositivoRelationship(BaseModel):
-    pai = models.ForeignKey(TipoDispositivo, related_name='filhos_permitidos')
+    pai = models.ForeignKey(
+        TipoDispositivo,
+        related_name='filhos_permitidos',
+        on_delete=models.PROTECT
+    )
+
     filho_permitido = models.ForeignKey(
         TipoDispositivo,
-        related_name='possiveis_pais')
-    perfil = models.ForeignKey(PerfilEstruturalTextoArticulado)
+        related_name='possiveis_pais',
+        on_delete=models.PROTECT
+    )
+
+    perfil = models.ForeignKey(
+        PerfilEstruturalTextoArticulado,
+        on_delete=models.PROTECT
+    )
+
     filho_de_insercao_automatica = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
-        verbose_name=_('Filho de Inserção Automática'))
+        verbose_name=_('Filho de Inserção Automática')
+    )
+
     permitir_variacao = models.BooleanField(
         default=True,
         choices=YES_NO_CHOICES,
-        verbose_name=_('Permitir Variação Numérica'))
+        verbose_name=_('Permitir Variação Numérica')
+    )
 
     quantidade_permitida = models.IntegerField(
         default=-1,
-        verbose_name=_('Quantidade permitida nesta relação'))
+        verbose_name=_('Quantidade permitida nesta relação')
+    )
 
     class Meta:
         verbose_name = _('Relação Direta Permitida')
@@ -837,33 +887,66 @@ class VeiculoPublicacao(models.Model):
 @reversion.register()
 class Publicacao(TimestampedMixin):
     ta = models.ForeignKey(
-        TextoArticulado, verbose_name=_('Texto Articulado'))
+        TextoArticulado,
+        verbose_name=_('Texto Articulado'),
+        on_delete=models.PROTECT
+    )
+
     veiculo_publicacao = models.ForeignKey(
-        VeiculoPublicacao, verbose_name=_('Veículo de Publicação'))
+        VeiculoPublicacao,
+        verbose_name=_('Veículo de Publicação'),
+        on_delete=models.PROTECT
+    )
+
     tipo_publicacao = models.ForeignKey(
-        TipoPublicacao, verbose_name=_('Tipo de Publicação'))
+        TipoPublicacao,
+        verbose_name=_('Tipo de Publicação'),
+        on_delete=models.PROTECT
+    )
 
     data = models.DateField(verbose_name=_('Data de Publicação'))
+
     hora = models.TimeField(
-        blank=True, null=True, verbose_name=_('Horário de Publicação'))
+        blank=True,
+        null=True,
+        verbose_name=_('Horário de Publicação')
+    )
 
     numero = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Número'))
+        blank=True,
+        null=True,
+        verbose_name=_('Número')
+    )
 
     ano = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Ano'))
+        blank=True,
+        null=True,
+        verbose_name=_('Ano')
+    )
 
     edicao = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Edição'))
+        blank=True,
+        null=True,
+        verbose_name=_('Edição')
+    )
 
     url_externa = models.URLField(
         max_length=1024,
         blank=True,
-        verbose_name=_('Link para Versão Eletrônica'))
+        verbose_name=_('Link para Versão Eletrônica')
+    )
+
     pagina_inicio = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Pg. Início'))
+        blank=True,
+        null=True,
+        verbose_name=_('Pg. Início')
+    )
+
     pagina_fim = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Pg. Fim'))
+        blank=True,
+        null=True,
+        verbose_name=_('Pg. Fim')
+    )
 
     class Meta:
         verbose_name = _('Publicação')
@@ -880,150 +963,222 @@ class Publicacao(TimestampedMixin):
 class Dispositivo(BaseModel, TimestampedMixin):
     TEXTO_PADRAO_DISPOSITIVO_REVOGADO = force_text(_('(Revogado)'))
     INTERVALO_ORDEM = 1000
+
     ordem = models.PositiveIntegerField(
         default=0,
-        verbose_name=_('Ordem de Renderização'))
+        verbose_name=_('Ordem de Renderização')
+    )
+
     ordem_bloco_atualizador = models.PositiveIntegerField(
         default=0,
-        verbose_name=_('Ordem de Renderização no Bloco Atualizador'))
+        verbose_name=_('Ordem de Renderização no Bloco Atualizador')
+    )
 
     # apenas articulacao recebe nivel zero
     nivel = models.PositiveIntegerField(
         default=0,
         blank=True,
         null=True,
-        verbose_name=_('Nível Estrutural'))
+        verbose_name=_('Nível Estrutural')
+    )
 
     dispositivo0 = models.PositiveIntegerField(
         default=0,
-        verbose_name=_('Número do Dispositivo'))
+        verbose_name=_('Número do Dispositivo')
+    )
+
     dispositivo1 = models.PositiveIntegerField(
         default=0,
         blank=True,
         null=True,
-        verbose_name=_('Primeiro Nível de Variação'))
+        verbose_name=_('Primeiro Nível de Variação')
+    )
+
     dispositivo2 = models.PositiveIntegerField(
         default=0,
         blank=True,
         null=True,
-        verbose_name=_('Segundo Nível de Variação'))
+        verbose_name=_('Segundo Nível de Variação')
+    )
+
     dispositivo3 = models.PositiveIntegerField(
         default=0,
         blank=True,
         null=True,
-        verbose_name=_('Terceiro Nível de Variação'))
+        verbose_name=_('Terceiro Nível de Variação')
+    )
+
     dispositivo4 = models.PositiveIntegerField(
         default=0,
         blank=True,
         null=True,
-        verbose_name=_('Quarto Nível de Variação'))
+        verbose_name=_('Quarto Nível de Variação')
+    )
+
     dispositivo5 = models.PositiveIntegerField(
         default=0,
         blank=True,
         null=True,
-        verbose_name=_('Quinto Nível de Variação'))
+        verbose_name=_('Quinto Nível de Variação')
+    )
 
     rotulo = models.CharField(
         max_length=50,
         blank=True,
         default='',
-        verbose_name=_('Rótulo'))
+        verbose_name=_('Rótulo')
+    )
+
     texto = models.TextField(
         blank=True,
         default='',
-        verbose_name=_('Texto do Dispositivo'))
+        verbose_name=_('Texto do Dispositivo')
+    )
+
     texto_atualizador = models.TextField(
         blank=True,
         default='',
-        verbose_name=_('Texto do Dispositivo no Dispositivo Atualizador'))
+        verbose_name=_('Texto do Dispositivo no Dispositivo Atualizador')
+    )
 
-    inicio_vigencia = models.DateField(
-        verbose_name=_('Início de Vigência'))
+    inicio_vigencia = models.DateField(verbose_name=_('Início de Vigência'))
+
     fim_vigencia = models.DateField(
-        blank=True, null=True, verbose_name=_('Fim de Vigência'))
+        blank=True,
+        null=True,
+        verbose_name=_('Fim de Vigência')
+    )
 
-    inicio_eficacia = models.DateField(
-        verbose_name=_('Início de Eficácia'))
+    inicio_eficacia = models.DateField(verbose_name=_('Início de Eficácia'))
+
     fim_eficacia = models.DateField(
-        blank=True, null=True, verbose_name=_('Fim de Eficácia'))
+        blank=True,
+        null=True,
+        verbose_name=_('Fim de Eficácia')
+    )
 
     inconstitucionalidade = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
-        verbose_name=_('Declarado Inconstitucional'))
+        verbose_name=_('Declarado Inconstitucional')
+    )
+
     auto_inserido = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
-        verbose_name=_('Auto Inserido'))
+        verbose_name=_('Auto Inserido')
+    )
+
     visibilidade = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
-        verbose_name=_('Visibilidade no Texto Articulado Publicado'))
+        verbose_name=_('Visibilidade no Texto Articulado Publicado')
+    )
 
     dispositivo_de_revogacao = models.BooleanField(
         default=False,
         choices=YES_NO_CHOICES,
-        verbose_name=_('Dispositivo de Revogação'))
+        verbose_name=_('Dispositivo de Revogação')
+    )
 
     tipo_dispositivo = models.ForeignKey(
         TipoDispositivo,
         on_delete=models.PROTECT,
         related_name='dispositivos_do_tipo_set',
-        verbose_name=_('Tipo do Dispositivo'))
+        verbose_name=_('Tipo do Dispositivo')
+    )
 
     publicacao = models.ForeignKey(
         Publicacao,
-        blank=True, null=True, default=None, verbose_name=_('Publicação'))
+        blank=True,
+        null=True,
+        default=None,
+        verbose_name=_('Publicação'),
+        on_delete=models.PROTECT
+    )
 
     ta = models.ForeignKey(
         TextoArticulado,
         on_delete=models.CASCADE,
         related_name='dispositivos_set',
-        verbose_name=_('Texto Articulado'))
+        verbose_name=_('Texto Articulado'),
+    )
+
     ta_publicado = models.ForeignKey(
         TextoArticulado,
         on_delete=models.PROTECT,
-        blank=True, null=True, default=None,
+        blank=True,
+        null=True,
+        default=None,
         related_name='dispositivos_alterados_pelo_ta_set',
-        verbose_name=_('Texto Articulado Publicado'))
+        verbose_name=_('Texto Articulado Publicado')
+    )
 
     dispositivo_subsequente = models.ForeignKey(
         'self',
-        blank=True, null=True, default=None,
+        blank=True,
+        null=True,
+        default=None,
         related_name='dispositivo_subsequente_set',
         on_delete=models.SET_NULL,
-        verbose_name=_('Dispositivo Subsequente'))
+        verbose_name=_('Dispositivo Subsequente')
+    )
+
     dispositivo_substituido = models.ForeignKey(
         'self',
-        blank=True, null=True, default=None,
+        blank=True,
+        null=True,
+        default=None,
         related_name='dispositivo_substituido_set',
         on_delete=models.SET_NULL,
-        verbose_name=_('Dispositivo Substituido'))
+        verbose_name=_('Dispositivo Substituido')
+    )
+
     dispositivo_pai = models.ForeignKey(
         'self',
-        blank=True, null=True, default=None,
+        blank=True,
+        null=True,
+        default=None,
         related_name='dispositivos_filhos_set',
-        verbose_name=_('Dispositivo Pai'))
+        verbose_name=_('Dispositivo Pai'),
+        on_delete=models.PROTECT
+    )
+
     dispositivo_raiz = models.ForeignKey(
         'self',
-        blank=True, null=True, default=None,
+        blank=True,
+        null=True,
+        default=None,
         related_name='nodes',
-        verbose_name=_('Dispositivo Raiz'))
+        verbose_name=_('Dispositivo Raiz'),
+        on_delete=models.PROTECT
+    )
+
     dispositivo_vigencia = models.ForeignKey(
         'self',
-        blank=True, null=True, default=None,
+        blank=True,
+        null=True,
+        default=None,
         on_delete=models.SET_NULL,
         related_name='dispositivos_vigencias_set',
-        verbose_name=_('Dispositivo de Vigência'))
+        verbose_name=_('Dispositivo de Vigência')
+    )
+
     dispositivo_atualizador = models.ForeignKey(
         'self',
-        blank=True, null=True, default=None,
+        blank=True,
+        null=True,
+        default=None,
         related_name='dispositivos_alterados_set',
-        verbose_name=_('Dispositivo Atualizador'))
+        verbose_name=_('Dispositivo Atualizador'),
+        on_delete=models.PROTECT
+    )
 
     contagem_continua = models.BooleanField(
         default=False,
-        choices=YES_NO_CHOICES, verbose_name=_('Contagem contínua'))
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Contagem contínua')
+    )
 
     class Meta:
         verbose_name = _('Dispositivo')
@@ -1740,16 +1895,25 @@ class Dispositivo(BaseModel, TimestampedMixin):
 class Vide(TimestampedMixin):
     texto = models.TextField(verbose_name=_('Texto do Vide'))
 
-    tipo = models.ForeignKey(TipoVide, verbose_name=_('Tipo do Vide'))
+    tipo = models.ForeignKey(
+        TipoVide,
+        verbose_name=_('Tipo do Vide'),
+        on_delete=models.PROTECT
+    )
 
     dispositivo_base = models.ForeignKey(
         Dispositivo,
         verbose_name=_('Dispositivo Base'),
-        related_name='dispositivo_base_set')
+        related_name='dispositivo_base_set',
+        on_delete=models.PROTECT
+    )
+
     dispositivo_ref = models.ForeignKey(
         Dispositivo,
         related_name='dispositivo_citado_set',
-        verbose_name=_('Dispositivo Referido'))
+        verbose_name=_('Dispositivo Referido'),
+        on_delete=models.PROTECT
+    )
 
     class Meta:
         verbose_name = _('Vide')
@@ -1784,24 +1948,40 @@ class Nota(TimestampedMixin):
         verbose_name=_('Título'),
         max_length=100,
         default='',
-        blank=True)
+        blank=True
+    )
+
     texto = models.TextField(verbose_name=_('Texto'))
+
     url_externa = models.URLField(
         max_length=1024,
         blank=True,
-        verbose_name=_('Url externa'))
+        verbose_name=_('Url externa')
+    )
 
     publicacao = models.DateTimeField(verbose_name=_('Data de Publicação'))
+
     efetividade = models.DateTimeField(verbose_name=_('Data de Efeito'))
 
-    tipo = models.ForeignKey(TipoNota, verbose_name=_('Tipo da Nota'))
+    tipo = models.ForeignKey(
+        TipoNota,
+        verbose_name=_('Tipo da Nota'),
+        on_delete=models.PROTECT
+    )
+
     dispositivo = models.ForeignKey(
         Dispositivo,
         verbose_name=_('Dispositivo da Nota'),
-        related_name='dispositivo_nota_set')
+        related_name='dispositivo_nota_set',
+        on_delete=models.PROTECT
+    )
 
     owner = models.ForeignKey(
-        get_settings_auth_user_model(), verbose_name=_('Dono da Nota'))
+        get_settings_auth_user_model(),
+        verbose_name=_('Dono da Nota'),
+        on_delete=models.PROTECT
+    )
+
     publicidade = models.PositiveSmallIntegerField(
         choices=NOTAS_PUBLICIDADE_CHOICES,
         verbose_name=_('Nível de Publicidade'))

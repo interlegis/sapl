@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Max, Q
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
@@ -1364,7 +1364,7 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
     logger = logging.getLogger(__name__)
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             self.template_name = 'painel/index.html'
 
         request.session['discurso'] = 'stop'

@@ -6,7 +6,6 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import string_concat
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from sapl.rules.apps import AppConfig, update_groups
@@ -30,13 +29,9 @@ def create_perms_post_migrate(sapl_app_config):
         opts = klass._meta
         permissions = (
             ("list_" + opts.model_name,
-             string_concat(
-                 _('Visualizaçao da lista de'), ' ',
-                 opts.verbose_name_plural)),
+             "{} {}".format(_('Visualização da lista de'), opts.verbose_name_plural)),
             ("detail_" + opts.model_name,
-             string_concat(
-                 _('Visualização dos detalhes de'), ' ',
-                 opts.verbose_name_plural)),
+             "{} {}".format(_('Visualização dos detalhes de'), opts.verbose_name_plural)),
         )
         opts.permissions = tuple(
             set(list(permissions) + list(opts.permissions)))

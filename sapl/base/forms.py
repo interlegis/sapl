@@ -15,7 +15,6 @@ from django.db import models, transaction
 from django.db.models import Q
 from django.forms import Form, ModelForm
 from django.utils import timezone
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
@@ -551,19 +550,15 @@ class AutorForm(ModelForm):
                     get_user_model().USERNAME_FIELD)
                 self.fields['action_user'].initial = 'A'
 
-                self.fields['username'].label = string_concat(
-                    self.fields['username'].label,
-                    ' (', getattr(
-                        self.instance.user,
-                        get_user_model().USERNAME_FIELD), ')')
+                self.fields['username'].label = "{} ({})".format(self.fields['username'].label,
+                                                                 getattr(self.instance.user,
+                                                                         get_user_model().USERNAME_FIELD))
 
                 if 'status_user' in self.Meta.fields:
                     self.fields['status_user'].initial = 'R'
-                    self.fields['status_user'].label = string_concat(
-                        self.fields['status_user'].label,
-                        ' (', getattr(
-                            self.instance.user,
-                            get_user_model().USERNAME_FIELD), ')')
+                    self.fields['status_user'].label = "{} ({})".format(self.fields['status_user'].label,
+                                                                        getattr(self.instance.user,
+                                                                                get_user_model().USERNAME_FIELD))
 
             self.fields['username'].widget.attrs.update({
                 'data': getattr(

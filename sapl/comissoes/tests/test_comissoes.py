@@ -1,5 +1,5 @@
 import pytest
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ugettext as _
 from model_bakery import baker
 
@@ -88,12 +88,13 @@ def test_incluir_comissao_submit(admin_client):
                                  {'tipo': tipo.pk,
                                   'nome': 'Comissão Teste',
                                   'sigla': 'CT',
+                                  'ativa': True, 
                                   'data_criacao': '2016-03-22',
                                   'unidade_deliberativa': True,
                                   'salvar': 'salvar'},
                                  follow=True)
     assert response.status_code == 200
-
+ 
     comissao = Comissao.objects.first()
     assert comissao.nome == 'Comissão Teste'
     assert comissao.tipo == tipo

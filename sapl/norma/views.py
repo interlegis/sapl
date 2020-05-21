@@ -4,7 +4,7 @@ import re
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.utils import timezone

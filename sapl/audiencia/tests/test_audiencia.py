@@ -71,7 +71,7 @@ def test_valida_campos_obrigatorios_audiencia_form():
     assert errors['data'] == [_('Este campo é obrigatório.')]
     assert errors['hora_inicio'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 5
+    assert len(errors) == 6
 
 
 @pytest.mark.django_db(transaction=False)

@@ -1,11 +1,11 @@
-django>=1.11.29,<2.0
+Django==2.2
 django-haystack==2.8.1
 django-filter==2.0.0
 djangorestframework==3.9.1
 dj-database-url==0.5.0
-django-braces==1.9.0
+django-braces==1.14.0
 django-crispy-forms==1.7.2
-django-floppyforms==1.7.0
+django-floppyforms==1.8.0
 django-extra-views==0.12.0
 django-model-utils==3.1.2
 django-reversion==3.0.2
@@ -19,9 +19,9 @@ ruamel.yaml>=0.15.34,<0.16.0
 easy-thumbnails==2.5
 python-decouple==3.1
 psycopg2-binary==2.7.6.1
-pyyaml==4.2b1
+pyyaml==5.3.1
 pytz==2019.3
-rtyaml==0.0.5
+rtyaml==1.0.0
 python-magic==0.4.15
 unipath==1.1
 WeasyPrint==51
@@ -32,6 +32,7 @@ pysolr==3.6.0
 PyPDF4==1.27.0
 pyoai==2.5.0
 Unidecode==1.1.1
+whitenoise==5.1.0
 
 git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped
