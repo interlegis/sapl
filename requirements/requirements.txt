@@ -31,6 +31,7 @@ more-itertools==8.2.0
 pysolr==3.6.0
 PyPDF4==1.27.0
 pyoai==2.5.0
+Unidecode==1.1.1
 
 git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped

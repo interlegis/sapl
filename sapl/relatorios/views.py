@@ -3,6 +3,7 @@ import html
 import logging
 import re
 import tempfile
+import unidecode
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
@@ -26,7 +27,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
                                 RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente, ResumoOrdenacao)
 from sapl.settings import STATIC_ROOT
-from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
+from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode
 
 from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_presenca_sessao, get_expedientes,
@@ -1565,9 +1566,6 @@ def relatorio_sessao_plenaria_pdf(request, pk):
 
 def gera_etiqueta_ml(materia_legislativa, base_url):
     confg = ConfigEtiquetaMateriaLegislativa.objects.first()
-
-    from sapl.utils import create_barcode
-    import unidecode
 
     ml_info =  unidecode.unidecode("{}/{}-{}".format(materia_legislativa.numero, materia_legislativa.ano, materia_legislativa.tipo))
     base64_data = create_barcode(ml_info, 100, 500)
