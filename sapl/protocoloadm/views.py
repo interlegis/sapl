@@ -613,12 +613,14 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             return self.render_to_response(self.get_context_data())
 
         if numeracao == 'A':
-            numero = Protocolo.objects.filter(
-                ano=timezone.now().year).aggregate(Max('numero'))
+            numero_max = Protocolo.objects.filter(ano=timezone.now().year).aggregate(
+                Max('numero')
+            )['numero__max']
         elif numeracao == 'L':
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
-                data_fim__year__gte=timezone.now().year).first()
+                data_fim__year__gte=timezone.now().year
+            ).first()
 
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
@@ -638,14 +640,15 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
                   timestamp_data_hora_manual__lte=data_fim_utc,)).\
                 aggregate(Max('numero'))
         elif numeracao == 'U':
-            numero = Protocolo.objects.all().aggregate(Max('numero'))
+            numero_max = Protocolo.objects.all().aggregate(Max('numero'))['numero__max']
 
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
 
-        inicio_numeracao = AppConfig.objects.all()[0].inicio_numeracao_protocolo
+        inicio_numeracao = AppConfig.objects.first().inicio_numeracao_protocolo
+        numero = int(numero_max) if numero_max else 0
         protocolo.numero = (
-            (numero['numero__max'] + 1 ) if numero['numero__max'] else inicio_numeracao
+            (numero + 1 ) if numero and numero >= inicio_numeracao else inicio_numeracao
         )
 
         protocolo.ano = timezone.now().year
@@ -821,12 +824,15 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             return self.render_to_response(self.get_context_data())
 
         if numeracao == 'A':
-            numero = Protocolo.objects.filter(
-                ano=timezone.now().year).aggregate(Max('numero'))
+            numero_max = Protocolo.objects.filter(ano=timezone.now().year).aggregate(
+                Max('numero')
+            )['numero__max']
         elif numeracao == 'L':
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
-                data_fim__year__gte=timezone.now().year).first()
+                data_fim__year__gte=timezone.now().year
+            ).first()
+
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
 
@@ -846,11 +852,12 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
                 aggregate(Max('numero'))
 
         elif numeracao == 'U':
-            numero = Protocolo.objects.all().aggregate(Max('numero'))
+            numero_max = Protocolo.objects.all().aggregate(Max('numero'))['numero__max']
 
         inicio_numeracao = AppConfig.objects.first().inicio_numeracao_protocolo
+        numero = int(numero_max) if numero_max else 0
         protocolo.numero = (
-            (numero['numero__max'] + 1 ) if numero['numero__max'] else inicio_numeracao
+            (numero + 1 ) if numero and numero >= inicio_numeracao else inicio_numeracao
         )
         
         protocolo.ano = timezone.now().year

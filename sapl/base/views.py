@@ -2054,9 +2054,9 @@ class AppConfigCrud(CrudAux):
             
             if numeracao_nova != numeracao_antiga:
                 if numeracao == 'A':
-                    numeros = Protocolo.objects.filter(
+                    numero_max = Protocolo.objects.filter(
                         ano=timezone.now().year
-                    ) 
+                    ).aggregate(Max('numero'))['numero__max']
                 elif numeracao == 'L':
                     legislatura = Legislatura.objects.filter(
                         data_inicio__year__lte=timezone.now().year,
@@ -2066,17 +2066,19 @@ class AppConfigCrud(CrudAux):
                     data_inicio = legislatura.data_inicio
                     data_fim = legislatura.data_fim
                     
-                    numeros = Protocolo.objects.filter(
-                        data__gte=data_inicio,
-                        data_lte=data_fim
-                    )
+                    numero_max = Protocolo.objects.filter(
+                        data__gte=data_inicio, data_lte=data_fim
+                    ).aggregate(Max('numero'))['numero__max']
                 elif numeracao == 'U':
-                    numeros = Protocolo.objects.all()
+                    numero_max = Protocolo.objects.all().aggregate(
+                        Max('numero')
+                    )['numero__max']
 
-                if numeros:
+                ultimo_numero_cadastrado = int(numero_max) if numero_max else 0
+                if numeracao_nova <= ultimo_numero_cadastrado and numeracao != 'U':
                     msg = "O novo início da numeração de protocolo entrará em vigor na " \
-                          "próxima sequência, pois já existem protocolos cadastrados na " \
-                          "atual."
+                          "próxima sequência, pois já existe protocolo cadastrado com " \
+                          "número superior ou igual ao número inicial definido."
                     messages.warning(self.request, msg)
 
             return super().form_valid(form)
