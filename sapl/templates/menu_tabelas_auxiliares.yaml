@@ -203,3 +203,6 @@
   - title: {% trans 'Status de Tramitação' %}
     url: sapl.protocoloadm:statustramitacaoadministrativo_list
     css_class: btn btn-link
+  - title: {% trans 'Apagar Todos Protocolos' %}
+    url: sapl.protocoloadm:apaga_protocolos_view
+    css_class: btn btn-link
