@@ -24,7 +24,8 @@ from sapl.protocoloadm.views import (AcompanhamentoDocumentoView,
                                      DesvincularMateriaView,
                                      AnexadoCrud, DocumentoAnexadoEmLoteView,
                                      PrimeiraTramitacaoEmLoteAdmView,
-                                     TramitacaoEmLoteAdmView)
+                                     TramitacaoEmLoteAdmView,
+                                     apaga_protocolos_view)
 
 from .apps import AppConfig
 
@@ -106,6 +107,10 @@ urlpatterns_protocolo = [
 
     url(r'^protocoloadm/tramitacao-em-lote', TramitacaoEmLoteAdmView.as_view(),
         name='tramitacao_em_lote_docadm'),
+
+    url(r'^protocoloadm/apaga_protocolos', apaga_protocolos_view,
+        name='apaga_protocolos_view'),
+
 
 ]
 
