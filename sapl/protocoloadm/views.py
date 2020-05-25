@@ -848,7 +848,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         elif numeracao == 'U':
             numero = Protocolo.objects.all().aggregate(Max('numero'))
 
-        inicio_numeracao = AppConfig.objects.all()[0].inicio_numeracao_protocolo
+        inicio_numeracao = AppConfig.objects.first().inicio_numeracao_protocolo
         protocolo.numero = (
             (numero['numero__max'] + 1 ) if numero['numero__max'] else inicio_numeracao
         )
