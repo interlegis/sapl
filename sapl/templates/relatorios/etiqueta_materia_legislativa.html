@@ -13,20 +13,26 @@
         
         div {page-break-inside: avoid;}
         p {
-            font-size:3pt;
+            font-size:4pt;
+            margin: 5px;
         }
-        
+        img {
+            position: absolute;
+            bottom:0px;
+            left: 0px;
+            padding:10px;  
+            height: 20px; 
+            width: 90%;
+        }
+
     </style>
 </head>
 
 <body>
     <div>
-        <p><strong>Etiqueta Materia Legislativa</strong></p>
-        <p>{{tipo}}</p>
-        <p>{{data_apresentacao}}</p>
-        {% for autor in autores %}<p>{{autor}}{% if not forloop.last%}-{% endif %}</p>{% endfor %}
+        <p><strong>Materia Legislativa</strong></p>
+        <p>{{tipo}} - {{data_apresentacao}}</p>
         <p>{{ementa}}</p>
-        <img src="{{barcode}}" style="width: 100%; height: 100%;" alt="{{barcode}}">
-
+        <img src="{{barcode}}">
     </div>
 </body>
