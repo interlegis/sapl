@@ -628,17 +628,16 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             data_inicio_utc = from_date_to_datetime_utc(data_inicio)
             data_fim_utc = from_date_to_datetime_utc(data_fim)
 
-            numero = Protocolo.objects.filter(
-                Q(data__isnull=False,
-                  data__gte=data_inicio,
-                  data__lte=data_fim) |
-                Q(timestamp__isnull=False,
-                  timestamp__gte=data_inicio_utc,
-                  timestamp__lte=data_fim_utc) |
-                Q(timestamp_data_hora_manual__isnull=False,
-                  timestamp_data_hora_manual__gte=data_inicio_utc,
-                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
-                aggregate(Max('numero'))
+            numero_max = Protocolo.objects.filter(
+                Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) | Q(
+                    timestamp__isnull=False, timestamp__gte=data_inicio_utc,
+                    timestamp__lte=data_fim_utc
+                ) | Q(
+                        timestamp_data_hora_manual__isnull=False,
+                        timestamp_data_hora_manual__gte=data_inicio_utc,
+                        timestamp_data_hora_manual__lte=data_fim_utc,
+                    )
+                ).aggregate(Max('numero'))['numero__max']
         elif numeracao == 'U':
             numero_max = Protocolo.objects.all().aggregate(Max('numero'))['numero__max']
 
@@ -839,18 +838,16 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             data_inicio_utc = from_date_to_datetime_utc(data_inicio)
             data_fim_utc = from_date_to_datetime_utc(data_fim)
 
-            numero = Protocolo.objects.filter(
-                Q(data__isnull=False,
-                  data__gte=data_inicio,
-                  data__lte=data_fim) |
-                Q(timestamp__isnull=False,
-                  timestamp__gte=data_inicio_utc,
-                  timestamp__lte=data_fim_utc) |
-                Q(timestamp_data_hora_manual__isnull=False,
-                  timestamp_data_hora_manual__gte=data_inicio_utc,
-                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
-                aggregate(Max('numero'))
-
+            numero_max = Protocolo.objects.filter(
+                Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) | Q(
+                    timestamp__isnull=False, timestamp__gte=data_inicio_utc,
+                    timestamp__lte=data_fim_utc
+                ) | Q(
+                    timestamp_data_hora_manual__isnull=False,
+                    timestamp_data_hora_manual__gte=data_inicio_utc,
+                    timestamp_data_hora_manual__lte=data_fim_utc,
+                )
+            ).aggregate(Max('numero'))['numero__max']
         elif numeracao == 'U':
             numero_max = Protocolo.objects.all().aggregate(Max('numero'))['numero__max']
 
