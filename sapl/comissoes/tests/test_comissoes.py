@@ -1,7 +1,7 @@
 import pytest
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.comissoes.models import Comissao, Composicao, Periodo
 from sapl.comissoes.models import TipoComissao, Reuniao
@@ -10,18 +10,18 @@ from sapl.comissoes import forms
 
 
 def make_composicao(comissao):
-    periodo = mommy.make(Periodo,
+    periodo = baker.make(Periodo,
                          data_inicio='2016-01-01',
                          data_fim='2016-12-31')
-    mommy.make(Composicao,
+    baker.make(Composicao,
                periodo=periodo,
                comissao=comissao)
     return Composicao.objects.first()
 
 
 def make_comissao():
-    tipo = mommy.make(TipoComissao)
-    mommy.make(Comissao,
+    tipo = baker.make(TipoComissao)
+    baker.make(Comissao,
                tipo=tipo,
                nome='Comissão Teste',
                sigla='CT',
@@ -30,15 +30,15 @@ def make_comissao():
 
 
 def make_filiacao():
-    partido = mommy.make(Partido,
+    partido = baker.make(Partido,
                          nome='Partido Meu',
                          sigla='PM')
-    parlamentar = mommy.make(Parlamentar,
+    parlamentar = baker.make(Parlamentar,
                              nome_parlamentar='Eduardo',
                              nome_completo='Eduardo',
                              sexo='M',
                              ativo=True)
-    mommy.make(Filiacao,
+    baker.make(Filiacao,
                data='2016-03-22',
                parlamentar=parlamentar,
                partido=partido)
@@ -48,7 +48,7 @@ def make_filiacao():
 
 @pytest.mark.django_db(transaction=False)
 def test_tipo_comissao_model():
-    mommy.make(TipoComissao,
+    baker.make(TipoComissao,
                nome='Teste_Nome_Tipo_Comissao',
                natureza='T',
                sigla='TSTC')
@@ -80,7 +80,7 @@ def test_incluir_parlamentar_errors(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_incluir_comissao_submit(admin_client):
-    tipo = mommy.make(TipoComissao,
+    tipo = baker.make(TipoComissao,
                       sigla='T',
                       nome='Teste')
 

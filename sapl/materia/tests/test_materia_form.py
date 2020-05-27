@@ -1,6 +1,6 @@
 import pytest
 from django.utils.translation import ugettext as _
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia import forms
@@ -24,7 +24,7 @@ def test_valida_campos_obrigatorios_ficha_pesquisa_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_ficha_pesquisa_form_datas_invalidas():
-    tipo = mommy.make(TipoMateriaLegislativa)
+    tipo = baker.make(TipoMateriaLegislativa)
 
     form = forms.FichaPesquisaForm(data={'tipo_materia': str(tipo.pk),
                                          'data_inicial': '10/11/2017',
@@ -37,7 +37,7 @@ def test_ficha_pesquisa_form_datas_invalidas():
 
 @pytest.mark.django_db(transaction=False)
 def test_ficha_pesquisa_form_invalido():
-    tipo = mommy.make(TipoMateriaLegislativa)
+    tipo = baker.make(TipoMateriaLegislativa)
 
     form = forms.FichaPesquisaForm(data={'tipo_materia': str(tipo.pk),
                                          'data_inicial': '10/11/2017',
@@ -62,7 +62,7 @@ def test_valida_campos_obrigatorios_ficha_seleciona_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_ficha_seleciona_form_valido():
-    materia = mommy.make(MateriaLegislativa)
+    materia = baker.make(MateriaLegislativa)
 
     form = forms.FichaSelecionaForm(data={'materia': str(materia.pk)})
 
@@ -178,8 +178,8 @@ def test_valida_campos_obrigatorios_devolver_proposicao_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_valida_campos_obrigatorios_relatoria_form():
-    tipo_comissao = mommy.make(TipoComissao)
-    comissao = mommy.make(Comissao,
+    tipo_comissao = baker.make(TipoComissao)
+    comissao = baker.make(Comissao,
                           tipo=tipo_comissao,
                           nome='Comissao Teste',
                           sigla='T',

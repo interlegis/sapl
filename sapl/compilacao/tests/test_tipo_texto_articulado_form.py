@@ -1,6 +1,6 @@
 import pytest
 from django.utils.translation import ugettext as _
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.compilacao import forms
 from sapl.compilacao.models import PerfilEstruturalTextoArticulado, TipoNota
@@ -41,7 +41,7 @@ def test_valida_campos_obrigatorios_nota_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_nota_form_invalido():
-    tipo = mommy.make(TipoNota)
+    tipo = baker.make(TipoNota)
 
     form = forms.NotaForm(data={'titulo': 'titulo',
                                 'texto': 'teste',
