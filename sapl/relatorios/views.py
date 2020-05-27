@@ -1567,11 +1567,15 @@ def relatorio_sessao_plenaria_pdf(request, pk):
 def gera_etiqueta_ml(materia_legislativa, base_url):
     confg = ConfigEtiquetaMateriaLegislativa.objects.first()
 
-    ml_info =  unidecode.unidecode("{}/{}-{}".format(materia_legislativa.numero, materia_legislativa.ano, materia_legislativa.tipo))
+    ml_info =  unidecode.unidecode("{}/{}-{}".format(materia_legislativa.numero,
+                                                     materia_legislativa.ano, 
+                                                     materia_legislativa.tipo.sigla))
     base64_data = create_barcode(ml_info, 100, 500)
     barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
     context = {
+        'numero': materia_legislativa.numero,
+        'ano': materia_legislativa.ano,
         'tipo': materia_legislativa.tipo,
         'data_apresentacao':materia_legislativa.data_apresentacao,
         'autores': materia_legislativa.autores.all(),
@@ -1597,7 +1601,7 @@ def etiqueta_materia_legislativa(request, pk):
     pdf_file = gera_etiqueta_ml(materia_legislativa, base_url)
 
     response = HttpResponse(content_type='application/pdf;')
-    response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
+    response['Content-Disposition'] = 'inline; filename=etiqueta.pdf'
     response['Content-Transfer-Encoding'] = 'binary'
     response.write(pdf_file)
 
