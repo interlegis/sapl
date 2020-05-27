@@ -1,5 +1,5 @@
 import pytest
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.compilacao.models import PerfilEstruturalTextoArticulado
 from sapl.compilacao.models import TipoTextoArticulado
@@ -10,7 +10,7 @@ from sapl.compilacao.models import TipoDispositivoRelationship
 
 @pytest.mark.django_db(transaction=False)
 def test_perfil_estrutural_texto_articulado_model():
-    perfil_estrutural_texto_articulado = mommy.make(
+    perfil_estrutural_texto_articulado = baker.make(
         PerfilEstruturalTextoArticulado,
         nome='Teste_Nome_Perfil',
         sigla='TSPETA')
@@ -21,7 +21,7 @@ def test_perfil_estrutural_texto_articulado_model():
 
 @pytest.mark.django_db(transaction=False)
 def test_tipo_texto_articulado_model():
-    tipo_texto_articulado = mommy.make(
+    tipo_texto_articulado = baker.make(
         TipoTextoArticulado,
         sigla='TTP',
         descricao='T_Desc_Tipo_Texto_Articulado'
@@ -33,7 +33,7 @@ def test_tipo_texto_articulado_model():
 
 @pytest.mark.django_db(transaction=False)
 def test_texto_articulado_model():
-    texto_articulado = mommy.make(
+    texto_articulado = baker.make(
         TextoArticulado,
         ementa='Teste_Ementa_Texto_Articulado',
         numero='12345678',
@@ -47,7 +47,7 @@ def test_texto_articulado_model():
 
 @pytest.mark.django_db(transaction=False)
 def test_tipo_nota_model():
-    tipo_nota = mommy.make(
+    tipo_nota = baker.make(
         TipoNota,
         sigla='TTN',
         nome='Teste_Nome_Tipo_Nota'
@@ -59,7 +59,7 @@ def test_tipo_nota_model():
 
 @pytest.mark.django_db(transaction=False)
 def test_tipo_vide_model():
-    tipo_vide = mommy.make(
+    tipo_vide = baker.make(
         TipoVide,
         sigla='TTV',
         nome='Teste_Nome_Tipo_Vide'
@@ -71,7 +71,7 @@ def test_tipo_vide_model():
 
 @pytest.mark.django_db(transaction=False)
 def test_tipo_dispositivo_model():
-    tipo_dispositivo = mommy.make(
+    tipo_dispositivo = baker.make(
         TipoDispositivo,
         nome='Teste_Nome_Tipo_Dispositivo',
         rotulo_ordinal=0
@@ -83,24 +83,24 @@ def test_tipo_dispositivo_model():
 
 @pytest.mark.django_db(transaction=False)
 def test_tipo_dispositivo_relationship_model():
-    tipo_dispositivo_pai = mommy.make(
+    tipo_dispositivo_pai = baker.make(
         TipoDispositivo,
         nome='Tipo_Dispositivo_Pai',
         rotulo_ordinal=0
     )
 
-    t_dispositivo_filho = mommy.make(
+    t_dispositivo_filho = baker.make(
         TipoDispositivo,
         nome='Tipo_Dispositivo_Filho',
         rotulo_ordinal=0
     )
 
-    p_e_texto_articulado = mommy.make(
+    p_e_texto_articulado = baker.make(
         PerfilEstruturalTextoArticulado,
         nome='Teste_Nome_Perfil',
         sigla='TSPETA')
 
-    tipo_dispositivo_relationship = mommy.make(
+    tipo_dispositivo_relationship = baker.make(
         TipoDispositivoRelationship,
         pai=tipo_dispositivo_pai,
         filho_permitido=t_dispositivo_filho,

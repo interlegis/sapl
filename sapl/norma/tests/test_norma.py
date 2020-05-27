@@ -1,6 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from model_mommy import mommy
+from model_bakery import baker
 import pytest
 
 from sapl.base.models import AppConfig
@@ -13,10 +13,10 @@ from sapl.norma.models import NormaJuridica, TipoNormaJuridica
 @pytest.mark.django_db(transaction=False)
 def test_incluir_norma_submit(admin_client):
     # Cria um tipo de norma
-    tipo = mommy.make(TipoNormaJuridica,
+    tipo = baker.make(TipoNormaJuridica,
                       sigla='T',
                       descricao='Teste')
-    config = mommy.make(AppConfig)
+    config = baker.make(AppConfig)
 
     # Testa POST
     response = admin_client.post(reverse('sapl.norma:normajuridica_create'),
@@ -78,12 +78,12 @@ def test_norma_form_invalida():
 @pytest.mark.django_db(transaction=False)
 def test_norma_juridica_materia_inexistente():
 
-    tipo = mommy.make(TipoNormaJuridica)
-    tipo_materia = mommy.make(TipoMateriaLegislativa, descricao='VETO')
+    tipo = baker.make(TipoNormaJuridica)
+    tipo_materia = baker.make(TipoMateriaLegislativa, descricao='VETO')
 
     # cria uma matéria qualquer em 2017 pois, no teste, o campo ano_materia
     # está vazio
-    materia = mommy.make(MateriaLegislativa,
+    materia = baker.make(MateriaLegislativa,
                          tipo=tipo_materia,
                          ano=2017,
                          numero=1,
@@ -109,9 +109,9 @@ def test_norma_juridica_materia_inexistente():
 
 @pytest.mark.django_db(transaction=False)
 def test_norma_juridica_materia_existente():
-    tipo = mommy.make(TipoNormaJuridica)
-    tipo_materia = mommy.make(TipoMateriaLegislativa)
-    mommy.make(MateriaLegislativa,
+    tipo = baker.make(TipoNormaJuridica)
+    tipo_materia = baker.make(TipoMateriaLegislativa)
+    baker.make(MateriaLegislativa,
                numero=2,
                ano=2017,
                tipo=tipo_materia)
@@ -147,7 +147,7 @@ def test_norma_relacionada_form_campos_obrigatorios():
 
 @pytest.mark.django_db(transaction=False)
 def test_norma_pesquisa_form_datas_invalidas():
-    tipo = mommy.make(TipoNormaJuridica)
+    tipo = baker.make(TipoNormaJuridica)
 
     form = NormaPesquisaSimplesForm(data={'tipo_norma': str(tipo.pk),
                                           'data_inicial': '10/11/2017',
