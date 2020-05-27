@@ -1,7 +1,7 @@
 from django.apps import apps
 from django.db.models import CharField, TextField
 from django.db.models.fields import BooleanField
-from model_mommy import mommy
+from model_bakery import baker
 import pytest
 
 from .settings import SAPL_APPS
@@ -29,7 +29,7 @@ def test_str_sanity():
     # __str__ semantics is not considered and should be tested separetely
     for app in sapl_appconfs:
         for model in app.get_models():
-            obj = mommy.prepare(model)
+            obj = baker.prepare(model)
             try:
                 str(obj)
             except Exception as exc:

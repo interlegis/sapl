@@ -1,7 +1,7 @@
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Legislatura, Parlamentar, Partido, SessaoLegislativa
@@ -32,9 +32,9 @@ def test_valida_campos_obrigatorios_sessao_plenaria_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_sessao_plenaria_form_valido():
-    legislatura = mommy.make(Legislatura)
-    sessao = mommy.make(SessaoLegislativa)
-    tipo = mommy.make(TipoSessaoPlenaria)
+    legislatura = baker.make(Legislatura)
+    sessao = baker.make(SessaoLegislativa)
+    tipo = baker.make(TipoSessaoPlenaria)
 
     form = forms.SessaoPlenariaForm(data={'legislatura': str(legislatura.pk),
                                           'numero': '1',
@@ -50,10 +50,10 @@ def test_sessao_plenaria_form_valido():
 
 @pytest.mark.django_db(transaction=False)
 def test_numero_duplicado_sessao_plenaria_form():
-    legislatura = mommy.make(Legislatura)
-    sessao = mommy.make(SessaoLegislativa)
-    tipo = mommy.make(TipoSessaoPlenaria)
-    sessao_plenaria = mommy.make(SessaoPlenaria,
+    legislatura = baker.make(Legislatura)
+    sessao = baker.make(SessaoLegislativa)
+    tipo = baker.make(TipoSessaoPlenaria)
+    sessao_plenaria = baker.make(SessaoPlenaria,
                                legislatura=legislatura,
                                sessao_legislativa=sessao,
                                tipo=tipo,
@@ -76,13 +76,69 @@ def test_numero_duplicado_sessao_plenaria_form():
 
 
 @pytest.mark.django_db(transaction=False)
+def test_valida_campos_obrigatorios_bancada_form():
+    form = forms.BancadaForm(data={})
+
+    assert not form.is_valid()
+
+    errors = form.errors
+
+    assert errors['legislatura'] == [_('Este campo é obrigatório.')]
+    assert errors['nome'] == [_('Este campo é obrigatório.')]
+    assert errors['data_criacao'] == [_('Este campo é obrigatório.')]
+
+    assert len(errors) == 3
+
+
+def data(valor):
+    from datetime import datetime
+    return datetime.strptime(valor, '%Y-%m-%d').date()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_bancada_form_valido():
+    legislatura = baker.make(Legislatura,
+                             data_inicio=data('2017-11-10'),
+                             data_fim=data('2017-12-31'),
+                             )
+    partido = baker.make(Partido)
+
+    form = forms.BancadaForm(data={'legislatura': str(legislatura.pk),
+                                   'nome': 'Nome da Bancada',
+                                   'partido': str(partido.pk),
+                                   'data_criacao': '10/11/2017',
+                                   'data_extincao': '10/12/2017',
+                                   'descricao': 'teste'
+                                   })
+
+    assert form.is_valid()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_bancada_form_datas_invalidas():
+    legislatura = baker.make(Legislatura,
+                             data_inicio=data('2017-11-10'),
+                             data_fim=data('2017-12-31'),
+                             )
+    partido = baker.make(Partido)
+
+    form = forms.BancadaForm(data={'legislatura': str(legislatura.pk),
+                                   'nome': 'Nome da Bancada',
+                                   'partido': str(partido.pk),
+                                   'data_criacao': '2016-11-01',
+                                   'data_extincao': '2016-10-01',
+                                   'descricao': 'teste'
+                                   })
+    assert not form.is_valid()
+
+@pytest.mark.django_db(transaction=False)
 def test_expediente_materia_form_valido():
-    tipo_materia = mommy.make(TipoMateriaLegislativa)
-    materia = mommy.make(MateriaLegislativa, tipo=tipo_materia)
+    tipo_materia = baker.make(TipoMateriaLegislativa)
+    materia = baker.make(MateriaLegislativa, tipo=tipo_materia)
 
-    sessao = mommy.make(SessaoPlenaria)
+    sessao = baker.make(SessaoPlenaria)
 
-    instance = mommy.make(ExpedienteMateria, sessao_plenaria=sessao,
+    instance = baker.make(ExpedienteMateria, sessao_plenaria=sessao,
                           materia=materia)
 
     form = forms.ExpedienteMateriaForm(data={'data_ordem': '28/12/2009',
@@ -101,10 +157,10 @@ def test_expediente_materia_form_valido():
 def test_registro_votacao_tem_ordem_xor_expediente():
 
     def registro_votacao_com(ordem, expediente):
-        return mommy.make(RegistroVotacao, ordem=ordem, expediente=expediente)
+        return baker.make(RegistroVotacao, ordem=ordem, expediente=expediente)
 
-    ordem = mommy.make(OrdemDia)
-    expediente = mommy.make(ExpedienteMateria)
+    ordem = baker.make(OrdemDia)
+    expediente = baker.make(ExpedienteMateria)
 
     # a validação funciona com exatamente um dos campos preenchido
     registro_votacao_com(ordem, None).full_clean()
@@ -119,38 +175,38 @@ def test_registro_votacao_tem_ordem_xor_expediente():
         registro_votacao_com(ordem, expediente).full_clean()
 
 def create_sessao_plenaria():
-    legislatura = mommy.make(Legislatura)
-    sessao = mommy.make(SessaoLegislativa)
-    tipo = mommy.make(TipoSessaoPlenaria)
-    return mommy.make(SessaoPlenaria,
+    legislatura = baker.make(Legislatura)
+    sessao = baker.make(SessaoLegislativa)
+    tipo = baker.make(TipoSessaoPlenaria)
+    return baker.make(SessaoPlenaria,
                                legislatura=legislatura,
                                sessao_legislativa=sessao,
                                tipo=tipo,
                                numero=1)
 
 def create_materia_legislativa():
-    tipo_materia = mommy.make(TipoMateriaLegislativa)
-    return mommy.make(MateriaLegislativa, tipo=tipo_materia)
+    tipo_materia = baker.make(TipoMateriaLegislativa)
+    return baker.make(MateriaLegislativa, tipo=tipo_materia)
 
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_registro_votacao_ordemdia():
     materia = create_materia_legislativa()
     sessao_plenaria = create_sessao_plenaria()
-    ordem = mommy.make(OrdemDia,
+    ordem = baker.make(OrdemDia,
                        sessao_plenaria=sessao_plenaria,
                        materia=materia,
                        tipo_votacao='2')
-    tipo_resultado_votacao = mommy.make(TipoResultadoVotacao,
+    tipo_resultado_votacao = baker.make(TipoResultadoVotacao,
                                         nome='ok',
                                         natureza="A")
-    registro = mommy.make(RegistroVotacao,
+    registro = baker.make(RegistroVotacao,
                           tipo_resultado_votacao=tipo_resultado_votacao,
                           materia=materia,
                           ordem=ordem)
-    presenca = mommy.make(PresencaOrdemDia,
+    presenca = baker.make(PresencaOrdemDia,
                           sessao_plenaria=sessao_plenaria)
-    parlamentar = mommy.make(Parlamentar)
-    voto_parlamentar = mommy.make(VotoParlamentar,
+    parlamentar = baker.make(Parlamentar)
+    voto_parlamentar = baker.make(VotoParlamentar,
                                   votacao=registro,
                                   parlamentar=parlamentar,
                                   ordem=ordem)
@@ -178,21 +234,21 @@ def test_delete_sessao_plenaria_cascade_registro_votacao_ordemdia():
 def test_delete_sessao_plenaria_cascade_registro_votacao_expediente():
     materia = create_materia_legislativa()
     sessao_plenaria = create_sessao_plenaria()
-    expediente = mommy.make(ExpedienteMateria,
+    expediente = baker.make(ExpedienteMateria,
                             sessao_plenaria=sessao_plenaria,
                             materia=materia,
                             tipo_votacao='2')
-    tipo_resultado_votacao = mommy.make(TipoResultadoVotacao,
+    tipo_resultado_votacao = baker.make(TipoResultadoVotacao,
                                         nome='ok',
                                         natureza="A")
-    registro = mommy.make(RegistroVotacao,
+    registro = baker.make(RegistroVotacao,
                           tipo_resultado_votacao=tipo_resultado_votacao,
                           materia=materia,
                           expediente=expediente)
-    presenca = mommy.make(SessaoPlenariaPresenca,
+    presenca = baker.make(SessaoPlenariaPresenca,
                           sessao_plenaria=sessao_plenaria)
-    parlamentar = mommy.make(Parlamentar)
-    voto_parlamentar = mommy.make(VotoParlamentar,
+    parlamentar = baker.make(Parlamentar)
+    voto_parlamentar = baker.make(VotoParlamentar,
                                   votacao=registro,
                                   parlamentar=parlamentar,
                                   expediente=expediente)
@@ -218,7 +274,7 @@ def test_delete_sessao_plenaria_cascade_registro_votacao_expediente():
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_integrante_mesa():
     sessao_plenaria = create_sessao_plenaria()
-    mesa = mommy.make(IntegranteMesa,sessao_plenaria=sessao_plenaria)
+    mesa = baker.make(IntegranteMesa,sessao_plenaria=sessao_plenaria)
     sessao_plenaria.delete()
     mesa_filter = IntegranteMesa.objects.filter(sessao_plenaria=sessao_plenaria).exists()
     assert not mesa_filter
@@ -226,7 +282,7 @@ def test_delete_sessao_plenaria_cascade_integrante_mesa():
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_expedientesessao():
     sessao_plenaria = create_sessao_plenaria()
-    expediente_sessao = mommy.make(ExpedienteSessao, sessao_plenaria=sessao_plenaria)
+    expediente_sessao = baker.make(ExpedienteSessao, sessao_plenaria=sessao_plenaria)
     sessao_plenaria.delete()
     expediente_sessao_filter = ExpedienteSessao.objects.filter(sessao_plenaria=sessao_plenaria).exists()
     assert not expediente_sessao_filter
@@ -234,7 +290,7 @@ def test_delete_sessao_plenaria_cascade_expedientesessao():
 @pytest.mark.django_db(transaction=False)
 def test_delete_sessao_plenaria_cascade_orador():
     sessao_plenaria = create_sessao_plenaria()
-    expediente_sessao = mommy.make(Orador, sessao_plenaria=sessao_plenaria)
+    expediente_sessao = baker.make(Orador, sessao_plenaria=sessao_plenaria)
     sessao_plenaria.delete()
     orador_filter = Orador.objects.filter(sessao_plenaria=sessao_plenaria).exists()
     assert not orador_filter

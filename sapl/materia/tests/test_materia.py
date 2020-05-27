@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.db.models import Max
-from model_mommy import mommy
+from model_bakery import baker
 import pytest
 
 from sapl.base.models import Autor, TipoAutor, AppConfig, AutorUser
@@ -25,15 +25,15 @@ from sapl.utils import models_with_gr_for_model, lista_anexados
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_materias_anexadas():
-        tipo_materia = mommy.make(
+        tipo_materia = baker.make(
                 TipoMateriaLegislativa,
                 descricao="Tipo_Teste"
         )
-        regime_tramitacao = mommy.make(
+        regime_tramitacao = baker.make(
                 RegimeTramitacao,
                 descricao="Regime_Teste"
         )
-        materia_principal = mommy.make(
+        materia_principal = baker.make(
                 MateriaLegislativa,
                 numero=20,
                 ano=2018,
@@ -41,7 +41,7 @@ def test_lista_materias_anexadas():
                 regime_tramitacao=regime_tramitacao,
                 tipo=tipo_materia
         )
-        materia_anexada = mommy.make(
+        materia_anexada = baker.make(
                 MateriaLegislativa,
                 numero=21,
                 ano=2019,
@@ -49,7 +49,7 @@ def test_lista_materias_anexadas():
                 regime_tramitacao=regime_tramitacao,
                 tipo=tipo_materia
         )
-        materia_anexada_anexada = mommy.make(
+        materia_anexada_anexada = baker.make(
                 MateriaLegislativa,
                 numero=22,
                 ano=2020,
@@ -58,13 +58,13 @@ def test_lista_materias_anexadas():
                 tipo=tipo_materia
         )
 
-        mommy.make(
+        baker.make(
                 Anexada,
                 materia_principal=materia_principal,
                 materia_anexada=materia_anexada,
                 data_anexacao="2019-05-11"
         )
-        mommy.make(
+        baker.make(
                 Anexada,
                 materia_principal=materia_anexada,
                 materia_anexada=materia_anexada_anexada,
@@ -80,15 +80,15 @@ def test_lista_materias_anexadas():
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_materias_anexadas_ciclo():
-    tipo_materia = mommy.make(
+    tipo_materia = baker.make(
         TipoMateriaLegislativa,
         descricao="Tipo_Teste"
     )
-    regime_tramitacao = mommy.make(
+    regime_tramitacao = baker.make(
         RegimeTramitacao,
         descricao="Regime_Teste"
     )
-    materia_principal = mommy.make(
+    materia_principal = baker.make(
         MateriaLegislativa,
         numero=20,
         ano=2018,
@@ -96,7 +96,7 @@ def test_lista_materias_anexadas_ciclo():
         regime_tramitacao=regime_tramitacao,
         tipo=tipo_materia
     )
-    materia_anexada = mommy.make(
+    materia_anexada = baker.make(
         MateriaLegislativa,
         numero=21,
         ano=2019,
@@ -105,13 +105,13 @@ def test_lista_materias_anexadas_ciclo():
         tipo=tipo_materia
     )
 
-    mommy.make(
+    baker.make(
         Anexada,
         materia_principal=materia_principal,
         materia_anexada=materia_anexada,
         data_anexacao="2019-05-11"
     )
-    mommy.make(
+    baker.make(
         Anexada,
         materia_principal=materia_anexada,
         materia_anexada=materia_principal,
@@ -126,8 +126,8 @@ def test_lista_materias_anexadas_ciclo():
 @pytest.mark.django_db(transaction=False)
 def make_unidade_tramitacao(descricao):
     # Cria uma comissão para ser a unidade de tramitação
-    tipo_comissao = mommy.make(TipoComissao)
-    comissao = mommy.make(Comissao,
+    tipo_comissao = baker.make(TipoComissao)
+    comissao = baker.make(Comissao,
                           tipo=tipo_comissao,
                           nome=descricao,
                           sigla='T',
@@ -138,7 +138,7 @@ def make_unidade_tramitacao(descricao):
     assert comissao.nome == descricao
 
     # Cria a unidade
-    unidade = mommy.make(UnidadeTramitacao, comissao=comissao)
+    unidade = baker.make(UnidadeTramitacao, comissao=comissao)
     assert unidade.comissao == comissao
 
     return unidade
@@ -147,10 +147,10 @@ def make_unidade_tramitacao(descricao):
 @pytest.mark.django_db(transaction=False)
 def make_norma():
     # Cria um novo tipo de Norma
-    tipo = mommy.make(TipoNormaJuridica,
+    tipo = baker.make(TipoNormaJuridica,
                       sigla='T1',
                       descricao='Teste_Tipo_Norma')
-    mommy.make(NormaJuridica,
+    baker.make(NormaJuridica,
                tipo=tipo,
                numero=1,
                ano=2016,
@@ -169,13 +169,13 @@ def make_norma():
 
 @pytest.mark.django_db(transaction=False)
 def make_materia_principal():
-    regime_tramitacao = mommy.make(RegimeTramitacao, descricao='Teste_Regime')
+    regime_tramitacao = baker.make(RegimeTramitacao, descricao='Teste_Regime')
 
     # Cria a matéria principal
-    tipo = mommy.make(TipoMateriaLegislativa,
+    tipo = baker.make(TipoMateriaLegislativa,
                       sigla='T1',
                       descricao='Teste_MateriaLegislativa')
-    mommy.make(MateriaLegislativa,
+    baker.make(MateriaLegislativa,
                tipo=tipo,
                numero='165',
                ano='2002',
@@ -195,11 +195,11 @@ def test_materia_anexada_submit(admin_client):
     materia_principal = make_materia_principal()
 
     # Cria a matéria que será anexada
-    tipo_anexada = mommy.make(TipoMateriaLegislativa,
+    tipo_anexada = baker.make(TipoMateriaLegislativa,
                               sigla='T2',
                               descricao='Teste_2')
-    regime_tramitacao = mommy.make(RegimeTramitacao, descricao='Teste_Regime')
-    mommy.make(MateriaLegislativa,
+    regime_tramitacao = baker.make(RegimeTramitacao, descricao='Teste_Regime')
+    baker.make(MateriaLegislativa,
                tipo=tipo_anexada,
                numero='32',
                ano='2004',
@@ -230,10 +230,10 @@ def test_materia_anexada_submit(admin_client):
 def test_autoria_submit(admin_client):
     materia_principal = make_materia_principal()
     # Cria um tipo de Autor
-    tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
+    tipo_autor = baker.make(TipoAutor, descricao='Teste Tipo_Autor')
 
     # Cria um Autor
-    autor = mommy.make(
+    autor = baker.make(
         Autor,
         tipo=tipo_autor,
         nome='Autor Teste')
@@ -261,8 +261,8 @@ def test_despacho_inicial_submit(admin_client):
     materia_principal = make_materia_principal()
 
     # Cria uma comissão
-    tipo_comissao = mommy.make(TipoComissao)
-    comissao = mommy.make(Comissao,
+    tipo_comissao = baker.make(TipoComissao)
+    comissao = baker.make(Comissao,
                           tipo=tipo_comissao,
                           nome='Teste',
                           ativa=True,
@@ -312,16 +312,16 @@ def test_documento_acessorio_submit(admin_client):
     materia_principal = make_materia_principal()
 
     # Cria um tipo de Autor
-    tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
+    tipo_autor = baker.make(TipoAutor, descricao='Teste Tipo_Autor')
 
     # Cria um Autor
-    autor = mommy.make(
+    autor = baker.make(
         Autor,
         tipo=tipo_autor,
         nome='Autor Teste')
 
     # Cria um tipo de documento
-    tipo = mommy.make(TipoDocumento,
+    tipo = baker.make(TipoDocumento,
                       descricao='Teste')
 
     # Testa POST
@@ -373,7 +373,7 @@ def test_legislacao_citada_submit(admin_client):
 def test_tramitacao_submit(admin_client):
     materia_principal = make_materia_principal()
     # Cria status para tramitação
-    status_tramitacao = mommy.make(StatusTramitacao,
+    status_tramitacao = baker.make(StatusTramitacao,
                                    indicador='F',
                                    sigla='ST',
                                    descricao='Status_Teste')
@@ -541,10 +541,10 @@ def test_form_errors_relatoria(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_proposicao_submit(admin_client):
-    tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
+    tipo_autor = baker.make(TipoAutor, descricao='Teste Tipo_Autor')
     user = get_user_model().objects.filter(is_active=True)[0]
 
-    autor = mommy.make(
+    autor = baker.make(
         Autor,
         tipo=tipo_autor,
         nome='Autor Teste')
@@ -561,11 +561,11 @@ def test_proposicao_submit(admin_client):
         *models_with_gr_for_model(TipoProposicao))
 
     for pk, mct in enumerate(mcts):
-        tipo_conteudo_related = mommy.make(mct, pk=pk + 1)
+        tipo_conteudo_related = baker.make(mct, pk=pk + 1)
 
         response = admin_client.post(
             reverse('sapl.materia:proposicao_create'),
-            {'tipo': mommy.make(
+            {'tipo': baker.make(
                 TipoProposicao, pk=3,
                 tipo_conteudo_related=tipo_conteudo_related).pk,
              'descricao': 'Teste proposição',
@@ -590,11 +590,11 @@ def test_proposicao_submit(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_proposicao(admin_client):
-    tipo_autor = mommy.make(TipoAutor, descricao='Teste Tipo_Autor')
+    tipo_autor = baker.make(TipoAutor, descricao='Teste Tipo_Autor')
 
     user = get_user_model().objects.filter(is_active=True)[0]
 
-    autor = mommy.make(
+    autor = baker.make(
         Autor,
         tipo=tipo_autor,
         nome='Autor Teste')
@@ -624,13 +624,13 @@ def test_form_errors_proposicao(admin_client):
 def test_numeracao_materia_legislativa_por_legislatura(admin_client):
 
     # Criar Legislaturas
-    legislatura1 = mommy.make(Legislatura,
+    legislatura1 = baker.make(Legislatura,
                               data_inicio='2014-01-01',
                               data_fim='2018-12-31',
                               numero=20,
                               data_eleicao='2013-10-15'
                               )
-    legislatura2 = mommy.make(Legislatura,
+    legislatura2 = baker.make(Legislatura,
                               data_inicio='2009-01-01',
                               data_fim='2013-12-31',
                               numero=21,
@@ -638,9 +638,9 @@ def test_numeracao_materia_legislativa_por_legislatura(admin_client):
                               )
 
     # Cria uma materia na legislatura1
-    tipo_materia = mommy.make(TipoMateriaLegislativa,
+    tipo_materia = baker.make(TipoMateriaLegislativa,
                               id=1, sequencia_numeracao='L')
-    materia = mommy.make(MateriaLegislativa,
+    materia = baker.make(MateriaLegislativa,
                          tipo=tipo_materia,
                          ano=2017,
                          numero=1,
@@ -668,9 +668,9 @@ def test_numeracao_materia_legislativa_por_legislatura(admin_client):
 def test_numeracao_materia_legislativa_por_ano(admin_client):
 
     # Cria uma materia
-    tipo_materia = mommy.make(TipoMateriaLegislativa,
+    tipo_materia = baker.make(TipoMateriaLegislativa,
                               id=1, sequencia_numeracao='A')
-    materia = mommy.make(MateriaLegislativa,
+    materia = baker.make(MateriaLegislativa,
                          tipo=tipo_materia,
                          ano=2017,
                          numero=1
@@ -695,38 +695,38 @@ def test_numeracao_materia_legislativa_por_ano(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_tramitacoes_materias_anexadas(admin_client):
-    config = mommy.make(AppConfig, tramitacao_materia=True)
+    config = baker.make(AppConfig, tramitacao_materia=True)
 
-    tipo_materia = mommy.make(
+    tipo_materia = baker.make(
             TipoMateriaLegislativa,
             descricao="Tipo_Teste"
     )
-    materia_principal = mommy.make(
+    materia_principal = baker.make(
             MateriaLegislativa,
             ano=2018,
             data_apresentacao="2018-01-04",
             tipo=tipo_materia
     )
-    materia_anexada = mommy.make(
+    materia_anexada = baker.make(
             MateriaLegislativa,
             ano=2019,
             data_apresentacao="2019-05-04",
             tipo=tipo_materia
     )
-    materia_anexada_anexada = mommy.make(
+    materia_anexada_anexada = baker.make(
             MateriaLegislativa,
             ano=2020,
             data_apresentacao="2020-01-05",
             tipo=tipo_materia
     )
 
-    mommy.make(
+    baker.make(
             Anexada,
             materia_principal=materia_principal,
             materia_anexada=materia_anexada,
             data_anexacao="2019-05-11"
     )
-    mommy.make(
+    baker.make(
             Anexada,
             materia_principal=materia_anexada,
             materia_anexada=materia_anexada_anexada,
@@ -738,7 +738,7 @@ def test_tramitacoes_materias_anexadas(admin_client):
     unidade_tramitacao_destino_1 = make_unidade_tramitacao(descricao="Teste 2")
     unidade_tramitacao_destino_2 = make_unidade_tramitacao(descricao="Teste 3")
 
-    status = mommy.make(
+    status = baker.make(
         StatusTramitacao,
         indicador='R')
 

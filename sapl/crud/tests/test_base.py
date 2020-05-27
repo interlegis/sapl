@@ -1,6 +1,6 @@
 import pytest
 from django.core.urlresolvers import reverse
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.crud.base import (CrispyLayoutFormMixin, CrudListView, from_to,
                             get_field_display, make_pagination)
@@ -55,7 +55,7 @@ def test_make_pagination(index, num_pages, result):
 
 
 def test_get_field_display():
-    stub = mommy.prepare(Country, is_cold=True)
+    stub = baker.prepare(Country, is_cold=True)
     assert get_field_display(stub, 'name')[1] == stub.name
     assert get_field_display(stub, 'continent')[1] == str(stub.continent)
     # must return choice display, not the value
@@ -88,7 +88,7 @@ def test_layout_fieldnames(_layout, result):
 
 def test_layout_detail_fieldsets():
 
-    stub = mommy.make(Country,
+    stub = baker.make(Country,
                       name='Brazil',
                       continent__name='South America',
                       is_cold=False)
@@ -191,7 +191,7 @@ def test_flux_list_paginate_detail(
         population, is_cold = i, i % 2 == 0
         entries_labels.append([
             name, continent, str(population), 'Yes' if is_cold else 'No'])
-        mommy.make(Country,
+        baker.make(Country,
                    name=name,
                    continent__name=continent,
                    population=population,
@@ -252,7 +252,7 @@ def test_flux_list_paginate_detail(
 def test_flux_list_create_detail(app, cancel, make_invalid_submit):
 
     # to have a couple an option for continent field
-    stub_continent = mommy.make(Continent)
+    stub_continent = baker.make(Continent)
 
     res = app.get('/country/')
 
@@ -304,7 +304,7 @@ def test_flux_list_create_detail(app, cancel, make_invalid_submit):
 
 
 def get_detail_page(app):
-    stub = mommy.make(Country, name='Country Stub')
+    stub = baker.make(Country, name='Country Stub')
     res = app.get('/country/%s' % stub.id)
     # on detail page
     assert_on_detail_page(res, stub.name)

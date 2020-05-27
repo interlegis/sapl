@@ -1,9 +1,9 @@
 import pytest
-from model_mommy import mommy
+from model_bakery import baker
 import datetime
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, TipoComissao
@@ -25,26 +25,26 @@ from sapl.base.views import (protocolos_duplicados, protocolos_com_materias,
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_protocolos_com_materias():
-        mommy.make(
+        baker.make(
                 Protocolo,
                 numero=15,
                 ano=2035
         )
-        mommy.make(
+        baker.make(
                 Protocolo,
                 numero=33,
                 ano=2035
         )
 
-        tipo_materia = mommy.make(
+        tipo_materia = baker.make(
                 TipoMateriaLegislativa,
                 descricao="Tipo_Materia_Teste"
         )
-        regime_tramitacao = mommy.make(
+        regime_tramitacao = baker.make(
                 RegimeTramitacao,
                 descricao="Regime_Tramitacao_Teste"
         )
-        mommy.make(
+        baker.make(
                 MateriaLegislativa,
                 numero=16,
                 ano=2035,
@@ -53,7 +53,7 @@ def test_lista_protocolos_com_materias():
                 tipo=tipo_materia,
                 numero_protocolo=15
         )
-        mommy.make(
+        baker.make(
                 MateriaLegislativa,
                 numero=17,
                 ano=2035,
@@ -73,21 +73,21 @@ def test_lista_protocolos_com_materias():
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_materias_protocolo_inexistente():
-        protocolo_a = mommy.make(
+        protocolo_a = baker.make(
                 Protocolo,
                 numero=15,
                 ano=2031
         )
 
-        tipo_materia = mommy.make(
+        tipo_materia = baker.make(
                 TipoMateriaLegislativa,
                 descricao="Tipo_Materia_Teste"
         )
-        regime_tramitacao = mommy.make(
+        regime_tramitacao = baker.make(
                 RegimeTramitacao,
                 descricao="Regime_Tramitacao_Teste"
         )
-        mommy.make(
+        baker.make(
                 MateriaLegislativa,
                 numero=16,
                 ano=2031,
@@ -96,7 +96,7 @@ def test_lista_materias_protocolo_inexistente():
                 tipo=tipo_materia,
                 numero_protocolo=15
         )
-        materia = mommy.make(
+        materia = baker.make(
                 MateriaLegislativa,
                 numero=17,
                 ano=2031,
@@ -114,13 +114,13 @@ def test_lista_materias_protocolo_inexistente():
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_mandatos_sem_data_inicio():
-        parlamentar = mommy.make(
+        parlamentar = baker.make(
                 Parlamentar,
                 nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
-        legislatura = mommy.make(
+        legislatura = baker.make(
                 Legislatura,
                 numero=1,
                 data_inicio='2015-05-02',
@@ -128,12 +128,12 @@ def test_lista_mandatos_sem_data_inicio():
                 data_eleicao='2015-02-05'
         )
 
-        mandato_a = mommy.make(
+        mandato_a = baker.make(
                 Mandato,
                 parlamentar=parlamentar,
                 legislatura=legislatura
         )
-        mommy.make(
+        baker.make(
                 Mandato,
                 parlamentar=parlamentar,
                 legislatura=legislatura,
@@ -148,19 +148,19 @@ def test_lista_mandatos_sem_data_inicio():
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_parlamentares_duplicados():
-        mommy.make(
+        baker.make(
                 Parlamentar,
                 nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
-        mommy.make(
+        baker.make(
                 Parlamentar,
                 nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
-        mommy.make(
+        baker.make(
                 Parlamentar,
                 nome_completo="Nome_Completo_Parlamentar_Teste-1",
                 nome_parlamentar="Nome_Parlamentar_Teste-1",
@@ -179,47 +179,47 @@ def test_lista_parlamentares_duplicados():
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_parlamentares_mandatos_intersecao():
-        legislatura = mommy.make(
+        legislatura = baker.make(
                 Legislatura,
                 numero=1,
                 data_inicio='2017-07-04',
                 data_fim='2170-05-01',
                 data_eleicao='2017-04-07'
         )
-        parlamentar_a = mommy.make(
+        parlamentar_a = baker.make(
                 Parlamentar,
                 nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
-        parlamentar_b = mommy.make(
+        parlamentar_b = baker.make(
                 Parlamentar,
                 nome_completo="Nome_Completo_Parlamentar_Teste-1",
                 nome_parlamentar="Nome_Parlamentar_Teste-1",
                 sexo='M'
         )
 
-        mandato_a = mommy.make(
+        mandato_a = baker.make(
                 Mandato,
                 parlamentar=parlamentar_a,
                 legislatura=legislatura,
                 data_inicio_mandato='2017-07-08',
                 data_fim_mandato='2018-01-07'
         )
-        mandato_b = mommy.make(
+        mandato_b = baker.make(
                 Mandato,
                 parlamentar=parlamentar_a,
                 legislatura=legislatura,
                 data_inicio_mandato='2017-07-09'
         )
-        mommy.make(
+        baker.make(
                 Mandato,
                 parlamentar=parlamentar_b,
                 legislatura=legislatura,
                 data_inicio_mandato='2017-11-17',
                 data_fim_mandato='2018-08-02'
         )
-        mommy.make(
+        baker.make(
                 Mandato,
                 parlamentar=parlamentar_b,
                 legislatura=legislatura,
@@ -234,46 +234,46 @@ def test_lista_parlamentares_mandatos_intersecao():
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_parlamentares_filiacoes_intersecao():
-        partido = mommy.make(
+        partido = baker.make(
                 Partido,
                 sigla="ST",
                 nome="Nome_Partido_Teste"
         )
-        parlamentar_a = mommy.make(
+        parlamentar_a = baker.make(
                 Parlamentar,
                 nome_completo="Nome_Completo_Parlamentar_Teste",
                 nome_parlamentar="Nome_Parlamentar_Teste",
                 sexo='M'
         )
-        parlamentar_b = mommy.make(
+        parlamentar_b = baker.make(
                 Parlamentar,
                 nome_completo="Nome_Completo_Parlamentar_Teste-1",
                 nome_parlamentar="Nome_Parlamentar_Teste-1",
                 sexo='M'
         )
 
-        filiacao_a = mommy.make(
+        filiacao_a = baker.make(
                 Filiacao,
                 parlamentar=parlamentar_a,
                 partido=partido,
                 data='2018-02-02',
                 data_desfiliacao='2019-08-01'
         )
-        filiacao_b = mommy.make(
+        filiacao_b = baker.make(
                 Filiacao,
                 parlamentar=parlamentar_a,
                 partido=partido,
                 data='2018-02-23',
                 data_desfiliacao='2020-02-04'
         )
-        mommy.make(
+        baker.make(
                 Filiacao,
                 parlamentar=parlamentar_b,
                 partido=partido,
                 data='2018-02-07',
                 data_desfiliacao='2018-02-27'
         )
-        mommy.make(
+        baker.make(
                 Filiacao,
                 parlamentar=parlamentar_b,
                 partido=partido,
@@ -288,22 +288,22 @@ def test_lista_parlamentares_filiacoes_intersecao():
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_autores_duplicados():
-        tipo_autor = mommy.make(
+        tipo_autor = baker.make(
                 TipoAutor,
                 descricao="Tipo_Autor_Teste"
         )
 
-        mommy.make(
+        baker.make(
                 Autor,
                 tipo=tipo_autor,
                 nome="Nome_Autor_Teste"
         )
-        mommy.make(
+        baker.make(
                 Autor,
                 tipo=tipo_autor,
                 nome="Nome_Autor_Teste"
         )
-        mommy.make(
+        baker.make(
                 Autor,
                 tipo=tipo_autor,
                 nome="Nome_Autor_Teste-1"
@@ -318,16 +318,16 @@ def test_lista_autores_duplicados():
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_bancada_comissao_autor_externo():
-        tipo_autor = mommy.make(
+        tipo_autor = baker.make(
                 TipoAutor,
                 descricao="Tipo_Autor_Teste"
         )
-        tipo_autor_externo = mommy.make(
+        tipo_autor_externo = baker.make(
                 TipoAutor,
                 descricao="Externo"
         )
 
-        legislatura = mommy.make(
+        legislatura = baker.make(
                 Legislatura,
                 numero=1,
                 data_inicio='2012-01-03',
@@ -335,7 +335,7 @@ def test_lista_bancada_comissao_autor_externo():
                 data_eleicao='2011-10-04'
         )
 
-        bancada_a = mommy.make(
+        bancada_a = baker.make(
                 Bancada,
                 legislatura=legislatura,
                 nome="Bancada_Teste",
@@ -346,7 +346,7 @@ def test_lista_bancada_comissao_autor_externo():
                 tipo=tipo_autor
         )
 
-        bancada_b = mommy.make(
+        bancada_b = baker.make(
                 Bancada,
                 legislatura=legislatura,
                 nome="Bancada_Teste-1",
@@ -357,14 +357,14 @@ def test_lista_bancada_comissao_autor_externo():
                 tipo=tipo_autor_externo
         )
 
-        tipo_comissao = mommy.make(
+        tipo_comissao = baker.make(
                 TipoComissao,
                 nome="Tipo_Comissao_Teste",
                 natureza='T',
                 sigla="TCT"
         )
 
-        comissao_a = mommy.make(
+        comissao_a = baker.make(
                 Comissao,
                 nome="Comissao_Teste",
                 sigla="CT",
@@ -375,7 +375,7 @@ def test_lista_bancada_comissao_autor_externo():
                 tipo=tipo_autor
         )
 
-        comissao_b = mommy.make(
+        comissao_b = baker.make(
                 Comissao,
                 nome="Comissao_Teste-1",
                 sigla="CT1",
@@ -398,48 +398,48 @@ def test_lista_bancada_comissao_autor_externo():
 @pytest.mark.django_db(transaction=False)
 def test_lista_anexados_ciclicas():
         ## DocumentoAdministrativo
-        tipo_documento = mommy.make(
+        tipo_documento = baker.make(
                 TipoDocumentoAdministrativo,
                 sigla="TT",
                 descricao="Tipo_Teste"
         )
         
-        documento_a = mommy.make(
+        documento_a = baker.make(
                 DocumentoAdministrativo,
                 tipo=tipo_documento,
                 numero=26,
                 ano=2019,
                 data='2019-05-15',
         )
-        documento_b = mommy.make(
+        documento_b = baker.make(
                 DocumentoAdministrativo,
                 tipo=tipo_documento,
                 numero=27,
                 ano=2019,
                 data='2019-05-16',
         )
-        documento_c = mommy.make(
+        documento_c = baker.make(
                 DocumentoAdministrativo,
                 tipo=tipo_documento,
                 numero=28,
                 ano=2019,
                 data='2019-05-17',
         )
-        documento_a1 = mommy.make(
+        documento_a1 = baker.make(
                 DocumentoAdministrativo,
                 tipo=tipo_documento,
                 numero=29,
                 ano=2019,
                 data='2019-05-18',
         )
-        documento_b1 = mommy.make(
+        documento_b1 = baker.make(
                 DocumentoAdministrativo,
                 tipo=tipo_documento,
                 numero=30,
                 ano=2019,
                 data='2019-05-19',
         )
-        documento_c1 = mommy.make(
+        documento_c1 = baker.make(
                 DocumentoAdministrativo,
                 tipo=tipo_documento,
                 numero=31,
@@ -447,43 +447,43 @@ def test_lista_anexados_ciclicas():
                 data='2019-05-20',
         )
 
-        mommy.make(
+        baker.make(
                 Anexado,
                 documento_principal=documento_a,
                 documento_anexado=documento_b,
                 data_anexacao='2019-05-21'
         )
-        mommy.make(
+        baker.make(
                 Anexado,
                 documento_principal=documento_a,
                 documento_anexado=documento_c,
                 data_anexacao='2019-05-22'
         )
-        mommy.make(
+        baker.make(
                 Anexado,
                 documento_principal=documento_b,
                 documento_anexado=documento_c,
                 data_anexacao='2019-05-23'
         )
-        mommy.make(
+        baker.make(
                 Anexado,
                 documento_principal=documento_a1,
                 documento_anexado=documento_b1,
                 data_anexacao='2019-05-24'
         )
-        mommy.make(
+        baker.make(
                 Anexado,
                 documento_principal=documento_a1,
                 documento_anexado=documento_c1,
                 data_anexacao='2019-05-25'
         )
-        mommy.make(
+        baker.make(
                 Anexado,
                 documento_principal=documento_b1,
                 documento_anexado=documento_c1,
                 data_anexacao='2019-05-26'
         )
-        mommy.make(
+        baker.make(
                 Anexado,
                 documento_principal=documento_c1,
                 documento_anexado=documento_b1,
@@ -493,16 +493,16 @@ def test_lista_anexados_ciclicas():
         lista_documento_ciclicos = anexados_ciclicos(False)
 
         ## Matéria
-        tipo_materia = mommy.make(
+        tipo_materia = baker.make(
                 TipoMateriaLegislativa,
                 descricao="Tipo_Teste"
         )
-        regime_tramitacao = mommy.make(
+        regime_tramitacao = baker.make(
                 RegimeTramitacao,
                 descricao="Regime_Teste"
         )
 
-        materia_a = mommy.make(
+        materia_a = baker.make(
                 MateriaLegislativa,
                 numero=20,
                 ano=2018,
@@ -510,7 +510,7 @@ def test_lista_anexados_ciclicas():
                 regime_tramitacao=regime_tramitacao,
                 tipo=tipo_materia
         )
-        materia_b = mommy.make(
+        materia_b = baker.make(
                 MateriaLegislativa,
                 numero=21,
                 ano=2019,
@@ -518,7 +518,7 @@ def test_lista_anexados_ciclicas():
                 regime_tramitacao=regime_tramitacao,
                 tipo=tipo_materia
         )
-        materia_c = mommy.make(
+        materia_c = baker.make(
                 MateriaLegislativa,
                 numero=22,
                 ano=2019,
@@ -526,7 +526,7 @@ def test_lista_anexados_ciclicas():
                 regime_tramitacao=regime_tramitacao,
                 tipo=tipo_materia
         )
-        materia_a1 = mommy.make(
+        materia_a1 = baker.make(
                 MateriaLegislativa,
                 numero=23,
                 ano=2018,
@@ -534,7 +534,7 @@ def test_lista_anexados_ciclicas():
                 regime_tramitacao=regime_tramitacao,
                 tipo=tipo_materia
         )
-        materia_b1 = mommy.make(
+        materia_b1 = baker.make(
                 MateriaLegislativa,
                 numero=24,
                 ano=2019,
@@ -542,7 +542,7 @@ def test_lista_anexados_ciclicas():
                 regime_tramitacao=regime_tramitacao,
                 tipo=tipo_materia
         )
-        materia_c1 = mommy.make(
+        materia_c1 = baker.make(
                 MateriaLegislativa,
                 numero=25,
                 ano=2019,
@@ -551,43 +551,43 @@ def test_lista_anexados_ciclicas():
                 tipo=tipo_materia
         ) 
 
-        mommy.make(
+        baker.make(
                 Anexada,
                 materia_principal=materia_a,
                 materia_anexada=materia_b,
                 data_anexacao='2019-05-11'
         )
-        mommy.make(
+        baker.make(
                 Anexada,
                 materia_principal=materia_a,
                 materia_anexada=materia_c,
                 data_anexacao='2019-05-12'
         )
-        mommy.make(
+        baker.make(
                 Anexada,
                 materia_principal=materia_b,
                 materia_anexada=materia_c,
                 data_anexacao='2019-05-13'
         )
-        mommy.make(
+        baker.make(
                 Anexada,
                 materia_principal=materia_a1,
                 materia_anexada=materia_b1,
                 data_anexacao='2019-05-11'
         )
-        mommy.make(
+        baker.make(
                 Anexada,
                 materia_principal=materia_a1,
                 materia_anexada=materia_c1,
                 data_anexacao='2019-05-12'
         )
-        mommy.make(
+        baker.make(
                 Anexada,
                 materia_principal=materia_b1,
                 materia_anexada=materia_c1,
                 data_anexacao='2019-05-13'
         )
-        mommy.make(
+        baker.make(
                 Anexada,
                 materia_principal=materia_c1,
                 materia_anexada=materia_b1,

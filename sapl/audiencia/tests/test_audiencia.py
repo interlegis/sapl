@@ -1,6 +1,6 @@
 import pytest
 import datetime
-from model_mommy import mommy
+from model_bakery import baker
 from django.utils.translation import ugettext as _
 
 from sapl.audiencia import forms
@@ -11,7 +11,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 
 @pytest.mark.django_db(transaction=False)
 def test_tipo_audiencia_publica_model():
-    mommy.make(TipoAudienciaPublica,
+    baker.make(TipoAudienciaPublica,
                nome='Teste_Nome_Tipo_Audiencia_Publica',
                tipo='A')
 
@@ -22,7 +22,7 @@ def test_tipo_audiencia_publica_model():
 
 @pytest.mark.django_db(transaction=False)
 def test_audiencia_publica_model():
-    mommy.make(AudienciaPublica,
+    baker.make(AudienciaPublica,
                numero=1,
                nome='Teste_Nome_Audiencia_Publica',
                tema='Teste_Tema_Audiencia_Publica',
@@ -43,14 +43,14 @@ def test_audiencia_publica_model():
 
 @pytest.mark.django_db(transaction=False)
 def test_anexo_audiencia_publica_model():
-    audiencia = mommy.make(AudienciaPublica,
+    audiencia = baker.make(AudienciaPublica,
                            numero=2,
                            nome='Nome_Audiencia_Publica',
                            tema='Tema_Audiencia_Publica',
                            data='2017-04-22',
                            hora_inicio='17:04')
 
-    mommy.make(AnexoAudienciaPublica,
+    baker.make(AnexoAudienciaPublica,
                audiencia=audiencia)
 
     anexo_audiencia_publica = AnexoAudienciaPublica.objects.first()
@@ -76,9 +76,9 @@ def test_valida_campos_obrigatorios_audiencia_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_audiencia_form_hora_invalida():
-    tipo_materia = mommy.make(TipoMateriaLegislativa)
+    tipo_materia = baker.make(TipoMateriaLegislativa)
 
-    tipo = mommy.make(TipoAudienciaPublica)
+    tipo = baker.make(TipoAudienciaPublica)
 
     form = forms.AudienciaForm(data={'nome': 'Nome da Audiencia',
                                      'tema': 'Tema da Audiencia',

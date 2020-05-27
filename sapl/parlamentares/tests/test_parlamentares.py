@@ -1,8 +1,8 @@
 import pytest
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from model_mommy import mommy
 from datetime import datetime
+from model_bakery import baker
 
 from sapl.parlamentares import forms
 from sapl.parlamentares.forms import FrenteForm, LegislaturaForm, MandatoForm, AfastamentoParlamentarForm
@@ -48,8 +48,8 @@ def test_incluir_parlamentar_errors(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_filiacao_submit(admin_client):
-    mommy.make(Parlamentar, pk=14)
-    mommy.make(Partido, pk=32)
+    baker.make(Parlamentar, pk=14)
+    baker.make(Partido, pk=32)
 
     admin_client.post(reverse('sapl.parlamentares:filiacao_create',
                               kwargs={'pk': 14}),
@@ -64,9 +64,9 @@ def test_filiacao_submit(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_dependente_submit(admin_client):
-    mommy.make(Parlamentar, pk=14)
-    mommy.make(Partido, pk=32)
-    mommy.make(TipoDependente, pk=3)
+    baker.make(Parlamentar, pk=14)
+    baker.make(Partido, pk=32)
+    baker.make(TipoDependente, pk=3)
 
     admin_client.post(reverse('sapl.parlamentares:dependente_create',
                               kwargs={'pk': 14}),
@@ -83,7 +83,7 @@ def test_dependente_submit(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_dependente(admin_client):
-    mommy.make(Parlamentar, pk=14)
+    baker.make(Parlamentar, pk=14)
     response = admin_client.post(
         reverse('sapl.parlamentares:dependente_create',
                 kwargs={'pk': 14}),
@@ -100,7 +100,7 @@ def test_form_errors_dependente(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_filiacao(admin_client):
-    mommy.make(Parlamentar, pk=14)
+    baker.make(Parlamentar, pk=14)
 
     response = admin_client.post(reverse('sapl.parlamentares:filiacao_create',
                                          kwargs={'pk': 14}),
@@ -116,8 +116,8 @@ def test_form_errors_filiacao(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_mandato_submit(admin_client):
-    mommy.make(Parlamentar, pk=14)
-    mommy.make(Legislatura, pk=5)
+    baker.make(Parlamentar, pk=14)
+    baker.make(Legislatura, pk=5)
 
     admin_client.post(reverse('sapl.parlamentares:mandato_create',
                               kwargs={'pk': 14}),
@@ -140,7 +140,7 @@ def test_mandato_submit(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_form_errors_mandato(admin_client):
-    mommy.make(Parlamentar, pk=14)
+    baker.make(Parlamentar, pk=14)
     response = admin_client.post(reverse('sapl.parlamentares:mandato_create',
                                          kwargs={'pk': 14}),
                                  {'legislatura': '',
@@ -164,8 +164,8 @@ def test_mandato_form_invalido():
 
 @pytest.mark.django_db(transaction=False)
 def test_mandato_form_duplicado():
-    parlamentar = mommy.make(Parlamentar, pk=1)
-    legislatura = mommy.make(Legislatura, pk=1)
+    parlamentar = baker.make(Parlamentar, pk=1)
+    legislatura = baker.make(Legislatura, pk=1)
 
     Mandato.objects.create(parlamentar=parlamentar,
                            legislatura=legislatura,
@@ -190,8 +190,8 @@ def test_mandato_form_duplicado():
 
 @pytest.mark.django_db(transaction=False)
 def test_mandato_form_datas_invalidas():
-    parlamentar = mommy.make(Parlamentar, pk=1)
-    legislatura = mommy.make(Legislatura, pk=1,
+    parlamentar = baker.make(Parlamentar, pk=1)
+    legislatura = baker.make(Legislatura, pk=1,
                              data_inicio='2017-01-01',
                              data_fim='2021-12-31')
 
@@ -281,7 +281,7 @@ def test_legislatura_form_numeros_invalidos():
 
         assert legislatura_form.is_valid()
 
-        legislatura = mommy.make(Legislatura, pk=1,
+        legislatura = baker.make(Legislatura, pk=1,
                                  numero=5,
                                  data_inicio='2017-02-01',
                                  data_fim='2021-12-31',
@@ -312,13 +312,13 @@ def test_legislatura_form_numeros_invalidos():
 
         assert legislatura_form.is_valid()
 
-        legislatura = mommy.make(Legislatura, pk=2,
+        legislatura = baker.make(Legislatura, pk=2,
                                  numero=1,
                                  data_inicio='2002-02-01',
                                  data_fim='2005-12-31',
                                  data_eleicao='2001-11-01')
         
-        legislatura2 = mommy.make(Legislatura, pk=3,
+        legislatura2 = baker.make(Legislatura, pk=3,
                                  numero=3,
                                  data_inicio='2008-02-01',
                                  data_fim='2011-12-31',
@@ -350,7 +350,7 @@ def test_valida_campos_obrigatorios_frente_form():
 
 @pytest.mark.django_db(transaction=False)
 def test_frente_form_valido():
-    parlamentares = mommy.make(Parlamentar)
+    parlamentares = baker.make(Parlamentar)
 
     form = FrenteForm(data={'nome': 'Nome da Frente',
                             'parlamentar': str(parlamentares.pk),
