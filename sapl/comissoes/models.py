@@ -141,7 +141,7 @@ class CargoComissao(models.Model):
 @reversion.register()
 class Composicao(models.Model):  # IGNORE
     comissao = models.ForeignKey(Comissao,
-                                 on_delete=models.PROTECT,
+                                 on_delete=models.CASCADE,
                                  verbose_name=_('Comissão'))
     periodo = models.ForeignKey(Periodo,
                                 on_delete=models.PROTECT,
@@ -160,7 +160,7 @@ class Composicao(models.Model):  # IGNORE
 class Participacao(models.Model):  # ComposicaoComissao
     composicao = models.ForeignKey(Composicao,
                                    related_name='participacao_set',
-                                   on_delete=models.PROTECT,
+                                   on_delete=models.CASCADE,
                                    verbose_name=_('Composição'))
     parlamentar = models.ForeignKey(Parlamentar,
                                     on_delete=models.PROTECT,
