@@ -206,39 +206,39 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         data_apresentacao = cleaned_data['data_apresentacao']
         ano = cleaned_data['ano']
-        protocolo = cleaned_data['numero_protocolo']
-        protocolo_antigo = self.instance.numero_protocolo
+        protocolo_novo_numero = cleaned_data['numero_protocolo']
+        protocolo_antigo_numero = self.instance.numero_protocolo
 
-        if protocolo:
-            if not Protocolo.objects.filter(numero=protocolo, ano=ano).exists():
-                self.logger.error("Protocolo %s/%s não"
-                                  " existe" % (protocolo, ano))
-                raise ValidationError(_('Protocolo %s/%s não'
-                                        ' existe' % (protocolo, ano)))
+        if protocolo_novo_numero:
+            if not Protocolo.objects.filter(numero=protocolo_novo_numero, ano=ano).exists():
+                self.logger.error("O Protocolo %s/%s não"
+                                  " existe!" % (protocolo_novo_numero, ano))
+                raise ValidationError(_('O Protocolo %s/%s não'
+                                        ' existe!' % (protocolo_novo_numero, ano)))
 
-            if protocolo_antigo != protocolo:
+            if protocolo_antigo_numero != protocolo_novo_numero:
                 exist_materia = MateriaLegislativa.objects.filter(
-                    numero_protocolo=protocolo,
+                    numero_protocolo=protocolo_novo_numero,
                     ano=ano).exists()
-
+                
+                protocolo_novo = Protocolo.objects.get(numero=protocolo_novo_numero, ano=ano)
                 exist_doc = DocumentoAdministrativo.objects.filter(
-                    protocolo_id=protocolo,
+                    protocolo_id=protocolo_novo.id,
                     ano=ano).exists()
 
                 if exist_materia or exist_doc:
-                    self.logger.error("Protocolo %s/%s ja possui"
-                                      " documento vinculado"
-                                      % (protocolo, ano))
-                    raise ValidationError(_('Protocolo %s/%s ja possui'
-                                            ' documento vinculado'
-                                            % (protocolo, ano)))
+                    self.logger.error("O Protocolo %s/%s já possui"
+                                      " um documento vinculado."
+                                      % (protocolo_novo_numero, ano))
+                    raise ValidationError(_('O Protocolo %s/%s já possui'
+                                            ' um documento vinculado.'
+                                            % (protocolo_novo_numero, ano)))
 
-                p = Protocolo.objects.get(numero=protocolo, ano=ano)
-                if p.tipo_materia != cleaned_data['tipo']:
-                    self.logger.error("Tipo do Protocolo ({}) deve ser o mesmo do Tipo Matéria ({})."
-                                      .format(cleaned_data['tipo'], p.tipo_materia))
+                if protocolo_novo.tipo_materia != cleaned_data['tipo']:
+                    self.logger.error("O Tipo de Matéria do Protocolo ({}) deve ser o mesmo Tipo da Matéria ({})."
+                                      .format(cleaned_data['tipo'], protocolo_novo.tipo_materia))
                     raise ValidationError(
-                        _('Tipo do Protocolo deve ser o mesmo do Tipo Matéria'))
+                        _('O Tipo de Matéria do Protocolo deve ser o mesmo Tipo da Matéria.'))
 
         ano_origem_externa = cleaned_data['ano_origem_externa']
         data_origem_externa = cleaned_data['data_origem_externa']

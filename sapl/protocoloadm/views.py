@@ -955,6 +955,11 @@ class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
             **kwargs)
         protocolo = Protocolo.objects.get(pk=self.kwargs['pk'])
         context.update({'protocolo': protocolo})
+
+        context['protocolo_materia'] = MateriaLegislativa.objects.filter(
+            numero_protocolo=protocolo.numero, ano=protocolo.ano
+        ).exists()
+
         return context
 
 

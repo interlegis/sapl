@@ -559,11 +559,24 @@ class ProtocoloMateriaForm(ModelForm):
                             "Não foram informados o número ou ano da matéria a ser vinculada")
                         raise ValidationError(
                             'Favor informar o número e ano da matéria a ser vinculada')
+                    
                     self.logger.debug("Tentando obter MateriaLegislativa com ano={}, numero={} e data={}."
                                       .format(data['ano_materia'], data['numero_materia'], data['tipo_materia']))
                     self.materia = MateriaLegislativa.objects.get(ano=data['ano_materia'],
                                                                   numero=data['numero_materia'],
                                                                   tipo=data['tipo_materia'])
+                    
+                    if timezone.localdate(timezone.now()).year != self.materia.ano:
+                        self.logger.error(
+                            "O ano da Matéria Legislativa a ser vinculada ao novo Protocolo de Matéria diverge do " \
+                            "ano atual (ano que será cadastrado no novo Protocolo de Matéria)."
+                        )
+                        raise ValidationError(
+                            _("A Matéria Legislativa e o seu Protocolo devem possuir o mesmo ano. O ano da Matéria " \
+                              "Legislativa a ser vinculada ao novo Protocolo de Matéria diverge do ano atual " \
+                              "(ano que será cadastrado no novo Protocolo de Matéria).")
+                        )
+
                     if self.materia.numero_protocolo:
                         self.logger.error("MateriaLegislativa informada já possui o protocolo {}/{} vinculado."
                                           .format(self.materia.numero_protocolo, self.materia.ano))
