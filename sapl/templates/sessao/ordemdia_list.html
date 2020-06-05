@@ -25,14 +25,6 @@
 
 {% block base_content %}
   {{ block.super }}
-  {% if perms|get_add_perm:view %}
-    {% if enable_btn %}
-      <div>
-        <a href="{% url 'sapl.sessao:transf_mat_ordemdia' root_pk %}" class="btn btn-info">{% trans 'Copiar Matérias' %}</a>
-      </div>
-    {% endif %}
-  {% endif %}
-  </br>
 {% endblock base_content %}
 
 {% block extra_js %}
