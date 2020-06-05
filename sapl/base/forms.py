@@ -1291,6 +1291,11 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         queryset=StatusTramitacao.objects.all(),
         label=_('Status Atual'))
 
+    materia__autores = django_filters.ModelChoiceFilter(
+        label='Autor da Matéria',
+        queryset=Autor.objects.all())
+
+
     @property
     def qs(self):
         parent = super(RelatorioMateriasTramitacaoFilterSet, self).qs
@@ -1302,7 +1307,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         model = MateriaEmTramitacao
         fields = ['materia__ano', 'materia__tipo',
                   'tramitacao__unidade_tramitacao_destino',
-                  'tramitacao__status']
+                  'tramitacao__status','materia__autores']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioMateriasTramitacaoFilterSet, self).__init__(
@@ -1314,6 +1319,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         row2 = to_row([('materia__tipo', 12)])
         row3 = to_row([('tramitacao__unidade_tramitacao_destino', 12)])
         row4 = to_row([('tramitacao__status', 12)])
+        row5 = to_row([('materia__autores', 12)])
 
         buttons = FormActions(
             *[
@@ -1333,7 +1339,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
-                     row1, row2, row3, row4,
+                     row1, row2, row3, row4,row5,
                      buttons,)
         )
 
