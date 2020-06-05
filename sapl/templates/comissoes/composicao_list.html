@@ -38,6 +38,12 @@
           Adicionar Participação em Comissão
         </a>
       </div>
+      <div class="actions btn-group float-right" role="group">
+			  <a href="{% url 'sapl.comissoes:composicao_delete' composicao_pk %}"
+           class="btn btn-outline-primary btn-outline-danger">
+          Excluir Composição de Comissão
+        </a>
+    </div>
     </div>
   {% endif %}
   <div class="container-table">

@@ -216,7 +216,7 @@ class Reuniao(models.Model):
         verbose_name=_('Periodo da Composicão da Comissão'))
     comissao = models.ForeignKey(
         Comissao,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         verbose_name=_('Comissão'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
     nome = models.CharField(
