@@ -77,7 +77,7 @@ table.grayTable tbody td {
     text-align: justify;
 }
 table.grayTable tr:nth-child(even) {
-    background: #dddddd;
+    background: #ffffff;
 }
 table.grayTable thead {
     background: #BBBBBB;
