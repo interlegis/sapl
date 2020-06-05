@@ -99,6 +99,8 @@
               <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
               <span id="materia_legislativa_texto" class="text-value"></span>
               <br>
+              <span id="materia_legislativa_ementa" class="text-value"></span>
+              <br>
               <span id="observacao_materia" class="text-value"></span>
             </div>
 
@@ -405,6 +407,7 @@
               else if (data['materia_legislativa_texto']){
                 if (data["status_painel"] == true){
                   $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
+                  $("#materia_legislativa_ementa").text(data["materia_legislativa_ementa"]);
                 }
                 else{
                   $("#materia_legislativa_texto").text('A Matéria em votação só aparecerá quando o painel estiver aberto');
