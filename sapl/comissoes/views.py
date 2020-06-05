@@ -150,6 +150,13 @@ class ComposicaoCrud(MasterDetailCrud):
             ).order_by('-titular', 'cargo__id_ordenacao', 'id')
             return context
 
+    class DeleteView(MasterDetailCrud.DeleteView):
+        def delete(self, *args, **kwargs):
+            composicao = self.get_object()
+            composicao.delete()
+            return HttpResponseRedirect(
+                reverse('sapl.comissoes:composicao_list', kwargs={'pk': composicao.comissao.pk}))
+
 
 class ComissaoCrud(Crud):
     model = Comissao
