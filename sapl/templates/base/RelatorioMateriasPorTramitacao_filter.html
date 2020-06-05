@@ -16,7 +16,8 @@
     &emsp;Ano: {{ ano }} <br />
     &emsp;Tipo de matéria: {{ tipo }}<br />
     &emsp;Status atual: {{ tramitacao__status }}<br />
-    &emsp;Local atual: {{ tramitacao__unidade_tramitacao_destino }}<br /><br /><br />
+    &emsp;Local atual: {{ tramitacao__unidade_tramitacao_destino }}<br />
+    &emsp;Autor: {{ materia__autor }}<br /><br /><br />
     <table class="table table-bordered table-hover">
       <thead class="thead-default" >
         <tr class="active"><th colspan="2" class="text-center">QUADRO GERAL</th></tr>
@@ -42,6 +43,7 @@
           <th>Ementa</th>
           <th>Local Atual</th>
           <th>Status</th>
+          <th>Autores</th>
         </tr>
       </thead>
       <tbody>
@@ -55,6 +57,7 @@
             <td>{{ materia_em_tramitacao.materia.ementa }}</td>
             <td>{{ materia_em_tramitacao.materia.tramitacao_set.last.unidade_tramitacao_destino }}</td>
             <td>{{ materia_em_tramitacao.materia.tramitacao_set.last.status }}</td>
+            <td>{% for autor in materia_em_tramitacao.materia.autores.all %} <p>{{autor}}</p>{% endfor %}</td>
           </tr>
         {% endfor %}
       </tbody>

@@ -749,6 +749,7 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
             tipo_materia = data['data']['materia__tipo']
             unidade_tramitacao_destino = data['data']['tramitacao__unidade_tramitacao_destino']
             status_tramitacao = data['data']['tramitacao__status']
+            autor = data['data']['materia__autores']
 
             kwargs = {}
             if ano_materia:
@@ -759,8 +760,10 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
                 kwargs['tramitacao__unidade_tramitacao_destino'] = unidade_tramitacao_destino
             if status_tramitacao:
                 kwargs['tramitacao__status'] = status_tramitacao
+            if autor:
+                kwargs['materia__autores'] = autor
+            
             qs = qs.filter(**kwargs)
-
             data['queryset'] = qs
             
             self.total_resultados_tipos = num_materias_por_tipo(qs, "materia__tipo")
@@ -815,6 +818,14 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
             )
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
+
+        if self.request.GET['materia__autores']:
+            autor = self.request.GET['materia__autores']
+            context['materia__autor'] = (
+                str(Autor.objects.get(id=autor))
+            )
+        else:
+            context['materia__autor'] = ''
         
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         context['show_results'] = show_results_filter_set(qr)
