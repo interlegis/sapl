@@ -533,25 +533,20 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
     logger = logging.getLogger(__name__)
     template_name = 'sessao/transf_mat_sessao.html'
 
-    def get(self, *args, **kwargs):
-        sessao_plenaria_atual = SessaoPlenaria.objects.get(pk=self.kwargs['pk'])
-        if not sessao_plenaria_atual.finalizada:
-            msg = _('A sessão plenária deve estar finalizada.')
-            messages.add_message(self.request, messages.ERROR, msg)
-            
-            error_url = reverse(
-                self.listagem_url, kwargs={'pk': sessao_plenaria_atual.id}
-            )
-            return HttpResponseRedirect(error_url)
-        
-        return super().get(*args, **kwargs)
-
     def get_context_data(self, **kwargs):
         context = super(
             TransferenciaMateriasSessaoAbstract, self
         ).get_context_data(**kwargs)
 
         sessao_plenaria_atual = SessaoPlenaria.objects.get(pk=self.kwargs['pk'])
+
+        context['subnav_template_name'] = 'sessao/subnav.yaml'
+        context['root_pk'] = self.kwargs['pk']
+
+        if not sessao_plenaria_atual.finalizada:
+            msg = _('A sessão plenária deve estar finalizada.')
+            messages.add_message(self.request, messages.ERROR, msg)
+            return context
 
         if self.expediente:
             context["title"] = self.title
@@ -571,9 +566,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             context['sessoes'] = SessaoPlenaria.objects.filter(
                 data_inicio__gte=sessao_plenaria_atual.data_inicio
             ).exclude(pk=sessao_plenaria_atual.pk).order_by("-data_inicio")
-
-        context['subnav_template_name'] = 'sessao/subnav.yaml'
-        context['root_pk'] = self.kwargs['pk']        
+        
         return context
 
     def post(self, request, *args, **kwargs):
