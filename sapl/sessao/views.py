@@ -572,6 +572,8 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
                 data_inicio__gte=sessao_plenaria_atual.data_inicio
             ).exclude(pk=sessao_plenaria_atual.pk).order_by("-data_inicio")
 
+        context['subnav_template_name'] = 'sessao/subnav.yaml'
+        context['root_pk'] = self.kwargs['pk']        
         return context
 
     def post(self, request, *args, **kwargs):

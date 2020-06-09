@@ -106,12 +106,6 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/adicionar-varias-materias-ordem-dia/',
         AdicionarVariasMateriasOrdemDia.as_view(),
         name='adicionar_varias_materias_ordem_dia'),
-    url(r'^sessao/(?P<pk>\d+)/transf-mat-exp/',
-        TransferenciaMateriasExpediente.as_view(),
-        name="transf_mat_exp"),
-    url(r'^sessao/(?P<pk>\d+)/transf-mat-ordemdia/',
-        TransferenciaMateriasOrdemDia.as_view(),
-        name="transf_mat_ordemdia"),
 
     # PAUTA SESSÃO
     url(r'^sessao/pauta-sessao$',
@@ -198,5 +192,11 @@ urlpatterns = [
 
     url(r'^sessao/(?P<pk>\d+)/(?P<iso>\d+)/(?P<oid>\d+)/retirar-leitura$',
         retirar_leitura, name='retirar_leitura'),
-    
+
+    url(r'^sessao/(?P<pk>\d+)/transf-mat-exp$',
+        TransferenciaMateriasExpediente.as_view(),
+        name="transf_mat_exp"),
+    url(r'^sessao/(?P<pk>\d+)/transf-mat-ordemdia$',
+        TransferenciaMateriasOrdemDia.as_view(),
+        name="transf_mat_ordemdia"),
 ]
