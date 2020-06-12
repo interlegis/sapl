@@ -36,14 +36,20 @@
                                 </label>
                             </div>
                         </div>
-                        <thead><tr><td>Matéria</td></tr></thead>
+                        <thead><tr><td>Matéria</td><td>Situação</td></tr></thead>
                         <tbody>
                             {% for opcao in lista_disponiveis %}
                                 <tr>
                                     <td>
-                                        <label for="{{ opcao.id }}">
-                                            <input type="checkbox" id="{{ opcao.id }}" name="opcao_id" value="{{ opcao.id }}" {% if check %} checked {% endif %}/> {{ opcao.materia.tipo.sigla }} {{ opcao.materia.numero }}/{{ opcao.materia.ano }} - {{ opcao.materia.tipo.descricao }}
+                                        <label for="{{ opcao.materia.id }}">
+                                            <input type="checkbox" id="{{ opcao.materia.id }}" name="opcao_id" value="{{ opcao.id }}" {% if check %} checked {% endif %}/>
+                                            {{ opcao.materia.tipo.sigla }} {{ opcao.materia.numero }}/{{ opcao.materia.ano }} - {{ opcao.materia.tipo.descricao }}
                                         </label>
+                                    </td>
+                                    <td>
+                                        <div id="{{ opcao.materia.id }}-s" name="opcao_situacao_id">
+                                            Não está presente na sessão destino.
+                                        </div>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -64,12 +70,88 @@
 
 {% block extra_js %}
     <script language="Javascript">
-        function checkAll(elem){
+        function checkAll(elem) {
+            let f = 0;
             let checkboxes = document.getElementsByName('opcao_id');
-            for(let i=0; i<checkboxes.length; i++){
+            for (let i=0; i<checkboxes.length; i++){
                 checkboxes[i].checked = elem.checked;
+
+                situacao = document.getElementById(checkboxes[i].id + '-s');
+                if (checkboxes[i].checked === true && f === 0 && situacao.innerHTML === "<b>Presente na sessão destino.</b>"){
+                    f = 1;
+                }
+            }
+            if (f){
+                $('#fundo_modal').fadeIn();
             }
         }
+
+        function buscar_materias_sessao() {
+            let situacoes = document.getElementsByName('opcao_situacao_id');
+            for (let i=0; i<situacoes.length; i++){
+                $('#' + situacoes[i].id).html("Não está presente na sessão destino.");
+            }
+
+            let id_sessao_plenaria = $("#id_sessao_plenaria").val();
+            let url_atual = window.location.href;
+
+            $.get("{% url 'sapl.sessao:materias_sessao_plenaria_ajax_view' %}",
+            {
+                sessao_plenaria: id_sessao_plenaria,
+                url_atual: url_atual
+            }, 
+                function(data) {
+                    lista_materias = data['materias'];
+                    for (i=0; i < lista_materias.length; i++){
+                        $('#' + lista_materias[i] + '-s').html("<b>Presente na sessão destino.</b>");
+                    }
+                }
+            );
+        }
+
+        var modal_estilos = 'display: block; width: 85%; max-width: 600px; background: #fff;'
+            +'padding: 15px; border-radius: 5px;'
+            +'-webkit-box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75);'
+            +'-moz-box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75);'
+            +'box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75); position: fixed; top: 50%; left: 50%;'
+            +'transform: translate(-50%, -50%); z-index: 99999999; text-align: center';
+
+        var fundo_modal_estilos = 'top: 0; right: 0; bottom: 0; left: 0; position: fixed;'
+            +'background-color: rgba(0, 0, 0, 0.6); z-index: 99999999; display: none;';
+
+        var modal = '<div '
+            +'id="fundo_modal" style="'+fundo_modal_estilos+'"'
+            +'>'
+                +'<div id="modal" style="'+modal_estilos+'">'
+                    +'<h2>'
+                        +'Atenção!'
+                    +'</h2>'
+                    +'<br/>'
+                    +'<h3>'
+                        +'Alguma(s) das matérias selecionadas estão presentes na sessão destino. Essas matérias serão duplicadas.'
+                    +'</h3>'
+                    +'<br/>'
+                    +'<button '
+                        +'id="close_model_btn" '
+                        +'type="button" '
+                        +'class="btn btn-warning  mb-2" '
+                        +'data-dimiss="model"'
+                    +'>'
+                        +'Compreendo e quero continuar'
+                    +'</button>'
+                +'</div>'
+            +'</div>';
+
+        $(document).ready( function() {
+            $("body").append(modal);
+
+            // Identifica as matérias que já estão adicionadas na sessão destino
+            $("#id_sessao_plenaria").ready(buscar_materias_sessao);
+            $("#id_sessao_plenaria").change(buscar_materias_sessao);
+
+            $("#fundo_modal, #close_model_btn").click( function() { $("#fundo_modal").hide(); });
+            $("#modal").click( function(e) { e.stopPropagation(); });
+        });
     </script>
 {% endblock %}
 
