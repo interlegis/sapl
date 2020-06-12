@@ -78,7 +78,7 @@ recuperar_senha = [
         {'template_name': 'base/recupera_senha_email_enviado.html'},
         name='recuperar_senha_finalizado'),
 
-    url(r'^recuperar-senha/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$',
+    url(r'^recuperar-senha/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)$',
         password_reset_confirm,
         {'post_reset_redirect': 'sapl.base:recuperar_senha_completo',
          'template_name': 'base/nova_senha_form.html',
