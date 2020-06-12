@@ -761,9 +761,6 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
             context = super().get_context_data(**kwargs)
 
-            if OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk']).exists():
-                context["enable_btn"] = True
-
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
 
@@ -809,11 +806,6 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                 self.paginate_by = None
 
             context = super().get_context_data(**kwargs)
-
-            if ExpedienteMateria.objects.filter(
-                sessao_plenaria_id=self.kwargs['pk']
-            ).exists():
-                context["enable_btn"] = True
 
             if self.request.GET.get('page'):
                 context['page'] = self.request.GET.get('page')
