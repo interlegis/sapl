@@ -35,7 +35,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                ExpedienteLeituraView,
                                OrdemDiaLeituraView,
                                retirar_leitura,
-                               TransferenciaMateriasExpediente, TransferenciaMateriasOrdemDia)
+                               TransferenciaMateriasExpediente, TransferenciaMateriasOrdemDia,
+                               materias_sessao_plenaria_ajax)
 
 from .apps import AppConfig
 
@@ -76,6 +77,9 @@ urlpatterns = [
     url(r'^sessao/sessao-legislativa-legislatura-ajax/',
         sessao_legislativa_legislatura_ajax,
         name='sessao_legislativa_legislatura_ajax_view'),
+    url(r'^sessao/materias-sessao-plenaria-ajax/',
+        materias_sessao_plenaria_ajax, 
+        name='materias_sessao_plenaria_ajax_view'),    
 
     url(r'^sessao/(?P<pk>\d+)/(?P<spk>\d+)/abrir-votacao$',
         abrir_votacao,

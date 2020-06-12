@@ -529,6 +529,23 @@ def get_presencas_generic(model, sessao, legislatura):
             yield (m.parlamentar, False)
 
 
+def materias_sessao_plenaria_ajax(request):
+    url = request.GET['url_atual'].split("/")
+    url = url[len(url)-1]
+
+    if url == "transf-mat-exp":
+        materias_sessao = ExpedienteMateria.objects.filter(
+            sessao_plenaria=request.GET['sessao_plenaria']
+        )
+    elif url == "transf-mat-ordemdia":
+        materias_sessao = OrdemDia.objects.filter(
+            sessao_plenaria=request.GET['sessao_plenaria']
+        )
+
+    lista_id_materias_sessao = [m.materia.id for m in materias_sessao]
+    return JsonResponse({'materias': lista_id_materias_sessao})
+
+
 class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
     logger = logging.getLogger(__name__)
     template_name = 'sessao/transf_mat_sessao.html'
