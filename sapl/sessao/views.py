@@ -531,13 +531,26 @@ def get_presencas_generic(model, sessao, legislatura):
 
 def materias_sessao_plenaria_ajax(request):
     url = request.GET['url_atual'].split("/")
-    url = url[len(url)-1]
+    f_url = url[len(url)-1]
 
-    if url == "transf-mat-exp":
+    if f_url == "create":
+        f_url_1 = url[len(url)-2]
+        sessao_plenaria_id = url[len(url)-3]
+
+        if f_url_1 == "expedientemateria":
+            materias_sessao = ExpedienteMateria.objects.filter(
+                sessao_plenaria=sessao_plenaria_id
+            )
+        elif f_url_1 == "ordemdia":
+            materias_sessao = OrdemDia.objects.filter(
+                sessao_plenaria=sessao_plenaria_id
+            )
+
+    if f_url == "transf-mat-exp":
         materias_sessao = ExpedienteMateria.objects.filter(
             sessao_plenaria=request.GET['sessao_plenaria']
         )
-    elif url == "transf-mat-ordemdia":
+    elif f_url == "transf-mat-ordemdia":
         materias_sessao = OrdemDia.objects.filter(
             sessao_plenaria=request.GET['sessao_plenaria']
         )
