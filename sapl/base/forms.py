@@ -744,6 +744,26 @@ class AutorForm(ModelForm):
         return autor
 
 
+class AutorFilterSet(django_filters.FilterSet):
+    nome_autor = django_filters.CharFilter(label=_('Nome do Autor'), lookup_expr='icontains')
+
+    class Meta:
+        model = Autor
+        fields = ['nome']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row0 = to_row([('nome', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Autor'),
+                     row0,
+                     form_actions(label='Pesquisar')))
+
+
 class AutorFormForAdmin(AutorForm):
     status_user = forms.ChoiceField(
         label=_('Bloqueio do Usuário Existente'),
