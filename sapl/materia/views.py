@@ -736,8 +736,14 @@ class ProposicaoCrud(Crud):
     container_field = 'autor__user'
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['data_envio', 'data_recebimento', 'descricao',
-                            'tipo', 'conteudo_gerado_related', 'cancelado', ]
+        list_field_names = [
+            'data_envio',
+            'data_recebimento',
+            'descricao',
+            'tipo',
+            'conteudo_gerado_related',
+            'cancelado'
+        ]
 
     class BaseLocalMixin:
         form_class = ProposicaoForm
@@ -751,22 +757,23 @@ class ProposicaoCrud(Crud):
         def get(self, request, *args, **kwargs):
 
             if not self._action_is_valid(request, *args, **kwargs):
-                return redirect(reverse('sapl.materia:proposicao_detail',
-                                        kwargs={'pk': kwargs['pk']}))
+                return redirect(reverse('sapl.materia:proposicao_detail', kwargs={'pk': kwargs['pk']}))
             return super().get(self, request, *args, **kwargs)
 
         def post(self, request, *args, **kwargs):
 
             if not self._action_is_valid(request, *args, **kwargs):
-                return redirect(reverse('sapl.materia:proposicao_detail',
-                                        kwargs={'pk': kwargs['pk']}))
+                return redirect(reverse('sapl.materia:proposicao_detail', kwargs={'pk': kwargs['pk']}))
             return super().post(self, request, *args, **kwargs)
 
     class DetailView(Crud.DetailView):
         layout_key = 'Proposicao'
-        permission_required = (RP_DETAIL, 'materia.detail_proposicao_enviada',
-                               'materia.detail_proposicao_devolvida',
-                               'materia.detail_proposicao_incorporada')
+        permission_required = (
+            RP_DETAIL,
+            'materia.detail_proposicao_enviada',
+            'materia.detail_proposicao_devolvida',
+            'materia.detail_proposicao_incorporada'
+        )
 
         logger = logging.getLogger(__name__)
 
@@ -785,7 +792,6 @@ class ProposicaoCrud(Crud):
             return context
 
         def get(self, request, *args, **kwargs):
-
             action = request.GET.get('action', '')
             user = request.user
             username = user.username
@@ -802,10 +808,8 @@ class ProposicaoCrud(Crud):
                         msg_error = _('Proposição já foi enviada e recebida.')
                     elif p.data_envio:
                         msg_error = _('Proposição já foi enviada.')
-                    elif not p.texto_original and\
-                            not p.texto_articulado.exists():
-                        msg_error = _('Proposição não possui nenhum tipo de '
-                                      'Texto associado.')
+                    elif not p.texto_original and not p.texto_articulado.exists():
+                        msg_error = _('Proposição não possui nenhum tipo de Texto associado.')
                     else:
                         if p.texto_articulado.exists():
                             ta = p.texto_articulado.first()
@@ -813,8 +817,7 @@ class ProposicaoCrud(Crud):
                             ta.editing_locked = True
                             ta.save()
 
-                            receber_recibo = BaseAppConfig.attr(
-                                'receber_recibo_proposicao')
+                            receber_recibo = BaseAppConfig.attr('receber_recibo_proposicao')
 
                             if not receber_recibo:
                                 ta = p.texto_articulado.first()
@@ -824,45 +827,39 @@ class ProposicaoCrud(Crud):
                         p.data_envio = timezone.now()
                         p.save()
 
-                        messages.success(request, _(
-                            'Proposição enviada com sucesso.'))
+                        messages.success(request, _('Proposição enviada com sucesso.'))
                         try:
-                            self.logger.debug("user=" + username + ". Tentando obter número do objeto MateriaLegislativa com "
-                                              "atributos tipo={} e ano={}."
-                                              .format(p.tipo.tipo_conteudo_related, p.ano))
+                            self.logger.debug("User={}. Tentando obter número do objeto MateriaLegislativa "
+                                              "com atributos tipo={} e ano={}."
+                                              .format(username, p.tipo.tipo_conteudo_related, p.ano))
 
                             if p.numero_materia_futuro:
                                 numero = p.numero_materia_futuro
                             else:
                                 numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
                                                                            ano=p.ano).last().numero + 1
-                            messages.success(request, _(
-                                '%s : nº %s de %s <br>Atenção! Este número é apenas um provável '
-                                'número que pode não corresponder com a realidade'
-                                % (p.tipo, numero, p.ano)))
+                            messages.success(request, _("{}: nº {} de {} <br>Atenção! Este número é apenas um provável "
+                                                        "número que pode não corresponder com a realidade"
+                                                        .format(p.tipo, numero, p.ano)))
                         except ValueError as e:
-                            self.logger.error(
-                                "user=" + username + "." + str(e))
+                            self.logger.warning("User=" + username + ". " + str(e))
                             pass
                         except AttributeError as e:
-                            self.logger.error(
-                                "user=" + username + "." + str(e))
+                            self.logger.warning("User=" + username + ". " + str(e))
                             pass
                         except TypeError as e:
-                            self.logger.error(
-                                "user=" + username + "." + str(e))
+                            self.logger.warning("User=" + username + ". " + str(e))
                             pass
 
                 elif action == 'return':
                     if not p.data_envio:
-                        self.logger.error(
-                            "user=" + username + ". Proposição (numero={}) ainda não foi enviada.".format(p.numero_proposicao))
+                        self.logger.warning("User={}. Proposição (numero={}) ainda não foi enviada."
+                                            .format(username, p.numero_proposicao))
                         msg_error = _('Proposição ainda não foi enviada.')
                     elif p.data_recebimento:
-                        self.logger.error("user=" + username + ". Proposição (numero={}) já foi recebida, não é "
-                                          "possível retorná-la.".format(p.numero_proposicao))
-                        msg_error = _('Proposição já foi recebida, não é '
-                                      'possível retorná-la.')
+                        self.logger.warning("User={}. Proposição (numero={}) já foi recebida, "
+                                            "não é possível retorná-la.".format(username, p.numero_proposicao))
+                        msg_error = _('Proposição já foi recebida, não é possível retorná-la.')
                     else:
                         p.data_envio = None
                         p.save()
@@ -871,27 +868,24 @@ class ProposicaoCrud(Crud):
                             ta.privacidade = STATUS_TA_PRIVATE
                             ta.editing_locked = False
                             ta.save()
-                        self.logger.info(
-                            "user=" + username + ". Proposição (numero={}) Retornada com sucesso.".format(p.numero_proposicao))
-                        messages.success(request, _(
-                            'Proposição Retornada com sucesso.'))
+                        self.logger.info("User={}. Proposição (numero={}) Retornada com sucesso."
+                                         .format(username, p.numero_proposicao))
+                        messages.success(request, _('Proposição Retornada com sucesso.'))
 
                 if msg_error:
                     messages.error(request, msg_error)
 
             # retornar redirecionando para limpar a variavel action
-            return redirect(reverse('sapl.materia:proposicao_detail',
-                                    kwargs={'pk': kwargs['pk']}))
+            return redirect(reverse('sapl.materia:proposicao_detail', kwargs={'pk': kwargs['pk']}))
 
         def dispatch(self, request, *args, **kwargs):
             username = request.user.username
             try:
-                self.logger.debug(
-                    "user=" + username + ". Tentando obter objeto Proposicao com pk={}".format(kwargs['pk']))
+                self.logger.debug("User={}. Tentando obter objeto Proposicao com pk={}".format(username, kwargs['pk']))
                 p = Proposicao.objects.get(id=kwargs['pk'])
             except Exception as e:
-                self.logger.error(
-                    "user=" + username + ". Erro ao obter proposicao com pk={}. Retornando 404. ".format(kwargs['pk']) + str(e))
+                self.logger.warning("User={}. Erro ao obter proposicao com pk={}. Retornando 404. {}"
+                                    .format(username, kwargs['pk'], str(e)))
                 raise Http404()
 
             if not self.has_permission():
@@ -901,47 +895,38 @@ class ProposicaoCrud(Crud):
                 if not p.data_envio and not p.data_devolucao:
                     raise Http404()
 
-                if p.data_devolucao and not request.user.has_perm(
-                        'materia.detail_proposicao_devolvida'):
+                if p.data_devolucao and not request.user.has_perm('materia.detail_proposicao_devolvida'):
                     raise Http404()
 
-                if p.data_envio and not p.data_recebimento\
-                    and not request.user.has_perm(
-                        'materia.detail_proposicao_enviada'):
+                if p.data_envio and not p.data_recebimento \
+                        and not request.user.has_perm('materia.detail_proposicao_enviada'):
                     raise Http404()
 
-                if p.data_envio and p.data_recebimento\
-                    and not request.user.has_perm(
-                        'materia.detail_proposicao_incorporada'):
+                if p.data_envio and p.data_recebimento \
+                        and not request.user.has_perm('materia.detail_proposicao_incorporada'):
                     raise Http404()
 
-            return super(PermissionRequiredMixin, self).dispatch(
-                request, *args, **kwargs)
+            return super(PermissionRequiredMixin, self).dispatch(request, *args, **kwargs)
 
     class DeleteView(BaseLocalMixin, Crud.DeleteView):
-
         logger = logging.getLogger(__name__)
 
         def _action_is_valid(self, request, *args, **kwargs):
-            proposicao = Proposicao.objects.filter(
-                id=kwargs['pk']).values_list(
-                    'data_envio', 'data_recebimento')
+            proposicao = Proposicao.objects.filter(id=kwargs['pk']).values_list('data_envio', 'data_recebimento')
 
             username = request.user.username
 
             if proposicao:
                 if proposicao[0][0] and proposicao[0][1]:
-                    self.logger.error("user=" + username + ". Proposição (id={}) já foi enviada e recebida."
-                                      "Não pode mais ser excluida.".format(kwargs['pk']))
-                    msg = _('Proposição já foi enviada e recebida.'
-                            'Não pode mais ser excluida.')
+                    self.logger.warning("User={}. Proposição (id={}) já foi enviada e recebida."
+                                        "Não pode mais ser excluida.".format(username, kwargs['pk']))
+                    msg = _('Proposição já foi enviada e recebida. Não pode mais ser excluida.')
                 elif proposicao[0][0] and not proposicao[0][1]:
-                    self.logger.error("user=" + username + ". Proposição (id={}) já foi enviada mas ainda não recebida "
-                                      "pelo protocolo. Use a opção Recuperar Proposição "
-                                      "para depois excluí-la.".format(kwargs['pk']))
-                    msg = _('Proposição já foi enviada mas ainda não recebida '
-                            'pelo protocolo. Use a opção Recuperar Proposição '
-                            'para depois excluí-la.')
+                    self.logger.warning("""\
+                        User={}. Proposição (id={}) já foi enviada, mas ainda não recebida pelo protocolo. \
+                        Use a opção Recuperar Proposição para depois excluí-la.""".format(username, kwargs['pk']))
+                    msg = _("Proposição já foi enviada mas ainda não recebida pelo protocolo. "
+                            "Use a opção Recuperar Proposição para depois excluí-la.")
 
                 if proposicao[0][0] or proposicao[0][1]:
                     messages.error(request, msg)
@@ -949,20 +934,18 @@ class ProposicaoCrud(Crud):
             return True
 
     class UpdateView(BaseLocalMixin, Crud.UpdateView):
-
         logger = logging.getLogger(__name__)
         form_class = ProposicaoForm
 
         def form_valid(self, form):
             tz = timezone.get_current_timezone()
 
-            objeto_antigo = Proposicao.objects.get(
-                pk=self.kwargs['pk']
-            )
+            objeto_antigo = Proposicao.objects.get(pk=self.kwargs['pk'])
             dict_objeto_antigo = objeto_antigo.__dict__
 
             tipo_texto = self.request.POST.get('tipo_texto', '')
-            if tipo_texto=='D' and objeto_antigo.texto_articulado.exists() or tipo_texto=='T' and not objeto_antigo.texto_articulado.exists():
+            if tipo_texto == 'D' and objeto_antigo.texto_articulado.exists()\
+                    or tipo_texto == 'T' and not objeto_antigo.texto_articulado.exists():
                 self.object.user = self.request.user
                 self.object.ip = get_client_ip(self.request)
                 self.object.ultima_edicao = tz.localize(datetime.now())
@@ -972,7 +955,10 @@ class ProposicaoCrud(Crud):
             dict_objeto_novo = self.object.__dict__
 
             atributos = [
-                'tipo_id', 'descricao', 'observacao', 'texto_original',
+                'tipo_id',
+                'descricao',
+                'observacao',
+                'texto_original',
                 'materia_de_vinculo_id'
             ]
 
@@ -987,27 +973,22 @@ class ProposicaoCrud(Crud):
             return super().form_valid(form)
 
         def _action_is_valid(self, request, *args, **kwargs):
-
-            proposicao = Proposicao.objects.filter(
-                id=kwargs['pk']).values_list(
-                    'data_envio', 'data_recebimento')
+            proposicao = Proposicao.objects.filter(id=kwargs['pk']).values_list('data_envio', 'data_recebimento')
 
             username = request.user.username
 
             if proposicao:
                 msg = ''
                 if proposicao[0][0] and proposicao[0][1]:
-                    self.logger.error('user=' + username + '. Proposição (id={}) já foi enviada e recebida.'
-                                      'Não pode mais ser editada'.format(kwargs['pk']))
-                    msg = _('Proposição já foi enviada e recebida.'
-                            'Não pode mais ser editada')
+                    self.logger.warning('User={}. Proposição (id={}) já foi enviada e recebida. '
+                                        'Não pode mais ser editada'.format(username, kwargs['pk']))
+                    msg = _('Proposição já foi enviada e recebida. Não pode mais ser editada')
                 elif proposicao[0][0] and not proposicao[0][1]:
-                    self.logger.error('user=' + username + '. Proposição (id={}) já foi enviada mas ainda não recebida '
-                                      'pelo protocolo. Use a opção Recuperar Proposição '
-                                      'para voltar para edição.'.format(kwargs['pk']))
-                    msg = _('Proposição já foi enviada mas ainda não recebida '
-                            'pelo protocolo. Use a opção Recuperar Proposição '
-                            'para voltar para edição.')
+                    self.logger.warning("""\
+                        User={}. Proposição (id={}) já foi enviada, mas ainda não recebida pelo protocolo. \
+                        Use a opção Recuperar Proposição para voltar para edição.""".format(username, kwargs['pk']))
+                    msg = _("Proposição já foi enviada, mas ainda não recebida pelo protocolo. "
+                            "Use a opção Recuperar Proposição para voltar para edição.")
 
                 if proposicao[0][0] or proposicao[0][1]:
                     messages.error(request, msg)
@@ -1015,22 +996,17 @@ class ProposicaoCrud(Crud):
             return True
 
         def get_success_url(self):
-
             tipo_texto = self.request.POST.get('tipo_texto', '')
             username = self.request.user.username
 
             if tipo_texto == 'T':
-                messages.info(self.request,
-                              _('Sempre que uma Proposição é inclusa ou '
-                                'alterada e a opção "Texto Articulado " for '
-                                'marcada, você será redirecionado para a '
-                                'edição do Texto Eletrônico.'))
-                self.logger.debug('user=' + username + '. Sempre que uma Proposição é inclusa ou '
-                                  'alterada e a opção "Texto Articulado " for '
-                                  'marcada, você será redirecionado para a '
-                                  'edição do Texto Eletrônico.')
-                return reverse('sapl.materia:proposicao_ta',
-                               kwargs={'pk': self.object.pk})
+                messages.info(self.request, _("""\
+                    Sempre que uma Proposição é inclusa ou alterada e a opção "Texto Articulado " for marcada, \
+                    você será redirecionado para a edição do Texto Eletrônico."""))
+                self.logger.debug("""\
+                    User={}. Sempre que uma Proposição é inclusa ou alterada e a opção "Texto Articulado" for marcada, \
+                    você será redirecionado para a edição do Texto Eletrônico.""".format(username))
+                return reverse('sapl.materia:proposicao_ta', kwargs={'pk': self.object.pk})
             else:
                 return Crud.UpdateView.get_success_url(self)
 
@@ -1061,43 +1037,38 @@ class ProposicaoCrud(Crud):
             username = self.request.user.username
 
             if tipo_texto == 'T':
-                messages.info(self.request,
-                              _('Sempre que uma Proposição é inclusa ou '
-                                'alterada e a opção "Texto Articulado " for '
-                                'marcada, você será redirecionado para o '
-                                'Texto Eletrônico. Use a opção "Editar Texto" '
-                                'para construir seu texto.'))
-                self.logger.debug('user=' + username + '. Sempre que uma Proposição é inclusa ou '
-                                  'alterada e a opção "Texto Articulado " for '
-                                  'marcada, você será redirecionado para o '
-                                  'Texto Eletrônico. Use a opção "Editar Texto" '
-                                  'para construir seu texto.')
-                return reverse('sapl.materia:proposicao_ta',
-                               kwargs={'pk': self.object.pk})
+                messages.info(self.request, _("""\
+                    Sempre que uma Proposição é inclusa ou alterada e a opção "Texto Articulado" for marcada, \
+                    você será redirecionado para o Texto Eletrônico. \
+                    Use a opção "Editar Texto" para construir seu texto."""))
+                self.logger.debug("""\
+                    User={}. Sempre que uma Proposição é inclusa ou alterada e a opção "Texto Articulado" for marcada, \
+                    você será redirecionado para o Texto Eletrônico. \
+                    Use a opção "Editar Texto" para construir seu texto.""".format(username))
+                return reverse('sapl.materia:proposicao_ta', kwargs={'pk': self.object.pk})
             else:
                 return Crud.CreateView.get_success_url(self)
 
     class ListView(Crud.ListView):
-        ordering = ['-data_envio', 'descricao']
+        ordering = [
+            '-data_envio',
+            'descricao'
+        ]
 
         def get_rows(self, object_list):
 
             for obj in object_list:
                 if obj.data_recebimento is None:
-                    obj.data_recebimento = 'Não recebida'\
-                        if obj.data_envio else 'Não enviada'
+                    obj.data_recebimento = 'Não recebida' if obj.data_envio else 'Não enviada'
                 else:
-                    obj.data_recebimento = timezone.localtime(
-                        obj.data_recebimento)
-                    obj.data_recebimento = formats.date_format(
-                        obj.data_recebimento, "DATETIME_FORMAT")
+                    obj.data_recebimento = timezone.localtime(obj.data_recebimento)
+                    obj.data_recebimento = formats.date_format(obj.data_recebimento, "DATETIME_FORMAT")
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
                 else:
 
                     obj.data_envio = timezone.localtime(obj.data_envio)
-                    obj.data_envio = formats.date_format(
-                        obj.data_envio, "DATETIME_FORMAT")
+                    obj.data_envio = formats.date_format(obj.data_envio, "DATETIME_FORMAT")
 
             return [self._as_row(obj) for obj in object_list]
 
