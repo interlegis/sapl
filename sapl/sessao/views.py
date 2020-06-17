@@ -1738,7 +1738,8 @@ def get_materias_expediente(sessao_plenaria):
                'autor': autor,
                'numero_protocolo': m.materia.numero_protocolo,
                'numero_processo': m.materia.numeracao_set.last(),
-               'observacao': m.observacao
+               'observacao_expediente': m.observacao,
+               'observacao': m.materia.observacao
                }
         materias_expediente.append(mat)
 
@@ -1885,6 +1886,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
                'voto_nao': voto_nao,
                'voto_abstencoes': voto_abstencoes,
                'voto_nominal': voto_nominal,
+               'observacao': o.materia.observacao
                }
         materias_ordem.append(mat)
 
