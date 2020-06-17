@@ -2801,8 +2801,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                         parlamentar=parlamentar)
                 except ObjectDoesNotExist:
                     username = self.request.user.username
-                    self.logger.error('user=' + username + '. Objeto voto_parlamentar do ' +
-                                      'parlamentar de id={} não existe.'.format(parlamentar.pk))
+                    self.logger.warning('User={}. Objeto voto_parlamentar do parlamentar de id={} não existe.'
+                                        .format(username, parlamentar.pk))
                     yield [parlamentar, None]
                 else:
                     yield [parlamentar, voto.voto]
@@ -4398,8 +4398,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         parlamentar=parlamentar)
                 except ObjectDoesNotExist:
                     username = self.request.user.username
-                    self.logger.error('user=' + username + '. Objeto voto_parlamentar do ' +
-                                      'parlamentar de id={} não existe.'.format(parlamentar.pk))
+                    self.logger.warning('User={}. Objeto voto_parlamentar do parlamentar de id={} não existe.'
+                                        .format(username, parlamentar.pk))
                     yield [parlamentar, None]
                 else:
                     yield [parlamentar, voto.voto]
