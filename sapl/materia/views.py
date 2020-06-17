@@ -2757,11 +2757,11 @@ def create_zip_docacessorios(materia):
 
 def get_zip_docacessorios(request, pk):
     logger = logging.getLogger(__name__)
-    username = request.user.username
+    username = request.user.username if request.user.username else 'Usuário anonimo'
     materia = get_object_or_404(MateriaLegislativa, pk=pk)
     try:
         external_name, zipfilename = create_zip_docacessorios(materia)
-        logger.info("user= {}. Gerou o zip compilado de documento acessorios")
+        logger.info("user= {}. Gerou o zip compilado de documento acessorios".format(username))
     except FileNotFoundError:
         logger.error("user= {}.Não há arquivos cadastrados".format(username))
         msg=_('Não há arquivos cadastrados nesses documentos acessórios.')
@@ -2822,10 +2822,10 @@ def create_pdf_docacessorios(materia):
 def get_pdf_docacessorios(request, pk):
     materia = get_object_or_404(MateriaLegislativa, pk=pk)
     logger = logging.getLogger(__name__)
-    username = request.user.username
+    username = request.user.username if request.user.username else 'Usuário anonimo'
     try:
         external_name, pdffilename = create_pdf_docacessorios(materia)
-        logger.info("user= {}. Gerou o pdf compilado de documento acessorios")
+        logger.info("user= {}. Gerou o pdf compilado de documento acessorios".format(username))
     except FileNotFoundError:
         logger.error("user= {}.Não há arquivos cadastrados".format(username))
         msg=_('Não há arquivos cadastrados nesses documentos acessórios.')

@@ -139,7 +139,7 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
 
         # Caso não exista filiação com essas condições
         except ObjectDoesNotExist:
-            self.logger.error("user=" + username + ". Parlamentar com (data<={} e data_desfiliacao>={}) "
+            self.logger.warning("user=" + username + ". Parlamentar com (data<={} e data_desfiliacao>={}) "
                               "ou (data<={} e data_desfiliacao=Null)) não possui filiação."
                               .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
             filiacao = 'Não possui filiação'

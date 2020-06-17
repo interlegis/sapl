@@ -163,7 +163,7 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
                                                  numero=cleaned_data['numero'],
                                                  tipo=cleaned_data['tipo']).exists()
             if norma:
-                self.logger.error("Já existe uma norma de mesmo Tipo ({}), Ano ({}) "
+                self.logger.warning("Já existe uma norma de mesmo Tipo ({}), Ano ({}) "
                                   "e Número ({}) no sistema."
                                   .format(cleaned_data['tipo'], cleaned_data['ano'], cleaned_data['numero']))
                 raise ValidationError("Já existe uma norma de mesmo Tipo, Ano "
