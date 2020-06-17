@@ -605,8 +605,7 @@ class ParlamentarCrud(Crud):
                                   ". Tentando obter id da legislatura.")
                 return int(self.request.GET['pk'])
             except:
-                self.logger.error(
-                    "user=" + username + ". Legislatura não possui ID. Buscando em todas as entradas.")
+                self.logger.warning("User=" + username + ". Legislatura não possui ID. Buscando em todas as entradas.")
                 legislaturas = Legislatura.objects.all()
                 for l in legislaturas:
                     if l.atual():

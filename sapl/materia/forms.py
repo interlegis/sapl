@@ -217,10 +217,8 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         if protocolo:
             if not Protocolo.objects.filter(numero=protocolo, ano=ano).exists():
-                self.logger.error("Protocolo %s/%s não"
-                                  " existe" % (protocolo, ano))
-                raise ValidationError(_('Protocolo %s/%s não'
-                                        ' existe' % (protocolo, ano)))
+                self.logger.warning("Protocolo %s/%s não existe" % (protocolo, ano))
+                raise ValidationError(_('Protocolo %s/%s não existe' % (protocolo, ano)))
 
             if protocolo_antigo != protocolo:
                 exist_materia = MateriaLegislativa.objects.filter(
@@ -523,11 +521,9 @@ class TramitacaoForm(ModelForm):
                     raise ValidationError(msg)
 
             if cleaned_data['data_tramitacao'] > timezone.now().date():
-                self.logger.error('A data de tramitação informada ({}) não é ' +
-                                  'menor ou igual a data de hoje!'.format(cleaned_data['data_tramitacao']))
-                msg = _(
-                    'A data de tramitação deve ser ' +
-                    'menor ou igual a data de hoje!')
+                self.logger.warning('A data de tramitação informada ({}) não é menor ou igual a data de hoje!'
+                                    .format(cleaned_data['data_tramitacao']))
+                msg = _('A data de tramitação deve ser menor ou igual a data de hoje!')
                 raise ValidationError(msg)
 
             if (ultima_tramitacao and
@@ -541,10 +537,8 @@ class TramitacaoForm(ModelForm):
 
         if data_enc_form:
             if data_enc_form < data_tram_form:
-                msg = _('A data de encaminhamento deve ser ' +
-                        'maior que a data de tramitação!')
-                self.logger.error("A data de encaminhamento ({}) deve ser "
-                                  "maior que a data de tramitação! ({})"
+                msg = _('A data de encaminhamento deve ser maior que a data de tramitação!')
+                self.logger.warning("A data de encaminhamento ({}) deve ser maior que a data de tramitação! ({})"
                                   .format(data_enc_form, data_tram_form))
                 raise ValidationError(msg)
 
@@ -910,8 +904,7 @@ class AnexadaForm(ModelForm):
         except ObjectDoesNotExist:
             msg = _('A {} {}/{} não existe no cadastro de matérias legislativas.'
                     .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
-            self.logger.error("A matéria a ser anexada não existe no cadastro"
-                              " de matérias legislativas.")
+            self.logger.warning("A matéria a ser anexada não existe no cadastro de matérias legislativas.")
             raise ValidationError(msg)
 
         materia_principal = self.instance.materia_principal
@@ -1748,11 +1741,9 @@ class TramitacaoEmLoteForm(ModelForm):
 
         if data_enc_form:
             if data_enc_form < data_tram_form:
-                self.logger.error('A data de encaminhamento ({}) deve ser '
-                                  'maior que a data de tramitação ({})!'
-                                  .format(data_enc_form, data_tram_form))
-                msg = _('A data de encaminhamento deve ser ' +
-                        'maior que a data de tramitação!')
+                self.logger.warning('A data de encaminhamento ({}) deve ser maior que a data de tramitação ({})!'
+                                    .format(data_enc_form, data_tram_form))
+                msg = _('A data de encaminhamento deve ser maior que a data de tramitação!')
                 raise ValidationError(msg)
 
         if data_prazo_form:

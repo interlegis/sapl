@@ -1368,9 +1368,9 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
             if tramitacao.pk != ultima_tramitacao.pk:
                 username = request.user.username
-                self.logger.error("user=" + username + ". Não é possível deletar a tramitação de pk={}. "
-                                  "Somente a última tramitação (pk={}) pode ser deletada!."
-                                  .format(tramitacao.pk, ultima_tramitacao.pk))
+                self.logger.warning("User={}. Não é possível deletar a tramitação de pk={}. "
+                                    "Somente a última tramitação (pk={}) pode ser deletada!."
+                                    .format(username, tramitacao.pk, ultima_tramitacao.pk))
                 msg = _('Somente a última tramitação pode ser deletada!')
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
