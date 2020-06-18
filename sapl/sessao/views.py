@@ -546,11 +546,11 @@ def materias_sessao_plenaria_ajax(request):
                 sessao_plenaria=sessao_plenaria_id
             )
 
-    if f_url == "transf-mat-exp":
+    if f_url == "transf-mat-exp" or f_url == "adicionar-varias-materias-expediente":
         materias_sessao = ExpedienteMateria.objects.filter(
             sessao_plenaria=request.GET['sessao_plenaria']
         )
-    elif f_url == "transf-mat-ordemdia":
+    elif f_url == "transf-mat-ordemdia" or f_url == "adicionar-varias-materias-ordem-dia":
         materias_sessao = OrdemDia.objects.filter(
             sessao_plenaria=request.GET['sessao_plenaria']
         )
