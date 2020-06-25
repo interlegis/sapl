@@ -668,16 +668,15 @@ class AutorForm(ModelForm):
                 _('O Tipo do Autor deve ser selecionado.'))
 
         tipo = cd['tipo']
-
-        if 'nome' in cd and \
-                qs_autor.filter(nome=cd['nome']).exists():
-            raise ValidationError("Autor '%s' já existente!" % cd['nome'])
-
         if not tipo.content_type:
             if 'nome' not in cd or not cd['nome']:
                 self.logger.warn('Nome do Autor não informado.')
                 raise ValidationError(
                     _('O Nome do Autor deve ser informado.'))
+            
+            if 'nome' in cd and \
+                qs_autor.filter(nome=cd['nome']).exists():
+                    raise ValidationError("Autor '%s' já existente!" % cd['nome'])
         else:
             if 'autor_related' not in cd or not cd['autor_related']:
                 self.logger.warn(
