@@ -2022,7 +2022,11 @@ class AppConfigCrud(CrudAux):
             if recibo_prop_novo == 'False' and recibo_prop_atual:
                 props = Proposicao.objects.filter(hash_code='')
                 for prop in props:
-                    self.gerar_hash(prop)
+                    try:
+                        self.gerar_hash(prop)
+                    except ValidationError as e:
+                        form.add_error('receber_recibo_proposicao',e)
+                        return super().form_invalid(form)
             return super().form_valid(form)
 
         def gerar_hash(self, inst):
