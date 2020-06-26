@@ -2025,7 +2025,7 @@ class AppConfigCrud(CrudAux):
                     try:
                         self.gerar_hash(prop)
                     except ValidationError as e:
-                        form.add_error('receber_recibo_proposicao',e)
+                        form.add_error('Não foi possível mudar a configuração porque a Proposição {} não possui texto original vinculado!'.format(e))
                         return super().form_invalid(form)
             return super().form_valid(form)
 
