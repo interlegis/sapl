@@ -2728,7 +2728,7 @@ def create_zip_docacessorios(materia):
 
 def get_zip_docacessorios(request, pk):
     logger = logging.getLogger(__name__)
-    username = request.user.username if request.user.username else 'Usuário anônimo'
+    username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
     materia = get_object_or_404(MateriaLegislativa, pk=pk)
     try:
         external_name, zipfilename = create_zip_docacessorios(materia)
@@ -2793,7 +2793,7 @@ def create_pdf_docacessorios(materia):
 def get_pdf_docacessorios(request, pk):
     materia = get_object_or_404(MateriaLegislativa, pk=pk)
     logger = logging.getLogger(__name__)
-    username = request.user.username if request.user.username else 'Usuário anônimo'
+    username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
     try:
         external_name, pdffilename = create_pdf_docacessorios(materia)
         logger.info("user= {}. Gerou o pdf compilado de documento acessorios".format(username))
