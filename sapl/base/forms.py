@@ -745,7 +745,7 @@ class AutorForm(ModelForm):
 
 
 class AutorFilterSet(django_filters.FilterSet):
-    nome_autor = django_filters.CharFilter(label=_('Nome do Autor'), lookup_expr='icontains')
+    nome = django_filters.CharFilter(label=_('Nome do Autor'), lookup_expr='icontains')
 
     class Meta:
         model = Autor
