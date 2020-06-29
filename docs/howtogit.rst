@@ -59,7 +59,7 @@ Ao invés disso, remover todas as alterações e commits locais, recuperar o his
   git fetch origin
   git reset --hard origin/master
 
-Atualizar para alguma branch específico (ex:785-atualizar-migracao):
+Atualizar para algum branch específico (ex:785-atualizar-migracao):
 
   git checkout 785-atualizar-migracao
 
