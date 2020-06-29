@@ -673,10 +673,8 @@ class AutorForm(ModelForm):
                 self.logger.warn('Nome do Autor não informado.')
                 raise ValidationError(
                     _('O Nome do Autor deve ser informado.'))
-            
-            if 'nome' in cd and \
-                qs_autor.filter(nome=cd['nome']).exists():
-                    raise ValidationError("Autor '%s' já existente!" % cd['nome'])
+            elif qs_autor.filter(nome=cd['nome']).exists():
+                raise ValidationError("Autor '%s' já existente!" % cd['nome'])
         else:
             if 'autor_related' not in cd or not cd['autor_related']:
                 self.logger.warn(
