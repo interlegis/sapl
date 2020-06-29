@@ -8,8 +8,10 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_done)
 from django.views.generic.base import RedirectView, TemplateView
 
+
 from sapl import base
-from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica, DetailUsuarioView
+from sapl.base.views import (AutorCrud, ConfirmarEmailView, TipoAutorCrud, 
+                            get_estatistica, DetailUsuarioView, PesquisarAutorView)
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
 from .apps import AppConfig
@@ -105,6 +107,7 @@ channels_url = [
 urlpatterns = [
     url(r'^sistema/autor/tipo/', include(TipoAutorCrud.get_urls())),
     url(r'^sistema/autor/', include(AutorCrud.get_urls())),
+    url(r'^sistema/autor/pesquisar-autor/', PesquisarAutorView.as_view(), name='pesquisar_autor'),
 
     url(r'^sistema/ajuda/(?P<topic>\w+)$',
         HelpTopicView.as_view(), name='help_topic'),
