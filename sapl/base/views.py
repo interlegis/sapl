@@ -2020,9 +2020,15 @@ class AppConfigCrud(CrudAux):
             recibo_prop_atual = AppConfig.objects.last().receber_recibo_proposicao
             recibo_prop_novo = self.request.POST['receber_recibo_proposicao']
             if recibo_prop_novo == 'False' and recibo_prop_atual:
-                props = Proposicao.objects.filter(hash_code='')
+                props = Proposicao.objects.filter(hash_code='').exclude(data_envio__isnull=True)
                 for prop in props:
-                    self.gerar_hash(prop)
+                    try:
+                        self.gerar_hash(prop)
+                    except ValidationError as e:
+                        form.add_error('receber_recibo_proposicao',e)
+                        msg = _("Não foi possível mudar a configuração porque a Proposição {} não possui texto original vinculado!".format(prop))
+                        messages.error(self.request, msg)
+                        return super().form_invalid(form)
             return super().form_valid(form)
 
         def gerar_hash(self, inst):
