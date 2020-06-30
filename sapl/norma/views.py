@@ -334,7 +334,7 @@ def recuperar_norma(request):
         response = JsonResponse({'ementa': norma.ementa,
                                  'id': norma.id})
     except ObjectDoesNotExist:
-        logger.error('user=' + username + '. NormaJuridica buscada (tipo={}, ano={}, numero={}) não existe. '
+        logger.warning('user=' + username + '. NormaJuridica buscada (tipo={}, ano={}, numero={}) não existe. '
                      'Definida com ementa vazia e id 0.'.format(tipo, ano, numero))
         response = JsonResponse({'ementa': '', 'id': 0})
 
