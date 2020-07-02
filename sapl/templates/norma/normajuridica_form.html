@@ -17,20 +17,15 @@
               numero_materia: numero_materia,
               ano_materia: ano_materia
           }, (data, status) => {
-            if ($(location).attr('pathname').split("/")[2] == "create") {
+            $("#id_fundo_confirmacao_mudanca_ementa_indexacao").fadeIn();
+            $("#id_sim_mudanca_ementa_indexacao").click(() => {
                 $("#id_ementa").val(data.ementa);
                 $("#id_indexacao").val(data.indexacao);
-            } else {
-                $("#id_fundo_confirmacao_mudanca_ementa_indexacao").fadeIn();
-                $("#id_sim_mudanca_ementa_indexacao").click(() => {
-                    $("#id_ementa").val(data.ementa);
-                    $("#id_indexacao").val(data.indexacao);
-                    $("#id_fundo_confirmacao_mudanca_ementa_indexacao").hide();
-                });
-                $("#id_nao_mudanca_ementa_indexacao").click(() => {
-                    $("#id_fundo_confirmacao_mudanca_ementa_indexacao").hide();
-                });
-            }
+                $("#id_fundo_confirmacao_mudanca_ementa_indexacao").hide();
+            });
+            $("#id_nao_mudanca_ementa_indexacao").click(() => {
+                $("#id_fundo_confirmacao_mudanca_ementa_indexacao").hide();
+            });
           });
     }
   }
