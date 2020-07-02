@@ -3,7 +3,7 @@
 
 {% block detail_content %}
     {{ block.super }}
-    {% if user.is_superuser %}
+    {% if visible %}
         <div class="row">
             {% if tramitacao.user %}
                 <div class="col-sm-4">

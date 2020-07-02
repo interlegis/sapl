@@ -20,6 +20,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
@@ -1386,7 +1387,13 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['user'] = self.request.user
+
+            user = self.request.user
+            group = Group.objects.get(name="Operador de Matéria")
+
+            user_is_operador_materia = group.user_set.filter(username=user.username).exists()
+
+            context['visible'] = True if user.is_superuser or user_is_operador_materia else False 
             return context
 
 
