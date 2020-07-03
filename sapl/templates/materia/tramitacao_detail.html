@@ -3,7 +3,7 @@
 
 {% block detail_content %}
     {{ block.super }}
-    {% if visible %}
+    {% if 'materia.detail_tramitacao' in request.user.get_all_permissions %}
         <div class="row">
             {% if tramitacao.user %}
                 <div class="col-sm-4">
