@@ -1410,7 +1410,6 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['user'] = self.request.user
             return context
 
 
@@ -2848,3 +2847,16 @@ def get_pdf_docacessorios(request, pk):
                                        % external_name)
     return response
 
+
+def configEtiquetaMateriaLegislativaCrud(request):
+    config = ConfigEtiquetaMateriaLegislativa.objects.last()
+    if request.method == "POST":
+        form = ConfigEtiquetaMateriaLegislativaForms(request.POST, instance=config)
+        if form.is_valid():
+            config = form.save(commit=False)
+            config.published_date = timezone.now()
+            config.save()
+            return redirect('materia/config_etiqueta_materia.html', {'form': form})
+    else:
+        form = ConfigEtiquetaMateriaLegislativaForms(instance=config)
+    return render(request, 'materia/config_etiqueta_materia.html', {'form': form})
