@@ -1,6 +1,7 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load crispy_forms_tags common_tags%}
+{% load webpack_static from webpack_loader %}
 
   {% block actions %}
 
@@ -47,6 +48,7 @@
             <tr>
               <td>
                 <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a>
+                <a href="{% url 'sapl.relatorios:etiqueta_materia_legislativa' m.pk %}"><img src="{% webpack_static 'img/etiqueta.png' %}" alt="Etiqueta Individual"></a>
                 </br>
                 <strong>Ementa:</strong>&nbsp;{{ m.ementa|dont_break_out }}
                 </br>

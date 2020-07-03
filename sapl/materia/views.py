@@ -32,6 +32,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
+from django.shortcuts import render
+
 
 from django_filters.views import FilterView
 
@@ -48,7 +50,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm
                                 ConfirmarProposicaoForm, DevolverProposicaoForm,
                                 DespachoInicialCreateForm, LegislacaoCitadaForm,
                                 MateriaPesquisaSimplesForm, OrgaoForm, ProposicaoForm,
-                                TipoProposicaoForm, TramitacaoForm, TramitacaoUpdateForm)
+                                TipoProposicaoForm, TramitacaoForm, TramitacaoUpdateForm,ConfigEtiquetaMateriaLegislativaForms)
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
@@ -72,7 +74,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria, De
                      DocumentoAcessorio, MateriaAssunto, MateriaLegislativa, Numeracao, Orgao,
                      Origem, Proposicao, RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
-                     Tramitacao, UnidadeTramitacao)
+                     Tramitacao, UnidadeTramitacao,ConfigEtiquetaMateriaLegislativa)
 
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
@@ -2824,3 +2826,15 @@ def get_pdf_docacessorios(request, pk):
                                        % external_name)
     return response
 
+def configEtiquetaMateriaLegislativaCrud(request):
+    config = ConfigEtiquetaMateriaLegislativa.objects.last()
+    if request.method == "POST":
+        form = ConfigEtiquetaMateriaLegislativaForms(request.POST, instance=config)
+        if form.is_valid():
+            config = form.save(commit=False)
+            config.published_date = timezone.now()
+            config.save()
+            return redirect('materia/config_etiqueta_materia.html', {'form': form})
+    else:
+        form = ConfigEtiquetaMateriaLegislativaForms(instance=config)
+    return render(request, 'materia/config_etiqueta_materia.html', {'form': form})
