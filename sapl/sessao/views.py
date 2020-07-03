@@ -749,6 +749,8 @@ class OradorCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
 
         form_class = OradorForm
+        template_name = 'sessao/oradores_create.html'
+
 
         def get_initial(self):
             return {'id_sessao': self.kwargs['pk']}
@@ -761,6 +763,8 @@ class OradorCrud(MasterDetailCrud):
             if tipo_sessao.nome == "Solene":
                 context.update(
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            ultimo_orador = Orador.objects.filter(sessao_plenaria=kwargs['root_pk']).order_by("-numero_ordem").first()
+            context["ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
             return context
 
         def get_success_url(self):
@@ -818,6 +822,7 @@ class OradorExpedienteCrud(OradorCrud):
     class CreateView(MasterDetailCrud.CreateView):
 
         form_class = OradorExpedienteForm
+        template_name = 'sessao/oradores_create.html'
 
         def get_initial(self):
             return {'id_sessao': self.kwargs['pk']}
@@ -830,6 +835,8 @@ class OradorExpedienteCrud(OradorCrud):
             if tipo_sessao.nome == "Solene":
                 context.update(
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            ultimo_orador = OradorExpediente.objects.filter(sessao_plenaria=kwargs['root_pk']).order_by("-numero_ordem").first()
+            context["ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
             return context
 
         def get_success_url(self):
@@ -893,9 +900,9 @@ class OradorExpedienteCrud(OradorCrud):
 
 class OradorOrdemDiaCrud(OradorCrud):
     model = OradorOrdemDia
-
     class CreateView(MasterDetailCrud.CreateView):
         form_class = OradorOrdemDiaForm
+        template_name = 'sessao/oradores_create.html'
 
         def get_initial(self):
             return {'id_sessao': self.kwargs['pk']}
@@ -903,6 +910,12 @@ class OradorOrdemDiaCrud(OradorCrud):
         def get_success_url(self):
             return reverse('sapl.sessao:oradorordemdia_list',
                            kwargs={'pk': self.kwargs['pk']})
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            ultimo_orador = OradorOrdemDia.objects.filter(sessao_plenaria=kwargs['root_pk']).order_by("-numero_ordem").first()
+            context["ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
+            return context
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = OradorOrdemDiaForm
