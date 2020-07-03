@@ -239,19 +239,23 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         turno = '  '
         if tramitacao and tramitacao.tipo_turno:
             turno = tramitacao.tipo_turno.nome
+        situacao = MateriaEmTramitacao.objects.select_related("materia", "tramitacao")\
+                                              .filter(materia=materia).first().tramitacao.status
 
         title_materia = """<a id=id%s href=%s>%s</a> </br>
                            <b>Processo:</b> %s </br>
                            <b>Autor:</b> %s </br>
                            <b>Protocolo:</b> %s </br>
                            <b>Turno:</b> %s </br>
+                           <b>Situação:</b> %s </br>
                         """ % (obj.materia.id,
                                url_materia,
                                row[1][0],
                                numeracao if numeracao else '',
                                autor if autor else '',
                                num_protocolo if num_protocolo else '',
-                               turno)
+                               turno,
+                               situacao if situacao else '')
 
         # Na linha abaixo, o segundo argumento é None para não colocar
         # url em toda a string de title_materia
@@ -1703,21 +1707,11 @@ def get_expedientes(sessao_plenaria):
 
 
 def get_materias_expediente(sessao_plenaria):
-    materias = ExpedienteMateria.objects.filter(
-        sessao_plenaria_id=sessao_plenaria.id)
-
     materias_expediente = []
-    for m in materias:
-
-        ementa = m.materia.ementa
-        titulo = m.materia
-        numero = m.numero_ordem
-
+    for m in ExpedienteMateria.objects.select_related("materia").filter(sessao_plenaria_id=sessao_plenaria.id):
         tramitacao = ''
-        tramitacoes = Tramitacao.objects.filter(
-            materia=m.materia).order_by('-pk')
-        for aux_tramitacao in tramitacoes:
-            if aux_tramitacao.tipo_turno:
+        for aux_tramitacao in Tramitacao.objects.filter(materia=m.materia).order_by('-pk'):
+            if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break
 
@@ -1734,10 +1728,7 @@ def get_materias_expediente(sessao_plenaria):
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
         else:
-            if m.tipo_votacao == 4:
-                resultado = _('Matéria lida')
-            else:
-                resultado = _('Matéria não votada')
+            resultado = _('Matéria lida') if m.tipo_votacao == 4 else _('Matéria não votada')
             resultado_observacao = _(' ')
 
         materias_expediente.append({
@@ -1755,8 +1746,7 @@ def get_materias_expediente(sessao_plenaria):
             'observacao': m.observacao
         })
 
-    context = {'materia_expediente': materias_expediente}
-    return context
+    return {'materia_expediente': materias_expediente}
 
 
 def get_oradores_expediente(sessao_plenaria):
@@ -1824,19 +1814,11 @@ def get_assinaturas(sessao_plenaria):
 
 
 def get_materias_ordem_do_dia(sessao_plenaria):
-    ordem = OrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria.id)
     materias_ordem = []
-    for o in ordem:
-        ementa = o.materia.ementa
-        ementa_observacao = o.observacao
-        titulo = o.materia
-        numero = o.numero_ordem
-
+    for o in OrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria.id):
         tramitacao = ''
-        tramitacoes = Tramitacao.objects.filter(
-            materia=o.materia).order_by('-pk')
-        for aux_tramitacao in tramitacoes:
-            if aux_tramitacao.tipo_turno:
+        for aux_tramitacao in Tramitacao.objects.filter(materia=o.materia).order_by('-pk'):
+            if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break
 
@@ -1854,28 +1836,20 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
         else:
-            if o.tipo_votacao == 4:
-                resultado = _('Matéria lida')
-            else:
-                resultado = _('Matéria não votada')
+            resultado = _('Matéria lida') if o.tipo_votacao == 4 else _('Matéria não votada')
             resultado_observacao = _(' ')
 
-        voto_sim = ""
-        voto_nao = ""
-        voto_abstencoes = ""
         voto_nominal = []
-
         if o.tipo_votacao == 2:
-            votos = VotoParlamentar.objects.filter(ordem=o.id)
-            for voto in votos:
-                aux_voto = (voto.parlamentar.nome_completo, voto.voto)
-                voto_nominal.append(aux_voto)
-        try:
-            voto = RegistroVotacao.objects.filter(ordem=o.id).last()
+            for voto in VotoParlamentar.objects.filter(ordem=o.id):
+                voto_nominal.append((voto.parlamentar.nome_completo, voto.voto))
+
+        voto = RegistroVotacao.objects.filter(ordem=o.id).last()
+        if voto:
             voto_sim = voto.numero_votos_sim
             voto_nao = voto.numero_votos_nao
             voto_abstencoes = voto.numero_abstencoes
-        except AttributeError:
+        else:
             voto_sim = " Não Informado"
             voto_nao = " Não Informado"
             voto_abstencoes = " Não Informado"
@@ -1900,8 +1874,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             'observacao': o.observacao          
         })
 
-    context = {'materias_ordem': materias_ordem}
-    return context
+    return {'materias_ordem': materias_ordem}
 
 
 def get_oradores_ordemdia(sessao_plenaria):
@@ -1969,13 +1942,9 @@ class ResumoView(DetailView):
         context = self.get_context_data(object=self.object)
 
         # Votos de Votação Nominal de Matérias Expediente
-        materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(
-            sessao_plenaria_id=self.object.id,
-            tipo_votacao=2).order_by('-materia')
-
         votacoes = []
-        for mevn in materias_expediente_votacao_nominal:
-
+        for mevn in ExpedienteMateria.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2)\
+                                             .order_by('-materia'):
             votos_materia = []
             titulo_materia = mevn.materia
             registro = RegistroVotacao.objects.filter(expediente=mevn)
@@ -1983,11 +1952,10 @@ class ResumoView(DetailView):
                 for vp in VotoParlamentar.objects.filter(votacao=registro).order_by('parlamentar'):
                     votos_materia.append(vp)
 
-            dados_votacao = {
+            votacoes.append({
                 'titulo': titulo_materia,
                 'votos': votos_materia
-            }
-            votacoes.append(dados_votacao)
+            })
 
         context.update({'votos_nominais_materia_expediente': votacoes})
 
@@ -2021,12 +1989,8 @@ class ResumoView(DetailView):
         # =====================================================================
         # Matérias Ordem do Dia
         # Votos de Votação Nominal de Matérias Ordem do Dia
-        materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(
-            sessao_plenaria_id=self.object.id,
-            tipo_votacao=2).order_by('-materia')
-
         votacoes_od = []
-        for modvn in materias_ordem_dia_votacao_nominal:
+        for modvn in OrdemDia.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2).order_by('-materia'):
             votos_materia_od = []
             t_materia = modvn.materia
             registro_od = RegistroVotacao.objects.filter(ordem=modvn)
@@ -2034,11 +1998,10 @@ class ResumoView(DetailView):
                 for vp_od in VotoParlamentar.objects.filter(votacao=registro_od).order_by('parlamentar'):
                     votos_materia_od.append(vp_od)
 
-            dados_votacao_od = {
+            votacoes_od.append({
                 'titulo': t_materia,
                 'votos': votos_materia_od
-            }
-            votacoes_od.append(dados_votacao_od)
+            })
 
         context.update({'votos_nominais_materia_ordem_dia': votacoes_od})
 

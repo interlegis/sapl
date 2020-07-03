@@ -601,6 +601,7 @@ def get_sessao_plenaria(sessao, casa):
                                                str(materia.ano)),
             "des_numeracao": ' ',
             "des_turno": get_turno(materia)[0],
+            "situacao": materia.materiaemtramitacao_set.first().tramitacao.status,
             "txt_ementa": str(materia.ementa),
             "materia_observacao": materia.observacao,
             "ordem_observacao": expediente_materia.observacao,
@@ -705,7 +706,8 @@ def get_sessao_plenaria(sessao, casa):
             "txt_ementa": html.unescape(materia.ementa),
             "materia_observacao": materia.observacao,
             "ordem_observacao": html.unescape(votacao.observacao),
-            "nom_autor": ''
+            "nom_autor": '',
+            "situacao": materia.materiaemtramitacao_set.first().tramitacao.status
         })
 
         autoria = materia.autoria_set.all()
