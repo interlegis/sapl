@@ -10,20 +10,23 @@
     var tipo_materia = $("#id_tipo_materia").val();
     var numero_materia = $("#id_numero_materia").val();
     var ano_materia = $("#id_ano_materia").val();
-    var tipo = $('#id_tipo').val();
-    var ano = $('#id_ano').val();
-    var numero = $('#id_numero').val();
-    var ementa = $('#id_ementa').val();
+
     if (tipo_materia && numero_materia && ano_materia) {
-      $.get("/sessao/recuperar-materia",
-            {tipo_materia: tipo_materia,
-             numero_materia: numero_materia,
-             ano_materia: ano_materia},
-        function(data, status) {
-          $("#id_ementa").val(data.ementa);
-          $("#id_indexacao").val(data.indexacao);
-        }
-      );
+      $.get("/sessao/recuperar-materia", {
+              tipo_materia: tipo_materia,
+              numero_materia: numero_materia,
+              ano_materia: ano_materia
+          }, (data, status) => {
+            $("#id_fundo_confirmacao_mudanca_ementa_indexacao").fadeIn();
+            $("#id_sim_mudanca_ementa_indexacao").click(() => {
+                $("#id_ementa").val(data.ementa);
+                $("#id_indexacao").val(data.indexacao);
+                $("#id_fundo_confirmacao_mudanca_ementa_indexacao").hide();
+            });
+            $("#id_nao_mudanca_ementa_indexacao").click(() => {
+                $("#id_fundo_confirmacao_mudanca_ementa_indexacao").hide();
+            });
+          });
     }
   }
   var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"]
@@ -36,12 +39,11 @@
     var ano = $("#id_ano").val();
 
     if (tipo) {
-      $.get("/norma/recuperar-numero-norma",{tipo: tipo,
-                                  ano: ano},
-                                function(data, status) {
-                                  $("#id_numero").val(data.numero);
-                                  $("#id_ano").val(data.ano);
-                                });
+      $.get("/norma/recuperar-numero-norma", { tipo: tipo, ano: ano },
+          (data, status) => {
+            $("#id_numero").val(data.numero);
+            $("#id_ano").val(data.ano);
+          });
     }
   }
   var fields = ["#id_tipo", "#id_ano"];
@@ -58,29 +60,57 @@
          }
   });
 
-  var modal_estilos = 'display: block;'
-    +'width: 85%; max-width: 600px;'
-    +'background: #fff; padding: 15px;'
-    +'border-radius: 5px;'
-    +'-webkit-box-shadow: 0px 6px 14px -2px rgba(0,0,0,0.75);'
-    +'-moz-box-shadow: 0px 6px 14px -2px rgba(0,0,0,0.75);'
-    +'box-shadow: 0px 6px 14px -2px rgba(0,0,0,0.75);'
-    +'position: fixed;'
-    +'top: 50%; left: 50%;'
-    +'transform: translate(-50%,-50%);'
-    +'z-index: 99999999; text-align: center';
+  var modal_estilos = `
+    display: block;
+    width: 85%;
+    max-width: 600px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0px 6px 14px -2px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 6px 14px -2px rgba(0,0,0,0.75);
+    box-shadow: 0px 6px 14px -2px rgba(0,0,0,0.75);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    z-index: 99999999;
+    text-align: center;
+  `;
 
-  var fundo_modal_estilos = 'top: 0; right: 0;'
-    +'bottom: 0; left: 0; position: fixed;'
-    +'background-color: rgba(0, 0, 0, 0.6); z-index: 99999999;'
-    +'display: none;';
+  var fundo_modal_estilos = `
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 99999999;
+    display: none;
+  `;
 
-  var meu_modal = '<div id="fundo_modal" style="'+fundo_modal_estilos+'">'
-    +'<div id="meu_modal" style="'+modal_estilos+'">'
-      +'<h2>Atenção! Ano de apresentação e ano da norma são diferentes.</h2><br />'
-      +'<button id="close_model_btn" type="button" class="btn btn-warning" data-dismiss="modal">'
-      +'Compreendo e quero continuar</button>'
-    +'</div></div>';
+  var meu_modal = `
+    <div id="fundo_modal" style="${fundo_modal_estilos}">
+      <div id="meu_modal" style="${modal_estilos}">
+        <h2>Atenção! Ano de apresentação e ano da norma são diferentes.</h2><br />
+        <button id="close_model_btn" type="button" class="btn btn-warning" data-dismiss="modal">
+          Compreendo e quero continuar
+        </button>
+    </div>
+  </div>
+  `;
+
+  const confirmacao_mudanca_ementa_indexacao = `
+    <div id="id_fundo_confirmacao_mudanca_ementa_indexacao" style="${fundo_modal_estilos}">
+      <div id="id_confirmacao_mudanca_ementa_indexacao" style="${modal_estilos}">
+        <h3>Houve à mudança de Matéria vinculada a norma.</h3>
+        <h3>Deseja atualizar a Ementa e a Indexação com a nova Matéria?</h3><br/>
+        <button type="submit" id="id_sim_mudanca_ementa_indexacao" class="btn btn-primary">Sim</button>
+        <button type="button" id="id_nao_mudanca_ementa_indexacao" class="btn btn-secondary" data-dismiss="modal">Não</button>
+      </div>
+    </div>
+   `;
+
 
   function verifica_ano(){
     let ano = $("select#id_ano.select").val();
@@ -93,7 +123,7 @@
   }
 
   $(document).ready(function() {
-    $("body").append(meu_modal);
+    $("body").append(meu_modal, confirmacao_mudanca_ementa_indexacao);
 
     $("#fundo_modal, #close_model_btn").click(function(){ $("#fundo_modal").hide(); });
     $("#meu_modal").click(function(e){ e.stopPropagation(); });
