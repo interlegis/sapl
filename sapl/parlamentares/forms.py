@@ -216,6 +216,17 @@ class ParlamentarForm(FileFieldCheckMixin, ModelForm):
             'biografia': forms.Textarea(
                 attrs={'id': 'texto-rico'})}
 
+    def save(self, commit=True):
+        parlamentar = super().save()
+        autor = parlamentar.autor.first()
+        usuario = autor.user if autor else None
+
+        if autor and usuario:
+            usuario.is_active = parlamentar.ativo
+            usuario.save()
+
+        return parlamentar
+
 
 class ParlamentarFilterSet(django_filters.FilterSet):
     nome_parlamentar = django_filters.CharFilter(
