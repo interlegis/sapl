@@ -1573,13 +1573,16 @@ def gera_etiqueta_ml(materia_legislativa, base_url):
     base64_data = create_barcode(ml_info, 100, 500)
     barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
+    max_ementa_size = 200
+    ementa = materia_legislativa.ementa if len(materia_legislativa.ementa) < max_ementa_size else materia_legislativa.ementa[:max_ementa_size]+"..."
+
     context = {
         'numero': materia_legislativa.numero,
         'ano': materia_legislativa.ano,
         'tipo': materia_legislativa.tipo,
         'data_apresentacao':materia_legislativa.data_apresentacao,
         'autores': materia_legislativa.autores.all(),
-        'ementa':materia_legislativa.ementa,
+        'ementa':ementa,
         'largura': confg.largura,
         'altura':confg.largura,
         'barcode': barcode
