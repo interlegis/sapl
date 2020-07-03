@@ -217,11 +217,11 @@ class ParlamentarForm(FileFieldCheckMixin, ModelForm):
                 attrs={'id': 'texto-rico'})}
 
     def save(self, commit=True):
-        parlamentar = super().save(commit=False)
+        parlamentar = super().save()
         autor = parlamentar.autor.first()
-        usuario = autor.user if parlamentar.autor else None
+        usuario = autor.user if autor else None
 
-        if parlamentar and autor and usuario:
+        if autor and usuario:
             usuario.is_active = parlamentar.ativo
             usuario.save()
 
