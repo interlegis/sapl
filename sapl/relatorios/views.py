@@ -1564,6 +1564,7 @@ def relatorio_sessao_plenaria_pdf(request, pk):
 
     return response
 
+
 def gera_etiqueta_ml(materia_legislativa, base_url):
     confg = ConfigEtiquetaMateriaLegislativa.objects.first()
 
@@ -1573,8 +1574,9 @@ def gera_etiqueta_ml(materia_legislativa, base_url):
     base64_data = create_barcode(ml_info, 100, 500)
     barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
-    max_ementa_size = 200
-    ementa = materia_legislativa.ementa if len(materia_legislativa.ementa) < max_ementa_size else materia_legislativa.ementa[:max_ementa_size]+"..."
+    max_ementa_size = 240
+    ementa = materia_legislativa.ementa
+    ementa = ementa if len(ementa) < max_ementa_size else ementa[:max_ementa_size]+"..."
 
     context = {
         'numero': materia_legislativa.numero,
