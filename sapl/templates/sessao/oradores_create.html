@@ -1,0 +1,17 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block extra_js %}
+    <script type="text/javascript" >
+    $(document).ready(function(){
+        if("{{ultima_ordem}}" != "None"){
+            $("#id_numero_ordem").val({{ultima_ordem}}+1);        
+        }
+        else{
+            $("#id_numero_ordem").val(1);
+        }
+    });
+    </script>
+{% endblock extra_js %}
