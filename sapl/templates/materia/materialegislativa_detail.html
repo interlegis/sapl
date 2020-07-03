@@ -10,6 +10,12 @@
     {% endif %}
 {% endblock sub_actions %}
 
+{% block editions %}
+  {{ block.super }}
+  <a href="{% url 'sapl.relatorios:etiqueta_materia_legislativa' object.pk %}" class="btn btn-outline-primary">{% trans 'Etiqueta' %}</a>
+{% endblock editions %}
+
+
 {% block detail_content %}
     {{ block.super }}
     {% if object.registrovotacao_set.exists %}

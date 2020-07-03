@@ -267,6 +267,8 @@ rules_group_geral = {
         (materia.UnidadeTramitacao, __base__, __perms_publicas__),
         (materia.TipoTurnoTramitacao, __base__, __perms_publicas__),
         
+        (materia.ConfigEtiquetaMateriaLegislativa, __base__, set()),
+                
 
         (norma.AssuntoNorma, __base__, __perms_publicas__),
         (norma.TipoNormaJuridica, __base__, __perms_publicas__),

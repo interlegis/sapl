@@ -34,7 +34,7 @@ from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  MateriaLegislativa, Orgao,
                                  RegimeTramitacao, StatusTramitacao,
                                  TipoDocumento, TipoProposicao,
-                                 UnidadeTramitacao)
+                                 UnidadeTramitacao,ConfigEtiquetaMateriaLegislativa)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica, 
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
@@ -2919,3 +2919,10 @@ class MateriaPesquisaSimplesForm(forms.Form):
                     _('A Data Final não pode ser menor que a Data Inicial'))
 
         return cleaned_data
+
+class ConfigEtiquetaMateriaLegislativaForms(ModelForm):
+    class Meta:
+        model = ConfigEtiquetaMateriaLegislativa
+        fields = '__all__'
+
+    

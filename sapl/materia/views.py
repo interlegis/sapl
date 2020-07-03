@@ -32,6 +32,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
+from django.shortcuts import render
+
 
 from django_filters.views import FilterView
 
@@ -48,7 +50,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm
                                 ConfirmarProposicaoForm, DevolverProposicaoForm,
                                 DespachoInicialCreateForm, LegislacaoCitadaForm,
                                 MateriaPesquisaSimplesForm, OrgaoForm, ProposicaoForm,
-                                TipoProposicaoForm, TramitacaoForm, TramitacaoUpdateForm)
+                                TipoProposicaoForm, TramitacaoForm, TramitacaoUpdateForm,ConfigEtiquetaMateriaLegislativaForms)
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
@@ -66,17 +68,14 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     filtra_tramitacao_destino_and_status, filtra_tramitacao_status,
                     MateriaAssuntoForm, MateriaLegislativaFilterSet, MateriaLegislativaForm,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
-                    ReceberProposicaoForm, RelatoriaForm,
-                    TramitacaoEmLoteFilterSet, UnidadeTramitacaoForm,
-                    ExcluirTramitacaoEmLote, compara_tramitacoes_mat,
-                    TramitacaoEmLoteForm)
-from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria,
-                     DespachoInicial, DocumentoAcessorio, MateriaAssunto,
-                     MateriaLegislativa, Numeracao, Orgao, Origem, Proposicao,
-                     RegimeTramitacao, Relatoria, StatusTramitacao,
-                     TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa,
-                     TipoProposicao, Tramitacao, UnidadeTramitacao, 
-                     TipoTurnoTramitacao)
+                    ReceberProposicaoForm, RelatoriaForm, TramitacaoEmLoteFilterSet,
+                    TramitacaoEmLoteForm, UnidadeTramitacaoForm)
+from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria, DespachoInicial,
+                     DocumentoAcessorio, MateriaAssunto, MateriaLegislativa, Numeracao, Orgao,
+                     Origem, Proposicao, RegimeTramitacao, Relatoria, StatusTramitacao,
+                     TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
+                     Tramitacao, UnidadeTramitacao, TipoTurnoTramitacao, ConfigEtiquetaMateriaLegislativa)
+
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
 
