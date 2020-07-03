@@ -20,7 +20,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
@@ -2823,4 +2822,3 @@ def get_pdf_docacessorios(request, pk):
     response['Content-Disposition'] = ('attachment; filename="%s"'
                                        % external_name)
     return response
-
