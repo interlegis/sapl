@@ -8,7 +8,8 @@ from django.contrib.auth.views import (password_reset, password_reset_complete,
                                        password_reset_done)
 from django.views.generic.base import RedirectView, TemplateView
 
-from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica
+from sapl.base.views import AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica, DetailUsuarioView, \
+    PesquisarAutorView
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL
 
 from .apps import AppConfig
@@ -45,6 +46,7 @@ app_name = AppConfig.name
 admin_user = [
     url(r'^sistema/usuario/$', PesquisarUsuarioView.as_view(), name='usuario'),
     url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
+    url(r'^sistema/usuario/(?P<pk>\d+)$', DetailUsuarioView.as_view(), name='user_detail'),
     url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
     url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
 ]
@@ -72,7 +74,7 @@ recuperar_senha = [
         {'template_name': 'base/recupera_senha_email_enviado.html'},
         name='recuperar_senha_finalizado'),
 
-    url(r'^recuperar-senha/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$',
+    url(r'^recuperar-senha/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)$',
         password_reset_confirm,
         {'post_reset_redirect': 'sapl.base:recuperar_senha_completo',
          'template_name': 'base/nova_senha_form.html',
@@ -89,6 +91,7 @@ recuperar_senha = [
 urlpatterns = [
     url(r'^sistema/autor/tipo/', include(TipoAutorCrud.get_urls())),
     url(r'^sistema/autor/', include(AutorCrud.get_urls())),
+    url(r'^sistema/autor/pesquisar-autor/', PesquisarAutorView.as_view(), name='pesquisar_autor'),
 
     url(r'^sistema/ajuda/(?P<topic>\w+)$',
         HelpTopicView.as_view(), name='help_topic'),

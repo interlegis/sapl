@@ -1,0 +1,19 @@
+    <h2 class="gray-title">Oradores do Expediente</h2>
+    {% if lst_oradores_expediente %}
+        <table class="grayTable">
+            <thead><tr>
+                <th style="text-align: center; width:15%">Nº da Ordem</th>
+                <th style="text-align: center; width:25%">Parlamentar</th>
+                <th style="text-align: center; width:60%">Observação</th>
+            </tr></thead>
+            <tbody>
+            {% for orador in lst_oradores_expediente%}
+                <tr>
+                    <td style="text-align: center;"><b>{{orador.num_ordem}}</b></td>
+                    <td style="text-align: center;">{{orador.nom_parlamentar}}/{{orador.sgl_partido}}</td>
+                    <td style="text-align: center;">{% if orador.observacao %}<i>{{orador.observacao}}</i>{% else %}-{% endif %}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}

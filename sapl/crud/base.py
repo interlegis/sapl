@@ -577,8 +577,9 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                             fm = model._meta.get_field(fo)
                         except Exception as e:
                             username = self.request.user.username
-                            self.logger.error(
-                                "user=" + username + ". " + str(e))
+                            self.logger.info(
+                                "user=" + username + ". " + str(e)
+                            )
                             pass
 
                         if fm and hasattr(fm, 'related_model')\
@@ -607,8 +608,9 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
 
                     # print(ordering)
                 except Exception as e:
-                    logger.error(string_concat(_(
-                        'ERRO: construção da tupla de ordenação.'), str(e)))
+                    logger.warn(
+                        string_concat(_('ERRO: construção da tupla de ordenação.'), str(e))
+                    )
 
         # print(queryset.query)
         if not self.request.user.is_authenticated():

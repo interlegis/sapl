@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import pytest
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.parlamentares.models import Filiacao, Legislatura, Mandato
 
@@ -13,12 +13,12 @@ def data(valor):
 
 
 def test_filiacoes():
-    legislatura = mommy.make(Legislatura,
+    legislatura = baker.make(Legislatura,
                              data_inicio=data('2001-01-01'),
                              data_fim=data('2001-12-31'),
                              )
-    mandato = mommy.make(Mandato, legislatura=legislatura)
-    f1_fora, f2, f3, f4 = [mommy.make(Filiacao,
+    mandato = baker.make(Mandato, legislatura=legislatura)
+    f1_fora, f2, f3, f4 = [baker.make(Filiacao,
                                       parlamentar=mandato.parlamentar,
                                       data=ini,
                                       data_desfiliacao=fim)

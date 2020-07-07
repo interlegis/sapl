@@ -418,7 +418,8 @@ def get_presentes(pk, response, materia):
             'tipo_resultado': materia.resultado,
             'observacao_materia': html.unescape(materia.observacao),
             'tipo_votacao': tipo_votacao,
-            'materia_legislativa_texto': str(materia.materia)
+            'materia_legislativa_texto': str(materia.materia),
+            'materia_legislativa_ementa': str(materia.materia.ementa)
         })
 
     presentes_list = sort_lista_chave(presentes_list, 'nome')

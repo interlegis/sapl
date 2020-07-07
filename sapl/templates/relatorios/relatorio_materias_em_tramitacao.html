@@ -38,9 +38,12 @@
             <strong>Matéria:</strong>
             {{ materia_em_tramitacao.materia.tipo.descricao }} {{ materia_em_tramitacao.materia.numero }}/{{ materia_em_tramitacao.materia.ano }}
             </br>
+            <strong>Ementa:</strong>&nbsp;<a>{{ materia_em_tramitacao.materia.ementa }}</a><br/>
             <strong>Local Atual:</strong>&nbsp;<a> {{ materia_em_tramitacao.materia.tramitacao_set.last.unidade_tramitacao_destino }} </a>
             </br>
             <strong>Status:</strong>&nbsp;<a> {{ materia_em_tramitacao.materia.tramitacao_set.last.status }} </a>
+            </br>
+            <strong>Autores:</strong>&nbsp;<ul>{% for autor in materia_em_tramitacao.materia.autores.all %} <li>{{autor}}</li>{% endfor %}</ul>
             </br>
           {% endif %}
         </div>

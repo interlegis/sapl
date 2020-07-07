@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
-from model_mommy import mommy
+from model_bakery import baker
 from urllib.parse import urlencode
 import pytest
 
@@ -34,7 +34,7 @@ def test_anular_protocolo_acessivel(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_submit(admin_client):
-    mommy.make(Protocolo, numero='76', ano='2016', anulado=False)
+    baker.make(Protocolo, numero='76', ano='2016', anulado=False)
 
     # TODO: setar usuario e IP
     response = admin_client.post(reverse('sapl.protocoloadm:anular_protocolo'),
@@ -69,7 +69,7 @@ def test_form_anular_protocolo_inexistente():
 
 @pytest.mark.django_db(transaction=False)
 def test_form_anular_protocolo_valido():
-    mommy.make(Protocolo, numero='1', ano='2016', anulado=False)
+    baker.make(Protocolo, numero='1', ano='2016', anulado=False)
     form = AnularProtocoloAdmForm({'numero': '1',
                                  'ano': '2016',
                                  'justificativa_anulacao': 'TESTE'})
@@ -79,7 +79,7 @@ def test_form_anular_protocolo_valido():
 
 @pytest.mark.django_db(transaction=False)
 def test_form_anular_protocolo_anulado():
-    mommy.make(Protocolo, numero='1', ano='2016', anulado=True)
+    baker.make(Protocolo, numero='1', ano='2016', anulado=True)
     form = AnularProtocoloAdmForm({'numero': '1',
                                  'ano': '2016',
                                  'justificativa_anulacao': 'TESTE'})
@@ -89,7 +89,7 @@ def test_form_anular_protocolo_anulado():
 
 @pytest.mark.django_db(transaction=False)
 def test_form_anular_protocolo_campos_obrigatorios():
-    mommy.make(Protocolo, numero='1', ano='2016', anulado=False)
+    baker.make(Protocolo, numero='1', ano='2016', anulado=False)
 
     # TODO: generalizar para diminuir o tamanho deste método
 
@@ -127,27 +127,27 @@ def test_form_anular_protocolo_campos_obrigatorios():
 
 @pytest.mark.django_db(transaction=False)
 def test_create_tramitacao(admin_client):
-    tipo_doc = mommy.make(
+    tipo_doc = baker.make(
         TipoDocumentoAdministrativo,
         descricao='Teste Tipo_DocAdm')
 
-    documento_adm = mommy.make(
+    documento_adm = baker.make(
         DocumentoAdministrativo,
         tipo=tipo_doc)
 
-    unidade_tramitacao_local_1 = mommy.make(
+    unidade_tramitacao_local_1 = baker.make(
         UnidadeTramitacao, pk=1)
 
-    unidade_tramitacao_destino_1 = mommy.make(
+    unidade_tramitacao_destino_1 = baker.make(
         UnidadeTramitacao, pk=2)
 
-    unidade_tramitacao_destino_2 = mommy.make(
+    unidade_tramitacao_destino_2 = baker.make(
         UnidadeTramitacao, pk=3)
 
-    status = mommy.make(
+    status = baker.make(
         StatusTramitacaoAdministrativo)
 
-    tramitacao = mommy.make(
+    tramitacao = baker.make(
         TramitacaoAdministrativo,
         unidade_tramitacao_local=unidade_tramitacao_local_1,
         unidade_tramitacao_destino=unidade_tramitacao_destino_1,
@@ -307,7 +307,7 @@ def test_anular_protocolo_form_anula_protocolo_inexistente():
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_form_anula_protocolo_anulado():
-    mommy.make(Protocolo, numero=1, ano=2017, anulado=True)
+    baker.make(Protocolo, numero=1, ano=2017, anulado=True)
 
     form = AnularProtocoloAdmForm(data={'numero': '1',
                                       'ano': '2017',
@@ -322,15 +322,15 @@ def test_anular_protocolo_form_anula_protocolo_anulado():
 
 @pytest.mark.django_db(transaction=False)
 def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
-    tipo_materia = mommy.make(TipoMateriaLegislativa)
+    tipo_materia = baker.make(TipoMateriaLegislativa)
 
-    mommy.make(Protocolo,
+    baker.make(Protocolo,
                numero=1,
                ano=2017,
                tipo_materia=tipo_materia,
                anulado=False)
 
-    mommy.make(MateriaLegislativa,
+    baker.make(MateriaLegislativa,
                ano=2017,
                numero_protocolo=1)
 
@@ -345,15 +345,15 @@ def test_anular_protocolo_form_anula_protocolo_com_doc_vinculado():
         [_("Protocolo 1/2017 não pode ser removido pois existem "
            "documentos vinculados a ele.")]
 
-    tipo_documento = mommy.make(TipoDocumentoAdministrativo)
+    tipo_documento = baker.make(TipoDocumentoAdministrativo)
 
-    protocolo_documento = mommy.make(Protocolo,
+    protocolo_documento = baker.make(Protocolo,
                                      numero=2,
                                      ano=2017,
                                      tipo_documento=tipo_documento,
                                      anulado=False)
 
-    mommy.make(DocumentoAdministrativo,
+    baker.make(DocumentoAdministrativo,
                protocolo=protocolo_documento)
 
     form = AnularProtocoloAdmForm(data={'numero': '2',
@@ -387,8 +387,8 @@ def test_documento_administrativo_invalido():
 @pytest.mark.django_db(transaction=False)
 def test_documento_administrativo_protocolo_inexistente():
 
-    tipo = mommy.make(TipoDocumentoAdministrativo)
-    protocolo = mommy.make(Protocolo,
+    tipo = baker.make(TipoDocumentoAdministrativo)
+    protocolo = baker.make(Protocolo,
                            ano=2017,
                            numero=10,
                            anulado=False,
@@ -398,6 +398,7 @@ def test_documento_administrativo_protocolo_inexistente():
                                              'tipo': str(tipo.pk),
                                              'assunto': 'teste',
                                              'numero': '1',
+                                             'complemento':'',
                                              'data': '2017-10-10',
                                              'numero_protocolo': '11',
                                              'ano_protocolo': '2017',
@@ -412,7 +413,7 @@ def test_documento_administrativo_protocolo_inexistente():
 @pytest.mark.django_db(transaction=False)
 def test_protocolo_documento_form_invalido():
 
-    config = mommy.make(AppConfig)
+    config = baker.make(AppConfig)
 
     form = ProtocoloDocumentForm(
         data={},
@@ -439,7 +440,7 @@ def test_protocolo_documento_form_invalido():
 @pytest.mark.django_db(transaction=False)
 def test_protocolo_materia_invalido():
 
-    config = mommy.make(AppConfig)
+    config = baker.make(AppConfig)
 
     form = ProtocoloMateriaForm(data={},
                                 initial={
@@ -465,25 +466,25 @@ def test_protocolo_materia_invalido():
 
 @pytest.mark.django_db(transaction=False)
 def test_lista_documentos_anexados():
-    tipo_documento = mommy.make(
+    tipo_documento = baker.make(
             TipoDocumentoAdministrativo,
             descricao="Tipo_Teste"
     )
-    documento_principal = mommy.make(
+    documento_principal = baker.make(
             DocumentoAdministrativo,
             numero=20,
             ano=2018,
             data="2018-01-04",
             tipo=tipo_documento
     )
-    documento_anexado = mommy.make(
+    documento_anexado = baker.make(
             DocumentoAdministrativo,
             numero=21,
             ano=2019,
             data="2019-05-04",
             tipo=tipo_documento
     )
-    documento_anexado_anexado = mommy.make(
+    documento_anexado_anexado = baker.make(
             DocumentoAdministrativo,
             numero=22,
             ano=2020,
@@ -491,13 +492,13 @@ def test_lista_documentos_anexados():
             tipo=tipo_documento
     )
 
-    mommy.make(
+    baker.make(
             Anexado,
             documento_principal=documento_principal,
             documento_anexado=documento_anexado,
             data_anexacao="2019-05-11"
     )
-    mommy.make(
+    baker.make(
             Anexado,
             documento_principal=documento_anexado,
             documento_anexado=documento_anexado_anexado,
@@ -514,8 +515,8 @@ def test_lista_documentos_anexados():
 @pytest.mark.django_db(transaction=False)
 def make_unidade_tramitacao(descricao):
     # Cria uma comissão para ser a unidade de tramitação
-    tipo_comissao = mommy.make(TipoComissao)
-    comissao = mommy.make(Comissao,
+    tipo_comissao = baker.make(TipoComissao)
+    comissao = baker.make(Comissao,
                           tipo=tipo_comissao,
                           nome=descricao,
                           sigla='T',
@@ -526,7 +527,7 @@ def make_unidade_tramitacao(descricao):
     assert comissao.nome == descricao
 
     # Cria a unidade
-    unidade = mommy.make(UnidadeTramitacao, comissao=comissao)
+    unidade = baker.make(UnidadeTramitacao, comissao=comissao)
     assert unidade.comissao == comissao
 
     return unidade
@@ -535,27 +536,27 @@ def make_unidade_tramitacao(descricao):
 @pytest.mark.django_db(transaction=False)
 def test_tramitacoes_documentos_anexados(admin_client):
 
-    config = mommy.make(AppConfig, tramitacao_documento=True)
+    config = baker.make(AppConfig, tramitacao_documento=True)
 
-    tipo_documento = mommy.make(
+    tipo_documento = baker.make(
             TipoDocumentoAdministrativo,
             descricao="Tipo_Teste"
     )
-    documento_principal = mommy.make(
+    documento_principal = baker.make(
             DocumentoAdministrativo,
             numero=20,
             ano=2018,
             data="2018-01-04",
             tipo=tipo_documento
     )
-    documento_anexado = mommy.make(
+    documento_anexado = baker.make(
             DocumentoAdministrativo,
             numero=21,
             ano=2019,
             data="2019-05-04",
             tipo=tipo_documento
     )
-    documento_anexado_anexado = mommy.make(
+    documento_anexado_anexado = baker.make(
             DocumentoAdministrativo,
             numero=22,
             ano=2020,
@@ -563,13 +564,13 @@ def test_tramitacoes_documentos_anexados(admin_client):
             tipo=tipo_documento
     )
 
-    mommy.make(
+    baker.make(
             Anexado,
             documento_principal=documento_principal,
             documento_anexado=documento_anexado,
             data_anexacao="2019-05-11"
     )
-    mommy.make(
+    baker.make(
             Anexado,
             documento_principal=documento_anexado,
             documento_anexado=documento_anexado_anexado,
@@ -581,7 +582,7 @@ def test_tramitacoes_documentos_anexados(admin_client):
     unidade_tramitacao_destino_1 = make_unidade_tramitacao(descricao="Teste 2")
     unidade_tramitacao_destino_2 = make_unidade_tramitacao(descricao="Teste 3")
 
-    status = mommy.make(
+    status = baker.make(
         StatusTramitacaoAdministrativo,
         indicador='R')
 
@@ -807,11 +808,11 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_tramitacao_lote_documentos_form(admin_client):
-    tipo_documento = mommy.make(
+    tipo_documento = baker.make(
             TipoDocumentoAdministrativo,
             descricao="Tipo_Teste"
     )
-    documento = mommy.make(
+    documento = baker.make(
             DocumentoAdministrativo,
             numero=20,
             ano=2018,
@@ -822,7 +823,7 @@ def test_tramitacao_lote_documentos_form(admin_client):
     unidade_tramitacao_local_1 = make_unidade_tramitacao(descricao="Teste 1")
     unidade_tramitacao_destino_1 = make_unidade_tramitacao(descricao="Teste 2")
 
-    status = mommy.make(
+    status = baker.make(
         StatusTramitacaoAdministrativo,
         indicador='R')
 
@@ -896,27 +897,27 @@ def test_tramitacao_lote_documentos_form(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_tramitacao_lote_documentos_views(admin_client):
-    config = mommy.make(AppConfig, tramitacao_documento=True)
+    config = baker.make(AppConfig, tramitacao_documento=True)
 
-    tipo_documento = mommy.make(
+    tipo_documento = baker.make(
             TipoDocumentoAdministrativo,
             descricao="Tipo_Teste"
     )
-    documento_principal = mommy.make(
+    documento_principal = baker.make(
             DocumentoAdministrativo,
             numero=20,
             ano=2018,
             data="2018-01-04",
             tipo=tipo_documento
     )
-    documento_anexado = mommy.make(
+    documento_anexado = baker.make(
             DocumentoAdministrativo,
             numero=21,
             ano=2019,
             data="2019-05-04",
             tipo=tipo_documento
     )
-    documento_anexado_anexado = mommy.make(
+    documento_anexado_anexado = baker.make(
             DocumentoAdministrativo,
             numero=22,
             ano=2020,
@@ -924,7 +925,7 @@ def test_tramitacao_lote_documentos_views(admin_client):
             tipo=tipo_documento
     )
 
-    documento_sem_anexados = mommy.make(
+    documento_sem_anexados = baker.make(
             DocumentoAdministrativo,
             numero=23,
             ano=2020,
@@ -932,13 +933,13 @@ def test_tramitacao_lote_documentos_views(admin_client):
             tipo=tipo_documento
     )
 
-    mommy.make(
+    baker.make(
             Anexado,
             documento_principal=documento_principal,
             documento_anexado=documento_anexado,
             data_anexacao="2019-05-11"
     )
-    mommy.make(
+    baker.make(
             Anexado,
             documento_principal=documento_anexado,
             documento_anexado=documento_anexado_anexado,
@@ -950,7 +951,7 @@ def test_tramitacao_lote_documentos_views(admin_client):
     unidade_tramitacao_destino_2 = make_unidade_tramitacao(descricao="Teste 3")
     unidade_tramitacao_destino_3 = make_unidade_tramitacao(descricao="Teste 4")
 
-    status = mommy.make(
+    status = baker.make(
         StatusTramitacaoAdministrativo,
         indicador='R')
 

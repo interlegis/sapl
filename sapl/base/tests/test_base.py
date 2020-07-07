@@ -1,12 +1,12 @@
 import pytest
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.base.models import CasaLegislativa
 
 
 @pytest.mark.django_db(transaction=False)
 def test_casa_legislativa_model():
-    mommy.make(CasaLegislativa,
+    baker.make(CasaLegislativa,
                nome='Teste_Nome_Casa_Legislativa',
                sigla='TSCL',
                endereco='Teste_Endereço_Casa_Legislativa',

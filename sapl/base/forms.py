@@ -117,8 +117,7 @@ class UsuarioCreateForm(ModelForm):
 
         data = self.cleaned_data
         if data['password1'] != data['password2']:
-            self.logger.error('Erro de validação. Senhas informadas ({}, {}) são diferentes.'.format(
-                data['password1'], data['password2']))
+            self.logger.warn('Erro de validação. Senhas informadas são diferentes.')
             raise ValidationError('Senhas informadas são diferentes')
 
         return data
@@ -177,54 +176,82 @@ class UsuarioEditForm(ModelForm):
     # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
     ROLES = []
 
+    token = forms.CharField(
+        required=False,
+        label="Token",
+        max_length=40,
+        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    first_name = forms.CharField(
+        required=False,
+        label="Nome",
+        max_length=30)
+    last_name = forms.CharField(
+        required=False,
+        label="Sobrenome",
+        max_length=30)
     password1 = forms.CharField(
-        required=False, widget=forms.PasswordInput, label='Senha')
+        required=False,
+        widget=forms.PasswordInput,
+        label='Senha')
     password2 = forms.CharField(
-        required=False, widget=forms.PasswordInput, label='Confirmar senha')
-    user_active = forms.ChoiceField(choices=YES_NO_CHOICES, required=True,
-                                    label="Usuário ativo?", initial='True')
+        required=False, widget=forms.PasswordInput,
+        label='Confirmar senha')
+    user_active = forms.ChoiceField(
+        choices=YES_NO_CHOICES,
+        required=True,
+        label="Usuário ativo?",
+        initial='True')
     roles = forms.MultipleChoiceField(
-        required=True, widget=forms.CheckboxSelectMultiple(), choices=get_roles)
+        required=True,
+        widget=forms.CheckboxSelectMultiple(),
+        choices=get_roles)
 
     class Meta:
         model = get_user_model()
         fields = [
-            get_user_model().USERNAME_FIELD, 'password1',
-            'password2', 'user_active', 'roles'
-        ] + (['email']
-             if get_user_model().USERNAME_FIELD != 'email' else [])
+            get_user_model().USERNAME_FIELD,
+            "token",
+            "first_name",
+            "last_name",
+            'password1',
+            'password2',
+            'user_active',
+            'roles']
+
+        if get_user_model().USERNAME_FIELD != 'email':
+            fields.extend(['email'])
 
     def __init__(self, *args, **kwargs):
-
         super(UsuarioEditForm, self).__init__(*args, **kwargs)
 
-        row1 = to_row([('username', 12)])
-        row2 = to_row([('email', 6),
-                       ('user_active', 6)])
-        row3 = to_row(
-            [('password1', 6),
-             ('password2', 6)])
-
-        row4 = to_row([(form_actions(label='Salvar Alterações'), 6)])
+        rows = to_row((
+            ('first_name', 6),
+            ('last_name', 6),
+            ('email', 6),
+            ('user_active', 6),
+            ('password1', 6),
+            ('password2', 6),
+            ('roles', 12)))
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
-            row1,
-            row2,
-            row3,
-            'roles',
-            form_actions(label='Salvar Alterações'))
+            'username',
+            FieldWithButtons('token', StrictButton('Renovar', id="renovar-token", css_class="btn-outline-primary")),
+            rows,
+            form_actions(
+                more=[
+                    HTML("<a href='{% url 'sapl.base:user_detail' object.pk %}' "
+                         "class='btn btn-dark'>Cancelar</a>")],
+                label='Salvar Alterações'))
 
     def clean(self):
-        super(UsuarioEditForm, self).clean()
-
+        super().clean()
         if not self.is_valid():
             return self.cleaned_data
 
         data = self.cleaned_data
         if data['password1'] and data['password1'] != data['password2']:
-            self.logger.error('Erro de validação. Senhas informadas ({}, {}) são diferentes.'.format(
-                data['password1'], data['password2']))
+            self.logger.warn("Erro de validação. Senhas informadas são diferentes.")
             raise ValidationError('Senhas informadas são diferentes')
 
         return data
@@ -287,30 +314,37 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
         ult = 0
 
         if numero <= ult and flag_edit:
-            self.logger.error('O número da SessaoLegislativa ({}) é menor ou igual '
-                              'que o de Sessões Legislativas passadas ({})'.format(numero, ult))
+            self.logger.warn(
+                'O número da SessaoLegislativa ({}) é menor ou igual '
+                'que o de Sessões Legislativas passadas ({})'.format(numero, ult)
+            )
             raise ValidationError('O número da Sessão Legislativa não pode ser menor ou igual '
                                   'que o de Sessões Legislativas passadas')
 
         if data_inicio < data_inicio_leg or \
                 data_inicio > data_fim_leg:
-            self.logger.error('A data de início ({}) da SessaoLegislativa está compreendida '
-                              'fora da data início ({}) e fim ({}) da Legislatura '
-                              'selecionada'.format(data_inicio, data_inicio_leg, data_fim_leg))
+            self.logger.warn(
+                'A data de início ({}) da SessaoLegislativa está compreendida '
+                'fora da data início ({}) e fim ({}) da Legislatura '
+                'selecionada'.format(data_inicio, data_inicio_leg, data_fim_leg)
+            )
             raise ValidationError('A data de início da Sessão Legislativa deve estar compreendida '
                                   'entre a data início e fim da Legislatura selecionada')
 
         if data_fim > data_fim_leg or \
                 data_fim < data_inicio_leg:
-            self.logger.error('A data de fim ({}) da SessaoLegislativa está compreendida '
-                              'fora da data início ({}) e fim ({}) da Legislatura '
-                              'selecionada.'.format(data_fim, data_inicio_leg, data_fim_leg))
+            self.logger.warn(
+                'A data de fim ({}) da SessaoLegislativa está compreendida '
+                'fora da data início ({}) e fim ({}) da Legislatura '
+                'selecionada.'.format(data_fim, data_inicio_leg, data_fim_leg)
+            )
             raise ValidationError('A data de fim da Sessão Legislativa deve estar compreendida '
                                   'entre a data início e fim da Legislatura selecionada')
 
         if data_inicio > data_fim:
-            self.logger.error(
-                'Data início ({}) superior à data fim ({}).'.format(data_inicio, data_fim))
+            self.logger.warn(
+                'Data início ({}) superior à data fim ({}).'.format(data_inicio, data_fim)
+            )
             raise ValidationError(
                 'Data início não pode ser superior à data fim')
 
@@ -319,8 +353,10 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         if data_inicio_intervalo and data_fim_intervalo and \
                 data_inicio_intervalo > data_fim_intervalo:
-            self.logger.error('Data início de intervalo ({}) superior à '
-                              'data fim de intervalo ({}).'.format(data_inicio_intervalo, data_fim_intervalo))
+            self.logger.warn(
+                'Data início de intervalo ({}) superior à '
+                'data fim de intervalo ({}).'.format(data_inicio_intervalo, data_fim_intervalo)
+            )
             raise ValidationError('Data início de intervalo não pode ser '
                                   'superior à data fim de intervalo')
 
@@ -329,10 +365,13 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
                     data_inicio_intervalo < data_inicio_leg or \
                     data_inicio_intervalo > data_fim or \
                     data_inicio_intervalo > data_fim_leg:
-                self.logger.error('A data de início do intervalo ({}) não está compreendida entre '
-                                  'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
-                                  'própria Sessão Legislativa ({} e {}).'
-                                  .format(data_inicio_intervalo, data_inicio_leg, data_fim_leg, data_inicio, data_fim))
+                self.logger.warn(
+                    'A data de início do intervalo ({}) não está compreendida entre '
+                    'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
+                    'própria Sessão Legislativa ({} e {}).'.format(
+                        data_inicio_intervalo, data_inicio_leg, data_fim_leg, data_inicio, data_fim
+                    )
+                )
                 raise ValidationError('A data de início do intervalo deve estar compreendida entre '
                                       'as datas de início e fim tanto da Legislatura quanto da '
                                       'própria Sessão Legislativa')
@@ -341,10 +380,13 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
                     data_fim_intervalo > data_fim_leg or \
                     data_fim_intervalo < data_inicio or \
                     data_fim_intervalo < data_inicio_leg:
-                self.logger.error('A data de fim do intervalo ({}) não está compreendida entre '
-                                  'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
-                                  'própria Sessão Legislativa ({} e {}).'
-                                  .format(data_fim_intervalo, data_inicio_leg, data_fim_leg, data_inicio, data_fim))
+                self.logger.warn(
+                    'A data de fim do intervalo ({}) não está compreendida entre '
+                    'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
+                    'própria Sessão Legislativa ({} e {}).'.format(
+                        data_fim_intervalo, data_inicio_leg, data_fim_leg, data_inicio, data_fim
+                    )
+                )
                 raise ValidationError('A data de fim do intervalo deve estar compreendida entre '
                                       'as datas de início e fim tanto da Legislatura quanto da '
                                       'própria Sessão Legislativa')
@@ -538,8 +580,9 @@ class AutorForm(ModelForm):
 
     def valida_igualdade(self, texto1, texto2, msg):
         if texto1 != texto2:
-            self.logger.error(
-                'Textos diferentes. ("{}" e "{}")'.format(texto1, texto2))
+            self.logger.warn(
+                'Textos diferentes. ("{}" e "{}")'.format(texto1, texto2)
+            )
             raise ValidationError(msg)
         return True
 
@@ -553,8 +596,10 @@ class AutorForm(ModelForm):
         cd = self.cleaned_data
 
         if 'action_user' not in cd or not cd['action_user']:
-            self.logger.error('Não Informado se o Autor terá usuário '
-                              'vinculado para acesso ao Sistema.')
+            self.logger.warn(
+                'Não Informado se o Autor terá usuário '
+                'vinculado para acesso ao Sistema.'
+            )
             raise ValidationError(_('Informe se o Autor terá usuário '
                                     'vinculado para acesso ao Sistema.'))
 
@@ -564,10 +609,13 @@ class AutorForm(ModelForm):
                         self.instance.user,
                         get_user_model().USERNAME_FIELD) != cd['username']:
                     if 'status_user' not in cd or not cd['status_user']:
-                        self.logger.error('Foi trocado ou removido o usuário deste Autor ({}), '
-                                          'mas não foi informado como se deve proceder '
-                                          'com o usuário que está sendo desvinculado? ({})'
-                                          .format(cd['username'], get_user_model().USERNAME_FIELD))
+                        self.logger.warn(
+                            'Foi trocado ou removido o usuário deste Autor ({}), '
+                            'mas não foi informado como se deve proceder '
+                            'com o usuário que está sendo desvinculado? ({})'.format(
+                                cd['username'], get_user_model().USERNAME_FIELD
+                            )
+                        )
                         raise ValidationError(
                             _('Foi trocado ou removido o usuário deste Autor, '
                               'mas não foi informado como se deve proceder '
@@ -584,8 +632,9 @@ class AutorForm(ModelForm):
         if cd['action_user'] == 'A':
             param_username = {get_user_model().USERNAME_FIELD: cd['username']}
             if not User.objects.filter(**param_username).exists():
-                self.logger.error(
-                    'Não existe usuário com username "%s". ' % cd['username'])
+                self.logger.warn(
+                    'Não existe usuário com username "%s". ' % cd['username']
+                )
                 raise ValidationError(
                     _('Não existe usuário com username "%s". '
                       'Para utilizar esse username você deve selecionar '
@@ -594,16 +643,19 @@ class AutorForm(ModelForm):
         if cd['action_user'] != 'N':
 
             if 'username' not in cd or not cd['username']:
-                self.logger.error('Username não informado.')
+                self.logger.warn('Username não informado.')
                 raise ValidationError(_('O username deve ser informado.'))
 
             param_username = {
                 'user__' + get_user_model().USERNAME_FIELD: cd['username']}
-            if qs_autor.filter(**param_username).exists():
-                self.logger.error(
-                    'Já existe um Autor para este usuário ({}).'.format(cd['username']))
-                raise ValidationError(
-                    _('Já existe um usuário vinculado a esse autor'))
+
+            autor_vinculado = qs_autor.filter(**param_username)
+            if autor_vinculado.exists():
+                nome = autor_vinculado[0].nome
+                error_msg = 'Já existe um autor para este ' \
+                            'usuário ({}): {}'.format(cd['username'], nome)
+                self.logger.warn(error_msg)
+                raise ValidationError(_(error_msg))
 
         """
         'if' não é necessário por ser campo obrigatório e o framework já
@@ -611,33 +663,34 @@ class AutorForm(ModelForm):
         ainda assim para renderizar um message.danger no topo do form.
         """
         if 'tipo' not in cd or not cd['tipo']:
-            self.logger.error('Tipo do Autor não selecionado.')
+            self.logger.warn('Tipo do Autor não selecionado.')
             raise ValidationError(
                 _('O Tipo do Autor deve ser selecionado.'))
 
         tipo = cd['tipo']
-
-        if 'nome' in cd and \
-                Autor.objects.filter(nome=cd['nome']).exists():
-            raise ValidationError("Autor '%s' já existente!" % cd['nome'])
-
         if not tipo.content_type:
             if 'nome' not in cd or not cd['nome']:
-                self.logger.error('Nome do Autor não informado.')
+                self.logger.warn('Nome do Autor não informado.')
                 raise ValidationError(
                     _('O Nome do Autor deve ser informado.'))
+            elif qs_autor.filter(nome=cd['nome']).exists():
+                raise ValidationError("Autor '%s' já existente!" % cd['nome'])
         else:
             if 'autor_related' not in cd or not cd['autor_related']:
-                self.logger.error('Registro de %s não escolhido para ser '
-                                  'vinculado ao cadastro de Autor' % tipo.descricao)
+                self.logger.warn(
+                    'Registro de %s não escolhido para ser '
+                    'vinculado ao cadastro de Autor' % tipo.descricao
+                )
                 raise ValidationError(
                     _('Um registro de %s deve ser escolhido para ser '
                       'vinculado ao cadastro de Autor') % tipo.descricao)
 
             if not tipo.content_type.model_class().objects.filter(
                     pk=cd['autor_related']).exists():
-                self.logger.error('O Registro definido (%s-%s) não está na base '
-                                  'de %s.' % (cd['autor_related'], cd['q'], tipo.descricao))
+                self.logger.warn(
+                    'O Registro definido (%s-%s) não está na base '
+                    'de %s.' % (cd['autor_related'], cd['q'], tipo.descricao)
+                )
                 raise ValidationError(
                     _('O Registro definido (%s-%s) não está na base de %s.'
                       ) % (cd['autor_related'], cd['q'], tipo.descricao))
@@ -647,8 +700,10 @@ class AutorForm(ModelForm):
                 content_type_id=cd['tipo'].content_type_id)
             if qs_autor_selected.exists():
                 autor = qs_autor_selected.first()
-                self.logger.error('Já existe um autor Cadastrado para '
-                                  '%s' % autor.autor_related)
+                self.logger.warn(
+                    'Já existe um autor Cadastrado para '
+                    '%s' % autor.autor_related
+                )
                 raise ValidationError(
                     _('Já existe um autor Cadastrado para %s'
                       ) % autor.autor_related)
@@ -712,6 +767,26 @@ class AutorForm(ModelForm):
         return autor
 
 
+class AutorFilterSet(django_filters.FilterSet):
+    nome = django_filters.CharFilter(label=_('Nome do Autor'), lookup_expr='icontains')
+
+    class Meta:
+        model = Autor
+        fields = ['nome']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row0 = to_row([('nome', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Autor'),
+                     row0,
+                     form_actions(label='Pesquisar')))
+
+
 class AutorFormForAdmin(AutorForm):
     status_user = forms.ChoiceField(
         label=_('Bloqueio do Usuário Existente'),
@@ -746,7 +821,7 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
         fields = ['tipo', 'materia__tipo', 'data']
 
     def __init__(self, *args, **kwargs):
-        
+
         super(
             RelatorioDocumentosAcessoriosFilterSet, self
         ).__init__(*args, **kwargs)
@@ -754,12 +829,12 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
         self.filters['tipo'].label = 'Tipo de Documento'
         self.filters['materia__tipo'].label = 'Tipo de Matéria do Documento'
         self.filters['data'].label = 'Período (Data Inicial - Data Final)'
-        
+
         self.form.fields['tipo'].required = True
 
         row0 = to_row([('tipo', 6),
                        ('materia__tipo', 6)])
-    
+
         row1 = to_row([('data', 12)])
 
         buttons = FormActions(
@@ -773,16 +848,15 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa'),
-            row0, row1,
-            buttons)
+                     row0, row1,
+                     buttons)
         )
 
 
@@ -818,8 +892,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -828,6 +901,7 @@ class RelatorioAtasFilterSet(django_filters.FilterSet):
             Fieldset(_('Atas das Sessões Plenárias'),
                      row1, buttons, )
         )
+
 
 def ultimo_ano_com_norma():
     anos_normas = choice_anos_com_normas()
@@ -868,8 +942,7 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -912,8 +985,7 @@ class EstatisticasAcessoNormasForm(Form):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.helper = SaplFormHelper()
@@ -965,8 +1037,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -995,15 +1066,16 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         super(RelatorioPresencaSessaoFilterSet, self).__init__(
             *args, **kwargs)
 
-        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(required=False, 
+        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(required=False,
                                                                   label='Exibir presença das Ordens do Dia')
-        self.form.initial['exibir_ordem_dia']  = True
+        self.form.initial['exibir_ordem_dia'] = True
 
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
 
         self.form.fields['legislatura'].required = True
-        
-        tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(nome='Ordinária')
+
+        tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(
+            nome='Ordinária')
         if tipo_sessao_ordinaria:
             self.form.initial['tipo'] = tipo_sessao_ordinaria.first()
 
@@ -1024,8 +1096,7 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1078,7 +1149,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
                     'Pesquisar Autor',
                     css_class='btn btn-primary btn-sm'), 2),
             (Button('limpar',
-                    'limpar Autor',
+                    'Limpar Autor',
                     css_class='btn btn-primary btn-sm'), 2)
         ])
 
@@ -1093,8 +1164,7 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1149,8 +1219,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1195,8 +1264,7 @@ class RelatorioReuniaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1240,8 +1308,7 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1256,8 +1323,8 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
 class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
 
     materia__ano = django_filters.ChoiceFilter(required=True,
-                                      label='Ano da Matéria',
-                                      choices=choice_anos_com_materias)
+                                               label='Ano da Matéria',
+                                               choices=choice_anos_com_materias)
 
     tramitacao__unidade_tramitacao_destino = django_filters.ModelChoiceFilter(
         queryset=UnidadeTramitacao.objects.all(),
@@ -1266,6 +1333,11 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
     tramitacao__status = django_filters.ModelChoiceFilter(
         queryset=StatusTramitacao.objects.all(),
         label=_('Status Atual'))
+
+    materia__autores = django_filters.ModelChoiceFilter(
+        label='Autor da Matéria',
+        queryset=Autor.objects.all())
+
 
     @property
     def qs(self):
@@ -1278,7 +1350,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         model = MateriaEmTramitacao
         fields = ['materia__ano', 'materia__tipo',
                   'tramitacao__unidade_tramitacao_destino',
-                  'tramitacao__status']
+                  'tramitacao__status','materia__autores']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioMateriasTramitacaoFilterSet, self).__init__(
@@ -1290,6 +1362,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         row2 = to_row([('materia__tipo', 12)])
         row3 = to_row([('tramitacao__unidade_tramitacao_destino', 12)])
         row4 = to_row([('tramitacao__status', 12)])
+        row5 = to_row([('materia__autores', 12)])
 
         buttons = FormActions(
             *[
@@ -1302,15 +1375,14 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
-                     row1, row2, row3, row4,
+                     row1, row2, row3, row4,row5,
                      buttons,)
         )
 
@@ -1343,8 +1415,7 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1356,7 +1427,6 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
         )
 
 
-
 class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
 
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
@@ -1364,8 +1434,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super().qs
-        return parent.distinct().filter(autoria__primeiro_autor=True)\
-            .order_by('autoria__autor', '-autoria__primeiro_autor', 'tipo', '-ano', '-numero')
+        return parent.distinct().order_by('-ano', '-numero', 'tipo', 'autoria__autor', '-autoria__primeiro_autor')
 
     class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
@@ -1386,7 +1455,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
                      'Pesquisar Autor',
                      css_class='btn btn-primary btn-sm'), 2),
              (Button('limpar',
-                     'limpar Autor',
+                     'Limpar Autor',
                      css_class='btn btn-primary btn-sm'), 10)])
 
         buttons = FormActions(
@@ -1400,8 +1469,7 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1439,7 +1507,9 @@ class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
             'uf': forms.Select(attrs={'class': 'selector'}),
             'cep': forms.TextInput(attrs={'class': 'cep'}),
             'telefone': forms.TextInput(attrs={'class': 'telefone'}),
-            'fax': forms.TextInput(attrs={'class': 'telefone'}),
+            # O campo fax foi ocultado porque não é utilizado.
+            'fax': forms.HiddenInput(),
+            # 'fax': forms.TextInput(attrs={'class': 'telefone'}),
             'logotipo':  ImageThumbnailFileInput,
             'informacao_geral': forms.Textarea(
                 attrs={'id': 'texto-rico'})
@@ -1516,16 +1586,19 @@ class ConfiguracoesAppForm(ModelForm):
         if not self.is_valid():
             return cleaned_data
 
-        mostrar_brasao_painel = self.cleaned_data.get('mostrar_brasao_painel', False)
+        mostrar_brasao_painel = self.cleaned_data.get(
+            'mostrar_brasao_painel', False)
         casa = CasaLegislativa.objects.first()
 
         if not casa:
-            self.logger.error('Não há casa legislativa relacionada.')
+            self.logger.warn('Não há casa legislativa relacionada.')
             raise ValidationError("Não há casa legislativa relacionada.")
 
         if not casa.logotipo and mostrar_brasao_painel:
-            self.logger.error('Não há logitipo configurado para esta '
-                              'CasaLegislativa ({}).'.format(casa))
+            self.logger.warn(
+                'Não há logitipo configurado para esta '
+                'CasaLegislativa ({}).'.format(casa)
+            )
             raise ValidationError("Não há logitipo configurado para esta "
                                   "Casa legislativa.")
 
@@ -1559,8 +1632,9 @@ class RecuperarSenhaForm(PasswordResetForm):
 
         if not email_existente:
             msg = 'Não existe nenhum usuário cadastrado com este e-mail.'
-            self.logger.error('Não existe nenhum usuário cadastrado com este e-mail ({}).'
-                              .format(self.data['email']))
+            self.logger.warn(
+                'Não existe nenhum usuário cadastrado com este e-mail ({}).'.format(self.data['email'])
+            )
             raise ValidationError(msg)
 
         return self.cleaned_data
@@ -1627,8 +1701,7 @@ class AlterarSenhaForm(Form):
         new_password2 = data['new_password2']
 
         if new_password1 != new_password2:
-            self.logger.error("'Nova Senha' ({}) diferente de 'Confirmar Senha' ({})".format(
-                new_password1, new_password2))
+            self.logger.warn("'Nova Senha' diferente de 'Confirmar Senha'")
             raise ValidationError(
                 "'Nova Senha' diferente de 'Confirmar Senha'")
 
@@ -1637,8 +1710,9 @@ class AlterarSenhaForm(Form):
         # TODO: senha atual igual a senha anterior, etc
 
         if len(new_password1) < 6:
-            self.logger.error(
-                'A senha informada ({}) não tem o mínimo de 6 caracteres.'.format(new_password1))
+            self.logger.warn(
+                'A senha informada não tem o mínimo de 6 caracteres.'
+            )
             raise ValidationError(
                 "A senha informada deve ter no mínimo 6 caracteres")
 
@@ -1647,20 +1721,24 @@ class AlterarSenhaForm(Form):
         user = User.objects.get(username=username)
 
         if user.is_anonymous():
-            self.logger.error(
-                'Não é possível alterar senha de usuário anônimo ({}).'.format(username))
+            self.logger.warn(
+                'Não é possível alterar senha de usuário anônimo ({}).'.format(username)
+            )
             raise ValidationError(
                 "Não é possível alterar senha de usuário anônimo")
 
         if not user.check_password(old_password):
-            self.logger.error('Senha atual informada ({}) não confere '
-                              'com a senha armazenada.'.format(old_password))
+            self.logger.warn(
+                'Senha atual informada não confere '
+                'com a senha armazenada.'
+            )
             raise ValidationError("Senha atual informada não confere "
                                   "com a senha armazenada")
 
         if user.check_password(new_password1):
-            self.logger.error(
-                'Nova senha ({}) igual à senha anterior.'.format(new_password1))
+            self.logger.warn(
+                'Nova senha igual à senha anterior.'
+            )
             raise ValidationError(
                 "Nova senha não pode ser igual à senha anterior")
 
@@ -1754,8 +1832,7 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()
@@ -1809,8 +1886,7 @@ class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+            css_class='form-group row justify-content-between',
         )
 
         self.form.helper = SaplFormHelper()

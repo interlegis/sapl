@@ -1,5 +1,6 @@
 
 import logging
+from collections import OrderedDict
 from re import sub
 
 from django.contrib import messages
@@ -66,68 +67,45 @@ SECRETA = 3
 LEITURA = 4
 
 
-def reordernar_materias_expediente(request, pk):
-    expedientes = ExpedienteMateria.objects.filter(
-        sessao_plenaria_id=pk
-    ).order_by(
-        'materia__tipo__sequencia_regimental',
-        'materia__ano',
-        'materia__numero'
-    )
+def reordena_materias(request, pk, tipo, ordenacao):
+    TIPOS_MATERIAS = {
+        "expediente": ExpedienteMateria,
+        "ordemdia": OrdemDia
+    }
 
-    for exp_num, e in enumerate(expedientes, 1):
-        e.numero_ordem = exp_num
-        e.save()
+    TIPOS_ORDENACAO = {
+        "1": ("materia__tipo__sequencia_regimental", "materia__ano", "materia__numero"),
+        "2": ("materia__ano", "materia__numero"),
+        "3": ("-materia__ano", "materia__numero"),
+        "4": ("materia__autores", "materia__ano", "materia__numero")
+    }
 
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
+    TIPOS_URLS_SUCESSO = {
+        "expediente": "sapl.sessao:expedientemateria_list",
+        "ordemdia": "sapl.sessao:ordemdia_list"
+    }
 
+    materias = TIPOS_MATERIAS[tipo].objects.filter(sessao_plenaria_id=pk).order_by(*TIPOS_ORDENACAO[ordenacao])
+    materias = OrderedDict.fromkeys(materias)
 
-def reordernar_materias_ordem(request, pk):
-    ordens = OrdemDia.objects.filter(
-        sessao_plenaria_id=pk
-    ).order_by(
-        'materia__tipo__sequencia_regimental',
-        'materia__ano',
-        'materia__numero'
-    )
-    for ordem_num, o in enumerate(ordens, 1):
-        o.numero_ordem = ordem_num
-        o.save()
+    for numero, materia in enumerate(materias, 1):
+        materia.numero_ordem = numero
+        materia.save()
 
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
+    return HttpResponseRedirect(reverse(TIPOS_URLS_SUCESSO[tipo], kwargs={'pk': pk}))
 
 
-def renumerar_materias_ordem(request, pk):
-    ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
-
-    for ordem_num, o in enumerate(ordens, 1):
-        o.numero_ordem = ordem_num
-        o.save()
-
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}))
-
-
-def renumerar_materias_expediente(request, pk):
-    expedientes = ExpedienteMateria.objects.filter(sessao_plenaria_id=pk)
-
-    for exp_num, e in enumerate(expedientes, 1):
-        e.numero_ordem = exp_num
-        e.save()
-
-    return HttpResponseRedirect(
-        reverse('sapl.sessao:expedientemateria_list', kwargs={'pk': pk}))
-
-
-def verifica_presenca(request, model, spk):
+def verifica_presenca(request, model, spk, is_leitura=False):
     logger = logging.getLogger(__name__)
     if not model.objects.filter(sessao_plenaria_id=spk).exists():
         username = request.user.username
-        logger.error("user=" + username +
-                     ". Votação não pode ser aberta sem presenças (sessao_plenaria_id={}).".format(spk))
-        msg = _('Votação não pode ser aberta sem presenças')
+        if is_leitura:
+            text = 'Leitura não pode ser feita sem presenças'  
+        else:
+            text = 'Votação não pode ser aberta sem presenças'
+        
+        logger.error("user={}. {} (sessao_plenaria_id={}).".format(username,text, spk))
+        msg = _(text)
         messages.add_message(request, messages.ERROR, msg)
         return False
     return True
@@ -161,17 +139,18 @@ def verifica_votacoes_abertas(request):
     return True
 
 
-def verifica_sessao_iniciada(request, spk):
+def verifica_sessao_iniciada(request, spk, is_leitura=False):
     logger = logging.getLogger(__name__)
     sessao = SessaoPlenaria.objects.get(id=spk)
 
     if not sessao.iniciada or sessao.finalizada:
         username = request.user.username
-        logger.info('user=' + username + '. Não é possível abrir matérias para votação. '
-                    'Esta SessaoPlenaria (id={}) não foi iniciada ou está finalizada.'.format(spk))
-        msg = _('Não é possível abrir matérias para votação. '
+        aux_text = 'leitura' if is_leitura else 'votação'
+        logger.info('user=' + username + '. Não é possível abrir matérias para {}. '
+                    'Esta SessaoPlenaria (id={}) não foi iniciada ou está finalizada.'.format(aux_text, spk))
+        msg = _('Não é possível abrir matérias para {}. '
                 'Esta Sessão Plenária não foi iniciada ou está finalizada.'
-                ' Vá em "Abertura"->"Dados Básicos" e altere os valores dos campos necessários.')
+                ' Vá em "Abertura"->"Dados Básicos" e altere os valores dos campos necessários.'.format(aux_text))
         messages.add_message(request, messages.INFO, msg)
         return False
 
@@ -197,10 +176,11 @@ def abrir_votacao(request, pk, spk):
 
     query_params = "?"
 
-    if (verifica_presenca(request, presenca_model, spk) and
+    materia_votacao = model.objects.get(id=pk)
+    is_leitura = materia_votacao.tipo_votacao == 4
+    if (verifica_presenca(request, presenca_model, spk, is_leitura) and
         verifica_votacoes_abertas(request) and
-            verifica_sessao_iniciada(request, spk)):
-        materia_votacao = model.objects.get(id=pk)
+            verifica_sessao_iniciada(request, spk, is_leitura)):    
         materia_votacao.votacao_aberta = True
         sessao = SessaoPlenaria.objects.get(id=spk)
         sessao.painel_aberto = True
@@ -1740,7 +1720,10 @@ def get_materias_expediente(sessao_plenaria):
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
         else:
-            resultado = _('Matéria não votada')
+            if m.tipo_votacao == 4:
+                resultado = _('Matéria lida')
+            else:
+                resultado = _('Matéria não votada')
             resultado_observacao = _(' ')
 
         autoria = Autoria.objects.filter(materia_id=m.materia_id)
@@ -1854,13 +1837,14 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         if rv:
             resultado = rv.tipo_resultado_votacao.nome
             resultado_observacao = rv.observacao
-
         elif rp:
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
-
         else:
-            resultado = _('Matéria não votada')
+            if o.tipo_votacao == 4:
+                resultado = _('Matéria lida')
+            else:
+                resultado = _('Matéria não votada')
             resultado_observacao = _(' ')
 
         voto_sim = ""
@@ -2817,8 +2801,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                         parlamentar=parlamentar)
                 except ObjectDoesNotExist:
                     username = self.request.user.username
-                    self.logger.error('user=' + username + '. Objeto voto_parlamentar do ' +
-                                      'parlamentar de id={} não existe.'.format(parlamentar.pk))
+                    self.logger.warning('User={}. Objeto voto_parlamentar do parlamentar de id={} não existe.'
+                                        .format(username, parlamentar.pk))
                     yield [parlamentar, None]
                 else:
                     yield [parlamentar, voto.voto]
@@ -3466,11 +3450,13 @@ class PautaSessaoDetailView(DetailView):
 
         expedientes = []
         for e in expediente:
-            tipo = e.tipo
-            conteudo = sub(
-                '&nbsp;', ' ', e.conteudo)
-            ex = {'tipo': tipo, 'conteudo': conteudo}
-            expedientes.append(ex)
+            conteudo = e.conteudo
+            from sapl.relatorios.views import is_empty
+            if not is_empty(conteudo):
+                tipo = e.tipo
+                conteudo = sub('&nbsp;', ' ', conteudo)
+                ex = {'tipo': tipo, 'conteudo': conteudo}
+                expedientes.append(ex)
 
         context.update({'expedientes': expedientes})
         # =====================================================================
@@ -4412,8 +4398,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         parlamentar=parlamentar)
                 except ObjectDoesNotExist:
                     username = self.request.user.username
-                    self.logger.error('user=' + username + '. Objeto voto_parlamentar do ' +
-                                      'parlamentar de id={} não existe.'.format(parlamentar.pk))
+                    self.logger.warning('User={}. Objeto voto_parlamentar do parlamentar de id={} não existe.'
+                                        .format(username, parlamentar.pk))
                     yield [parlamentar, None]
                 else:
                     yield [parlamentar, voto.voto]

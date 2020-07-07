@@ -134,6 +134,10 @@ class DocumentoAdministrativo(models.Model):
         TipoDocumentoAdministrativo, on_delete=models.PROTECT,
         verbose_name=_('Tipo Documento'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
+
+    complemento = models.CharField(max_length=10, blank=True,
+        verbose_name=_('Complemento'))
+
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
     protocolo = models.ForeignKey(
@@ -195,7 +199,7 @@ class DocumentoAdministrativo(models.Model):
     )
     ip = models.CharField(
         verbose_name=_('IP'),
-        max_length=30,
+        max_length=60,
         blank=True,
         default=''
     )
@@ -355,7 +359,7 @@ class TramitacaoAdministrativo(models.Model):
                              null=True,
                              blank=True)
     ip = models.CharField(verbose_name=_('IP'),
-                          max_length=30,
+                          max_length=60,
                           blank=True,
                           default='')
     ultima_edicao = models.DateTimeField(

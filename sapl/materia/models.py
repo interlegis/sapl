@@ -291,7 +291,7 @@ class MateriaLegislativa(models.Model):
     )
     ip = models.CharField(
         verbose_name=_('IP'),
-        max_length=30,
+        max_length=60,
         blank=True,
         default=''
     )
@@ -487,6 +487,7 @@ class AssuntoMateria(models.Model):
     class Meta:
         verbose_name = _('Assunto de Matéria')
         verbose_name_plural = _('Assuntos de Matéria')
+        ordering = ('assunto', 'dispositivo')
 
     def __str__(self):
         return self.assunto
@@ -618,6 +619,7 @@ class MateriaAssunto(models.Model):
     class Meta:
         verbose_name = _('Relação Matéria - Assunto')
         verbose_name_plural = _('Relações Matéria - Assunto')
+        ordering = ('assunto__assunto', '-materia')
 
     def __str__(self):
         return _('%(materia)s - %(assunto)s') % {
@@ -769,7 +771,7 @@ class Proposicao(models.Model):
     data_devolucao = models.DateTimeField(
         blank=True, null=True, verbose_name=_('Data de Devolução'))
 
-    descricao = models.TextField(verbose_name=_('Descrição'))
+    descricao = models.TextField(verbose_name=_('Ementa'))
     justificativa_devolucao = models.CharField(
         max_length=200,
         blank=True,
@@ -859,7 +861,7 @@ class Proposicao(models.Model):
     )
     ip = models.CharField(
         verbose_name=_('IP'),
-        max_length=30,
+        max_length=60,
         blank=True,
         default=''
     )
@@ -1085,7 +1087,7 @@ class Tramitacao(models.Model):
                              null=True,
                              blank=True)
     ip = models.CharField(verbose_name=_('IP'),
-                          max_length=30,
+                          max_length=60,
                           blank=True,
                           default='')
     ultima_edicao = models.DateTimeField(

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verifica se um breakpoint foi esquecido no código
 me=`basename "$0"`

@@ -1,0 +1,27 @@
+    {% if lst_votacao_vot_nom %}
+    <h2 class="gray-title">Votações Nominais - Matérias do Expediente</h2>
+    <table class="grayTable">
+            <thead>
+                <tr>
+                    <th>Matéria</th>
+                    <th>Votos</th>
+                </tr>
+            </thead>
+            {% for expediente_materia_vot_nom in lst_expediente_materia_vot_nom %}
+            <tr>
+                <td>{{expediente_materia_vot_nom.titulo}}</td>
+                <td>
+                    {% if expediente_materia_vot_nom.votos %}
+                        <dl>
+                            {% for v in expediente_materia_vot_nom.votos %}
+                                <dt style="text-align: left;">&nbsp;<b>{{v.parlamentar}}</b> {{v.voto}}</dt>
+                            {% endfor %}
+                        </dl>
+                    {% else %}
+                        <td><p><b>Matéria não votada</b></p></td>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}

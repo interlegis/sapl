@@ -3,8 +3,11 @@ import logging
 from django import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q
 from django.db.models.fields.files import FileField
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.decorators import classonlymethod
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
@@ -16,10 +19,14 @@ from django_filters.utils import resolve_field
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers as rest_serializers
-from rest_framework.decorators import action
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.fields import SerializerMethodField
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+
+from rest_framework.views import APIView
 
 from sapl.api.forms import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
@@ -34,6 +41,21 @@ from sapl.protocoloadm.models import DocumentoAdministrativo,\
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 from sapl.parlamentares.models import Mandato, Parlamentar, Legislatura
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def recria_token(request, pk):
+    Token.objects.get(user_id=pk).delete()
+    token = Token.objects.create(user_id=pk)
+
+    return Response({"message": "Token recriado com sucesso!", "token": token.key})
 
 
 class BusinessRulesNotImplementedMixin:
@@ -587,3 +609,18 @@ class _NormaJuridicaViewset:
     def destaques(self, request, *args, **kwargs):
         self.queryset = self.get_queryset().filter(norma_de_destaque=True)
         return self.list(request, *args, **kwargs)
+
+
+class AppVersionView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        content = {
+            'name': 'SAPL',
+            'description': 'Sistema de Apoio ao Processo Legislativo',
+            'version': settings.SAPL_VERSION,
+            'user': request.user.username,
+            'is_authenticated': request.user.is_authenticated(),
+        }
+        return Response(content)
+

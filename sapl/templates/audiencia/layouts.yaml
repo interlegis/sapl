@@ -6,6 +6,7 @@ AudienciaPublica:
   {% trans 'Dados' %}:
   - tipo_materia numero_materia ano_materia
   - tipo:4 data:2 hora_inicio:3 hora_fim:3
+  - parlamentar_autor requerimento
   - url_audio url_video
   - upload_pauta upload_ata upload_anexo
   - observacao
@@ -18,6 +19,7 @@ AudienciaPublicaDetail:
   {% trans 'Dados' %}:
   - materia tipo
   - data hora_inicio hora_fim
+  - parlamentar_autor requerimento
   - url_audio url_video
   - upload_pauta upload_ata upload_anexo
   - observacao

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Sends all django migrations to the trash bin
 #   Requires trash-cli. To install:

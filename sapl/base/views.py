@@ -4,6 +4,7 @@ import datetime
 import logging
 import os
 
+from collections import OrderedDict
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -23,8 +24,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (CreateView, DeleteView, FormView, ListView,
-                                  UpdateView)
+from django.views.generic import (CreateView, DetailView, DeleteView, FormView, ListView, UpdateView)
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.views import SearchView
@@ -41,7 +41,7 @@ from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_ma
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.models import Autor, TipoAutor
-from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
+from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm, AutorFilterSet
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio,
@@ -56,9 +56,9 @@ from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocol
                                       TipoDocumentoAdministrativo)
 from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, TipoSessaoPlenaria)
-from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, 
+from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao,
                         mail_service_configured, parlamentares_ativos,
-                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set)
+                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
@@ -77,6 +77,8 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     RelatorioDocumentosAcessoriosFilterSet,
                     RelatorioNormasPorAutorFilterSet)
 from .models import AppConfig, CasaLegislativa
+
+from rest_framework.authtoken.models import Token
 
 
 def get_casalegislativa():
@@ -291,6 +293,58 @@ class AutorCrud(CrudAux):
                     'user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
 
             return url_reverse
+
+
+class PesquisarAutorView(FilterView):
+    model = Autor
+    filterset_class = AutorFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super().get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset().order_by('nome').distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(page_obj.number, paginator.num_pages)
+
+        context['NO_ENTRIES_MSG'] = 'Nenhum Autor encontrado!'
+
+        context['title'] = _('Autores')
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super().get(request)
+
+        data = self.filterset.data
+        url = ''
+        if data:
+            url = "&" + str(self.request.META['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('nome=') - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list))
+
+        context['show_results'] = show_results_filter_set(self.request.GET.copy())
+
+        return self.render_to_response(context)
 
 
 class RelatoriosListView(TemplateView):
@@ -747,6 +801,7 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
             tipo_materia = data['data']['materia__tipo']
             unidade_tramitacao_destino = data['data']['tramitacao__unidade_tramitacao_destino']
             status_tramitacao = data['data']['tramitacao__status']
+            autor = data['data']['materia__autores']
 
             kwargs = {}
             if ano_materia:
@@ -757,17 +812,13 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
                 kwargs['tramitacao__unidade_tramitacao_destino'] = unidade_tramitacao_destino
             if status_tramitacao:
                 kwargs['tramitacao__status'] = status_tramitacao
+            if autor:
+                kwargs['materia__autores'] = autor
+            
             qs = qs.filter(**kwargs)
-
             data['queryset'] = qs
             
-            qtdes = { tipo:0 for tipo in TipoMateriaLegislativa.objects.all() }
-            for i in qs:
-                qtdes[i.materia.tipo] += 1
-
-            # remove as entradas de valor igual a zero
-            qtdes = {k:v for k,v in qtdes.items() if v > 0}
-            self.total_resultados_tipos = qtdes
+            self.total_resultados_tipos = num_materias_por_tipo(qs, "materia__tipo")
 
         return data
 
@@ -819,6 +870,14 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
             )
         else:
             context['tramitacao__unidade_tramitacao_destino'] = ''
+
+        if self.request.GET['materia__autores']:
+            autor = self.request.GET['materia__autores']
+            context['materia__autor'] = (
+                str(Autor.objects.get(id=autor))
+            )
+        else:
+            context['materia__autor'] = ''
         
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         context['show_results'] = show_results_filter_set(qr)
@@ -894,13 +953,8 @@ class RelatorioMateriasPorAnoAutorTipoView(RelatorioMixin, FilterView):
         context['title'] = _('Matérias por Ano, Autor e Tipo')
         if not self.filterset.form.is_valid():
             return context
-        qtdes = {}
-        for tipo in TipoMateriaLegislativa.objects.all():
-            qs = context['object_list']
-            qtde = len(qs.filter(tipo_id=tipo.id))
-            if qtde > 0:
-                qtdes[tipo] = qtde
-        context['qtdes'] = qtdes
+        qs = context['object_list']
+        context['qtdes'] = num_materias_por_tipo(qs)
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -936,13 +990,9 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
         if not self.filterset.form.is_valid():
             return context
 
-        qtdes = {}
-        for tipo in TipoMateriaLegislativa.objects.all():
-            qs = context['object_list']
-            qtde = len(qs.filter(tipo_id=tipo.id))
-            if qtde > 0:
-                qtdes[tipo] = qtde
-        context['qtdes'] = qtdes
+        qs = context['object_list']
+        context['materias_resultado'] = list(OrderedDict.fromkeys(qs))
+        context['qtdes'] = num_materias_por_tipo(qs)
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -960,8 +1010,8 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
         else:
             context['autor'] = ''
         context['periodo'] = (
-            self.request.GET['data_apresentacao_0'] +
-            ' - ' + self.request.GET['data_apresentacao_1'])
+                self.request.GET['data_apresentacao_0'] +
+                ' - ' + self.request.GET['data_apresentacao_1'])
 
         return context
 
@@ -1763,7 +1813,7 @@ class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
 
 
 class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
-    model = User
+    model = get_user_model()
     filterset_class = UsuarioFilterSet
     permission_required = ('base.list_appconfig',)
     paginate_by = 10
@@ -1782,18 +1832,16 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        context = super(PesquisarUsuarioView,
-                        self).get_context_data(**kwargs)
+        context = super(PesquisarUsuarioView, self).get_context_data(**kwargs)
 
         paginator = context['paginator']
         page_obj = context['page_obj']
 
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-        
-        context['NO_ENTRIES_MSG'] = 'Nenhum usuário encontrado!'
-        
-        context['title'] = _('Usuários')
+        context.update({
+            "page_range": make_pagination(page_obj.number, paginator.num_pages),
+            "NO_ENTRIES_MSG": "Nenhum usuário encontrado!",
+            "title": _("Usuários")
+        })
 
         return context
 
@@ -1820,6 +1868,28 @@ class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
         return self.render_to_response(context)
 
 
+class DetailUsuarioView(PermissionRequiredMixin, DetailView):
+    model = get_user_model()
+    template_name = "base/usuario_detail.html"
+    permission_required = ('base.detail_appconfig',)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = get_user_model().objects.get(id=self.kwargs['pk'])
+
+        context.update({
+            "user": user,
+            "token": Token.objects.filter(user=user)[0],
+            "roles": [
+                {
+                    "checked": "checked" if g in user.groups.all() else "unchecked",
+                    "group": g.name
+                } for g in Group.objects.all().order_by("name")]
+        })
+
+        return context
+
+
 class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     model = get_user_model()
     form_class = UsuarioCreateForm
@@ -1827,21 +1897,21 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
     fail_message = 'Usuário não criado!'
     permission_required = ('base.add_appconfig',)
 
-    def get_success_url(self):
-        return reverse('sapl.base:usuario')
+    def get_success_url(self, pk):
+        return reverse('sapl.base:user_detail', kwargs={"pk": pk})
 
     def form_valid(self, form):
         data = form.cleaned_data
 
         new_user = get_user_model().objects.create(
             username=data['username'],
-            email=data['email']
+            email=data['email'],
+            first_name=data['firstname'],
+            last_name=data['lastname'],
+            is_superuser=False,
+            is_staff=False
         )
-        new_user.first_name = data['firstname']
-        new_user.last_name = data['lastname']
         new_user.set_password(data['password1'])
-        new_user.is_superuser = False
-        new_user.is_staff = False
         new_user.save()
 
         groups = Group.objects.filter(id__in=data['roles'])
@@ -1849,7 +1919,7 @@ class CreateUsuarioView(PermissionRequiredMixin, CreateView):
             g.user_set.add(new_user)
 
         messages.success(self.request, self.success_message)
-        return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(self.get_success_url(new_user.pk))
 
     def form_invalid(self, form):
         messages.error(self.request, self.fail_message)
@@ -1890,19 +1960,26 @@ class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
 class EditUsuarioView(PermissionRequiredMixin, UpdateView):
     model = get_user_model()
     form_class = UsuarioEditForm
+    template_name = "base/usuario_edit.html"
     success_message = 'Usuário editado com sucesso!'
     permission_required = ('base.change_appconfig',)
 
     def get_success_url(self):
-        return reverse('sapl.base:usuario')
+        return reverse('sapl.base:user_detail', kwargs={"pk": self.kwargs['pk']})
 
     def get_initial(self):
-        initial = super(EditUsuarioView, self).get_initial()
+        initial = super().get_initial()
 
         user = get_user_model().objects.get(id=self.kwargs['pk'])
         roles = [str(g.id) for g in user.groups.all()]
-        initial['roles'] = roles
-        initial['user_active'] = user.is_active
+
+        initial.update({
+            "token": Token.objects.filter(user=user)[0],
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "roles": roles,
+            "user_active": user.is_active
+        })
 
         return initial
 
@@ -1911,8 +1988,11 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
         user = form.save(commit=False)
         data = form.cleaned_data
 
-        # new_user.first_name = data['firstname']
-        # new_user.last_name = data['lastname']
+        if 'first_name' in data and data['first_name'] != user.first_name:
+            user.first_name = data['first_name']
+
+        if 'last_name' in data and data['last_name'] != user.last_name:
+            user.last_name = data['last_name']
 
         if data['password1']:
             user.set_password(data['password1'])
@@ -1992,9 +2072,15 @@ class AppConfigCrud(CrudAux):
             recibo_prop_atual = AppConfig.objects.last().receber_recibo_proposicao
             recibo_prop_novo = self.request.POST['receber_recibo_proposicao']
             if recibo_prop_novo == 'False' and recibo_prop_atual:
-                props = Proposicao.objects.filter(hash_code='')
+                props = Proposicao.objects.filter(hash_code='').exclude(data_envio__isnull=True)
                 for prop in props:
-                    self.gerar_hash(prop)
+                    try:
+                        self.gerar_hash(prop)
+                    except ValidationError as e:
+                        form.add_error('receber_recibo_proposicao',e)
+                        msg = _("Não foi possível mudar a configuração porque a Proposição {} não possui texto original vinculado!".format(prop))
+                        messages.error(self.request, msg)
+                        return super().form_invalid(form)
             return super().form_valid(form)
 
         def gerar_hash(self, inst):

@@ -312,6 +312,17 @@ class ColigacaoCrud(CrudAux):
             return context
 
 
+def coligacao_legislatura(request):
+    try:
+        coligacoes = Coligacao.objects.filter(legislatura=request.GET['legislatura']).order_by('nome')
+    except:
+        coligacoes = []
+
+    lista_coligacoes = [(coligacao.id, str(coligacao)) for coligacao in coligacoes]
+
+    return JsonResponse({'coligacoes': lista_coligacoes})
+
+
 def json_date_convert(date):
     """
     :param date: recebe a data de uma chamada ajax no formato de
@@ -574,8 +585,7 @@ class ParlamentarCrud(Crud):
                                   ". Tentando obter id da legislatura.")
                 return int(self.request.GET['pk'])
             except:
-                self.logger.error(
-                    "user=" + username + ". Legislatura não possui ID. Buscando em todas as entradas.")
+                self.logger.warning("User=" + username + ". Legislatura não possui ID. Buscando em todas as entradas.")
                 legislaturas = Legislatura.objects.all()
                 for l in legislaturas:
                     if l.atual():
@@ -803,7 +813,8 @@ def altera_field_mesa(request):
     # é alterado o campo de sessão ou feita alguma operação
     # de inclusão/remoção.
     if request.GET['sessao']:
-        sessao_selecionada = request.GET['sessao']
+        sessao_selecionada = SessaoLegislativa.objects.get(id=request.GET['sessao'])
+        
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:

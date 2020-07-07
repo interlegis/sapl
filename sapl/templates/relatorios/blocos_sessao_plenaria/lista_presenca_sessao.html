@@ -1,0 +1,4 @@
+    <h2 class="gray-title">Lista de Presença da Sessão</h2>
+    {% for membro in lst_presenca_sessao%}
+        <p>{{membro.nom_parlamentar}}/{{membro.sgl_partido}}</p>
+    {% endfor%}

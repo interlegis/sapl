@@ -1,7 +1,7 @@
 import pytest
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from model_mommy import mommy
+from model_bakery import baker
 
 from sapl.parlamentares.models import Legislatura, SessaoLegislativa
 from sapl.sessao.models import (SessaoPlenaria, TipoSessaoPlenaria,
@@ -23,9 +23,9 @@ from sapl.sessao.views import (get_identificacao_basica, get_conteudo_multimidia
 
 @pytest.mark.django_db(transaction=False)
 def test_incluir_sessao_plenaria_submit(admin_client):
-    legislatura = mommy.make(Legislatura)
-    sessao = mommy.make(SessaoLegislativa)
-    tipo = mommy.make(TipoSessaoPlenaria, id=1)
+    legislatura = baker.make(Legislatura)
+    sessao = baker.make(SessaoLegislativa)
+    tipo = baker.make(TipoSessaoPlenaria, id=1)
 
     response = admin_client.post(reverse('sapl.sessao:sessaoplenaria_create'),
                                  {'legislatura': str(legislatura.pk),
@@ -65,9 +65,9 @@ def test_incluir_sessao_errors(admin_client):
 @pytest.mark.django_db(transaction=False)
 class TestResumoView():
     def setup(self):
-        self.sessao_plenaria = mommy.make(SessaoPlenaria)
-        self.parlamentar = mommy.make(Parlamentar)
-        self.cargo_mesa = mommy.make(CargoMesa)
+        self.sessao_plenaria = baker.make(SessaoPlenaria)
+        self.parlamentar = baker.make(Parlamentar)
+        self.cargo_mesa = baker.make(CargoMesa)
 
         self.integrante_mesa = IntegranteMesa(sessao_plenaria=self.sessao_plenaria,
                                                 parlamentar=self.parlamentar,
@@ -108,16 +108,16 @@ class TestResumoView():
         }]}
         
     def test_get_presenca_sessao(self):
-        justificativa = mommy.make(JustificativaAusencia,sessao_plenaria=self.sessao_plenaria)
-        presenca = mommy.make(SessaoPlenariaPresenca,sessao_plenaria=self.sessao_plenaria)
+        justificativa = baker.make(JustificativaAusencia,sessao_plenaria=self.sessao_plenaria)
+        presenca = baker.make(SessaoPlenariaPresenca,sessao_plenaria=self.sessao_plenaria)
 
         resposta_presenca = get_presenca_sessao(self.sessao_plenaria)
         assert resposta_presenca['presenca_sessao'] == [presenca.parlamentar]
         assert resposta_presenca['justificativa_ausencia'][0] == justificativa
     
     def test_get_expedientes(self):
-        tipo_expediente = mommy.make(TipoExpediente)
-        expediente = mommy.make(ExpedienteSessao,sessao_plenaria=self.sessao_plenaria,tipo=tipo_expediente)
+        tipo_expediente = baker.make(TipoExpediente)
+        expediente = baker.make(ExpedienteSessao,sessao_plenaria=self.sessao_plenaria,tipo=tipo_expediente)
 
         resposta_expediente = get_expedientes(self.sessao_plenaria)
 
@@ -130,9 +130,9 @@ class TestResumoView():
         pass
 
     def test_get_oradores_explicacoes_pessoais(self):
-        parlamentar = mommy.make(Parlamentar)
-        partido_sigla = mommy.make(Filiacao, parlamentar=parlamentar)
-        orador = mommy.make(Orador,sessao_plenaria=self.sessao_plenaria,parlamentar=parlamentar)
+        parlamentar = baker.make(Parlamentar)
+        partido_sigla = baker.make(Filiacao, parlamentar=parlamentar)
+        orador = baker.make(Orador,sessao_plenaria=self.sessao_plenaria,parlamentar=parlamentar)
 
         resultado_get_oradores = get_oradores_explicacoes_pessoais(self.sessao_plenaria)
 
@@ -143,7 +143,7 @@ class TestResumoView():
         }]
 
     def test_get_ocorrencias_da_sessao(self):
-        ocorrencia = mommy.make(OcorrenciaSessao, sessao_plenaria=self.sessao_plenaria)
+        ocorrencia = baker.make(OcorrenciaSessao, sessao_plenaria=self.sessao_plenaria)
         resultado_get_ocorrencia = get_ocorrencias_da_sessao(self.sessao_plenaria)
 
         assert resultado_get_ocorrencia['ocorrencias_da_sessao'][0] == ocorrencia

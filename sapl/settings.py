@@ -41,7 +41,7 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
-SAPL_VERSION = '3.1.160-RC12'
+SAPL_VERSION = '3.1.161-RC3'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -86,6 +86,7 @@ INSTALLED_APPS = (
     'drf_yasg',
     #'rest_framework_swagger',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_filters',
 
     'easy_thumbnails',
@@ -139,7 +140,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'speedinfo.middleware.ProfilerMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar', )
@@ -147,14 +147,6 @@ if DEBUG:
     INTERNAL_IPS = ('127.0.0.1')
 
 SITE_URL = config('SITE_URL', cast=str, default='')
-
-CACHES = {
-    'default': {
-        'BACKEND': 'speedinfo.backends.proxy_cache',
-        'CACHE_BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-    }
-}
 
 REST_FRAMEWORK = {
     "UNICODE_JSON": False,
@@ -168,6 +160,7 @@ REST_FRAMEWORK = {
         "sapl.api.permissions.SaplModelPermissions",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework.authentication.TokenAuthentication',
         "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
@@ -176,6 +169,14 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
+CACHES = {
+    'default': {
+        'BACKEND': 'speedinfo.backends.proxy_cache',
+        'CACHE_BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+    }
+}
+
 
 
 ROOT_URLCONF = 'sapl.urls'
