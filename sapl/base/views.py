@@ -2084,17 +2084,17 @@ class AppConfigCrud(CrudAux):
             return super().form_valid(form)
 
         def gerar_hash(self, inst):
-            inst.save()
             if inst.texto_original:
                 try:
                     inst.hash_code = gerar_hash_arquivo(
                         inst.texto_original.path, str(inst.pk))
+                    inst.save()
                 except IOError:
                     raise ValidationError("Existem proposicoes com arquivos inexistentes.")
             elif inst.texto_articulado.exists():
                 ta = inst.texto_articulado.first()
                 inst.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(inst.pk)
-            inst.save()
+                inst.save()
 
     class CreateView(CrudAux.CreateView):
 
