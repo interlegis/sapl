@@ -1647,32 +1647,25 @@ def mandato_sem_data_inicio():
 
 
 def get_estatistica(request):
+    materias = MateriaLegislativa.objects.all()
+    normas = NormaJuridica.objects.all()
 
-    json_dict = {}
+    datas = [
+        materias.order_by('-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True)
+                .exclude(data_ultima_atualizacao__isnull=True).first(),
+        normas.order_by('-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True)
+                .exclude(data_ultima_atualizacao__isnull=True).first()
+    ]
 
-    datas = [MateriaLegislativa.objects.all().
-                 order_by('-data_ultima_atualizacao').
-                 values_list('data_ultima_atualizacao', flat=True).
-                 first(),
-             NormaJuridica.objects.all().
-                 order_by('-data_ultima_atualizacao').
-                 values_list('data_ultima_atualizacao', flat=True).
-                 first()] # Retorna [None, None] se inexistem registros
+    max_data = max(datas) if datas[0] and datas[1] else next(iter([i for i in datas if i is not None]), '')
 
-    max_data = ''
-
-    if datas[0] and datas[1]:
-        max_data = max(datas)
-    else:
-        max_data = next(iter([i for i in datas if i is not None]), '')
-
-    json_dict["data_ultima_atualizacao"] = max_data
-    json_dict["num_materias_legislativas"] = MateriaLegislativa.objects.all().count()
-    json_dict["num_normas_juridicas "] = NormaJuridica.objects.all().count()
-    json_dict["num_parlamentares"] = Parlamentar.objects.all().count()
-    json_dict["num_sessoes_plenarias"] = SessaoPlenaria.objects.all().count()
-
-    return JsonResponse(json_dict)
+    return JsonResponse({
+        "data_ultima_atualizacao": max_data,
+        "num_materias_legislativas": materias.count(),
+        "num_normas_juridicas ": normas.count(),
+        "num_parlamentares": Parlamentar.objects.all().count(),
+        "num_sessoes_plenarias": SessaoPlenaria.objects.all().count()
+    })
 
 
 class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
