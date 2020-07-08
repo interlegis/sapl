@@ -20,7 +20,7 @@ def gerar_hash(proposicao):
 def gerar_hash_proposicoes():
     di = datetime.now()
     print(di)
-    props = Proposicao.objects.filter(hash_code='').exclude(data_envio__isnull=True)
+    props = Proposicao.objects.filter(hash_code='', data_recebimento__isnull=True).exclude(data_envio__isnull=True)
     print("Total de proposicoes: %s" % props.count())
     for prop in props:
         try:
