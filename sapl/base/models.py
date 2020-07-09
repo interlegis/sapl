@@ -231,24 +231,28 @@ class TipoAutor(models.Model):
 
 @reversion.register()
 class Autor(models.Model):
-
-    user = models.OneToOneField(get_settings_auth_user_model(),
-                                on_delete=models.SET_NULL,
-                                null=True)
-
-    tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo do Autor'),
-                             on_delete=models.PROTECT)
-
+    user = models.OneToOneField(
+        get_settings_auth_user_model(),
+        on_delete=models.SET_NULL,
+        null=True)
+    tipo = models.ForeignKey(
+        TipoAutor,
+        verbose_name=_('Tipo do Autor'),
+        on_delete=models.PROTECT)
     content_type = models.ForeignKey(
         ContentType,
-        blank=True, null=True, default=None)
+        blank=True,
+        null=True,
+        default=None)
     object_id = models.PositiveIntegerField(
-        blank=True, null=True, default=None)
+        blank=True,
+        null=True,
+        default=None)
     autor_related = GenericForeignKey('content_type', 'object_id')
-
     nome = models.CharField(
-        max_length=120, blank=True, verbose_name=_('Nome do Autor'))
-
+        max_length=120,
+        blank=True,
+        verbose_name=_('Nome do Autor'))
     cargo = models.CharField(max_length=50, blank=True)
 
     class Meta:
