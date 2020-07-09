@@ -2065,7 +2065,7 @@ class AppConfigCrud(CrudAux):
             recibo_prop_atual = AppConfig.objects.last().receber_recibo_proposicao
             recibo_prop_novo = self.request.POST['receber_recibo_proposicao']
             if recibo_prop_novo == 'False' and recibo_prop_atual:
-                props = Proposicao.objects.filter(hash_code='').exclude(data_envio__isnull=True)
+                props = Proposicao.objects.filter(hash_code='', data_recebimento__isnull=True).exclude(data_envio__isnull=True)
                 for prop in props:
                     try:
                         self.gerar_hash(prop)
