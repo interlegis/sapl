@@ -358,25 +358,26 @@ def get_materia_aberta(pk):
 
 
 def get_presentes(pk, response, materia):
+    ModelPresenca = None
     if isinstance(materia, OrdemDia):
-        presentes = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=pk)
+        ModelPresenca = PresencaOrdemDia
     else:
-        presentes = SessaoPlenariaPresenca.objects.filter(
+        ModelPresenca = SessaoPlenariaPresenca
+
+    presentes = ModelPresenca.objects.filter(
             sessao_plenaria_id=pk)
     
     sessao = SessaoPlenaria.objects.get(id=pk)
     num_presentes = len(presentes)
     data_sessao = sessao.data_inicio
     
+    ModelOrador = None
     if  isinstance(materia, ExpedienteMateria):
-        oradores = OradorExpediente.objects.filter(
-            sessao_plenaria_id=pk).order_by('numero_ordem')
+        ModelOrador = OradorExpediente
     elif isinstance(materia, OrdemDia):
-        oradores = OradorOrdemDia.objects.filter(
+        ModelOrador = OradorOrdemDia
+    oradores = ModelOrador.objects.filter(
             sessao_plenaria_id=pk).order_by('numero_ordem')
-    else:
-        oradores = []
 
     oradores_list = []
     for o in oradores:
