@@ -736,6 +736,11 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = OrdemDiaForm
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context["tipo_materia_sessao"] = "ordem"
+            return context
+
         def get_initial(self):
             self.initial['data_ordem'] = SessaoPlenaria.objects.get(
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
@@ -752,6 +757,17 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = OrdemDiaForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            context["tipo_materia_sessao"] = "ordem"
+
+            context["tipo_materia_salvo"] = self.object.materia.tipo.id
+            context["numero_materia_salvo"] = self.object.materia.numero
+            context["ano_materia_salvo"] = self.object.materia.ano
+
+            return context
 
         def get_initial(self):
             initial = super().get_initial()
@@ -833,6 +849,11 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
 
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context["tipo_materia_sessao"] = "expediente"
+            return context
+
         def get_initial(self):
             initial = super().get_initial()
             initial['data_ordem'] = SessaoPlenaria.objects.get(
@@ -850,6 +871,17 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = ExpedienteMateriaForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            context["tipo_materia_sessao"] = "expediente"
+
+            context["tipo_materia_salvo"] = self.object.materia.tipo.id
+            context["numero_materia_salvo"] = self.object.materia.numero
+            context["ano_materia_salvo"] = self.object.materia.ano
+
+            return context
 
         def get_initial(self):
             initial = super().get_initial()
@@ -3717,6 +3749,25 @@ def retira_materias_ja_adicionadas(id_sessao, model):
         sessao_plenaria_id=id_sessao)
     lista_id_materias = [l.materia_id for l in lista]
     return lista_id_materias
+
+
+def verifica_materia_sessao_plenaria_ajax(request):
+    # Define se a matéria é do expediente ou da ordem do dia
+    tipo_materia_sessao = request.GET['tipo_materia_sessao']
+
+    id_materia_selecionada = request.GET['id_materia_selecionada']
+    pk_sessao_plenaria = request.GET['pk_sessao_plenaria']
+
+    if tipo_materia_sessao == "expediente":
+        is_materia_presente = ExpedienteMateria.objects.filter(
+            sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
+        ).exists()
+    elif tipo_materia_sessao == "ordem":
+        is_materia_presente = OrdemDia.objects.filter(
+            sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
+        ).exists()
+
+    return JsonResponse({ 'is_materia_presente': is_materia_presente })
 
 
 class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
