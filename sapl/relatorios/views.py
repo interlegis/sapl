@@ -1364,8 +1364,7 @@ def relatorio_normas_por_autor(obj, request, context):
 
 def relatorio_pauta_sessao_weasy(obj, request, context):
     sessao = context['object']
-    info = "Pauta da {} ({} - {}) Legislatura".format(sessao, sessao.legislatura.data_inicio.year,
-                                                      sessao.legislatura.data_fim.year)
+    info = f"Pauta da {sessao} ({sessao.legislatura.data_inicio.year} - {sessao.legislatura.data_fim.year}) Legislatura"
     return cria_relatorio(request, context, 'relatorios/relatorio_pauta_sessao.html', info)
 
 
