@@ -1770,21 +1770,20 @@ def get_materias_expediente(sessao_plenaria):
                 resultado = _('Matéria não votada')
             resultado_observacao = _(' ')
 
-        autoria = Autoria.objects.filter(materia_id=m.materia_id)
-        autor = [str(x.autor) for x in autoria]
-
-        mat = {'ementa': ementa,
-               'titulo': titulo,
-               'numero': numero,
-               'turno': turno,
-               'resultado': resultado,
-               'resultado_observacao': resultado_observacao,
-               'autor': autor,
-               'numero_protocolo': m.materia.numero_protocolo,
-               'numero_processo': m.materia.numeracao_set.last(),
-               'observacao': m.observacao
-               }
-        materias_expediente.append(mat)
+        materias_expediente.append({
+            'ementa': m.materia.ementa,
+            'titulo': m.materia,
+            'numero': m.numero_ordem,
+            'turno': get_turno(tramitacao.turno) if tramitacao else None,
+            'situacao': m.materia.materiaemtramitacao_set.first().tramitacao.status,
+            'resultado': resultado,
+            'resultado_observacao': resultado_observacao,
+            'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=m.materia_id)],
+            'numero_protocolo': m.materia.numero_protocolo,
+            'numero_processo': m.materia.numeracao_set.last(),
+            'observacao_materia': m.materia.observacao,          
+            'observacao': m.observacao
+        })
 
     context = {'materia_expediente': materias_expediente}
     return context
@@ -1911,26 +1910,25 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             voto_nao = " Não Informado"
             voto_abstencoes = " Não Informado"
 
-        autoria = Autoria.objects.filter(
-            materia_id=o.materia_id)
-        autor = [str(x.autor) for x in autoria]
-        mat = {'ementa': ementa,
-               'ementa_observacao': ementa_observacao,
-               'titulo': titulo,
-               'numero': numero,
-               'turno': turno,
-               'resultado': resultado,
-               'resultado_observacao': resultado_observacao,
-               'autor': autor,
-               'numero_protocolo': o.materia.numero_protocolo,
-               'numero_processo': o.materia.numeracao_set.last(),
-               'tipo_votacao': o.TIPO_VOTACAO_CHOICES[o.tipo_votacao],
-               'voto_sim': voto_sim,
-               'voto_nao': voto_nao,
-               'voto_abstencoes': voto_abstencoes,
-               'voto_nominal': voto_nominal,
-               }
-        materias_ordem.append(mat)
+        materias_ordem.append({
+            'ementa': o.materia.ementa,
+            'ementa_observacao': o.observacao,
+            'titulo': o.materia,
+            'numero': o.numero_ordem,
+            'turno': get_turno(tramitacao.turno) if tramitacao else None,
+            'situacao': o.materia.materiaemtramitacao_set.first().tramitacao.status,
+            'resultado': resultado,
+            'resultado_observacao': resultado_observacao,
+            'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)],
+            'numero_protocolo': o.materia.numero_protocolo,
+            'numero_processo': o.materia.numeracao_set.last(),
+            'tipo_votacao': o.TIPO_VOTACAO_CHOICES[o.tipo_votacao],
+            'voto_sim': voto_sim,
+            'voto_nao': voto_nao,
+            'voto_abstencoes': voto_abstencoes,
+            'voto_nominal': voto_nominal,
+            'observacao': o.observacao          
+        })
 
     context = {'materias_ordem': materias_ordem}
     return context
