@@ -4,19 +4,16 @@
 {% block actions %}{% endblock %}
 
 {% block detail_content %}
+
   {% block buttons %}
-
     {% if filter_url and not filter.form.errors %}
-          <div class="actions btn-group float-right" role="group">
-            <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
-          </div>
-
-          <div class="actions btn-group float-right" role="group">
-            <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-outline-primary">{% trans 'Matérias do Expediente' %}</a>
-          </div>
-
+      <div class="actions btn-group float-right" role="group">
+        <a href="{% url 'sapl.sessao:adicionar_varias_materias_expediente' pk_sessao %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+      </div>
+      <div class="actions btn-group float-right" role="group">
+        <a href="{% url 'sapl.sessao:expedientemateria_list' pk_sessao %}" class="btn btn-outline-primary">{% trans 'Matérias do Expediente' %}</a>
+      </div>
     {% endif %}
-
   {% endblock %}
 
   {% if filter.form.errors %}
@@ -29,77 +26,105 @@
 
   <p></p>
   {% if filter_url and not filter.form.errors %}
-        
-        {% if paginator.count %}
-          <form method="POST" enctype="application/x-www-form-urlencoded">
-          {% csrf_token %}
-            <table class="table table-striped table-bordered">
-              <thead class="thead-default">
-                <tr>
-                  <td><h3>{% trans "Matérias" %}</h3></td>
-                  <td><h3>{% trans "Tipo de Votação" %}</h3></td>
-                </tr>
-              </thead>
-              {% if paginator.count > 1 %}
-                  <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{total_materias}} matérias.{% endblocktrans %}</h3>
-              {% elif paginator.count == 1 %}
-                  <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
-              {% endif %}
-
-                {% for m in page_obj %}
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="materia_id" id="{{m.id}}" value="{{m.id}}" {% if check %} checked {% endif %}>
-                            <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.tipo.sigla}} {{m.numero}}/{{m.ano}} - {{m.tipo}}</strong></a></br>
-                            <strong>Autores:</strong>
-                            {% for a in m.autoria_set.all %}
-                              {% if not forloop.first %}
-                                , &nbsp;&nbsp; {{a.autor|default_if_none:""}}
-                              {% else %}
-                                &nbsp;{{a.autor|default_if_none:""}}
-                              {% endif %}
-                            {% endfor %}
-                            </br>
-                            <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não informado"}}</br>
-                            <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status|default_if_none:"Não informado"}}</br>
-                            <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao|default_if_none:"Não informado"}}</br>
-                            <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
-                            <p></p>
-                            <td width="20%%">
-                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}_1" value="1"> <label for="tipo_votacao_{{m.id}}_1">Simbólica</label>
-                                </br>
-                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}_2" value="2"> <label for="tipo_votacao_{{m.id}}_2">Nominal</label>
-                                </br>
-                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}_3" value="3"> <label for="tipo_votacao_{{m.id}}_3">Secreta</label>
-                                </br>
-                                <input type="radio" name="tipo_votacao_{{m.id}}" id="tipo_votacao_{{m.id}}_4" value="4"> <label for="tipo_votacao_{{m.id}}_4">Leitura</label>
-                            </td>
-                        </td>
-                    </tr>         
-                {% endfor %}
-              </table>
-              <input type="submit" value="Adicionar matérias selecionadas" class="btn btn-primary"S>
-            </form>
-        {% else %}
-          <table class="table table-striped table-bordered">
+    {% if paginator.count %}
+      <form method="POST" enctype="application/x-www-form-urlencoded">
+        {% csrf_token %}
+        <table class="table table-striped table-bordered">
+          <thead class="thead-default">
+            <tr><td><h3>{% trans "Matérias" %}</h3></td><td><h3>{% trans "Tipo de Votação" %}</h3></td></tr>
+          </thead>
+          {% if paginator.count > 1 %}
+            <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{ total_materias }} matérias.{% endblocktrans %}</h3>
+          {% elif paginator.count == 1 %}
+            <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
+          {% endif %}
+          {% for m in page_obj %}
             <tr>
-                <td>
-                    <h3>Nenhuma matéria encontrada com essas especificações</h3>
+              <td>
+                <input type="checkbox" name="materia_id" id="{{ m.id }}" value="{{ m.id }}" {% if check %} checked {% endif %}>
+                <strong><a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{ m.tipo.sigla }} {{ m.numero }}/{{ m.ano }} - {{ m.tipo }}</strong></a></br>
+                <strong>Autores:</strong>
+                {% for a in m.autoria_set.all %}
+                  {% if not forloop.first %}
+                    , &nbsp;&nbsp; {{ a.autor|default_if_none:"" }}
+                  {% else %}
+                    &nbsp;{{ a.autor|default_if_none:"" }}
+                  {% endif %}
+                {% endfor %}
+                </br>
+                <strong>Localização Atual:</strong> &nbsp;{{ m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não informado" }}</br>
+                <strong>Status:</strong> &nbsp;{{ m.tramitacao_set.last.status|default_if_none:"Não informado" }}</br>
+                <strong>Data da última Tramitação:</strong> &nbsp;{{ m.tramitacao_set.last.data_tramitacao|default_if_none:"Não informado" }}</br>
+                <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
+                <p></p>
+                <td width="20%%">
+                  <input type="radio" name="tipo_votacao_{{ m.id }}" id="tipo_votacao_{{ m.id }}_1" value="1"> <label for="tipo_votacao_{{ m.id }}_1">Simbólica</label>
+                  </br>
+                  <input type="radio" name="tipo_votacao_{{ m.id }}" id="tipo_votacao_{{ m.id }}_2" value="2"> <label for="tipo_votacao_{{ m.id }}_2">Nominal</label>
+                  </br>
+                  <input type="radio" name="tipo_votacao_{{ m.id }}" id="tipo_votacao_{{ m.id }}_3" value="3"> <label for="tipo_votacao_{{ m.id }}_3">Secreta</label>
+                  </br>
+                  <input type="radio" name="tipo_votacao_{{ m.id }}" id="tipo_votacao_{{ m.id }}_4" value="4"> <label for="tipo_votacao_{{ m.id }}_4">Leitura</label>
                 </td>
+              </td>
             </tr>
-          </table>
-        {% endif %}
-
-{% endif %}
-
+          {% endfor %}
+        </table>
+        <input type="submit" value="Adicionar matérias selecionadas" class="btn btn-primary"S>
+      </form>
+    {% else %}
+      <table class="table table-striped table-bordered"><tr><td><h3>Nenhuma matéria encontrada com essas especificações</h3></td></tr></table>
+    {% endif %}
+  {% endif %}
 {% endblock detail_content %}
 
 {% block extra_js %}
 	<script>
+    var modal_estilos = 'display: block; width: 85%; max-width: 600px; background: #fff; padding: 15px; border-radius: 5px;'
+      +'-webkit-box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75); -moz-box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75);'
+      +'box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);'
+      +'z-index: 99999999; text-align: center';
 
-		$(window).on('beforeunload', function () {
-            $("input[type=submit], input[type=button]").prop("disabled", "disabled");
-        });
+    var fundo_modal_estilos = 'top: 0; right: 0; bottom: 0; left: 0; position: fixed; background-color: rgba(0, 0, 0, 0.6);'
+      +'z-index: 99999999; display: none;';
 
+    var modal = '<div id="fundo_modal" style="'+fundo_modal_estilos+'">'
+        +'<div id="modal" style="'+modal_estilos+'">'
+          +'<h2>Atenção!</h2><br/>'
+          +'<h3>A matéria selecionada já foi adicionada na sessão. Essa matéria será duplicada.</h3><br/>'
+          +'<button id="close_model_btn" type="button" class="btn btn-warning  mb-2" data-dimiss="model">'
+            +'Compreendo e quero continuar'
+          +'</button>'
+        +'</div>'
+      +'</div>';
+
+    $(document).ready( function() {
+      $("body").append(modal)
+
+      $('input[name=materia_id]').change( function() {
+        if ($(this).is(':checked')){
+          // Define se a matéria é do expediente ou da ordem do dia
+          let tipo_materia_sessao = "{{ tipo_materia_sessao }}"
+
+          let id_materia = $(this).val()
+          let pk_sessao_plenaria = "{{ root_pk }}"
+          $.get("{% url 'sapl.sessao:verifica_materia_sessao_plenaria_ajax_view' %}",
+            { id_materia_selecionada: id_materia, tipo_materia_sessao: tipo_materia_sessao, pk_sessao_plenaria: pk_sessao_plenaria },
+            function(data) {
+              let is_materia_presente = data['is_materia_presente']
+              if (is_materia_presente){
+                $('#fundo_modal').fadeIn()
+              }
+          });
+        }
+      });
+
+      $("#fundo_modal, #close_model_btn").click( function() { $("#fundo_modal").hide() });
+      $("#modal").click( function(e) { e.stopPropagation() });
+    });
+
+		$(window).on('beforeunload', function() {
+      $("input[type=submit], input[type=button]").prop("disabled", "disabled")
+    });
 	</script>
-{% endblock extra_js%}
+{% endblock extra_js %}
