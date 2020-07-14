@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from model_bakery import baker
@@ -91,7 +92,6 @@ def test_valida_campos_obrigatorios_bancada_form():
 
 
 def data(valor):
-    from datetime import datetime
     return datetime.strptime(valor, '%Y-%m-%d').date()
 
 
