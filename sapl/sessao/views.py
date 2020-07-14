@@ -29,7 +29,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import filtra_tramitacao_status
 from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
-                                 Tramitacao, MateriaEmTramitacao)
+                                 Tramitacao, MateriaEmTramitacao, Numeracao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
@@ -3355,38 +3355,21 @@ class PautaSessaoDetailView(DetailView):
         # =====================================================================
         # Identificação Básica
         abertura = self.object.data_inicio.strftime('%d/%m/%Y')
-        if self.object.data_fim:
-            encerramento = self.object.data_fim.strftime('%d/%m/%Y')
-        else:
-            encerramento = ""
-
+        encerramento = self.object.data_fim.strftime('%d/%m/%Y') if self.object.data_fim else ""
         hora_inicio = self.object.hora_inicio
         hora_fim = self.object.hora_fim
 
-        context.update({'basica': [
-            _('Tipo de Sessão: %(tipo)s') % {'tipo': self.object.tipo},
-            _('Abertura: %(abertura)s - %(hora_inicio)s') % {
-                'abertura': abertura, 'hora_inicio': hora_inicio},
-            _('Encerramento: %(encerramento)s - %(hora_fim)s') % {
-                'encerramento': encerramento, 'hora_fim': hora_fim},
-        ]})
+        context.update({
+            'basica': [
+                _(f'Tipo de Sessão: {self.object.tipo}'),
+                _(f'Abertura: {abertura} - {hora_inicio}'),
+                _(f'Encerramento: {encerramento} - {hora_fim}')
+            ]
+        })
         # =====================================================================
         # Matérias Expediente
-        materias = ExpedienteMateria.objects.filter(
-            sessao_plenaria_id=self.object.id)
-
         materias_expediente = []
-        for m in materias:
-            ementa = m.materia.ementa
-            titulo = m.materia
-            numero = m.numero_ordem
-
-            ultima_tramitacao = m.materia.tramitacao_set.last()
-
-            situacao = ultima_tramitacao.status if ultima_tramitacao else None
-
-            if situacao is None:
-                situacao = _("Não informada")
+        for m in ExpedienteMateria.objects.select_related("materia").filter(sessao_plenaria_id=self.object.id):
             rv = m.registrovotacao_set.all()
             if rv:
                 resultado = rv[0].tipo_resultado_votacao.nome
@@ -3395,60 +3378,45 @@ class PautaSessaoDetailView(DetailView):
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
 
-            autoria = Autoria.objects.filter(materia_id=m.materia_id)
-            autor = [str(x.autor) for x in autoria]
+            ultima_tramitacao = m.materia.tramitacao_set.last()
+            numeracao = Numeracao.objects.filter(materia=m.materia).first()
 
-            mat = {'id': m.materia_id,
-                   'ementa': ementa,
-                   'observacao': m.observacao,
-                   'titulo': titulo,
-                   'numero': numero,
-                   'resultado': resultado,
-                   'resultado_observacao': resultado_observacao,
-                   'situacao': situacao,
-                   'autor': autor
-                   }
-            materias_expediente.append(mat)
+            materias_expediente.append({
+                'id': m.materia_id,
+                'ementa': m.materia.ementa,
+                'observacao': m.observacao,
+                'titulo': m.materia,
+                'numero': m.numero_ordem,
+                'resultado': resultado,
+                'resultado_observacao': resultado_observacao,
+                'situacao': ultima_tramitacao.status if ultima_tramitacao else _("Não informada"),
+                'processo': f'{str(numeracao.numero_materia)}/{str(numeracao.ano_materia)}' if numeracao else '-',
+                'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=m.materia_id)]
+            })
 
         context.update({'materia_expediente': materias_expediente})
         # =====================================================================
         # Expedientes
-        expediente = ExpedienteSessao.objects.filter(
-            sessao_plenaria_id=self.object.id).order_by('tipo__ordenacao')
-
         expedientes = []
-        for e in expediente:
+        for e in ExpedienteSessao.objects.select_related("tipo").filter(sessao_plenaria_id=self.object.id)\
+                                                                .order_by('tipo__ordenacao'):
             conteudo = e.conteudo
             from sapl.relatorios.views import is_empty
             if not is_empty(conteudo):
                 tipo = e.tipo
                 conteudo = sub('&nbsp;', ' ', conteudo)
-                ex = {'tipo': tipo, 'conteudo': conteudo}
-                expedientes.append(ex)
+                expedientes.append({'tipo': tipo, 'conteudo': conteudo})
 
         context.update({'expedientes': expedientes})
         # =====================================================================
         # Orador Expediente
-        oradores = OradorExpediente.objects.filter(
-            sessao_plenaria_id=self.object.id).order_by('numero_ordem')
-        context.update({'oradores': oradores})
+        context.update({
+            'oradores': OradorExpediente.objects.filter(sessao_plenaria_id=self.object.id).order_by('numero_ordem')
+        })
         # =====================================================================
         # Matérias Ordem do Dia
-        ordem = OrdemDia.objects.filter(
-            sessao_plenaria_id=self.object.id)
-
         materias_ordem = []
-        for o in ordem:
-            ementa = o.materia.ementa
-            titulo = o.materia
-            numero = o.numero_ordem
-
-            ultima_tramitacao = o.materia.tramitacao_set.last()
-
-            situacao = ultima_tramitacao.status if ultima_tramitacao else None
-
-            if situacao is None:
-                situacao = _("Não informada")
+        for o in OrdemDia.objects.select_related("materia").filter(sessao_plenaria_id=self.object.id):
             # Verificar resultado
             rv = o.registrovotacao_set.all()
             if rv:
@@ -3458,29 +3426,29 @@ class PautaSessaoDetailView(DetailView):
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
 
-            autoria = Autoria.objects.filter(
-                materia_id=o.materia_id)
-            autor = [str(x.autor) for x in autoria]
+            ultima_tramitacao = o.materia.tramitacao_set.last()
+            numeracao = Numeracao.objects.filter(materia=m.materia).first()
 
-            mat = {'id': o.materia_id,
-                   'ementa': ementa,
-                   'observacao': o.observacao,
-                   'titulo': titulo,
-                   'numero': numero,
-                   'resultado': resultado,
-                   'resultado_observacao': resultado_observacao,
-                   'situacao': situacao,
-                   'autor': autor
-                   }
-            materias_ordem.append(mat)
+            materias_ordem.append({
+                'id': o.materia_id,
+                'ementa': o.materia.ementa,
+                'observacao': o.observacao,
+                'titulo': o.materia,
+                'numero': o.numero_ordem,
+                'resultado': resultado,
+                'resultado_observacao': resultado_observacao,
+                'situacao': ultima_tramitacao.status if ultima_tramitacao else _("Não informada"),
+                'processo': f'{str(numeracao.numero_materia)}/{str(numeracao.ano_materia)}' if numeracao else '-',
+                'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)]
+            })
 
-        context.update({'materias_ordem': materias_ordem})
-        context.update({'subnav_template_name': 'sessao/pauta_subnav.yaml'})
+        context.update({
+            'materias_ordem': materias_ordem,
+            'subnav_template_name': 'sessao/pauta_subnav.yaml'
+        })
 
-        is_pdf = True if request.build_absolute_uri().split(
-            '/')[-1] == 'pdf' else False
-
-        if is_pdf:
+        # Verifica se é um PDF
+        if request.build_absolute_uri().split('/')[-1] == 'pdf':
             return relatorio_pauta_sessao_weasy(self, request, context)
         else:
             return self.render_to_response(context)
