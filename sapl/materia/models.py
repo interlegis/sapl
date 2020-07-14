@@ -1116,3 +1116,11 @@ class MateriaEmTramitacao(models.Model):
 
     def __str__(self):
         return '{}/{}'.format(self.materia, self.tramitacao)
+
+class ConfigEtiquetaMateriaLegislativa(models.Model):
+    largura = models.FloatField(default=5)
+    altura = models.FloatField(default=3)
+        
+    def save(self, *args, **kwargs):
+        self.id = 1
+        return super().save(*args, **kwargs)

@@ -4,7 +4,6 @@ services:
   sapldb-dev:
     container_name: sapldb-dev
     image: postgres:10.5-alpine
-    restart: always
     environment:
       POSTGRES_PASSWORD: sapl
       POSTGRES_USER: sapl
@@ -16,7 +15,6 @@ services:
 
   sapl-dev:
     container_name: sapl-dev
-    restart: always
     image: sapl:dev
     build:
       context: .

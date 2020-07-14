@@ -8,8 +8,11 @@
   - title: {% trans 'Configurações da Aplicação' %}
     url: sapl.base:appconfig_list
     css_class: btn btn-link
-  - title: {% trans 'Autor' %}
-    url: sapl.base:autor_list
+  - title: {% trans 'Pesquisar Autor' %}
+    url: sapl.base:pesquisar_autor
+    css_class: btn btn-link
+  - title: {% trans 'Adicionar Autor' %}
+    url: sapl.base:autor_create
     css_class: btn btn-link
   - title: {% trans 'Tipo de Autor' %}
     url: sapl.base:tipoautor_list
@@ -115,6 +118,9 @@
     css_class: btn btn-link
   - title: {% trans 'Assunto Matéria' %}
     url: sapl.materia:assuntomateria_list
+    css_class: btn btn-link
+  - title: {% trans 'Configuração Etiqueta Materia Legislativa' %}
+    url: sapl.materia:configEtiquetaMateriaLegislativaCrud
     css_class: btn btn-link
 - title: {% trans 'Módulo Normas Jurídicas' %}
   css_class: head_title

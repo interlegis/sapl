@@ -95,8 +95,10 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
             except ObjectDoesNotExist:
                 msg = _('A matéria %s nº %s/%s não existe no cadastro'
                         ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
-                self.logger.error('A MateriaLegislativa %s nº %s/%s não existe no cadastro'
-                        ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
+                self.logger.warn(
+                    'A MateriaLegislativa %s nº %s/%s não existe no cadastro'
+                    ' de matérias legislativas.' % (tipo_materia, materia, ano_materia)
+                )
                 raise ValidationError(msg)
             else:
                 self.logger.info("MateriaLegislativa %s nº %s/%s obtida com sucesso." % (tipo_materia, materia, ano_materia))
@@ -106,8 +108,10 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
             campos = [materia, tipo_materia, ano_materia]
             if campos.count(None) + campos.count('') < len(campos):
                 msg = _('Preencha todos os campos relacionados à Matéria Legislativa')
-                self.logger.error('Algum campo relacionado à MatériaLegislativa %s nº %s/%s \
-                                não foi preenchido.' % (tipo_materia, materia, ano_materia))
+                self.logger.warn(
+                    'Algum campo relacionado à MatériaLegislativa %s nº %s/%s \
+                    não foi preenchido.' % (tipo_materia, materia, ano_materia)
+                )
                 raise ValidationError(msg)
 
         if not cleaned_data['numero']:
@@ -122,7 +126,9 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
             if self.cleaned_data['hora_fim'] < self.cleaned_data['hora_inicio']:
                 msg = _('A hora de fim ({}) não pode ser anterior a hora de início({})'
                         .format(self.cleaned_data['hora_fim'], self.cleaned_data['hora_inicio']))
-                self.logger.error('Hora de fim anterior à hora de início.')
+                self.logger.warn(
+                    'Hora de fim anterior à hora de início.'
+                )
                 raise ValidationError(msg)
 
         if parlamentar_autor.autor.first() not in requerimento.autores.all():

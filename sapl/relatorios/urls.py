@@ -6,7 +6,7 @@ from .views import (relatorio_capa_processo,
                     relatorio_etiqueta_protocolo, relatorio_materia,
                     relatorio_ordem_dia, relatorio_pauta_sessao,
                     relatorio_protocolo, relatorio_sessao_plenaria,
-                    resumo_ata_pdf, relatorio_sessao_plenaria_pdf)
+                    resumo_ata_pdf, relatorio_sessao_plenaria_pdf, etiqueta_materia_legislativa)
 
 app_name = AppConfig.name
 
@@ -21,8 +21,8 @@ urlpatterns = [
         name='relatorio_documento_administrativo'),
     url(r'^relatorios/espelho$', relatorio_espelho,
         name='relatorio_espelho'),
-    url(r'^relatorios/(?P<pk>\d+)/sessao-plenaria$',
-        relatorio_sessao_plenaria, name='relatorio_sessao_plenaria'),
+    #url(r'^relatorios/(?P<pk>\d+)/sessao-plenaria$',
+    #    relatorio_sessao_plenaria, name='relatorio_sessao_plenaria'),
     url(r'^relatorios/protocolo$',
         relatorio_protocolo, name='relatorio_protocolo'),
     url(r'^relatorios/(?P<nro>\d+)/(?P<ano>\d+)/etiqueta-protocolo$',
@@ -33,4 +33,6 @@ urlpatterns = [
         resumo_ata_pdf, name='resumo_ata_pdf'),
     url(r'^relatorios/(?P<pk>\d+)/sessao-plenaria-pdf$',
         relatorio_sessao_plenaria_pdf, name='relatorio_sessao_plenaria_pdf'),
+    url(r'^relatorios/(?P<pk>\d+)/etiqueta-materia-legislativa$',
+        etiqueta_materia_legislativa, name='etiqueta_materia_legislativa'),
 ]

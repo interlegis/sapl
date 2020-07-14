@@ -1,0 +1,14 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags staticfiles %}
+
+{% block sub_actions %}
+  <div class="actions btn-group btn-group-sm" role="group">
+    <a href="{% url 'sapl.base:pesquisar_autor' %}" class="btn btn-outline-primary">
+      {% blocktrans with verbose_name=view.verbose_name %} Pesquisar {{ verbose_name }} {% endblocktrans %}
+    </a>
+    <a href="{{ view.create_url }}" class="btn btn-outline-primary">
+      {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}
+    </a>
+  </div>
+{% endblock sub_actions %}

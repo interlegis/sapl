@@ -258,7 +258,8 @@ rules_group_geral = {
         (materia.Parecer, __base__, __perms_publicas__),
         (materia.StatusTramitacao, __base__, __perms_publicas__),
         (materia.UnidadeTramitacao, __base__, __perms_publicas__),
-        
+        (materia.ConfigEtiquetaMateriaLegislativa, __base__, set()),
+                
 
         (norma.AssuntoNorma, __base__, __perms_publicas__),
         (norma.TipoNormaJuridica, __base__, __perms_publicas__),

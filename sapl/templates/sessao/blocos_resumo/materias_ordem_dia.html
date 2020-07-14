@@ -35,6 +35,11 @@
               <br />
               <b>Processo:</b> {{ m.numero_processo }}
             {% endif %}
+
+            {% if m.situacao %}
+              <br />
+              <b>Situação:</b> {{ m.situacao }}
+            {% endif %}
           </td>
           <td>{{m.ementa|dont_break_out}}</b><br/>{{m.observacao|dont_break_out}}</td>
           <td><b>{{m.resultado}}</b><br/>{{m.resultado_observacao}}</td>

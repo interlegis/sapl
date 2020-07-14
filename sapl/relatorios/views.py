@@ -3,6 +3,7 @@ import html
 import logging
 import re
 import tempfile
+import unidecode
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
@@ -15,7 +16,7 @@ from sapl.settings import MEDIA_URL
 from sapl.base.models import Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
-                                 Tramitacao, UnidadeTramitacao)
+                                 Tramitacao, UnidadeTramitacao, ConfigEtiquetaMateriaLegislativa)
 from sapl.parlamentares.models import CargoMesa, Filiacao, Parlamentar
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       TramitacaoAdministrativo)
@@ -26,7 +27,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
                                 RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente, ResumoOrdenacao)
 from sapl.settings import STATIC_ROOT
-from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data
+from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode
 
 from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_presenca_sessao, get_expedientes,
@@ -601,6 +602,7 @@ def get_sessao_plenaria(sessao, casa):
                                                str(materia.ano)),
             "des_numeracao": ' ',
             "des_turno": get_turno(materia)[0],
+            "situacao": materia.materiaemtramitacao_set.first().tramitacao.status,
             "txt_ementa": str(materia.ementa),
             "materia_observacao": materia.observacao,
             "ordem_observacao": expediente_materia.observacao,
@@ -705,7 +707,8 @@ def get_sessao_plenaria(sessao, casa):
             "txt_ementa": html.unescape(materia.ementa),
             "materia_observacao": materia.observacao,
             "ordem_observacao": html.unescape(votacao.observacao),
-            "nom_autor": ''
+            "nom_autor": '',
+            "situacao": materia.materiaemtramitacao_set.first().tramitacao.status
         })
 
         autoria = materia.autoria_set.all()
@@ -1004,6 +1007,8 @@ def relatorio_etiqueta_protocolo(request, nro, ano):
     imagem = get_imagem(casa)
 
     protocolo = Protocolo.objects.filter(numero=nro, ano=ano)
+
+    m = MateriaLegislativa.objects.filter(numero_protocolo=nro,ano=ano)
 
     protocolo_data = get_etiqueta_protocolos(protocolo)
 
@@ -1498,6 +1503,54 @@ def relatorio_sessao_plenaria_pdf(request, pk):
 
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    response.write(pdf_file)
+
+    return response
+
+
+def gera_etiqueta_ml(materia_legislativa, base_url):
+    confg = ConfigEtiquetaMateriaLegislativa.objects.first()
+
+    ml_info =  unidecode.unidecode("{}/{}-{}".format(materia_legislativa.numero,
+                                                     materia_legislativa.ano, 
+                                                     materia_legislativa.tipo.sigla))
+    base64_data = create_barcode(ml_info, 100, 500)
+    barcode = 'data:image/png;base64,{0}'.format(base64_data)
+
+    max_ementa_size = 240
+    ementa = materia_legislativa.ementa
+    ementa = ementa if len(ementa) < max_ementa_size else ementa[:max_ementa_size]+"..."
+
+    context = {
+        'numero': materia_legislativa.numero,
+        'ano': materia_legislativa.ano,
+        'tipo': materia_legislativa.tipo,
+        'data_apresentacao':materia_legislativa.data_apresentacao,
+        'autores': materia_legislativa.autores.all(),
+        'ementa':ementa,
+        'largura': confg.largura,
+        'altura':confg.largura,
+        'barcode': barcode
+    }
+
+    main_template = render_to_string('relatorios/etiqueta_materia_legislativa.html', context)
+
+    html = HTML(base_url=base_url, string=main_template)
+    main_doc = html.render(stylesheets=[CSS(string="@page {{size: {}cm {}cm;}}".format(confg.largura,confg.altura))])
+
+    pdf_file = main_doc.write_pdf()
+    return pdf_file
+
+
+def etiqueta_materia_legislativa(request, pk):
+    base_url = request.build_absolute_uri()
+    materia_legislativa = MateriaLegislativa.objects.get(pk=pk)
+    
+    pdf_file = gera_etiqueta_ml(materia_legislativa, base_url)
+
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=etiqueta.pdf'
     response['Content-Transfer-Encoding'] = 'binary'
     response.write(pdf_file)
 

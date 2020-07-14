@@ -41,7 +41,7 @@ from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_ma
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.models import Autor, TipoAutor
-from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm
+from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm, AutorFilterSet
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio,
@@ -293,6 +293,58 @@ class AutorCrud(CrudAux):
                     'user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
 
             return url_reverse
+
+
+class PesquisarAutorView(FilterView):
+    model = Autor
+    filterset_class = AutorFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super().get_filterset_kwargs(filterset_class)
+
+        kwargs = {'data': self.request.GET or None}
+
+        qs = self.get_queryset().order_by('nome').distinct()
+
+        kwargs.update({
+            'queryset': qs,
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context['page_range'] = make_pagination(page_obj.number, paginator.num_pages)
+
+        context['NO_ENTRIES_MSG'] = 'Nenhum Autor encontrado!'
+
+        context['title'] = _('Autores')
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super().get(request)
+
+        data = self.filterset.data
+        url = ''
+        if data:
+            url = "&" + str(self.request.META['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('nome=') - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list))
+
+        context['show_results'] = show_results_filter_set(self.request.GET.copy())
+
+        return self.render_to_response(context)
 
 
 class RelatoriosListView(TemplateView):
@@ -1579,32 +1631,25 @@ def mandato_sem_data_inicio():
 
 
 def get_estatistica(request):
+    materias = MateriaLegislativa.objects.all()
+    normas = NormaJuridica.objects.all()
 
-    json_dict = {}
+    datas = [
+        materias.order_by('-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True)
+                .exclude(data_ultima_atualizacao__isnull=True).first(),
+        normas.order_by('-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True)
+                .exclude(data_ultima_atualizacao__isnull=True).first()
+    ]
 
-    datas = [MateriaLegislativa.objects.all().
-                 order_by('-data_ultima_atualizacao').
-                 values_list('data_ultima_atualizacao', flat=True).
-                 first(),
-             NormaJuridica.objects.all().
-                 order_by('-data_ultima_atualizacao').
-                 values_list('data_ultima_atualizacao', flat=True).
-                 first()] # Retorna [None, None] se inexistem registros
+    max_data = max(datas) if datas[0] and datas[1] else next(iter([i for i in datas if i is not None]), '')
 
-    max_data = ''
-
-    if datas[0] and datas[1]:
-        max_data = max(datas)
-    else:
-        max_data = next(iter([i for i in datas if i is not None]), '')
-
-    json_dict["data_ultima_atualizacao"] = max_data
-    json_dict["num_materias_legislativas"] = MateriaLegislativa.objects.all().count()
-    json_dict["num_normas_juridicas "] = NormaJuridica.objects.all().count()
-    json_dict["num_parlamentares"] = Parlamentar.objects.all().count()
-    json_dict["num_sessoes_plenarias"] = SessaoPlenaria.objects.all().count()
-
-    return JsonResponse(json_dict)
+    return JsonResponse({
+        "data_ultima_atualizacao": max_data,
+        "num_materias_legislativas": materias.count(),
+        "num_normas_juridicas ": normas.count(),
+        "num_parlamentares": Parlamentar.objects.all().count(),
+        "num_sessoes_plenarias": SessaoPlenaria.objects.all().count()
+    })
 
 
 class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
@@ -2020,23 +2065,29 @@ class AppConfigCrud(CrudAux):
             recibo_prop_atual = AppConfig.objects.last().receber_recibo_proposicao
             recibo_prop_novo = self.request.POST['receber_recibo_proposicao']
             if recibo_prop_novo == 'False' and recibo_prop_atual:
-                props = Proposicao.objects.filter(hash_code='')
+                props = Proposicao.objects.filter(hash_code='', data_recebimento__isnull=True).exclude(data_envio__isnull=True)
                 for prop in props:
-                    self.gerar_hash(prop)
+                    try:
+                        self.gerar_hash(prop)
+                    except ValidationError as e:
+                        form.add_error('receber_recibo_proposicao',e)
+                        msg = _("Não foi possível mudar a configuração porque a Proposição {} não possui texto original vinculado!".format(prop))
+                        messages.error(self.request, msg)
+                        return super().form_invalid(form)
             return super().form_valid(form)
 
         def gerar_hash(self, inst):
-            inst.save()
             if inst.texto_original:
                 try:
                     inst.hash_code = gerar_hash_arquivo(
                         inst.texto_original.path, str(inst.pk))
+                    inst.save()
                 except IOError:
                     raise ValidationError("Existem proposicoes com arquivos inexistentes.")
             elif inst.texto_articulado.exists():
                 ta = inst.texto_articulado.first()
                 inst.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(inst.pk)
-            inst.save()
+                inst.save()
 
     class CreateView(CrudAux.CreateView):
 

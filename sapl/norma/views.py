@@ -258,7 +258,7 @@ class NormaCrud(Crud):
 
         def get_initial(self):
             initial = super().get_initial()
-            norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
+            norma = NormaJuridica.objects.select_related("materia").get(id=self.kwargs['pk'])
             if norma.materia:
                 initial['tipo_materia'] = norma.materia.tipo
                 initial['ano_materia'] = norma.materia.ano
@@ -267,9 +267,7 @@ class NormaCrud(Crud):
             return initial
 
         def form_valid(self, form):
-            norma_antiga = NormaJuridica.objects.get(
-                pk=self.kwargs['pk']
-            )
+            norma_antiga = NormaJuridica.objects.get(pk=self.kwargs['pk'])
 
             # Feito desta forma para que sejam materializados os assuntos
             # antigos
@@ -329,7 +327,7 @@ def recuperar_norma(request):
         response = JsonResponse({'ementa': norma.ementa,
                                  'id': norma.id})
     except ObjectDoesNotExist:
-        logger.error('user=' + username + '. NormaJuridica buscada (tipo={}, ano={}, numero={}) não existe. '
+        logger.warning('user=' + username + '. NormaJuridica buscada (tipo={}, ano={}, numero={}) não existe. '
                      'Definida com ementa vazia e id 0.'.format(tipo, ano, numero))
         response = JsonResponse({'ementa': '', 'id': 0})
 
