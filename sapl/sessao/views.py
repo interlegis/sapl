@@ -1726,6 +1726,7 @@ def get_materias_expediente(sessao_plenaria):
             resultado = _('Matéria lida') if m.tipo_votacao == 4 else _('Matéria não votada')
             resultado_observacao = _(' ')
 
+
         materias_expediente.append({
             'ementa': m.materia.ementa,
             'titulo': m.materia,
@@ -1737,6 +1738,7 @@ def get_materias_expediente(sessao_plenaria):
             'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=m.materia_id)],
             'numero_protocolo': m.materia.numero_protocolo,
             'numero_processo': m.materia.numeracao_set.last(),
+            'observacao_materia': m.materia.observacao,          
             'observacao': m.observacao
         })
 
@@ -1844,6 +1846,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             voto_nao = " Não Informado"
             voto_abstencoes = " Não Informado"
 
+
         materias_ordem.append({
             'ementa': o.materia.ementa,
             'ementa_observacao': o.observacao,
@@ -1861,6 +1864,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             'voto_nao': voto_nao,
             'voto_abstencoes': voto_abstencoes,
             'voto_nominal': voto_nominal,
+            'observacao': o.observacao          
         })
 
     return {'materias_ordem': materias_ordem}

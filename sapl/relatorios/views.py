@@ -604,6 +604,7 @@ def get_sessao_plenaria(sessao, casa):
             "des_turno": get_turno(materia)[0],
             "situacao": materia.materiaemtramitacao_set.first().tramitacao.status,
             "txt_ementa": str(materia.ementa),
+            "materia_observacao": materia.observacao,
             "ordem_observacao": expediente_materia.observacao,
             "nom_resultado": '',
             "nom_autor": '',
@@ -704,6 +705,7 @@ def get_sessao_plenaria(sessao, casa):
             "des_turno": get_turno(materia)[0],
             # https://github.com/interlegis/sapl/issues/1009
             "txt_ementa": html.unescape(materia.ementa),
+            "materia_observacao": materia.observacao,
             "ordem_observacao": html.unescape(votacao.observacao),
             "nom_autor": '',
             "situacao": materia.materiaemtramitacao_set.first().tramitacao.status
@@ -1127,6 +1129,8 @@ def get_pauta_sessao(sessao, casa):
         dic_expediente_materia["id_materia"] = str(
             materia.numero) + "/" + str(materia.ano)
         dic_expediente_materia["txt_ementa"] = materia.ementa
+        dic_expediente_materia["materia_observacao"] = materia.observacao
+
         dic_expediente_materia["ordem_observacao"] = str(
             expediente_materia.observacao)
 

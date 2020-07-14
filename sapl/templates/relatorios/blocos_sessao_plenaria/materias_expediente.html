@@ -1,3 +1,5 @@
+    {% load common_tags %}
+
     <h2 class="gray-title">Matérias do Expediente</h2>
 
     <table class="grayTable">
@@ -21,7 +23,7 @@
                             {% endif %}
                         </dl>
                     </td>
-                    <td style="width:60%"><div style="margin:10px">{{materia.txt_ementa}}</div></td>
+                    <td style="width:60%"><div style="margin:10px">{{materia.txt_ementa}}<br>{{materia.ordem_observacao}}</div></td>
                     <td style="text-align: center">&nbsp;<b>{{materia.nom_resultado}}</b></td>
                 </tr>
             {% endfor %}
