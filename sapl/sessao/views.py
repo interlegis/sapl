@@ -3435,7 +3435,7 @@ class PautaSessaoDetailView(DetailView):
                 resultado_observacao = _(' ')
 
             ultima_tramitacao = o.materia.tramitacao_set.last()
-            numeracao = Numeracao.objects.filter(materia=m.materia).first()
+            numeracao = Numeracao.objects.filter(materia=o.materia).first()
 
             materias_ordem.append({
                 'id': o.materia_id,
