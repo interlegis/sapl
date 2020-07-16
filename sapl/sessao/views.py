@@ -583,9 +583,12 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_initial(self):
             initial = super().get_initial()
+
             initial['tipo_materia'] = self.object.materia.tipo.id
             initial['numero_materia'] = self.object.materia.numero
             initial['ano_materia'] = self.object.materia.ano
+            initial['numero_ordem'] = self.object.numero_ordem
+
             return initial
 
     class DetailView(MasterDetailCrud.DetailView):
@@ -677,9 +680,12 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
         def get_initial(self):
             initial = super().get_initial()
+
             initial['tipo_materia'] = self.object.materia.tipo.id
             initial['numero_materia'] = self.object.materia.numero
             initial['ano_materia'] = self.object.materia.ano
+            initial['numero_ordem'] = self.object.numero_ordem
+
             return initial
 
     class DetailView(MasterDetailCrud.DetailView):
