@@ -593,16 +593,17 @@ def get_sessao_plenaria(sessao, casa):
 
     # Lista das matérias do Expediente, incluindo o resultado das votacoes
     lst_expediente_materia = []
-    for expediente_materia in ExpedienteMateria.objects.filter(sessao_plenaria=sessao):
+    for expediente_materia in ExpedienteMateria.objects.select_related("materia").filter(sessao_plenaria=sessao):
         # seleciona os detalhes de uma matéria
         materia = expediente_materia.materia
+        materia_em_tramitacao = materia.materiaemtramitacao_set.first()
+
         dic_expediente_materia = {
             "num_ordem": expediente_materia.numero_ordem,
-            "id_materia": "{} {} {}/{}".format(materia.tipo.sigla, materia.tipo.descricao, str(materia.numero),
-                                               str(materia.ano)),
+            "id_materia": f"{materia.tipo.sigla} {materia.tipo.descricao} {str(materia.numero)}/{str(materia.ano)}",
             "des_numeracao": ' ',
             "des_turno": get_turno(materia)[0],
-            "situacao": materia.materiaemtramitacao_set.first().tramitacao.status,
+            "situacao": materia_em_tramitacao.tramitacao.status if materia_em_tramitacao else _("Não informada"),
             "txt_ementa": str(materia.ementa),
             "materia_observacao": materia.observacao,
             "ordem_observacao": expediente_materia.observacao,
@@ -701,6 +702,7 @@ def get_sessao_plenaria(sessao, casa):
         if numeracao:
             dic_votacao["des_numeracao"] = (str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
 
+        materia_em_tramitacao = materia.materiaemtramitacao_set.first()
         dic_votacao.update({
             "des_turno": get_turno(materia)[0],
             # https://github.com/interlegis/sapl/issues/1009
@@ -708,7 +710,7 @@ def get_sessao_plenaria(sessao, casa):
             "materia_observacao": materia.observacao,
             "ordem_observacao": html.unescape(votacao.observacao),
             "nom_autor": '',
-            "situacao": materia.materiaemtramitacao_set.first().tramitacao.status
+            "situacao": materia_em_tramitacao.tramitacao.status if materia_em_tramitacao else _("Não informada")
         })
 
         autoria = materia.autoria_set.all()

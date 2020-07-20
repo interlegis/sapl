@@ -202,60 +202,46 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
         obj = context['object_list'][i]
-        url_materia = reverse('sapl.materia:materialegislativa_detail',
-                              kwargs={'pk': materia.id})
-        numeracao = materia.numeracao_set.first()
-        autoria = materia.autoria_set.filter(
-            primeiro_autor=True).first()
-        autor = autoria.autor if autoria else None
-        num_protocolo = materia.numero_protocolo
+        url_materia = reverse('sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
+        numeracao = materia.numeracao_set.first() if materia.numeracao_set.first() else "-"
+        autoria = materia.autoria_set.filter(primeiro_autor=True).first()
+        autor = autoria.autor if autoria else "-"
+        num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
 
         data_inicio_sessao = SessaoPlenaria.objects.get(id=pk).data_inicio
 
-        tramitacao = Tramitacao.objects.filter(materia=materia,
-                                               turno__isnull=False,
-                                               data_tramitacao__lte=data_inicio_sessao
-                                               ).exclude(turno__exact=''
-                                                         ).select_related(
-            'materia',
-            'status',
-            'materia__tipo').order_by(
-            '-data_tramitacao'
-        ).first()
-        turno = '  '
+        tramitacao = Tramitacao.objects\
+                               .select_related('materia', 'status', 'materia__tipo')\
+                               .filter(materia=materia, turno__isnull=False, data_tramitacao__lte=data_inicio_sessao)\
+                               .exclude(turno__exact='')\
+                               .order_by('-data_tramitacao')\
+                               .first()
+        turno = '-'
         if tramitacao:
             for t in Tramitacao.TURNO_CHOICES:
                 if t[0] == tramitacao.turno:
                     turno = t[1]
                     break
-        situacao = MateriaEmTramitacao.objects.select_related("materia", "tramitacao")\
-                                              .filter(materia=materia).first().tramitacao.status
+        materia_em_tramitacao = MateriaEmTramitacao.objects\
+                                                   .select_related("materia", "tramitacao")\
+                                                   .filter(materia=materia)\
+                                                   .first()
+        situacao = materia_em_tramitacao.tramitacao.status if materia_em_tramitacao else '-'
 
-        title_materia = """<a id=id%s href=%s>%s</a> </br>
-                           <b>Processo:</b> %s </br>
-                           <b>Autor:</b> %s </br>
-                           <b>Protocolo:</b> %s </br>
-                           <b>Turno:</b> %s </br>
-                           <b>Situação:</b> %s </br>
-                        """ % (obj.materia.id,
-                               url_materia,
-                               row[1][0],
-                               numeracao if numeracao else '',
-                               autor if autor else '',
-                               num_protocolo if num_protocolo else '',
-                               turno,
-                               situacao if situacao else '')
-
+        title_materia = f"""<a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
+                           <b>Processo:</b> {numeracao}</br>
+                           <b>Autor:</b> {autor}</br>
+                           <b>Protocolo:</b> {num_protocolo}</br>
+                           <b>Turno:</b> {turno}</br>
+                           <b>Situação:</b> {situacao}</br>
+                        """
         # Na linha abaixo, o segundo argumento é None para não colocar
         # url em toda a string de title_materia
         context['rows'][i][1] = (title_materia, None)
 
-        exist_resultado = obj.registrovotacao_set.filter(
-            materia=obj.materia).exists()
-        exist_retirada = obj.retiradapauta_set.filter(
-            materia=obj.materia).exists()
-        exist_leitura = obj.registroleitura_set.filter(
-            materia=obj.materia).exists()
+        exist_resultado = obj.registrovotacao_set.filter(materia=obj.materia).exists()
+        exist_retirada = obj.retiradapauta_set.filter(materia=obj.materia).exists()
+        exist_leitura = obj.registroleitura_set.filter(materia=obj.materia).exists()
 
         if (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or\
                 (obj.tipo_votacao == 4 and not exist_leitura):
@@ -1726,13 +1712,13 @@ def get_materias_expediente(sessao_plenaria):
             resultado = _('Matéria lida') if m.tipo_votacao == 4 else _('Matéria não votada')
             resultado_observacao = _(' ')
 
-
+        materia_em_tramitacao = m.materia.materiaemtramitacao_set.first()
         materias_expediente.append({
             'ementa': m.materia.ementa,
             'titulo': m.materia,
             'numero': m.numero_ordem,
             'turno': get_turno(tramitacao.turno) if tramitacao else None,
-            'situacao': m.materia.materiaemtramitacao_set.first().tramitacao.status,
+            'situacao': materia_em_tramitacao.tramitacao.status if materia_em_tramitacao else _("Não informada"),
             'resultado': resultado,
             'resultado_observacao': resultado_observacao,
             'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=m.materia_id)],
@@ -1846,14 +1832,14 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             voto_nao = " Não Informado"
             voto_abstencoes = " Não Informado"
 
-
+        materia_em_tramitacao = o.materia.materiaemtramitacao_set.first()
         materias_ordem.append({
             'ementa': o.materia.ementa,
             'ementa_observacao': o.observacao,
             'titulo': o.materia,
             'numero': o.numero_ordem,
             'turno': get_turno(tramitacao.turno) if tramitacao else None,
-            'situacao': o.materia.materiaemtramitacao_set.first().tramitacao.status,
+            'situacao': materia_em_tramitacao.tramitacao.status if materia_em_tramitacao else _("Não informada"),
             'resultado': resultado,
             'resultado_observacao': resultado_observacao,
             'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)],
