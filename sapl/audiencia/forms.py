@@ -126,13 +126,22 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
             if self.cleaned_data['hora_fim'] < self.cleaned_data['hora_inicio']:
                 msg = _('A hora de fim ({}) não pode ser anterior a hora de início({})'
                         .format(self.cleaned_data['hora_fim'], self.cleaned_data['hora_inicio']))
-                self.logger.warn(
+                self.logger.warning(
                     'Hora de fim anterior à hora de início.'
                 )
                 raise ValidationError(msg)
 
-        if parlamentar_autor.autor.first() not in requerimento.autores.all():
-            raise ValidationError("Parlamentar Autor selecionado não faz parte da autoria do Requerimento selecionado.")
+        # requerimento é optativo
+        if parlamentar_autor and requerimento:
+            if parlamentar_autor.autor.first() not in requerimento.autores.all():
+                raise ValidationError("Parlamentar Autor selecionado não faz"
+                                      " parte da autoria do Requerimento "
+                                      "selecionado.")
+        elif parlamentar_autor:
+            raise ValidationError("Para informar um autor deve-se informar um requerimento.")
+        elif requerimento:
+            raise ValidationError("Para informar um requerimento deve-se informar um autor.")
+
 
         upload_pauta = self.cleaned_data.get('upload_pauta', False)
         upload_ata = self.cleaned_data.get('upload_ata', False)
