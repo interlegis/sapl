@@ -21,14 +21,20 @@ urlpatterns = [
         name='relatorio_documento_administrativo'),
     url(r'^relatorios/espelho$', relatorio_espelho,
         name='relatorio_espelho'),
-    #url(r'^relatorios/(?P<pk>\d+)/sessao-plenaria$',
-    #    relatorio_sessao_plenaria, name='relatorio_sessao_plenaria'),
+
+    # Url utilizada no arquivo: templates/sessao/pauta_sessao_list.html
+    url(r'^relatorios/(?P<pk>\d+)/sessao-plenaria$',
+        relatorio_sessao_plenaria, name='relatorio_sessao_plenaria'),
+
     url(r'^relatorios/protocolo$',
         relatorio_protocolo, name='relatorio_protocolo'),
     url(r'^relatorios/(?P<nro>\d+)/(?P<ano>\d+)/etiqueta-protocolo$',
         relatorio_etiqueta_protocolo, name='relatorio_etiqueta_protocolo'),
-    # url(r'^relatorios/pauta-sessao/(?P<pk>\d+)/$',
-    #     relatorio_pauta_sessao, name='relatorio_pauta_sessao'),
+
+    # Url utilizada no arquivo: templates/sessao/pauta_sessao_filter.html
+    url(r'^relatorios/pauta-sessao/(?P<pk>\d+)/$',
+        relatorio_pauta_sessao, name='relatorio_pauta_sessao'),
+    
     url(r'^relatorios/(?P<pk>\d+)/resumo_ata$',
         resumo_ata_pdf, name='resumo_ata_pdf'),
     url(r'^relatorios/(?P<pk>\d+)/sessao-plenaria-pdf$',
