@@ -476,7 +476,7 @@ class TramitacaoForm(ModelForm):
         unidade_tramitacao_destino = [('', '---------')] + [(ut.pk, ut)
                                                             for ut in ust if ut.comissao and ut.comissao.ativa]
         unidade_tramitacao_destino.extend(
-            [(ut.pk, ut) for ut in ust if ut.orgao])
+            [(ut.pk, ut) for ut in ust if ut.orgao or ut.comissao])
         unidade_tramitacao_destino.extend(
             [(ut.pk, ut) for ut in ust if ut.parlamentar])
         self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
