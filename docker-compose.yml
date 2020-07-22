@@ -26,7 +26,7 @@ services:
     networks:
       - sapl-net
   sapl:
-    image: interlegis/sapl:3.1.161-RC4
+    image: interlegis/sapl:3.1.161-RC5
     #build: .
     restart: always
     environment:
