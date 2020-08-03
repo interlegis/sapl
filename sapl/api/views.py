@@ -381,19 +381,16 @@ class _ParlamentarViewSet:
         data_atual = timezone.now().date()
 
         filter_params = {
-            'legislatura':legislatura,
-            'data_inicio_mandato__gte':legislatura.data_inicio,
-            'data_fim_mandato__gte':legislatura.data_fim,
+            'legislatura': legislatura,
+            'data_inicio_mandato__gte': legislatura.data_inicio,
+            'data_fim_mandato__lte': legislatura.data_fim,
         }
 
-        if legislatura.data_inicio < data_atual < legislatura.data_fim:
-            filter_params['data_fim_mandato__gte'] = data_atual
-
-        mandatos = Mandato.objects.filter(**filter_params).order_by('-data_inicio_mandato')  
+        mandatos = Mandato.objects.filter(**filter_params).order_by('-data_inicio_mandato')
         parlamentares = Parlamentar.objects.filter(mandato__in=mandatos).distinct()
-        serializer_class = ParlamentarResumeSerializer(parlamentares,
-                                                        many=True,
-                                                        context={'request':request,'legislatura':kwargs['pk']})
+        serializer_class = ParlamentarResumeSerializer(parlamentares, many=True, context={
+            'request': request, 'legislatura': kwargs['pk']
+        })
         return Response(serializer_class.data)
 
     @action(detail=False,methods=['GET'])
