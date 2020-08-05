@@ -12,6 +12,14 @@ services:
       - "5433:5432"
     networks:
       - sapl-net-dev
+  
+  redis:
+    image: redis:latest
+    command: redis-server
+    ports:
+      - "6379:6379"
+    networks:
+      - sapl-net-dev
 
   sapl-dev:
     container_name: sapl-dev
@@ -31,6 +39,7 @@ services:
       TZ: America/Sao_Paulo
     depends_on:
       - sapldb-dev
+      - redis
     networks:
       - sapl-net-dev
 
