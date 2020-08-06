@@ -118,7 +118,7 @@
                                 '</div>'+
                                 '<thead><tr><td>Matéria</td></tr></thead>'+
                                 '<tbody>'+
-                                    opcoes +            
+                                    opcoes +
                                 '</tbody>'+
                             '</table>'
                         );
@@ -135,7 +135,10 @@
             // Identifica as matérias que já estão adicionadas na sessão destino
             $("#id_sessao_plenaria").ready(buscar_materias_sessao);
             $("#id_sessao_plenaria").change(buscar_materias_sessao);
+
+            $(window).on('beforeunload', function () {
+                $("input[type=submit]").prop("disabled", "disabled");
+            });
         });
     </script>
 {% endblock %}
-
