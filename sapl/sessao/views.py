@@ -609,7 +609,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             context['sessoes_destino'] = SessaoPlenaria.objects.filter(
                 data_inicio__gte=sessao_plenaria_atual.data_inicio
             ).exclude(pk=sessao_plenaria_atual.pk).order_by("-data_inicio")
-        
+
         context['materias_sessao'] = materias_sessao
         return context
 
@@ -635,19 +635,15 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
                 'Interlegis.'
             )
             messages.add_message(request, messages.WARNING, msg_c)
-            
+
             return self.get(request, self.kwargs)
-        
+
         sessao = SessaoPlenaria.objects.get(id=sessao_plenaria_destino_id)
         if self.expediente:
             lista_expediente = []
 
-            numero_ordem = ExpedienteMateria.objects.filter(
-                sessao_plenaria=sessao
-            ).last().numero_ordem if ExpedienteMateria.objects.filter(
-                sessao_plenaria=sessao
-            ).exists() else 0
-
+            exp = ExpedienteMateria.objects.filter(sessao_plenaria=sessao)
+            numero_ordem = exp.last().numero_ordem if exp.exists() else 0
             for num_ordem, expediente in enumerate(
                 ExpedienteMateria.objects.filter(id__in=marcadas),
                 numero_ordem+1
