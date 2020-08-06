@@ -529,19 +529,25 @@ def get_presencas_generic(model, sessao, legislatura):
             yield (m.parlamentar, False)
 
 
+# Constantes de identificação de categoria de Matéria Legislativa
+# para Cópia de Matérias entre Sessões
+MATERIAS_EXPEDIENTE = 1
+MATERIAS_ORDEMDIA = 2
+
+
 def filtra_materias_copia_sessao_ajax(request):
-    title_flag =  request.GET['title_flag']
+    categoria_materia = int(request.GET['categoria_materia'])
     sessao_plenaria = request.GET['sessao_plenaria_atual']
     sessao_plenaria_destino = request.GET['sessao_plenaria_destino']
 
-    if title_flag == "Cópia de Matérias do Expediente":
+    if categoria_materia == MATERIAS_EXPEDIENTE:
         materias_sessao_destino = ExpedienteMateria.objects.filter(sessao_plenaria=sessao_plenaria_destino).values_list('materia__id')
 
         lista_materias_disponiveis_copia = ExpedienteMateria.objects.filter(
             sessao_plenaria=sessao_plenaria
         ).exclude(materia_id__in=materias_sessao_destino)    
     
-    elif title_flag == "Cópia de Matérias da Ordem do Dia":
+    elif categoria_materia == MATERIAS_ORDEMDIA:
         materias_sessao_destino = [
             ordem.materia for ordem in OrdemDia.objects.filter(
                 sessao_plenaria=sessao_plenaria_destino
@@ -587,12 +593,14 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
 
         if self.expediente:
             context["title"] = self.title
+            context["categoria_materia"] = self.categoria_materia
             materias_sessao = ExpedienteMateria.objects.filter(
                 sessao_plenaria=sessao_plenaria_atual
             ).exists()
 
         elif self.ordem:
             context["title"] = self.title
+            context["categoria_materia"] = self.categoria_materia
             materias_sessao = OrdemDia.objects.filter(
                 sessao_plenaria=sessao_plenaria_atual
             ).exists()
@@ -693,6 +701,7 @@ class TransferenciaMateriasExpediente(TransferenciaMateriasSessaoAbstract):
     expediente = True
     ordem = False
     title = "Cópia de Matérias do Expediente"
+    categoria_materia = MATERIAS_EXPEDIENTE
     listagem_url = 'sapl.sessao:expedientemateria_list'
 
     model = ExpedienteMateria
@@ -703,6 +712,7 @@ class TransferenciaMateriasOrdemDia(TransferenciaMateriasSessaoAbstract):
     expediente = False
     ordem = True
     title = "Cópia de Matérias da Ordem do Dia"
+    categoria_materia = MATERIAS_ORDEMDIA
     listagem_url = 'sapl.sessao:ordemdia_list'
 
     model = OrdemDia

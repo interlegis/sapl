@@ -49,7 +49,7 @@
         }
 
         function buscar_materias_sessao() {
-            let f = "{{ title }}"
+            let categoria_materia = "{{ categoria_materia }}"
             let pk_sessao_plenaria_atual = "{{ root_pk }}"
             let id_sessao_plenaria = $("#id_sessao_plenaria").val();
 
@@ -57,7 +57,7 @@
                 {
                     sessao_plenaria_atual: pk_sessao_plenaria_atual,
                     sessao_plenaria_destino: id_sessao_plenaria,
-                    title_flag: f
+                    categoria_materia: categoria_materia
                 },
                 function(data) {
                     lista_materias = data['materias'];
