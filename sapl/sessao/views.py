@@ -592,14 +592,20 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             return context
 
         if self.expediente:
-            context["title"] = self.title
+            context['title'] = '%s <small>(%s)</small>' % (
+                self.title, sessao_plenaria_atual.__str__()
+            )
+
             context["categoria_materia"] = self.categoria_materia
             materias_sessao = ExpedienteMateria.objects.filter(
                 sessao_plenaria=sessao_plenaria_atual
             ).exists()
 
         elif self.ordem:
-            context["title"] = self.title
+            context["title"] = '%s <small>(%s)</small>' % (
+                self.title, sessao_plenaria_atual.__str__()
+            )
+
             context["categoria_materia"] = self.categoria_materia
             materias_sessao = OrdemDia.objects.filter(
                 sessao_plenaria=sessao_plenaria_atual
