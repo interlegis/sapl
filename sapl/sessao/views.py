@@ -692,7 +692,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
 class TransferenciaMateriasExpediente(TransferenciaMateriasSessaoAbstract):
     expediente = True
     ordem = False
-    title = "Cópia de Matérias do Expediente"
+    title = "Copiar Matérias do Expediente"
     categoria_materia = MATERIAS_EXPEDIENTE
     listagem_url = 'sapl.sessao:expedientemateria_list'
 
@@ -703,7 +703,7 @@ class TransferenciaMateriasExpediente(TransferenciaMateriasSessaoAbstract):
 class TransferenciaMateriasOrdemDia(TransferenciaMateriasSessaoAbstract):
     expediente = False
     ordem = True
-    title = "Cópia de Matérias da Ordem do Dia"
+    title = "Copiar Matérias da Ordem do Dia"
     categoria_materia = MATERIAS_ORDEMDIA
     listagem_url = 'sapl.sessao:ordemdia_list'
 
