@@ -535,11 +535,7 @@ def filtra_materias_copia_sessao_ajax(request):
     sessao_plenaria_destino = request.GET['sessao_plenaria_destino']
 
     if title_flag == "Cópia de Matérias do Expediente":
-        materias_sessao_destino = [
-            expediente.materia for expediente in ExpedienteMateria.objects.filter(
-                sessao_plenaria=sessao_plenaria_destino
-            )
-        ]
+        materias_sessao_destino = ExpedienteMateria.objects.filter(sessao_plenaria=sessao_plenaria_destino).values_list('materia__id')
 
         lista_materias_disponiveis_copia = ExpedienteMateria.objects.filter(
             sessao_plenaria=sessao_plenaria
