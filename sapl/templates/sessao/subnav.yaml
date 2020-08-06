@@ -28,7 +28,7 @@
     - title: {% trans 'Votação em Bloco' %}
       url: votacao_bloco_expediente
       check_permission: sessao.add_sessaoplenaria
-    - title: {% trans 'Copiar Matérias Expediente para outra Sessão' %}
+    - title: {% trans 'Copiar Matérias para Sessão Posterior' %}
       url: transf_mat_exp
       check_permission: sessao.add_sessaoplenaria
 
@@ -44,7 +44,7 @@
     - title: {% trans 'Votação em Bloco' %}
       url: votacao_bloco_ordemdia
       check_permission: sessao.add_sessaoplenaria
-    - title: {% trans 'Copiar Matérias Ordem do Dia para outra Sessão' %}
+    - title: {% trans 'Copiar Matérias para Sessão Posterior' %}
       url: transf_mat_ordemdia
       check_permission: sessao.add_sessaoplenaria
 
