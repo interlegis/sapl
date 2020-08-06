@@ -226,14 +226,12 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                                    .select_related("materia", "tramitacao")\
                                                    .filter(materia=materia)\
                                                    .first()
-        situacao = materia_em_tramitacao.tramitacao.status if materia_em_tramitacao else '-'
 
         title_materia = f"""<a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
                            <b>Processo:</b> {numeracao}</br>
                            <b>Autor:</b> {autor}</br>
                            <b>Protocolo:</b> {num_protocolo}</br>
                            <b>Turno:</b> {turno}</br>
-                           <b>Situação:</b> {situacao}</br>
                         """
         # Na linha abaixo, o segundo argumento é None para não colocar
         # url em toda a string de title_materia
