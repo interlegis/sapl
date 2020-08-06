@@ -539,7 +539,7 @@ def filtra_materias_copia_sessao_ajax(request):
 
         lista_materias_disponiveis_copia = ExpedienteMateria.objects.filter(
             sessao_plenaria=sessao_plenaria
-        ).exclude(materia__in=materias_sessao_destino)    
+        ).exclude(materia_id__in=materias_sessao_destino)    
     
     elif title_flag == "Cópia de Matérias da Ordem do Dia":
         materias_sessao_destino = [
