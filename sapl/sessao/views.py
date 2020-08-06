@@ -659,16 +659,12 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
                     )
                 )
             ExpedienteMateria.objects.bulk_create(lista_expediente)
-        
+
         elif self.ordem:
             lista_ordemdia = []
 
-            numero_ordem = OrdemDia.objects.filter(
-                sessao_plenaria=sessao
-            ).last().numero_ordem if OrdemDia.objects.filter(
-                sessao_plenaria=sessao
-            ).exists() else 0
-
+            o = OrdemDia.objects.filter(sessao_plenaria=sessao)
+            numero_ordem = o.last().numero_ordem if o.exists() else 0
             for num_ordem, ordemdia in enumerate(
                 OrdemDia.objects.filter(id__in=marcadas), numero_ordem+1
             ):
@@ -679,7 +675,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
                         observacao=ordemdia.observacao,
                         numero_ordem=num_ordem,
                         tipo_votacao=ordemdia.tipo_votacao,
-                        votacao_aberta=False, registro_aberto=False 
+                        votacao_aberta=False, registro_aberto=False
                     )
                 )
             OrdemDia.objects.bulk_create(lista_ordemdia)
