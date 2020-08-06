@@ -541,22 +541,22 @@ def filtra_materias_copia_sessao_ajax(request):
     sessao_plenaria_destino = request.GET['sessao_plenaria_destino']
 
     if categoria_materia == MATERIAS_EXPEDIENTE:
-        materias_sessao_destino = ExpedienteMateria.objects.filter(sessao_plenaria=sessao_plenaria_destino).values_list('materia__id')
+        materias_sessao_destino = ExpedienteMateria.objects.filter(
+            sessao_plenaria=sessao_plenaria_destino
+        ).values_list('materia__id')
 
         lista_materias_disponiveis_copia = ExpedienteMateria.objects.filter(
             sessao_plenaria=sessao_plenaria
-        ).exclude(materia_id__in=materias_sessao_destino)    
-    
+        ).exclude(materia__id__in=materias_sessao_destino)
+
     elif categoria_materia == MATERIAS_ORDEMDIA:
-        materias_sessao_destino = [
-            ordem.materia for ordem in OrdemDia.objects.filter(
-                sessao_plenaria=sessao_plenaria_destino
-            )
-        ]
-        
+        materias_sessao_destino = OrdemDia.objects.filter(
+            sessao_plenaria=sessao_plenaria_destino
+        ).values_list('materia__id')
+
         lista_materias_disponiveis_copia = OrdemDia.objects.filter(
             sessao_plenaria=sessao_plenaria
-        ).exclude(materia__in=materias_sessao_destino)
+        ).exclude(materia__id__in=materias_sessao_destino)
 
     lista_materias = [
         {
