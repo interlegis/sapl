@@ -34,17 +34,18 @@ from sapl.parlamentares.apps import AppConfig
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm, 
+                    ParlamentarCreateForm, ParlamentarForm, VotanteForm,
                     ParlamentarFilterSet, VincularParlamentarForm,
-                    BlocoForm)
+                    BlocoForm, FrenteParlamentarForm)
                     
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco)
+                     Bloco, FrenteCargo, FrenteParlamentar)
 
 
+FrenteCargoCrud = CrudAux.build(FrenteCargo, 'frente_cargo')
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
@@ -384,8 +385,7 @@ class FrenteCrud(Crud):
     model = Frente
     help_topic = 'tipo_situa_militar'
     public = [RP_DETAIL, RP_LIST]
-    list_field_names = ['nome', 'data_criacao',
-                        'data_extincao', 'parlamentares']
+    list_field_names = ['nome', 'data_criacao', 'data_extincao']
 
     class BaseMixin(Crud.BaseMixin):
         def get_context_data(self, **kwargs):
@@ -401,6 +401,65 @@ class FrenteCrud(Crud):
 
     class UpdateView(Crud.UpdateView):
         form_class = FrenteForm
+
+
+class FrenteParlamentarCrud(MasterDetailCrud):
+    model = FrenteParlamentar
+    parent_field = 'frente'
+    help_topic = 'frente_parlamentares'
+    public = [RP_LIST, RP_DETAIL]
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = FrenteParlamentarForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+        def get_initial(self):
+            self.initial['frente'] = Frente.objects.get(pk=self.kwargs['pk'])
+            return self.initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = FrenteParlamentarForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+    class DetailView(MasterDetailCrud.DetailView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+    class ListView(MasterDetailCrud.ListView):
+        layout_key = 'FrenteParlamentarList'
+        ordering = ('-cargo__cargo_unico', 'parlamentar')
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+
+def get_parlamentar_frentes(request, pk):
+    template_name = 'parlamentares/parlamentar_frentes_list.html'
+    frentes = [f for f in FrenteParlamentar.objects.filter(parlamentar_id=pk)
+                                                   .select_related('frente', 'cargo')
+                                                   .order_by('-data_entrada', '-data_saida')]
+
+    context = {
+        'subnav_template_name': 'parlamentares/subnav.yaml',
+        'root_pk': pk,
+        'nome_parlamentar': Parlamentar.objects.get(id=pk).nome_parlamentar,
+        'frentes': frentes,
+        'num_frentes': len(frentes)
+    }
+
+    return render(request, template_name, context)
 
 
 class MandatoCrud(MasterDetailCrud):
