@@ -56,9 +56,9 @@ from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocol
                                       TipoDocumentoAdministrativo)
 from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, TipoSessaoPlenaria)
-from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao,
-                        mail_service_configured, parlamentares_ativos,
-                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo)
+from sapl.utils import (from_date_to_datetime_utc, gerar_hash_arquivo, intervalos_tem_intersecao,
+                        mail_service_configured, parlamentares_ativos, SEPARADOR_HASH_PROPOSICAO,
+                        show_results_filter_set, num_materias_por_tipo)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm,
                     ConfiguracoesAppForm, RelatorioAtasFilterSet,
@@ -2102,6 +2102,59 @@ class AppConfigCrud(CrudAux):
                 reverse('sapl.base:appconfig_update',
                         kwargs={'pk': app_config.pk}))
 
+
+    class UpdateView(CrudAux.UpdateView):
+        
+        form_class = ConfiguracoesAppForm
+
+        def form_valid(self, form):
+            numeracao = AppConfig.objects.last().sequencia_numeracao_protocolo
+            numeracao_antiga = AppConfig.objects.last().inicio_numeracao_protocolo
+
+            self.object = form.save()
+            numeracao_nova = self.object.inicio_numeracao_protocolo
+            
+            if numeracao_nova != numeracao_antiga:
+                if numeracao == 'A':
+                    numero_max = Protocolo.objects.filter(
+                        ano=timezone.now().year
+                    ).aggregate(Max('numero'))['numero__max']
+                elif numeracao == 'L':
+                    legislatura = Legislatura.objects.filter(
+                        data_inicio__year__lte=timezone.now().year,
+                        data_fim__year__gte=timezone.now().year
+                    ).first()
+
+                    data_inicio = legislatura.data_inicio
+                    data_fim = legislatura.data_fim
+
+                    data_inicio_utc = from_date_to_datetime_utc(data_inicio)
+                    data_fim_utc = from_date_to_datetime_utc(data_fim)
+
+                    numero_max = Protocolo.objects.filter(
+                        Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) | 
+                        Q(
+                            timestamp__isnull=False, timestamp__gte=data_inicio_utc,
+                            timestamp__lte=data_fim_utc
+                        ) | Q(
+                            timestamp_data_hora_manual__isnull=False,
+                            timestamp_data_hora_manual__gte=data_inicio_utc,
+                            timestamp_data_hora_manual__lte=data_fim_utc,
+                        )
+                    ).aggregate(Max('numero'))['numero__max']
+                elif numeracao == 'U':
+                    numero_max = Protocolo.objects.all().aggregate(
+                        Max('numero')
+                    )['numero__max']
+
+                ultimo_numero_cadastrado = int(numero_max) if numero_max else 0
+                if numeracao_nova <= ultimo_numero_cadastrado and numeracao != 'U':
+                    msg = "O novo início da numeração de protocolo entrará em vigor na " \
+                          "próxima sequência, pois já existe protocolo cadastrado com " \
+                          "número superior ou igual ao número inicial definido."
+                    messages.warning(self.request, msg)
+
+            return super().form_valid(form)
 
     class ListView(CrudAux.ListView):
 

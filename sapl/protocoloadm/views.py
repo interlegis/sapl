@@ -44,23 +44,19 @@ from sapl.utils import (create_barcode, get_base_url, get_client_ip,
 from django.shortcuts import render
 
 
-from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
-                    DocumentoAcessorioAdministrativoForm,
-                    DocumentoAdministrativoFilterSet,
-                    DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm, ProtocoloDocumentForm,
-                    ProtocoloFilterSet, ProtocoloMateriaForm,
-                    TramitacaoAdmEditForm, TramitacaoAdmForm,
+from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
+                    AnularProtocoloAdmForm, compara_tramitacoes_doc,
                     DesvincularDocumentoForm, DesvincularMateriaForm,
-                    filtra_tramitacao_adm_destino_and_status,
-                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status,
-                    AnexadoForm, AnexadoEmLoteFilterSet,
-                    PrimeiraTramitacaoEmLoteAdmFilterSet,
-                    TramitacaoEmLoteAdmForm,
-                    TramitacaoEmLoteAdmFilterSet,
-                    compara_tramitacoes_doc)
-from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
+                    DocumentoAcessorioAdministrativoForm, DocumentoAdministrativoFilterSet,
+                    DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm,
+                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_destino_and_status,
+                    filtra_tramitacao_adm_status,  PrimeiraTramitacaoEmLoteAdmFilterSet,
+                    ProtocoloDocumentoForm, ProtocoloFilterSet, ProtocoloMateriaForm,
+                    TramitacaoAdmEditForm, TramitacaoAdmForm, TramitacaoEmLoteAdmForm,
+                    TramitacaoEmLoteAdmFilterSet)
+from .models import (Anexado, AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo, Anexado)
+                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
@@ -582,7 +578,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
     logger = logging.getLogger(__name__)
 
     template_name = "protocoloadm/protocolar_documento.html"
-    form_class = ProtocoloDocumentForm
+    form_class = ProtocoloDocumentoForm
     form_valid_message = _('Protocolo cadastrado com sucesso!')
     permission_required = ('protocoloadm.add_protocolo', )
 
@@ -617,12 +613,14 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             return self.render_to_response(self.get_context_data())
 
         if numeracao == 'A':
-            numero = Protocolo.objects.filter(
-                ano=timezone.now().year).aggregate(Max('numero'))
+            numero_max = Protocolo.objects.filter(ano=timezone.now().year).aggregate(
+                Max('numero')
+            )['numero__max']
         elif numeracao == 'L':
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
-                data_fim__year__gte=timezone.now().year).first()
+                data_fim__year__gte=timezone.now().year
+            ).first()
 
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
@@ -630,32 +628,28 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             data_inicio_utc = from_date_to_datetime_utc(data_inicio)
             data_fim_utc = from_date_to_datetime_utc(data_fim)
 
-            numero = Protocolo.objects.filter(
-                Q(data__isnull=False,
-                  data__gte=data_inicio,
-                  data__lte=data_fim) |
-                Q(timestamp__isnull=False,
-                  timestamp__gte=data_inicio_utc,
-                  timestamp__lte=data_fim_utc) |
-                Q(timestamp_data_hora_manual__isnull=False,
-                  timestamp_data_hora_manual__gte=data_inicio_utc,
-                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
-                aggregate(Max('numero'))
+            numero_max = Protocolo.objects.filter(
+                Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) | Q(
+                    timestamp__isnull=False, timestamp__gte=data_inicio_utc,
+                    timestamp__lte=data_fim_utc
+                ) | Q(
+                        timestamp_data_hora_manual__isnull=False,
+                        timestamp_data_hora_manual__gte=data_inicio_utc,
+                        timestamp_data_hora_manual__lte=data_fim_utc,
+                    )
+                ).aggregate(Max('numero'))['numero__max']
         elif numeracao == 'U':
-            numero = Protocolo.objects.all().aggregate(Max('numero'))
+            numero_max = Protocolo.objects.all().aggregate(Max('numero'))['numero__max']
 
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
-        if not protocolo.numero:
-            protocolo.numero = (
-                numero['numero__max'] + 1) if numero['numero__max'] else 1
-        elif protocolo.numero < (numero['numero__max'] + 1) if numero['numero__max'] else 0:
-            msg = _('Número de protocolo deve ser maior que {}'.format(
-                numero['numero__max']))
-            self.logger.error(
-                "user=" + username + ". Número de protocolo deve ser maior que {}.".format(numero['numero__max']))
-            messages.add_message(self.request, messages.ERROR, msg)
-            return self.render_to_response(self.get_context_data())
+
+        inicio_numeracao = AppConfig.objects.first().inicio_numeracao_protocolo
+        numero = int(numero_max) if numero_max else 0
+        protocolo.numero = (
+            (numero + 1 ) if numero and numero >= inicio_numeracao else inicio_numeracao
+        )
+
         protocolo.ano = timezone.now().year
         protocolo.assunto_ementa = self.request.POST['assunto']
 
@@ -829,47 +823,40 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             return self.render_to_response(self.get_context_data())
 
         if numeracao == 'A':
-            numero = Protocolo.objects.filter(
-                ano=timezone.now().year).aggregate(Max('numero'))
+            numero_max = Protocolo.objects.filter(ano=timezone.now().year).aggregate(
+                Max('numero')
+            )['numero__max']
         elif numeracao == 'L':
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
-                data_fim__year__gte=timezone.now().year).first()
+                data_fim__year__gte=timezone.now().year
+            ).first()
+
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
 
             data_inicio_utc = from_date_to_datetime_utc(data_inicio)
             data_fim_utc = from_date_to_datetime_utc(data_fim)
 
-            numero = Protocolo.objects.filter(
-                Q(data__isnull=False,
-                  data__gte=data_inicio,
-                  data__lte=data_fim) |
-                Q(timestamp__isnull=False,
-                  timestamp__gte=data_inicio_utc,
-                  timestamp__lte=data_fim_utc) |
-                Q(timestamp_data_hora_manual__isnull=False,
-                  timestamp_data_hora_manual__gte=data_inicio_utc,
-                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
-                aggregate(Max('numero'))
-
+            numero_max = Protocolo.objects.filter(
+                Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) | Q(
+                    timestamp__isnull=False, timestamp__gte=data_inicio_utc,
+                    timestamp__lte=data_fim_utc
+                ) | Q(
+                    timestamp_data_hora_manual__isnull=False,
+                    timestamp_data_hora_manual__gte=data_inicio_utc,
+                    timestamp_data_hora_manual__lte=data_fim_utc,
+                )
+            ).aggregate(Max('numero'))['numero__max']
         elif numeracao == 'U':
-            numero = Protocolo.objects.all().aggregate(Max('numero'))
+            numero_max = Protocolo.objects.all().aggregate(Max('numero'))['numero__max']
 
-        if numeracao is None:
-            numero['numero__max'] = 0
-
-        if not protocolo.numero:
-            protocolo.numero = (
-                numero['numero__max'] + 1) if numero['numero__max'] else 1
-        if numero['numero__max']:
-            if protocolo.numero < (numero['numero__max'] + 1):
-                self.logger.error("user=" + username + ". Número de protocolo ({}) é menor que {}"
-                                  .format(protocolo.numero, numero['numero__max']))
-                msg = _('Número de protocolo deve ser maior que {}'.format(
-                    numero['numero__max']))
-                messages.add_message(self.request, messages.ERROR, msg)
-                return self.render_to_response(self.get_context_data())
+        inicio_numeracao = AppConfig.objects.first().inicio_numeracao_protocolo
+        numero = int(numero_max) if numero_max else 0
+        protocolo.numero = (
+            (numero + 1 ) if numero and numero >= inicio_numeracao else inicio_numeracao
+        )
+        
         protocolo.ano = timezone.now().year
 
         protocolo.tipo_protocolo = 0
