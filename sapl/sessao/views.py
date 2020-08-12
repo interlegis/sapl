@@ -517,6 +517,194 @@ def get_presencas_generic(model, sessao, legislatura):
             yield (m.parlamentar, False)
 
 
+# Constantes de identificação de categoria de Matéria Legislativa
+# para Cópia de Matérias entre Sessões
+MATERIAS_EXPEDIENTE = 1
+MATERIAS_ORDEMDIA = 2
+
+
+def filtra_materias_copia_sessao_ajax(request):
+    categoria_materia = int(request.GET['categoria_materia'])
+    sessao_plenaria = request.GET['sessao_plenaria_atual']
+    sessao_plenaria_destino = request.GET['sessao_plenaria_destino']
+
+    if categoria_materia == MATERIAS_EXPEDIENTE:
+        materias_sessao_destino = ExpedienteMateria.objects.filter(
+            sessao_plenaria=sessao_plenaria_destino
+        ).values_list('materia__id')
+
+        lista_materias_disponiveis_copia = ExpedienteMateria.objects.filter(
+            sessao_plenaria=sessao_plenaria
+        ).exclude(materia__id__in=materias_sessao_destino)
+
+    elif categoria_materia == MATERIAS_ORDEMDIA:
+        materias_sessao_destino = OrdemDia.objects.filter(
+            sessao_plenaria=sessao_plenaria_destino
+        ).values_list('materia__id')
+
+        lista_materias_disponiveis_copia = OrdemDia.objects.filter(
+            sessao_plenaria=sessao_plenaria
+        ).exclude(materia__id__in=materias_sessao_destino)
+
+    lista_materias = [
+        {
+            'id': opcao.id,
+            'materia_id': opcao.materia.id,
+            'materia_tipo_sigla': opcao.materia.tipo.sigla,
+            'materia_numero': opcao.materia.numero,
+            'materia_ano': opcao.materia.ano,
+            'materia_tipo_descricao': opcao.materia.tipo.descricao
+        } for opcao in lista_materias_disponiveis_copia
+    ]
+
+    return JsonResponse({ 'materias': lista_materias })
+
+
+class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
+    logger = logging.getLogger(__name__)
+    template_name = 'sessao/transf_mat_sessao.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            TransferenciaMateriasSessaoAbstract, self
+        ).get_context_data(**kwargs)
+
+        sessao_plenaria_atual = SessaoPlenaria.objects.get(pk=self.kwargs['pk'])
+
+        context['subnav_template_name'] = 'sessao/subnav.yaml'
+        context['root_pk'] = self.kwargs['pk']
+
+        if not sessao_plenaria_atual.finalizada:
+            msg = _('A sessão plenária deve estar finalizada.')
+            messages.add_message(self.request, messages.ERROR, msg)
+            return context
+
+        if self.expediente:
+            context['title'] = '%s <small>(%s)</small>' % (
+                self.title, sessao_plenaria_atual.__str__()
+            )
+
+            context["categoria_materia"] = self.categoria_materia
+            materias_sessao = ExpedienteMateria.objects.filter(
+                sessao_plenaria=sessao_plenaria_atual
+            ).exists()
+
+        elif self.ordem:
+            context["title"] = '%s <small>(%s)</small>' % (
+                self.title, sessao_plenaria_atual.__str__()
+            )
+
+            context["categoria_materia"] = self.categoria_materia
+            materias_sessao = OrdemDia.objects.filter(
+                sessao_plenaria=sessao_plenaria_atual
+            ).exists()
+
+        if materias_sessao:
+            context['sessoes_destino'] = SessaoPlenaria.objects.filter(
+                data_inicio__gte=sessao_plenaria_atual.data_inicio
+            ).exclude(pk=sessao_plenaria_atual.pk).order_by("-data_inicio")
+
+        context['materias_sessao'] = materias_sessao
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcadas = request.POST.getlist('opcao_id')
+
+        if not marcadas:
+            msg = _('Nenhuma matéria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        sessao_plenaria_destino_id = request.POST['sessao_plenaria']
+        if not sessao_plenaria_destino_id:
+            self.logger.error(
+                "Sessão plenária de destino inexistente."
+            )
+
+            msg = _('Ocorreu um erro inesperado. Tente novamente.')
+            messages.add_message(request, messages.ERROR, msg)
+
+            msg_c = _(
+                'Se o problema persistir, entre em contato com o suporte do ' \
+                'Interlegis.'
+            )
+            messages.add_message(request, messages.WARNING, msg_c)
+
+            return self.get(request, self.kwargs)
+
+        sessao = SessaoPlenaria.objects.get(id=sessao_plenaria_destino_id)
+        if self.expediente:
+            lista_expediente = []
+
+            exp = ExpedienteMateria.objects.filter(sessao_plenaria=sessao)
+            numero_ordem = exp.last().numero_ordem if exp.exists() else 0
+            for num_ordem, expediente in enumerate(
+                ExpedienteMateria.objects.filter(id__in=marcadas),
+                numero_ordem+1
+            ):
+                lista_expediente.append(
+                    ExpedienteMateria(
+                        sessao_plenaria=sessao, materia=expediente.materia,
+                        data_ordem=expediente.data_ordem,
+                        observacao=expediente.observacao,
+                        numero_ordem=num_ordem,
+                        tipo_votacao=expediente.tipo_votacao,
+                        votacao_aberta=False, registro_aberto=False
+                    )
+                )
+            ExpedienteMateria.objects.bulk_create(lista_expediente)
+
+        elif self.ordem:
+            lista_ordemdia = []
+
+            o = OrdemDia.objects.filter(sessao_plenaria=sessao)
+            numero_ordem = o.last().numero_ordem if o.exists() else 0
+            for num_ordem, ordemdia in enumerate(
+                OrdemDia.objects.filter(id__in=marcadas), numero_ordem+1
+            ):
+                lista_ordemdia.append(
+                    OrdemDia(
+                        sessao_plenaria=sessao, materia=ordemdia.materia,
+                        data_ordem=ordemdia.data_ordem,
+                        observacao=ordemdia.observacao,
+                        numero_ordem=num_ordem,
+                        tipo_votacao=ordemdia.tipo_votacao,
+                        votacao_aberta=False, registro_aberto=False
+                    )
+                )
+            OrdemDia.objects.bulk_create(lista_ordemdia)
+
+        msg = _('Matéria(s) copiada(s) com sucesso.')
+        messages.add_message(request, messages.SUCCESS, msg)
+
+        success_url = reverse(
+            self.listagem_url, kwargs={'pk': sessao_plenaria_destino_id}
+        )
+        return HttpResponseRedirect(success_url)
+
+
+class TransferenciaMateriasExpediente(TransferenciaMateriasSessaoAbstract):
+    expediente = True
+    ordem = False
+    title = "Copiar Matérias do Expediente"
+    categoria_materia = MATERIAS_EXPEDIENTE
+    listagem_url = 'sapl.sessao:expedientemateria_list'
+
+    model = ExpedienteMateria
+    permission_required = ('sessao.change_expedientemateria', )
+
+
+class TransferenciaMateriasOrdemDia(TransferenciaMateriasSessaoAbstract):
+    expediente = False
+    ordem = True
+    title = "Copiar Matérias da Ordem do Dia"
+    categoria_materia = MATERIAS_ORDEMDIA
+    listagem_url = 'sapl.sessao:ordemdia_list'
+
+    model = OrdemDia
+    permission_required = ('sessao.change_ordemdia', )
+
+
 class TipoExpedienteCrud(CrudAux):
     model = TipoExpediente
 
@@ -586,6 +774,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                 self.paginate_by = None
 
             context = super().get_context_data(**kwargs)
+
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
 
