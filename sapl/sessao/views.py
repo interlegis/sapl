@@ -738,7 +738,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context["tipo_materia_sessao"] = "ordem"
+            context["tipo_materia_sessao"] = MATERIAS_ORDEMDIA
             return context
 
         def get_initial(self):
@@ -761,7 +761,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            context["tipo_materia_sessao"] = "ordem"
+            context["tipo_materia_sessao"] = MATERIAS_ORDEMDIA
 
             context["tipo_materia_salvo"] = self.object.materia.tipo.id
             context["numero_materia_salvo"] = self.object.materia.numero
@@ -851,7 +851,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context["tipo_materia_sessao"] = "expediente"
+            context["tipo_materia_sessao"] = MATERIAS_EXPEDIENTE
             return context
 
         def get_initial(self):
@@ -875,7 +875,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            context["tipo_materia_sessao"] = "expediente"
+            context["tipo_materia_sessao"] = MATERIAS_EXPEDIENTE
 
             context["tipo_materia_salvo"] = self.object.materia.tipo.id
             context["numero_materia_salvo"] = self.object.materia.numero
@@ -3753,16 +3753,16 @@ def retira_materias_ja_adicionadas(id_sessao, model):
 
 def verifica_materia_sessao_plenaria_ajax(request):
     # Define se a matéria é do expediente ou da ordem do dia
-    tipo_materia_sessao = request.GET['tipo_materia_sessao']
+    tipo_materia_sessao = int(request.GET['tipo_materia_sessao'])
 
     id_materia_selecionada = request.GET['id_materia_selecionada']
     pk_sessao_plenaria = request.GET['pk_sessao_plenaria']
 
-    if tipo_materia_sessao == "expediente":
+    if tipo_materia_sessao == MATERIAS_EXPEDIENTE:
         is_materia_presente = ExpedienteMateria.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
-    elif tipo_materia_sessao == "ordem":
+    elif tipo_materia_sessao == MATERIAS_ORDEMDIA:
         is_materia_presente = OrdemDia.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
@@ -3775,7 +3775,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
     filterset_class = AdicionarVariasMateriasFilterSet
     template_name = 'sessao/adicionar_varias_materias_expediente.html'
     app_label = AppConfig.label
-    tipo_materia_sessao = "expediente"
+    tipo_materia_sessao = MATERIAS_EXPEDIENTE
 
     logger = logging.getLogger(__name__)
 
@@ -3869,7 +3869,7 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
 class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
     filterset_class = AdicionarVariasMateriasFilterSet
     template_name = 'sessao/adicionar_varias_materias_ordem.html'
-    tipo_materia_sessao = "ordem"
+    tipo_materia_sessao = MATERIAS_ORDEMDIA
 
     logger = logging.getLogger(__name__)
 
