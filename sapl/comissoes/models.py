@@ -374,3 +374,14 @@ class DocumentoAcessorio(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
+@reversion.register()
+class PresencaReuniaoComissao(models.Model):
+    reuniao = models.ForeignKey(Reuniao,
+                                related_name='presencareuniaocomissao_set',
+                                on_delete=models.CASCADE)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = _('Presença em Reunião de Comissão')
+        verbose_name_plural = _('Presenças em Reuniões de Comissão')

@@ -486,6 +486,9 @@ class PautaReuniaoForm(forms.ModelForm):
         model = PautaReuniao
         exclude = ['reuniao']
 
+class PresencaReuniaoComissaoForm(forms.Form):
+    presenca = forms.CharField(required=False, initial=False)
+    parlamentar = forms.CharField(required=False, max_length=20)
 
 class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
 

@@ -56,4 +56,17 @@
         {% endif %}
     {% endif %}
     <br /><br />
+     <h2 class="legend">Presença em Reunião</h2>
+    {% if presenca %}
+        <table class="table table-striped table-hover">
+            <thead><tr><th>Parlamentares presentes</th></tr></thead>
+            <tbody>
+                {% for presente in presenca %}
+                    <tr><td><p>{{ presente.parlamentar }}</p></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    <a href="{% url 'sapl.comissoes:presenca' reuniao_pk %}" class="btn btn-outline-primary">{% trans 'Editar Presenças' %}</a>
+    <br /><br />
 {% endblock detail_content %}

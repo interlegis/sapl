@@ -110,6 +110,7 @@ rules_group_comissoes = {
         (materia.Relatoria, __base__, __perms_publicas__),
         (comissoes.Reuniao, __base__, __perms_publicas__),
         (comissoes.DocumentoAcessorio, __base__, __perms_publicas__),
+        (comissoes.PresencaReuniaoComissao, __base__, __perms_publicas__),
     ]
 }
 
