@@ -4,54 +4,91 @@
 {% load common_tags %}
 
 {% block extra_js %}
+  <script language="Javascript">
+    // document.getElementById("id_observacao").readOnly = true;
 
-<script language="Javascript">
-  //document.getElementById("id_observacao").readOnly = true;
+    function recuperar_materia() {
+      var tipo_materia = $("#id_tipo_materia").val()
+      var numero_materia = $("#id_numero_materia").val()
+      var ano_materia = $("#id_ano_materia").val()
 
-  function recuperar_materia() {
-    var tipo_materia = $("#id_tipo_materia").val()
-    var numero_materia = $("#id_numero_materia").val()
-    var ano_materia = $("#id_ano_materia").val()
+      if (tipo_materia && numero_materia && ano_materia){
+        $.get("/sessao/recuperar-materia",
+          { tipo_materia: tipo_materia, numero_materia: numero_materia, ano_materia: ano_materia },
+          function(data, status) {
+            if ($(".ementa-materia").length === 0){
+              $("#div_id_tipo_materia").closest('.row').after($('<div class="row"/>').append($('<div class="col-xs-12"/>').append(
+                $('<div class="alert alert-info ementa-materia"/>').html(data.ementa)
+              )))
+            }
+            else {
+              $('.ementa-materia').html(data.ementa)
+            }
 
-    if (tipo_materia && numero_materia && ano_materia) {
-      $.get("/sessao/recuperar-materia", {
-          tipo_materia: tipo_materia,
-          numero_materia: numero_materia,
-          ano_materia: ano_materia
-        },
-        function(data, status) {
-          if ($(".ementa-materia").length === 0) {
-            $("#div_id_tipo_materia").closest('.row').after(
-              $('<div class="row"/>').append(
-                $('<div class="col-xs-12"/>').append(
-                  $('<div class="alert alert-info ementa-materia"/>').html(data.ementa))))
-          }
-          else {
-            $('.ementa-materia').html(data.ementa)
-          }
+            let tipo_materia_salvo = "{{ tipo_materia_salvo }}"
+            let numero_materia_salvo = "{{ numero_materia_salvo }}"
+            let ano_materia_salvo = "{{ ano_materia_salvo }}"
+
+            if (tipo_materia !== tipo_materia_salvo || numero_materia !== numero_materia_salvo || ano_materia !== ano_materia_salvo){
+              let id_materia = data.id
+              if (id_materia){
+                // Define se a matéria é do expediente ou da ordem do dia
+                let tipo_materia_sessao = "{{ tipo_materia_sessao }}"
+
+                let pk_sessao_plenaria = "{{ root_pk }}"
+                $.get("{% url 'sapl.sessao:verifica_materia_sessao_plenaria_ajax_view' %}",
+                  { id_materia_selecionada: id_materia, tipo_materia_sessao: tipo_materia_sessao, pk_sessao_plenaria: pk_sessao_plenaria },
+                  function(data) {
+                    let is_materia_presente = data['is_materia_presente']
+                    if (is_materia_presente){
+                      $('#fundo_modal').fadeIn()
+                    }
+                });
+              }
+            }
         });
+      }
     }
-  }
-  var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"];
-  for (i = 0; i < fields.length; i++) {
-    $(fields[i]).change(recuperar_materia);
-  }
-  recuperar_materia();
 
-  $(document).ready(function(){
-    $("select[name='tipo_votacao']").children("option[value='4']").remove();
-    $('#id_apenas_leitura').change(function(event){
-      $('#div_id_tipo_votacao').toggle();
-      if($('#id_apenas_leitura').prop('checked')){
-        $("select[name='tipo_votacao']").append(new Option('Leitura', '4'));
-        $("select[name='tipo_votacao']").val('4');
-      }
-      else{
-        $("select[name='tipo_votacao']").children("option[value='4']").remove();
-        $("select[name='tipo_votacao']").val('1');
-      }
-    })
-  });
-</script>
+    var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"];
+    for (i = 0; i < fields.length; i++){
+      $(fields[i]).change(recuperar_materia)
+    }
+    recuperar_materia()
 
+    var modal_estilos = 'display: block; width: 85%; max-width: 600px; background: #fff; padding: 15px; border-radius: 5px;'
+      +'-webkit-box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75); -moz-box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75);'
+      +'box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);'
+      +'z-index: 99999999; text-align: center';
+
+    var fundo_modal_estilos = 'top: 0; right: 0; bottom: 0; left: 0; position: fixed; background-color: rgba(0, 0, 0, 0.6); z-index: 99999999;'
+        +'display: none;';
+
+    var modal = '<div id="fundo_modal" style="'+fundo_modal_estilos+'">'
+      +'<div id="modal" style="'+modal_estilos+'">'
+        +'<h2>Atenção!</h2><br/>'
+        +'<h3>A matéria selecionada já foi adicionada na sessão. Essa matéria será duplicada.</h3><br/>'
+        +'<button id="close_model_btn" type="button" class="btn btn-warning  mb-2" data-dimiss="model">Compreendo e quero continuar</button>'
+      +'</div>'
+    +'</div>';
+
+    $(document).ready( function() {
+      $("body").append(modal)
+
+      $("select[name='tipo_votacao']").children("option[value='4']").remove();
+      $('#id_apenas_leitura').change( function(event) {
+        $('#div_id_tipo_votacao').toggle()
+        if ($('#id_apenas_leitura').prop('checked')){
+          $("select[name='tipo_votacao']").append(new Option('Leitura', '4'))
+          $("select[name='tipo_votacao']").val('4')
+        } else {
+          $("select[name='tipo_votacao']").children("option[value='4']").remove()
+          $("select[name='tipo_votacao']").val('1')
+        }
+      });
+
+      $("#fundo_modal, #close_model_btn").click( function() { $("#fundo_modal").hide() });
+      $("#modal").click( function(e) { e.stopPropagation() });
+    });
+  </script>
 {% endblock %}

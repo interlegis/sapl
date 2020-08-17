@@ -349,14 +349,6 @@ class ExpedienteMateriaForm(ModelForm):
         else:
             cleaned_data['materia'] = materia
 
-        exists = self._model.objects.filter(
-            sessao_plenaria=sessao,
-            materia=materia).exists()
-
-        if exists and not self.instance.pk:
-            msg = _('Essa matéria já foi cadastrada.')
-            raise ValidationError(msg)
-
         return cleaned_data
 
     def save(self, commit=False):
