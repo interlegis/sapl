@@ -2826,6 +2826,16 @@ def get_pdf_docacessorios(request, pk):
 
     with open(os.path.join(get_tempfile_dir(), pdffilename), 'rb') as f:
         data = f.read()
+    try:
+        os.remove(pdffilename)
+    except Exception as e:
+        logger.warn("user= {}.Um erro inesperado ocorreu ao excluir o pdf de documentos acessorios: {}"
+                .format(username,str(e)))
+        msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                            kwargs={'pk': pk}))
+
     response = HttpResponse(data, content_type='application/pdf')
     response['Content-Disposition'] = ('attachment; filename="%s"'
                                        % external_name)
