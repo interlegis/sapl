@@ -15,6 +15,7 @@ from string import ascii_letters, digits
 from datetime import datetime
 from PyPDF4 import PdfFileReader, PdfFileMerger
 import zipfile
+from io import BytesIO
 
 from django.conf import settings
 from django.contrib import messages
@@ -2704,9 +2705,12 @@ class TipoMateriaCrud(CrudAux):
 
 
 def create_zip_docacessorios(materia):
+    """
+        Creates in memory zip files
+    """
     logger = logging.getLogger(__name__)
-    docs = materia.documentoacessorio_set.\
-        all().values_list('arquivo', flat=True)    
+    docs = materia.documentoacessorio_set. \
+        all().values_list('arquivo', flat=True)
     if not docs:
         return None, None
 
@@ -2715,47 +2719,49 @@ def create_zip_docacessorios(materia):
     if not docs_path:
         raise FileNotFoundError("Não há arquivos PDF cadastrados em documentos acessorios.")
     logger.info("Gerando compilado PDF de documentos acessorios com {} documentos".format(docs_path))
-    zipfilename = '{}/mat_{}_{}_docacessorios.zip'.format(
-        get_tempfile_dir(),
-        materia.pk,
-        time.mktime(datetime.now().timetuple()))
-    with zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for f in docs_path:
-            zipf.write(f, f.split(os.sep)[-1])
+
+    _zipfile = BytesIO()
+
+    try:
+        with zipfile.ZipFile(_zipfile, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for f in docs_path:
+                zipf.write(f, f.split(os.sep)[-1])
+    except Exception as e:
+        logger.error(e)
+        raise e
 
     external_name = "mat_{}_{}_docacessorios.zip".format(materia.numero, materia.ano)
-    return external_name, zipfilename
+    return external_name, _zipfile.getvalue()
 
 
 def get_zip_docacessorios(request, pk):
     logger = logging.getLogger(__name__)
     username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
     materia = get_object_or_404(MateriaLegislativa, pk=pk)
+    data = None
     try:
-        external_name, zipfilename = create_zip_docacessorios(materia)
+        external_name, data = create_zip_docacessorios(materia)
         logger.info("user= {}. Gerou o zip compilado de documento acessorios".format(username))
     except FileNotFoundError:
         logger.error("user= {}.Não há arquivos cadastrados".format(username))
-        msg=_('Não há arquivos cadastrados nesses documentos acessórios.')
+        msg = _('Não há arquivos cadastrados nesses documentos acessórios.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
     except Exception as e:
         logger.error("user={}. Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
-                    .format(username,str(e)))
-        msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
+                     .format(username, str(e)))
+        msg = _('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
 
-    if not zipfilename:
-        msg=_('Não há nenhum documento acessório cadastrado.')
+    if not data:
+        msg = _('Não há nenhum documento acessório cadastrado.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
 
-    with open(os.path.join(get_tempfile_dir(), zipfilename), 'rb') as f:
-        data = f.read()
     response = HttpResponse(data, content_type='application/zip')
     response['Content-Disposition'] = ('attachment; filename="%s"'
                                        % external_name)
