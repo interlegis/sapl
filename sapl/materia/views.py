@@ -2790,11 +2790,13 @@ def create_pdf_docacessorios(materia):
     merger = PdfFileMerger()
     for f in docs_path:
         merger.append(fileobj=f)
-    merger.write(fileobj=open(merged_pdf, "wb"))
+
+    data = BytesIO()
+    merger.write(data)
     merger.close()
 
     external_name = "mat_{}_{}_docacessorios.pdf".format(materia.numero, materia.ano)
-    return external_name, merged_pdf
+    return external_name, data.getvalue()
 
 
 def get_pdf_docacessorios(request, pk):
@@ -2802,39 +2804,27 @@ def get_pdf_docacessorios(request, pk):
     logger = logging.getLogger(__name__)
     username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
     try:
-        external_name, pdffilename = create_pdf_docacessorios(materia)
+        external_name, data = create_pdf_docacessorios(materia)
         logger.info("user= {}. Gerou o pdf compilado de documento acessorios".format(username))
     except FileNotFoundError:
         logger.error("user= {}.Não há arquivos cadastrados".format(username))
-        msg=_('Não há arquivos cadastrados nesses documentos acessórios.')
+        msg = _('Não há arquivos cadastrados nesses documentos acessórios.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
     except Exception as e:
         logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
                     .format(username,str(e)))
-        msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
+        msg = _('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
 
-    if not pdffilename:
-        msg=_('Não há nenhum documento acessório PDF cadastrado.')
+    if not data:
+        msg = _('Não há nenhum documento acessório PDF cadastrado.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
-
-    with open(os.path.join(get_tempfile_dir(), pdffilename), 'rb') as f:
-        data = f.read()
-    try:
-        os.remove(pdffilename)
-    except Exception as e:
-        logger.warn("user= {}.Um erro inesperado ocorreu ao excluir o pdf de documentos acessorios: {}"
-                .format(username,str(e)))
-        msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
-        messages.add_message(request, messages.ERROR, msg)
-        return redirect(reverse('sapl.materia:documentoacessorio_list',
-                            kwargs={'pk': pk}))
 
     response = HttpResponse(data, content_type='application/pdf')
     response['Content-Disposition'] = ('attachment; filename="%s"'
