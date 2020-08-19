@@ -3,7 +3,7 @@ import logging
 from django import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.db.models import Q
 from django.db.models.fields.files import FileField
 from django.db.models.signals import post_save
@@ -448,7 +448,7 @@ class _ProposicaoViewSet():
         qs = super().get_queryset()
 
         q = Q(data_recebimento__isnull=False, object_id__isnull=False)
-        if not self.request.user.is_anonymous():
+        if not self.request.user.is_anonymous:
             q |= Q(autor__user=self.request.user)
 
         qs = qs.filter(q)
@@ -526,7 +526,7 @@ class _DocumentoAdministrativoViewSet:
         """
         qs = super().get_queryset()
 
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             qs = qs.exclude(restrito=True)
         return qs
 
@@ -540,7 +540,7 @@ class _DocumentoAcessorioAdministrativoViewSet:
     def get_queryset(self):
         qs = super().get_queryset()
 
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             qs = qs.exclude(documento__restrito=True)
         return qs
 
@@ -555,7 +555,7 @@ class _TramitacaoAdministrativoViewSet(BusinessRulesNotImplementedMixin):
     def get_queryset(self):
         qs = super().get_queryset()
 
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             qs = qs.exclude(documento__restrito=True)
         return qs
 
@@ -569,7 +569,7 @@ class _AnexadoViewSet(BusinessRulesNotImplementedMixin):
     def get_queryset(self):
         qs = super().get_queryset()
 
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             qs = qs.exclude(documento__restrito=True)
         return qs
 
@@ -617,7 +617,7 @@ class AppVersionView(APIView):
             'description': 'Sistema de Apoio ao Processo Legislativo',
             'version': settings.SAPL_VERSION,
             'user': request.user.username,
-            'is_authenticated': request.user.is_authenticated(),
+            'is_authenticated': request.user.is_authenticated,
         }
         return Response(content)
 

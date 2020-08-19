@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
@@ -95,7 +95,7 @@ def recuperar_materia_protocolo(request):
 def doc_texto_integral(request, pk):
     can_see = True
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         app_config = AppConfig.objects.last()
         if app_config and app_config.documentos_administrativos == 'R':
             can_see = False
@@ -414,7 +414,7 @@ class DocumentoAdministrativoCrud(Crud):
         def get(self, *args, **kwargs):
             pk = self.kwargs['pk']
             documento = DocumentoAdministrativo.objects.get(id=pk)
-            if documento.restrito and self.request.user.is_anonymous():
+            if documento.restrito and self.request.user.is_anonymous:
                 return redirect('/')
             return super(Crud.DetailView, self).get(args, kwargs)
         
@@ -1024,7 +1024,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         # é usada essa verificação anônima para quando os documentos administrativos
         # estão no modo ostensivo, mas podem existir documentos administrativos
         # restritos
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             length = self.object_list.filter(restrito=False).count()
         else:
             length = self.object_list.count()

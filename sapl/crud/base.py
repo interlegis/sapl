@@ -9,14 +9,13 @@ from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import models
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.http.response import Http404
 from django.shortcuts import redirect
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
@@ -613,7 +612,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     )
 
         # print(queryset.query)
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return queryset
 
         if self.container_field:
@@ -816,7 +815,7 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
         else:
             queryset = super().get_queryset()
 
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return queryset
 
         if self.container_field_set:

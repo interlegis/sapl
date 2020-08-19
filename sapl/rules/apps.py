@@ -8,7 +8,6 @@ from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 import reversion
 
@@ -55,13 +54,9 @@ def create_proxy_permissions(
         opts = klass._meta
         permissions = (
             ("list_" + opts.model_name,
-             string_concat(
-                 _('Visualizaçao da lista de'), ' ',
-                 opts.verbose_name_plural)),
+             "{} {}".format(_('Visualizaçao da lista de'), opts.verbose_name_plural)),
             ("detail_" + opts.model_name,
-             string_concat(
-                 _('Visualização dos detalhes de'), ' ',
-                 opts.verbose_name_plural)),
+             "{} {}".format(_('Visualização dos detalhes de'), opts.verbose_name_plural)),
         )
         opts.permissions = tuple(
             set(list(permissions) + list(opts.permissions)))
@@ -216,9 +211,7 @@ def get_rules():
 
         def update_groups(self):
             print('')
-            print(string_concat('\033[93m\033[1m',
-                                _('Atualizando grupos do SAPL:'),
-                                '\033[0m'))
+            print("\033[93m\033[1m{}\033[0m".format(_('Atualizando grupos do SAPL:')))
             for rules_group in self.rules_patterns:
                 group_name = rules_group['group']
                 rules_list = rules_group['rules']

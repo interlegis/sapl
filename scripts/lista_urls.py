@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
 if True:
     from sapl.urls import urlpatterns
-    from django.core.urlresolvers import RegexURLResolver
+    from django.urls.resolvers import URLResolver
 
 
 class ListaUrls():
@@ -17,7 +17,7 @@ class ListaUrls():
     def lista_urls(self, _urls):
         urls = []
         for item in _urls:
-            if isinstance(item, RegexURLResolver) and \
+            if isinstance(item, URLResolver) and \
                     item.app_name.startswith('sapl'):
 
                 for key, value in item.reverse_dict.items():

@@ -234,12 +234,20 @@ class MateriaLegislativa(models.Model):
         verbose_name=_('Em Tramitação?'),
         default=False,
         choices=YES_NO_CHOICES)
-    polemica = models.NullBooleanField(
-        blank=True, verbose_name=_('Matéria Polêmica?'))
+    polemica = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name=_('Matéria Polêmica?')
+    )
     objeto = models.CharField(
         max_length=150, blank=True, verbose_name=_('Objeto'))
-    complementar = models.NullBooleanField(
-        blank=True, verbose_name=_('É Complementar?'))
+    complementar = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name=_('É Complementar?')
+    )
     ementa = models.TextField(verbose_name=_('Ementa'))
     indexacao = models.TextField(
         blank=True, verbose_name=_('Indexação'))
@@ -754,42 +762,73 @@ class Parecer(models.Model):
 
 @reversion.register()
 class Proposicao(models.Model):
-    autor = models.ForeignKey(Autor,
-                              null=True,
-                              blank=True,
-                              on_delete=models.PROTECT)
-    tipo = models.ForeignKey(TipoProposicao, on_delete=models.PROTECT,
-                             blank=False,
-                             null=True,
-                             verbose_name=_('Tipo'))
+    autor = models.ForeignKey(
+        Autor,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT
+    )
+
+    tipo = models.ForeignKey(
+        TipoProposicao,
+        on_delete=models.PROTECT,
+        blank=False,
+        null=True,
+        verbose_name=_('Tipo')
+    )
 
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(
-        blank=False, null=True, verbose_name=_('Data de Envio'))
+        blank=False,
+        null=True,
+        verbose_name=_('Data de Envio')
+    )
+
     data_recebimento = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de Recebimento'))
+        blank=True,
+        null=True,
+        verbose_name=_('Data de Recebimento')
+    )
+
     data_devolucao = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de Devolução'))
+        blank=True,
+        null=True,
+        verbose_name=_('Data de Devolução')
+    )
 
     descricao = models.TextField(verbose_name=_('Ementa'))
+
     justificativa_devolucao = models.CharField(
         max_length=200,
         blank=True,
-        verbose_name=_('Justificativa da Devolução'))
+        verbose_name=_('Justificativa da Devolução')
+    )
 
-    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
-                                           default=None, blank=True, null=True,
-                                           choices=RANGE_ANOS)
+    ano = models.PositiveSmallIntegerField(
+        verbose_name=_('Ano'),
+        default=None,
+        blank=True,
+        null=True,
+        choices=RANGE_ANOS
+    )
 
     numero_proposicao = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Número'))
+        blank=True,
+        null=True,
+        verbose_name=_('Número')
+    )
 
     numero_materia_futuro = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Número Matéria'))
+        blank=True,
+        null=True,
+        verbose_name=_('Número Matéria')
+    )
 
-    hash_code = models.CharField(verbose_name=_('Código do Documento'),
-                                 max_length=200,
-                                 blank=True)
+    hash_code = models.CharField(
+        verbose_name=_('Código do Documento'),
+        max_length=200,
+        blank=True
+    )
 
     """
     FIXME Campo não é necessário na modelagem e implementação atual para o
@@ -807,12 +846,15 @@ class Proposicao(models.Model):
     sua proposição ou resolva excluir.
     """
     # ind_enviado and ind_devolvido collapsed as char field (status)
-    status = models.CharField(blank=True,
-                              max_length=1,
-                              choices=(('E', 'Enviada'),
-                                       ('R', 'Recebida'),
-                                       ('I', 'Incorporada')),
-                              verbose_name=_('Status Proposição'))
+    status = models.CharField(
+        blank=True,
+        max_length=1,
+        choices=(('E', 'Enviada'),
+                 ('R', 'Recebida'),
+                 ('I', 'Incorporada')),
+        verbose_name=_('Status Proposição')
+    )
+
     texto_original = models.FileField(
         max_length=300,
         upload_to=materia_upload_path,
@@ -820,37 +862,70 @@ class Proposicao(models.Model):
         null=True,
         verbose_name=_('Texto Original'),
         storage=OverwriteStorage(),
-        validators=[restringe_tipos_de_arquivo_txt])
+        validators=[restringe_tipos_de_arquivo_txt]
+    )
 
     texto_articulado = GenericRelation(
-        TextoArticulado, related_query_name='texto_articulado')
+        TextoArticulado,
+        related_query_name='texto_articulado'
+    )
 
     materia_de_vinculo = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True,
+        MateriaLegislativa,
+        blank=True,
+        null=True,
         on_delete=models.CASCADE,
         verbose_name=_('Matéria anexadora'),
-        related_name=_('proposicao_set'))
+        related_name=_('proposicao_set')
+    )
 
     content_type = models.ForeignKey(
-        ContentType, default=None, blank=True, null=True,
-        verbose_name=_('Tipo de Material Gerado'))
-    object_id = models.PositiveIntegerField(
-        blank=True, null=True, default=None)
-    conteudo_gerado_related = SaplGenericForeignKey(
-        'content_type', 'object_id', verbose_name=_('Conteúdo Gerado'))
-    observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
-    cancelado = models.BooleanField(verbose_name=_('Cancelada ?'),
-                                    choices=YES_NO_CHOICES,
-                                    default=False)
+        ContentType,
+        default=None,
+        blank=True,
+        null=True,
+        verbose_name=_('Tipo de Material Gerado'),
+        on_delete=models.PROTECT
+    )
 
-    """# Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
-    # de uma já existente
+    object_id = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        default=None
+    )
+
+    conteudo_gerado_related = SaplGenericForeignKey(
+        'content_type',
+        'object_id',
+        verbose_name=_('Conteúdo Gerado')
+    )
+
+    observacao = models.TextField(
+        blank=True,
+        verbose_name=_('Observação')
+    )
+
+    cancelado = models.BooleanField(
+        verbose_name=_('Cancelada ?'),
+        choices=YES_NO_CHOICES,
+        default=False
+    )
+
+    """
+    Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio de uma já existente
+    
     materia_gerada = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True,
-        related_name=_('materia_gerada'))
+        MateriaLegislativa,
+        blank=True,
+        null=True,
+        related_name=_('materia_gerada')
+    )
     documento_gerado = models.ForeignKey(
-        DocumentoAcessorio, blank=True, null=True)"""
+        DocumentoAcessorio,
+        blank=True,
+        null=True
+    )
+    """
 
     user = models.ForeignKey(
         get_settings_auth_user_model(),
@@ -859,15 +934,18 @@ class Proposicao(models.Model):
         null=True,
         blank=True
     )
+
     ip = models.CharField(
         verbose_name=_('IP'),
         max_length=60,
         blank=True,
         default=''
     )
+
     ultima_edicao = models.DateTimeField(
         verbose_name=_('Data e Hora da Edição'),
-        blank=True, null=True
+        blank=True,
+        null=True
     )
 
     @property

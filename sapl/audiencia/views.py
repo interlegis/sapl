@@ -1,7 +1,7 @@
 import sapl
 
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import UpdateView
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, MasterDetailCrud

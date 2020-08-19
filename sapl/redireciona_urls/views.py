@@ -1,6 +1,6 @@
 import logging
 
-from django.core.urlresolvers import NoReverseMatch, reverse
+from django.urls import NoReverseMatch, reverse
 from django.views.generic import RedirectView
 
 from sapl.audiencia.apps import AppConfig as audienciaConfig

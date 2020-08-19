@@ -82,8 +82,8 @@ def test_valida_campos_obrigatorios_materialegislativa_form():
     assert errors['numero'] == [_('Este campo é obrigatório.')]
     assert errors['ementa'] == [_('Este campo é obrigatório.')]
     assert errors['regime_tramitacao'] == [_('Este campo é obrigatório.')]
-
-    assert len(errors) == 6
+    assert errors['em_tramitacao'] == [_('Este campo é obrigatório.')]
+    assert len(errors) == 7
 
 
 @pytest.mark.django_db(transaction=False)
@@ -104,8 +104,8 @@ def test_valida_campos_obrigatorios_orgao_form():
 
     assert errors['nome'] == [_('Este campo é obrigatório.')]
     assert errors['sigla'] == [_('Este campo é obrigatório.')]
-
-    assert len(errors) == 2
+    assert errors['unidade_deliberativa'] == [_('Este campo é obrigatório.')]
+    assert len(errors) == 3
 
 
 @pytest.mark.django_db(transaction=False)

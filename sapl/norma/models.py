@@ -118,9 +118,13 @@ class NormaJuridica(models.Model):
         blank=True, verbose_name=_('Indexação'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
-    complemento = models.NullBooleanField(
-        blank=True, verbose_name=_('Complementar ?'),
-        choices=YES_NO_CHOICES)
+    complemento = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name=_('Complementar ?'),
+        choices=YES_NO_CHOICES
+    )
     # XXX was a CharField (attention on migrate)
     assuntos = models.ManyToManyField(
         AssuntoNorma, blank=True,

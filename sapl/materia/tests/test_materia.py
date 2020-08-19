@@ -2,7 +2,7 @@ from datetime import date
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Max
 from model_bakery import baker
 import pytest

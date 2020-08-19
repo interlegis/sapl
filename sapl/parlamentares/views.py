@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.db.models import F, Q
 from django.db.models.aggregates import Count
 from django.http import JsonResponse

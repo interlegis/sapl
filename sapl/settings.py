@@ -136,10 +136,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar', )
@@ -311,6 +311,8 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 CRISPY_FAIL_SILENTLY = not DEBUG
 FLOPPY_FORMS_USE_GIS = False
 
+FORM_RENDERER = 'django.forms.renderers.DjangoTemplates'
+
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
 
@@ -367,5 +369,6 @@ def remove_warnings():
         message='Unable to import floppyforms.gis'
     )
 
+LOGOUT_REDIRECT_URL = '/login'
 
 remove_warnings()

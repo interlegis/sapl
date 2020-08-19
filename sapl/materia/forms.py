@@ -10,7 +10,7 @@ from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import models, transaction
 from django.db.models import F, Max, Q
 from django.forms import ModelChoiceField, ModelForm, widgets
