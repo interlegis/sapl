@@ -2769,6 +2769,9 @@ def get_zip_docacessorios(request, pk):
 
 
 def create_pdf_docacessorios(materia):
+    """
+        Creates a unified in memory PDF file
+    """
     logger = logging.getLogger(__name__)
     docs = materia.documentoacessorio_set. \
         all().values_list('arquivo', flat=True)
