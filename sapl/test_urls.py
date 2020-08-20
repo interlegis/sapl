@@ -20,7 +20,6 @@ _lista_urls = lista_urls()
 
 
 def create_perms_post_migrate(sapl_app_config):
-
     searched_perms = list()
     # The codenames and ctypes that should exist.
     ctypes = set()
@@ -74,7 +73,6 @@ btn_login = ('<input class="btn btn-success btn-sm" '
 
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_crudaux_formato_inicio_urls_associadas(url_item):
-
     # Verifica se um crud é do tipo CrudAux, se sim, sua url deve começar
     # com /sistema/
     key, url, var, app_name = url_item
@@ -107,7 +105,6 @@ def test_crudaux_formato_inicio_urls_associadas(url_item):
 
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
-
     # Verifica a url é de um CrudAux e, se for, testa se está
     # na página Tabelas Auxiliares
     key, url, var, app_name = url_item
@@ -264,7 +261,6 @@ apps_url_patterns_prefixs_and_users = {
 
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_urlpatterns(url_item, admin_client):
-
     key, url, var, app_name = url_item
     url = '/' + (url % {v: 1 for v in var})
 
@@ -395,7 +391,6 @@ for item in _lista_urls:
 @pytest.mark.django_db(transaction=False)
 @pytest.mark.parametrize('url_item', _lista_urls)
 def test_permissions_urls_for_users_by_apps(url_item, client):
-
     # username, url_item = request_com_oper_na_url
     key, url, var, app_name = url_item
 
@@ -442,7 +437,7 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
         else:
 
             if hasattr(view, 'permission_required') and \
-                    view.permission_required is not None and\
+                    view.permission_required is not None and \
                     len(view.permission_required) == 0:
                 """
                 condição do Crud, se tem permission_required e ele é igual [],
@@ -559,3 +554,13 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
                         if url.startswith(pr):
                             _assert_login(False)
                             break
+
+
+def test_robots_txt_get(admin_client):
+    response = admin_client.get("/robots.txt")
+
+    assert response.status_code == 200
+    assert response["content-type"] == "text/plain"
+
+    lines = response.content.decode().splitlines()
+    assert lines[0] == "User-agent: semrushbot"
