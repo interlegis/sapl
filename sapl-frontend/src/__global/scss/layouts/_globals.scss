@@ -1,0 +1,190 @@
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+h1, h2, h3, h4, h5, h6, form, dl, dt, dd, p, div, img, a {
+  margin: 0;
+  padding: 0;
+}
+h1, .h1 {
+  font-size: 30px;
+}
+h2, .h2 {
+  font-size: 24px;
+}
+h3, .h3 {
+  font-size: 20px;
+}
+h4, .h4 {
+  font-size: 16px;
+}
+h5, .h5 {
+  font-size: 14px;
+}
+h6, .h6 {
+  font-size: 12px;
+}
+
+p {
+  margin: 0.25em 0;
+  &.control-label {
+    font-weight: bold;
+  }
+}
+
+label {
+  margin-bottom: 0;
+  line-height: 1;
+}
+input[type=checkbox], input[type=radio] {
+  margin: 0 5px 0 0;
+  position: relative;
+}
+
+fieldset {
+  fieldset {
+    font-size: 95%;
+    legend {
+      font-size: 18px;
+    }
+  }
+}
+ul {
+  margin: 0;
+}
+.hidden {
+  display: none;
+}
+
+.form-control-static {
+  padding: 0.2em 0;
+  padding-left: 12px;
+  background-color: #f7f7f7;
+  &:empty {
+    display: none;
+  }
+}
+
+.legend {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 20px;
+  font-size: 21px;
+  line-height: inherit;
+  color: #333;
+  border: 0;
+  border-bottom: 1px solid #e5e5e5;
+  clear: both;
+}
+
+.page-header {
+  margin: 20px 0px 10px;
+}
+
+.caret {
+  &.top {
+    transform: rotate(180deg);
+  }
+}
+
+.lista-parlamentares .table td {
+  vertical-align: middle;
+}
+small {
+  color: #777;
+}
+
+.container-tabaux {
+  .sidebar-tabaux {
+    background: #fafafa;
+    margin-top: -70px;
+    padding: 10px;
+    border: 1px solid #eee;
+    .navbar-right {
+      margin: 0;
+    }
+    .nav-pills > li + li {
+      margin-left: 0px;
+    }
+    li {
+      width: 100%;
+    }
+    span {
+      display: none;
+    }
+    .dropdown-menu {
+      padding: 0px;
+      right: 10px;
+      margin-top: -5px;
+      overflow: hidden;
+      a {
+        border: 0px;
+      }
+    }
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .list {
+    font-family: "SourceSansProSemiBold", Helvetica, Arial, sans-serif;
+    font-size: 0px;
+    display: table;
+    width: 100%;
+    margin: 0;
+
+    ul {
+      display: table;
+      width: 100%;
+      margin: 0;
+    }
+
+    li {
+      width: calc(50%);
+      display: inline-block;
+      position: relative;
+    }
+    & > li {
+      width: 100%;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
+    }
+
+    .head_title {
+      color: #364347;
+      font-size: 1.7rem;
+      text-transform: none;
+    }
+
+    a {
+      span {
+        display: none;
+      }
+    }
+  }
+}
+.mce-branding.mce-label {
+  display: none;
+}
+
+.dont-break-out {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+
+  /*-ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;*/
+}
+
+@media print {
+  a[href]:after {
+    content: none !important;
+  }
+}

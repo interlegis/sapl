@@ -1,0 +1,119 @@
+.navbar {
+  padding: 0;
+}
+
+.navbar-nav {
+  flex-basis: 100%;
+  a {
+    white-space: nowrap;
+    color: #93a4aa;
+  }
+  .nav-link {
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 4.5rem;
+  }
+  .dropdown-menu {
+    background-color: #20282a;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+  .dropdown-item {
+    padding: 0;
+    &:first-child, &:last-child {
+      border-radius: 0;
+    }
+    a {
+      padding: 0 $grid-gutter-width / 2;
+      line-height: 2.3rem;
+      display: block;
+      text-decoration: none;
+      min-width: 15rem;
+    }
+    &:hover {
+      background-color: #364347;
+      a {
+        color: white;
+      }
+    }
+  }
+  .pesquisa {
+    .dropdown-menu {
+      min-width: 15rem;
+    }
+  }
+  .search-form {
+    padding: $grid-gutter-width / 3;
+    min-width: 20%;;
+  }
+  a:not([href]):not([tabindex]) {
+    color: #777;
+  }
+
+  &.justify-content-end { 
+    .dropdown-menu {
+      left: auto;
+      right: 0px;
+    }
+  }
+}
+.nav-pills {
+  .dropdown-menu {
+    padding: 0;
+  }
+  .dropdown-item {
+    a {
+      display: block;
+    }
+    &.active {
+      a {
+        color: white;
+      }
+    } 
+  }
+
+}
+
+@media (max-width: 1199px) {
+  nav {
+    .container {
+      max-width: none;
+      flex-basis: 100%;
+    }
+    .caret {
+      margin-left: -3px;
+    }
+  }
+}
+
+@media (max-width: 1091px) {
+  .navbar-expand-lg {
+    .navbar-nav {
+      .nav-link {
+        padding-left: 4px;
+        padding-right: 4px;
+        font-size: 0.95rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 991px) {
+  .navbar {
+    padding: 5px;
+  }
+  .navbar-nav {
+    .nav-link {
+      line-height: 2.5rem;
+    }
+  }
+  .navbar-nav.justify-content-end {
+    flex-direction: row;
+    justify-content: flex-start !important;
+    & > li {
+      display: inline-block;
+    }
+  }
+}

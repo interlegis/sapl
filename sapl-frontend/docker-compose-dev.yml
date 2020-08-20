@@ -1,0 +1,24 @@
+version: '3.5'
+
+services:
+  sapl-frontend-dev:
+    container_name: sapl-frontend-dev
+    restart: always
+    image: sapl:dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/sapl-frontend-dev
+      - /sapl-frontend-dev/node_modules
+    ports:
+      - "8080:8080"
+    networks:
+      - sapl-net-dev
+    command: sh -c """yarn install &&
+                      yarn run serve"""
+
+networks:
+  sapl-net-dev:
+    name: sapl-net-dev
+    driver: bridge
