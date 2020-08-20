@@ -1,0 +1,36 @@
+User-agent: semrushbot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: spbot
+Disallow: /
+
+User-agent: dotbot
+Disallow: /
+
+User-agent: ahrefsbot
+Disallow: /
+
+User-agent: mojeekbot
+Disallow: /
+
+User-agent: yandex
+Disallow: /
+
+User-agent: baiduspider
+Disallow: /
+
+User-agent: *
+# Crawl Delay 60 seg.
+Crawl-delay: 60
+Disallow: /materia/docacessorio/pdf/*
+Disallow: /materia/docacessorio/zip/*
+Disallow: /private/
