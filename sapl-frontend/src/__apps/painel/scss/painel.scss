@@ -1,0 +1,43 @@
+
+.painel-principal {
+  background: #1c1b1b;
+  font-family: Verdana;
+  font-size: x-large;
+  .text-title {
+    color: #4fa64d;
+    margin: 0.5rem;
+	font-weight: bold;
+  }
+  .text-subtitle {
+    color: #459170;
+	font-weight: bold;
+  }
+  .data-hora {
+    font-size: 180%;
+  }
+
+  .text-value {
+    color: white;
+  }
+
+  .logo-painel {
+    max-width: 100%;
+  }
+  .painels {
+    flex-wrap: wrap;
+  }
+  .painel{
+    margin-top: 1rem;
+    table {
+      width: 100%;
+    }
+    h2 {
+      margin-bottom: 0.5rem;
+    }
+    #votacao, #oradores_list {
+      text-align: left;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+  }
+}
