@@ -23,7 +23,7 @@ from sapl.rules import SAPL_GROUP_VOTANTE
 import django_filters
 
 from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Votante, Bloco)
+                     Mandato, Parlamentar, Votante, Bloco, FrenteParlamentar)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -428,11 +428,7 @@ class FrenteForm(ModelForm):
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
-        super(FrenteForm, self).__init__(*args, **kwargs)
-        self.fields['parlamentares'].queryset = Parlamentar.objects.filter(
-            ativo=True).order_by('nome_completo')
-        self.fields['parlamentares'].label = _('Parlamentares \
-                (Mantenha CTRL pressionado para selecionar vários)')
+        super().__init__(*args, **kwargs)
 
     class Meta:
         model = Frente
@@ -468,6 +464,30 @@ class FrenteForm(ModelForm):
                 nome=frente.nome
             )
         return frente
+
+
+class FrenteParlamentarForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['frente'].widget = forms.HiddenInput()
+
+    class Meta:
+        model = FrenteParlamentar
+        fields = '__all__'
+
+    def clean(self):
+        cd = super().clean()
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if cd['cargo'].cargo_unico:
+            frente_parlamentar = FrenteParlamentar.objects.filter(frente=cd['frente'], cargo=cd['cargo'])
+            if frente_parlamentar and not frente_parlamentar[0].parlamentar == cd['parlamentar']:
+                raise ValidationError(_("Cargo único já ocupado por outro parlamentar."))
+
+        return cd
 
 
 class VotanteForm(ModelForm):

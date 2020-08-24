@@ -518,13 +518,12 @@ class Frente(models.Model):
     nome = models.CharField(
         max_length=80,
         verbose_name=_('Nome da Frente'))
-    parlamentares = models.ManyToManyField(Parlamentar,
-                                           blank=True,
-                                           verbose_name=_('Parlamentares'))
+    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
     data_criacao = models.DateField(verbose_name=_('Data Criação'))
     data_extincao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Dissolução'))
-    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+        blank=True,
+        null=True,
+        verbose_name=_('Data Dissolução'))
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.
@@ -547,6 +546,54 @@ class Frente(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+@reversion.register()
+class FrenteCargo(models.Model):
+    nome_cargo = models.CharField(
+        max_length=80,
+        verbose_name=_('Cargo de frente parlamentar'))
+    cargo_unico = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Cargo único?'))
+
+    class Meta:
+        verbose_name = _('Cargo de Frente Parlamentar')
+        verbose_name_plural = _('Cargos de Frente Parlamentar')
+        ordering = ('cargo_unico', 'nome_cargo',)
+
+    def __str__(self):
+        return f"{self.nome_cargo}"
+
+
+@reversion.register()
+class FrenteParlamentar(models.Model):
+    frente = models.ForeignKey(
+        Frente,
+        verbose_name=_('Frente parlamentar'),
+        on_delete=models.CASCADE)
+    parlamentar = models.ForeignKey(
+        Parlamentar,
+        verbose_name=_('Parlamentar'),
+        on_delete=models.CASCADE)
+    cargo = models.ForeignKey(
+        FrenteCargo,
+        verbose_name=_('Cargo na frente parlamentar'),
+        on_delete=models.PROTECT)
+    data_entrada = models.DateField(verbose_name=_('Data Entrada'))
+    data_saida = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name=_('Data Saída'))
+
+    class Meta:
+        verbose_name = _('Parlamentar de frente parlamentar')
+        verbose_name_plural = _('Parlamentares de frente parlamentar')
+        ordering = ('frente', 'parlamentar', 'cargo')
+
+    def __str__(self):
+        return f"{self.parlamentar} - {self.cargo.nome_cargo} - {self.frente}"
 
 
 class Votante(models.Model):
