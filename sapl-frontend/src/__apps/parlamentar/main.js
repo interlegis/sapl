@@ -37,7 +37,7 @@ const v = new Vue({ // eslint-disable-line
 
   methods: {
     getParlamentares (event) {
-      if (this.legislatura_selecionada) {
+      if (this.legislatura_selecionada || this.legislatura_selecionada.toString() === '0') {
         axios.get('/api/parlamentares/parlamentar/' + this.legislatura_selecionada + '/parlamentares_by_legislatura/')
           .then(response => {
             this.parlamentares = response.data
