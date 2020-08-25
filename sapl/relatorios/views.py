@@ -746,7 +746,7 @@ def get_sessao_plenaria(sessao, casa):
         registro_od = RegistroVotacao.objects.filter(ordem=modvn)
 
         if registro_od:
-            for vp_od in VotoParlamentar.objects.filter(votacao=registro_od).order_by('parlamentar'):
+            for vp_od in VotoParlamentar.objects.filter(votacao__in=registro_od).order_by('parlamentar'):
                 votos_materia_od.append(vp_od)
 
         lst_votacao_vot_nom.append({
