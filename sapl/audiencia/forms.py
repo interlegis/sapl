@@ -95,7 +95,7 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
             except ObjectDoesNotExist:
                 msg = _('A matéria %s nº %s/%s não existe no cadastro'
                         ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
-                self.logger.warn(
+                self.logger.warning(
                     'A MateriaLegislativa %s nº %s/%s não existe no cadastro'
                     ' de matérias legislativas.' % (tipo_materia, materia, ano_materia)
                 )
@@ -108,7 +108,7 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
             campos = [materia, tipo_materia, ano_materia]
             if campos.count(None) + campos.count('') < len(campos):
                 msg = _('Preencha todos os campos relacionados à Matéria Legislativa')
-                self.logger.warn(
+                self.logger.warning(
                     'Algum campo relacionado à MatériaLegislativa %s nº %s/%s \
                     não foi preenchido.' % (tipo_materia, materia, ano_materia)
                 )

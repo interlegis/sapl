@@ -61,13 +61,13 @@ class ComposicaoForm(forms.ModelForm):
 
         if intersecao_periodo:
             if periodo.data_fim:
-                self.logger.warn(
+                self.logger.warning(
                     'O período informado ({} a {}) choca com períodos já cadastrados para esta comissão'.format(
                         periodo.data_inicio, periodo.data_fim
                     )
                 )
             else:
-                self.logger.warn(
+                self.logger.warning(
                     'O período informado ({} - ) choca com períodos já cadastrados para esta comissão'.format(
                         periodo.data_inicio
                     )
@@ -95,7 +95,7 @@ class PeriodoForm(forms.ModelForm):
         data_fim = cleaned_data['data_fim']
 
         if data_fim and data_fim < data_inicio:
-            self.logger.warn(
+            self.logger.warning(
                 'A Data Final ({}) é menor que '
                 'a Data Inicial({}).'.format(data_fim, data_inicio)
             )
@@ -111,7 +111,7 @@ class PeriodoForm(forms.ModelForm):
                                                  )
 
         if not legislatura:
-            self.logger.warn(
+            self.logger.warning(
                 'O período informado ({} a {})'
                 'não está contido em uma única '
                 'legislatura existente'.format(data_inicio, data_fim)
@@ -175,7 +175,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
         if data_desligamento and \
                 data_designacao > data_desligamento:
-            self.logger.warn(
+            self.logger.warning(
                 'Data de designação ({}) superior '
                 'à data de desligamento ({})'.format(data_designacao, data_desligamento)
             )
@@ -188,7 +188,7 @@ class ParticipacaoCreateForm(forms.ModelForm):
 
         if cleaned_data['cargo'].nome in cargos_unicos:
             msg = _('Este cargo é único para esta Comissão.')
-            self.logger.warn(
+            self.logger.warning(
                 'Este cargo ({}) é único para esta Comissão.'.format(
                     cleaned_data['cargo'].nome
                 )
@@ -268,7 +268,7 @@ class ParticipacaoEditForm(forms.ModelForm):
 
         if data_desligamento and \
            data_designacao > data_desligamento:
-            self.logger.warn(
+            self.logger.warning(
                 'Data de designação ({}) superior '
                 'à data de desligamento ({})'.format(data_designacao, data_desligamento)
             )
@@ -283,7 +283,7 @@ class ParticipacaoEditForm(forms.ModelForm):
 
         if cleaned_data['cargo'].nome in cargos_unicos:
             msg = _('Este cargo é único para esta Comissão.')
-            self.logger.warn(
+            self.logger.warning(
                 'Este cargo ({}) é único para esta Comissão (id={}).'.format(
                     cleaned_data['cargo'].nome, composicao_id
                 )
@@ -321,7 +321,7 @@ class ComissaoForm(forms.ModelForm):
         if len(self.cleaned_data['nome']) > 100:
             msg = _('Nome da Comissão informado ({}) tem mais de 50 caracteres.'.format(
                 self.cleaned_data['nome']))
-            self.logger.warn(
+            self.logger.warning(
                 'Nome da Comissão deve ter no máximo 50 caracteres.'
             )
             raise ValidationError(msg)
@@ -329,7 +329,7 @@ class ComissaoForm(forms.ModelForm):
             self.cleaned_data['data_extincao'] <
                 self.cleaned_data['data_criacao']):
             msg = _('Data de extinção não pode ser menor que a de criação')
-            self.logger.warn(
+            self.logger.warning(
                 'Data de extinção ({}) não pode ser menor que a de criação ({}).'.format(
                     self.cleaned_data['data_extincao'], self.cleaned_data['data_criacao']
                 )
@@ -339,7 +339,7 @@ class ComissaoForm(forms.ModelForm):
             self.cleaned_data['data_final_prevista_temp'] <
                 self.cleaned_data['data_criacao']):
             msg = _('Data Prevista para Término não pode ser menor que a de criação')
-            self.logger.warn(
+            self.logger.warning(
                 'Data Prevista para Término ({}) não pode ser menor que a de criação ({}).'.format(
                     self.cleaned_data['data_final_prevista_temp'], self.cleaned_data['data_criacao']
                 )
@@ -349,7 +349,7 @@ class ComissaoForm(forms.ModelForm):
             self.cleaned_data['data_prorrogada_temp'] <
                 self.cleaned_data['data_criacao']):
             msg = _('Data Novo Prazo não pode ser menor que a de criação')
-            self.logger.warn(
+            self.logger.warning(
                 'Data Novo Prazo ({}) não pode ser menor que a de criação ({}).'.format(
                     self.cleaned_data['data_prorrogada_temp'], self.cleaned_data['data_criacao']
                 )
@@ -359,7 +359,7 @@ class ComissaoForm(forms.ModelForm):
             self.cleaned_data['data_instalacao_temp'] <
                 self.cleaned_data['data_criacao']):
             msg = _('Data de Instalação não pode ser menor que a de criação')
-            self.logger.warn(
+            self.logger.warning(
                 'Data de Instalação ({}) não pode ser menor que a de criação ({}).'.format(
                     self.cleaned_data['data_instalacao_temp'], self.cleaned_data['data_criacao']
                 )
@@ -370,7 +370,7 @@ class ComissaoForm(forms.ModelForm):
                 self.cleaned_data['data_instalacao_temp']):
             msg = _(
                 'Data Prevista para Término não pode ser menor que a de Instalação.')
-            self.logger.warn(
+            self.logger.warning(
                 'Data Prevista para Término ({}) não pode ser menor que a de Instalação ({}).'.format(
                     self.cleaned_data['data_final_prevista_temp'], self.cleaned_data['data_instalacao_temp']
                 )
@@ -380,7 +380,7 @@ class ComissaoForm(forms.ModelForm):
             self.cleaned_data['data_prorrogada_temp'] <
                 self.cleaned_data['data_instalacao_temp']):
             msg = _('Data Novo Prazo não pode ser menor que a de Instalação.')
-            self.logger.warn(
+            self.logger.warning(
                 'Data Novo Prazo ({}) não pode ser menor que a de Instalação ({}).'.format(
                     self.cleaned_data['data_prorrogada_temp'], self.cleaned_data['data_instalacao_temp']
                 )
@@ -430,7 +430,7 @@ class ReuniaoForm(ModelForm):
                     self.cleaned_data['hora_inicio']):
                 msg = _(
                     'A hora de término da reunião não pode ser menor que a de início')
-                self.logger.warn(
+                self.logger.warning(
                     "A hora de término da reunião ({}) não pode ser menor que a de início ({}).".format(
                         self.cleaned_data['hora_fim'], self.cleaned_data['hora_inicio']
                     )
