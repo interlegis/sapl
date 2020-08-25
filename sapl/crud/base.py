@@ -607,9 +607,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
 
                     # print(ordering)
                 except Exception as e:
-                    logger.warn(
-                        string_concat(_('ERRO: construção da tupla de ordenação.'), str(e))
-                    )
+                    logger.warn(_(f"ERRO: construção da tupla de ordenação. {e}"))
 
         # print(queryset.query)
         if not self.request.user.is_authenticated:
