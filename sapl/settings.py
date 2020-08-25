@@ -276,7 +276,7 @@ WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
         'BUNDLE_DIR_NAME': 'sapl/static/sapl/frontend',
-        'STATS_FILE':  (BASE_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.parent.child('sapl-frontend')).child('webpack-stats.json'),
+        'STATS_FILE':  (BASE_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.child('frontend')).child('webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
@@ -291,7 +291,7 @@ STATICFILES_DIRS = (
 )
 if FRONTEND_CUSTOM:
     STATICFILES_DIRS = (
-        PROJECT_DIR.parent.child('sapl-frontend').child('dist'),
+        PROJECT_DIR.child('frontend').child('dist'),
     )
 
 STATICFILES_FINDERS = (
