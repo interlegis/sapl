@@ -457,6 +457,8 @@ class _ProposicaoViewSet():
 
 @customize(MateriaLegislativa)
 class _MateriaLegislativaViewSet:
+    class Meta:
+        ordering = ['-ano', 'tipo', 'numero']
 
     @action(detail=True, methods=['GET'])
     def ultima_tramitacao(self, request, *args, **kwargs):
