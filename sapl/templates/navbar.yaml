@@ -7,6 +7,10 @@
   children:
     - title: {% trans 'Mesa Diretora' %}
       url: sapl.parlamentares:mesa_diretora
+    - title: {% trans 'Bancadas Parlamentares' %}
+      url: sapl.sessao:bancada_list
+    - title: {% trans 'Blocos Parlamentares' %}
+      url: sapl.parlamentares:bloco_list
     - title: {% trans 'Comissões' %}
       url: sapl.comissoes:comissao_list
     - title: {% trans 'Frentes' %}

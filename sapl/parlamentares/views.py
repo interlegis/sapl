@@ -1178,6 +1178,7 @@ class VincularParlamentarView(PermissionRequiredMixin, FormView):
 
 class BlocoCrud(CrudAux):
     model = Bloco
+    public = [RP_DETAIL, RP_LIST]
 
     class CreateView(CrudAux.CreateView):
         form_class = BlocoForm
