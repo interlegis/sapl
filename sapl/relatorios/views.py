@@ -652,7 +652,7 @@ def get_sessao_plenaria(sessao, casa):
         registro = RegistroVotacao.objects.filter(expediente=mevn)
 
         if registro:
-            for vp in VotoParlamentar.objects.filter(votacao=registro).order_by('parlamentar'):
+            for vp in VotoParlamentar.objects.filter(votacao__in=registro).order_by('parlamentar'):
                 votos_materia.append(vp)
 
         lst_expediente_materia_vot_nom.append({

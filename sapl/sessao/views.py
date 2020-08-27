@@ -2153,7 +2153,7 @@ class ResumoView(DetailView):
             titulo_materia = mevn.materia
             registro = RegistroVotacao.objects.filter(expediente=mevn)
             if registro:
-                for vp in VotoParlamentar.objects.filter(votacao=registro).order_by('parlamentar'):
+                for vp in VotoParlamentar.objects.filter(votacao__in=registro).order_by('parlamentar'):
                     votos_materia.append(vp)
 
             votacoes.append({
