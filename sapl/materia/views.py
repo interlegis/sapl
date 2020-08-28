@@ -840,7 +840,7 @@ class ProposicaoCrud(Crud):
                                 numero = p.numero_materia_futuro
                             else:
                                 numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
-                                                                           ano=p.ano).last().numero + 1
+                                                                           ano=p.ano).order_by('numero').last().numero + 1
                             messages.success(request, _("{}: nº {} de {} <br>Atenção! Este número é apenas um provável "
                                                         "número que pode não corresponder com a realidade"
                                                         .format(p.tipo, numero, p.ano)))
