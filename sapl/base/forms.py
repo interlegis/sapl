@@ -1716,7 +1716,7 @@ class AlterarSenhaForm(Form):
         old_password = data['old_password']
         user = User.objects.get(username=username)
 
-        if user.is_anonymous():
+        if user.is_anonymous:
             self.logger.warning(
                 'Não é possível alterar senha de usuário anônimo ({}).'.format(username)
             )
