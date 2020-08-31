@@ -533,8 +533,6 @@ class Frente(models.Model):
         fields_search=(
             ('nome', '__icontains'),
             ('descricao', '__icontains'),
-            ('parlamentares__filiacao__partido__sigla', '__icontains'),
-            ('parlamentares__filiacao__partido__nome', '__icontains'),
         ))
 
     class Meta:
