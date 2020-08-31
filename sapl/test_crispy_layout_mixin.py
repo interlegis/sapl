@@ -1,6 +1,6 @@
 from unittest import mock
 
-import rtyaml
+import yaml
 
 from sapl.crispy_layout_mixin import read_layout_from_yaml
 
@@ -18,7 +18,7 @@ ModelName:
   - highlander '''
 
     with mock.patch('sapl.crispy_layout_mixin.read_yaml_from_file') as ryff:
-        ryff.return_value = rtyaml.load(stub_content)
+        ryff.return_value = yaml.load(stub_content)
         assert read_layout_from_yaml('....', 'ModelName') == [
             ['Cool Legend',
              [('name', 9),  ('place', 2), ('tiny', 1)],

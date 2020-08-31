@@ -7,7 +7,7 @@ from django import template
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.translation import ugettext as _
-import rtyaml
+import yaml
 
 
 def heads_and_tails(list_of_lists):
@@ -332,17 +332,12 @@ class CrispyLayoutFormMixin:
 def read_yaml_from_file(yaml_layout):
     from django.utils.safestring import SafeText
 
-    # TODO cache this at application level
     t = template.loader.get_template(yaml_layout)
-    # aqui é importante converter para str pois, dependendo do ambiente,
-    # o rtyaml pode usar yaml.CSafeLoader, que exige str ou stream
-
     rendered = str(t.render())
-    # Força conversão para string caso seja SafeText.
     if isinstance(rendered, SafeText):
         rendered = rendered.strip()
 
-    return rtyaml.load(rendered)
+    return yaml.load(rendered)
 
 
 def read_layout_from_yaml(yaml_layout, key):

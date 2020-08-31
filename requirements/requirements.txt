@@ -21,7 +21,6 @@ python-decouple==3.1
 psycopg2-binary==2.7.6.1
 pyyaml==5.3.1
 pytz==2019.3
-rtyaml==1.0.0
 python-magic==0.4.15
 unipath==1.1
 WeasyPrint==51
