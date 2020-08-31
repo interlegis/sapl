@@ -533,7 +533,10 @@ class Frente(models.Model):
         fields_search=(
             ('nome', '__icontains'),
             ('descricao', '__icontains'),
-        ))
+            ('frenteparlamentar__parlamentar__filiacao__partido__sigla', '__icontains'),
+            ('frenteparlamentar__parlamentar__filiacao__partido__nome', '__icontains'),
+        )
+    )
 
     class Meta:
         verbose_name = _('Frente Parlamentar')
