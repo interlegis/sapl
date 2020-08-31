@@ -38,7 +38,7 @@
 		<legend>Matérias do Expediente</legend>
 		{% if materia_expediente %}
 			<table class="table table-striped">
-				<thead><tr><th>Matéria</th><th>Ementa</th> {% if not object.finalizada %} <th>Situação</th> {% endif %} </tr></thead>
+				<thead><tr><th>Matéria</th><th>Ementa</th> <th>Situação</th> </tr></thead>
 					{% for m in materia_expediente %}
 						<tr>
 							<td style="width:20%;">
@@ -48,9 +48,7 @@
 								<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 							</td>
 							<td style="width:60%;">{{m.ementa|safe}}<br>{{m.observacao|linebreaksbr|safe}}</td>
-							{% if not object.finalizada %}
-								<td style="width:20%;">{{m.situacao|linebreaksbr|safe}}</td>
-							{% endif %}
+							<td style="width:20%;">{{m.situacao|linebreaksbr|safe}}</td>
 					</tr>
 				{% endfor %}
 			</table>
@@ -62,7 +60,7 @@
 		<legend>Matérias da Ordem do Dia</legend>
 		{% if materias_ordem %}
 			<table class="table table-striped">
-				<thead><tr><th>Matéria</th><th>Ementa</th> {% if not object.finalizada %} <th>Situação</th> {% endif %} </tr></thead>
+				<thead><tr><th>Matéria</th><th>Ementa</th> <th>Situação</th> </tr></thead>
     			{% for m in materias_ordem %}
 						<tr>
 							<td style="width:20%;">
@@ -72,9 +70,7 @@
 								<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 							</td>
 							<td style="width:60%;">{{m.ementa|safe}}<br>{{m.observacao|linebreaksbr|safe}}</td>
-							{% if not object.finalizada %}
 								<td style="width:20%;">{{m.situacao|linebreaksbr|safe}}</td>
-							{% endif %}
 						</tr>
     			{% endfor %}
   			</table>
