@@ -1103,6 +1103,7 @@ class OradorOrdemDiaCrud(OradorCrud):
 
 class BancadaCrud(CrudAux):
     model = Bancada
+    public = [RP_DETAIL, RP_LIST]
 
     class CreateView(CrudAux.CreateView):
         form_class = BancadaForm
