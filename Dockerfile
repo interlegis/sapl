@@ -1,24 +1,35 @@
-FROM alpine:3.10
+FROM python:3.7-slim-buster as base
 
-ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
-                   python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev \
-                   nodejs py3-lxml py3-magic postgresql-client poppler-utils antiword \
-                   curl jq openssh-client vim bash postgresql-client cairo-dev
+# Setup env
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+ENV PYTHONDONTWRITEBYTECODE 1
 
-RUN apk update --update-cache && apk upgrade
+#ENV PYTHONFAULTHANDLER 1
 
-RUN apk --update add fontconfig ttf-dejavu && fc-cache -fv
+ENV DEBIAN_FRONTEND noninteractive
 
-RUN apk add --no-cache python3 nginx tzdata && \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
+ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git pkg-config \
+                   python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev pgadmin3 \
+                   python3-lxml python3-magic postgresql-contrib postgresql-client libcairo2-dev \
+                   python3-psycopg2 poppler-utils vim curl jq vim openssh-client bash software-properties-common \
+                   software-properties-common python3-setuptools python3-venv nginx tzdata nodejs
+
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends apt-utils
+
+RUN apt-get install -y --no-install-recommends $BUILD_PACKAGES
+
+RUN mkdir -p /usr/share/man/man1 && mkdir -p /usr/share/man/man7
+RUN apt-get install -y fontconfig ttf-dejavu && fc-cache -fv
+
+
+FROM base as python-base
+
+RUN apt-get install -y python python3-pip && \
     pip3 install --upgrade pip setuptools && \
-    pip3 install wheel && \
-    rm -r /root/.cache && \
     rm -f /etc/nginx/conf.d/*
 
-RUN mkdir -p /var/interlegis/sapl && \
-    apk add --update --no-cache $BUILD_PACKAGES
+RUN mkdir -p /var/interlegis/sapl
 
 WORKDIR /var/interlegis/sapl/
 
@@ -35,6 +46,8 @@ COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
 RUN python3 manage.py collectstatic --noinput --clear
 
+FROM python-base
+
 # Remove .env(fake) e sapl.db da imagem
 RUN rm -rf /var/interlegis/sapl/sapl/.env && \
     rm -rf /var/interlegis/sapl/sapl.db
@@ -45,6 +58,13 @@ RUN chmod +x /var/interlegis/sapl/start.sh && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
     mkdir /var/log/sapl/ && touch /var/interlegis/sapl/sapl.log && \
     ln -s /var/interlegis/sapl/sapl.log /var/log/sapl/sapl.log
+
+# Debian não possui usuário 'nginx' necessário para o Debian
+RUN useradd --no-create-home nginx
+
+ENV DEBIAN_FRONTEND teletype
+
+EXPOSE 80/tcp 443/tcp
 
 VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 
