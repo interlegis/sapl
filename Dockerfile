@@ -10,10 +10,16 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV DEBIAN_FRONTEND noninteractive
 
 ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git pkg-config \
-                   python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev pgadmin3 \
+                   python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev \
                    python3-lxml python3-magic postgresql-client libcairo2-dev \
                    python3-psycopg2 poppler-utils vim curl jq vim bash software-properties-common \
                    software-properties-common python3-setuptools python3-venv nginx tzdata nodejs
+
+RUN mkdir -p /var/interlegis/sapl
+
+WORKDIR /var/interlegis/sapl/
+
+ADD . /var/interlegis/sapl/
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends apt-utils && \
     mkdir -p /usr/share/man/man1 && mkdir -p /usr/share/man/man7 && \
@@ -22,20 +28,13 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     apt-get install -y python python3-pip && \
     pip3 install --upgrade pip setuptools && \
     rm -f /etc/nginx/conf.d/* && \
-    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /var/interlegis/sapl
-
-WORKDIR /var/interlegis/sapl/
-
-ADD . /var/interlegis/sapl/
+    pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
+    rm -r /root/.cache && \
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY start.sh /var/interlegis/sapl/
 COPY config/nginx/sapl.conf /etc/nginx/conf.d
 COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
-
-RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
-    rm -r /root/.cache
 
 COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
