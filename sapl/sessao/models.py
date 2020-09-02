@@ -9,7 +9,7 @@ from model_utils import Choices
 import reversion
 
 from sapl.base.models import Autor
-from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, Tramitacao
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
@@ -349,6 +349,13 @@ class AbstractOrdemDia(models.Model):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Registro de Votação Iniciado?')
+    )
+    situacao_pauta = models.ForeignKey(
+        Tramitacao,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        verbose_name=_('Situação Pauta')
     )
 
     class Meta:
