@@ -821,7 +821,7 @@ def get_sessao_plenaria(sessao, casa):
 def get_turno(materia):
     descricao_turno = ''
     descricao_tramitacao = ''
-    tramitacoes = materia.tramitacao_set.all().order_by('-data_tramitacao')
+    tramitacoes = materia.tramitacao_set.order_by('-data_tramitacao', '-id').all()
     tramitacoes_turno = tramitacoes.exclude(turno="")
 
     if tramitacoes:
