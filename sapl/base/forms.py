@@ -347,6 +347,9 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
             raise ValidationError(
                 'Data início não pode ser superior à data fim')
 
+        if data_fim.year > data_inicio.year + 1:
+            raise ValidationError('A Sessão Legislativa só pode ter, no máximo, dois anos de período.')
+
         data_inicio_intervalo = cleaned_data['data_inicio_intervalo']
         data_fim_intervalo = cleaned_data['data_fim_intervalo']
 
