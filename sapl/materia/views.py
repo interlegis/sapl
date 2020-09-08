@@ -1209,10 +1209,8 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def get_initial(self):
             initial = super(CreateView, self).get_initial()
-            local = MateriaLegislativa.objects.get(
-                pk=self.kwargs['pk']).tramitacao_set.order_by(
-                '-data_tramitacao',
-                '-id').first()
+            local = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])\
+                                      .tramitacao_set.order_by('-data_tramitacao', '-id').first()
 
             if local:
                 initial['unidade_tramitacao_local'
@@ -1343,10 +1341,7 @@ class TramitacaoCrud(MasterDetailCrud):
             url = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': materia.id})
 
-            ultima_tramitacao = materia.tramitacao_set.order_by(
-                '-data_tramitacao',
-                '-timestamp',
-                '-id').first()
+            ultima_tramitacao = materia.tramitacao_set.order_by('-data_tramitacao', '-id').first()
 
             if tramitacao.pk != ultima_tramitacao.pk:
                 username = request.user.username
@@ -1366,7 +1361,7 @@ class TramitacaoCrud(MasterDetailCrud):
                 if tramitar_anexadas:
                     mat_anexadas = lista_anexados(materia)
                     for ma in mat_anexadas:
-                        tram_anexada = ma.tramitacao_set.last()
+                        tram_anexada = ma.tramitacao_set.order_by('-data_tramitacao', '-id').first()
                         if compara_tramitacoes_mat(tram_anexada, tramitacao):
                             tramitacoes_deletar.append(tram_anexada)
                             if ma.tramitacao_set.count() == 0:
@@ -2372,7 +2367,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             context['title'] = _('Primeira Tramitação em Lote')
             # Pega somente documentos que não possuem tramitação
             context['object_list'] = [obj for obj in context['object_list'] 
-                                          if obj.tramitacao_set.all().count() == 0]
+                                          if obj.tramitacao_set.order_by('-data_tramitacao', '-id').all().count() == 0]
         else:
             context['title'] = _('Tramitação em Lote')
             context['form'].fields['unidade_tramitacao_local'].initial = UnidadeTramitacao.objects.get(
@@ -2625,7 +2620,7 @@ class ExcluirTramitacaoEmLoteView(PermissionRequiredMixin, FormView):
             status=form.cleaned_data['status'])
         for tramitacao in tramitacao_set:
             materia = tramitacao.materia
-            if tramitacao == materia.tramitacao_set.last():
+            if tramitacao == materia.tramitacao_set.order_by('-data_tramitacao', '-id').first():
                 tramitacao.delete()
 
         return redirect(self.get_success_url())
