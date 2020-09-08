@@ -77,7 +77,8 @@ def reordena_materias(request, pk, tipo, ordenacao):
         "1": ("materia__tipo__sequencia_regimental", "materia__ano", "materia__numero"),
         "2": ("materia__ano", "materia__numero"),
         "3": ("-materia__ano", "materia__numero"),
-        "4": ("materia__autores", "materia__ano", "materia__numero")
+        "4": ("materia__autores", "materia__ano", "materia__numero"),
+        "5": ("numero_ordem",)
     }
 
     TIPOS_URLS_SUCESSO = {
@@ -86,11 +87,12 @@ def reordena_materias(request, pk, tipo, ordenacao):
     }
 
     materias = TIPOS_MATERIAS[tipo].objects.filter(sessao_plenaria_id=pk).order_by(*TIPOS_ORDENACAO[ordenacao])
-    materias = OrderedDict.fromkeys(materias)
 
+    update_list = []
     for numero, materia in enumerate(materias, 1):
         materia.numero_ordem = numero
-        materia.save()
+        update_list.append(materia)
+    TIPOS_MATERIAS[tipo].objects.bulk_update(update_list, ['numero_ordem'])
 
     return HttpResponseRedirect(reverse(TIPOS_URLS_SUCESSO[tipo], kwargs={'pk': pk}))
 
