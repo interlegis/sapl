@@ -1,35 +1,40 @@
-FROM alpine:3.10
+FROM python:3.7-slim-buster
 
-ENV BUILD_PACKAGES postgresql-dev graphviz-dev graphviz build-base git pkgconfig \
-                   python3-dev libxml2-dev jpeg-dev libressl-dev libffi-dev libxslt-dev \
-                   nodejs py3-lxml py3-magic postgresql-client poppler-utils antiword \
-                   curl jq openssh-client vim bash postgresql-client cairo-dev
+# Setup env
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+ENV PYTHONDONTWRITEBYTECODE 1
 
-RUN apk update --update-cache && apk upgrade
+#ENV PYTHONFAULTHANDLER 1
 
-RUN apk --update add fontconfig ttf-dejavu && fc-cache -fv
+ENV DEBIAN_FRONTEND noninteractive
 
-RUN apk add --no-cache python3 nginx tzdata && \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip3 install --upgrade pip setuptools && \
-    pip3 install wheel && \
-    rm -r /root/.cache && \
-    rm -f /etc/nginx/conf.d/*
+ENV BUILD_PACKAGES apt-file libpq-dev graphviz-dev graphviz build-essential git pkg-config \
+                   python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev \
+                   python3-lxml python3-magic postgresql-client libcairo2-dev \
+                   python3-psycopg2 poppler-utils vim curl jq vim bash software-properties-common \
+                   software-properties-common python3-setuptools python3-venv nginx tzdata nodejs
 
-RUN mkdir -p /var/interlegis/sapl && \
-    apk add --update --no-cache $BUILD_PACKAGES
+RUN mkdir -p /var/interlegis/sapl
 
 WORKDIR /var/interlegis/sapl/
 
 ADD . /var/interlegis/sapl/
 
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends apt-utils && \
+    mkdir -p /usr/share/man/man1 && mkdir -p /usr/share/man/man7 && \
+    apt-get install -y fontconfig ttf-dejavu && fc-cache -fv && \
+    apt-get install -y --no-install-recommends $BUILD_PACKAGES && \
+    apt-get install -y python python3-pip && \
+    pip3 install --upgrade pip setuptools && \
+    rm -f /etc/nginx/conf.d/* && \
+    pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
+    rm -r /root/.cache && \
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY start.sh /var/interlegis/sapl/
 COPY config/nginx/sapl.conf /etc/nginx/conf.d
 COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
-
-RUN pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
-    rm -r /root/.cache
 
 COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
@@ -45,6 +50,13 @@ RUN chmod +x /var/interlegis/sapl/start.sh && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
     mkdir /var/log/sapl/ && touch /var/interlegis/sapl/sapl.log && \
     ln -s /var/interlegis/sapl/sapl.log /var/log/sapl/sapl.log
+
+# Debian não possui usuário 'nginx' necessário para o Debian
+RUN useradd --no-create-home nginx
+
+ENV DEBIAN_FRONTEND teletype
+
+EXPOSE 80/tcp 443/tcp
 
 VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 
