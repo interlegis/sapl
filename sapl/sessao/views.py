@@ -3593,7 +3593,7 @@ class PautaSessaoDetailView(DetailView):
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
 
-            ultima_tramitacao = m.materia.tramitacao_set.order_by('-data_tramitacao').select_related('status').first()
+            ultima_tramitacao = m.materia.tramitacao_set.order_by('-data_tramitacao', '-id').first()
             numeracao = m.materia.numeracao_set.first()
 
             materias_expediente.append({
@@ -3643,7 +3643,7 @@ class PautaSessaoDetailView(DetailView):
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
 
-            ultima_tramitacao = o.materia.tramitacao_set.order_by('-data_tramitacao').first()
+            ultima_tramitacao = o.materia.tramitacao_set.order_by('-data_tramitacao', '-id').first()
             numeracao = o.materia.numeracao_set.first()
 
             materias_ordem.append({

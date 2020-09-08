@@ -312,7 +312,7 @@ class MateriaLegislativa(models.Model):
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
         unique_together = (("tipo", "numero", "ano"),)
-        ordering = ['-id']
+        ordering = ['-ano', 'tipo', 'numero']
         permissions = (("can_access_impressos", "Can access impressos"),)
 
     def __str__(self):
@@ -1176,6 +1176,7 @@ class Tramitacao(models.Model):
     class Meta:
         verbose_name = _('Tramitação')
         verbose_name_plural = _('Tramitações')
+        ordering = ('-data_tramitacao', '-id')
 
     def __str__(self):
         return _('%(materia)s | %(status)s | %(data)s') % {

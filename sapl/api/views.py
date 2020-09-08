@@ -457,6 +457,8 @@ class _ProposicaoViewSet():
 
 @customize(MateriaLegislativa)
 class _MateriaLegislativaViewSet:
+    class Meta:
+        ordering = ['-ano', 'tipo', 'numero']
 
     @action(detail=True, methods=['GET'])
     def ultima_tramitacao(self, request, *args, **kwargs):
@@ -465,7 +467,7 @@ class _MateriaLegislativaViewSet:
         if not materia.tramitacao_set.exists():
             return Response({})
 
-        ultima_tramitacao = materia.tramitacao_set.last()
+        ultima_tramitacao = materia.tramitacao_set.order_by('-data_tramitacao', '-id').first()
 
         serializer_class = SaplApiViewSetConstrutor.get_class_for_model(
             Tramitacao).serializer_class(ultima_tramitacao)
