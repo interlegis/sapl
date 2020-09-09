@@ -83,7 +83,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'floppyforms',
 
-    #'drf_yasg',
+    'drf_yasg',
     # 'rest_framework_swagger',
     'rest_framework',
     'rest_framework.authtoken',
