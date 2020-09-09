@@ -82,12 +82,12 @@
                 
                 {% if not tipo_listagem or tipo_listagem == '1' %}
                   
-                  {% if m.tramitacao_set.last.unidade_tramitacao_destino %}
-                  <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.last.unidade_tramitacao_destino}}</br>
+                  {% if m.tramitacao_set.first.unidade_tramitacao_destino %}
+                  <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.first.unidade_tramitacao_destino}}</br>
                   {% endif %}
-                  {% if m.tramitacao_set.last.status %}
-                    <strong>Status:</strong> &nbsp;{{m.tramitacao_set.last.status}}</br>
-                    <strong>Data Fim Prazo (Tramitação):</strong>&nbsp;{{m.tramitacao_set.last.data_fim_prazo|default_if_none:""}}</br>
+                  {% if m.tramitacao_set.first.status %}
+                    <strong>Status:</strong> &nbsp;{{m.tramitacao_set.first.status}}</br>
+                    <strong>Data Fim Prazo (Tramitação):</strong>&nbsp;{{m.tramitacao_set.first.data_fim_prazo|default_if_none:""}}</br>
                   {% endif %}
                   {% if m.registrovotacao_set.exists %}
                       <strong>Data Votação:</strong>
@@ -104,9 +104,9 @@
                           </br>
                       {% endfor %}
                   {% endif %}
-                  {% if m.tramitacao_set.last.data_tramitacao %}
-                  <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.last.data_tramitacao}}</br>
-                  <strong>Ultima Ação:</strong> &nbsp; {{m.tramitacao_set.last.texto}}</br>
+                  {% if m.tramitacao_set.first.data_tramitacao %}
+                  <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.first.data_tramitacao}}</br>
+                  <strong>Ultima Ação:</strong> &nbsp; {{m.tramitacao_set.first.texto}}</br>
                   {% endif %}
                   {% if m.anexo_de.exists %}
                     {% for a in m.materia_anexada_set.all %}

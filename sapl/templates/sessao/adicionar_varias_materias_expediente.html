@@ -52,9 +52,9 @@
                   {% endif %}
                 {% endfor %}
                 </br>
-                <strong>Localização Atual:</strong> &nbsp;{{ m.tramitacao_set.last.unidade_tramitacao_destino|default_if_none:"Não informado" }}</br>
-                <strong>Status:</strong> &nbsp;{{ m.tramitacao_set.last.status|default_if_none:"Não informado" }}</br>
-                <strong>Data da última Tramitação:</strong> &nbsp;{{ m.tramitacao_set.last.data_tramitacao|default_if_none:"Não informado" }}</br>
+                <strong>Localização Atual:</strong> &nbsp;{{ m.tramitacao_set.first.unidade_tramitacao_destino|default_if_none:"Não informado" }}</br>
+                <strong>Status:</strong> &nbsp;{{ m.tramitacao_set.first.status|default_if_none:"Não informado" }}</br>
+                <strong>Data da última Tramitação:</strong> &nbsp;{{ m.tramitacao_set.first.data_tramitacao|default_if_none:"Não informado" }}</br>
                 <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
                 <p></p>
                 <td width="20%%">
