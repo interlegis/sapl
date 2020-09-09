@@ -63,11 +63,11 @@
                     {% if o.materia.numero_protocolo %}
                     <strong>Protocolo:</strong> &nbsp; {{o.materia.numero_protocolo}}</br>
                     {% endif %}
-                    {% if  o.materia.tramitacao_set.last %}
-                    {% if o.materia.tramitacao_set.last.turno %}
+                    {% if  o.materia.tramitacao_set.first %}
+                    {% if o.materia.tramitacao_set.first.turno %}
                         <strong>Turno:</strong>&nbsp;
                         {% for t in turno_choices %}
-                        {% if t.0 == o.materia.tramitacao_set.last.turno %}
+                        {% if t.0 == o.materia.tramitacao_set.first.turno %}
                             {{ t.1 }}
                         {% endif %}
                         {% endfor %}</br>

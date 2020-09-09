@@ -55,8 +55,8 @@
               </a>
             </td>
             <td>{{ materia_em_tramitacao.materia.ementa }}</td>
-            <td>{{ materia_em_tramitacao.materia.tramitacao_set.last.unidade_tramitacao_destino }}</td>
-            <td>{{ materia_em_tramitacao.materia.tramitacao_set.last.status }}</td>
+            <td>{{ materia_em_tramitacao.materia.tramitacao_set.first.unidade_tramitacao_destino }}</td>
+            <td>{{ materia_em_tramitacao.materia.tramitacao_set.first.status }}</td>
             <td>{% for autor in materia_em_tramitacao.materia.autores.all %} <p>{{autor}}</p>{% endfor %}</td>
           </tr>
         {% endfor %}
