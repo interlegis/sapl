@@ -42,7 +42,6 @@ COPY docker/busy-wait.sh $HOME
 COPY docker/create_admin.py $HOME
 COPY docker/genkey.py $HOME
 COPY docker/gunicorn_start.sh $HOME
-COPY docker/config/env_test $HOME
 
 COPY docker/config/nginx/sapl.conf /etc/nginx/conf.d
 COPY docker/config/nginx/nginx.conf /etc/nginx/nginx.conf
