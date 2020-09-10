@@ -1148,7 +1148,8 @@ class RelatoriaCrud(MasterDetailCrud):
         def get_initial(self):
             materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
 
-            loc_atual = Tramitacao.objects.filter(materia=materia).last()
+            loc_atual = Tramitacao.objects.\
+                filter(materia=materia).order_by('-data_tramitacao', '-id').first()
 
             if loc_atual is None:
                 localizacao = 0
@@ -1233,7 +1234,6 @@ class TramitacaoCrud(MasterDetailCrud):
             ultima_tramitacao = Tramitacao.objects.filter(
                 materia_id=self.kwargs['pk']).order_by(
                 '-data_tramitacao',
-                '-timestamp',
                 '-id').first()
 
             # TODO: Esta checagem foi inserida na issue #2027, mas é mesmo
