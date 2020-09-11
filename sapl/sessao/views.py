@@ -216,7 +216,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                .select_related('materia', 'status', 'materia__tipo')\
                                .filter(materia=materia, turno__isnull=False, data_tramitacao__lte=data_inicio_sessao)\
                                .exclude(turno__exact='')\
-                               .order_by('-data_tramitacao')\
+                               .order_by('-data_tramitacao', '-id')\
                                .first()
         turno = '-'
         if tramitacao:
@@ -1923,7 +1923,7 @@ def get_materias_expediente(sessao_plenaria):
     materias_expediente = []
     for m in ExpedienteMateria.objects.select_related("materia").filter(sessao_plenaria_id=sessao_plenaria.id):
         tramitacao = ''
-        for aux_tramitacao in Tramitacao.objects.filter(materia=m.materia).order_by('-pk'):
+        for aux_tramitacao in Tramitacao.objects.filter(materia=m.materia).order_by('-data_tramitacao', '-id'):
             if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break
@@ -2027,7 +2027,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
     materias_ordem = []
     for o in OrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria.id):
         tramitacao = ''
-        for aux_tramitacao in Tramitacao.objects.filter(materia=o.materia).order_by('-pk'):
+        for aux_tramitacao in Tramitacao.objects.filter(materia=o.materia).order_by('-data_tramitacao', '-id'):
             if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break

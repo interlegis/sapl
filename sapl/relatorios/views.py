@@ -125,7 +125,7 @@ def get_materias(mats):
 
         tramitacoes = Tramitacao.objects.filter(
             unidade_tramitacao_destino__isnull=True).order_by(
-            'data_tramitacao')
+            '-data_tramitacao', '-id')
 
         for tramitacao in tramitacoes:
             des_status = tramitacao.status.descricao
