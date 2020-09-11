@@ -5,6 +5,15 @@
 {% load static %}
 
 {% block content %}
+	<style>
+		table.grayTable tbody td {
+			font-size: 10px;
+			max-width: 80px;
+			overflow-wrap: break-word;
+			word-wrap: break-word;
+			text-align: initial;
+		}
+	</style>
     <h2 class="gray-title">Identificação Básica</h2>
     {% for b in basica %}
         {{ b }}<br/>
