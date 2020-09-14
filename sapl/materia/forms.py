@@ -370,6 +370,10 @@ class RelatoriaForm(ModelForm):
         label=_('Composição')
     )
 
+    tipo_unidade_tramitacao_destino = forms.CharField(required=False)
+
+    unidade_tramitacao_destino = forms.CharField(required=False)
+
     class Meta:
         model = Relatoria
         fields = [
@@ -381,7 +385,11 @@ class RelatoriaForm(ModelForm):
             'parlamentar'
         ]
 
-        widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
+        widgets = {
+            'comissao': forms.Select(attrs={'disabled': 'disabled'}),
+            'tipo_unidade_tramitacao_destino': forms.HiddenInput(),
+            'unidade_tramitacao_destino': forms.HiddenInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         row1 = to_row([('comissao', 12)])

@@ -1152,13 +1152,25 @@ class RelatoriaCrud(MasterDetailCrud):
                 filter(materia=materia).order_by('-data_tramitacao', '-id').first()
 
             if loc_atual is None:
-                localizacao = 0
+                localizacao = -1
             else:
                 comissao = loc_atual.unidade_tramitacao_destino.comissao
                 if comissao:
                     localizacao = comissao.pk
                 else:
                     localizacao = 0
+                    if loc_atual.unidade_tramitacao_destino.orgao:
+                        # 0 = Orgão
+                        tipo_unidade_tramitacao_destino = "Orgão"
+                    elif loc_atual.unidade_tramitacao_destino.parlamentar:
+                        # 1 = Parlamentar
+                        tipo_unidade_tramitacao_destino = "Parlamentar"
+                    
+                    unidade_tramitacao_destino = loc_atual.unidade_tramitacao_destino
+                    return {
+                        'comissao': localizacao, 'tipo_unidade_tramitacao_destino': tipo_unidade_tramitacao_destino,
+                        'unidade_tramitacao_destino': unidade_tramitacao_destino
+                    }
 
             return {'comissao': localizacao}
 
