@@ -23,9 +23,9 @@ SEQUENCIA_NUMERACAO_PROTOCOLO = (('A', _('Sequencial por ano')),
                        ('U', _('Sequencial único')))
 
 REGISTRO_NUMERACAO_MATERIA = (
-    ('N', _('Não registrar numeração')),
-    ('A', _('Registrar numeração - sequencial por ano')),
-    ('U', _('Registrar numeração - sequencial única'))
+    ('N', _('Não registrar numeração de processo')),
+    ('A', _('Registrar numeração de processo - sequencial por ano')),
+    ('U', _('Registrar numeração de processo - sequencial única'))
 )
 
 SEQUENCIA_NUMERACAO_PROPOSICAO = (('A', _('Sequencial por ano para cada autor')),
@@ -121,7 +121,9 @@ class AppConfig(models.Model):
 
     registro_numeracao_materia = models.CharField(
         max_length=1,
-        verbose_name=_('Registro de numeração na criação de matérias'),
+        verbose_name=_(
+            'Registro de numeração de processo na criação de matérias'
+        ),
         choices=REGISTRO_NUMERACAO_MATERIA, default='N'
     )
 

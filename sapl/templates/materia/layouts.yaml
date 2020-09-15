@@ -76,7 +76,7 @@ DocumentoAcessorio:
   - arquivo
 
 Numeracao:
-  {% trans 'Numeração' %}:
+  {% trans 'Numeração de Processo' %}:
   - tipo_materia numero_materia ano_materia data_materia
 
 Orgao:

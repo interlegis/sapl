@@ -1718,18 +1718,18 @@ class MateriaLegislativaCrud(Crud):
 
             self.logger.debug(
                 "Tentando obter a configuração selecionada para o registro de numeração " \
-                "na criação de materias."
+                "de processo na criação de materias."
             )
             config = BaseAppConfig.objects.last().registro_numeracao_materia
             if not config:
                 self.logger.error(
                     "Não foi possível obter a configuração selecionada para o registro " \
-                    "de numeração na criação de matérias."
+                    "de numeração de processo na criação de matérias."
                 )
 
                 msg = _(
                     'Não foi possível obter a configuração selecionada para o registro ' \
-                    'de numeração na criação de matérias.'
+                    'de numeração de processo na criação de matérias.'
                 )
                 messages.add_message(self.request, messages.WARNING, msg)
             elif config == "A":
@@ -1758,8 +1758,8 @@ class MateriaLegislativaCrud(Crud):
                 )
             else:
                 self.logger.debug(
-                    "A configuração selecionada para o registro de numeração na criação " \
-                    "de matérias é: Não registrar numeração."
+                    "A configuração selecionada para o registro de numeração de processo" \
+                    " na criação de matérias é: Não registrar numeração de processo."
                 )
             return super().form_valid(form)
 
