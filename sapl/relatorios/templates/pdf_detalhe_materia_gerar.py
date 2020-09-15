@@ -300,7 +300,7 @@ def relatorias(lst_relatorias):
 def numeracoes(lst_numeracoes):
 
     tmp = ''
-    tmp += '\t\t<para style="P1">Numerações</para>\n'
+    tmp += '\t\t<para style="P1">Numerações de Processo</para>\n'
     for dic_dados in lst_numeracoes:
         tmp += '\t\t<para style="P2"><b>Nome:</b> ' + \
             dic_dados['nome'] + '</para>\n'

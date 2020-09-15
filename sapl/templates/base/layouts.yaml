@@ -22,6 +22,9 @@ AppConfig:
   - protocolo_manual receber_recibo_proposicao
   - proposicao_incorporacao_obrigatoria escolher_numero_materia_proposicao
 
+  {% trans 'Matérias Legislativas' %}:
+  - registro_numeracao_materia
+
   {% trans 'Tramitações' %}:
   - tramitacao_materia tramitacao_documento
 

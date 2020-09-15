@@ -648,8 +648,8 @@ class Numeracao(models.Model):
     data_materia = models.DateField(verbose_name=_('Data'), null=True)
 
     class Meta:
-        verbose_name = _('Numeração')
-        verbose_name_plural = _('Numerações')
+        verbose_name = _('Numeração de Processo')
+        verbose_name_plural = _('Numerações de Processo')
         ordering = ('materia',
                     'tipo_materia',
                     'numero_materia',

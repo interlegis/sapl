@@ -852,7 +852,7 @@ class NumeracaoForm(ModelForm):
             ano_materia=self.cleaned_data['ano_materia'],
             numero_materia=self.cleaned_data['numero_materia']
         ).exists():
-            msg = _('Essa numeração já foi cadastrada.')
+            msg = _('Essa numeração de processo já foi cadastrada.')
             self.logger.error("Essa numeração (materia={}, tipo_materia={}, ano_materia={}, numero_materia={}) "
                               "já foi cadastrada.".format(self.instance.materia, self.cleaned_data['tipo_materia'],
                                                           self.cleaned_data['ano_materia'], self.cleaned_data['numero_materia']))
@@ -998,7 +998,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
 
     numeracao__numero_materia = django_filters.NumberFilter(
         required=False,
-        label=_('Número do processo'))
+        label=_('Número de processo'))
 
     o = MateriaPesquisaOrderingFilter(help_text='')
 

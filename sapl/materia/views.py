@@ -1712,6 +1712,57 @@ class MateriaLegislativaCrud(Crud):
 
             return initial
 
+        def form_valid(self, form):
+            self.object = form.save()
+            tipo_materia = TipoMateriaLegislativa.objects.get(id=self.object.tipo_id)
+
+            self.logger.debug(
+                "Tentando obter a configuração selecionada para o registro de numeração " \
+                "de processo na criação de materias."
+            )
+            config = BaseAppConfig.objects.last().registro_numeracao_materia
+            if not config:
+                self.logger.error(
+                    "Não foi possível obter a configuração selecionada para o registro " \
+                    "de numeração de processo na criação de matérias."
+                )
+
+                msg = _(
+                    'Não foi possível obter a configuração selecionada para o registro ' \
+                    'de numeração de processo na criação de matérias.'
+                )
+                messages.add_message(self.request, messages.WARNING, msg)
+            elif config == "A":
+                numeros = [
+                    int(n.numero_materia) for n in Numeracao.objects.filter(
+                        ano_materia=self.object.ano
+                    )
+                ]
+                numeros.sort()
+                numero = numeros[len(numeros)-1] + 1 if numeros else 1
+
+                Numeracao.objects.create(
+                    materia=self.object, tipo_materia=tipo_materia,
+                    numero_materia=numero, ano_materia=self.object.ano,
+                    data_materia=self.object.data_apresentacao
+                )
+            elif config == "U":
+                numeros = [ int(n.numero_materia) for n in Numeracao.objects.all() ]
+                numeros.sort()
+                numero = numeros[len(numeros)-1] + 1 if numeros else 1
+
+                Numeracao.objects.create(
+                    materia=self.object, tipo_materia=tipo_materia,
+                    numero_materia=numero, ano_materia=self.object.ano,
+                    data_materia=self.object.data_apresentacao
+                )
+            else:
+                self.logger.debug(
+                    "A configuração selecionada para o registro de numeração de processo" \
+                    " na criação de matérias é: Não registrar numeração de processo."
+                )
+            return super().form_valid(form)
+
         @property
         def cancel_url(self):
             return self.search_url
