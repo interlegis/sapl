@@ -85,7 +85,7 @@ def nav_run(context, path=None):
 
         try:
             rendered = yaml_template.template.render(context)
-            menu = yaml.load(rendered)
+            menu = yaml.load(rendered, yaml.Loader)
             resolve_urls_inplace(menu, root_pk, rm, context)
         except Exception as e:
             raise Exception(_("""Erro na conversão do yaml %s. App: %s.
