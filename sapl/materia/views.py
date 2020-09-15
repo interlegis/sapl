@@ -1739,7 +1739,7 @@ class MateriaLegislativaCrud(Crud):
                     )
                 ]
                 numeros.sort()
-                numero = numeros[len(numeros)-1] + 1
+                numero = numeros[len(numeros)-1] + 1 if numeros else 1
 
                 Numeracao.objects.create(
                     materia=self.object, tipo_materia=tipo_materia,
@@ -1749,7 +1749,7 @@ class MateriaLegislativaCrud(Crud):
             elif config == "U":
                 numeros = [ int(n.numero_materia) for n in Numeracao.objects.all() ]
                 numeros.sort()
-                numero = numeros[len(numeros)-1] + 1
+                numero = numeros[len(numeros)-1] + 1 if numeros else 1
 
                 Numeracao.objects.create(
                     materia=self.object, tipo_materia=tipo_materia,
