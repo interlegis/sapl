@@ -36,10 +36,13 @@
             {% endif %}
           </td>
           <td>
-            {{m.ementa|dont_break_out}}<br/>
-            {{m.observacao|dont_break_out}}
+            {{m.ementa|dont_break_out}}
+            {% if m.observacao %} <br/><br/>Obs.: {{m.observacao}} {% endif %}
           </td>
-          <td><b>{{m.resultado}}</b><br/>{{m.resultado_observacao}}</td>
+          <td>
+            <b>{{m.resultado}}</b>
+            {% if m.resultado_observacao %} <br/><br/>Obs.: {{m.resultado_observacao}} {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>
