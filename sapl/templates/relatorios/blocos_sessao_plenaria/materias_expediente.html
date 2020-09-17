@@ -20,7 +20,12 @@
                             <dt style="text-align: left;"><b>{{materia.num_autores}}: </b>{{materia.nom_autor}}</dt>
                         </dl>
                     </td>
-                    <td style="width:60%"><div style="margin:10px">{{materia.txt_ementa}}<br>{{materia.ordem_observacao}}</div></td>
+                    <td style="width:60%">
+                        <div style="margin:10px">
+                            {{materia.txt_ementa}}
+                            {% if materia.ordem_observacao %}<br><br>Obs.: {{materia.ordem_observacao}} {% endif %}
+                        </div>
+                    </td>
                     <td style="text-align: center">&nbsp;<b>{{materia.nom_resultado}}</b></td>
                 </tr>
             {% endfor %}

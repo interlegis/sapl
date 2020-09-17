@@ -22,7 +22,7 @@
 					Abstenções: {{m.voto_abstencoes}}, 
 				{% endif %}
 				Resultado:</b> 	{{m.resultado}}
-					{% if m.resultado_observacao %} - {{m.resultado_observacao}} {% endif %}
+					{% if m.resultado_observacao %} - Obs.: {{m.resultado_observacao}} {% endif %}
 				{% if m.voto_nominal%}
 				<b>Votos Nominais :</b>
 					{% for voto in m.voto_nominal %}
@@ -30,6 +30,7 @@
 						{% if not forloop.last %} ; {% endif %} 
 					{% endfor %}
 				{% endif %}	
+				;
 			{% endfor %}
 		{% endif %}
 	</p>

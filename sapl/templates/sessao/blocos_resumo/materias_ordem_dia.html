@@ -36,8 +36,14 @@
               <b>Processo:</b> {{ m.numero_processo }}
             {% endif %}
           </td>
-          <td>{{m.ementa|dont_break_out}}</b><br/>{{m.observacao|dont_break_out}}</td>
-          <td><b>{{m.resultado}}</b><br/>{{m.resultado_observacao}}</td>
+          <td>
+            {{m.ementa|dont_break_out}}</b>
+            {% if m.observacao %} <br/><br/>Obs.: {{m.observacao}} {% endif %}
+          </td>
+          <td>
+            <b>{{m.resultado}}</b>
+            {% if m.resultado_observacao %} <br/><br/>Obs.: {{m.resultado_observacao}} {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>
