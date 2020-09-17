@@ -676,7 +676,8 @@ def get_sessao_plenaria(sessao, casa):
 
         lst_expediente_materia_vot_nom.append({
             "titulo": titulo_materia,
-            "votos": votos_materia
+            # votos = 1 representa matéria retirada da pauta
+            "votos": votos_materia if not mevn.retiradapauta_set.first() else 1
         })
 
     # Lista dos oradores do Expediente
