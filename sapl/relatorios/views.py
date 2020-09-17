@@ -626,18 +626,37 @@ def get_sessao_plenaria(sessao, casa):
         else:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
-        resultados = expediente_materia.registrovotacao_set.all()
-        if resultados:
-            for i in resultados:
+        resultado_votacao = expediente_materia.registrovotacao_set.first()
+        retirada_pauta = expediente_materia.retiradapauta_set.first()
+        resultado_leitura = expediente_materia.registroleitura_set.first()
+
+        if retirada_pauta:
+            dic_expediente_materia.update({
+                "nom_resultado": retirada_pauta.tipo_de_retirada.descricao,
+                "votacao_observacao": retirada_pauta.observacao
+            })
+        elif expediente_materia.tipo_votacao != 4:
+            if resultado_votacao:
                 dic_expediente_materia.update({
-                    "nom_resultado": i.tipo_resultado_votacao.nome,
-                    "votacao_observacao": i.observacao
+                    "nom_resultado": resultado_votacao.tipo_resultado_votacao.nome,
+                    "votacao_observacao": resultado_votacao.observacao
+                })
+            else:
+                dic_expediente_materia.update({
+                    "nom_resultado": 'Matéria não votada',
+                    "votacao_observacao": ' '
                 })
         else:
-            dic_expediente_materia.update({
-                "nom_resultado": 'Matéria não votada',
-                "votacao_observacao": ' '
-            })
+            if resultado_leitura:
+                dic_expediente_materia.update({
+                    "nom_resultado": "Matéria Lida",
+                    "votacao_observacao": resultado_leitura.observacao
+                })
+            else:
+                dic_expediente_materia.update({
+                    "nom_resultado": 'Matéria não lida',
+                    "votacao_observacao": ' '
+                })
         lst_expediente_materia.append(dic_expediente_materia)
 
     # Lista dos votos nominais das matérias do Expediente
