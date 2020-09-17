@@ -1931,16 +1931,29 @@ def get_materias_expediente(sessao_plenaria):
                 break
 
         rv = m.registrovotacao_set.first()
-        rp = m.retiradapauta_set.filter(materia=m.materia).first()
-        if rv:
-            resultado = rv.tipo_resultado_votacao.nome
-            resultado_observacao = rv.observacao
-        elif rp:
-            resultado = rp.tipo_de_retirada.descricao
-            resultado_observacao = rp.observacao
+        rp = m.retiradapauta_set.first()
+        rl = m.registroleitura_set.first()
+
+        if m.tipo_votacao != 4:
+            if rv:
+                resultado = rv.tipo_resultado_votacao.nome
+                resultado_observacao = rv.observacao
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
+            else:
+                resultado = _('Matéria não votada')
+                resultado_observacao = _(' ')
         else:
-            resultado = _('Matéria lida') if m.tipo_votacao == 4 else _('Matéria não votada')
-            resultado_observacao = _(' ')
+            if rl:
+                resultado = _('Maréria Lida')
+                resultado_observacao = rl.observacao
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
+            else:
+                resultado = _('Matéria não Lida')
+                resultado_observacao = _(' ')
 
         materia_em_tramitacao = m.materia.materiaemtramitacao_set.first()
         materias_expediente.append({
