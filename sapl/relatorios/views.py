@@ -626,8 +626,8 @@ def get_sessao_plenaria(sessao, casa):
         else:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
-        resultado_votacao = expediente_materia.registrovotacao_set.first()
         retirada_pauta = expediente_materia.retiradapauta_set.first()
+        resultado_votacao = expediente_materia.registrovotacao_set.first()
         resultado_leitura = expediente_materia.registroleitura_set.first()
 
         if retirada_pauta:
@@ -744,14 +744,26 @@ def get_sessao_plenaria(sessao, casa):
             dic_votacao["nom_autor"] = 'Desconhecido'
 
         dic_votacao["votacao_observacao"] = ' '
-        resultados = votacao.registrovotacao_set.all()
-        if resultados:
-            for i in resultados:
-                dic_votacao["nom_resultado"] = i.tipo_resultado_votacao.nome
-                if i.observacao:
-                    dic_votacao["votacao_observacao"] = i.observacao
+
+        retirada_pauta = votacao.retiradapauta_set.first()
+        resultado_votacao = votacao.registrovotacao_set.first()
+        resultado_leitura = votacao.registroleitura_set.first()
+
+        if retirada_pauta:
+            dic_votacao["nom_resultado"] = retirada_pauta.tipo_de_retirada.descricao
+            dic_votacao["votacao_observacao"] = retirada_pauta.observacao
+        elif votacao.tipo_votacao != 4:
+            if resultado_votacao:
+                dic_votacao["nom_resultado"] = resultado_votacao.tipo_resultado_votacao.nome
+                dic_votacao["votacao_observacao"] = resultado_votacao.observacao
+            else:
+                dic_votacao["nom_resultado"] = "Matéria não votada"
         else:
-            dic_votacao["nom_resultado"] = "Matéria não votada"
+            if resultado_leitura:
+                dic_votacao["nom_resultado"] = "Matéria Lida"
+                dic_votacao["votacao_observacao"] = resultado_leitura.observacao
+            else:
+                dic_votacao["nom_resultado"] = "Matéria não lida"
         lst_votacao.append(dic_votacao)
 
     # Lista dos votos nominais das matérias da Ordem do Dia
