@@ -783,7 +783,8 @@ def get_sessao_plenaria(sessao, casa):
 
         lst_votacao_vot_nom.append({
             "titulo": t_materia,
-            "votos": votos_materia_od
+            # votos = 1 representa matéria retirada da pauta
+            "votos": votos_materia_od if not modvn.retiradapauta_set.first() else 1 
         })
 
     # Lista dos oradores da Ordem do Dia

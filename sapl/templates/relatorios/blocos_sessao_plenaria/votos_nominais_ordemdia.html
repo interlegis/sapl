@@ -1,20 +1,22 @@
-    {% if lst_votacao_vot_nom %}
+{% if lst_votacao_vot_nom %}
     <h2 class="gray-title">Votações Nominais - Matérias da Ordem do Dia</h2>
     <table class="grayTable">
-            <thead>
-                <tr>
-                    <th>Matéria</th>
-                    <th>Votos</th>
-                </tr>
-            </thead>
-            {% for votacao_vot_nom in lst_votacao_vot_nom %}
+        <thead>
             <tr>
-                <td>{{votacao_vot_nom.titulo}}</td>
+                <th>Matéria</th>
+                <th>Votos</th>
+            </tr>
+        </thead>
+        {% for votacao_vot_nom in lst_votacao_vot_nom %}
+            <tr>
+                <td>{{ votacao_vot_nom.titulo }}</td>
                 <td>
-                    {% if votacao_vot_nom.votos %}
+                    {% if votacao_vot_nom.votos == 1 %}
+                        <p><b>Matéria retirada</b></p>
+                    {% elif votacao_vot_nom.votos %}
                         <dl>
                             {% for v in votacao_vot_nom.votos %}
-                                <dt style="text-align: left;">&nbsp;<b>{{v.parlamentar}}</b> {{v.voto}}</dt>
+                                <dt style="text-align: left;">&nbsp;<b>{{ v.parlamentar }}</b> {{ v.voto }}</dt>
                             {% endfor %}
                         </dl>
                     {% else %}
@@ -22,6 +24,6 @@
                     {% endif %}
                 </td>
             </tr>
-            {% endfor %}
-        </table>
-    {% endif %}
+        {% endfor %}
+    </table>
+{% endif %}

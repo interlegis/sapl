@@ -1,33 +1,33 @@
 {% if votos_nominais_materia_expediente %}
-<fieldset>
-  <legend>Votações Nominais - Matérias do Expediente</legend>
-  </br>
-  <table class="table table-striped table-hover">
-    <thead>
-      <tr>
-        <th>Matéria</th>
-        <th>Votos</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for m in votos_nominais_materia_expediente %}
+  <fieldset>
+    <legend>Votações Nominais - Matérias do Expediente</legend>
+    </br>
+    <table class="table table-striped table-hover">
+      <thead>
         <tr>
-          <td>{{ m.titulo }}</td>
-          {% if m.votos == 1 %}
-            <td><b>Matéria retirada</b></td>
-          {% elif m.votos %}
-            <td>
-            {% for v in m.votos %}
-              <li><b>{{v.parlamentar}}</b> - {{v.voto}}</li>
-            {% endfor %}
-            </td>
-          {% else %}
-            <td><b>Matéria não votada</b></td>
-          {% endif %}
+          <th>Matéria</th>
+          <th>Votos</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</fieldset>
-<br /><br /><br />
+      </thead>
+      <tbody>
+        {% for m in votos_nominais_materia_expediente %}
+          <tr>
+            <td>{{ m.titulo }}</td>
+            {% if m.votos == 1 %}
+              <td><b>Matéria retirada</b></td>
+            {% elif m.votos %}
+              <td>
+                {% for v in m.votos %}
+                  <li><b>{{ v.parlamentar }}</b> - {{ v.voto }}</li>
+                {% endfor %}
+              </td>
+            {% else %}
+              <td><b>Matéria não votada</b></td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </fieldset>
+  <br /><br /><br />
 {% endif %}
