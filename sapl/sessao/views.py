@@ -243,8 +243,10 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         exist_retirada = obj.retiradapauta_set.filter(materia=obj.materia).exists()
         exist_leitura = obj.registroleitura_set.filter(materia=obj.materia).exists()
 
-        if (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or\
-                (obj.tipo_votacao == 4 and not exist_leitura):
+        if (
+            (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or
+            (obj.tipo_votacao == 4 and not exist_leitura and not exist_retirada)
+        ):
             if obj.votacao_aberta:
                 url = ''
                 if is_expediente:
