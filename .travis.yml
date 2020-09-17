@@ -1,38 +1,25 @@
-sudo: required
+language: python
+
+python:
+  - 3.7
 
 services:
-  - docker
-
-env:
-  global:
-    - DOCKER_COMPOSE_VERSION=1.26.2
-
-before_install:
-  # Install latest versions of docker and docker-compose
-  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  - sudo apt-get update
-  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-  - sudo rm /usr/local/bin/docker-compose
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
-  - docker --version
-  - docker-compose --version
+  - postgresql
 
 install:
-  - sudo service postgresql stop || true
+  - pip install -r requirements/test-requirements.txt
+
+before_script:
+  - cp sapl/.env_test sapl/.env
+  - psql -c "CREATE USER sapl WITH PASSWORD 'sapl'" -U postgres;
+  - psql -c "CREATE DATABASE sapl OWNER sapl;" -U postgres
+  - ./scripts/django/check_migrations.sh
 
 script:
-  - cd $TRAVIS_BUILD_DIR/docker
-  # Build master images and run the webserver (tests end to end)
-  #- docker-compose -f docker-compose.test.yml build
-  #- docker-compose up -d
-  #- docker logs sapl
-  #- docker-compose rm -f -s -v
-  - docker-compose -f docker-compose-test.yml run --workdir="/var/interlegis/sapl" sapl bash -c "bash busy-wait.sh postgresql://sapl:sapl@sapldb:5432/sapl && cp docker/config/env_test .env && py.test --create-db"
+  - ./manage.py migrate
+  - py.test --create-db
+  # - ./scripts/django/test_and_check_qa.sh
 
-after_script:
-  # Cleanup docker containers, images, and volumes
-  - docker-compose rm -f -s -v
-  - docker system prune -a -f --volumes
+addons:
+    hosts:
+        - 127.0.0.1 sapldb
