@@ -2236,7 +2236,8 @@ class ResumoView(DetailView):
 
             votacoes_od.append({
                 'titulo': t_materia,
-                'votos': votos_materia_od
+                # votos = 1 representa matéria retirada da pauta
+                'votos': votos_materia_od if not modvn.retiradapauta_set.first() else 1
             })
 
         context.update({'votos_nominais_materia_ordem_dia': votacoes_od})

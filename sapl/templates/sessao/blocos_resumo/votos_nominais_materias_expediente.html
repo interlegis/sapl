@@ -14,7 +14,7 @@
         <tr>
           <td>{{ m.titulo }}</td>
           {% if m.votos == 1 %}
-            <td><b>Matéria retirada do Expediente</b></td>
+            <td><b>Matéria retirada</b></td>
           {% elif m.votos %}
             <td>
             {% for v in m.votos %}

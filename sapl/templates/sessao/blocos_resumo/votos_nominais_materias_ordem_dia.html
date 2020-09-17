@@ -13,7 +13,9 @@
       {% for m in votos_nominais_materia_ordem_dia %}
         <tr>
           <td>{{ m.titulo }}</td>
-          {% if m.votos %}  
+          {% if m.votos == 1 %}
+            <td><b>Matéria retirada</b></td>
+          {% elif m.votos %}  
             <td>
             {% for v in m.votos %}
               <li><b>{{v.parlamentar}}</b> - {{v.voto}}</li>
