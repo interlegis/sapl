@@ -1946,13 +1946,13 @@ def get_materias_expediente(sessao_plenaria):
                 resultado_observacao = _(' ')
         else:
             if rl:
-                resultado = _('Maréria Lida')
+                resultado = _('Matéria Lida')
                 resultado_observacao = rl.observacao
             elif rp:
                 resultado = rp.tipo_de_retirada.descricao
                 resultado_observacao = rp.observacao
             else:
-                resultado = _('Matéria não Lida')
+                resultado = _('Matéria não lida')
                 resultado_observacao = _(' ')
 
         materia_em_tramitacao = m.materia.materiaemtramitacao_set.first()
@@ -2048,17 +2048,30 @@ def get_materias_ordem_do_dia(sessao_plenaria):
                 break
 
         # Verificar resultado
-        rv = o.registrovotacao_set.filter(materia=o.materia).first()
-        rp = o.retiradapauta_set.filter(materia=o.materia).first()
-        if rv:
-            resultado = rv.tipo_resultado_votacao.nome
-            resultado_observacao = rv.observacao
-        elif rp:
-            resultado = rp.tipo_de_retirada.descricao
-            resultado_observacao = rp.observacao
+        rv = o.registrovotacao_set.first()
+        rp = o.retiradapauta_set.first()
+        rl = o.registroleitura_set.first()
+
+        if o.tipo_votacao != 4:
+            if rv:
+                resultado = rv.tipo_resultado_votacao.nome
+                resultado_observacao = rv.observacao
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
+            else:
+                resultado = _('Matéria não votada')
+                resultado_observacao = _(' ')
         else:
-            resultado = _('Matéria lida') if o.tipo_votacao == 4 else _('Matéria não votada')
-            resultado_observacao = _(' ')
+            if rl:
+                resultado = _('Matéria Lida')
+                resultado_observacao = rl.observacao
+            elif rp:
+                resultado = rp.tipo_de_retirada.descricao
+                resultado_observacao = rp.observacao
+            else:
+                resultado = _('Matéria não lida')
+                resultado_observacao = _(' ')
 
         voto_nominal = []
         if o.tipo_votacao == 2:
@@ -2093,7 +2106,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             'voto_nao': voto_nao,
             'voto_abstencoes': voto_abstencoes,
             'voto_nominal': voto_nominal,
-            'observacao': o.observacao          
+            'observacao': o.observacao
         })
 
     return {'materias_ordem': materias_ordem}
