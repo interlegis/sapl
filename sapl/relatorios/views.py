@@ -507,6 +507,7 @@ def is_empty(value):
 
     return True if not txt.strip() else False
 
+
 # Tipo de Votação
 LEITURA = 4
 

@@ -1921,6 +1921,10 @@ def get_expedientes(sessao_plenaria):
     return ({'expedientes': expedientes})
 
 
+# Tipo de Votação
+LEITURA = 4
+
+
 def get_materias_expediente(sessao_plenaria):
     materias_expediente = []
     for m in ExpedienteMateria.objects.select_related("materia").filter(sessao_plenaria_id=sessao_plenaria.id):
@@ -1937,7 +1941,7 @@ def get_materias_expediente(sessao_plenaria):
         if rp:
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
-        elif m.tipo_votacao != 4:
+        elif m.tipo_votacao != LEITURA:
             if rv:
                 resultado = rv.tipo_resultado_votacao.nome
                 resultado_observacao = rv.observacao
@@ -2052,7 +2056,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         if rp:
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
-        elif o.tipo_votacao != 4:
+        elif o.tipo_votacao != LEITURA:
             if rv:
                 resultado = rv.tipo_resultado_votacao.nome
                 resultado_observacao = rv.observacao
@@ -2183,8 +2187,8 @@ class ResumoView(DetailView):
 
             votacoes.append({
                 'titulo': titulo_materia,
-                # votos = 1 representa matéria retirada da pauta
-                'votos': votos_materia if not mevn.retiradapauta_set.first() else 1
+                # votos = 0 representa matéria retirada da pauta
+                'votos': votos_materia if not mevn.retiradapauta_set.first() else 0
             })
 
         context.update({'votos_nominais_materia_expediente': votacoes})
@@ -2230,8 +2234,8 @@ class ResumoView(DetailView):
 
             votacoes_od.append({
                 'titulo': t_materia,
-                # votos = 1 representa matéria retirada da pauta
-                'votos': votos_materia_od if not modvn.retiradapauta_set.first() else 1
+                # votos = 0 representa matéria retirada da pauta
+                'votos': votos_materia_od if not modvn.retiradapauta_set.first() else 0
             })
 
         context.update({'votos_nominais_materia_ordem_dia': votacoes_od})

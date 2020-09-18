@@ -13,7 +13,7 @@
         {% for m in votos_nominais_materia_ordem_dia %}
           <tr>
             <td>{{ m.titulo }}</td>
-            {% if m.votos == 1 %}
+            {% if m.votos == 0 %}
               <td><b>Matéria retirada</b></td>
             {% elif m.votos %}  
               <td>
