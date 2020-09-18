@@ -507,6 +507,9 @@ def is_empty(value):
 
     return True if not txt.strip() else False
 
+# Tipo de Votação
+LEITURA = 4
+
 
 def get_sessao_plenaria(sessao, casa):
     inf_basicas_dic = {
@@ -635,7 +638,7 @@ def get_sessao_plenaria(sessao, casa):
                 "nom_resultado": retirada_pauta.tipo_de_retirada.descricao,
                 "votacao_observacao": retirada_pauta.observacao
             })
-        elif expediente_materia.tipo_votacao != 4:
+        elif expediente_materia.tipo_votacao != LEITURA:
             if resultado_votacao:
                 dic_expediente_materia.update({
                     "nom_resultado": resultado_votacao.tipo_resultado_votacao.nome,
@@ -752,7 +755,7 @@ def get_sessao_plenaria(sessao, casa):
         if retirada_pauta:
             dic_votacao["nom_resultado"] = retirada_pauta.tipo_de_retirada.descricao
             dic_votacao["votacao_observacao"] = retirada_pauta.observacao
-        elif votacao.tipo_votacao != 4:
+        elif votacao.tipo_votacao != LEITURA:
             if resultado_votacao:
                 dic_votacao["nom_resultado"] = resultado_votacao.tipo_resultado_votacao.nome
                 dic_votacao["votacao_observacao"] = resultado_votacao.observacao
