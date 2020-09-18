@@ -679,8 +679,8 @@ def get_sessao_plenaria(sessao, casa):
 
         lst_expediente_materia_vot_nom.append({
             "titulo": titulo_materia,
-            # votos = 1 representa matéria retirada da pauta
-            "votos": votos_materia if not mevn.retiradapauta_set.first() else 1
+            # votos = 0 representa matéria retirada da pauta
+            "votos": votos_materia if not mevn.retiradapauta_set.first() else 0
         })
 
     # Lista dos oradores do Expediente
@@ -786,8 +786,8 @@ def get_sessao_plenaria(sessao, casa):
 
         lst_votacao_vot_nom.append({
             "titulo": t_materia,
-            # votos = 1 representa matéria retirada da pauta
-            "votos": votos_materia_od if not modvn.retiradapauta_set.first() else 1 
+            # votos = 0 representa matéria retirada da pauta
+            "votos": votos_materia_od if not modvn.retiradapauta_set.first() else 0 
         })
 
     # Lista dos oradores da Ordem do Dia

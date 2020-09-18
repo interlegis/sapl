@@ -11,7 +11,7 @@
             <tr>
                 <td>{{ expediente_materia_vot_nom.titulo }}</td>
                 <td>
-                    {% if expediente_materia_vot_nom.votos == 1 %}
+                    {% if expediente_materia_vot_nom.votos == 0 %}
                         <p><b>Matéria retirada</b></p>
                     {% elif expediente_materia_vot_nom.votos %}
                         <dl>
