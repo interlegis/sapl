@@ -200,6 +200,10 @@ def abrir_votacao(request, pk, spk):
     return HttpResponseRedirect(success_url)
 
 
+# Tipo de Votação
+LEITURA = 4
+
+
 def customize_link_materia(context, pk, has_permission, is_expediente):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
@@ -244,8 +248,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         exist_leitura = obj.registroleitura_set.filter(materia=obj.materia).exists()
 
         if (
-            (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or
-            (obj.tipo_votacao == 4 and not exist_leitura and not exist_retirada)
+            (obj.tipo_votacao != LEITURA and not exist_resultado and not exist_retirada) or
+            (obj.tipo_votacao == LEITURA and not exist_leitura and not exist_retirada)
         ):
             if obj.votacao_aberta:
                 url = ''
@@ -1919,10 +1923,6 @@ def get_expedientes(sessao_plenaria):
         ex = {'tipo': tipo, 'conteudo': conteudo}
         expedientes.append(ex)
     return ({'expedientes': expedientes})
-
-
-# Tipo de Votação
-LEITURA = 4
 
 
 def get_materias_expediente(sessao_plenaria):
