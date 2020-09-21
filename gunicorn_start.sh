@@ -30,12 +30,7 @@ echo "Starting $NAME as `whoami` on base dir $SAPL_DIR"
 
 # Ativa ambiente virtual
 cd $DJANGODIR
-if [ "$SAPL_VIRTUAL_ENV" ]
-then
-source $SAPL_VIRTUAL_ENV/bin/activate
-else
-source /var/interlegis/.virtualenvs/sapl/bin/activate
-fi
+SAPL_VENV_DIR=${SAPL_VIRTUAL_ENV-/var/interlegis/.virtualenvs/sapl}
 export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
 export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 
