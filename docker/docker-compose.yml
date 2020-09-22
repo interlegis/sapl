@@ -3,6 +3,9 @@ services:
   sapldb:
     image: postgres:10.5-alpine
     restart: always
+    container_name: postgres
+    labels:
+        NAME: "postgres"
     environment:
       POSTGRES_PASSWORD: sapl
       POSTGRES_USER: sapl
@@ -18,6 +21,9 @@ services:
     image: solr:8.3
     restart: always
     command: bin/solr start -c -f
+    container_name: solr
+    labels:
+        NAME: "solr"
     volumes:
       - solr_data:/opt/solr/server/solr
       - solr_configsets:/opt/solr/server/solr/configsets
@@ -27,7 +33,12 @@ services:
       - sapl-net
   sapl:
     image: interlegis/sapl:3.1.161-RC13
-    #build: .
+#    build:
+#      context: ../
+#      dockerfile: ./docker/Dockerfile
+    container_name: sapl
+    labels:
+       NAME: "sapl"
     restart: always
     environment:
       ADMIN_PASSWORD: interlegis

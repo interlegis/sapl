@@ -1,4 +1,4 @@
-DATABASE_URL = postgresql://postgres:@sapldb:/sapl
+DATABASE_URL=postgresql://sapl:sapl@sapldb:/sapl
 SECRET_KEY=test++@i1y-6y8ez_=^sfbr!dzuyry#^@v(3g^2d1k9%f=+mhlb
 DEBUG=False
 EMAIL_USE_TLS = True

@@ -33,11 +33,19 @@ RUN apt-get update && \
     SUDO_FORCE_REMOVE=yes apt-get purge -y --auto-remove $BUILD_PACKAGES && \
     apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY start.sh /var/interlegis/sapl/
-COPY config/nginx/sapl.conf /etc/nginx/conf.d
-COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
+ENV HOME=/var/interlegis/sapl
 
-COPY config/env_dockerfile /var/interlegis/sapl/sapl/.env
+COPY docker/start.sh $HOME
+COPY docker/check_solr.sh $HOME
+COPY docker/solr_api.py $HOME
+COPY docker/busy-wait.sh $HOME
+COPY docker/create_admin.py $HOME
+COPY docker/genkey.py $HOME
+COPY docker/gunicorn_start.sh $HOME
+
+COPY docker/config/nginx/sapl.conf /etc/nginx/conf.d
+COPY docker/config/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY docker/config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
 RUN python3 manage.py collectstatic --noinput --clear
 

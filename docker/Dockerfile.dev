@@ -1,7 +1,7 @@
 FROM python:3.6
 ENV PYTHONUNBUFFERED 1
 WORKDIR /sapl-dev
-COPY requirements ./requirements/
+COPY ../requirements ./requirements/
 RUN apt update && \
     apt -y install graphviz-dev && \
     pip install --upgrade pip && \
