@@ -6,7 +6,7 @@ from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
-from django.db import models, router
+from django.db import models, router, connection
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
 import reversion
@@ -15,6 +15,8 @@ from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
                         SAPL_GROUP_PAINEL, SAPL_GROUP_PROTOCOLO,
                         SAPL_GROUP_SESSAO)
+
+logger = logging.getLogger(__name__)
 
 
 class AppConfig(django.apps.AppConfig):
@@ -235,20 +237,99 @@ def cria_usuarios_padrao():
     rules.cria_usuarios_padrao()
 
 
+def fn_check_sequence_for_model(model):
+    SP_NAME = fn_check_sequence_for_model.__name__
+
+    with connection.cursor() as c:
+        try:
+            c.callproc(
+                SP_NAME, [
+                    model._meta.db_table
+                ])
+        except Exception as e:
+            if('function {}(unknown)'
+                    ' does not exist'.format(SP_NAME) not in str(e)):
+                # Se ocorreu um erro e não é por inexistência da SP
+                logger.error(
+                    "Falha na execução da Store Procedure "
+                    "para a tabela {}. {}".format(
+                        model._meta.db_table, str(e)))
+            else:
+                # se a execução da SP falhou por ela não existir
+                try:
+                    # cria a SP
+                    c.execute(
+                        """
+                        CREATE OR REPLACE FUNCTION {}(IN table_name character varying) RETURNS integer AS
+                            $$
+                            DECLARE
+                                max_id integer := 0;
+                            BEGIN
+                                EXECUTE format('SELECT setval(pg_get_serial_sequence(''%s'',''id''), coalesce(max(id), 1), max(id) IS NOT null) FROM %s', table_name, table_name ) INTO max_id;
+                                if max_id is null then
+                                    EXECUTE format('DROP SEQUENCE IF EXISTS %s_id_seq cascade', table_name);
+                                    EXECUTE format('CREATE SEQUENCE %s_id_seq start 1 OWNED BY %s.id', table_name, table_name);
+                                    EXECUTE format('ALTER TABLE %s ALTER COLUMN id SET DEFAULT nextval(''%s_id_seq''::regclass)', table_name, table_name);
+                                    EXECUTE format('SELECT setval(pg_get_serial_sequence(''%s'',''id''), coalesce(max(id), 1), max(id) IS NOT null) FROM %s', table_name, table_name ) INTO max_id;
+                                end if;
+                                return max_id;
+                            END;
+                            $$ LANGUAGE plpgsql;
+                        """.format(SP_NAME)
+                    )
+                except Exception as e:
+                    # se falhou na criação
+                    logger.error(
+                        "Falha na criação da Store Procedure {} "
+                        "para o tabela {}. {}".format(
+                            SP_NAME,
+                            model._meta.db_table,
+                            str(e)))
+                try:
+                    # tenta executá-la após criação.
+                    c.callproc(
+                        SP_NAME, [
+                            model._meta.db_table
+                        ])
+                except Exception as e:
+                    # se falhou na execução
+                    logger.error(
+                        "Falha na execução da Store Procedure {} "
+                        "para o tabela {}. {}".format(
+                            SP_NAME,
+                            model._meta.db_table,
+                            str(e)))
+
+        finally:
+            c.close()
+
+
+def check_ids_sequences(app_config, verbosity=2, interactive=True,
+                        using=DEFAULT_DB_ALIAS, **kwargs):
+
+    models = app_config.models
+
+    for k, model in models.items():
+        if model._meta.managed and model._meta.has_auto_field:
+            fn_check_sequence_for_model(model)
+
+
 def revision_pre_delete_signal(sender, **kwargs):
     with reversion.create_revision():
         kwargs['instance'].save()
         reversion.set_comment("Deletado pelo sinal.")
 
 
+models.signals.pre_delete.connect(
+    receiver=revision_pre_delete_signal,
+    dispatch_uid="pre_delete_signal")
+
 models.signals.post_migrate.connect(
     receiver=update_groups)
 
+models.signals.post_migrate.connect(
+    receiver=check_ids_sequences)
 
 models.signals.post_migrate.connect(
     receiver=create_proxy_permissions,
     dispatch_uid="django.contrib.auth.management.create_permissions")
-
-models.signals.pre_delete.connect(
-    receiver=revision_pre_delete_signal,
-    dispatch_uid="pre_delete_signal")
