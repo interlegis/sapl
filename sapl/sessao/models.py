@@ -9,7 +9,7 @@ from model_utils import Choices
 import reversion
 
 from sapl.base.models import Autor
-from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, Tramitacao, Numeracao
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
@@ -945,3 +945,31 @@ class RegistroLeitura(models.Model):
                 'RegistroLeitura deve ter exatamente um dos campos '
                 'ordem ou expediente preenchido. Ambos estão preenchidos: '
                 '{}, {}'. format(self.ordem, self.expediente))
+
+
+class ExpedientePautaSessao(models.Model):
+    expediente = models.ForeignKey(
+        ExpedienteMateria, on_delete=models.DO_NOTHING
+    )
+    sessao_plenaria = models.ForeignKey(
+        SessaoPlenaria, on_delete=models.DO_NOTHING
+    )
+    materia = models.ForeignKey(
+        MateriaLegislativa, on_delete=models.DO_NOTHING
+    )
+    tramitacao = models.ForeignKey(
+        Tramitacao, blank=True, null=True, on_delete=models.DO_NOTHING
+    )
+    numeracao = models.ForeignKey(
+        Numeracao, blank=True, null=True, on_delete=models.DO_NOTHING
+    )
+    autores = models.CharField(
+        max_length=545, blank=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = "sessao_expedientepauta"
+
+    def __str__(self):
+        return '{}'.format(self.expediente)
