@@ -115,12 +115,14 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
                 raise ValidationError(msg)
 
         if not cleaned_data['numero']:
-
             ultima_audiencia = AudienciaPublica.objects.all().order_by('numero').last()
             if ultima_audiencia:
                 cleaned_data['numero'] = ultima_audiencia.numero + 1
             else:
                 cleaned_data['numero'] = 1
+        else:
+            if AudienciaPublica.objects.filter(numero=cleaned_data['numero']).exclude(pk=self.instance.pk).exists():
+                raise ValidationError(f"Já existe uma audiência com a numeração {cleaned_data['numero']}.")
 
         if self.cleaned_data['hora_inicio'] and self.cleaned_data['hora_fim']:
             if self.cleaned_data['hora_fim'] < self.cleaned_data['hora_inicio']:
