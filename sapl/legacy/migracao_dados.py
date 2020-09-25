@@ -110,7 +110,9 @@ def get_renames():
     includes = {}
     for app in appconfs:
         app_rename_data = yaml.load(
-            pkg_resources.resource_string(app.module.__name__, 'legacy.yaml'))
+            pkg_resources.resource_string(app.module.__name__, 'legacy.yaml'),
+            yaml.Loader
+        )
         for model_name, renames in app_rename_data.items():
             # armazena ou substitui includes
             if MODEL_RENAME_INCLUDE_PATTERN.match(model_name):
@@ -1175,7 +1177,7 @@ def get_arquivo_resolve_registro_votacao():
 def get_como_resolver_registro_votacao_ambiguo():
     path = get_arquivo_resolve_registro_votacao()
     if path.exists():
-        return yaml.load(path.read_file())
+        return yaml.load(path.read_file(), yaml.Loader)
     else:
         return {}
 

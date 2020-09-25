@@ -471,7 +471,9 @@ def dump_sapl(sigla):
         finalizado = False
         arq_mtimes = Path(repo.working_dir, 'mtimes.yaml')
         mtimes = yaml.load(
-            arq_mtimes.read_file()) if arq_mtimes.exists() else {}
+            arq_mtimes.read_file(),
+            yaml.Loader
+        ) if arq_mtimes.exists() else {}
         _dump_sapl(data_fs_path, documentos_fs_path, destino, salvar, mtimes)
         finalizado = True
     finally:
