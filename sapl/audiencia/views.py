@@ -29,15 +29,13 @@ class AudienciaCrud(Crud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            audiencia_materia = {}
-            for o in context['object_list']:
-                # indexado pelo numero da audiencia
-                audiencia_materia[str(o.numero)] = o.materia
+            audiencia_materia = {str(a.id): a.materia for a in context['object_list']}
 
             for row in context['rows']:
-                coluna_materia = row[3] # se mudar a ordem de listagem mudar aqui
+                coluna_materia = row[3]  # se mudar a ordem de listagem mudar aqui
                 if coluna_materia[0]:
-                    materia = audiencia_materia[row[0][0]]
+                    audiencia_id = row[0][1].split('/')[-1]
+                    materia = audiencia_materia[audiencia_id]
                     if materia:
                         url_materia = reverse('sapl.materia:materialegislativa_detail',
                                               kwargs={'pk': materia.id})
