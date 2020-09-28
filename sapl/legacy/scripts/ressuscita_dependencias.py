@@ -197,7 +197,9 @@ Para facilitar sua conferência, seguem os links para as proposições envolvida
 
 def get_dependencias_a_ressuscitar(slug):
     ocorrencias = yaml.load(
-        Path(DIR_REPO.child('ocorrencias.yaml').read_file()))
+        Path(DIR_REPO.child('ocorrencias.yaml').read_file()),
+        yaml.Loader
+    )
     fks_faltando = ocorrencias.get('fk')
     if not fks_faltando:
         return [], [], []
@@ -412,7 +414,7 @@ def get_ressuscitar(slug):
 def get_slug():
     arq = DIR_DADOS_MIGRACAO.child('siglas_para_slugs.yaml')
     with open(arq, 'r') as arq:
-        siglas_para_slugs = yaml.load(arq)
+        siglas_para_slugs = yaml.load(arq, yaml.Loader)
     sigla = NOME_BANCO_LEGADO[-3:]
     return siglas_para_slugs[sigla]
 

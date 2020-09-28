@@ -337,7 +337,7 @@ def read_yaml_from_file(yaml_layout):
     if isinstance(rendered, SafeText):
         rendered = rendered.strip()
 
-    return yaml.load(rendered)
+    return yaml.load(rendered, yaml.Loader)
 
 
 def read_layout_from_yaml(yaml_layout, key):
