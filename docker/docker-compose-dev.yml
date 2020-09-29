@@ -5,8 +5,8 @@ services:
     container_name: sapl-dev
     image: sapl:dev
     build:
-      context: .
-      dockerfile: Dockerfile.dev
+      context: ../
+      dockerfile: ./docker/Dockerfile.dev
     command: python3 manage.py runserver 0:8000
     volumes:
       - ..:/sapl-dev
