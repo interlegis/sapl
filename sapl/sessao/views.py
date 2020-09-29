@@ -50,7 +50,7 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
                      RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
-                     ORDENACAO_RESUMO, RegistroLeitura)
+                     ORDENACAO_RESUMO, RegistroLeitura, ExpedientePautaSessao)
 
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
@@ -3583,32 +3583,27 @@ class PautaSessaoDetailView(DetailView):
         # =====================================================================
         # Matérias Expediente
         materias_expediente = []
-        for m in ExpedienteMateria.objects \
-                .prefetch_related('registrovotacao_set') \
-                .select_related("materia", "materia__tipo") \
-                .filter(sessao_plenaria_id=self.object.id):
-            rv = m.registrovotacao_set.first()
-            if rv:
-                resultado = rv.tipo_resultado_votacao.nome
-                resultado_observacao = rv.observacao
-            else:
-                resultado = _('Matéria não votada')
-                resultado_observacao = _(' ')
+        for e in ExpedientePautaSessao.objects.select_related("materia").filter(
+            sessao_plenaria_id=self.object.id
+        ).order_by('expediente__numero_ordem'):
 
-            ultima_tramitacao = m.materia.tramitacao_set.order_by('-data_tramitacao', '-id').first()
-            numeracao = m.materia.numeracao_set.first()
+            processo = f'{str(e.numeracao.numero_materia)}/{str(e.numeracao.ano_materia)}' if e.numeracao else '-'
+            
+            autores = e.autores if e.autores else [
+                str(a.autor) for a in e.materia.autoria_set.select_related('autor').all() 
+            ]
 
             materias_expediente.append({
-                'id': m.materia_id,
-                'ementa': m.materia.ementa,
-                'observacao': m.observacao,
-                'titulo': m.materia,
-                'numero': m.numero_ordem,
-                'resultado': resultado,
-                'resultado_observacao': resultado_observacao,
-                'situacao': ultima_tramitacao.status if ultima_tramitacao else _("Não informada"),
-                'processo': f'{str(numeracao.numero_materia)}/{str(numeracao.ano_materia)}' if numeracao else '-',
-                'autor': [str(x.autor) for x in m.materia.autoria_set.select_related('autor').all()]
+                'id': e.materia_id,
+                'ementa': e.materia.ementa,
+                'observacao': e.expediente.observacao,
+                'titulo': e.materia,
+                'numero': e.expediente.numero_ordem,
+                'resultado': '', # Não é utilizado
+                'resultado_observacao': '', # Não é utilizado
+                'situacao': e.tramitacao.status if e.tramitacao else _('Não informada'),
+                'processo': processo,
+                'autor': e.autores
             })
         context.update({'materia_expediente': materias_expediente})
         # =====================================================================
