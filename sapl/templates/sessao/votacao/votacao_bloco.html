@@ -20,6 +20,7 @@
                 </br>
                 <input type="radio" name="tipo_votacao" id="tipo_votacao_2" value="2" onchange="alteraTipoVotacao()" > <label for="tipo">Nominal</label>
                 </br>
+                <input type="radio" name="tipo_votacao" id="tipo_votacao_4" value="4" onchange="alteraTipoVotacao()" > <label for="tipo">Leitura</label><!--value=3 é pra votação secreta que não pode ser feita em bloco-->
                 </fieldset>
             </td>
             </tr>
@@ -43,8 +44,8 @@
             </div>
 
             {% for o in object_list %}
-            {% if o.tipo_votacao == 1 or o.tipo_votacao == 2 %}
-                <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% else %}Nominal{% endif %}"  {% if o.tipo_votacao == 2 %} style="display:none;" {% endif %}>
+            {% if o.tipo_votacao == 1 or o.tipo_votacao == 2 or o.tipo_votacao == 4 %}
+                <tr class="{% if o.tipo_votacao == 1 %} Simbolica {% elif o.tipo_votacao == 2 %}Nominal{% else %}Leitura{% endif %}"  {% if o.tipo_votacao > 1  %} style="display:none;" {% endif %}>
                 <td>
                     <input type="checkbox" name="marcadas_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
                     <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.materia.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
@@ -134,6 +135,7 @@
         function alteraTipoVotacao() {
             $(".Simbolica").toggle();
             $(".Nominal").toggle();
+            $(".Leitura").toggle();
 
             checa_tipo_votacao();
         }
