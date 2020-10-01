@@ -241,14 +241,6 @@ def revision_pre_delete_signal(sender, **kwargs):
         reversion.set_comment("Deletado pelo sinal.")
 
 
-models.signals.post_migrate.connect(
-    receiver=update_groups)
-
-
-models.signals.post_migrate.connect(
-    receiver=create_proxy_permissions,
-    dispatch_uid="django.contrib.auth.management.create_permissions")
-
-models.signals.pre_delete.connect(
-    receiver=revision_pre_delete_signal,
-    dispatch_uid="pre_delete_signal")
+models.signals.post_migrate.connect(receiver=update_groups)
+models.signals.post_migrate.connect(receiver=create_proxy_permissions, dispatch_uid="django.contrib.auth.management.create_permissions")
+models.signals.pre_delete.connect(receiver=revision_pre_delete_signal, dispatch_uid="pre_delete_signal")
