@@ -3583,7 +3583,7 @@ class PautaSessaoDetailView(DetailView):
         # =====================================================================
         # Matérias Expediente
         materias_expediente = []
-        for e in ExpedientePautaSessao.objects.select_related("materia").filter(
+        for e in ExpedientePautaSessao.objects.select_related("materia", "materia__tipo").filter(
             sessao_plenaria_id=self.object.id
         ).order_by('expediente__numero_ordem'):
 
@@ -3599,8 +3599,6 @@ class PautaSessaoDetailView(DetailView):
                 'observacao': e.expediente.observacao,
                 'titulo': e.materia,
                 'numero': e.expediente.numero_ordem,
-                'resultado': '', # Não é utilizado
-                'resultado_observacao': '', # Não é utilizado
                 'situacao': e.tramitacao.status if e.tramitacao else _('Não informada'),
                 'processo': processo,
                 'autor': e.autores
@@ -3620,25 +3618,11 @@ class PautaSessaoDetailView(DetailView):
 
         context.update({'expedientes': expedientes})
         # =====================================================================
-        # Orador Expediente
-        context.update({
-            'oradores': OradorExpediente.objects.filter(sessao_plenaria_id=self.object.id).order_by('numero_ordem')
-        })
-        # =====================================================================
         # Matérias Ordem do Dia
         materias_ordem = []
         for o in OrdemDia.objects \
-                .prefetch_related('registrovotacao_set') \
                 .select_related("materia", "materia__tipo") \
                 .filter(sessao_plenaria_id=self.object.id):
-            # Verificar resultado
-            rv = o.registrovotacao_set.first()
-            if rv:
-                resultado = rv.tipo_resultado_votacao.nome
-                resultado_observacao = rv.observacao
-            else:
-                resultado = _('Matéria não votada')
-                resultado_observacao = _(' ')
 
             ultima_tramitacao = o.materia.tramitacao_set.order_by('-data_tramitacao', '-id').first()
             numeracao = o.materia.numeracao_set.first()
@@ -3649,8 +3633,6 @@ class PautaSessaoDetailView(DetailView):
                 'observacao': o.observacao,
                 'titulo': o.materia,
                 'numero': o.numero_ordem,
-                'resultado': resultado,
-                'resultado_observacao': resultado_observacao,
                 'situacao': ultima_tramitacao.status if ultima_tramitacao else _("Não informada"),
                 'processo': f'{str(numeracao.numero_materia)}/{str(numeracao.ano_materia)}' if numeracao else '-',
                 'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)]
