@@ -4,10 +4,14 @@ import re
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.urls import reverse
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
+from django.http.response import HttpResponseRedirect
 from django.template import RequestContext, loader
+from django.urls import reverse
+from django.urls.base import reverse_lazy
 from django.utils import timezone
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, UpdateView
 from django.views.generic.base import RedirectView
@@ -184,7 +188,7 @@ class NormaCrud(Crud):
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['tipo', 'numero', 'ano', 'ementa']
+        list_field_names = ['epigrafe', 'ementa']
 
         list_url = ''
 
@@ -242,14 +246,54 @@ class NormaCrud(Crud):
 
         layout_key = 'NormaJuridicaCreate'
 
-    class ListView(Crud.ListView, RedirectView):
+    class ListView(Crud.ListView):
+
+        def get(self, request, *args, **kwargs):
+            if AppConfig.attr('texto_articulado_norma'):
+                self.status = self.request.GET.get('status', '')
+                return Crud.ListView.get(self, request, *args, **kwargs)
+            else:
+                url = self.get_redirect_url(*args, **kwargs)
+                return HttpResponseRedirect(url)
+
+        def hook_header_epigrafe(self, *args, **kwargs):
+            return force_text(_('Epigrafe'))
+
+        def hook_epigrafe(self, obj, ss, url):
+
+            return obj.epigrafe, reverse_lazy(
+                'sapl.norma:norma_ta',
+                kwargs={'pk': obj.id})
 
         def get_redirect_url(self, *args, **kwargs):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
-        def get(self, request, *args, **kwargs):
-            return RedirectView.get(self, request, *args, **kwargs)
+        def get_queryset(self):
+            if self.status == 'pendente':
+                qs = NormaJuridica.objects.normas_com_textos_articulados_pendentes()
+            elif self.status == 'publico':
+                qs = NormaJuridica.objects.normas_com_textos_articulados_publicados()
+            else:
+                qs = NormaJuridica.objects.normas_sem_textos_articulados()
+
+            return qs.order_by('-texto_articulado__privacidade', '-ano', '-numero')
+
+        def get_context_data(self, **kwargs):
+            context = Crud.ListView.get_context_data(self, **kwargs)
+
+            if self.status == 'pendente':
+                context['title'] = 'Normas Jurídicas com Textos Articulados não publicados'
+            elif self.status == 'publico':
+                context['title'] = 'Normas Jurídicas com Textos Articulados publicados'
+            else:
+                context['title'] = 'Normas Jurídicas sem Textos Articulados'
+
+            return context
+
+        @classmethod
+        def get_url_regex(cls):
+            return r'^check_compilacao$'
 
     class UpdateView(Crud.UpdateView):
         form_class = NormaJuridicaForm
@@ -258,7 +302,8 @@ class NormaCrud(Crud):
 
         def get_initial(self):
             initial = super().get_initial()
-            norma = NormaJuridica.objects.select_related("materia").get(id=self.kwargs['pk'])
+            norma = NormaJuridica.objects.select_related(
+                "materia").get(id=self.kwargs['pk'])
             if norma.materia:
                 initial['tipo_materia'] = norma.materia.tipo
                 initial['ano_materia'] = norma.materia.ano
@@ -328,7 +373,7 @@ def recuperar_norma(request):
                                  'id': norma.id})
     except ObjectDoesNotExist:
         logger.warning('user=' + username + '. NormaJuridica buscada (tipo={}, ano={}, numero={}) não existe. '
-                     'Definida com ementa vazia e id 0.'.format(tipo, ano, numero))
+                       'Definida com ementa vazia e id 0.'.format(tipo, ano, numero))
         response = JsonResponse({'ementa': '', 'id': 0})
 
     return response

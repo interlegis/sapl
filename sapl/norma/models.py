@@ -1,8 +1,8 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.template import defaultfilters
-from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 
@@ -10,7 +10,7 @@ from sapl.base.models import Autor
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
-                        restringe_tipos_de_arquivo_txt, 
+                        restringe_tipos_de_arquivo_txt,
                         texto_upload_path,
                         get_settings_auth_user_model,
                         OverwriteStorage)
@@ -70,8 +70,66 @@ def norma_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath=instance.ano)
 
 
+class NormaJuridicaManager(models.Manager):
+
+    use_for_related_fields = True
+
+    def normas_sem_textos_articulados(self):
+        qs = self.get_queryset()
+        qs = qs.filter(texto_articulado__isnull=True)
+        return qs
+
+    def normas_com_textos_articulados_publicados(self):
+        qs = self.get_queryset()
+        qs = qs.filter(
+            texto_articulado__editable_only_by_owners=False,
+            texto_articulado__privacidade=0,
+            texto_articulado__isnull=False
+        )
+
+        return qs
+
+    def normas_com_textos_articulados_pendentes(self):
+        qs = self.get_queryset()
+        qs = qs.filter(
+            texto_articulado__editable_only_by_owners=False)
+
+        q = models.Q(
+            texto_articulado__privacidade=0
+        ) | models.Q(
+            texto_articulado__isnull=True
+        )
+        qs = qs.exclude(q)
+
+        for n in qs:
+            ta = n.texto_articulado.first()
+            count = ta.dispositivos_set.count()
+            if count == 1:
+                count = 0
+            elif count == 2:
+                d = ta.dispositivos_set.last()
+                if d.auto_inserido or not d.texto or d.texto == n.ementa:
+                    count = 0
+            elif count == 3:
+                ds = ta.dispositivos_set.all()
+                if ds[1].auto_inserido and \
+                        not d[2].dispositivo_pai and\
+                        d[2].tipo_dispositivo.dispositivo_de_articulacao:
+                    count = 0
+
+            if not count:
+                ta.dispositivos_set.filter(
+                    dispositivo_pai__isnull=False).delete()
+                ta.delete()
+
+        return qs
+
+
 @reversion.register()
 class NormaJuridica(models.Model):
+
+    objects = NormaJuridicaManager()
+
     ESFERA_FEDERACAO_CHOICES = Choices(
         ('M', 'municipal', _('Municipal')),
         ('E', 'estadual', _('Estadual')),

@@ -1,6 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags common_tags %}
 
 {% block actions %}
   <div class="actions btn-group float-right" role="group">
@@ -9,8 +9,6 @@
           Pesquisa Textual
         </a>
     {% endif %}
-
-
     {% if perms.norma.add_normajuridica %}
       <a href="{% url 'sapl.norma:normajuridica_create' %}" class="btn btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Norma Jurídica {% endblocktrans %}

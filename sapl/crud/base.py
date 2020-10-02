@@ -9,11 +9,11 @@ from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.urls import reverse
 from django.db import models
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.http.response import Http404
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -28,6 +28,7 @@ from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
 from sapl.utils import normalize
+
 
 logger = logging.getLogger(settings.BASE_DIR.name)
 
@@ -78,6 +79,7 @@ def make_pagination(index, num_pages):
                         None, num_pages - 1, num_pages]
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
+
 
 """
 variáveis do crud:
@@ -416,16 +418,18 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                 for f in fn:
                     if not f:
                         continue
-                    f = m._meta.get_field(f)
-                    if hasattr(f, 'related_model') and f.related_model:
-                        m = f.related_model
-                if f:
-                    hook = 'hook_header_{}'.format(''.join(fn))
-                    if hasattr(self, hook):
-                        header = getattr(self, hook)()
-                        s.append(header)
-                    else:
-                        s.append(force_text(f.verbose_name))
+                    try:
+                        f = m._meta.get_field(f)
+                        if hasattr(f, 'related_model') and f.related_model:
+                            m = f.related_model
+                    except:
+                        f = None
+                hook = 'hook_header_{}'.format(''.join(fn))
+                if hasattr(self, hook):
+                    header = getattr(self, hook)()
+                    s.append(header)
+                elif f:
+                    s.append(force_text(f.verbose_name))
 
             s = ' / '.join(s)
             r.append(s)
@@ -607,7 +611,8 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
 
                     # print(ordering)
                 except Exception as e:
-                    logger.warning(_(f"ERRO: construção da tupla de ordenação. {e}"))
+                    logger.warning(
+                        _(f"ERRO: construção da tupla de ordenação. {e}"))
 
         # print(queryset.query)
         if not self.request.user.is_authenticated:
@@ -627,7 +632,7 @@ class AuditLogMixin(object):
         # Classe deve implementar um get_object(), i.e., deve ser uma View
         deleted_object = self.get_object()
         try:
-           return super(AuditLogMixin, self).delete(request, args, kwargs)
+            return super(AuditLogMixin, self).delete(request, args, kwargs)
         finally:
             post_delete_signal.send(sender=None,
                                     instance=deleted_object,
