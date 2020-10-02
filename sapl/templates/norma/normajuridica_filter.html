@@ -1,10 +1,10 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags common_tags %}
 
 {% block actions %}
   <div class="actions btn-group float-left" role="group">
-    {% if perms.compilacao.lock_unlock_textoarticulado %}
+    {% if perms.compilacao.lock_unlock_textoarticulado and 'texto_articulado_norma'|get_config_attr %}
       <a href="{% url 'sapl.norma:normajuridica_list' %}" class="btn btn-sm btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %}Pendências nos Textos Articulados{% endblocktrans %}
       </a>
