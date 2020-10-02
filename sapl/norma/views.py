@@ -9,7 +9,9 @@ from django.http import HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.template import RequestContext, loader
 from django.urls import reverse
+from django.urls.base import reverse_lazy
 from django.utils import timezone
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, UpdateView
 from django.views.generic.base import RedirectView
@@ -186,7 +188,7 @@ class NormaCrud(Crud):
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['tipo', 'numero', 'ano', 'ementa']
+        list_field_names = ['epigrafe', 'ementa']
 
         list_url = ''
 
@@ -252,6 +254,15 @@ class NormaCrud(Crud):
             else:
                 url = self.get_redirect_url(*args, **kwargs)
                 return HttpResponseRedirect(url)
+
+        def hook_header_epigrafe(self, *args, **kwargs):
+            return force_text(_('Epigrafe'))
+
+        def hook_epigrafe(self, obj, ss, url):
+
+            return obj.epigrafe, reverse_lazy(
+                'sapl.norma:norma_ta',
+                kwargs={'pk': obj.id})
 
         def get_redirect_url(self, *args, **kwargs):
             namespace = self.model._meta.app_config.name
