@@ -4,9 +4,9 @@ import re
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, UpdateView
@@ -258,7 +258,8 @@ class NormaCrud(Crud):
 
         def get_initial(self):
             initial = super().get_initial()
-            norma = NormaJuridica.objects.select_related("materia").get(id=self.kwargs['pk'])
+            norma = NormaJuridica.objects.select_related(
+                "materia").get(id=self.kwargs['pk'])
             if norma.materia:
                 initial['tipo_materia'] = norma.materia.tipo
                 initial['ano_materia'] = norma.materia.ano
@@ -328,7 +329,7 @@ def recuperar_norma(request):
                                  'id': norma.id})
     except ObjectDoesNotExist:
         logger.warning('user=' + username + '. NormaJuridica buscada (tipo={}, ano={}, numero={}) não existe. '
-                     'Definida com ementa vazia e id 0.'.format(tipo, ano, numero))
+                       'Definida com ementa vazia e id 0.'.format(tipo, ano, numero))
         response = JsonResponse({'ementa': '', 'id': 0})
 
     return response
