@@ -75,6 +75,16 @@
       url: 'sapl.norma:normajuridica_create'
       check_permission: norma.add_normajuridica
 
+    - title: {% trans 'Textos Articulados Publicados' %}
+      url: {% url 'sapl.norma:normajuridica_list'%}?status=publico
+      check_permission: compilacao.change_dispositivo_edicao_dinamica
+    - title: {% trans 'Textos Articulados Pendentes' %}
+      url: {% url 'sapl.norma:normajuridica_list' %}?status=pendente
+      check_permission: compilacao.change_dispositivo_edicao_dinamica
+    - title: {% trans 'Textos Articulados não cadastrados' %}
+      url: {% url 'sapl.norma:normajuridica_list' %}?status=sem_texto
+      check_permission: compilacao.change_dispositivo_edicao_dinamica
+
 - title: {% trans 'Sistema' %}
   check_permission: base.menu_sistemas
   children:
@@ -86,7 +96,7 @@
       check_permission: user.is_superuser
     - title: {% trans 'Inconsistências de Dados' %}
       url: {% url 'sapl.base:lista_inconsistencias' %}
-      check_permission: user.is_superuser 
+      check_permission: user.is_superuser
 
 {% comment %}
 <li class="nav__sub-item"><a class="nav__sub-link" href="#">Provedor LexML</a></li>

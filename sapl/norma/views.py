@@ -250,6 +250,7 @@ class NormaCrud(Crud):
 
         def get(self, request, *args, **kwargs):
             if AppConfig.attr('texto_articulado_norma'):
+                self.status = self.request.GET.get('status', '')
                 return Crud.ListView.get(self, request, *args, **kwargs)
             else:
                 url = self.get_redirect_url(*args, **kwargs)
@@ -269,14 +270,25 @@ class NormaCrud(Crud):
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
         def get_queryset(self):
-            qs = NormaJuridica.objects.normas_com_textos_articulados_pendentes()
+            if self.status == 'pendente':
+                qs = NormaJuridica.objects.normas_com_textos_articulados_pendentes()
+            elif self.status == 'publico':
+                qs = NormaJuridica.objects.normas_com_textos_articulados_publicados()
+            else:
+                qs = NormaJuridica.objects.normas_sem_textos_articulados()
 
             return qs.order_by('-texto_articulado__privacidade', '-ano', '-numero')
 
         def get_context_data(self, **kwargs):
             context = Crud.ListView.get_context_data(self, **kwargs)
 
-            context['title'] = 'Normas Jurídicas com Textos Articulados não publicados'
+            if self.status == 'pendente':
+                context['title'] = 'Normas Jurídicas com Textos Articulados não publicados'
+            elif self.status == 'publico':
+                context['title'] = 'Normas Jurídicas com Textos Articulados publicados'
+            else:
+                context['title'] = 'Normas Jurídicas sem Textos Articulados'
+
             return context
 
         @classmethod

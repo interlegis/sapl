@@ -74,6 +74,21 @@ class NormaJuridicaManager(models.Manager):
 
     use_for_related_fields = True
 
+    def normas_sem_textos_articulados(self):
+        qs = self.get_queryset()
+        qs = qs.filter(texto_articulado__isnull=True)
+        return qs
+
+    def normas_com_textos_articulados_publicados(self):
+        qs = self.get_queryset()
+        qs = qs.filter(
+            texto_articulado__editable_only_by_owners=False,
+            texto_articulado__privacidade=0,
+            texto_articulado__isnull=False
+        )
+
+        return qs
+
     def normas_com_textos_articulados_pendentes(self):
         qs = self.get_queryset()
         qs = qs.filter(
