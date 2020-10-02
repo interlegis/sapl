@@ -4,6 +4,7 @@ import re
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.urls import reverse
@@ -242,14 +243,26 @@ class NormaCrud(Crud):
 
         layout_key = 'NormaJuridicaCreate'
 
-    class ListView(Crud.ListView, RedirectView):
+    class ListView(Crud.ListView):
 
-        def get_redirect_url(self, *args, **kwargs):
-            namespace = self.model._meta.app_config.name
-            return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
+        def get_queryset(self):
+            qs = Crud.ListView.get_queryset(self)
+            q = Q(
+                texto_articulado__privacidade=0
+            ) | Q(
+                texto_articulado__isnull=True)
+            qs = qs.exclude(q)
+            return qs.order_by('-texto_articulado__privacidade', '-ano', '-numero')
 
-        def get(self, request, *args, **kwargs):
-            return RedirectView.get(self, request, *args, **kwargs)
+        def get_context_data(self, **kwargs):
+            context = Crud.ListView.get_context_data(self, **kwargs)
+
+            context['title'] = 'Normas Jurídicas com Textos Articulados não publicados'
+            return context
+
+        @classmethod
+        def get_url_regex(cls):
+            return r'^check_compilacao$'
 
     class UpdateView(Crud.UpdateView):
         form_class = NormaJuridicaForm
