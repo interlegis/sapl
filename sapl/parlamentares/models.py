@@ -625,14 +625,21 @@ class Bloco(models.Model):
         * blocos podem existir por mais de uma legislatura
     '''
     nome = models.CharField(
-        max_length=80, verbose_name=_('Nome do Bloco'))
+        max_length=120,
+        verbose_name=_('Nome do Bloco'))
     partidos = models.ManyToManyField(
-        Partido, blank=True, verbose_name=_('Partidos'))
+        Partido,
+        blank=True,
+        verbose_name=_('Partidos'))
     data_criacao = models.DateField(
-        blank=False, null=True, verbose_name=_('Data Criação'))
+        blank=False, null=True,
+        verbose_name=_('Data Criação'))
     data_extincao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Dissolução'))
-    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+        blank=True, null=True,
+        verbose_name=_('Data Dissolução'))
+    descricao = models.TextField(
+        blank=True,
+        verbose_name=_('Descrição'))
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.
@@ -648,6 +655,54 @@ class Bloco(models.Model):
     class Meta:
         verbose_name = _('Bloco Parlamentar')
         verbose_name_plural = _('Blocos Parlamentares')
+        ordering = ('partidos__nome', 'nome')
 
     def __str__(self):
         return self.nome
+
+
+@reversion.register()
+class BlocoCargo(models.Model):
+    nome_cargo = models.CharField(
+        max_length=120,
+        verbose_name=_('Cargo do bloco parlamentar'))
+    cargo_unico = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Cargo único?'))
+
+    class Meta:
+        verbose_name = _('Cargo de Bloco Parlamentar')
+        verbose_name_plural = _('Cargos de Bloco Parlamentar')
+        ordering = ('cargo_unico', 'nome_cargo',)
+
+    def __str__(self):
+        return f"{self.nome_cargo}"
+
+
+@reversion.register()
+class BlocoMembro(models.Model):
+    bloco = models.ForeignKey(
+        Bloco,
+        verbose_name=_('Bloco parlamentar'),
+        on_delete=models.CASCADE)
+    parlamentar = models.ForeignKey(
+        Parlamentar,
+        verbose_name=_('Parlamentar'),
+        on_delete=models.CASCADE)
+    cargo = models.ForeignKey(
+        BlocoCargo,
+        verbose_name=_('Cargo na bloco parlamentar'),
+        on_delete=models.PROTECT)
+    data_entrada = models.DateField(verbose_name=_('Data Entrada'))
+    data_saida = models.DateField(
+        blank=True, null=True,
+        verbose_name=_('Data Saída'))
+
+    class Meta:
+        verbose_name = _('Membro de bloco parlamentar')
+        verbose_name_plural = _('Membros de bloco parlamentar')
+        ordering = ('bloco', 'parlamentar', 'cargo')
+
+    def __str__(self):
+        return f"{self.parlamentar} - {self.cargo.nome_cargo} - {self.bloco}"

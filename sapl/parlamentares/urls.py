@@ -22,7 +22,8 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       parlamentares_filiados, BlocoCrud,
                                       PesquisarParlamentarView, VincularParlamentarView,
                                       get_sessoes_legislatura, FrenteCargoCrud, FrenteParlamentarCrud,
-                                      get_parlamentar_frentes, PesquisarColigacaoView, PesquisarPartidoView)
+                                      get_parlamentar_frentes, PesquisarColigacaoView, PesquisarPartidoView,
+                                      BlocoCargoCrud, BlocoMembroCrud)
 
 from .apps import AppConfig
 
@@ -54,6 +55,12 @@ urlpatterns = [
     url(r'^sistema/pesquisar-coligacao/', PesquisarColigacaoView.as_view(), name='pesquisar_coligacao'),
     
     url(r'^sistema/bloco/', include(BlocoCrud.get_urls())),
+
+    url(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() + ComposicaoColigacaoCrud.get_urls())),    
+
+    url(r'^sistema/bloco/', include(BlocoCrud.get_urls())),
+    url(r'^sistema/bloco-cargo/', include(BlocoCargoCrud.get_urls())),
+    url(r'^sistema/bloco-membros/', include(BlocoMembroCrud.get_urls())),
 
     url(r'^sistema/frente/', include(FrenteCrud.get_urls())),
     url(r'^sistema/frente-cargo/', include(FrenteCargoCrud.get_urls())),

@@ -23,7 +23,7 @@ from sapl.rules import SAPL_GROUP_VOTANTE
 import django_filters
 
 from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar)
+                     Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -703,3 +703,29 @@ class BlocoForm(ModelForm):
             nome=bloco.nome
         )
         return bloco
+
+
+class BlocoMembroForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['bloco'].widget = forms.HiddenInput()
+
+    class Meta:
+        model = BlocoMembro
+        fields = '__all__'
+
+    def clean(self):
+        cd = super().clean()
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if cd['cargo'].cargo_unico \
+                and BlocoMembro.objects.filter(bloco=cd['bloco'], cargo=cd['cargo'], data_saida__isnull=True)\
+                                       .exclude(pk=self.instance.pk).exists():
+            raise ValidationError(_("Cargo único já ocupado por outro membro."))
+        elif not cd['data_saida'] and BlocoMembro.objects.filter(parlamentar=cd['parlamentar'], data_saida__isnull=True).exists():
+            raise ValidationError(_("Parlamentar já é membro do bloco parlamentar."))
+
+        return cd
