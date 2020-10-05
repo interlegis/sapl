@@ -3596,12 +3596,12 @@ class PautaSessaoDetailView(DetailView):
             materias_expediente.append({
                 'id': e.materia_id,
                 'ementa': e.materia.ementa,
-                'observacao': e.expediente.observacao,
+                'observacao': e.expediente.observacao, 
                 'titulo': e.materia,
                 'numero': e.expediente.numero_ordem,
                 'situacao': e.tramitacao.status if e.tramitacao else _('Não informada'),
                 'processo': processo,
-                'autor': e.autores
+                'autor': autores
             })
         context.update({'materia_expediente': materias_expediente})
         # =====================================================================

@@ -24,7 +24,7 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 IntegranteMesa, JustificativaAusencia,
                                 Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, OcorrenciaSessao,
+                                SessaoPlenariaPresenca, OcorrenciaSessao, ExpedientePautaSessao,
                                 RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente, ResumoOrdenacao)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode
@@ -1118,47 +1118,51 @@ def get_pauta_sessao(sessao, casa):
     inf_basicas_dic["nom_camara"] = casa.nome
 
     lst_expediente_materia = []
-    for expediente_materia in ExpedienteMateria.objects.filter(sessao_plenaria=sessao):
+    for e in ExpedientePautaSessao.objects.filter(
+        sessao_plenaria=sessao
+    ).order_by('expediente__numero_ordem'):
 
-        materia = MateriaLegislativa.objects.filter(
-            id=expediente_materia.materia.id).first()
+        materia = e.materia
 
         dic_expediente_materia = {}
-        dic_expediente_materia["tipo_materia"] = materia.tipo.sigla + \
-                                                 ' - ' + materia.tipo.descricao
-        dic_expediente_materia["num_ordem"] = str(
-            expediente_materia.numero_ordem)
+        tipo_materia = materia.tipo.sigla + ' - ' + materia.tipo.descricao
+        dic_expediente_materia["tipo_materia"] = tipo_materia
+
+        dic_expediente_materia["num_ordem"] = str(e.expediente.numero_ordem)
+
         dic_expediente_materia["id_materia"] = str(
-            materia.numero) + "/" + str(materia.ano)
-        dic_expediente_materia["txt_ementa"] = materia.ementa
-        dic_expediente_materia["materia_observacao"] = materia.observacao
+            materia.numero
+        ) + "/" + str(materia.ano)
+
+        dic_expediente_materia["txt_ementa"] = e.materia.ementa
 
         dic_expediente_materia["ordem_observacao"] = str(
-            expediente_materia.observacao)
+            e.expediente.observacao
+        )
 
-        dic_expediente_materia["des_numeracao"] = ' '
+        autores = e.autores if e.autores else [
+            str(a.autor) for a in e.materia.autoria_set.select_related(
+                'autor'
+            ).all()
+        ]
 
-        numeracao = Numeracao.objects.filter(materia=materia)
-        if numeracao:
-            numeracao = numeracao.first()
-            dic_expediente_materia["des_numeracao"] = str(numeracao)
-
-        dic_expediente_materia["nom_autor"] = ''
-        autoria = materia.autoria_set.all()
         dic_expediente_materia['num_autores'] = 'Autores' if len(
-            autoria) > 1 else 'Autor'
-        if autoria:
-            for a in autoria:
-                if a.autor.nome:
-                    dic_expediente_materia['nom_autor'] += a.autor.nome + ', '
-            dic_expediente_materia['nom_autor'] = dic_expediente_materia['nom_autor'][:-2]
+            autores
+        ) > 1 else 'Autor'
+
+        dic_expediente_materia['nom_autor'] = ''
+        if autores:
+            for a in autores:
+                if a:
+                    dic_expediente_materia['nom_autor'] += a + ', '
+            dic_expediente_materia['nom_autor'] = dic_expediente_materia[
+                'nom_autor'
+            ][:-2]
         else:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
-        turno, tramitacao = get_turno(materia)
-
-        dic_expediente_materia["des_turno"] = turno
-        dic_expediente_materia["des_situacao"] = tramitacao
+        situacao = e.tramitacao.status if e.tramitacao else _('Não informada')
+        dic_expediente_materia["des_situacao"] = situacao
 
         lst_expediente_materia.append(dic_expediente_materia)
 
