@@ -12,13 +12,13 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.core.signing import Signer
-from django.urls import reverse, reverse_lazy
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse, Http404)
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse, reverse_lazy
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -120,7 +120,8 @@ class IntegracaoTaView(TemplateView):
                     tipo_ta.save()
 
         except Exception as e:
-            print("{} {}".format(_('Ocorreu erro na importação do arquivo base dos Tipos de Dispositivos, entre outras informações iniciais.'), str(e)))
+            print("{} {}".format(
+                _('Ocorreu erro na importação do arquivo base dos Tipos de Dispositivos, entre outras informações iniciais.'), str(e)))
             return self.get_redirect_deactivated()
 
         assert hasattr(self, 'map_fields'), _(
@@ -979,16 +980,17 @@ class TextView(CompMixin, ListView):
 
     def get_vigencias(self):
         itens = Dispositivo.objects.filter(
-            ta_id=self.kwargs['ta_id'],
+            ta_id=self.kwargs['ta_id']
         ).order_by(
-            'inicio_vigencia'
+            'dispositivo_vigencia__inicio_vigencia', 'ordem'
         ).distinct(
-            'inicio_vigencia'
+            'dispositivo_vigencia__inicio_vigencia'
         ).select_related(
             'ta_publicado',
             'ta',
             'ta_publicado__tipo_ta',
-            'ta__tipo_ta',)
+            'ta__tipo_ta',
+        )
 
         ajuste_datas_vigencia = []
 
