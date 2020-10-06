@@ -541,15 +541,10 @@ class TipoDocumento(models.Model):
 @reversion.register()
 class DocumentoAcessorio(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
-    tipo = models.ForeignKey(TipoDocumento,
-                             on_delete=models.PROTECT,
-                             verbose_name=_('Tipo'))
+    tipo = models.ForeignKey(TipoDocumento, on_delete=models.PROTECT, verbose_name=_('Tipo'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
-
-    data = models.DateField(blank=True, null=True,
-                            default=None, verbose_name=_('Data'))
-    autor = models.CharField(
-        max_length=200, blank=True, verbose_name=_('Autor'))
+    data = models.DateField(blank=True, null=True, default=None, verbose_name=_('Data'))
+    autor = models.CharField(max_length=200, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(
@@ -560,18 +555,13 @@ class DocumentoAcessorio(models.Model):
         verbose_name=_('Texto Integral'),
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
-
-    proposicao = GenericRelation(
-        'Proposicao', related_query_name='proposicao')
-
-    data_ultima_atualizacao = models.DateTimeField(
-        blank=True, null=True,
-        auto_now=True,
-        verbose_name=_('Data'))
+    proposicao = GenericRelation('Proposicao', related_query_name='proposicao')
+    data_ultima_atualizacao = models.DateTimeField(blank=True, null=True, auto_now=True, verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Documento Acessório')
         verbose_name_plural = _('Documentos Acessórios')
+        ordering = ('data', '-data_ultima_atualizacao')
 
     def __str__(self):
         return _('%(tipo)s - %(nome)s de %(data)s por %(autor)s') % {
