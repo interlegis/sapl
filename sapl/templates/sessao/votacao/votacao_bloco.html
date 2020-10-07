@@ -162,8 +162,11 @@
             if(tipo_votacao == "1"){
                 $('#form').attr("action", "{% url 'sapl.sessao:votacaoblocosimb' pk %}")
             }
-            else{
+            else if(tipo_votacao == "2"){
                 $('#form').attr("action", "{% url 'sapl.sessao:votacaobloconom' pk %}")
+            }
+            else{
+                $('#form').attr("action", "{% url 'sapl.sessao:leitura_em_bloco' pk %}")
             }
         }
 	</script>

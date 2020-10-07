@@ -243,6 +243,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         exist_retirada = obj.retiradapauta_set.filter(materia=obj.materia).exists()
         exist_leitura = obj.registroleitura_set.filter(materia=obj.materia).exists()
 
+        #import pdb;pdb.set_trace()
+
         if (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or\
                 (obj.tipo_votacao == 4 and not exist_leitura):
             if obj.votacao_aberta:
@@ -4126,6 +4128,42 @@ class VotacaoEmBlocoOrdemDia(VotacaoEmBlocoExpediente):
                                        resultado='',
                                        retiradapauta=None)
 
+
+class LeituraEmBloco(PermissionRequiredForAppCrudMixin, TemplateView):
+    app_label = AppConfig.label
+    logger = logging.getLogger(__name__)
+
+    def post(self, request, *args, **kwargs):
+    
+        if self.request.POST['origem'] == 'ordem':
+            model = OrdemDia
+        else:
+            model = ExpedienteMateria
+        
+        leituras = model.objects.filter(
+            id__in=request.POST.getlist('marcadas_4'))
+        
+        for ordem in leituras:
+            ordem.resultado = "Matéria lida em Bloco"
+            ordem.votacao_aberta = False
+            ordem.registro_aberto = False
+            if self.request.POST['origem'] == 'ordem':
+                rl = RegistroLeitura(materia=ordem.materia,ordem=ordem,user=request.user,ip=get_client_ip(request))
+            else:
+                rl = RegistroLeitura(materia=ordem.materia,expediente=ordem,user=request.user,ip=get_client_ip(request))
+            rl.save()
+            ordem.save()
+
+        #import pdb; pdb.set_trace()
+        return HttpResponseRedirect(self.get_success_url())
+    
+    def get_success_url(self):
+        if self.request.POST['origem'] == 'ordem':
+            return reverse('sapl.sessao:ordemdia_list',
+                           kwargs={'pk': self.kwargs['pk']})
+        else:
+            return reverse('sapl.sessao:expedientemateria_list',
+                           kwargs={'pk': self.kwargs['pk']})
 
 class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateView):
 
