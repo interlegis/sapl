@@ -2474,9 +2474,7 @@ class VotacaoEditView(SessaoPermissionMixin):
         if(int(request.POST['anular_votacao']) == 1):
             RegistroVotacao.objects.filter(ordem_id=ordem_id).delete()
 
-            ordem = OrdemDia.objects.get(
-                sessao_plenaria_id=self.object.id,
-                materia_id=materia_id)
+            ordem = OrdemDia.objects.get(id=ordem_id)
             ordem.votacao_aberta = False
             ordem.resultado = ''
             ordem.save()
@@ -2655,9 +2653,7 @@ class VotacaoView(SessaoPermissionMixin):
                                       'e da ordem de id={}. '.format(materia_id, ordem_id) + str(e))
                     return self.form_invalid(form)
                 else:
-                    ordem = OrdemDia.objects.get(
-                        sessao_plenaria_id=self.object.id,
-                        materia_id=materia_id)
+                    ordem = OrdemDia.objects.get(id=ordem_id)
                     resultado = TipoResultadoVotacao.objects.get(
                         id=request.POST['resultado_votacao'])
                     ordem.resultado = resultado.nome
@@ -3413,9 +3409,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
                     self.logger.error("user=" + username + ". " + str(e))
                     return self.form_invalid(form)
                 else:
-                    expediente = ExpedienteMateria.objects.get(
-                        sessao_plenaria_id=self.object.id,
-                        materia_id=materia_id)
+                    expediente = ExpedienteMateria.objects.get(id=expediente_id)
                     resultado = TipoResultadoVotacao.objects.get(
                         id=request.POST['resultado_votacao'])
                     expediente.resultado = resultado.nome
@@ -3512,10 +3506,7 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
         if int(request.POST['anular_votacao']) == 1:
             RegistroVotacao.objects.filter(
                 expediente_id=expediente_id).delete()
-
-            expediente = ExpedienteMateria.objects.get(
-                sessao_plenaria_id=self.object.id,
-                materia_id=materia_id)
+            expediente = ExpedienteMateria.objects.get(id=expediente_id)
             expediente.votacao_aberta = False
             expediente.resultado = ''
             expediente.save()
