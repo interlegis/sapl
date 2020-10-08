@@ -4134,12 +4134,19 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, TemplateView):
     logger = logging.getLogger(__name__)
 
     def post(self, request, *args, **kwargs):
+        
     
         if self.request.POST['origem'] == 'ordem':
             model = OrdemDia
+            presenca_model = PresencaOrdemDia
         else:
             model = ExpedienteMateria
+            presenca_model = SessaoPlenariaPresenca
         
+        spk = SessaoPlenaria.objects.get(pk=kwargs['pk'])
+        if not (verifica_presenca(request, presenca_model, spk, True)):
+            return HttpResponseRedirect(self.get_success_url())
+
         leituras = model.objects.filter(
             id__in=request.POST.getlist('marcadas_4'))
         
@@ -4154,7 +4161,6 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, TemplateView):
             rl.save()
             ordem.save()
 
-        #import pdb; pdb.set_trace()
         return HttpResponseRedirect(self.get_success_url())
     
     def get_success_url(self):
