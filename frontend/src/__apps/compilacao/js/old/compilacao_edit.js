@@ -290,7 +290,7 @@ window.DispositivoEdit = function () {
         const cp_notify = _$('.cp-notify')
         cp_notify.removeClass('hide')
         const msg = cp_notify.find('.message')
-        msg.text(data.message.value)
+        msg.html(data.message.value)
         msg.removeClass('bg-primary bg-success bg-info bg-warning bg-danger').addClass('bg-' + data.message.type)
         setTimeout(function () {
           cp_notify.addClass('hide')
@@ -405,7 +405,7 @@ window.DispositivoEdit = function () {
         } else {
           alert('Erro na resposta!')
         }
-      }).always(function () {
+      }).always(function (event) {
         instance.waitHide()
       })
     if (event != null) { event.preventDefault() }

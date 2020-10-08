@@ -2671,9 +2671,33 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                      'pai': [bloco_alteracao.pk, ]})
 
         if isinstance(dsp_a_alterar, list):
+
+            parents = map(lambda x: x.id, bloco_alteracao.get_parents())
+            parents = set(map(lambda x: int(x), dsp_a_alterar)) & \
+                set(parents)
+
+            if parents:
+                self.set_message(
+                    data, 'danger',
+                    _('Não é possível incluir em um Bloco de Alteração '
+                      'um dispositivo ao qual o próprio bloco pertence!'), time=10000)
+                return data
+
             dsps = Dispositivo.objects.filter(id__in=dsp_a_alterar)
             dsps_ids = set()
             for d in dsps:
+
+                if d.ta == bloco_alteracao.ta:
+                    self.set_message(
+                        data, 'danger',
+                        _('Não é possível incluir em um Bloco de Alteração '
+                          'um dispositivo do Texto Articulado ao qual o bloco '
+                          'também é pertencente! '
+                          '<small class="text-white">Blocos de Alteração '
+                          'devem ser utilizados para registrar mudanças em '
+                          'textos anteriores a este, não neste mesmo em simutâneo.</small>'), time=20000)
+                    return data
+
                 ds = d
                 while ds.dispositivo_subsequente:
                     ds = ds.dispositivo_subsequente
