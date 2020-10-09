@@ -3,11 +3,13 @@ import logging
 from django import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse_lazy
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.db.models.fields.files import FileField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse_lazy
+from django.utils import timezone
 from django.utils.decorators import classonlymethod
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
@@ -16,17 +18,14 @@ from django_filters.filters import CharFilter
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.utils import resolve_field
-from django.utils import timezone
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers as rest_serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.fields import SerializerMethodField
-from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
+from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.forms import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
@@ -35,12 +34,12 @@ from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
 from sapl.norma.models import NormaJuridica
+from sapl.parlamentares.models import Mandato, Parlamentar, Legislatura
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
-from sapl.parlamentares.models import Mandato, Parlamentar, Legislatura
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -109,31 +108,51 @@ class SaplApiViewSetConstrutor():
             object_name = _model._meta.object_name
 
             # Caso Exista, pega a classe sapl.api.serializers.{model}Serializer
-            serializer_name = '{model}Serializer'.format(model=object_name)
-            _serializer_class = serializers_classes.get(serializer_name, None)
+            # ou utiliza a base do drf para gerar uma automática para o model
+            serializer_name = f'{object_name}Serializer'
+            _serializer_class = serializers_classes.get(
+                serializer_name, rest_serializers.ModelSerializer)
 
             # Caso Exista, pega a classe sapl.api.forms.{model}FilterSet
-            filter_name = '{model}FilterSet'.format(model=object_name)
-            _filter_class = filters_classes.get(filter_name, None)
+            # ou utiliza a base definida em sapl.forms.SaplFilterSetMixin
+            filter_name = f'{object_name}FilterSet'
+            _filter_class = filters_classes.get(
+                filter_name, SaplFilterSetMixin)
 
             def create_class():
+
+                _meta_serializer = object if not hasattr(
+                    _serializer_class, 'Meta') else _serializer_class.Meta
+
                 # Define uma classe padrão para serializer caso não tenha sido
                 # criada a classe sapl.api.serializers.{model}Serializer
-                class SaplSerializer(rest_serializers.ModelSerializer):
+                class SaplSerializer(_serializer_class):
                     __str__ = SerializerMethodField()
 
-                    class Meta:
-                        model = _model
-                        fields = '__all__'
+                    class Meta(_meta_serializer):
+                        if not hasattr(_meta_serializer, 'model'):
+                            model = _model
+
+                        if not hasattr(_meta_serializer, 'fields'):
+                            fields = '__all__'
+                        elif _meta_serializer.fields != '__all__':
+                            fields = list(
+                                _meta_serializer.fields) + ['__str__', ]
+                        else:
+                            fields = _meta_serializer.fields
 
                     def get___str__(self, obj):
                         return str(obj)
 
+                _meta_filterset = object if not hasattr(
+                    _filter_class, 'Meta') else _filter_class.Meta
+
                 # Define uma classe padrão para filtro caso não tenha sido
                 # criada a classe sapl.api.forms.{model}FilterSet
-                class SaplFilterSet(SaplFilterSetMixin):
-                    class Meta(SaplFilterSetMixin.Meta):
-                        model = _model
+                class SaplFilterSet(_filter_class):
+                    class Meta(_meta_filterset):
+                        if not hasattr(_meta_filterset, 'model'):
+                            model = _model
 
                 # Define uma classe padrão ModelViewSet de DRF
                 class ModelSaplViewSet(SaplApiViewSet):
@@ -142,14 +161,12 @@ class SaplApiViewSetConstrutor():
                     # Utiliza o filtro customizado pela classe
                     # sapl.api.forms.{model}FilterSet
                     # ou utiliza o trivial SaplFilterSet definido acima
-                    filter_class = _filter_class \
-                        if _filter_class else SaplFilterSet
+                    filter_class = SaplFilterSet
 
                     # Utiliza o serializer customizado pela classe
                     # sapl.api.serializers.{model}Serializer
                     # ou utiliza o trivial SaplSerializer definido acima
-                    serializer_class = _serializer_class \
-                        if _serializer_class else SaplSerializer
+                    serializer_class = SaplSerializer
 
                 return ModelSaplViewSet
 
@@ -335,7 +352,7 @@ class _ParlamentarViewSet:
             else:
                 perm = super().has_permission(request, view)
                 return perm
-                
+
     permission_classes = (ParlamentarPermission, )
 
     @action(detail=True)
@@ -368,16 +385,16 @@ class _ParlamentarViewSet:
 
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=True)
-    def parlamentares_by_legislatura(self,request,*args,**kwargs):
+    def parlamentares_by_legislatura(self, request, *args, **kwargs):
         """
         Pega lista de parlamentares pelo id da legislatura.
         """
         try:
             legislatura = Legislatura.objects.get(pk=kwargs['pk'])
         except ObjectDoesNotExist:
-            return Response("") 
+            return Response("")
         data_atual = timezone.now().date()
 
         filter_params = {
@@ -386,18 +403,22 @@ class _ParlamentarViewSet:
             'data_fim_mandato__lte': legislatura.data_fim,
         }
 
-        mandatos = Mandato.objects.filter(**filter_params).order_by('-data_inicio_mandato')
-        parlamentares = Parlamentar.objects.filter(mandato__in=mandatos).distinct()
+        mandatos = Mandato.objects.filter(
+            **filter_params).order_by('-data_inicio_mandato')
+        parlamentares = Parlamentar.objects.filter(
+            mandato__in=mandatos).distinct()
         serializer_class = ParlamentarResumeSerializer(parlamentares, many=True, context={
             'request': request, 'legislatura': kwargs['pk']
         })
         return Response(serializer_class.data)
 
-    @action(detail=False,methods=['GET'])
-    def search_parlamentares(self,request,*args,**kwargs):
-        nome = request.query_params.get('nome_parlamentar','')
-        parlamentares = Parlamentar.objects.filter(nome_parlamentar__icontains=nome)
-        serializer_class= ParlamentarResumeSerializer(parlamentares,many=True,context={'request':request})
+    @action(detail=False, methods=['GET'])
+    def search_parlamentares(self, request, *args, **kwargs):
+        nome = request.query_params.get('nome_parlamentar', '')
+        parlamentares = Parlamentar.objects.filter(
+            nome_parlamentar__icontains=nome)
+        serializer_class = ParlamentarResumeSerializer(
+            parlamentares, many=True, context={'request': request})
         return Response(serializer_class.data)
 
 
@@ -467,7 +488,8 @@ class _MateriaLegislativaViewSet:
         if not materia.tramitacao_set.exists():
             return Response({})
 
-        ultima_tramitacao = materia.tramitacao_set.order_by('-data_tramitacao', '-id').first()
+        ultima_tramitacao = materia.tramitacao_set.order_by(
+            '-data_tramitacao', '-id').first()
 
         serializer_class = SaplApiViewSetConstrutor.get_class_for_model(
             Tramitacao).serializer_class(ultima_tramitacao)
@@ -622,4 +644,3 @@ class AppVersionView(APIView):
             'is_authenticated': request.user.is_authenticated,
         }
         return Response(content)
-
