@@ -296,6 +296,9 @@ class NormaEstatisticas(models.Model):
     norma = models.ForeignKey(NormaJuridica,
                               on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ('id',)
+
     def __str__(self):
         return _('Usuário: %(usuario)s, Norma: %(norma)s') % {
             'usuario': self.usuario, 'norma': self.norma}
@@ -356,6 +359,7 @@ class LegislacaoCitada(models.Model):
     class Meta:
         verbose_name = _('Legislação')
         verbose_name_plural = _('Legislações')
+        ordering = ('id',)
 
     def __str__(self):
         return str(self.norma)
@@ -376,6 +380,7 @@ class TipoVinculoNormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Tipo de Vínculo entre Normas Jurídicas')
         verbose_name_plural = _('Tipos de Vínculos entre Normas Jurídicas')
+        ordering = ('id',)
 
     def __str__(self):
         return self.descricao_ativa
@@ -437,6 +442,7 @@ class AnexoNormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Anexo da Norma Juridica')
         verbose_name_plural = _('Anexos da Norma Juridica')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Anexo: %(anexo)s da norma %(norma)s') % {

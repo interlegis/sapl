@@ -73,6 +73,7 @@ class CasaLegislativa(models.Model):
     class Meta:
         verbose_name = _('Casa Legislativa')
         verbose_name_plural = _('Casa Legislativa')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Casa Legislativa de %(municipio)s') % {

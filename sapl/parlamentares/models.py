@@ -25,6 +25,7 @@ class Legislatura(models.Model):
         ordering = ['-data_inicio']
         verbose_name = _('Legislatura')
         verbose_name_plural = _('Legislaturas')
+        ordering = ('-numero', '-data_inicio', '-data_fim')
 
     def atual(self):
         current_year = timezone.now().year
@@ -89,6 +90,7 @@ class Coligacao(models.Model):
     class Meta:
         verbose_name = _('Coligação')
         verbose_name_plural = _('Coligações')
+        ordering = ('legislatura', 'nome')
 
     def __str__(self):
         return self.nome
@@ -141,6 +143,7 @@ class ComposicaoColigacao(models.Model):
     class Meta:
         verbose_name = (_('Composição Coligação'))
         verbose_name_plural = (_('Composição Coligações'))
+        ordering = ('partido',)
 
     def __str__(self):
         return _('%(partido)s - %(coligacao)s') % {
@@ -374,6 +377,7 @@ class Dependente(models.Model):
     class Meta:
         verbose_name = _('Dependente')
         verbose_name_plural = _('Dependentes')
+        ordering = ('parlamentar', 'nome')
 
     def __str__(self):
         return self.nome
@@ -456,6 +460,7 @@ class Mandato(models.Model):
     class Meta:
         verbose_name = _('Mandato')
         verbose_name_plural = _('Mandatos')
+        ordering = ('parlamentar', 'legislatura__numero')
 
     def __str__(self):
         return _('%(parlamentar)s %(legislatura)s') % {
@@ -485,6 +490,7 @@ class CargoMesa(models.Model):
     class Meta:
         verbose_name = _('Cargo na Mesa')
         verbose_name_plural = _('Cargos na Mesa')
+        ordering = ('unico', 'descricao')
 
     def __str__(self):
         return self.descricao
@@ -501,6 +507,7 @@ class ComposicaoMesa(models.Model):
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
         verbose_name_plural = _('Ocupações de cargo na Mesa')
+        ordering = ('cargo', '-sessao_legislativa', 'parlamentar')
 
     def __str__(self):
         return _('%(parlamentar)s - %(cargo)s') % {
@@ -541,6 +548,7 @@ class Frente(models.Model):
     class Meta:
         verbose_name = _('Frente Parlamentar')
         verbose_name_plural = _('Frentes Parlamentares')
+        ordering = ('nome', '-data_criacao')
 
     def get_parlamentares(self):
         return Parlamentar.objects.filter(ativo=True)
@@ -614,6 +622,7 @@ class Votante(models.Model):
         permissions = (
             ('can_vote', _('Can Vote')),
         )
+        ordering = ('parlamentar', '-data')
 
     def __str__(self):
         return self.user.username
@@ -648,6 +657,7 @@ class Bloco(models.Model):
     class Meta:
         verbose_name = _('Bloco Parlamentar')
         verbose_name_plural = _('Blocos Parlamentares')
+        ordering = ('partidos__nome', 'nome')
 
     def __str__(self):
         return self.nome
