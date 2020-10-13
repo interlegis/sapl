@@ -1075,42 +1075,33 @@ def altera_field_mesa_public_view(request):
     """
     logger = logging.getLogger(__name__)
     username = request.user.username
-    legislatura = request.GET['legislatura']
-    sessoes = SessaoLegislativa.objects.filter(
-        legislatura=legislatura).order_by('-data_inicio')
-
+    legislatura = request.GET.get('legislatura', Legislatura.objects.order_by('-data_inicio').first())
+    sessoes = legislatura.sessaoplenaria_set.filter(tipo='O').order_by('-data_inicio')
     if not sessoes:
-        return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
+        return JsonResponse({'msg': ('Nenhuma legislatura encontrada!', 0)})
 
-    # Verifica se já tem uma sessão selecionada. Ocorre quando
-    # é alterado o campo de sessão
-    if request.GET['sessao']:
+    # Verifica se já tem uma sessão selecionada. Ocorre quando é alterado o campo de sessão
+    if 'sessao' in request.GET:
         sessao_selecionada = request.GET['sessao']
-    # Caso a mudança tenha sido no campo legislatura, a sessão
-    # atual deve ser a primeira daquela legislatura
+    # Caso a mudança tenha sido no campo legislatura, a sessão atual deve ser a primeira daquela legislatura
     else:
         try:
             year = timezone.now().year
-            logger.info("user=" + username +
-                        ". Tentando obter sessões com data_inicio.ano = {}.".format(year))
+            logger.info(f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
             sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist:
-            logger.error("user=" + username + ". Sessões não encontradas com com data_inicio.ano = {}. "
-                         "Selecionado o id da primeira sessão.".format(year))
+            logger.error(f"user={username}. Sessões não encontradas com com data_inicio.ano = {year}. "
+                         "Selecionado o id da primeira sessão.")
             sessao_selecionada = sessoes.first().id
 
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
 
-    composicao_mesa = ComposicaoMesa.objects.filter(
-        sessao_legislativa=sessao_selecionada).order_by('cargo_id')
+    composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(sessao_legislativa=sessao_selecionada).order_by('cargo_id')
 
-    cargos_ocupados = [(m.cargo.id,
-                        m.cargo.__str__()) for m in composicao_mesa]
+    cargos_ocupados = composicao_mesa.values_list('cargo', 'cargo__descricao')
 
-    parlamentares_ocupados = [(m.parlamentar.id,
-                               m.parlamentar.__str__()
-                               ) for m in composicao_mesa]
+    parlamentares_ocupados = composicao_mesa.values_list('parlamentar', 'parlamentar__nome_parlamentar')
 
     lista_fotos = []
     lista_partidos = []
