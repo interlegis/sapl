@@ -1078,7 +1078,7 @@ def altera_field_mesa_public_view(request):
     legislatura = request.GET.get('legislatura', Legislatura.objects.order_by('-data_inicio').first())
     sessoes = legislatura.sessaoplenaria_set.filter(tipo='O').order_by('-data_inicio')
     if not sessoes:
-        return JsonResponse({'msg': ('Nenhuma legislatura encontrada!', 0)})
+        return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
 
     # Verifica se já tem uma sessão selecionada. Ocorre quando é alterado o campo de sessão
     if 'sessao' in request.GET:
