@@ -58,7 +58,10 @@ def audit_log_function(sender, **kwargs):
     logger = logging.getLogger(__name__)
 
     u = None
-    for i in inspect.stack():
+    pilha_de_execucao = inspect.stack()
+    for i in pilha_de_execucao:
+        if i.function == 'migrate':
+            return
         r = i.frame.f_locals.get('request', None)
         try:
             if r and \
