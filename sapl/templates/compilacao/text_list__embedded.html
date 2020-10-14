@@ -46,11 +46,11 @@
             {% endif %}
             <br>
                 {% if view.ta_vigencia %}
-                    a<small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' view.ta_vigencia %}">{{ta_pub_list|lookup:view.ta_vigencia}}</a></small>
+                  <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' view.ta_vigencia %}">{{ta_pub_list|lookup:view.ta_vigencia}}</a></small>
                 {% elif dispositivo.ta_publicado  and view.ta_vigencia != 0  %}
-                    b<small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_publicado.pk %}">{{dispositivo.ta_publicado}}</a></small>
+                  <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_publicado.pk %}">{{dispositivo.ta_publicado}}</a></small>
                 {% else %}
-                  c<small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta.pk %}">{{dispositivo.ta}}</a></small>
+                  <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta.pk %}">{{dispositivo.ta}}</a></small>
                 {% endif %}
           </span>
         {% endif%}
