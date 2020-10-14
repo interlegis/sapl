@@ -243,8 +243,6 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         exist_retirada = obj.retiradapauta_set.filter(materia=obj.materia).exists()
         exist_leitura = obj.registroleitura_set.filter(materia=obj.materia).exists()
 
-        #import pdb;pdb.set_trace()
-
         if (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or\
                 (obj.tipo_votacao == 4 and not exist_leitura):
             if obj.votacao_aberta:
@@ -4135,11 +4133,12 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         
+        origem = self.request.POST['origem']
     
-        if self.request.POST['origem'] == 'ordem':
+        if origem == 'ordem':
             model = OrdemDia
             presenca_model = PresencaOrdemDia
-        else:
+        elif origem == 'expediente':
             model = ExpedienteMateria
             presenca_model = SessaoPlenariaPresenca
         
@@ -4154,9 +4153,9 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, TemplateView):
             ordem.resultado = "Matéria lida em Bloco"
             ordem.votacao_aberta = False
             ordem.registro_aberto = False
-            if self.request.POST['origem'] == 'ordem':
+            if origem == 'ordem':
                 rl = RegistroLeitura(materia=ordem.materia,ordem=ordem,user=request.user,ip=get_client_ip(request))
-            else:
+            elif origem == 'expediente':
                 rl = RegistroLeitura(materia=ordem.materia,expediente=ordem,user=request.user,ip=get_client_ip(request))
             rl.save()
             ordem.save()
