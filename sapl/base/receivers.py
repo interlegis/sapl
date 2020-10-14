@@ -50,8 +50,8 @@ def status_tramitacao_materia(sender, instance, **kwargs):
 
 def audit_log_function(sender, **kwargs):
     if not sender or \
-            not sender._meta or \
-            not sender.app_config or \
+            hasattr(sender, '_meta') and not sender._meta or \
+            hasattr(sender._meta, 'app_config') and not sender._meta.app_config or \
             not sender._meta.app_config.name.startswith('sapl'):
         return
 
