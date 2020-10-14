@@ -951,6 +951,10 @@ class TextView(CompMixin, ListView):
         self.inicio_vigencia = None
         self.fim_vigencia = None
         self.ta_vigencia = None
+        params = {
+            'ordem__gt': 0,
+            'ta_id': self.kwargs['ta_id']
+        }
         if 'sign' in self.kwargs:
             signer = Signer()
             try:
@@ -960,20 +964,17 @@ class TextView(CompMixin, ListView):
                 self.fim_vigencia = parse_date(string[2])
             except:
                 return Dispositivo.objects.filter(
-                    ordem__gt=0,
-                    ta_id=self.kwargs['ta_id'],
+                    **params
                 ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
+            if self.fim_vigencia:
+                params['inicio_vigencia__lte'] = self.fim_vigencia
             return Dispositivo.objects.filter(
-                inicio_vigencia__lte=self.fim_vigencia,
-                ordem__gt=0,
-                ta_id=self.kwargs['ta_id'],
+                **params
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         else:
-
             r = Dispositivo.objects.filter(
-                ordem__gt=0,
-                ta_id=self.kwargs['ta_id'],
+                **params
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
             return r
@@ -982,9 +983,9 @@ class TextView(CompMixin, ListView):
         itens = Dispositivo.objects.filter(
             ta_id=self.kwargs['ta_id']
         ).order_by(
-            'dispositivo_vigencia__inicio_vigencia', 'ordem'
+            'dispositivo_vigencia__inicio_vigencia', 'ta_publicado__id', 'ordem'
         ).distinct(
-            'dispositivo_vigencia__inicio_vigencia'
+            'dispositivo_vigencia__inicio_vigencia', 'ta_publicado__id'
         ).select_related(
             'ta_publicado',
             'ta',
@@ -1000,8 +1001,20 @@ class TextView(CompMixin, ListView):
         lenLista = len(ajuste_datas_vigencia)
         for i in range(lenLista):
             if i + 1 < lenLista:
-                ajuste_datas_vigencia[
-                    i].fim_vigencia = ajuste_datas_vigencia[
+                if ajuste_datas_vigencia[
+                    i].inicio_vigencia == ajuste_datas_vigencia[
+                        i + 1].inicio_vigencia:
+
+                    if i + 2 < lenLista:
+                        ajuste_datas_vigencia[
+                            i].fim_vigencia = ajuste_datas_vigencia[
+                            i + 2].inicio_vigencia - timedelta(days=1)
+                    else:
+                        ajuste_datas_vigencia[i].fim_vigencia = None
+
+                else:
+                    ajuste_datas_vigencia[
+                        i].fim_vigencia = ajuste_datas_vigencia[
                         i + 1].inicio_vigencia - timedelta(days=1)
             else:
                 ajuste_datas_vigencia[i].fim_vigencia = None

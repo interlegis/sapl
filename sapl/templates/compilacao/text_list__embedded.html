@@ -18,7 +18,7 @@
       <ul class="cp-linha-vigencias">
         {% for dispositivo in values %}
           <li class="{% if view.inicio_vigencia == dispositivo.inicio_vigencia %}active{%endif%}">
-            <a class="" href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto<br>Original'%}</a>
+            <a class="" href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia|default:''}}">{% trans 'Texto<br>Original'%}</a>
             <span class="circle"> </span>
           </li>
         {% endfor %}
@@ -66,7 +66,12 @@
           {% for dispositivo in values %}
             <li class="">
             {% if not forloop.parentloop.first %}
-              <a href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
+              {% if dispositivo.fim_vigencia %}
+                <a href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia|default:''}}</a>
+              {% else %}
+                <a href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Vigência a partir'%} {{dispositivo.inicio_vigencia}}</a>
+
+              {% endif %}
             {% endif %}
             </li>
           {% endfor %}
