@@ -49,10 +49,17 @@ def status_tramitacao_materia(sender, instance, **kwargs):
 
 
 def audit_log_function(sender, **kwargs):
-    if not sender or \
-            hasattr(sender, '_meta') and not sender._meta or \
-            hasattr(sender._meta, 'app_config') and not sender._meta.app_config or \
-            not sender._meta.app_config.name.startswith('sapl'):
+
+    try:
+        if not sender._meta.app_config.name.startswith('sapl'):
+            return
+    except:
+        # não é necessário usar logger, aqui é usada apenas para
+        # eliminar um o if complexo
+        return
+
+    instance = kwargs.get('instance')
+    if instance._meta.model == AuditLog:
         return
 
     logger = logging.getLogger(__name__)
@@ -64,15 +71,15 @@ def audit_log_function(sender, **kwargs):
             return
         r = i.frame.f_locals.get('request', None)
         try:
-            if r and \
-                    r.user._meta.label == settings.AUTH_USER_MODEL:
+            if r.user._meta.label == settings.AUTH_USER_MODEL:
                 u = r.user
                 break
         except:
+            # não é necessário usar logger, aqui é usada apenas para
+            # eliminar um o if complexo
             pass
 
     try:
-        instance = kwargs.get('instance')
         operation = kwargs.get('operation')
         user = u
         model_name = instance.__class__.__name__
