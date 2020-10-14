@@ -46,6 +46,3 @@ def cria_models_tipo_autor(app_config=None, verbosity=2, interactive=True,
 
 
 post_migrate.connect(receiver=cria_models_tipo_autor)
-post_delete_signal = django.dispatch.Signal(providing_args=['instance', 'request'])
-
-post_save_signal = django.dispatch.Signal(providing_args=['instance', 'operation', 'request'])
