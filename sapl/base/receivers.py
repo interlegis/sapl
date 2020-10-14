@@ -1,6 +1,7 @@
 import inspect
 import logging
 
+from django.conf import settings
 from django.core import serializers
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
@@ -55,33 +56,32 @@ def audit_log_function(sender, **kwargs):
 
     u = None
     for i in inspect.stack():
-        request = i.frame.f_locals.get('request', None)
-        if request:
-            u = request.user
-            break
-        else:
-            self_request = i.frame.f_locals.get('self', None)
-            if hasattr(self_request, 'request'):
-                u = self_request.request.user
+        r = i.frame.f_locals.get('request', None)
+        try:
+            if r and \
+                    r.user._meta.label == settings.AUTH_USER_MODEL:
+                u = r.user
                 break
-
-    instance = kwargs.get('instance')
-    operation = kwargs.get('operation')
-    user = u
-    model_name = instance.__class__.__name__
-    app_name = instance._meta.app_label
-    object_id = instance.id
-    data = serializers.serialize('json', [instance])
-
-    if len(data) > AuditLog.MAX_DATA_LENGTH:
-        data = data[:AuditLog.MAX_DATA_LENGTH]
-
-    if user:
-        username = user.username
-    else:
-        username = ''
+        except:
+            pass
 
     try:
+        instance = kwargs.get('instance')
+        operation = kwargs.get('operation')
+        user = u
+        model_name = instance.__class__.__name__
+        app_name = instance._meta.app_label
+        object_id = instance.id
+        data = serializers.serialize('json', [instance])
+
+        if len(data) > AuditLog.MAX_DATA_LENGTH:
+            data = data[:AuditLog.MAX_DATA_LENGTH]
+
+        if user:
+            username = user.username
+        else:
+            username = ''
+
         AuditLog.objects.create(username=username,
                                 operation=operation,
                                 model_name=model_name,
