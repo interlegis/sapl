@@ -4,9 +4,11 @@
 
 <div class="cp">
   {% if object_list %}
-      <div class="actions btn-group" role="group">
-        <a href="{{base_url}}?print" class="btn btn-outline-primary" id="btn_impressao">{% trans 'Preparar para impressão' %}</a>
-      </div>
+      {% if 'print' not in request.GET %}
+        <div class="actions btn-group" role="group">
+            <a href="{% if 'compilacao' not in request.resolver_match.namespace %}{% url 'sapl.compilacao:ta_text' object_list.0.ta_id %}{% else %}{{request.path}}{% endif %}?print" class="btn btn-outline-primary" id="btn_impressao">{% trans 'Preparar para impressão' %}</a>
+        </div>
+      {% endif %}
 
       <div class="actions btn-group float-right" role="group">
         <a class="btn btn-outline-primary" id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
