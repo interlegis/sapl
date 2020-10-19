@@ -96,7 +96,7 @@ def doc_texto_integral(request, pk):
     can_see = True
 
     if not request.user.is_authenticated:
-        app_config = AppConfig.objects.last()
+        app_config = AppConfig.objects.order_by('id').last()
         if app_config and app_config.documentos_administrativos == 'R':
             can_see = False
 
@@ -318,7 +318,7 @@ class AcompanhamentoDocumentoView(CreateView):
 class DocumentoAdministrativoMixin:
 
     def has_permission(self):
-        app_config = AppConfig.objects.last()
+        app_config = AppConfig.objects.order_by('id').last()
         if app_config and app_config.documentos_administrativos == 'O':
             return True
 
@@ -1370,7 +1370,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                 if tramitar_anexados:
                     docs_anexados = lista_anexados(documento, False)
                     for da in docs_anexados:
-                        tram_anexada = da.tramitacaoadministrativo_set.last()
+                        tram_anexada = da.tramitacaoadministrativo_set.order_by('id').last()
                         if compara_tramitacoes_doc(tram_anexada, tramitacao):
                             tramitacoes_deletar.append(tram_anexada)
                             if da.tramitacaoadministrativo_set.count() == 0:

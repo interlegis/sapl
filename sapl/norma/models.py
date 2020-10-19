@@ -91,14 +91,8 @@ class NormaJuridicaManager(models.Manager):
 
     def normas_com_textos_articulados_pendentes(self):
         qs = self.get_queryset()
-        qs = qs.filter(
-            texto_articulado__editable_only_by_owners=False)
-
-        q = models.Q(
-            texto_articulado__privacidade=0
-        ) | models.Q(
-            texto_articulado__isnull=True
-        )
+        qs = qs.filter(texto_articulado__editable_only_by_owners=False)
+        q = models.Q(texto_articulado__privacidade=0) | models.Q(texto_articulado__isnull=True)
         qs = qs.exclude(q)
 
         for n in qs:
@@ -107,7 +101,7 @@ class NormaJuridicaManager(models.Manager):
             if count == 1:
                 count = 0
             elif count == 2:
-                d = ta.dispositivos_set.last()
+                d = ta.dispositivos_set.order_by('id').last()
                 if d.auto_inserido or not d.texto or d.texto == n.ementa:
                     count = 0
             elif count == 3:

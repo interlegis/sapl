@@ -354,23 +354,19 @@ def get_cronometro_status(request, name):
 
 
 def get_materia_aberta(pk):
-    return OrdemDia.objects.filter(
-        sessao_plenaria_id=pk, votacao_aberta=True).last()
+    return OrdemDia.objects.filter(sessao_plenaria_id=pk, votacao_aberta=True).last()
 
 
 def get_presentes(pk, response, materia):
     if type(materia) == OrdemDia:
-        presentes = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=pk)
+        presentes = PresencaOrdemDia.objects.filter(sessao_plenaria_id=pk)
     else:
-        presentes = SessaoPlenariaPresenca.objects.filter(
-            sessao_plenaria_id=pk)
+        presentes = SessaoPlenariaPresenca.objects.filter(sessao_plenaria_id=pk)
     
     sessao = SessaoPlenaria.objects.get(id=pk)
     num_presentes = len(presentes)
     data_sessao = sessao.data_inicio
-    oradores = OradorExpediente.objects.filter(
-        sessao_plenaria_id=pk).order_by('numero_ordem')
+    oradores = OradorExpediente.objects.filter(sessao_plenaria_id=pk).order_by('numero_ordem')
 
     oradores_list = []
     for o in oradores:

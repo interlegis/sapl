@@ -554,7 +554,7 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
                                      Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__isnull=True) |
                                      Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]) |
                                      # mandato suplente
-                                     Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]))
+                                     Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1])).order_by('id')
 
             m = m.last()
             parlamentares_presencas.append({
@@ -2074,7 +2074,7 @@ class AppConfigCrud(CrudAux):
         create_url = ''
 
         def form_valid(self, form):
-            recibo_prop_atual = AppConfig.objects.last().receber_recibo_proposicao
+            recibo_prop_atual = AppConfig.objects.order_by('id').last().receber_recibo_proposicao
             recibo_prop_novo = self.request.POST['receber_recibo_proposicao']
             if recibo_prop_novo == 'False' and recibo_prop_atual:
                 props = Proposicao.objects.filter(hash_code='', data_recebimento__isnull=True).exclude(data_envio__isnull=True)
@@ -2120,8 +2120,8 @@ class AppConfigCrud(CrudAux):
         form_class = ConfiguracoesAppForm
 
         def form_valid(self, form):
-            numeracao = AppConfig.objects.last().sequencia_numeracao_protocolo
-            numeracao_antiga = AppConfig.objects.last().inicio_numeracao_protocolo
+            numeracao = AppConfig.objects.order_by('id').last().sequencia_numeracao_protocolo
+            numeracao_antiga = AppConfig.objects.order_by('id').last().inicio_numeracao_protocolo
 
             self.object = form.save()
             numeracao_nova = self.object.inicio_numeracao_protocolo

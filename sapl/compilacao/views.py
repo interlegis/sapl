@@ -1442,17 +1442,15 @@ class ActionDragAndMoveDispositivoAlteradoMixin(ActionsCommonsMixin):
         else:
             dpt.dispositivo_atualizador = bloco
 
-        filhos = Dispositivo.objects.order_by(
-            'ordem_bloco_atualizador').filter(
+        filhos = Dispositivo.objects.filter(
             Q(dispositivo_pai_id=bloco.pk) |
-            Q(dispositivo_atualizador_id=bloco.pk))
+            Q(dispositivo_atualizador_id=bloco.pk)).order_by('ordem_bloco_atualizador')
 
         if not filhos.exists():
             dpt.ordem_bloco_atualizador = Dispositivo.INTERVALO_ORDEM
         else:
             index = int(self.request.GET['index'])
-            fpks = filhos.values_list(
-                'pk', flat=True).order_by('ordem_bloco_atualizador')
+            fpks = filhos.values_list('pk', flat=True).order_by('ordem_bloco_atualizador')
 
             index_dpt = 0
             try:
@@ -1749,13 +1747,12 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     for d in dcc:  # ultimo DCC do tipo encontrado
 
                         if d.tipo_dispositivo.class_css not in base_adicao:
-                            ultimo_dcc = Dispositivo.objects.order_by(
-                                'ordem').filter(
+                            ultimo_dcc = Dispositivo.objects.filter(
                                 ta_id=base.ta_id,
                                 ordem__lt=base.ordem,
                                 ordem__gt=nivel_zero_anterior,
                                 tipo_dispositivo__contagem_continua=True,
-                                tipo_dispositivo=d.tipo_dispositivo).last()
+                                tipo_dispositivo=d.tipo_dispositivo).order_by('ordem').last()
 
                             if not ultimo_dcc:
                                 break
@@ -2219,8 +2216,7 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
                 registro_inclusao = True
 
             tipo = TipoDispositivo.objects.get(pk=context['tipo_pk'])
-            pub_last = Publicacao.objects.order_by(
-                'data', 'hora').filter(ta=base.ta).last()
+            pub_last = Publicacao.objects.filter(ta=base.ta).order_by('data', 'hora').last()
 
             variacao = int(context['variacao'])
             parents = [base, ] + base.get_parents()

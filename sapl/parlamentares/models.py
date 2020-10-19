@@ -460,7 +460,7 @@ class Mandato(models.Model):
     class Meta:
         verbose_name = _('Mandato')
         verbose_name_plural = _('Mandatos')
-        ordering = ('parlamentar', 'legislatura__numero')
+        ordering = ('id',)
 
     def __str__(self):
         return _('%(parlamentar)s %(legislatura)s') % {

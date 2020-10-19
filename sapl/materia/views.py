@@ -488,7 +488,7 @@ class ProposicaoPendente(PermissionRequiredMixin, ListView):
             data_devolucao__isnull=True)
         paginator = context['paginator']
         page_obj = context['page_obj']
-        context['AppConfig'] = sapl.base.models.AppConfig.objects.all().last()
+        context['AppConfig'] = sapl.base.models.AppConfig.objects.order_by('id').last()
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context['NO_ENTRIES_MSG'] = 'Nenhuma proposição pendente.'
@@ -783,7 +783,7 @@ class ProposicaoCrud(Crud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
-            context['AppConfig'] = sapl.base.models.AppConfig.objects.all().last()
+            context['AppConfig'] = sapl.base.models.AppConfig.objects.order_by('id').last()
 
             context['title'] = '%s <small>(%s)</small>' % (
                 self.object, self.object.autor)
@@ -2843,7 +2843,7 @@ def get_pdf_docacessorios(request, pk):
 
 
 def configEtiquetaMateriaLegislativaCrud(request):
-    config = ConfigEtiquetaMateriaLegislativa.objects.last()
+    config = ConfigEtiquetaMateriaLegislativa.objects.order_by('id').last()
     if request.method == "POST":
         form = ConfigEtiquetaMateriaLegislativaForms(request.POST, instance=config)
         if form.is_valid():

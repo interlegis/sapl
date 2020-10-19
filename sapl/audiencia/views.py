@@ -76,7 +76,7 @@ class AudienciaCrud(Crud):
 class AudienciaPublicaMixin:
 
     def has_permission(self):
-        app_config = sapl.base.models.AppConfig.objects.last()
+        app_config = sapl.base.models.AppConfig.objects.order_by('id').last()
         if app_config and app_config.documentos_administrativos == 'O':
             return True
 

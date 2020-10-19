@@ -271,7 +271,7 @@ def test_create_tramitacao(admin_client):
          'data_tramitacao': date(2016, 8, 21)},
         follow=True)
 
-    tramitacao = TramitacaoAdministrativo.objects.last()
+    tramitacao = TramitacaoAdministrativo.objects.order_by('id').last()
     # Verifica se a tramitacao que obedece as regras de negócios é criada
     assert tramitacao.data_tramitacao == date(2016, 8, 21)
 
@@ -600,11 +600,11 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
     assert form.is_valid()
     tramitacao_principal = form.save()
-    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
-    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.order_by('id').last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.order_by('id').last()
 
     # Verifica se foram criadas as tramitações para os documentos anexados e anexados aos anexados
-    assert documento_principal.tramitacaoadministrativo_set.last() == tramitacao_principal
+    assert documento_principal.tramitacaoadministrativo_set.order_by('id').last() == tramitacao_principal
     assert tramitacao_principal.documento.tramitacao == (tramitacao_principal.status.indicador != "F")
     assert compara_tramitacoes_doc(tramitacao_principal, tramitacao_anexada)
     assert DocumentoAdministrativo.objects.get(id=documento_anexado.pk).tramitacao \
@@ -627,8 +627,8 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
     assert form.is_valid()
     tramitacao_principal = form.save()
-    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
-    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.order_by('id').last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.order_by('id').last()
 
     assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_2
     assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_2
@@ -656,8 +656,8 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
     assert form.is_valid()
     tramitacao_principal = form.save()
-    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
-    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.order_by('id').last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.order_by('id').last()
 
     form = TramitacaoAdmEditForm(data={})
     # Alterando unidade_tramitacao_destino
@@ -671,7 +671,7 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
     assert form.is_valid()
     tramitacao_anexada = form.save()
-    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.order_by('id').last()
 
     assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_1
     assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_2
@@ -690,8 +690,8 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
     assert form.is_valid()
     tramitacao_principal = form.save()
-    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
-    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.order_by('id').last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.order_by('id').last()
 
     assert tramitacao_principal.texto == "Testando a alteração"
     assert not tramitacao_anexada.texto == "Testando a alteração"
@@ -730,11 +730,11 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
     assert form.is_valid()
     tramitacao_principal = form.save()
-    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
-    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.order_by('id').last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.order_by('id').last()
 
     # Verifica se não foram criadas as tramitações para os documentos anexados e anexados aos anexados
-    assert documento_principal.tramitacaoadministrativo_set.last() == tramitacao_principal
+    assert documento_principal.tramitacaoadministrativo_set.order_by('id').last() == tramitacao_principal
     assert tramitacao_principal.documento.tramitacao == (tramitacao_principal.status.indicador != "F")
     assert not tramitacao_anexada
     assert not tramitacao_anexada_anexada
@@ -752,11 +752,11 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
     assert form.is_valid()
     tramitacao_anexada = form.save()
-    tramitacao_principal = documento_principal.tramitacaoadministrativo_set.last() 
-    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_principal = documento_principal.tramitacaoadministrativo_set.order_by('id').last() 
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.order_by('id').last()
 
     assert documento_principal.tramitacaoadministrativo_set.all().count() == 1
-    assert documento_anexado.tramitacaoadministrativo_set.last() == tramitacao_anexada
+    assert documento_anexado.tramitacaoadministrativo_set.order_by('id').last() == tramitacao_anexada
     assert not tramitacao_anexada_anexada
 
     form = TramitacaoAdmEditForm(data={})
@@ -772,8 +772,8 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
     assert form.is_valid()
     tramitacao_principal = form.save()
-    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
-    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.order_by('id').last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.order_by('id').last()
 
     assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_2
     assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_1
@@ -792,8 +792,8 @@ def test_tramitacoes_documentos_anexados(admin_client):
 
     assert form.is_valid()
     tramitacao_anexada = form.save() 
-    tramitacao_principal = documento_principal.tramitacaoadministrativo_set.last()
-    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_principal = documento_principal.tramitacaoadministrativo_set.order_by('id').last()
+    tramitacao_anexada_anexada = documento_anexado_anexado.tramitacaoadministrativo_set.order_by('id').last()
 
     assert tramitacao_principal.unidade_tramitacao_destino == unidade_tramitacao_destino_2
     assert tramitacao_anexada.unidade_tramitacao_destino == unidade_tramitacao_destino_2
@@ -1167,8 +1167,8 @@ def test_tramitacao_lote_documentos_views(admin_client):
     assert documento_anexado.tramitacaoadministrativo_set.all().count() == 1
     assert documento_anexado_anexado.tramitacaoadministrativo_set.all().count() == 0
 
-    tramitacao_principal = documento_principal.tramitacaoadministrativo_set.last()
-    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.last()
+    tramitacao_principal = documento_principal.tramitacaoadministrativo_set.order_by('id').last()
+    tramitacao_anexada = documento_anexado.tramitacaoadministrativo_set.order_by('id').last()
     assert compara_tramitacoes_doc(tramitacao_anexada, tramitacao_principal)
 
     documentos = [documento_principal.id]

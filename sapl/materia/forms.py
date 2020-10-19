@@ -1912,7 +1912,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
         ]
 
-        if AppConfig.objects.last().escolher_numero_materia_proposicao:
+        if AppConfig.objects.order_by('id').last().escolher_numero_materia_proposicao:
             fields.append(to_column(('numero_materia_futuro', 12)),)
         else:
             if 'numero_materia_futuro' in self._meta.fields:
@@ -2024,7 +2024,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
     def save(self, commit=True):
         cd = self.cleaned_data
         inst = self.instance
-        receber_recibo = AppConfig.objects.last().receber_recibo_proposicao
+        receber_recibo = AppConfig.objects.order_by('id').last().receber_recibo_proposicao
 
         if inst.pk:
             if 'tipo_texto' in cd:
@@ -2236,7 +2236,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             )
         ]
 
-        if not AppConfig.objects.last().escolher_numero_materia_proposicao or \
+        if not AppConfig.objects.order_by('id').last().escolher_numero_materia_proposicao or \
            not self.instance.numero_materia_futuro:
             if 'numero_materia_futuro' in self._meta.fields:
                 del fields[0][0][3]

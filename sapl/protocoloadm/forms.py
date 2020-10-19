@@ -782,7 +782,7 @@ class TramitacaoAdmForm(ModelForm):
             anexados_list = lista_anexados(documento, False)
             for da in anexados_list:
                 if not da.tramitacaoadministrativo_set.all() \
-                    or da.tramitacaoadministrativo_set.last() \
+                    or da.tramitacaoadministrativo_set.order_by('id').last() \
                     .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
                     da.tramitacao = False if tramitacao.status.indicador == "F" else True
                     da.save()
@@ -901,7 +901,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         if tramitar_anexados:
             anexados_list = lista_anexados(documento, False)
             for da in anexados_list:
-                tram_anexada = da.tramitacaoadministrativo_set.last()
+                tram_anexada = da.tramitacaoadministrativo_set.order_by('id').last()
                 if compara_tramitacoes_doc(ant_tram_principal, tram_anexada):
                     tram_anexada.status = nova_tram_principal.status
                     tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
@@ -1666,7 +1666,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                 anexados = lista_anexados(doc, False)
                 for da in anexados:
                     if not da.tramitacaoadministrativo_set.all() \
-                        or da.tramitacaoadministrativo_set.last() \
+                        or da.tramitacaoadministrativo_set.order_by('id').last() \
                         .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
                         da.tramitacao = False if tramitacao.status.indicador == "F" else True
                         da.save()

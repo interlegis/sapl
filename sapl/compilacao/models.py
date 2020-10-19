@@ -520,7 +520,7 @@ class TextoArticulado(TimestampedMixin):
 
     def reagrupar_ordem_de_dispositivos(self):
 
-        dpts = Dispositivo.objects.filter(ta=self)
+        dpts = Dispositivo.objects.filter(ta=self).order_by('id')
 
         if not dpts.exists():
             return
@@ -538,7 +538,7 @@ class TextoArticulado(TimestampedMixin):
 
     def reordenar_dispositivos(self):
 
-        dpts = Dispositivo.objects.filter(ta=self)
+        dpts = Dispositivo.objects.filter(ta=self).order_by('id')
 
         if not dpts.exists():
             return
@@ -1758,10 +1758,10 @@ class Dispositivo(BaseModel, TimestampedMixin):
             'ordem').filter(nivel=0, ta_id=self.ta_id)
 
     def select_next_root(self):
-        return self.select_roots().filter(ordem__gt=self.ordem).first()
+        return self.select_roots().filter(ordem__gt=self.ordem).order_by('id').first()
 
     def select_prev_root(self):
-        return self.select_roots().filter(ordem__lt=self.ordem).last()
+        return self.select_roots().filter(ordem__lt=self.ordem).order_by('id').last()
 
     # metodo obsoleto, foi acrescentado o campo auto_inserido no modelo
     def is_relative_auto_insert__obsoleto(self, perfil_pk=None):
@@ -1875,11 +1875,9 @@ class Dispositivo(BaseModel, TimestampedMixin):
            not self.tipo_dispositivo.dispositivo_de_alteracao:
             return
 
-        filhos = Dispositivo.objects.order_by(
-            'ordem_bloco_atualizador').filter(
+        filhos = Dispositivo.objects.filter(
             Q(dispositivo_pai_id=self.pk) |
-            Q(dispositivo_atualizador_id=self.pk))
-
+            Q(dispositivo_atualizador_id=self.pk)).order_by('ordem_bloco_atualizador')
         if not filhos.exists():
             return
 

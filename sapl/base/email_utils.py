@@ -180,7 +180,7 @@ def criar_email_tramitacao(base_url, casa_legislativa, tipo, doc_mat, status,
                               kwargs={'pk': doc_mat.id})
         autores = ""
         ementa = doc_mat.assunto
-        tramitacao = doc_mat.tramitacaoadministrativo_set.last()
+        tramitacao = doc_mat.tramitacaoadministrativo_set.order_by('id').last()
 
     templates = load_email_templates(['email/tramitacao.txt',
                                       'email/tramitacao.html'],
