@@ -54,7 +54,7 @@
       <table class="table table-striped table-hover table-link-ordering">
         <thead>
           <tr>
-            <th colspan=2 >Parlamentar</th>
+            <th>Parlamentar</th>
             <th>Partido</th>
             <th>Ativo?</th>
             <th v-if="!is_pesquisa" >Titular?</th>
@@ -63,9 +63,7 @@
           <tbody v-for="parlamentar in visible_parlamentares">
           <tr>
               <th>
-                <img class="img-fluid img-thumbnail" style="width: 128px; height: 128px;" v-bind:src="parlamentar.fotografia_cropped" @error="(() => parlamentar.fotografia = '')"/>
-              </th>
-              <th>
+                <img class="img-fluid img-thumbnail" style="width: 128px; height: auto;" v-bind:src="parlamentar.fotografia_cropped" @error="(() => parlamentar.fotografia = '')"/>
                  <a v-bind:href="'/parlamentar/'+parlamentar.id">[[ parlamentar.nome_parlamentar]]</a>
               </th>
               <th>
