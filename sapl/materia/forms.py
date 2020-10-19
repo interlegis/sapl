@@ -1,30 +1,28 @@
-import django_filters
 import logging
 import os
-import sapl
 
 from crispy_forms.bootstrap import Alert, InlineRadios
 from crispy_forms.layout import (Button, Field, Fieldset, HTML, Layout, Row)
-
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
-from django.urls import reverse
 from django.db import models, transaction
 from django.db.models import F, Max, Q
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.forms.forms import Form
 from django.forms.models import ModelMultipleChoiceField
 from django.forms.widgets import CheckboxSelectMultiple, HiddenInput, Select
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
+import sapl
 from sapl.base.models import AppConfig, Autor, TipoAutor
-from sapl.base.signals import post_save_signal
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
@@ -34,8 +32,8 @@ from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
                                  MateriaLegislativa, Orgao,
                                  RegimeTramitacao, StatusTramitacao,
                                  TipoDocumento, TipoProposicao,
-                                 UnidadeTramitacao,ConfigEtiquetaMateriaLegislativa)
-from sapl.norma.models import (LegislacaoCitada, NormaJuridica, 
+                                 UnidadeTramitacao, ConfigEtiquetaMateriaLegislativa)
+from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
 from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
@@ -211,8 +209,10 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         if protocolo:
             if not Protocolo.objects.filter(numero=protocolo, ano=ano).exists():
-                self.logger.warning("Protocolo %s/%s não existe" % (protocolo, ano))
-                raise ValidationError(_('Protocolo %s/%s não existe' % (protocolo, ano)))
+                self.logger.warning(
+                    "Protocolo %s/%s não existe" % (protocolo, ano))
+                raise ValidationError(
+                    _('Protocolo %s/%s não existe' % (protocolo, ano)))
 
             if protocolo_antigo != protocolo:
                 exist_materia = MateriaLegislativa.objects.filter(
@@ -472,7 +472,7 @@ class TramitacaoForm(ModelForm):
                   'user',
                   'ip',
                   'ultima_edicao']
-                
+
         widgets = {'user': forms.HiddenInput(),
                    'ip': forms.HiddenInput(),
                    'ultima_edicao': forms.HiddenInput()}
@@ -525,7 +525,8 @@ class TramitacaoForm(ModelForm):
             if cleaned_data['data_tramitacao'] > timezone.now().date():
                 self.logger.warning('A data de tramitação informada ({}) não é menor ou igual a data de hoje!'
                                     .format(cleaned_data['data_tramitacao']))
-                msg = _('A data de tramitação deve ser menor ou igual a data de hoje!')
+                msg = _(
+                    'A data de tramitação deve ser menor ou igual a data de hoje!')
                 raise ValidationError(msg)
 
             if (ultima_tramitacao and
@@ -539,9 +540,10 @@ class TramitacaoForm(ModelForm):
 
         if data_enc_form:
             if data_enc_form < data_tram_form:
-                msg = _('A data de encaminhamento deve ser maior que a data de tramitação!')
+                msg = _(
+                    'A data de encaminhamento deve ser maior que a data de tramitação!')
                 self.logger.warning("A data de encaminhamento ({}) deve ser maior que a data de tramitação! ({})"
-                                  .format(data_enc_form, data_tram_form))
+                                    .format(data_enc_form, data_tram_form))
                 raise ValidationError(msg)
 
         if data_prazo_form:
@@ -668,14 +670,15 @@ class TramitacaoUpdateForm(TramitacaoForm):
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
-        
-        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
-            cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
-            cd['status'] != obj.status or cd['texto'] != obj.texto or \
-            cd['data_encaminhamento'] != obj.data_encaminhamento or \
-            cd['data_fim_prazo'] != obj.data_fim_prazo or cd['urgente'] != str(obj.urgente) or \
-            cd['turno'] != obj.turno):
-            ### Se não ocorreram alterações, o usuário, ip, data e hora da última edição (real) são mantidos
+
+        if not (cd['data_tramitacao'] != obj.data_tramitacao or
+                cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or
+                cd['status'] != obj.status or cd['texto'] != obj.texto or
+                cd['data_encaminhamento'] != obj.data_encaminhamento or
+                cd['data_fim_prazo'] != obj.data_fim_prazo or cd['urgente'] != str(obj.urgente) or
+                cd['turno'] != obj.turno):
+            # Se não ocorreram alterações, o usuário, ip, data e hora da última
+            # edição (real) são mantidos
             cd['user'] = obj.user
             cd['ip'] = obj.ip
             cd['ultima_edicao'] = obj.ultima_edicao
@@ -698,7 +701,8 @@ class TramitacaoUpdateForm(TramitacaoForm):
         if tramitar_anexadas:
             anexadas_list = lista_anexados(materia)
             for ma in anexadas_list:
-                tram_anexada = ma.tramitacao_set.order_by('-data_tramitacao', '-id').first()
+                tram_anexada = ma.tramitacao_set.order_by(
+                    '-data_tramitacao', '-id').first()
                 if compara_tramitacoes_mat(ant_tram_principal, tram_anexada):
                     tram_anexada.status = nova_tram_principal.status
                     tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
@@ -907,7 +911,8 @@ class AnexadaForm(ModelForm):
         except ObjectDoesNotExist:
             msg = _('A {} {}/{} não existe no cadastro de matérias legislativas.'
                     .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
-            self.logger.warning("A matéria a ser anexada não existe no cadastro de matérias legislativas.")
+            self.logger.warning(
+                "A matéria a ser anexada não existe no cadastro de matérias legislativas.")
             raise ValidationError(msg)
 
         materia_principal = self.instance.materia_principal
@@ -1118,7 +1123,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      ),
             Fieldset(_('Origem externa'),
                      row10, row11
-                    ),
+                     ),
             Fieldset(_('Pesquisa Avançada'),
                      row3,
                      HTML(autor_label),
@@ -1644,7 +1649,6 @@ class TramitacaoEmLoteForm(ModelForm):
         widgets = {'user': forms.HiddenInput(),
                    'ip': forms.HiddenInput(),
                    'ultima_edicao': forms.HiddenInput()}
-            
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoEmLoteForm, self).__init__(*args, **kwargs)
@@ -1746,7 +1750,8 @@ class TramitacaoEmLoteForm(ModelForm):
             if data_enc_form < data_tram_form:
                 self.logger.warning('A data de encaminhamento ({}) deve ser maior que a data de tramitação ({})!'
                                     .format(data_enc_form, data_tram_form))
-                msg = _('A data de encaminhamento deve ser maior que a data de tramitação!')
+                msg = _(
+                    'A data de encaminhamento deve ser maior que a data de tramitação!')
                 raise ValidationError(msg)
 
         if data_prazo_form:
@@ -1763,7 +1768,7 @@ class TramitacaoEmLoteForm(ModelForm):
     @transaction.atomic
     def save(self, commit=True):
         cd = self.cleaned_data
-        
+
         materias = self.initial['materias']
         user = self.initial['user'] if 'user' in self.initial else None
         ip = self.initial['ip'] if 'ip' in self.initial else ''
@@ -2555,7 +2560,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 data_fim__year__gte=timezone.now().year).first()
             ano_inicio = legislatura.data_inicio.year
             ano_fim = legislatura.data_fim.year
-            nm = Protocolo.objects.filter(ano__gte=ano_inicio, ano__lte=ano_fim).aggregate(Max('numero'))
+            nm = Protocolo.objects.filter(
+                ano__gte=ano_inicio, ano__lte=ano_fim).aggregate(Max('numero'))
         else:
             # numeracao == 'U' ou não informada
             nm = Protocolo.objects.all().aggregate(Max('numero'))
@@ -2923,9 +2929,8 @@ class MateriaPesquisaSimplesForm(forms.Form):
 
         return cleaned_data
 
+
 class ConfigEtiquetaMateriaLegislativaForms(ModelForm):
     class Meta:
         model = ConfigEtiquetaMateriaLegislativa
         fields = '__all__'
-
-    

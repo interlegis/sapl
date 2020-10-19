@@ -1,13 +1,15 @@
+import inspect
 import logging
 
+from django.conf import settings
 from django.core import serializers
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
 from sapl.base.email_utils import do_envia_email_tramitacao
 from sapl.base.models import AuditLog
-from sapl.base.signals import tramitacao_signal, post_delete_signal, post_save_signal
+from sapl.base.signals import tramitacao_signal
 from sapl.materia.models import Tramitacao
 from sapl.protocoloadm.models import TramitacaoAdministrativo
 from sapl.utils import get_base_url
@@ -46,28 +48,53 @@ def status_tramitacao_materia(sender, instance, **kwargs):
             documento.save()
 
 
-@receiver(post_delete_signal)
-@receiver(post_save_signal)
-def audit_log(sender, **kwargs):
-    logger = logging.getLogger(__name__)
-
-    instance = kwargs.get('instance')
-    operation = kwargs.get('operation')
-    user = kwargs.get('request').user
-    model_name = instance.__class__.__name__
-    app_name = instance._meta.app_label
-    object_id = instance.id
-    data = serializers.serialize('json', [instance])
-
-    if len(data) > AuditLog.MAX_DATA_LENGTH:
-        data = data[:AuditLog.MAX_DATA_LENGTH]
-
-    if user:
-        username = user.username
-    else:
-        username = ''
+def audit_log_function(sender, **kwargs):
 
     try:
+        if not sender._meta.app_config.name.startswith('sapl'):
+            return
+    except:
+        # não é necessário usar logger, aqui é usada apenas para
+        # eliminar um o if complexo
+        return
+
+    instance = kwargs.get('instance')
+    if instance._meta.model == AuditLog:
+        return
+
+    logger = logging.getLogger(__name__)
+
+    u = None
+    pilha_de_execucao = inspect.stack()
+    for i in pilha_de_execucao:
+        if i.function == 'migrate':
+            return
+        r = i.frame.f_locals.get('request', None)
+        try:
+            if r.user._meta.label == settings.AUTH_USER_MODEL:
+                u = r.user
+                break
+        except:
+            # não é necessário usar logger, aqui é usada apenas para
+            # eliminar um o if complexo
+            pass
+
+    try:
+        operation = kwargs.get('operation')
+        user = u
+        model_name = instance.__class__.__name__
+        app_name = instance._meta.app_label
+        object_id = instance.id
+        data = serializers.serialize('json', [instance])
+
+        if len(data) > AuditLog.MAX_DATA_LENGTH:
+            data = data[:AuditLog.MAX_DATA_LENGTH]
+
+        if user:
+            username = user.username
+        else:
+            username = ''
+
         AuditLog.objects.create(username=username,
                                 operation=operation,
                                 model_name=model_name,
@@ -78,3 +105,14 @@ def audit_log(sender, **kwargs):
     except Exception as e:
         logger.error('Error saving auditing log object')
         logger.error(e)
+
+
+@receiver(post_delete)
+def audit_log_post_delete(sender, **kwargs):
+    audit_log_function(sender, operation='D', **kwargs)
+
+
+@receiver(post_save)
+def audit_log_post_save(sender, **kwargs):
+    operation = 'C' if kwargs.get('created') else 'U'
+    audit_log_function(sender, operation=operation, **kwargs)

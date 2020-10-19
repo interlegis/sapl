@@ -1,34 +1,35 @@
 from datetime import datetime
 import logging
-import re
 from random import choice
+import re
 from string import ascii_letters, digits
 
 from braces.views import FormValidMessageMixin
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.urls import reverse
 from django.db import transaction
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.shortcuts import render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
-from django.contrib.admin.views.decorators import staff_member_required
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig
-from sapl.base.signals import tramitacao_signal, post_delete_signal
+from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
@@ -40,9 +41,6 @@ from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured, from_date_to_datetime_utc)
-
-from django.shortcuts import render
-
 
 from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
                     AnularProtocoloAdmForm, compara_tramitacoes_doc,
@@ -367,7 +365,8 @@ class DocumentoAdministrativoCrud(Crud):
             return self.search_url
 
         def form_valid(self, form):
-            form.instance.complemento = re.sub('\s+', '', form.instance.complemento).upper()
+            form.instance.complemento = re.sub(
+                '\s+', '', form.instance.complemento).upper()
             return super().form_valid(form)
 
     class UpdateView(Crud.UpdateView):
@@ -381,10 +380,10 @@ class DocumentoAdministrativoCrud(Crud):
 
             self.object = form.save()
             dict_objeto_novo = self.object.__dict__
-        
+
             atributos = [
                 'tipo_id', 'ano', 'numero', 'data', 'protocolo_id', 'assunto',
-                'interessado', 'tramitacao', 'restrito', 'texto_integral','numero_externo',
+                'interessado', 'tramitacao', 'restrito', 'texto_integral', 'numero_externo',
                 'dias_prazo', 'data_fim_prazo', 'observacao'
             ]
 
@@ -398,8 +397,9 @@ class DocumentoAdministrativoCrud(Crud):
 
                     self.object.save()
                     break
-            
-            form.instance.complemento = re.sub('\s+', '', form.instance.complemento).upper()
+
+            form.instance.complemento = re.sub(
+                '\s+', '', form.instance.complemento).upper()
 
             return super().form_valid(form)
 
@@ -417,17 +417,17 @@ class DocumentoAdministrativoCrud(Crud):
             if documento.restrito and self.request.user.is_anonymous:
                 return redirect('/')
             return super(Crud.DetailView, self).get(args, kwargs)
-        
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            
+
             context['user'] = self.request.user
             context['documentoadministrativo'] = DocumentoAdministrativo.objects.get(
                 pk=self.kwargs['pk']
             )
 
             return context
-        
+
         def urlize(self, obj, fieldname):
             a = '<a href="%s">%s</a>' % (
                 reverse(
@@ -633,13 +633,14 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
                     timestamp__isnull=False, timestamp__gte=data_inicio_utc,
                     timestamp__lte=data_fim_utc
                 ) | Q(
-                        timestamp_data_hora_manual__isnull=False,
-                        timestamp_data_hora_manual__gte=data_inicio_utc,
-                        timestamp_data_hora_manual__lte=data_fim_utc,
-                    )
-                ).aggregate(Max('numero'))['numero__max']
+                    timestamp_data_hora_manual__isnull=False,
+                    timestamp_data_hora_manual__gte=data_inicio_utc,
+                    timestamp_data_hora_manual__lte=data_fim_utc,
+                )
+            ).aggregate(Max('numero'))['numero__max']
         elif numeracao == 'U':
-            numero_max = Protocolo.objects.all().aggregate(Max('numero'))['numero__max']
+            numero_max = Protocolo.objects.all().aggregate(Max('numero'))[
+                'numero__max']
 
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
@@ -647,7 +648,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         inicio_numeracao = AppConfig.objects.first().inicio_numeracao_protocolo
         numero = int(numero_max) if numero_max else 0
         protocolo.numero = (
-            (numero + 1 ) if numero and numero >= inicio_numeracao else inicio_numeracao
+            (numero + 1) if numero and numero >= inicio_numeracao else inicio_numeracao
         )
 
         protocolo.ano = timezone.now().year
@@ -703,7 +704,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
 
         tz = timezone.get_current_timezone()
         doc['ultima_edicao'] = tz.localize(datetime.now())
-        
+
         return doc
 
 
@@ -849,14 +850,15 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
                 )
             ).aggregate(Max('numero'))['numero__max']
         elif numeracao == 'U':
-            numero_max = Protocolo.objects.all().aggregate(Max('numero'))['numero__max']
+            numero_max = Protocolo.objects.all().aggregate(Max('numero'))[
+                'numero__max']
 
         inicio_numeracao = AppConfig.objects.first().inicio_numeracao_protocolo
         numero = int(numero_max) if numero_max else 0
         protocolo.numero = (
-            (numero + 1 ) if numero and numero >= inicio_numeracao else inicio_numeracao
+            (numero + 1) if numero and numero >= inicio_numeracao else inicio_numeracao
         )
-        
+
         protocolo.ano = timezone.now().year
 
         protocolo.tipo_protocolo = 0
@@ -889,14 +891,14 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
                 numero=data['numero_materia'],
                 tipo=data['tipo_materia']
             )
-            
+
             materia.numero_protocolo = protocolo.numero
             materia.user = self.request.user
             materia.ip = get_client_ip(self.request)
 
             tz = timezone.get_current_timezone()
             materia.ultima_edicao = tz.localize(datetime.now())
-            
+
             materia.save()
 
         return redirect(self.get_success_url(protocolo))
@@ -1380,11 +1382,11 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     id__in=[t.id for t in tramitacoes_deletar]).delete()
 
                 # TODO: otimizar para passar a lista de matérias
-                for tramitacao in tramitacoes_deletar:
-                    post_delete_signal.send(sender=None,
-                                            instance=tramitacao,
-                                            operation='C',
-                                            request=self.request)
+                # for tramitacao in tramitacoes_deletar:
+                #    post_delete_signal.send(sender=None,
+                # instance=tramitacao,
+                #                            operation='C',
+                #                            request=self.request)
 
                 return HttpResponseRedirect(url)
 
@@ -1479,13 +1481,13 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
         )
 
         materia.numero_protocolo = None
-        
+
         materia.user = self.request.user
         materia.ip = get_client_ip(self.request)
 
         tz = timezone.get_current_timezone()
         materia.ultima_edicao = tz.localize(datetime.now())
-        
+
         materia.save()
         return redirect(self.get_success_url())
 
@@ -1641,9 +1643,9 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        form = TramitacaoEmLoteAdmForm(request.POST, 
-                                       initial= {'documentos': documentos_ids,
-                                                'user': user, 'ip':ip,
+        form = TramitacaoEmLoteAdmForm(request.POST,
+                                       initial={'documentos': documentos_ids,
+                                                'user': user, 'ip': ip,
                                                 'ultima_edicao': ultima_edicao})
 
         if form.is_valid():
@@ -1724,10 +1726,10 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
                 'documento_id', flat=True)
 
 
-def apaga_protocolos(request, ano,numero_protocolo=None):
-    kwargs = {'ano__in':ano}
+def apaga_protocolos(request, ano, numero_protocolo=None):
+    kwargs = {'ano__in': ano}
     if numero_protocolo:
-        kwargs.update({'numero__gte':numero_protocolo})
+        kwargs.update({'numero__gte': numero_protocolo})
 
     all_protocolos = Protocolo.objects.filter(**kwargs)
 
@@ -1739,12 +1741,12 @@ def apaga_protocolos(request, ano,numero_protocolo=None):
         ml.numero_protocolo = None
         ml.save()
 
-    for deleted_object in all_protocolos:
-        post_delete_signal.send(sender=None,
-                                instance=deleted_object,
-                                operation='D',
-                                request=request
-                                )
+    # for deleted_object in all_protocolos:
+    # post_delete_signal.send(sender=None,
+    #                            instance=deleted_object,
+    #                            operation='D',
+    #                            request=request
+    #                            )
     all_protocolos.delete()
 
 
@@ -1752,18 +1754,19 @@ def apaga_protocolos(request, ano,numero_protocolo=None):
 def apaga_protocolos_view(request):
     if request.method == "GET":
         if Protocolo.objects.exists():
-            intervalo_data = Protocolo.objects.all().distinct('ano').values_list('ano', flat=True).order_by('-ano')
+            intervalo_data = Protocolo.objects.all().distinct(
+                'ano').values_list('ano', flat=True).order_by('-ano')
         else:
             intervalo_data = None
-        return render(request,"protocoloadm/deleta_todos_protocolos.html",{'intervalo_data':intervalo_data})
-    
+        return render(request, "protocoloadm/deleta_todos_protocolos.html", {'intervalo_data': intervalo_data})
+
     elif request.method == "POST":
         password = request.POST.get('senha')
-        valid = request.user.check_password(password)        
+        valid = request.user.check_password(password)
         if valid:
             anos = request.POST.getlist('ano')
-            numero_protocolo = request.POST.get('numero_protocolo')    
-            apaga_protocolos(request,anos,numero_protocolo)
-            return JsonResponse({'type':'success','msg':''})
+            numero_protocolo = request.POST.get('numero_protocolo')
+            apaga_protocolos(request, anos, numero_protocolo)
+            return JsonResponse({'type': 'success', 'msg': ''})
         else:
-            return JsonResponse({'type':'error','msg':'Senha Incorreta'})
+            return JsonResponse({'type': 'error', 'msg': 'Senha Incorreta'})
