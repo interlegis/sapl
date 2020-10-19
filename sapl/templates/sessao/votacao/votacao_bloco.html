@@ -119,16 +119,13 @@
 
     <script language="JavaScript">
         function checkAll(elem) {
-            let checkboxes = document.getElementsByName('marcadas_1');
-            for (let i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i].type == 'checkbox') 
-                    checkboxes[i].checked = elem.checked;
-            }
-        
-            checkboxes = document.getElementsByName('marcadas_2');
-            for (let i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i].type == 'checkbox') 
-                    checkboxes[i].checked = elem.checked;
+           let checkbox_types = ['marcadas_1', 'marcadas_2', 'marcadas_4']
+            for (t in checkbox_types){
+                let checkboxes = document.getElementsByName(checkbox_types[t]);
+                for (let i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].type == 'checkbox') 
+                        checkboxes[i].checked = elem.checked;
+                }
             }
         }
     
