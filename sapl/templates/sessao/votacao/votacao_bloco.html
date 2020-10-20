@@ -99,7 +99,30 @@
             <a href="{% url 'sapl.sessao:ordemdia_list' pk %}" class="btn btn-warning mb-3" id="but_cancel">Voltar</a>
             <input type="hidden" id="origem" name="origem" value="ordem">
         {% endif %}
-        <input type="submit" value="Registrar votação" class="btn btn-primary mb-3 float-right" id="but_reg">
+        <a onclick="submit_button()" class="btn btn-primary mb-3 float-right" id="but_reg">Registrar votação</a>
+
+        <div class="modal fade" id="leituraModal" tabindex="-1" role="dialog" aria-labelledby="leituraModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="leituraModalLabel">Observação da Leitura</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                 <div class="form-group">
+                    <label for="message-text" class="col-form-label">Observação:</label>
+                    <textarea class="form-control" id="observacao" name="observacao"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <a type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</a>
+                <input type="submit" class="btn btn-primary mb-3 float-right" value="Salvar">
+              </div>
+            </div>
+          </div>
+        </div>
     </form>
     {% endif %}
 
@@ -155,7 +178,8 @@
                 document.getElementById('but_reg').style.display = '';
                 document.getElementById('nenhuma_mat').style.display = 'none';
             }
-
+            
+            $("#but_reg").text("Registrar Votação")
             if(tipo_votacao == "1"){
                 $('#form').attr("action", "{% url 'sapl.sessao:votacaoblocosimb' pk %}")
             }
@@ -163,7 +187,18 @@
                 $('#form').attr("action", "{% url 'sapl.sessao:votacaobloconom' pk %}")
             }
             else{
+                $("#but_reg").text("Registrar Leitura")
                 $('#form').attr("action", "{% url 'sapl.sessao:leitura_em_bloco' pk %}")
+            }
+        }
+
+        function submit_button(){
+            var radioValue = $("input[name='tipo_votacao']:checked").val();
+            if (radioValue == 4){
+                $('#leituraModal').modal('show')
+            }
+            else{
+                $("#form").submit()
             }
         }
 	</script>

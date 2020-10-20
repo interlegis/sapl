@@ -4157,6 +4157,7 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, TemplateView):
                 rl = RegistroLeitura(materia=ordem.materia,ordem=ordem,user=request.user,ip=get_client_ip(request))
             elif origem == 'expediente':
                 rl = RegistroLeitura(materia=ordem.materia,expediente=ordem,user=request.user,ip=get_client_ip(request))
+            rl.observacao = self.request.POST.get('observacao',"")
             rl.save()
             ordem.save()
 
