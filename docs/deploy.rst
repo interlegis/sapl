@@ -109,7 +109,7 @@ Para rodar o gunicorn::
 
    workon sapl
 
-   /var/interlegis/sapl/.gunicorn_start.sh
+   /var/interlegis/sapl/docker/.gunicorn_start.sh
 
 
 
