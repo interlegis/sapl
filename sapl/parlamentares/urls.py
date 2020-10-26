@@ -22,7 +22,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       parlamentares_filiados, BlocoCrud,
                                       PesquisarParlamentarView, VincularParlamentarView,
                                       get_sessoes_legislatura, FrenteCargoCrud, FrenteParlamentarCrud,
-                                      get_parlamentar_frentes, PesquisarColigacaoView)
+                                      get_parlamentar_frentes, PesquisarColigacaoView, PesquisarPartidoView)
 
 from .apps import AppConfig
 
@@ -76,7 +76,9 @@ urlpatterns = [
         include(TipoAfastamentoCrud.get_urls())),
     url(r'^sistema/parlamentar/tipo-militar/',
         include(TipoMilitarCrud.get_urls())),
+
     url(r'^sistema/parlamentar/partido/', include(PartidoCrud.get_urls())),
+    url(r'^sistema/parlamentar/pesquisar-partido/', PesquisarPartidoView.as_view(), name='pesquisar_partido'),
     url(r'^sistema/parlamentar/partido/(?P<pk>\d+)/filiados$', parlamentares_filiados, name='parlamentares_filiados'),
 
     url(r'^sistema/mesa-diretora/sessao-legislativa/',

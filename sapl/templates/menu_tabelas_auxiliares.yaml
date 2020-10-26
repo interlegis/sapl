@@ -47,8 +47,11 @@
   - title: {% trans 'Adicionar Coligação' %}
     url: sapl.parlamentares:coligacao_create
     css_class: btn btn-link
-  - title: {% trans 'Partido' %}
-    url: sapl.parlamentares:partido_list
+  - title: {% trans 'Pesquisar Partido' %}
+    url: sapl.parlamentares:pesquisar_partido
+    css_class: btn btn-link
+  - title: {% trans 'Adicionar Partido' %}
+    url: sapl.parlamentares:partido_create
     css_class: btn btn-link
 - title: {% trans 'Módulo Mesa Diretora' %}
   css_class: head_title

@@ -23,7 +23,7 @@ from sapl.rules import SAPL_GROUP_VOTANTE
 import django_filters
 
 from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Votante, Bloco, FrenteParlamentar)
+                     Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -269,6 +269,27 @@ class ColigacaoFilterSet(django_filters.FilterSet):
             Fieldset(_('Pesquisa de Coligação'),
                      row0,
                      form_actions(label='Pesquisar')))
+
+
+class PartidoFilterSet(django_filters.FilterSet):
+    nome = django_filters.CharFilter(label=_('Nome do Partido'), lookup_expr='icontains')
+
+    class Meta:
+        model = Partido
+        fields = ['nome']
+
+    def __init__(self, *args, **kwargs):
+        super(PartidoFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('nome', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Partido'),
+                     row0,
+                     form_actions(label='Pesquisar'))
+        )
 
 
 class ParlamentarCreateForm(ParlamentarForm):
