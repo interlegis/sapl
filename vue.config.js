@@ -105,8 +105,8 @@ module.exports = {
         'Access-Control-Allow-Origin': '*'
       })
       .contentBase([
-        path.join(__dirname, 'public'),
-        path.join(__dirname, 'src', 'assets')
+        path.join(__dirname + "/frontend/", 'public'),
+        path.join(__dirname + "/frontend/", 'src', 'assets')
       ])
 
     config
