@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:profile="http://www.lexml.gov.br/profile_lexml" xmlns:xml="http://www.w3.org/XML/1998/namespace" targetNamespace="http://www.lexml.gov.br/profile_lexml" elementFormDefault="qualified" attributeFormDefault="unqualified" xml:lang="PT">
+    <import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
+    <element name="ConfiguracaoProvedor" type="profile:ConfiguracaoProvedorType"/>
+    <complexType name="ConfiguracaoProvedorType">
+        <sequence>
+            <element name="Provedor" type="profile:ProvedorType" maxOccurs="unbounded"/>
+        </sequence>
+        <attribute name="dataGeracao" type="dateTime" use="required"/>
+    </complexType>
+    <complexType name="ProvedorType">
+        <sequence>
+            <element name="Administrador" type="profile:ResponsavelType"/>
+            <element name="Publicador" type="profile:PublicadorType" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+        <attribute name="idProvedor" type="integer" use="required"/>
+        <attribute name="nome" use="optional">
+            <simpleType>
+                <restriction base="string">
+                    <maxLength value="255"/>
+                    <whiteSpace value="preserve"/>
+                    <minLength value="1"/>
+                </restriction>
+            </simpleType>
+        </attribute>
+        <attribute name="tipo" use="optional" default="Provedor">
+            <simpleType>
+                <restriction base="string">
+                    <enumeration value="Provedor"/>
+                    <enumeration value="Agregador"/>
+                </restriction>
+            </simpleType>
+        </attribute>
+        <attribute name="baseURL" type="anyURI"/>
+    </complexType>
+    <complexType name="PublicadorType">
+        <sequence>
+            <element name="Responsavel" type="profile:ResponsavelType"/>
+            <element name="Perfil" type="profile:PerfilType" maxOccurs="unbounded"/>
+        </sequence>
+        <attribute name="idPublicador" type="integer" use="required"/>
+        <attribute name="nome" use="required">
+            <simpleType>
+                <restriction base="string">
+                    <maxLength value="255"/>
+                    <whiteSpace value="preserve"/>
+                </restriction>
+            </simpleType>
+        </attribute>
+        <attribute name="sigla" use="optional">
+            <simpleType>
+                <restriction base="string">
+                    <maxLength value="25"/>
+                    <whiteSpace value="preserve"/>
+                </restriction>
+            </simpleType>
+        </attribute>
+    </complexType>
+    <complexType name="ResponsavelType">
+        <attribute name="idResponsavel" type="integer" use="required"/>
+        <attribute name="email" use="optional">
+            <simpleType>
+                <restriction base="string">
+                    <whiteSpace value="replace"/>
+                    <pattern value="[^@]+@[^\.]+(\.[^@]+)+"/>
+                </restriction>
+            </simpleType>
+        </attribute>
+        <attribute name="senha" type="string" use="optional"/>
+    </complexType>
+    <complexType name="RepositorioOAILexMLType">
+        <attribute name="baseURL" type="anyURI" use="required"/>
+    </complexType>
+    <complexType name="PerfilType">
+        <attribute name="localidade" use="required">
+            <simpleType>
+                <restriction base="string">
+                    <whiteSpace value="replace"/>
+                </restriction>
+            </simpleType>
+        </attribute>
+        <attribute name="autoridade" use="required">
+            <simpleType>
+                <restriction base="string">
+                    <whiteSpace value="replace"/>
+                </restriction>
+            </simpleType>
+        </attribute>
+        <attribute name="tipoDocumento" use="required">
+            <simpleType>
+                <restriction base="string">
+                    <whiteSpace value="replace"/>
+                </restriction>
+            </simpleType>
+        </attribute>
+        <attribute name="tipoPerfil" use="optional" default="T">
+            <simpleType>
+                <restriction base="string">
+                    <enumeration value="T"/>
+                    <enumeration value="R"/>
+                    <enumeration value="D"/>
+                </restriction>
+            </simpleType>
+        </attribute>
+    </complexType>
+</schema>
