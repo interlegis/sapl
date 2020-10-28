@@ -49,9 +49,9 @@ def status_tramitacao_materia(sender, instance, **kwargs):
 
 
 def audit_log_function(sender, **kwargs):
-
     try:
-        if not sender._meta.app_config.name.startswith('sapl'):
+        if not (sender._meta.app_config.name.startswith('sapl') or
+                sender._meta.label == settings.AUTH_USER_MODEL):
             return
     except:
         # não é necessário usar logger, aqui é usada apenas para
