@@ -22,7 +22,7 @@ from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
 import django_filters
 
-from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
+from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
                      Mandato, Parlamentar, Votante, Bloco, FrenteParlamentar)
 
 
@@ -249,6 +249,26 @@ class ParlamentarFilterSet(django_filters.FilterSet):
                      row0,
                      form_actions(label='Pesquisar'))
         )
+
+
+class ColigacaoFilterSet(django_filters.FilterSet):
+    nome = django_filters.CharFilter(label=_('Nome da Coligação'), lookup_expr='icontains')
+
+    class Meta:
+        model = Coligacao
+        fields = ['nome']
+
+    def __init__(self, *args, **kwargs):
+        super(ColigacaoFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('nome', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Coligação'),
+                     row0,
+                     form_actions(label='Pesquisar')))
 
 
 class ParlamentarCreateForm(ParlamentarForm):

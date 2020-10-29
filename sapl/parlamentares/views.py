@@ -33,7 +33,7 @@ from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
-from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
+from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm,
                     ParlamentarFilterSet, VincularParlamentarForm,
                     BlocoForm, FrenteParlamentarForm)
@@ -230,6 +230,55 @@ class PesquisarParlamentarView(FilterView):
         return self.render_to_response(context)
 
 
+class PesquisarColigacaoView(FilterView):
+    model = Coligacao
+    filterset_class = ColigacaoFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarColigacaoView, self).get_filterset_kwargs(filterset_class)
+
+        return ({
+            'data': self.request.GET or None,
+            'queryset': self.get_queryset().order_by('nome').distinct()
+        })
+
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarColigacaoView, self).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context.update({
+            'page_range': make_pagination(page_obj.number, paginator.num_pages),
+            'NO_ENTRIES_MSG': 'Nenhuma coligação encontrada!',
+            'title': _('Coligações')
+        })
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarColigacaoView, self).get(request)
+
+        data = self.filterset.data
+        url = ''
+        if data:
+            url = "&" + str(self.request.META['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('nome=') - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list))
+
+        context['show_results'] = show_results_filter_set(self.request.GET.copy())
+
+        return self.render_to_response(context)
+
+
 class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     model = Participacao
     parent_field = 'parlamentar'
@@ -297,8 +346,7 @@ class ColigacaoCrud(CrudAux):
             if not coligacao.numero_votos:
                 coligacao.numero_votos = '0'
 
-            context['subnav_template_name'] = \
-                'parlamentares/subnav_coligacao.yaml'
+            context['subnav_template_name'] = 'parlamentares/subnav_coligacao.yaml'
 
             return context
 
@@ -306,11 +354,13 @@ class ColigacaoCrud(CrudAux):
 
         def get_context_data(self, **kwargs):
             context = super(UpdateView, self).get_context_data(kwargs=kwargs)
-
-            context['subnav_template_name'] = \
-                'parlamentares/subnav_coligacao.yaml'
+            context['subnav_template_name'] = 'parlamentares/subnav_coligacao.yaml'
 
             return context
+
+    class DeleteView(CrudAux.DeleteView):
+        def get_success_url(self):
+            return reverse('sapl.parlamentares:pesquisar_coligacao')
 
 
 def coligacao_legislatura(request):

@@ -41,11 +41,14 @@
   - title: {% trans 'Nível de Instrução' %}
     url: sapl.parlamentares:nivelinstrucao_list
     css_class: btn btn-link
+  - title: {% trans 'Pesquisar Coligação' %}
+    url: sapl.parlamentares:pesquisar_coligacao
+    css_class: btn btn-link
+  - title: {% trans 'Adicionar Coligação' %}
+    url: sapl.parlamentares:coligacao_create
+    css_class: btn btn-link
   - title: {% trans 'Partido' %}
     url: sapl.parlamentares:partido_list
-    css_class: btn btn-link
-  - title: {% trans 'Coligação' %}
-    url: sapl.parlamentares:coligacao_list
     css_class: btn btn-link
 - title: {% trans 'Módulo Mesa Diretora' %}
   css_class: head_title
