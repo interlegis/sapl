@@ -4143,12 +4143,13 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, TemplateView):
             presenca_model = SessaoPlenariaPresenca
         
         spk = SessaoPlenaria.objects.get(pk=kwargs['pk'])
-        if not (verifica_presenca(request, presenca_model, spk, True)):
+        if not verifica_presenca(request, presenca_model, spk, True):
             return HttpResponseRedirect(self.get_success_url())
 
         leituras = model.objects.filter(
             id__in=request.POST.getlist('marcadas_4'))
         
+        lista_registro_leitura = []
         for ordem in leituras:
             ordem.resultado = "Matéria lida em Bloco"
             ordem.votacao_aberta = False
@@ -4158,8 +4159,11 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, TemplateView):
             elif origem == 'expediente':
                 rl = RegistroLeitura(materia=ordem.materia,expediente=ordem,user=request.user,ip=get_client_ip(request))
             rl.observacao = self.request.POST.get('observacao',"")
-            rl.save()
-            ordem.save()
+            lista_registro_leitura.append(rl)
+        
+        RegistroLeitura.objects.bulk_create(lista_registro_leitura)
+        model.objects.bulk_update(leituras, ['resultado','votacao_aberta','registro_aberto'])
+        
 
         return HttpResponseRedirect(self.get_success_url())
     
