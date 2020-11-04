@@ -1075,16 +1075,22 @@ def altera_field_mesa_public_view(request):
     """
     logger = logging.getLogger(__name__)
     username = request.user.username
-    legislatura = request.GET.get('legislatura', Legislatura.objects.order_by('-data_inicio').first())
-    sessoes = legislatura.sessaoplenaria_set.filter(tipo='O').order_by('-data_inicio')
+    legislatura = request.GET.get('legislatura')
+    if legislatura:
+        legislatura = Legislatura.objects.get(id=legislatura)
+    else:
+        legislatura = Legislatura.objects.order_by('-data_inicio').first()
+
+    sessoes = legislatura.sessaolegislativa_set.filter(tipo='O').order_by('-data_inicio')
+
+
     if not sessoes:
         return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
 
     # Verifica se já tem uma sessão selecionada. Ocorre quando é alterado o campo de sessão
-    if 'sessao' in request.GET:
-        sessao_selecionada = request.GET['sessao']
-    # Caso a mudança tenha sido no campo legislatura, a sessão atual deve ser a primeira daquela legislatura
-    else:
+    
+    sessao_selecionada = request.GET.get('sessao')
+    if not sessao_selecionada:
         try:
             year = timezone.now().year
             logger.info(f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
@@ -1098,10 +1104,8 @@ def altera_field_mesa_public_view(request):
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
 
     composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(sessao_legislativa=sessao_selecionada).order_by('cargo_id')
-
-    cargos_ocupados = composicao_mesa.values_list('cargo', 'cargo__descricao')
-
-    parlamentares_ocupados = composicao_mesa.values_list('parlamentar', 'parlamentar__nome_parlamentar')
+    cargos_ocupados = list(composicao_mesa.values_list('cargo__id', 'cargo__descricao'))
+    parlamentares_ocupados = list(composicao_mesa.values_list('parlamentar__id', 'parlamentar__nome_parlamentar'))
 
     lista_fotos = []
     lista_partidos = []
@@ -1109,9 +1113,7 @@ def altera_field_mesa_public_view(request):
     sessao = SessaoLegislativa.objects.get(id=sessao_selecionada)
     for p in parlamentares_ocupados:
         parlamentar = Parlamentar.objects.get(id=p[0])
-        lista_partidos.append(
-            partido_parlamentar_sessao_legislativa(sessao,
-                                                   parlamentar))
+        lista_partidos.append(partido_parlamentar_sessao_legislativa(sessao, parlamentar))
         if parlamentar.fotografia:
             try:
                 thumbnail_url = get_backend().get_thumbnail_url(
@@ -1126,18 +1128,19 @@ def altera_field_mesa_public_view(request):
                 lista_fotos.append(thumbnail_url)
             except Exception as e:
                 logger.error(e)
-                logger.error('erro processando arquivo: %s' % parlamentar.fotografia.path)
+                logger.error(F'erro processando arquivo: {parlamentar.fotografia.path}')
         else:
             lista_fotos.append(None)
 
-    return JsonResponse(
-        {'lista_parlamentares': parlamentares_ocupados,
-         'lista_partidos': lista_partidos,
-         'lista_cargos': cargos_ocupados,
-         'lista_sessoes': lista_sessoes,
-         'lista_fotos': lista_fotos,
-         'sessao_selecionada': sessao_selecionada,
-         'msg': ('', 1)})
+    return JsonResponse({
+        'lista_parlamentares': parlamentares_ocupados,
+        'lista_partidos': lista_partidos,
+        'lista_cargos': cargos_ocupados,
+        'lista_sessoes': lista_sessoes,
+        'lista_fotos': lista_fotos,
+        'sessao_selecionada': sessao_selecionada,
+        'msg': ('', 1)
+        })
 
 
 class VincularParlamentarView(PermissionRequiredMixin, FormView):
