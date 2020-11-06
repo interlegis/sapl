@@ -4,6 +4,7 @@ const each = require('lodash/fp/each')
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin')
 const BundleTrackerPlugin = require('webpack-bundle-tracker')
 const CompressionPlugin = require('compression-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 
 class RelativeBundleTrackerPlugin extends BundleTrackerPlugin {
   convertPathChunks (chunks) {
@@ -19,7 +20,6 @@ class RelativeBundleTrackerPlugin extends BundleTrackerPlugin {
     super.writeOutput(compiler, contents)
   }
 }
-// module.exports = RelativeBundleTrackerPlugin
 
 const dotenv = require('dotenv')
 dotenv.config({
@@ -39,6 +39,20 @@ module.exports = {
     config.plugins.delete('html')
     config.plugins.delete('preload')
     config.plugins.delete('prefetch')
+
+    config.resolve
+      .alias.set('@', path.join(__dirname + "/frontend/", 'src'))
+
+    config
+      .plugin('CopyPlugin')
+      .use(CopyPlugin, [{
+        patterns: [
+          {
+            from: path.join(__dirname + "/frontend/", 'public'),
+            to: '.'
+          },
+        ],
+      }])
 
     config
       .plugin('RelativeBundleTrackerPlugin')
