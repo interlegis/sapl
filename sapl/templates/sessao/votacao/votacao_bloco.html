@@ -45,7 +45,7 @@
 
             {% for o in object_list %}
             {% if o.tipo_votacao == 1 or o.tipo_votacao == 2 or o.tipo_votacao == 4 %}
-                <tr class="{% if o.tipo_votacao == 1 %} Simbolica {% elif o.tipo_votacao == 2 %}Nominal{% else %}Leitura{% endif %}"  {% if o.tipo_votacao > 1  %} style="display:none;" {% endif %}>
+                <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% elif o.tipo_votacao == 2 %}Nominal{% else %}Leitura{% endif %}"  {% if o.tipo_votacao == 2   %} style="display:none;" {% endif %} {% if o.tipo_votacao == 4   %} style="display:none;" {% endif %}>
                 <td>
                     <input type="checkbox" name="marcadas_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
                     <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.materia.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
@@ -182,13 +182,20 @@
             $("#but_reg").text("Registrar Votação")
             if(tipo_votacao == "1"){
                 $('#form').attr("action", "{% url 'sapl.sessao:votacaoblocosimb' pk %}")
+                //document.querySelectorAll('tr[class="Leitura"]').map((obj) -> {obj.style.display='none'});
+                Array.from(document.querySelectorAll('tr[class="Leitura"]')).map(function(obj){obj.style.display='none'}); 
+                Array.from(document.querySelectorAll('tr[class="Nominal"]')).map(function(obj){obj.style.display='none'}); 
             }
             else if(tipo_votacao == "2"){
                 $('#form').attr("action", "{% url 'sapl.sessao:votacaobloconom' pk %}")
+                Array.from(document.querySelectorAll('tr[class="Simbolica"]')).map(function(obj){obj.style.display='none'}); 
+                Array.from(document.querySelectorAll('tr[class="Leitura"]')).map(function(obj){obj.style.display='none'}); 
             }
             else{
                 $("#but_reg").text("Registrar Leitura")
                 $('#form').attr("action", "{% url 'sapl.sessao:leitura_em_bloco' pk %}")
+                Array.from(document.querySelectorAll('tr[class="Simbolica"]')).map(function(obj){obj.style.display='none'}); 
+                Array.from(document.querySelectorAll('tr[class="Nominal"]')).map(function(obj){obj.style.display='none'}); 
             }
         }
 
