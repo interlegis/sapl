@@ -175,7 +175,7 @@ def follow(fd):
 @exp_backoff
 def check_solr():
     r = requests.get(SOLR_BASE_URL)
-    if r.status_code == 200:
+    if r.ok and r.status_code == 200:
         print(f"Solr server at {SOLR_BASE_URL} is up and running...")
 
     print("Checking collection health...")
