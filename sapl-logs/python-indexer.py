@@ -1,26 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+from decouple import config
+from random import randint
+
 import logging
 import sys
+import time
 import requests
 import json
-import time
+import os
 import re
 
 # TODO: inserir timestamp no logging do python-indexer.py
 
-USE_SOLR = os.getenv('USE_SOLR', True)  # TODO: trocar por False em produção
-SOLR_BASE_URL = os.getenv('SOLR_URL', 'http://localhost:8983') + '/solr'
+# TODO: trocar por False em produção
+USE_SOLR = config('USE_SOLR', default="True", cast=bool)
 
+SOLR_BASE_URL = config('SOLR_URL', default="http://localhost:8983") + '/solr'
 SOLR_UPDATE_URL = f'{SOLR_BASE_URL}/sapl-logs/update?commitWithin=1000'
 
 SOLR_COLLECTION_STATUS = (
     f'{SOLR_BASE_URL}/sapl-logs/admin/ping?distrib=true&wt=json'
 )
 
-BATCH_SIZE = 10  # https://lucidworks.com/post/really-batch-updates-solr-2/
+BATCH_SIZE = 5  # https://lucidworks.com/post/really-batch-updates-solr-2/
 
 previous = None
 
@@ -46,15 +50,40 @@ logger.setLevel(logging.DEBUG)
 print(f"The logging of this program is done at {logfilename}")
 
 
+def exp_backoff(func):
+    def inner_func(*args, **kwargs):
+        MAX_SLEEP_TIME = 180  # 3 min
+
+        iter = 0
+
+        while True:
+            try:
+                func(*args, **kwargs)
+                break
+            except Exception as e:
+                logger.error(
+                    "Exception: " + str(e)  # +
+                    # f"\nError connecting to Solr at {SOLR_CONNECTION_STATUS}
+                )
+
+                jitter = randint(0, 5)
+                sleep_time = min(2**iter + jitter, MAX_SLEEP_TIME)
+                time.sleep(sleep_time)
+
+                iter += 1
+
+    return inner_func
+
+
+@exp_backoff
 def push_to_solr():
     logger.debug(f"Sending {len(payload)} documents to Solr")
 
-    r = requests.post(
+    requests.post(
         SOLR_UPDATE_URL,
         data=json.dumps(payload),
         headers={'Content-Type': 'application/json; charset=utf-8'}
     )
-    logger.debug(r.content)
 
 
 def parse_fields(groups):
@@ -143,25 +172,18 @@ def follow(fd):
         yield line
 
 
+@exp_backoff
 def check_solr():
-    try:
-        r = requests.get(SOLR_BASE_URL)
-        if r.status_code == 200:
-            print(f"Solr server at {SOLR_BASE_URL} is up and running...")
+    r = requests.get(SOLR_BASE_URL)
+    if r.status_code == 200:
+        print(f"Solr server at {SOLR_BASE_URL} is up and running...")
 
-        print("Checking collection health...")
+    print("Checking collection health...")
 
-        r = requests.get(SOLR_COLLECTION_STATUS)
-        data = r.json()
-        if data['status'] == 'OK':
-            print("Collection sapl-logs is healthy")
-
-    except Exception as e:
-        logger.error(
-            "Exception: " + str(e) +
-            f"\nError connecting to Solr at {SOLR_COLLECTION_STATUS}"
-        )
-        sys.exit(1)
+    r = requests.get(SOLR_COLLECTION_STATUS)
+    data = r.json()
+    if r.ok and data['status'] == "OK":
+        print("Collection sapl-logs is healthy")
 
 
 if __name__ == '__main__':
