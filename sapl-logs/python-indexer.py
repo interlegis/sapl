@@ -15,7 +15,7 @@ import re
 # TODO: inserir timestamp no logging do python-indexer.py
 
 # TODO: trocar por False em produção
-USE_SOLR = config('USE_SOLR', default="True", cast=bool)
+USE_SOLR = config('USE_SOLR', default="False", cast=bool)
 
 SOLR_BASE_URL = config('SOLR_URL', default="http://localhost:8983") + '/solr'
 SOLR_UPDATE_URL = f'{SOLR_BASE_URL}/sapl-logs/update?commitWithin=1000'
