@@ -12,9 +12,6 @@ import json
 import os
 import re
 
-# TODO: inserir timestamp no logging do python-indexer.py
-
-# TODO: trocar por False em produção
 USE_SOLR = config('USE_SOLR', default="False", cast=bool)
 
 SOLR_BASE_URL = config('SOLR_URL', default="http://localhost:8983") + '/solr'
@@ -44,8 +41,8 @@ logging.basicConfig(
 )
 
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-logger = logging.getLogger('python-indexer')
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger('python-indexer.py')
+logger.setLevel(logging.INFO)
 
 print(f"The logging of this program is done at {logfilename}")
 
@@ -66,13 +63,27 @@ def exp_backoff(func):
                     # f"\nError connecting to Solr at {SOLR_CONNECTION_STATUS}
                 )
 
-                jitter = randint(0, 5)
+                jitter = randint(0, 10)
                 sleep_time = min(2**iter + jitter, MAX_SLEEP_TIME)
+                print(f"Retrying in {sleep_time} seconds... ")
                 time.sleep(sleep_time)
-
                 iter += 1
 
     return inner_func
+
+
+@exp_backoff
+def check_solr():
+    r = requests.get(SOLR_BASE_URL)
+    if r.ok and r.status_code == 200:
+        print(f"Solr server at {SOLR_BASE_URL} is up and running...")
+
+    print("Checking collection health...")
+
+    r = requests.get(SOLR_COLLECTION_STATUS)
+    data = r.json()
+    if r.ok and data['status'] == "OK":
+        print("Collection sapl-logs is healthy")
 
 
 @exp_backoff
@@ -172,24 +183,11 @@ def follow(fd):
         yield line
 
 
-@exp_backoff
-def check_solr():
-    r = requests.get(SOLR_BASE_URL)
-    if r.ok and r.status_code == 200:
-        print(f"Solr server at {SOLR_BASE_URL} is up and running...")
-
-    print("Checking collection health...")
-
-    r = requests.get(SOLR_COLLECTION_STATUS)
-    data = r.json()
-    if r.ok and data['status'] == "OK":
-        print("Collection sapl-logs is healthy")
-
-
 if __name__ == '__main__':
 
     if not USE_SOLR:
-        print(f"USE_SOLR={USE_SOLR}")
+        print("Solr não habilitado, saindo de python-indexer.py")
+        logger.info(f"USE_SOLR={USE_SOLR}")
         sys.exit(0)
 
     check_solr()
