@@ -19,8 +19,7 @@ class AudienciaCrud(Crud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['numero', 'nome', 'tipo', 'materia',
-                            'data'] 
+        list_field_names = [ 'nome', 'tipo', 'materia', 'data']
         ordering = '-data', 'nome', 'numero', 'tipo'
 
     class ListView(Crud.ListView):
@@ -29,19 +28,20 @@ class AudienciaCrud(Crud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            audiencia_materia = {str(a.id): a.materia for a in context['object_list']}
+            audiencia_materia = { str(a.id): (a.materia, a.numero) for a in context['object_list'] }
 
             for row in context['rows']:
-                coluna_materia = row[3]  # se mudar a ordem de listagem mudar aqui
+                audiencia_id = row[0][1].split('/')[-1]
+                tema = str(audiencia_materia[audiencia_id][1]) + ' - ' + row[0][0]
+                row[0] = (tema, row[0][1])
+                coluna_materia = row[2]                             # Se mudar a ordem de listagem, mudar aqui.
                 if coluna_materia[0]:
-                    audiencia_id = row[0][1].split('/')[-1]
-                    materia = audiencia_materia[audiencia_id]
+                    materia = audiencia_materia[audiencia_id][0]
                     if materia:
-                        url_materia = reverse('sapl.materia:materialegislativa_detail',
-                                              kwargs={'pk': materia.id})
+                        url_materia = reverse('sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
                     else:
                         url_materia = None
-                    row[3] = (coluna_materia[0], url_materia)
+                    row[2] = (coluna_materia[0], url_materia)       # Se mudar a ordem de listagem, mudar aqui.
             return context
 
     class CreateView(Crud.CreateView):
