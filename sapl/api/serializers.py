@@ -62,6 +62,20 @@ class CasaLegislativaSerializer(serializers.ModelSerializer):
         model = CasaLegislativa
         fields = '__all__'
 
+
+class ParlamentarSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Parlamentar
+        fields = ["id", "nome_completo",
+                  "nome_parlamentar", "sexo",
+                  "data_nascimento", "numero_gab_parlamentar",
+                  "telefone", "endereco_web",
+                  "profissao", "email",
+                  "locais_atuacao", "ativo",
+                  "biografia", "fotografia", "nivel_instrucao"]
+
+
 class ParlamentarResumeSerializer(serializers.ModelSerializer):
     titular = serializers.SerializerMethodField('check_titular')
     partido = serializers.SerializerMethodField('check_partido')
@@ -72,7 +86,6 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
         thumbnail_url = ""
         try:
             import os
-            #import pdb;pdb.set_trace()
             if not obj.fotografia or not os.path.exists(obj.fotografia.path):
                 return thumbnail_url
             thumbnail_url = get_backend().get_thumbnail_url( 
@@ -162,4 +175,4 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Parlamentar
-        fields = ['id', 'nome_parlamentar', 'fotografia_cropped','fotografia', 'ativo', 'partido', 'titular']
+        fields = ['id', 'nome_parlamentar', 'fotografia_cropped', 'fotografia', 'ativo', 'partido', 'titular']
