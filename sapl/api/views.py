@@ -133,7 +133,9 @@ class SaplApiViewSetConstrutor():
                         if not hasattr(_meta_serializer, 'model'):
                             model = _model
 
-                        if not hasattr(_meta_serializer, 'exclude'):
+                        if hasattr(_meta_serializer, 'exclude'):
+                            exclude = _meta_serializer.exclude
+                        else:
                             if not hasattr(_meta_serializer, 'fields'):
                                 fields = '__all__'
                             elif _meta_serializer.fields != '__all__':
