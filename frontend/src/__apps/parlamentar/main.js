@@ -91,7 +91,19 @@ const v = new Vue({ // eslint-disable-line
     axios.get('/api/parlamentares/legislatura/?get_all=true')
       .then(response => {
         this.legislaturas = response.data
-        this.legislatura_selecionada = response.data[0].id
+
+        var currentYear = new Date().getFullYear()
+
+        var reducer = (acc, legislatura) => {
+          var anoInicio = new Date(legislatura.data_inicio).getFullYear()
+          var anoFim = new Date(legislatura.data_fim).getFullYear()
+          if (currentYear >= anoInicio && currentYear <= anoFim) {
+            acc = legislatura.id
+          }
+          return acc
+        }
+
+        this.legislatura_selecionada = this.legislaturas.reduce(reducer, '')
       })
       .then(response => {
         this.getParlamentares()
