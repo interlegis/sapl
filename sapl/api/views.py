@@ -29,7 +29,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.forms import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
-from sapl.api.serializers import ChoiceSerializer, ParlamentarResumeSerializer
+from sapl.api.serializers import ChoiceSerializer, ParlamentarEditSerializer, ParlamentarResumeSerializer
 from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
@@ -350,6 +350,10 @@ class _AutorViewSet:
 class _ParlamentarViewSet:
     class ParlamentarPermission(SaplModelPermissions):
         def has_permission(self, request, view):
+
+            if request.user.has_perm('parlamentares.add_parlamentar'):
+                self.serializer_class = ParlamentarEditSerializer
+
             if request.method == 'GET':
                 return True
             else:
@@ -426,7 +430,7 @@ class _ParlamentarViewSet:
 
 
 @customize(Proposicao)
-class _ProposicaoViewSet():
+class _ProposicaoViewSet:
     """
     list:
         Retorna lista de Proposições
