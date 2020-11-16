@@ -11,9 +11,6 @@ then
     SAPL_DIR="$1"
 fi
 
-#Carrega as variáveis de ambiente
-export $(egrep -v '^#' $SAPL_DIR/sapl/.env | xargs)
-
 NAME="SAPL"                                     # Name of the application (*)
 DJANGODIR=/var/interlegis/sapl/                    # Django project directory (*)
 SOCKFILE=/var/interlegis/sapl/run/gunicorn.sock    # we will communicate using this unix socket (*)
@@ -27,17 +24,6 @@ DJANGO_SETTINGS_MODULE=sapl.settings            # which settings file should Dja
 DJANGO_WSGI_MODULE=sapl.wsgi                    # WSGI module name (*)
 
 echo "Starting $NAME as `whoami` on base dir $SAPL_DIR"
-
-# Ativa ambiente virtual
-cd $DJANGODIR
-if [ "$SAPL_VIRTUAL_ENV" ]
-then
-source $SAPL_VIRTUAL_ENV/bin/activate
-else
-source /var/interlegis/.virtualenvs/sapl/bin/activate
-fi
-export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
-export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 
 # Create the run directory if it doesn't exist
 RUNDIR=$(dirname $SOCKFILE)
