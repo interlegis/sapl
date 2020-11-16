@@ -29,7 +29,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.forms import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
-from sapl.api.serializers import ChoiceSerializer, ParlamentarResumeSerializer
+from sapl.api.serializers import ChoiceSerializer, ParlamentarEditSerializer, ParlamentarResumeSerializer
 from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
@@ -133,13 +133,16 @@ class SaplApiViewSetConstrutor():
                         if not hasattr(_meta_serializer, 'model'):
                             model = _model
 
-                        if not hasattr(_meta_serializer, 'fields'):
-                            fields = '__all__'
-                        elif _meta_serializer.fields != '__all__':
-                            fields = list(
-                                _meta_serializer.fields) + ['__str__', ]
+                        if hasattr(_meta_serializer, 'exclude'):
+                            exclude = _meta_serializer.exclude
                         else:
-                            fields = _meta_serializer.fields
+                            if not hasattr(_meta_serializer, 'fields'):
+                                fields = '__all__'
+                            elif _meta_serializer.fields != '__all__':
+                                fields = list(
+                                    _meta_serializer.fields) + ['__str__', ]
+                            else:
+                                fields = _meta_serializer.fields
 
                     def get___str__(self, obj):
                         return str(obj)
@@ -347,6 +350,10 @@ class _AutorViewSet:
 class _ParlamentarViewSet:
     class ParlamentarPermission(SaplModelPermissions):
         def has_permission(self, request, view):
+
+            if request.user.has_perm('parlamentares.add_parlamentar'):
+                self.serializer_class = ParlamentarEditSerializer
+
             if request.method == 'GET':
                 return True
             else:
@@ -423,7 +430,7 @@ class _ParlamentarViewSet:
 
 
 @customize(Proposicao)
-class _ProposicaoViewSet():
+class _ProposicaoViewSet:
     """
     list:
         Retorna lista de Proposições

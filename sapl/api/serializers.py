@@ -67,13 +67,17 @@ class ParlamentarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Parlamentar
-        fields = ["id", "nome_completo",
-                  "nome_parlamentar", "sexo",
-                  "data_nascimento", "numero_gab_parlamentar",
-                  "telefone", "endereco_web",
-                  "profissao", "email",
-                  "locais_atuacao", "ativo",
-                  "biografia", "fotografia", "nivel_instrucao"]
+        exclude = ["cpf", "rg", "fax",
+                   "endereco_residencia", "municipio_residencia",
+                   "uf_residencia", "cep_residencia", "situacao_militar",
+                   "telefone_residencia", "titulo_eleitor", "fax_residencia"]
+
+
+class ParlamentarEditSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Parlamentar
+        fields = '__all__'
 
 
 class ParlamentarResumeSerializer(serializers.ModelSerializer):
