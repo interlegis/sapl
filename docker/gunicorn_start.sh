@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+##
+##
+## PARA USO EXCLUSIVO DO CONTAINER DOCKER DO SAPL!!!
+## EVITE USAR PARA CHAMADA DIRETAS
+##
+##
+
 # As seen in http://tutos.readthedocs.org/en/latest/source/ndg.html
 
 SAPL_DIR="/var/interlegis/sapl"
