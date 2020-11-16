@@ -95,8 +95,8 @@ const v = new Vue({ // eslint-disable-line
         var currentYear = new Date().getFullYear()
 
         var reducer = (acc, legislatura) => {
-          var anoInicio = new Date(legislatura.data_inicio).getFullYear()
-          var anoFim = new Date(legislatura.data_fim).getFullYear()
+          var anoInicio = new Date(legislatura.data_inicio + ' 00:00').getFullYear()
+          var anoFim = new Date(legislatura.data_fim + ' 00:00').getFullYear()
           if (currentYear >= anoInicio && currentYear <= anoFim) {
             acc = legislatura.id
           }
