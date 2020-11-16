@@ -67,9 +67,10 @@ class ParlamentarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Parlamentar
-        exclude = ["fax", "endereco_residencia", "municipio_residencia",
-                   "uf_residencia", "cep_residencia", "telefone_residencia",
-                   "titulo_eleitor", "fax_residencia"]
+        exclude = ["cpf", "rg", "fax",
+                   "endereco_residencia", "municipio_residencia",
+                   "uf_residencia", "cep_residencia", "situacao_militar",
+                   "telefone_residencia", "titulo_eleitor", "fax_residencia"]
 
 
 class ParlamentarEditSerializer(serializers.ModelSerializer):
