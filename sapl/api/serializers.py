@@ -72,6 +72,13 @@ class ParlamentarSerializer(serializers.ModelSerializer):
                    "titulo_eleitor", "fax_residencia"]
 
 
+class ParlamentarEditSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Parlamentar
+        fields = '__all__'
+
+
 class ParlamentarResumeSerializer(serializers.ModelSerializer):
     titular = serializers.SerializerMethodField('check_titular')
     partido = serializers.SerializerMethodField('check_partido')
