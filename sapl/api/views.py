@@ -277,7 +277,7 @@ class wrapper_queryset_response_for_drf_action(object):
             qs = cls(instance_view, *args, **kwargs)
 
             page = iv.paginate_queryset(qs)
-            data = iv.serializer_class(
+            data = iv.get_serializer(
                 page if page is not None else qs, many=True).data
 
             return iv.get_paginated_response(
@@ -412,42 +412,13 @@ class _ParlamentarViewSet:
     @wrapper_queryset_response_for_drf_action(model=Proposicao)
     def get_proposicoes(self, **kwargs):
 
-        qs = self.get_queryset()
-
-        qs = qs.filter(
+        return self.get_queryset().filter(
             data_envio__isnull=False,
             data_recebimento__isnull=False,
             cancelado=False,
             autor__object_id=kwargs['pk'],
             autor__content_type=ContentType.objects.get_for_model(Parlamentar)
         )
-        return qs
-
-    @action(detail=True)
-    def parlamentares_by_legislatura(self, request, *args, **kwargs):
-        """
-        Pega lista de parlamentares pelo id da legislatura.
-        """
-        try:
-            legislatura = Legislatura.objects.get(pk=kwargs['pk'])
-        except ObjectDoesNotExist:
-            return Response("")
-        data_atual = timezone.now().date()
-
-        filter_params = {
-            'legislatura': legislatura,
-            'data_inicio_mandato__gte': legislatura.data_inicio,
-            'data_fim_mandato__lte': legislatura.data_fim,
-        }
-
-        mandatos = Mandato.objects.filter(
-            **filter_params).order_by('-data_inicio_mandato')
-        parlamentares = Parlamentar.objects.filter(
-            mandato__in=mandatos).distinct()
-        serializer_class = ParlamentarResumeSerializer(parlamentares, many=True, context={
-            'request': request, 'legislatura': kwargs['pk']
-        })
-        return Response(serializer_class.data)
 
     @action(detail=False, methods=['GET'])
     def search_parlamentares(self, request, *args, **kwargs):
@@ -457,6 +428,50 @@ class _ParlamentarViewSet:
         serializer_class = ParlamentarResumeSerializer(
             parlamentares, many=True, context={'request': request})
         return Response(serializer_class.data)
+
+
+@customize(Legislatura)
+class _LegislaturaViewSet:
+
+    @action(detail=True)
+    def parlamentares(self, request, *args, **kwargs):
+
+        def get_serializer_context():
+            return {
+                'request': self.request, 'legislatura': kwargs['pk']
+            }
+
+        def get_serializer_class():
+            return ParlamentarResumeSerializer
+
+        self.get_serializer_context = get_serializer_context
+        self.get_serializer_class = get_serializer_class
+
+        return self.get_parlamentares()
+
+    @wrapper_queryset_response_for_drf_action(model=Parlamentar)
+    def get_parlamentares(self):
+
+        try:
+            legislatura = Legislatura.objects.get(pk=self.kwargs['pk'])
+        except ObjectDoesNotExist:
+            return Response("")
+
+        data_atual = timezone.localdate()
+
+        filter_params = {
+            'legislatura': legislatura,
+            'data_inicio_mandato__gte': legislatura.data_inicio,
+            'data_fim_mandato__lte': legislatura.data_fim,
+        }
+
+        mandatos = Mandato.objects.filter(
+            **filter_params).order_by('-data_inicio_mandato')
+
+        parlamentares = self.get_queryset().filter(
+            mandato__in=mandatos).distinct()
+
+        return parlamentares
 
 
 @customize(Proposicao)
@@ -647,11 +662,11 @@ class _SessaoPlenariaViewSet:
 
     @action(detail=True)
     def expedientes(self, request, *args, **kwargs):
-        return self.get_expedientes(**kwargs)
+        return self.get_expedientes()
 
     @wrapper_queryset_response_for_drf_action(model=ExpedienteSessao)
-    def get_expedientes(self, **kwargs):
-        return self.get_queryset().filter(sessao_plenaria_id=kwargs['pk'])
+    def get_expedientes(self):
+        return self.get_queryset().filter(sessao_plenaria_id=self.kwargs['pk'])
 
 
 @customize(NormaJuridica)
