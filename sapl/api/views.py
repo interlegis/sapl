@@ -374,24 +374,32 @@ class _ParlamentarViewSet:
         # recupera proposições enviadas e incorporadas do parlamentar
         # deve coincidir com
         # /parlamentar/{pk}/proposicao
-        content_type = ContentType.objects.get_for_model(Parlamentar)
 
-        qs = Proposicao.objects.filter(
+        # viewset proposicao
+        api_proposicao = SaplApiViewSetConstrutor.get_class_for_model(
+            Proposicao
+        )
+
+        self.serializer_class = api_proposicao.serializer_class
+        self.filter_class = api_proposicao.filter_class
+        self.queryset = Proposicao.objects.all()
+
+        qs = self.filter_queryset(self.get_queryset())
+
+        qs = qs.filter(
             data_envio__isnull=False,
             data_recebimento__isnull=False,
             cancelado=False,
             autor__object_id=kwargs['pk'],
-            autor__content_type=content_type
+            autor__content_type=ContentType.objects.get_for_model(Parlamentar)
         )
 
         page = self.paginate_queryset(qs)
-        if page is not None:
-            serializer = SaplApiViewSetConstrutor.get_class_for_model(
-                Proposicao).serializer_class(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        data = self.serializer_class(
+            page if page is not None else qs, many=True).data
 
-        serializer = self.get_serializer(page, many=True)
-        return Response(serializer.data)
+        return self.get_paginated_response(
+            data) if page is not None else Response(data)
 
     @action(detail=True)
     def parlamentares_by_legislatura(self, request, *args, **kwargs):
