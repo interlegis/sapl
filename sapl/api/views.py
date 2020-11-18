@@ -5,19 +5,12 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
-from django.db.models.fields.files import FileField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import classonlymethod
-from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
-import django_filters
-from django_filters.filters import CharFilter
 from django_filters.rest_framework.backends import DjangoFilterBackend
-from django_filters.rest_framework.filterset import FilterSet
-from django_filters.utils import resolve_field
 from rest_framework import serializers as rest_serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
@@ -34,7 +27,7 @@ from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
     MateriaLegislativa, Tramitacao
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import Mandato, Parlamentar, Legislatura
+from sapl.parlamentares.models import Mandato, Legislatura
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
@@ -116,7 +109,7 @@ class SaplApiViewSetConstrutor():
             # Caso Exista, pega a classe sapl.api.forms.{model}FilterSet
             # ou utiliza a base definida em sapl.forms.SaplFilterSetMixin
             filter_name = f'{object_name}FilterSet'
-            _filter_class = filters_classes.get(
+            _filterset_class = filters_classes.get(
                 filter_name, SaplFilterSetMixin)
 
             def create_class():
@@ -148,11 +141,11 @@ class SaplApiViewSetConstrutor():
                         return str(obj)
 
                 _meta_filterset = object if not hasattr(
-                    _filter_class, 'Meta') else _filter_class.Meta
+                    _filterset_class, 'Meta') else _filterset_class.Meta
 
                 # Define uma classe padrão para filtro caso não tenha sido
                 # criada a classe sapl.api.forms.{model}FilterSet
-                class SaplFilterSet(_filter_class):
+                class SaplFilterSet(_filterset_class):
                     class Meta(_meta_filterset):
                         if not hasattr(_meta_filterset, 'model'):
                             model = _model
@@ -164,7 +157,7 @@ class SaplApiViewSetConstrutor():
                     # Utiliza o filtro customizado pela classe
                     # sapl.api.forms.{model}FilterSet
                     # ou utiliza o trivial SaplFilterSet definido acima
-                    filter_class = SaplFilterSet
+                    filterset_class = SaplFilterSet
 
                     # Utiliza o serializer customizado pela classe
                     # sapl.api.serializers.{model}Serializer
@@ -381,7 +374,7 @@ class _ParlamentarViewSet:
         )
 
         self.serializer_class = api_proposicao.serializer_class
-        self.filter_class = api_proposicao.filter_class
+        self.filterset_class = api_proposicao.filterset_class
         self.queryset = Proposicao.objects.all()
 
         qs = self.filter_queryset(self.get_queryset())
