@@ -9,7 +9,7 @@ class StandardPagination(pagination.PageNumberPagination):
     max_page_size = 50
 
     def paginate_queryset(self, queryset, request, view=None):
-        if request.query_params.get('get_all', False) == 'true':
+        if request.query_params.get('get_all', '').lower() == 'true':
             return None
         return super().paginate_queryset(queryset, request, view=view)
 
