@@ -620,15 +620,23 @@ class _SessaoPlenariaViewSet:
     def expedientes(self, request, *args, **kwargs):
 
         sessao = self.get_object()
+        # viewset expediente
+        api_expediente = SaplApiViewSetConstrutor.get_class_for_model(
+            ExpedienteSessao
+        )
 
-        page = self.paginate_queryset(sessao.expedientesessao_set.all())
-        if page is not None:
-            serializer = SaplApiViewSetConstrutor.get_class_for_model(
-                ExpedienteSessao).serializer_class(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        self.serializer_class = api_expediente.serializer_class
+        self.filterset_class = api_expediente.filterset_class
+        self.queryset = sessao.expedientesessao_set.all()
 
-        serializer = self.get_serializer(page, many=True)
-        return Response(serializer.data)
+        qs = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(qs)
+        data = self.serializer_class(
+            page if page is not None else qs, many=True).data
+
+        return self.get_paginated_response(
+            data) if page is not None else Response(data)
 
 
 @customize(NormaJuridica)
