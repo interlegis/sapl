@@ -334,6 +334,9 @@ def recuperar_materia(request):
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
 
+    if not (tipo and ano):
+        return JsonResponse({'numero': '', 'ano': ''})
+
     numeracao = None
     try:
         logger.debug("user=" + username +

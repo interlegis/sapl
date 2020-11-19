@@ -9,7 +9,7 @@
       var tipo = $("#id_tipo").val()
       var ano = $("#id_ano").val()
 
-      if (tipo){
+      if (tipo && ano){
         $.get("/materia/recuperar-materia", { tipo: tipo, ano: ano },
           function (data, status) {
             $("#id_numero").val(data.numero);
