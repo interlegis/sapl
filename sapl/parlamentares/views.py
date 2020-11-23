@@ -35,7 +35,7 @@ from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
 from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm,
-                    ParlamentarFilterSet, VincularParlamentarForm,
+                    ParlamentarFilterSet, PartidoFilterSet, VincularParlamentarForm,
                     BlocoForm, FrenteParlamentarForm)
                     
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
@@ -74,6 +74,10 @@ class PartidoCrud(CrudAux):
 
     class UpdateView(CrudAux.UpdateView):
         form_class = PartidoForm
+
+    class DeleteView(CrudAux.DeleteView):
+        def get_success_url(self):
+            return reverse('sapl.parlamentares:pesquisar_partido')
 
 
 class VotanteView(MasterDetailCrud):
@@ -274,6 +278,54 @@ class PesquisarColigacaoView(FilterView):
                                         filter_url=url,
                                         numero_res=len(self.object_list))
 
+        context['show_results'] = show_results_filter_set(self.request.GET.copy())
+
+        return self.render_to_response(context)
+
+
+class PesquisarPartidoView(FilterView):
+    model = Partido
+    filterset_class = PartidoFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarPartidoView, self).get_filterset_kwargs(filterset_class)
+
+        return ({
+            'data': self.request.GET or None,
+            'queryset': self.get_queryset().order_by('nome').distinct()
+        })
+
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarPartidoView, self).get_context_data(**kwargs)
+
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+
+        context.update({
+            'page_range': make_pagination(page_obj.number, paginator.num_pages),
+            'NO_ENTRIES_MSG': 'Nenhum partido encontrado!',
+            'title': _('Partidos')
+        })
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarPartidoView, self).get(request)
+
+        data = self.filterset.data
+        url = ''
+        if data:
+            url = "&" + str(self.request.META['QUERY_STRING'])
+            if url.startswith("&page"):
+                ponto_comeco = url.find('nome=') - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=self.object_list,
+                                        filter_url=url,
+                                        numero_res=len(self.object_list))
         context['show_results'] = show_results_filter_set(self.request.GET.copy())
 
         return self.render_to_response(context)
