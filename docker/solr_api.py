@@ -27,9 +27,15 @@ class SolrClient:
     def get_num_docs(self, collection_name):
         final_url = self.QUERY_DATA.format(self.url, collection_name)
         res = requests.get(final_url)
-        dic = res.json()
-        num_docs = dic["response"]["numFound"]
-        return num_docs
+        if res.ok:
+            try:
+                dic = res.json()
+                return dic["response"]["numFound"]
+            except Exception as e:
+                print(F"Erro no get_num_docs: {e}")
+                print(res.content)
+
+        return 0
 
     def list_collections(self):
         req_url = self.LIST_COLLECTIONS.format(self.url)
