@@ -272,11 +272,16 @@ class ColigacaoFilterSet(django_filters.FilterSet):
 
 
 class PartidoFilterSet(django_filters.FilterSet):
-    nome = django_filters.CharFilter(label=_('Nome do Partido'), lookup_expr='icontains')
+    nome = django_filters.CharFilter(label=_('Nome do Partido'),
+                                     method='multifield_filter')
 
     class Meta:
         model = Partido
         fields = ['nome']
+
+    def multifield_filter(self, queryset, name, value):
+        return queryset.filter(
+            Q(sigla__icontains=value) | Q(nome__icontains=value))
 
     def __init__(self, *args, **kwargs):
         super(PartidoFilterSet, self).__init__(*args, **kwargs)
