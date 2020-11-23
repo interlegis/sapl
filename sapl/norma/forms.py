@@ -40,6 +40,30 @@ ORDENACAO_CHOICES = [('', '---------'),
                      ('data,tipo,ano,numero', _('Data/Tipo/Ano/Número'))]
 
 
+class AssuntoNormaFilterSet(django_filters.FilterSet):
+    assunto = django_filters.CharFilter(label=_("Assunto"), lookup_expr="icontains")
+
+    class Meta:
+        model = AssuntoNorma
+        fields = ["assunto"]
+
+    def multifield_filter(self, queryset, name, value):
+        return queryset.filter(Q(assunto__icontains=value) | Q(descricao__icontains=value))
+
+    def __init__(self, *args, **kwargs):
+        super(AssuntoNormaFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([("assunto", 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = "GET"
+        self.form.helper.layout = Layout(
+            Fieldset(
+                _("Pesquisa de Assunto de Norma Jurídica"),
+                row0, form_actions(label="Pesquisar"))
+        )
+
+
 class NormaFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,

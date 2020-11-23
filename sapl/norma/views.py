@@ -28,14 +28,13 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
 from sapl.utils import show_results_filter_set, get_client_ip
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
-                    NormaPesquisaSimplesForm, NormaRelacionadaForm, AutoriaNormaForm)
+                    NormaPesquisaSimplesForm, NormaRelacionadaForm,
+                    AutoriaNormaForm, AssuntoNormaFilterSet)
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma, NormaEstatisticas)
 
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
-AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
-                                 list_field_names=['assunto', 'descricao'])
 
 
 TipoNormaCrud = CrudAux.build(
@@ -44,6 +43,75 @@ TipoNormaCrud = CrudAux.build(
 TipoVinculoNormaJuridicaCrud = CrudAux.build(
     TipoVinculoNormaJuridica, '',
     list_field_names=['sigla', 'descricao_ativa', 'descricao_passiva', 'revoga_integralmente'])
+
+
+class AssuntoNormaCrud(CrudAux):
+    model = AssuntoNorma
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ["assunto", "descricao"]
+
+    class DeleteView(CrudAux.DeleteView):
+        def get_success_url(self):
+            return reverse('sapl.norma:pesquisar_assuntonorma')
+
+
+class PesquisarAssuntoNormaView(FilterView):
+    model = AssuntoNorma
+    filterset_class = AssuntoNormaFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarAssuntoNormaView, self).get_filterset_kwargs(
+            filterset_class
+        )
+
+        return ({
+            "data": self.request.GET or None,
+            "queryset": self.get_queryset().order_by("assunto").distinct()
+        })
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarAssuntoNormaView, self).get_context_data(
+            **kwargs
+        )
+
+        paginator = context["paginator"]
+        page_obj = context["page_obj"]
+
+        context.update({
+            "page_range": make_pagination(
+                page_obj.number, paginator.num_pages
+            ),
+            "NO_ENTRIES_MSG": "Nenhum assunto de norma jurídica encontrado!",
+            "title": _("Assunto de Norma Jurídica")
+        })
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarAssuntoNormaView, self).get(request)
+
+        data = self.filterset.data
+
+        url = ''
+
+        if data:
+            url = '&' + str(self.request.META["QUERY_STRING"])
+            if url.startswith("&page"):
+                ponto_comeco = url.find("assunto=") - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(
+            filter=self.filterset, object_list=self.object_list,
+            filter_url=url, numero_res=len(self.object_list)
+        )
+
+        context["show_results"] = show_results_filter_set(
+            self.request.GET.copy()
+        )
+
+        return self.render_to_response(context)
 
 
 class NormaRelacionadaCrud(MasterDetailCrud):
