@@ -1,0 +1,14 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+
+{% block actions %}
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.materia:pesquisar_statustramitacao' %}" class="btn btn-outline-primary">Pesquisar Status de Tramitação</a>
+        <a href="{% url 'sapl.materia:statustramitacao_create' %}" class="btn btn-outline-primary">Adicionar Status de Tramitação</a>
+    </div>
+    <div class="actions btn-group btn-group-sm float-right" role="group">
+        <a href="{% url 'sapl.materia:statustramitacao_update' object.pk %}" class="btn btn-outline-primary">Editar</a>
+        <a href="{% url 'sapl.materia:statustramitacao_delete' object.pk %}" class="btn btn-outline-danger">Excluir</a>
+    </div>
+{% endblock actions %}

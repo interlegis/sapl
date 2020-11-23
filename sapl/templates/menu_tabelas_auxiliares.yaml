@@ -119,8 +119,11 @@
   - title: {% trans 'Origem' %}
     url: sapl.materia:origem_list
     css_class: btn btn-link
-  - title: {% trans 'Status da Tramitação' %}
-    url: sapl.materia:statustramitacao_list
+  - title: {% trans 'Pesquisar Status de Tramitação' %}
+    url: sapl.materia:pesquisar_statustramitacao
+    css_class: btn btn-link
+  - title: {% trans 'Adicionar Status de Tramitação' %}
+    url: sapl.materia:statustramitacao_create
     css_class: btn btn-link
   - title: {% trans 'Órgão' %}
     url: sapl.materia:orgao_list
