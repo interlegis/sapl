@@ -1,0 +1,13 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+{% block actions %}
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.parlamentares:pesquisar_coligacao' %}" class="btn btn-outline-primary">Pesquisar Coligação</a>
+        <a href="{% url 'sapl.parlamentares:coligacao_create' %}" class="btn btn-outline-primary">Adicionar Coligação</a>
+    </div>
+    <div class="actions btn-group btn-group-sm float-right" role="group">
+        <a href="{% url 'sapl.parlamentares:coligacao_update' object.pk %}" class="btn btn-outline-primary">Editar</a>
+        <a href="{% url 'sapl.parlamentares:coligacao_delete' object.pk %}" class="btn btn-outline-danger">Excluir</a>
+    </div>
+{% endblock actions %}
