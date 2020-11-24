@@ -30,7 +30,7 @@ class SolrClient:
 
     CONFIGSET_NAME = "sapl_configset"
 
-    CONFIGSET_PATH = "../solr/sapl_configset/conf"
+    CONFIGSET_PATH = "./solr/sapl_configset/conf"
 
     def __init__(self, url):
         self.url = url
