@@ -29,7 +29,7 @@ class SolrClient:
 
     CONFIGSET_NAME = "sapl_configset"
 
-    CONFIGSET_PATH = "./solr/sapl_configset/conf/"
+    CONFIGSET_PATH = "../solr/sapl_configset/conf/"
 
     def __init__(self, url):
         self.url = url
@@ -75,7 +75,10 @@ class SolrClient:
             _zipfile = BytesIO()
             with zipfile.ZipFile(_zipfile, 'w', zipfile.ZIP_DEFLATED) as zipf:
                 for f in configset_files:
-                    zipf.write(f, f.split(os.sep)[-1])
+                    # pega nome a partir de conf/ sem perder nomes de subdiretório
+                    filename = f[f.index('conf/')+5:]
+                    print(filename)
+                    zipf.write(f, filename)
             return _zipfile
         except Exception as e:
             print(e)
@@ -91,13 +94,20 @@ class SolrClient:
             print(F"Erro ao configurar configsets. Erro: {e}")
             print(res.content)
 
-        # GENERATE in memory configset
-        configset_zip = self.zip_configset()
-
         # UPLOAD configset
         if not self.CONFIGSET_NAME in configsets or force:
+
+            # GENERATE in memory configset
+            configset_zip = self.zip_configset()
+            data = configset_zip.getvalue()
+            configset_zip.close()
+
+            #DEBUG
+            with open('teste.zip', 'wb') as f:
+                f.write(data)
+
             files = {'file': ('saplconfigset.zip',
-                              configset_zip.getvalue(),
+                              data,
                               'application/octet-stream',
                               {'Expires': '0'})}
 
@@ -105,6 +115,8 @@ class SolrClient:
 
             resp = requests.post(req_url, files=files)
             print(resp.content)
+
+            configset_zip.close()
         else:
             print('O %s já presente no servidor, NÃO enviando.' % self.CONFIGSET_NAME)
 
