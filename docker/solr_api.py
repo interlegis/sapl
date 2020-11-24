@@ -59,8 +59,13 @@ class SolrClient:
 
     def zip_configset(self):
         try:
-            configset_files = [os.path.join(self.CONFIGSET_PATH, i) for i in
-                               os.listdir(self.CONFIGSET_PATH)]
+            # get configset files
+            configset_files = []
+            for root, d, files in os.walk(self.CONFIGSET_PATH):
+                for f in files:
+                    configset_files.append(os.path.join(root, f))
+
+            # zip files in memory
             _zipfile = BytesIO()
             with zipfile.ZipFile(_zipfile, 'w', zipfile.ZIP_DEFLATED) as zipf:
                 for f in configset_files:
