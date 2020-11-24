@@ -1,25 +1,35 @@
-
+from io import BytesIO
+import argparse
+import os
 import requests
 import subprocess
 import sys
-import argparse
+import zipfile
 
+##
+## Este módulo deve ser executado na raiz do projeto
+##
 
 class SolrClient:
 
     LIST_CONFIGSETS = "{}/solr/admin/configs?action=LIST&omitHeader=true&wt=json"
     UPLOAD_CONFIGSET = "{}/solr/admin/configs?action=UPLOAD&name={}&wt=json"
     LIST_COLLECTIONS = "{}/solr/admin/collections?action=LIST&wt=json"
-    STATUS_COLLECTION = "{}/solr/admin/collections?action=CLUSTERSTATUS&collection={}&wt=json"
+    STATUS_COLLECTION = "{}/solr/admin/collections?action=CLUSTERSTATUS" \
+                        "&collection={}&wt=json"
     STATUS_CORE = "{}/admin/cores?action=STATUS&name={}"
     EXISTS_COLLECTION = "{}/solr/{}/admin/ping?wt=json"
     OPTIMIZE_COLLECTION = "{}/solr/{}/update?optimize=true&wt=json"
-    CREATE_COLLECTION = "{}/solr/admin/collections?action=CREATE&name={}&collection.configName={}&numShards={}&replicationFactor={}&maxShardsPerNode={}&wt=json"
+    CREATE_COLLECTION = "{}/solr/admin/collections?action=CREATE&name={}" \
+                        "&collection.configName={}&numShards={}" \
+                        "&replicationFactor={}&maxShardsPerNode={}&wt=json"
     DELETE_COLLECTION = "{}/solr/admin/collections?action=DELETE&name={}&wt=json"
     DELETE_DATA = "{}/solr/{}/update?commitWithin=1000&overwrite=true&wt=json"
     QUERY_DATA = "{}/solr/{}/select?q=*:*"
 
     CONFIGSET_NAME = "sapl_configset"
+
+    CONFIGSET_PATH = "./solr/sapl_configset/conf/"
 
     def __init__(self, url):
         self.url = url
@@ -47,16 +57,32 @@ class SolrClient:
         collections = self.list_collections()
         return True if collection_name in collections else False
 
+    def zip_configset(self):
+        try:
+            configset_files = [os.path.join(self.CONFIGSET_PATH, i) for i in
+                               os.listdir(self.CONFIGSET_PATH)]
+            _zipfile = BytesIO()
+            with zipfile.ZipFile(_zipfile, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for f in configset_files:
+                    zipf.write(f, f.split(os.sep)[-1])
+            return _zipfile
+        except Exception as e:
+            print(e)
+            raise e
+
     def maybe_upload_configset(self, force=False):
         req_url = self.LIST_CONFIGSETS.format(self.url)
         res = requests.get(req_url)
         dic = res.json()
         configsets = dic['configSets']
+
+        # GENERATE in memory configset
+        configset_zip = self.zip_configset()
+
         # UPLOAD configset
         if not self.CONFIGSET_NAME in configsets or force:
             files = {'file': ('saplconfigset.zip',
-                              open('./solr/sapl_configset/conf/saplconfigset.zip',
-                                   'rb'),
+                              configset_zip.getvalue(),
                               'application/octet-stream',
                               {'Expires': '0'})}
 
