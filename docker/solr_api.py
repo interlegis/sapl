@@ -5,6 +5,7 @@ import requests
 import subprocess
 import sys
 import zipfile
+from pathlib import Path
 
 ##
 ## Este módulo deve ser executado na raiz do projeto
@@ -29,7 +30,7 @@ class SolrClient:
 
     CONFIGSET_NAME = "sapl_configset"
 
-    CONFIGSET_PATH = "../solr/sapl_configset/conf/"
+    CONFIGSET_PATH = "../solr/sapl_configset/conf"
 
     def __init__(self, url):
         self.url = url
@@ -64,20 +65,13 @@ class SolrClient:
 
     def zip_configset(self):
         try:
-            # get configset files
-            configset_files = []
-            for root, d, files in os.walk(self.CONFIGSET_PATH):
-                for f in files:
-                    configset_files.append(os.path.join(root, f))
+            base_path = Path(self.CONFIGSET_PATH).expanduser().resolve(strict=True)
 
             # zip files in memory
             _zipfile = BytesIO()
-            with zipfile.ZipFile(_zipfile, 'w') as zipf:
-                for f in configset_files:
-                    # pega nome a partir de conf/ sem perder nomes de subdiretório
-                    filename = f[f.index('conf/')+5:]
-                    print(filename)
-                    zipf.write(f, filename, compress_type=zipfile.ZIP_DEFLATED)
+            with zipfile.ZipFile(_zipfile, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for file in base_path.rglob('*'):
+                    zipf.write(file, file.relative_to(base_path))
             return _zipfile
         except Exception as e:
             print(e)
