@@ -42,7 +42,7 @@ class SolrClient:
                 dic = res.json()
                 return dic["response"]["numFound"]
             except Exception as e:
-                print(F"Erro no get_num_docs: {e}")
+                print(F"Erro no get_num_docs. Erro: {e}")
                 print(res.content)
 
         return 0
@@ -50,8 +50,14 @@ class SolrClient:
     def list_collections(self):
         req_url = self.LIST_COLLECTIONS.format(self.url)
         res = requests.get(req_url)
-        dic = res.json()
-        return dic['collections']
+        try:
+            dic = res.json()
+            return dic['collections']
+        except Exception as e:
+            print(F"Erro no list_collections. Erro: {e}")
+            print(res.content)
+            return 0
+        
 
     def exists_collection(self, collection_name):
         collections = self.list_collections()
@@ -78,8 +84,12 @@ class SolrClient:
     def maybe_upload_configset(self, force=False):
         req_url = self.LIST_CONFIGSETS.format(self.url)
         res = requests.get(req_url)
-        dic = res.json()
-        configsets = dic['configSets']
+        try:
+            dic = res.json()
+            configsets = dic['configSets']
+        except Exception as e:
+            print(F"Erro ao configurar configsets. Erro: {e}")
+            print(res.content)
 
         # GENERATE in memory configset
         configset_zip = self.zip_configset()
@@ -111,8 +121,12 @@ class SolrClient:
             print("Collection '%s' created succesfully" % collection_name)
         else:
             print("Error creating collection '%s'" % collection_name)
-            as_json = res.json()
-            print("Error %s: %s" % (res.status_code, as_json['error']['msg']))
+            try:
+                as_json = res.json()
+                print("Error %s: %s" % (res.status_code, as_json['error']['msg']))
+            except Exception as e:
+                print(F"Erro ao verificar erro na resposta. Erro: {e}")
+                print(res.content)
             return False
         return True
     
