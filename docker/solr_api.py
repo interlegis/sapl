@@ -57,7 +57,6 @@ class SolrClient:
             print(F"Erro no list_collections. Erro: {e}")
             print(res.content)
             return 0
-        
 
     def exists_collection(self, collection_name):
         collections = self.list_collections()
@@ -73,12 +72,12 @@ class SolrClient:
 
             # zip files in memory
             _zipfile = BytesIO()
-            with zipfile.ZipFile(_zipfile, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            with zipfile.ZipFile(_zipfile, 'w') as zipf:
                 for f in configset_files:
                     # pega nome a partir de conf/ sem perder nomes de subdiretório
                     filename = f[f.index('conf/')+5:]
                     print(filename)
-                    zipf.write(f, filename)
+                    zipf.write(f, filename, compress_type=zipfile.ZIP_DEFLATED)
             return _zipfile
         except Exception as e:
             print(e)
