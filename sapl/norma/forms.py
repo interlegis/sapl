@@ -41,7 +41,8 @@ ORDENACAO_CHOICES = [('', '---------'),
 
 
 class AssuntoNormaFilterSet(django_filters.FilterSet):
-    assunto = django_filters.CharFilter(label=_("Assunto"), lookup_expr="icontains")
+    assunto = django_filters.CharFilter(label=_("Assunto"),
+                                        method='multifield_filter')
 
     class Meta:
         model = AssuntoNorma
@@ -51,7 +52,7 @@ class AssuntoNormaFilterSet(django_filters.FilterSet):
         return queryset.filter(Q(assunto__icontains=value) | Q(descricao__icontains=value))
 
     def __init__(self, *args, **kwargs):
-        super(AssuntoNormaFilterSet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         row0 = to_row([("assunto", 12)])
 
