@@ -95,10 +95,6 @@ class SolrClient:
             data = configset_zip.getvalue()
             configset_zip.close()
 
-            #DEBUG
-            with open('teste.zip', 'wb') as f:
-                f.write(data)
-
             files = {'file': ('saplconfigset.zip',
                               data,
                               'application/octet-stream',
@@ -109,7 +105,6 @@ class SolrClient:
             resp = requests.post(req_url, files=files)
             print(resp.content)
 
-            configset_zip.close()
         else:
             print('O %s já presente no servidor, NÃO enviando.' % self.CONFIGSET_NAME)
 
