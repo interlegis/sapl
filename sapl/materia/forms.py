@@ -2789,7 +2789,7 @@ class FichaSelecionaForm(forms.Form):
 
 
 class StatusTramitacaoFilterSet(django_filters.FilterSet):
-    descricao = django_filters.CharFilter(label=_("Descrição do Status"), lookup_expr="icontains")
+    descricao = django_filters.CharFilter(label=_("Descrição do Status"), method='multifield_filter')
 
     class Meta:
         model = StatusTramitacao
@@ -2799,7 +2799,7 @@ class StatusTramitacaoFilterSet(django_filters.FilterSet):
         return queryset.filter(Q(sigla__icontains=value) | Q(descricao__icontains=value))
 
     def __init__(self, *args, **kwargs):
-        super(StatusTramitacaoFilterSet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         row0 = to_row([("descricao", 12)])
 
