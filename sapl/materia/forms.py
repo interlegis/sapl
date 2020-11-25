@@ -2788,6 +2788,28 @@ class FichaSelecionaForm(forms.Form):
         )
 
 
+class StatusTramitacaoFilterSet(django_filters.FilterSet):
+    descricao = django_filters.CharFilter(label=_("Descrição do Status"), lookup_expr="icontains")
+
+    class Meta:
+        model = StatusTramitacao
+        fields = ["descricao"]
+
+    def multifield_filter(self, queryset, name, value):
+        return queryset.filter(Q(sigla__icontains=value) | Q(descricao__icontains=value))
+
+    def __init__(self, *args, **kwargs):
+        super(StatusTramitacaoFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([("descricao", 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = "GET"
+        self.form.helper.layout = Layout(
+            Fieldset(_("Pesquisa de Status de Tramitacao"), row0, form_actions(label="Pesquisar"))
+        )
+
+
 class ExcluirTramitacaoEmLote(forms.Form):
 
     logger = logging.getLogger(__name__)

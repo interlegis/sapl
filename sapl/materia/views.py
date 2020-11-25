@@ -60,14 +60,17 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_u
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
-                    compara_tramitacoes_mat, DespachoInicialForm, DocumentoAcessorioForm,
-                    EtiquetaPesquisaForm, ExcluirTramitacaoEmLote, FichaPesquisaForm,
+                    compara_tramitacoes_mat, DespachoInicialForm,
+                    DocumentoAcessorioForm, EtiquetaPesquisaForm,
+                    ExcluirTramitacaoEmLote, FichaPesquisaForm,
                     FichaSelecionaForm, filtra_tramitacao_destino,
-                    filtra_tramitacao_destino_and_status, filtra_tramitacao_status,
-                    MateriaAssuntoForm, MateriaLegislativaFilterSet, MateriaLegislativaForm,
+                    filtra_tramitacao_destino_and_status,
+                    filtra_tramitacao_status, MateriaAssuntoForm,
+                    MateriaLegislativaFilterSet, MateriaLegislativaForm,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
-                    ReceberProposicaoForm, RelatoriaForm, TramitacaoEmLoteFilterSet,
-                    TramitacaoEmLoteForm, UnidadeTramitacaoForm)
+                    ReceberProposicaoForm, RelatoriaForm,
+                    TramitacaoEmLoteFilterSet, TramitacaoEmLoteForm,
+                    UnidadeTramitacaoForm, StatusTramitacaoFilterSet)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaAssunto, MateriaLegislativa, Numeracao, Orgao,
                      Origem, Proposicao, RegimeTramitacao, Relatoria, StatusTramitacao,
@@ -379,7 +382,70 @@ def recuperar_materia(request):
     return response
 
 
-StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
+class StatusTramitacaoCrud(CrudAux):
+    model = StatusTramitacao
+
+    class DeleteView(CrudAux.DeleteView):
+        def get_success_url(self):
+            return reverse('sapl.materia:pesquisar_statustramitacao')
+
+
+class PesquisarStatusTramitacaoView(FilterView):
+    model = StatusTramitacao
+    filterset_class = StatusTramitacaoFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarStatusTramitacaoView, self).get_filterset_kwargs(
+            filterset_class
+        )
+
+        return ({
+            "data": self.request.GET or None,
+            "queryset": self.get_queryset().order_by("sigla").distinct()
+        })
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarStatusTramitacaoView, self).get_context_data(
+            **kwargs
+        )
+
+        paginator = context["paginator"]
+        page_obj = context["page_obj"]
+
+        context.update({
+            "page_range": make_pagination(
+                page_obj.number, paginator.num_pages
+            ),
+            "NO_ENTRIES_MSG": "Nenhum status de tramitacao encontrado!",
+            "title": _("Status de Tramitação")
+        })
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarStatusTramitacaoView, self).get(request)
+
+        data = self.filterset.data
+
+        url = ''
+
+        if data:
+            url = '&' + str(self.request.META["QUERY_STRING"])
+            if url.startswith("&page"):
+                ponto_comeco = url.find("sigla=") - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(
+            filter=self.filterset, object_list=self.object_list,
+            filter_url=url, numero_res=len(self.object_list)
+        )
+
+        context["show_results"] = show_results_filter_set(
+            self.request.GET.copy()
+        )
+
+        return self.render_to_response(context)
 
 
 class OrgaoCrud(CrudAux):
