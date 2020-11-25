@@ -1,0 +1,34 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping %}
+
+{% block actions %}
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a 
+            href="{% url 'sapl.norma:pesquisar_assuntonorma' %}"
+            class="btn btn-outline-primary"
+        >
+           Pesquisar Assunto de Norma Jurídica
+        </a>
+        <a 
+            href="{% url 'sapl.norma:assuntonorma_create' %}"
+            class="btn btn-outline-primary"
+        >
+            Adicionar Assunto de Norma Jurídica
+        </a>
+    </div>
+    <div class="actions btn-group btn-group-sm float-right" role="group">
+        <a
+            href="{% url 'sapl.norma:assuntonorma_update' object.pk %}"
+            class="btn btn-outline-primary"
+        >
+            Editar
+        </a>
+        <a
+            href="{% url 'sapl.norma:assuntonorma_delete' object.pk %}"
+            class="btn btn-outline-danger"
+        >
+            Excluir
+        </a>
+    </div>
+{% endblock actions %}

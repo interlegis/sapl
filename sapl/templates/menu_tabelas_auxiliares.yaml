@@ -140,11 +140,14 @@
   - title: {% trans 'Tipo de Norma Jurídica' %}
     url: sapl.norma:tiponormajuridica_list
     css_class: btn btn-link
-  - title: {% trans 'Assunto de Norma Jurídica' %}
-    url: sapl.norma:assuntonorma_list
-    css_class: btn btn-link
   - title: {% trans 'Tipo de Vínculo' %}
     url: sapl.norma:tipovinculonormajuridica_list
+    css_class: btn btn-link
+  - title: {% trans 'Pesquisar Assunto de Norma Jurídica' %}
+    url: sapl.norma:pesquisar_assuntonorma
+    css_class: btn btn-link
+  - title: {% trans 'Adicionar Assunto de Norma Jurídica' %}
+    url: sapl.norma:assuntonorma_create
     css_class: btn btn-link
 - title: {% trans 'Módulo Textos Articulados' %}
   css_class: head_title
