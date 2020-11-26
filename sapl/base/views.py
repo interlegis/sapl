@@ -2117,6 +2117,7 @@ class AppConfigCrud(CrudAux):
 
     class UpdateView(CrudAux.UpdateView):
 
+        template_name = 'base/AppConfig.html'
         form_class = ConfiguracoesAppForm
 
         def form_valid(self, form):
