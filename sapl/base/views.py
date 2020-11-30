@@ -461,8 +461,7 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
 
     def get_context_data(self, **kwargs):
 
-        context = super(RelatorioPresencaSessaoView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = _('Presença dos parlamentares nas sessões')
 
         # Verifica se os campos foram preenchidos
@@ -599,12 +598,12 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
         context['total_ordemdia'] = total_ordemdia
         context['total_sessao'] = context['object_list'].count()
         context['parlamentares'] = parlamentares_presencas
-        context['periodo'] = (
-            self.request.GET['data_inicio_0'] +
-            ' - ' + self.request.GET['data_inicio_1'])
+        context['periodo'] = f"{self.request.GET['data_inicio_0']} - {self.request.GET['data_inicio_1']}"
         context['sessao_legislativa'] = ''
         context['legislatura'] = ''
         context['exibir_ordem'] = self.request.GET.get('exibir_ordem_dia') == 'on'
+        context['exibir_somente_titular'] = self.request.GET.get('exibir_somente_titular') == 'on'
+        context['exibir_somente_ativo'] = self.request.GET.get('exibir_somente_ativo') == 'on'
 
         if sessao_legislativa_pk:
             context['sessao_legislativa'] = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
