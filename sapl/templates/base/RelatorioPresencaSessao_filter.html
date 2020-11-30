@@ -45,17 +45,19 @@
       </thead>
       <tbody>
         {% for p in parlamentares %}
-          <tr>
-            <td><b>{{p.parlamentar}}</b> / {{p.parlamentar|filiacao_intervalo_filter:date_range|default:"Sem Partido"}}</td>
-            <td>{% if p.titular %} Sim {% else %} Não {% endif %}</td>
-            <td>{% if p.parlamentar.ativo %} Sim {% else %} Não {% endif %}</td>
-            <td>{{p.sessao_count}}</td>
-            <td>{{p.sessao_porc}}</td>
-            {% if exibir_ordem %} 
-              <td>{{p.ordemdia_count}}</td>
-              <td>{{p.ordemdia_porc}}</td>
-            {% endif %}
-          </tr>
+          {% if not exibir_somente_titular or p.titular %}
+            <tr>
+              <td><b> {{p.parlamentar}}</b> / {{p.parlamentar|filiacao_intervalo_filter:date_range|default:"Sem Partido"}}</td>
+              <td>{% if p.titular %} Sim {% else %} Não {% endif %}</td>
+              <td>{% if p.parlamentar.ativo %} Sim {% else %} Não {% endif %}</td>
+              <td>{{p.sessao_count}}</td>
+              <td>{{p.sessao_porc}}</td>
+              {% if exibir_ordem %} 
+                <td>{{p.ordemdia_count}}</td>
+                <td>{{p.ordemdia_porc}}</td>
+              {% endif %}
+            </tr>
+          {% endif %}
         {% endfor %}
       </tbody>
     </table>
